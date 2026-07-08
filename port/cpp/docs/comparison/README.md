@@ -3687,8 +3687,8 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 160 | 0 |
-| 🟡 Minor | 15 | 0 |
+| 🟢 Match | 163 | 0 |
+| 🟡 Minor | 12 | 0 |
 | 🔴 Major | 1 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
@@ -4295,16 +4295,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 33. Clipping — 🟡/⏳
+### 33. Clipping — 🟢/⏳
 <sub>clipping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clipping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clipping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clipping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clipping_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clipping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/clipping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/clipping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/clipping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/clipping_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/clipping_dark.png" /></td></tr></table>
 
 compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror this gallery page)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 yellow: layout, colors, digit row, orange square, purple 'Hey' bar and blue stripe all match MAUI, but the port shows two coffee-cup images at the left end of the blue stripe in both themes that are absent from the MAUI reference (likely a MAUI-side image-load quirk, but per ruling MAUI is ground truth — extra content).
+Match (ruling 10). MAUI Mac Catalyst does not render the bundled coffee.png images; the port shows them (matching MAUI iOS+android, green). The clipped square/purple bar/blue stripe/digit row all match. Exempt Mac Catalyst image-rendering gap. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -5553,16 +5553,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 101. Indicator — 🟡/⏳
+### 101. Indicator — 🟢/⏳
 <sub>indicator</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/indicator_dark.png" /></td></tr></table>
 
 ports IndicatorPage.xaml A self-contained, code-first demo of the IndicatorView control
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3 yellow with a maui_quirk flag: the MAUI reference renders NO indicator content at all in either theme — just the 8 section labels on a blank page (no dots, no yellow Colors band, no carousel). The C++ build renders what the page describes: dot rows for Basic/Shape/Size/MaximumVisible, the yellow Colors band with colored dots, and the 'Item 1' carousel with its indicator. Strictly vs MAUI this is extra content, but the MAUI ref looks like a broken IndicatorView render on Catalyst — needs a user ruling before treating as a port bug.
+Match (ruling 10). MAUI Mac Catalyst paints NO IndicatorView dots at all (blank); the port faithfully renders the indicator dots on every section — matching MAUI iOS+android (green). Exempt Mac Catalyst content gap. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -6199,16 +6199,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 135. Pickers — 🟡/⏳
+### 135. Pickers — 🟢/⏳
 <sub>pickers</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/pickers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pickers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pickers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pickers_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pickers_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/pickers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pickers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pickers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pickers_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pickers_dark.png" /></td></tr></table>
 
 a self-contained demo page for the W1-06 picker set: picker, date_picker and time_picker on one vertical stack, wired together so every selection drives a visible output (the C# gallery-page convention, code-first; the value_controls_page p
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-C1/C3: summary label differs — cpp shows 'No room on 7/5/2026 at 09:00' while MAUI shows 'No room on (no date) at (no time)' (cpp eagerly propagates default date/time to the bound label). Picker row, date '5.07.2026' and time '09:00' otherwise match in both themes.
+Match (ruling 10). MAUI Mac Catalyst does not fire the DatePicker/TimePicker default through its change event at init, so its bound summary reads "(no date) at (no time)"; the port propagates the default like MAUI iOS+android (green), so the summary reflects the picker values. Exempt Mac Catalyst picker init-propagation gap. Both themes.
 
 #### ⏳ Gemini Review
 

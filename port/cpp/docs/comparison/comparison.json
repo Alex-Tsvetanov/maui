@@ -4100,16 +4100,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3 yellow: layout, colors, digit row, orange square, purple 'Hey' bar and blue stripe all match MAUI, but the port shows two coffee-cup images at the left end of the blue stripe in both themes that are absent from the MAUI reference (likely a MAUI-side image-load quirk, but per ruling MAUI is ground truth \u2014 extra content)."
+          "status": "green",
+          "review": "Match (ruling 10). MAUI Mac Catalyst does not render the bundled coffee.png images; the port shows them (matching MAUI iOS+android, green). The clipped square/purple bar/blue stripe/digit row all match. Exempt Mac Catalyst image-rendering gap. Both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "yellow",
-          "review": "C2/C4 yellow: identical to the cpp column \u2014 pixel-level match with MAUI except the two extra coffee-cup images on the blue stripe in both themes."
+          "status": "green",
+          "review": "Match (ruling 10). Same fuller render as the cpp column (indicator dots / coffee.png), exempt vs MAUI Mac Catalyst's content gap."
         },
         "pixel": {
           "status": "yellow",
@@ -12172,8 +12172,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3 yellow with a maui_quirk flag: the MAUI reference renders NO indicator content at all in either theme \u2014 just the 8 section labels on a blank page (no dots, no yellow Colors band, no carousel). The C++ build renders what the page describes: dot rows for Basic/Shape/Size/MaximumVisible, the yellow Colors band with colored dots, and the 'Item 1' carousel with its indicator. Strictly vs MAUI this is extra content, but the MAUI ref looks like a broken IndicatorView render on Catalyst \u2014 needs a user ruling before treating as a port bug."
+          "status": "green",
+          "review": "Match (ruling 10). MAUI Mac Catalyst paints NO IndicatorView dots at all (blank); the port faithfully renders the indicator dots on every section \u2014 matching MAUI iOS+android (green). Exempt Mac Catalyst content gap. Both themes."
         },
         "gemini": {
           "status": null,
@@ -12181,7 +12181,7 @@
         },
         "sonnet_xaml": {
           "status": "yellow",
-          "review": "C2/C4 yellow: XAML column renders the yellow Colors band (absent in the blank MAUI ref) but, unlike cpp, no indicator dots and no carousel section at all. It diverges from both the MAUI ref (extra yellow band; suspected broken MAUI IndicatorView render \u2014 same maui_quirk flag as cpp) and from the cpp column (missing dots/carousel), so the XAML page is also incompletely rendered."
+          "review": "C2/C4: the compile-time-XAML column renders the IndicatorView dots (exempt vs MAUI Mac Catalyst's blank per ruling 10), but its dot layout differs ~2.8% from the cpp column (minor cpp/xaml IndicatorView positioning divergence) \u2014 held yellow to reflect that cpp/xaml delta. Both themes."
         },
         "pixel": {
           "status": "yellow",
@@ -16490,16 +16490,16 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "C1/C3: summary label differs \u2014 cpp shows 'No room on 7/5/2026 at 09:00' while MAUI shows 'No room on (no date) at (no time)' (cpp eagerly propagates default date/time to the bound label). Picker row, date '5.07.2026' and time '09:00' otherwise match in both themes."
+          "status": "green",
+          "review": "Match (ruling 10). MAUI Mac Catalyst does not fire the DatePicker/TimePicker default through its change event at init, so its bound summary reads \"(no date) at (no time)\"; the port propagates the default like MAUI iOS+android (green), so the summary reflects the picker values. Exempt Mac Catalyst picker init-propagation gap. Both themes."
         },
         "gemini": {
           "status": null,
           "review": ""
         },
         "sonnet_xaml": {
-          "status": "green",
-          "review": "C2/C4: xaml matches MAUI exactly in both themes, including the '(no date) at (no time)' summary text."
+          "status": "yellow",
+          "review": "C2/C4: the compile-time-XAML column does NOT propagate the picker default at init, so its summary reads \"(no date) at (no time)\" \u2014 this only coincidentally matches MAUI Mac Catalyst (which also does not propagate, per ruling 10) but diverges from the cpp column and from MAUI iOS/android which DO propagate. A functional gap in the XAML init-propagation path. Both themes."
         },
         "pixel": {
           "status": "yellow",

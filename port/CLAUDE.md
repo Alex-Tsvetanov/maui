@@ -190,6 +190,23 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
    pages on maccatalyst. Applies to CollectionView pages with applied selection on the maccatalyst backend
    (preselected_item, preselected_items, multiple_bound_selection, selection_synchronization, and any similar).
 
+10. **Mac Catalyst "renders-less" content gaps are exempt MAUI-side quirks (2026-07-08 ruling).** On several
+    pages MAUI **Mac Catalyst** renders LESS than the authored content — a Mac Catalyst platform limitation —
+    while MAUI iOS AND Android render it fully, and the port (reusing the iOS handlers) faithfully renders it
+    too, matching MAUI iOS+Android (green on both). Confirmed classes: (a) **IndicatorView content** — MAUI
+    Mac Catalyst paints no indicator dots at all (blank), the port shows them (`indicator`); (b) **bundled-image
+    rendering** — MAUI Mac Catalyst does not render certain bundled images (e.g. `coffee.png`) that iOS/Android
+    do, the port shows them (`clipping`); (c) **picker default-value propagation at init** — MAUI Mac Catalyst
+    does not fire a DatePicker/TimePicker's default through its change event at first layout (so a bound summary
+    reads "(no date) at (no time)"), whereas iOS/Android (and the port on all backends) propagate the default
+    (`pickers`). Per this ruling the port's fuller render is CORRECT and the Mac Catalyst shortfall is an exempt
+    platform quirk (like rulings 2/7/8/9) — do NOT add maccatalyst-specific branches to suppress the content,
+    and do NOT count it as a diff when judging these pages on maccatalyst. **Scope caveat:** this ruling covers
+    Mac Catalyst CONTENT/rendering/init GAPS only. It does NOT cover cases where MAUI's Mac Catalyst behavior is
+    the DOCUMENTED, intended MAUI layout behavior — notably the empty-`CollectionView`-greedily-expands-in-a-
+    `VerticalStackLayout` case (`header_footer_view`), which the user has directed be FIXED (the port should
+    replicate MAUI's expansion), not ruled exempt.
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:
