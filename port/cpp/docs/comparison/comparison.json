@@ -22383,8 +22383,8 @@
           }
         },
         "sonnet": {
-          "status": "yellow",
-          "review": "Layout, colors, gradients and backgrounds all match in both themes; only difference is default time-format text: MAUI shows 12-hour AM/PM while cpp shows 24-hour format, a content/locale-format difference."
+          "status": "green",
+          "review": "Match in both themes. The default TimePicker text now renders 12-hour \"12:00 AM\" / \"4:15 AM\" (was 24-hour \"0:00\" / \"4:15\"), matching MAUI. Root cause + fix: the iOS handler's empty/\"t\"/\"T\" arms formatted via NSDateFormatter/currentLocale (the DEVICE region's 24h form), but MAUI iOS sets the field text via TimeExtensions.ToFormattedString = DateTime.Today.Add(time).ToString(format, Culture.CurrentCulture) \u2014 the .NET-culture short-time pattern (en-US 12h). Switched to the port's format_time_span helper (the .NET-culture-equivalent renderer android + headless already use), so empty/\"t\" -> \"h:mm tt\". The explicit Format=\"HH:mm\" picker still shows \"12:00\". maccatalyst (separate native-UIDatePicker path) unchanged."
         },
         "gemini": {
           "status": null,
@@ -22392,11 +22392,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8223, 10.21% pixels differ \u00b7 Dark: SSIM 0.7394, 10.22% pixels differ"
+          "review": "Light: SSIM 0.8187, 9.91% pixels differ \u00b7 Dark: SSIM 0.7406, 9.91% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8222, 10.23% pixels differ \u00b7 Dark: SSIM 0.7402, 10.20% pixels differ"
+          "review": "Light: SSIM 0.8182, 9.93% pixels differ \u00b7 Dark: SSIM 0.7389, 9.93% pixels differ"
         },
         "consistency": {
           "status": "ok",

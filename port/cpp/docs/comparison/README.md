@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 165 | 0 |
-| 🟡 Minor | 6 | 0 |
+| 🟢 Match | 166 | 0 |
+| 🟡 Minor | 5 | 0 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 23 | 195 |
@@ -3414,16 +3414,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 182. Time Picker — 🟡/⏳
+### 182. Time Picker — 🟢/⏳
 <sub>time_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/ios/time_picker_light.png" /></td><td><img width="300px" src="captures/ios/cpp/time_picker_light.png" /></td><td><img width="300px" src="captures/ios/xaml/time_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/ios/time_picker_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/time_picker_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/time_picker_dark.png" /></td></tr></table>
 
 ports TimePickerPage.xaml (+ TimePickerPage.xaml.cs)
 
-#### 🟡 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-Layout, colors, gradients and backgrounds all match in both themes; only difference is default time-format text: MAUI shows 12-hour AM/PM while cpp shows 24-hour format, a content/locale-format difference.
+Match in both themes. The default TimePicker text now renders 12-hour "12:00 AM" / "4:15 AM" (was 24-hour "0:00" / "4:15"), matching MAUI. Root cause + fix: the iOS handler's empty/"t"/"T" arms formatted via NSDateFormatter/currentLocale (the DEVICE region's 24h form), but MAUI iOS sets the field text via TimeExtensions.ToFormattedString = DateTime.Today.Add(time).ToString(format, Culture.CurrentCulture) — the .NET-culture short-time pattern (en-US 12h). Switched to the port's format_time_span helper (the .NET-culture-equivalent renderer android + headless already use), so empty/"t" -&gt; "h:mm tt". The explicit Format="HH:mm" picker still shows "12:00". maccatalyst (separate native-UIDatePicker path) unchanged.
 
 #### ⏳ Gemini Review
 
