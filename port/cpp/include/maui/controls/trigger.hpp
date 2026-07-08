@@ -19,13 +19,17 @@
 // Each trigger is attached to a target (which owns the watched property / the binding context) and returns
 // a trigger_handle that tears it down (unsubscribe + un-apply) when dropped — the M5b RAII contract.
 
+#include <any>
 #include <functional>
 #include <memory>
+#include <optional>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "maui/controls/setter.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/boxed_value.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/move_only_function.hpp"
 #include "maui/core/property.hpp"
@@ -335,6 +339,67 @@ namespace maui::controls
 
         std::function<Value(const Context&)> accessor_;
         Value value_;
+        trigger_body body_;
+    };
+
+    // The erased sibling of property_trigger<T> (Trigger), for the reflection-free XAML loader — which has a
+    // property NAME + a boxed std::any value, not a typed property<T>&. It observes the target's by-name
+    // property_changed signal (every property<T>::set raises on_property_changed(descriptor.name())), reads the
+    // current value erased via try_get_value, and compares with boxed_equals — the READ analog of the WRITE
+    // setter::of_erased does by name+any. Reuses trigger_body (apply/revert) + trigger_handle, so
+    // triggers_collection::add accepts it unchanged. `watched_name_` borrows a static descriptor name, exactly
+    // like setter::of_erased's bindable_name. CEILING: boxed_equals renders only the bool/char/arithmetic/
+    // std::string lattice today, so bool/string conditions (IsPressed=True, Text="") activate but an enum/Color
+    // condition value renders to nullopt -> never matches until that type is added to boxed_to_string.
+    class erased_property_trigger
+    {
+    public:
+        erased_property_trigger(std::string_view watched_name, std::any value)
+            : watched_name_(watched_name), value_(std::move(value))
+        {
+        }
+
+        erased_property_trigger& add(setter value)
+        {
+            body_.add_setter(std::move(value));
+            return *this;
+        }
+        erased_property_trigger& add_enter_action(trigger_action action)
+        {
+            body_.add_enter_action(std::move(action));
+            return *this;
+        }
+        erased_property_trigger& add_exit_action(trigger_action action)
+        {
+            body_.add_exit_action(std::move(action));
+            return *this;
+        }
+
+        // Attach to `target`: apply the setters now if the watched property already equals the value, then
+        // re-evaluate whenever ANY property on the target changes and the name matches. The handle tears it
+        // down (unsubscribe + un-apply) when dropped.
+        [[nodiscard]] trigger_handle attach(maui::core::bindable_object& target)
+        {
+            body_.set_active(target, matches(target));
+            auto connection =
+                maui::core::connect_scoped(target.property_changed, [this, &target](std::string_view name) {
+                    if (name == watched_name_)
+                    {
+                        body_.set_active(target, matches(target));
+                    }
+                });
+            return trigger_handle{std::move(connection), [this, &target] { body_.set_active(target, false); }};
+        }
+
+    private:
+        [[nodiscard]] bool matches(maui::core::bindable_object& target) const
+        {
+            const std::optional<std::any> current = target.try_get_value(watched_name_);
+            return current.has_value() && maui::core::boxed_equals(*current, value_);
+        }
+
+        std::string_view watched_name_;
+        std::any value_;
         trigger_body body_;
     };
 

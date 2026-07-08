@@ -130,4 +130,38 @@ namespace
         } // coll destructs -> handle dropped -> setters un-applied
         EXPECT_EQ(target.label.get(), "");
     }
+
+    // The erased (by-name) property trigger — the XAML-loader-facing sibling of property_trigger<T>. Watches a
+    // property NAME == a boxed value via the object's property_changed signal + try_get_value/boxed_equals, and
+    // integrates with the triggers_collection unchanged (add<Trigger> accepts any attach-shaped trigger).
+    TEST(erased_property_trigger, watches_by_name_and_applies_reverts)
+    {
+        using maui::controls::erased_property_trigger;
+        using maui::controls::triggers_collection;
+        mock_object target;
+        triggers_collection coll{target};
+
+        coll.add(erased_property_trigger{is_on_prop().name(), maui::core::box_value<bool>(true)}.add(
+            setter::of(label_prop(), std::string("ON"))));
+        EXPECT_EQ(target.label.get(), ""); // is_on false at attach -> not applied
+
+        target.is_on.set(true);
+        EXPECT_EQ(target.label.get(), "ON"); // by-name observation fired + boxed compare matched -> applied
+
+        target.is_on.set(false);
+        EXPECT_EQ(target.label.get(), ""); // condition lost -> un-applied
+    }
+
+    TEST(erased_property_trigger, applies_immediately_when_already_matching_at_attach)
+    {
+        using maui::controls::erased_property_trigger;
+        using maui::controls::triggers_collection;
+        mock_object target;
+        target.is_on.set(true); // already matching before the trigger attaches
+        triggers_collection coll{target};
+
+        coll.add(erased_property_trigger{is_on_prop().name(), maui::core::box_value<bool>(true)}.add(
+            setter::of(label_prop(), std::string("ON"))));
+        EXPECT_EQ(target.label.get(), "ON"); // applied on attach
+    }
 } // namespace
