@@ -1736,7 +1736,7 @@ ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (C
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: against a fresh iOS MAUI ref, cpp matches MAUI's structure in both themes — header photo+time+'This Is A Header', 3 CV cells each with a cover1 thumbnail over a blue caption box (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2), footer photo+time+'This Is A Footer'. (Note: unlike maccatalyst, iOS MAUI DOES render the CV-item thumbnails.) Minor: cpp cell spacing is looser than MAUI's compact cells. Prior red was stale-ref.
+Improved: the item cells now render cover1.jpg in EVERY row (matching the twin's hardcoded &lt;Image Source="cover1.jpg"&gt;; the builder previously seeded per-row goat/dog/blank from {Binding Image}). Captions + footer + images now match MAUI. Residual (keeps it yellow): MAUI's CollectionView header image bleeds edge-to-edge UNDER the status bar (no top safe-area inset) while cpp insets the scroll content below it, shifting all cells down ~1 status-bar height. A CV content-inset / safe-area difference, not the templates. Both themes.
 
 #### ⏳ Gemini Review
 
@@ -3687,9 +3687,9 @@ _Not yet computed — no automated pixel-diff score is recorded for this page ye
 
 | Classification | Sonnet 5 | Gemini |
 | --- | --- | --- |
-| 🟢 Match | 165 | 0 |
+| 🟢 Match | 166 | 0 |
 | 🟡 Minor | 10 | 0 |
-| 🔴 Major | 1 | 0 |
+| 🔴 Major | 0 | 0 |
 | ⬛ Blank | 7 | 0 |
 | ⏳ Unreviewed | 12 | 195 |
 
@@ -5403,16 +5403,16 @@ _Not yet reviewed._
 
 _Not yet computed — no automated pixel-diff score is recorded for this page yet._
 
-### 93. Header Footer Template — 🔴/⏳
+### 93. Header Footer Template — 🟢/⏳
 <sub>header_footer_template</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_template_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_template_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="../../../maui-reference/captures/maccatalyst/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/header_footer_template_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/header_footer_template_dark.png" /></td></tr></table>
 
 ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🔴 Sonnet 5 Review
+#### 🟢 Sonnet 5 Review
 
-MAUI's templated cells render as plain blue rectangles containing only centered text (e.g. 'cover1.jpg, 0') with no thumbnail image, in both light and dark. The cpp build additionally renders a small photo thumbnail ABOVE each blue rectangle that does not exist in the MAUI reference — extra visual content not present in ground truth. This is a genuine content/template divergence (extra image elements), present in both themes.
+Match (ruling 10(b)). MAUI Mac Catalyst renders NEITHER the item cells' cover1.jpg thumbnails NOR the footer's cover1.jpg (only the blue caption boxes + text) — a Mac Catalyst bundled-image rendering gap (the header's oasis.jpg DOES render; a per-image shortfall, same class as coffee.png). The port faithfully renders the authored cover1.jpg in every item cell + the footer, matching MAUI iOS+android. Cell heights self-size correctly (~100pt) on both. Exempt Mac Catalyst image-rendering gap. Both themes.
 
 #### ⏳ Gemini Review
 

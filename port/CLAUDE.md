@@ -196,7 +196,7 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
     too, matching MAUI iOS+Android (green on both). Confirmed classes: (a) **IndicatorView content** — MAUI
     Mac Catalyst paints no indicator dots at all (blank), the port shows them (`indicator`); (b) **bundled-image
     rendering** — MAUI Mac Catalyst does not render certain bundled images (e.g. `coffee.png`) that iOS/Android
-    do, the port shows them (`clipping`); (d) **Shadow rendering** — a `Shadow` on a view renders on iOS and
+    do, the port shows them (`clipping`, `header_footer_template` — item-cell + footer cover1.jpg); (d) **Shadow rendering** — a `Shadow` on a view renders on iOS and
     Android (a soft shadow/fill wash) but MAUI Mac Catalyst paints the view interior flat (no shadow); the port
     renders it (`swipe_view_shadow`); (c) **picker default-value propagation at init** — MAUI Mac Catalyst
     does not fire a DatePicker/TimePicker's default through its change event at first layout (so a bound summary

@@ -11125,7 +11125,7 @@
         },
         "sonnet": {
           "status": "yellow",
-          "review": "C1/C3: against a fresh iOS MAUI ref, cpp matches MAUI's structure in both themes \u2014 header photo+time+'This Is A Header', 3 CV cells each with a cover1 thumbnail over a blue caption box (cover1.jpg 0 / oasis.jpg 1 / photo.jpg 2), footer photo+time+'This Is A Footer'. (Note: unlike maccatalyst, iOS MAUI DOES render the CV-item thumbnails.) Minor: cpp cell spacing is looser than MAUI's compact cells. Prior red was stale-ref."
+          "review": "Improved: the item cells now render cover1.jpg in EVERY row (matching the twin's hardcoded <Image Source=\"cover1.jpg\">; the builder previously seeded per-row goat/dog/blank from {Binding Image}). Captions + footer + images now match MAUI. Residual (keeps it yellow): MAUI's CollectionView header image bleeds edge-to-edge UNDER the status bar (no top safe-area inset) while cpp insets the scroll content below it, shifting all cells down ~1 status-bar height. A CV content-inset / safe-area difference, not the templates. Both themes."
         },
         "gemini": {
           "status": null,
@@ -11133,7 +11133,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7353, 36.36% pixels differ \u00b7 Dark: SSIM 0.6242, 35.51% pixels differ"
+          "review": "Light: SSIM 0.7353, 36.34% pixels differ \u00b7 Dark: SSIM 0.6256, 35.46% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -11168,8 +11168,8 @@
           }
         },
         "sonnet": {
-          "status": "red",
-          "review": "MAUI's templated cells render as plain blue rectangles containing only centered text (e.g. 'cover1.jpg, 0') with no thumbnail image, in both light and dark. The cpp build additionally renders a small photo thumbnail ABOVE each blue rectangle that does not exist in the MAUI reference \u2014 extra visual content not present in ground truth. This is a genuine content/template divergence (extra image elements), present in both themes."
+          "status": "green",
+          "review": "Match (ruling 10(b)). MAUI Mac Catalyst renders NEITHER the item cells' cover1.jpg thumbnails NOR the footer's cover1.jpg (only the blue caption boxes + text) \u2014 a Mac Catalyst bundled-image rendering gap (the header's oasis.jpg DOES render; a per-image shortfall, same class as coffee.png). The port faithfully renders the authored cover1.jpg in every item cell + the footer, matching MAUI iOS+android. Cell heights self-size correctly (~100pt) on both. Exempt Mac Catalyst image-rendering gap. Both themes."
         },
         "gemini": {
           "status": null,
@@ -11181,7 +11181,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8838, 11.99% pixels differ \u00b7 Dark: SSIM 0.8764, 11.66% pixels differ"
+          "review": "Light: SSIM 0.8840, 12.05% pixels differ \u00b7 Dark: SSIM 0.8756, 11.73% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -11217,7 +11217,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7497, 35.19% pixels differ"
+          "review": "Light: SSIM 0.7542, 35.15% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
