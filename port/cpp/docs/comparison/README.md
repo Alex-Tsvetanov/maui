@@ -3330,7 +3330,7 @@ ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟡 Sonnet 5 Review
 
-Dark theme matches including the orange ThumbColor swatch, but in light theme the C++ port's ThumbColor switch renders with a plain white thumb/gray track instead of MAUI's orange thumb.
+RULING-3 FLAG (iOS-26 ThumbColor quirk): in light theme the off-state ThumbColor=Orange switch renders an ORANGE thumb in cpp but a WHITE thumb in MAUI. Both set the native UISwitch.ThumbTintColor to orange, but on iOS 26 the native switch resets the OFF-state thumb to white after layout; MAUI's re-apply loses that race (renders white) while cpp's re-apply keeps orange. So cpp honors the developer's ThumbColor; iOS-26 MAUI drops it for the off state. Needs a user ruling: replicate the iOS-26 white-off-thumb behavior, or keep honoring ThumbColor. (Earlier review had the direction reversed.) Everything else (tracks, on-colors, positions, dark theme) matches.
 
 #### ⏳ Gemini Review
 
@@ -6056,7 +6056,7 @@ ports MultipleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Colle
 
 #### 🟡 Sonnet 5 Review
 
-C1/C3: text, header, items and three blue buttons match, but the C++ render draws a gray full-width selection highlight over Item 1/Item 2 in both themes while the MAUI reference shows no selection highlight (even though its label says Item 1, Item 2 are selected — likely a MAUI-side capture quirk of not painting selected cells). Visual difference vs ground truth, minor.
+RULING-3 FLAG (twin-degradation, cpp is faithful): cpp draws a gray selection highlight over the seeded Item 1/Item 2 while MAUI shows none. This is NOT a cpp bug — MAUI's iOS CollectionView sets a default gray SelectedBackgroundView (ItemsViewCell.cs), so an APPLIED selection DOES highlight gray. cpp applies the seeded selection natively (-&gt; gray highlight, the correct MAUI default); the shared XAML twin defers the SelectedItems binding, so MAUI's captured twin has no native selection (-&gt; no highlight) even though its readout statically says 'Selected: Item 1, Item 2'. cpp is more faithful to real MAUI; the divergence is a twin/loader limitation. Text, header, items, buttons all match.
 
 #### ⏳ Gemini Review
 
@@ -7006,7 +7006,7 @@ ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟢 Sonnet 5 Review
 
-All switch rows (Default, BackgroundColor [blue track], Background, Disabled [dimmed], OnColor, ThumbColor) match MAUI exactly in position, on/off state, track color, and thumb appearance, in both light and dark themes.
+All switch rows (Default, BackgroundColor [blue track], Background, Disabled [dimmed], OnColor, ThumbColor) match MAUI exactly in position, on/off state, track color, and thumb appearance, in both light and dark themes. NOTE (ruling-3, see iOS switch): the ThumbColor=Orange row's OFF-state thumb is orange in cpp vs white in MAUI — same iOS-26 ThumbTintColor-reset quirk; flagged for a user ruling.
 
 #### ⏳ Gemini Review
 
