@@ -34,6 +34,17 @@
 #include <memory>
 #include <string>
 
+// The debug-gated DevFlow test/automation agent (absent in release builds). Opt-in at RUNTIME via the
+// MAUI_DEVFLOW_PORT env var so normal gallery/parity-capture runs are undisturbed — the agent is never
+// auto-started (mirrors DevFlow's explicit AddMauiDevFlowAgent()).
+#if defined(MAUI_DEVFLOW)
+    #include "maui/devflow/agent.hpp"
+
+    #include <cstdint>
+    #include <functional>
+    #include <future>
+#endif
+
 namespace
 {
     // A type-erased owner of one demo page: the single non-templated gallery_app picks the concrete page from
@@ -126,9 +137,46 @@ public:
     void on_post_mount(maui::hosting::maui_app& app) override
     {
         page_->post_mount(app);
+#if defined(MAUI_DEVFLOW)
+        start_devflow_if_requested(app);
+#endif
     }
 
 private:
+#if defined(MAUI_DEVFLOW)
+    // Start the DevFlow agent iff MAUI_DEVFLOW_PORT is set (explicit runtime opt-in — never auto-started).
+    // The root provider hands back the current page root; the UI executor marshals each request onto the
+    // app dispatcher's thread (PROFILE §8) via a promise/future so tree reads/taps run on the UI thread.
+    void start_devflow_if_requested(maui::hosting::maui_app& app)
+    {
+        const char* const env = std::getenv("MAUI_DEVFLOW_PORT");
+        if (env == nullptr || std::strlen(env) == 0)
+        {
+            return;
+        }
+        const auto port = static_cast<std::uint16_t>(std::atoi(env));
+
+        auto* dispatcher = &app.dispatcher();
+        maui::devflow::agent::ui_executor run_on_ui = [dispatcher](const std::function<void()>& work) {
+            if (!dispatcher->is_dispatch_required())
+            {
+                work();
+                return;
+            }
+            std::promise<void> done;
+            auto future = done.get_future();
+            dispatcher->dispatch([&work, &done] {
+                work();
+                done.set_value();
+            });
+            future.wait();
+        };
+
+        maui::devflow::start_agent([this] { return &page_->root(); }, port,
+                                   {.app = "maui-cpp gallery", .version = "1.0", .commit = ""}, std::move(run_on_ui));
+    }
+#endif
+
     // The page holder is declared BEFORE the window: the window keeps a non-owning back-pointer to the page
     // root (set_content), so the page must outlive the window (members destruct in reverse declaration order).
     std::unique_ptr<gallery_page_holder> page_;
