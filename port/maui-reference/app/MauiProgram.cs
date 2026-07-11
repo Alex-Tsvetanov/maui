@@ -1,4 +1,7 @@
 using Microsoft.Extensions.Logging;
+#if DEVFLOW
+using Microsoft.Maui.DevFlow.Agent;
+#endif
 
 namespace MauiReference;
 
@@ -48,6 +51,14 @@ public static class MauiProgram
 
 #if DEBUG
 		builder.Logging.AddDebug();
+#endif
+
+#if DEVFLOW
+		// Experimental MAUI DevFlow in-app agent — opt-in only (build with -p:EnableDevFlow=true, which
+		// also restores the prerelease package). Lets the E2E comparison runner tap-by-automationId and
+		// query readiness on the maui_xaml column; see port/cpp/docs/comparison/tools/README_e2e.md.
+		// Gated by the DEVFLOW constant so ordinary builds never include it.
+		builder.AddMauiDevFlowAgent();
 #endif
 
 		return builder.Build();

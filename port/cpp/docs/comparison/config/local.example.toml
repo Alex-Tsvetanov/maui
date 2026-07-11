@@ -1,0 +1,68 @@
+# E2E visual-comparison runner — example config (copy to local.toml and edit).
+# Starter has ONLY the macOS VM: it is the only environment with a real desktop GUI to run today
+# (the port has no Windows/Linux backend yet). See tools/README_e2e.md for the VM setup.
+
+version = 1
+
+[output]
+root = "port/cpp/docs/comparison"        # a dated <root>/<YYYY-MM-DD-HH_MM_SS>/ subdir is created per run
+timestamp_format = "%Y-%m-%d-%H_%M_%S"
+
+# --- environments -----------------------------------------------------------------------------------
+[environments.macos-arm64]
+os = "macos"                             # picks the vm_agent_macos.py guest agent
+platform = "maccatalyst"                 # path segment: …/<tag>/<platform>/<column>/NNNN.png
+
+[environments.macos-arm64.connection]
+host = "Testings-Virtual-Machine.local"  # NOTE: retype by hand — a stray zero-width char after ".local"
+user = "testinguser"                     # will silently break DNS. ssh key already installed (ssh-copy-id).
+connect_timeout_seconds = 10
+
+[environments.macos-arm64.display]       # requirement 4: set the VM display resolution explicitly
+width = 1280
+height = 800
+
+[environments.macos-arm64.staging]
+root = "/Users/testinguser/maui-comparison"   # remote staging; its scratch/ is cleaned each run
+
+# Absolute tool paths — a non-interactive SSH shell has a minimal PATH (no /opt/homebrew/bin),
+# so bare `cliclick`/`displayplacer` would fail. Everything is invoked by full path.
+[environments.macos-arm64.tools]
+python3       = "/usr/bin/python3"
+cliclick      = "/opt/homebrew/bin/cliclick"
+displayplacer = "/opt/homebrew/bin/displayplacer"
+screencapture = "/usr/sbin/screencapture"
+open          = "/usr/bin/open"
+
+# Per-column deployable + launch contract. Artifacts are paths relative to the repo root, pre-built on
+# the host (Catalyst gallery build + `dotnet build`); the runner deploys them, it does not build.
+#   maui_xaml → the C# MauiReference.app;  cpp/cpp_xaml → gallery / gallery_xaml Catalyst .app bundles.
+[environments.macos-arm64.columns.maui_xaml]
+artifact  = "port/maui-reference/app/bin/Debug/net10.0-maccatalyst/maccatalyst-arm64/MauiReference.app"
+process   = "MauiReference"
+page_env  = "MAUI_COMPARE_PAGE"
+theme_env = "MAUI_THEME"
+theme_light = "Light"
+theme_dark  = "Dark"
+driver = "maui_devflow"     # MAUI DevFlow CLI tap-by-automationId; else coordinates (see README)
+devflow_cli = "maui"        # path to the `maui` global tool on the VM (needs it installed there)
+
+[environments.macos-arm64.columns.cpp]
+artifact  = "port/cpp/examples/build-maccatalyst/gallery/gallery.app"
+process   = "gallery"
+page_env  = "MAUI_SAMPLE_PAGE"
+theme_env = "MAUI_APPEARANCE"
+theme_light = "light"
+theme_dark  = "dark"
+# The C++ DevFlow agent has landed (port/cpp/src/devflow). To use tap-by-automationId, rebuild the
+# gallery with -DMAUI_DEVFLOW=ON, then set: driver = "cpp_devflow" and devflow_port = 8765
+driver = "coordinate"
+
+[environments.macos-arm64.columns.cpp_xaml]
+artifact  = "port/cpp/examples/build-maccatalyst/gallery_xaml/gallery_xaml.app"
+process   = "gallery_xaml"
+page_env  = "MAUI_SAMPLE_PAGE"
+theme_env = "MAUI_APPEARANCE"
+theme_light = "light"
+theme_dark  = "dark"
+driver = "coordinate"       # → "cpp_devflow" (+ devflow_port) after rebuilding with -DMAUI_DEVFLOW=ON

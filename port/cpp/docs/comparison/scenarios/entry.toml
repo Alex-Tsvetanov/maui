@@ -1,0 +1,19 @@
+# Scenario for the `entry` page: focus the field, type text, capture the typed state.
+# Coordinates are PLACEHOLDERS for 1280x800 — calibrate per resolution (see button.toml header).
+
+tag = "entry"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [640, 260]
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "MAUI"

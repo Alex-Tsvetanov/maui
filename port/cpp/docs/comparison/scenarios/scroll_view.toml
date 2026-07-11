@@ -1,0 +1,16 @@
+# Scenario for the `scroll_view` page: capture top, scroll down, capture scrolled state.
+# Coordinates are PLACEHOLDERS for 1280x800 — calibrate per resolution (see button.toml header).
+# `dy` is pixels; negative scrolls the content up (reveals lower content).
+
+tag = "scroll_view"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "top"
+
+[[steps]]
+name = "scrolled-down"
+action = "scroll"
+at = [640, 400]
+dy = -400

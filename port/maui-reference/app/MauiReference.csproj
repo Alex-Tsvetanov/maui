@@ -73,4 +73,14 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+	<!-- DevFlow (experimental in-app automation agent) — OPT-IN ONLY: `dotnet build -p:EnableDevFlow=true`.
+	     Gated so ordinary builds never restore the prerelease package. Consumed by the E2E comparison
+	     runner's maui_xaml column — see port/cpp/docs/comparison/tools/README_e2e.md. -->
+	<PropertyGroup Condition="'$(EnableDevFlow)' == 'true'">
+		<DefineConstants>$(DefineConstants);DEVFLOW</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(EnableDevFlow)' == 'true'">
+		<PackageReference Include="Microsoft.Maui.DevFlow.Agent" Version="*-*" />
+	</ItemGroup>
+
 </Project>

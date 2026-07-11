@@ -1,0 +1,21 @@
+# Scenario for the `button` page: capture idle, tap the button, capture the reacted state.
+#
+# Coordinates are ABSOLUTE pixels against the pinned display resolution (1280x800). They are
+# PLACEHOLDERS — calibrate them once per resolution: launch the page, run
+#   ssh <vm> "/bin/zsh -c '/opt/homebrew/bin/cliclick p'"
+# while hovering the control, or read the window bounds from a capture. `automation_id` is the
+# forward-looking hook: the DevFlow driver taps it by name (no coordinates); the coordinate driver
+# ignores it and uses `at`.
+
+tag = "button"
+themes = ["light"]        # add "dark" to also sweep dark; frames continue the NNNN sequence
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"          # no action -> settle + screenshot
+
+[[steps]]
+name = "after-tap"
+action = "click"
+at = [640, 320]
+automation_id = "ClickMe" # used by the DevFlow driver if present; harmless to the coordinate driver
