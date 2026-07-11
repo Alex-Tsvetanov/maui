@@ -124,6 +124,11 @@ if(ENABLE_CLANG_TIDY)
   endif()
 endif()
 
+# The debug-gated in-app test/automation agent (maui::devflow, modeled on .NET MAUI DevFlow). ON for
+# dev/test builds (mirrors MAUI's `#if DEBUG`); set -DMAUI_DEVFLOW=OFF for release so the module — the
+# localhost socket server + tree/tap introspection — is entirely absent. Wires into maui_hosting below.
+option(MAUI_DEVFLOW "Compile the debug-gated in-app DevFlow test/automation agent" ON)
+
 # ======================================================================
 # Layer 0 - Graphics  (maui::graphics  <=  Microsoft.Maui.Graphics)
 # ======================================================================
@@ -1831,6 +1836,13 @@ target_include_directories(maui_hosting PUBLIC
 # Hosting mints the controls::application and seeds the controls handler table — PUBLIC so consumers
 # (samples, tests) reach the controls/core surface transitively.
 target_link_libraries(maui_hosting PUBLIC maui_controls PRIVATE maui_sanitizers)
+# The debug-gated DevFlow agent (maui::devflow) rides in the hosting lib: it introspects the mounted tree
+# a host opts into. The MAUI_DEVFLOW compile-def is PUBLIC so a consumer's `#if defined(MAUI_DEVFLOW)`
+# opt-in block (e.g. the gallery) compiles. OFF (release) = source not compiled + macro undefined = absent.
+if(MAUI_DEVFLOW)
+  target_sources(maui_hosting PRIVATE src/devflow/agent.cpp)
+  target_compile_definitions(maui_hosting PUBLIC MAUI_DEVFLOW)
+endif()
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   # CXX for the cross-platform sources; OBJCXX lints the apple/ios host_run.mm run-loop lanes too.
   set_target_properties(maui_hosting PROPERTIES
@@ -1938,6 +1950,7 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     tests/hosting/lifecycle_events_tests.cpp
     tests/hosting/app_host_tests.cpp
     tests/hosting/gallery_twin_render_tests.cpp # phase-4 render gate: each twin must mount + lay out
+    tests/devflow/agent_tests.cpp # the DevFlow agent (self-gates on MAUI_DEVFLOW; empty TU when OFF)
   )
   target_link_libraries(maui_hosting_tests PRIVATE
     maui_hosting
