@@ -4,6 +4,37 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## DevFlow test/automation agent (`maui::devflow`) — ✅ DONE (headless), gallery opt-in compile-checked (2026-07-12)
+
+A minimal, **debug-gated** in-app test/automation agent modeled on Microsoft's experimental .NET MAUI DevFlow
+agent — a localhost JSON-over-HTTP API an external driver (the parity runner's Python `DevFlowDriver`) uses to
+introspect + poke the running UI. New:
+- **`include/maui/devflow/agent.hpp` + `src/devflow/agent.cpp`** — the module. Compiled ONLY under the CMake
+  option `MAUI_DEVFLOW` (ON for dev/test, `-DMAUI_DEVFLOW=OFF` for release ⇒ entirely absent; the port's
+  `#if DEBUG` + `AddMauiDevFlowAgent()` analog). Two pieces: `handle_command(...)` — the PURE synchronous
+  command core over the existing element-tree walk (`element::visit_logical_children`), `AutomationId`
+  (`view::automation_id`), arrange bounds (`i_view::frame`), and activation (`i_button::send_clicked`) — no
+  parallel tree; and `agent` — a dependency-free localhost HTTP/1.1 server (POSIX sockets, one background
+  poll-based accept thread so `stop()` never races `accept`, bind 127.0.0.1 only). Requests marshal onto the
+  UI thread via a caller-supplied `ui_executor` (inline default; a dispatcher-backed sync executor on native).
+  Never auto-started — a host opts in via `start_agent(root_provider, port, info, run_on_ui)`.
+- **Commands (5, minimal — the rest deferred):** `GET /ready` (mounted + past first layout + app/version/
+  commit), `GET /tree` (type/automation_id/bounds[x,y,w,h]/children JSON), `POST /tap {automation_id}`
+  (AutomationId match then x:Name `FindByName` fallback → `send_clicked`), `GET /screenshot` (501 — the
+  external screencapture is ground truth), `POST /shutdown` (200 then clean exit). Protocol + a Python client
+  stub: **`port/cpp/docs/DEVFLOW_PROTOCOL.md`**.
+- **Wire-in:** `maui_hosting` gains the source + a PUBLIC `MAUI_DEVFLOW` compile-def (so a consumer's opt-in
+  block compiles). The maccatalyst `examples/gallery` opts in behind `#if defined(MAUI_DEVFLOW)`, started at
+  runtime only when `MAUI_DEVFLOW_PORT` is set (so normal parity captures are undisturbed), with a dispatcher-
+  backed UI executor. Compile-checked on headless (`-fsyntax-only`, pure-C++ dispatcher usage — identical on
+  every backend); runtime device test deferred.
+- **Tests:** `tests/devflow/agent_tests.cpp` (11 cases in `maui_hosting_tests`, self-gated on `MAUI_DEVFLOW`) —
+  the 10 core cases (ready before/after mount + null root, tree lists the button w/ id+type+bounds, tap by
+  automation_id + short `id` key + unknown-not-found, screenshot 501, shutdown callback, 404) are backend-
+  agnostic; 1 socket end-to-end case (headless only) drives `/ready` + `/tap` over a real TCP connection with
+  an in-test HTTP client — the exact wire the Python driver speaks. Verify: `tools/dev.sh devflow` ⇒ 11/11
+  green on headless.
+
 ## Cross-platform entry point — Stage 5b (gallery → examples; src/samples retired) — ✅ DONE (2026-06-24)
 
 The final, destructive packaging stage: the runnable demo gallery moved OUT of the framework tree into the
