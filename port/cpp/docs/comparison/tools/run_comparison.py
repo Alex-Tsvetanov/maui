@@ -398,8 +398,9 @@ def main(argv=None) -> int:
 
     stamp = datetime.now().strftime(ts_fmt)
     run_root = out_root / stamp
+    disp = run_root.relative_to(REPO) if run_root.is_relative_to(REPO) else run_root
     commit = git_commit()
-    print(f"run {stamp}  ->  {run_root.relative_to(REPO)}  ({len(tags)} tag(s), commit {commit})")
+    print(f"run {stamp}  ->  {disp}  ({len(tags)} tag(s), commit {commit})")
 
     all_summaries = {}
     for name in env_names:
@@ -412,7 +413,7 @@ def main(argv=None) -> int:
         "timestamp": stamp, "commit": commit, "tags": tags, "environments": env_names,
     }, indent=2))
     _write_report_md(run_root, all_summaries)
-    print(f"\ndone -> {run_root.relative_to(REPO)} (summary.json, report.md)")
+    print(f"\ndone -> {disp} (summary.json, report.md)")
     return 0
 
 
