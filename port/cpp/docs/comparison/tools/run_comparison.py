@@ -287,14 +287,19 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                     print(f"  ! {tag}/{col}/{theme}: launch failed: {res.get('error')}")
                     continue
                 time.sleep(settle)
-                win = env.agent("window-id", pid)
-                win_id, bounds = win.get("id", 0), win.get("bounds")
+                win = env.agent("window-id", pid, "--proc", ccfg["process"])
+                win_id, win_rect, bounds = win.get("id"), win.get("rect"), win.get("bounds")
                 try:
                     for step in scenario["steps"]:
                         driver.run_action(step)
                         time.sleep(settle)
                         n += 1
-                        env.agent("shot", remote_shot, "--window", win_id or 0)
+                        if win_id:
+                            env.agent("shot", remote_shot, "--window", win_id)
+                        elif win_rect:
+                            env.agent("shot", remote_shot, "--rect", win_rect)
+                        else:
+                            env.agent("shot", remote_shot)  # whole-display last resort
                         local = run_root / tag / env.platform / col / f"{n:04d}.png"
                         if not env.pull(remote_shot, local):
                             print(f"  ! {tag}/{col}/{theme}#{n}: capture pull failed")

@@ -38,8 +38,15 @@ existing `port/tools/e2e/e2e.py` / `tools/parity` pipeline.
    on PATH — the runner therefore calls every tool by absolute path, configured in `[tools]`):
    ```
    brew install cliclick displayplacer
-   pip3 install pyobjc-framework-Quartz          # for window lookup + scroll
    ```
+   **pyobjc is optional** (it often fails to build `pyobjc-core` on a VM — don't fight it). With it, window
+   capture uses the tight per-window `screencapture -l <id>`; without it, the window rect comes from
+   AppleScript (System Events, needs the Accessibility grant you already set) and capture uses
+   `-R <x,y,w,h>` (whole-window region — hide the dock so nothing composites over it). Scroll never needs
+   pyobjc (ctypes → CoreGraphics). If you *want* the tighter capture and the build fails, upgrade pip first:
+   `pip3 install --upgrade pip && pip3 install pyobjc-core pyobjc-framework-Quartz` (a wheel, no compiler),
+   or install Xcode CLT (`xcode-select --install`).
+
    Sanity-check the PATH issue is handled:
    ```
    ssh testinguser@Testings-Virtual-Machine.local "/bin/zsh -c '/opt/homebrew/bin/cliclick p'"
@@ -102,9 +109,3 @@ coordinate-only scenarios (steps with `at = [x, y]`, no `automation_id`) work re
   `127.0.0.1:<devflow_port>`, driven with the VM's `curl` over SSH (no port-forward needed). Requires
   building the gallery with `-DMAUI_DEVFLOW=ON`; the runner launches the app with `MAUI_DEVFLOW_PORT`
   set to start the agent. Set `driver = "cpp_devflow"` and `devflow_port = 8765` on those columns.
-
-## Verify without a VM
-
-- Guest agent primitives locally: `python3 vm_agent_macos.py window-id <pid>`, `… click 100 100`.
-- Config/scenario validation + plan (no SSH): `run_comparison.py --config … --plan`.
-- Loopback: point `host` at `localhost` (host Mac as its own VM over `ssh localhost`) and run `--only button`.

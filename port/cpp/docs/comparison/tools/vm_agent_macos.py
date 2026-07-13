@@ -14,8 +14,9 @@ stock Homebrew install; override per-tool via env (MAUI_E2E_CLICLICK, MAUI_E2E_D
 
 Each subcommand prints ONE JSON line to stdout: {"ok": bool, ...}. The host parses the last line.
 
-Deps on the VM: `brew install cliclick displayplacer` + `pip3 install pyobjc-framework-Quartz`
-(pyobjc is only needed for window-id lookup and scroll). See tools/README_e2e.md.
+Deps on the VM: `brew install cliclick displayplacer`. pyobjc is OPTIONAL — with it, window capture uses
+the tight per-window `screencapture -l <id>`; without it, the window rect comes from AppleScript (System
+Events) and capture uses `-R <x,y,w,h>`. Scroll uses ctypes→CoreGraphics (no pyobjc). See README_e2e.md.
 """
 from __future__ import annotations
 
@@ -86,31 +87,67 @@ def cmd_launch(a) -> int:
     return _emit(ok=False, error="process did not register after launch")
 
 
-def _window_info(pid: int, retries: int, delay: float):
-    import Quartz  # optional dep; only needed here + scroll
-    for _ in range(retries):
-        info = Quartz.CGWindowListCopyWindowInfo(
-            Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID)
-        cands = [w for w in (info or [])
-                 if w.get("kCGWindowOwnerPID") == pid and w.get("kCGWindowLayer") == 0]
-        if cands:
-            def area(w):
-                b = w.get("kCGWindowBounds", {})
-                return b.get("Width", 0) * b.get("Height", 0)
-            w = max(cands, key=area)
-            b = w.get("kCGWindowBounds", {})
-            return (int(w["kCGWindowNumber"]),
-                    [int(b.get("X", 0)), int(b.get("Y", 0)), int(b.get("Width", 0)), int(b.get("Height", 0))])
-        time.sleep(delay)
+def _osa(script: str) -> str:
+    return subprocess.run(["/usr/bin/osascript", "-e", script], capture_output=True, text=True).stdout.strip()
+
+
+def _window_info_quartz(pid: int):
+    """Preferred: the pid's largest normal-layer window as (cgwindowid, [x,y,w,h]), or None.
+    Needs pyobjc-framework-Quartz — OPTIONAL; ImportError means fall back to AppleScript."""
+    import Quartz  # optional dep — see _window_rect_applescript for the no-pyobjc path
+    info = Quartz.CGWindowListCopyWindowInfo(
+        Quartz.kCGWindowListOptionOnScreenOnly, Quartz.kCGNullWindowID)
+    cands = [w for w in (info or [])
+             if w.get("kCGWindowOwnerPID") == pid and w.get("kCGWindowLayer") == 0]
+    if not cands:
+        return None
+
+    def area(w):
+        b = w.get("kCGWindowBounds", {})
+        return b.get("Width", 0) * b.get("Height", 0)
+
+    w = max(cands, key=area)
+    b = w.get("kCGWindowBounds", {})
+    return (int(w["kCGWindowNumber"]),
+            [int(b.get("X", 0)), int(b.get("Y", 0)), int(b.get("Width", 0)), int(b.get("Height", 0))])
+
+
+def _window_rect_applescript(proc: str):
+    """Fallback (NO pyobjc): the process's window 1 rect [x,y,w,h] via System Events, or None. Needs the
+    Accessibility grant (already required for cliclick). Mirrors e2e.py's fixed-rect fallback."""
+    out = _osa(
+        f'tell application "System Events" to tell process "{proc}"\n'
+        "set p to position of window 1\nset s to size of window 1\n"
+        'return ((item 1 of p) as string) & "," & ((item 2 of p) as string) & "," & '
+        '((item 1 of s) as string) & "," & ((item 2 of s) as string)\nend tell')
+    parts = out.split(",")
+    if len(parts) == 4:
+        try:
+            return [int(float(p)) for p in parts]
+        except ValueError:
+            return None
     return None
 
 
 def cmd_window_id(a) -> int:
-    info = _window_info(a.pid, a.retries, a.delay)
-    if info is None:
-        return _emit(ok=False, error="no on-screen window for pid")
-    win, bounds = info
-    return _emit(id=win, bounds=bounds)
+    # Preferred pyobjc/Quartz path yields a CGWindowID (tight `-l` capture, no compositing). Falls back to
+    # an AppleScript window rect (`-R` region capture) when pyobjc is absent — poll for the window to show.
+    for _ in range(a.retries):
+        try:
+            info = _window_info_quartz(a.pid)
+        except ImportError:
+            break  # pyobjc missing — skip straight to the AppleScript fallback
+        if info is not None:
+            win, bounds = info
+            return _emit(id=win, bounds=bounds)
+        time.sleep(a.delay)
+    if a.proc:
+        for _ in range(a.retries):
+            rect = _window_rect_applescript(a.proc)
+            if rect and rect[2] > 0 and rect[3] > 0:
+                return _emit(rect=",".join(map(str, rect)), bounds=rect)  # no id -> caller uses -R
+            time.sleep(a.delay)
+    return _emit(ok=False, error="no window found (Quartz absent or empty; AppleScript found none)")
 
 
 def cmd_click(a) -> int:
@@ -124,25 +161,37 @@ def cmd_type(a) -> int:
 
 
 def cmd_scroll(a) -> int:
-    # cliclick has no scroll — move the pointer to the target, then post a Quartz scroll-wheel event.
-    import Quartz
-    Quartz.CGWarpMouseCursorPosition((a.x, a.y))
-    ev = Quartz.CGEventCreateScrollWheelEvent(None, Quartz.kCGScrollEventUnitPixel, 1, int(a.dy))
-    Quartz.CGEventPost(Quartz.kCGHIDEventTap, ev)
+    # cliclick has no scroll. Move the pointer to the target (cliclick), then post a pixel scroll-wheel
+    # event via CoreGraphics through ctypes — NO pyobjc needed. Needs Accessibility (same as cliclick).
+    import ctypes
+    subprocess.run([CLICLICK, f"m:{a.x},{a.y}"], capture_output=True, text=True)
+    cg = ctypes.CDLL("/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices")
+    cg.CGEventCreateScrollWheelEvent.restype = ctypes.c_void_p
+    cg.CGEventCreateScrollWheelEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_int32]
+    cg.CGEventPost.argtypes = [ctypes.c_uint32, ctypes.c_void_p]
+    ev = cg.CGEventCreateScrollWheelEvent(None, 1, 1, int(a.dy))  # units=1 kCGScrollEventUnitPixel, 1 wheel
+    if not ev:
+        return _emit(ok=False, error="CGEventCreateScrollWheelEvent returned null")
+    cg.CGEventPost(0, ev)  # tap = 0 kCGHIDEventTap
+    cf = ctypes.CDLL("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")
+    cf.CFRelease.argtypes = [ctypes.c_void_p]
+    cf.CFRelease(ev)
     return _emit(x=a.x, y=a.y, dy=a.dy)
 
 
 def cmd_shot(a) -> int:
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     if a.window:
-        # -x no sound, -o omit shadow padding (tight window crop), -l capture that window's own backing
-        # store (no other window can composite in; needs no focus). Mirrors e2e.py::_maccat_shot.
+        # -x no sound, -o omit shadow padding (tight crop), -l capture that window's own backing store
+        # (no other window can composite in; needs no focus). Mirrors e2e.py::_maccat_shot. Needs pyobjc.
         cmd = [SCREENCAPTURE, "-x", "-o", "-l", str(a.window), a.out]
+    elif a.rect:
+        cmd = [SCREENCAPTURE, "-x", f"-R{a.rect}", a.out]  # region x,y,w,h (no-pyobjc AppleScript path)
     else:
-        cmd = [SCREENCAPTURE, "-x", a.out]  # fallback: whole main display
+        cmd = [SCREENCAPTURE, "-x", a.out]  # last resort: whole main display
     rc = subprocess.run(cmd, capture_output=True, text=True)
     ok = rc.returncode == 0 and os.path.isfile(a.out)
-    return _emit(ok=ok, out=a.out, window=a.window, stderr=rc.stderr.strip()[:400])
+    return _emit(ok=ok, out=a.out, window=a.window, rect=a.rect, stderr=rc.stderr.strip()[:400])
 
 
 def cmd_stop(a) -> int:
@@ -164,6 +213,7 @@ def main(argv=None) -> int:
     s.add_argument("--env", action="append", help="K=V, repeatable"); s.set_defaults(fn=cmd_launch)
 
     s = sub.add_parser("window-id"); s.add_argument("pid", type=int)
+    s.add_argument("--proc", default="", help="process name (for the no-pyobjc AppleScript fallback)")
     s.add_argument("--retries", type=int, default=15); s.add_argument("--delay", type=float, default=0.3)
     s.set_defaults(fn=cmd_window_id)
 
@@ -176,6 +226,7 @@ def main(argv=None) -> int:
     s.add_argument("dy", type=int); s.set_defaults(fn=cmd_scroll)
 
     s = sub.add_parser("shot"); s.add_argument("out"); s.add_argument("--window", type=int, default=0)
+    s.add_argument("--rect", default="", help="x,y,w,h region capture (no-pyobjc fallback)")
     s.set_defaults(fn=cmd_shot)
 
     s = sub.add_parser("stop"); s.add_argument("pid", type=int); s.set_defaults(fn=cmd_stop)
