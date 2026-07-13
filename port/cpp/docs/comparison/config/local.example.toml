@@ -22,6 +22,13 @@ connect_timeout_seconds = 10
 width = 1280
 height = 800
 
+# No external window-pinning: Mac Catalyst windows can't be repositioned externally (AX reports
+# position/size as unsettable — kAXErrorAttributeUnsupported; System Events hits the same layer). Instead
+# the window CENTERS deterministically for the display size (x_origin = (width-1024)/2, y=30 fixed), so
+# fixing the resolution above fixes the geometry — centered controls sit at screen x = width/2 = 640,
+# which the seed scenarios are calibrated to. For geometry-independent taps, use the DevFlow
+# `automation_id` path (tap by name, no coordinates). See tools/README_e2e.md.
+
 [environments.macos-arm64.staging]
 root = "/Users/testinguser/maui-comparison"   # remote staging; its scratch/ is cleaned each run
 

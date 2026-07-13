@@ -103,6 +103,14 @@ that mode in the UTM VM's display settings. If `set-resolution` can't find the c
 warning and continues at the current resolution — at which point absolute coords will be off, so make
 sure the display width matches what the scenarios were calibrated for.
 
+Why not just pin the window position instead of relying on the resolution? Because **Mac Catalyst
+windows can't be repositioned externally** — the accessibility API reports their position/size as
+unsettable (`kAXErrorAttributeUnsupported`), and System Events (which drives the same AX layer, and also
+needs an un-answerable Automation prompt over SSH) can't either. The window instead **centers
+deterministically** for the display size, so pinning the *resolution* is what fixes the geometry. The
+only way to make interaction fully geometry-independent is the DevFlow `automation_id` path (tap by
+name): build the gallery with `-DMAUI_DEVFLOW=ON` and set the columns to `cpp_devflow`.
+
 ## Interaction drivers
 
 Set per column via `driver`. All three fall back to coordinates for anything they can't do, so

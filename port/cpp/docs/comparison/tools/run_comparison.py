@@ -112,7 +112,10 @@ class Env:
             "MAUI_E2E_OPEN": self.tools.get("open"),
         }.items() if v]
         tokens = ["/usr/bin/env", *env_prefix, self.python3, self.agent_remote, subcmd, *map(str, args)]
-        r = self.ssh_run(tokens, timeout=timeout)
+        try:
+            r = self.ssh_run(tokens, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            return {"ok": False, "error": f"agent {subcmd} timed out after {timeout}s"}
         return self._parse(r.stdout, r.stderr, r.returncode)
 
     @staticmethod
