@@ -86,8 +86,22 @@ axis, so multi-theme sweeps continue the sequence; the sidecar records each fram
 ## Scenarios
 
 `scenarios/<tag>.toml` — `themes` + a list of `[[steps]]`. Each step is an optional action then a
-capture. Coordinates are **absolute pixels** against the pinned resolution (calibrate them once — see the
-header of `scenarios/button.toml`). Absent scenario file → a single idle screenshot (`0001.png`).
+capture. Coordinates are **absolute screen pixels** against the pinned resolution. Absent scenario file →
+a single idle screenshot (`0001.png`).
+
+**The shipped `button`/`entry`/`scroll_view` scenarios are calibrated for a 1280-wide display (1280×800).**
+Geometry model (measured on the C++ gallery, Mac Catalyst): the window is 1024 pt wide, **horizontally
+centered**, pinned to the top (`y_origin = 30`). So centered controls sit at **screen x = display_width/2
+= 640**, and control **y is measured from the fixed top** (resolution-independent). Re-calibrate the `x`
+if you change the display *width*; `y` only changes if the window size changes. Coordinates were tuned
+against the **C++ gallery** window — if the `maui_xaml` (C# MauiReference) window differs, recalibrate for
+that column or use the DevFlow `automation_id` path (resolution-independent, no coordinates).
+
+Display-mode note: not every VM offers 1280×800. Check `displayplacer list` on the VM; **any 1280-wide
+mode** (e.g. 1280×960, 1280×732) shares the same `x=640` / `y` calibration. To get exactly 1280×800, add
+that mode in the UTM VM's display settings. If `set-resolution` can't find the configured mode it logs a
+warning and continues at the current resolution — at which point absolute coords will be off, so make
+sure the display width matches what the scenarios were calibrated for.
 
 ## Interaction drivers
 
