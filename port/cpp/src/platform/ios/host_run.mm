@@ -43,6 +43,15 @@
 #include "maui/hosting/maui_app.hpp"
 #include "maui/hosting/maui_app_builder.hpp"
 
+// A layout-tracking view: its layoutSubviews fires whenever its superview re-lays-out (including a Mac
+// Catalyst window resize), invoking `onLayout`. Used by boot_window to re-drive the maui layout so the tree
+// reflows to fill the resized window (MAUI reflows on a size transition; the port's one-shot boot layout did
+// not). It never draws (hidden) and takes no touches — purely a resize sensor. Declared before boot_window
+// (which uses it); defined out-of-line below.
+@interface MauiRelayoutView : UIView
+@property(nonatomic, copy) void (^onLayout)(void);
+@end
+
 namespace
 {
     // The process-wide host state the UIApplicationMain-instantiated delegate must reach but we cannot pass
@@ -144,23 +153,70 @@ namespace
             return native_window;
         }
 
-        const CGRect full = root_view.bounds;
-        UIEdgeInsets insets = root_view.safeAreaInsets;
-        if (insets.top < 1.0)
-        {
-            insets.top = 59.0; // status bar + Dynamic Island fallback (no run-loop spin has happened yet)
-        }
-        const maui::graphics::rect full_bounds{0, 0, static_cast<double>(full.size.width),
-                                               static_cast<double>(full.size.height)};
-        const maui::graphics::rect safe_area_bounds{static_cast<double>(insets.left), static_cast<double>(insets.top),
-                                                    static_cast<double>(full.size.width - insets.left - insets.right),
-                                                    static_cast<double>(full.size.height - insets.top - insets.bottom)};
-        maui::hosting::drive_layout(*window, full_bounds, safe_area_bounds);
-        os_log(OS_LOG_DEFAULT, "[host_run] mounted app window — laid out (safe-area inset top=%g)", insets.top);
+        // The re-layout closure: recompute the controller's full + safe-area bounds and drive the generic
+        // layout over them. Reused for the initial pass AND on every window resize (Mac Catalyst windows are
+        // freely resizable), so the tree always fills the CURRENT window — the port's analog of MAUI re-running
+        // its layout on a size transition. Without it the tree keeps its first-layout size and fill-height
+        // pages (Grid "*" rows, FlexLayout) leave a gap when the window grows. `window` outlives the run loop
+        // (state().app owns it), so the raw capture is safe.
+        auto relayout = [window](UIView* view) {
+            const CGRect full = view.bounds;
+            if (full.size.width < 1.0 || full.size.height < 1.0)
+            {
+                return;
+            }
+            UIEdgeInsets insets = view.safeAreaInsets;
+            if (insets.top < 1.0)
+            {
+                insets.top = 59.0; // status bar + Dynamic Island fallback (no run-loop spin has happened yet)
+            }
+            const maui::graphics::rect full_bounds{0, 0, static_cast<double>(full.size.width),
+                                                   static_cast<double>(full.size.height)};
+            const maui::graphics::rect safe_area_bounds{
+                static_cast<double>(insets.left), static_cast<double>(insets.top),
+                static_cast<double>(full.size.width - insets.left - insets.right),
+                static_cast<double>(full.size.height - insets.top - insets.bottom)};
+            maui::hosting::drive_layout(*window, full_bounds, safe_area_bounds);
+        };
+        relayout(root_view);
+        os_log(OS_LOG_DEFAULT, "[host_run] mounted app window — laid out (bounds %gx%g)", root_view.bounds.size.width,
+               root_view.bounds.size.height);
+
+        // Install the resize hook: a hidden, non-interactive tracking view pinned to fill root_view. Its
+        // layoutSubviews fires whenever root_view re-lays-out (incl. a window-size change), re-running the
+        // relayout closure. Guarded on the size actually changing, so drive_layout's frame mutations don't
+        // re-trigger it into a loop. Captured weakly to avoid a root_view ⇄ block retain cycle.
+        MauiRelayoutView* const tracker = [[MauiRelayoutView alloc] initWithFrame:root_view.bounds];
+        tracker.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        tracker.userInteractionEnabled = NO;
+        tracker.hidden = YES;
+        [root_view insertSubview:tracker atIndex:0];
+        __weak UIView* const weak_root = root_view;
+        __block CGSize last_size = root_view.bounds.size;
+        tracker.onLayout = ^{
+          UIView* const r = weak_root;
+          if (r == nil || CGSizeEqualToSize(r.bounds.size, last_size))
+          {
+              return; // gone, or size unchanged — nothing to re-layout
+          }
+          last_size = r.bounds.size;
+          relayout(r);
+        };
 
         return native_window;
     }
 } // namespace
+
+@implementation MauiRelayoutView
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    if (self.onLayout != nil)
+    {
+        self.onLayout();
+    }
+}
+@end
 
 // The UIKit application delegate UIApplicationMain instantiates (its class name is passed below). The
 // classic (non-scene) UIApplicationDelegate path the port's window_handler mirrors (C#'s !HasSceneManifest
