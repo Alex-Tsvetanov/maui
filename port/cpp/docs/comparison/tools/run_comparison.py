@@ -26,6 +26,7 @@ import argparse
 import json
 import os
 import posixpath
+import re
 import shlex
 import subprocess
 import sys
@@ -79,6 +80,11 @@ class Env:
         # centered-window origin the scenarios are calibrated to; height 800 clamps to the screen max.
         self.present = cap.get("present", True)
         self.geom = {"x": 128, "y": 30, "w": 1024, "h": 800, **cap.get("geometry", {})}
+        # Reboot the VM before the run for a guaranteed-clean Aqua/WindowServer session (the VM boots fast).
+        # The most reliable cleanup — a confused WindowServer (after external display/UTM changes) opens app
+        # windows with bogus geometry that aren't AX-enumerable, which the in-run resolution self-heal can't
+        # always fix. Off by default (adds ~1min); needs passwordless `sudo reboot` on the VM.
+        self.reboot_before_run = cap.get("reboot_before_run", False)
         self.columns = cfg["columns"]
         self.agent_remote = posixpath.join(self.staging, "vm_agent_macos.py")
         self.apps_remote = posixpath.join(self.staging, "apps")
@@ -95,6 +101,28 @@ class Env:
 
     def reachable(self) -> bool:
         return subprocess.run(self._ssh() + ["true"], capture_output=True).returncode == 0
+
+    def reboot_and_wait(self) -> None:
+        """Reboot the VM (passwordless `sudo reboot`) and block until SSH is back AND the Aqua session has
+        settled (load average dropped), so app windows attach to a healthy WindowServer. Best-effort."""
+        print(f"[{self.name}] rebooting VM for a clean session …")
+        subprocess.run(self._ssh() + ["/usr/bin/sudo -n /sbin/reboot"], capture_output=True, timeout=30)
+        time.sleep(8)  # let it actually go down before we start polling for it to come back
+        for _ in range(40):  # ~2min for SSH to return
+            if subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=4", self.hostspec, "true"],
+                              capture_output=True).returncode == 0:
+                break
+            time.sleep(3)
+        else:
+            print(f"  ! {self.name}: SSH did not return after reboot; continuing anyway")
+            return
+        for _ in range(20):  # wait for post-boot load to settle (services starting)
+            out = subprocess.run(self._ssh() + ["/usr/bin/uptime"], capture_output=True, text=True).stdout
+            m = re.search(r"load averages?:\s*([0-9.]+)", out)
+            if m and float(m.group(1)) < 4.0:
+                break
+            time.sleep(5)
+        print(f"  {self.name}: back up")
 
     def mkdirs(self, remote: str) -> None:
         self.ssh_run(["/bin/mkdir", "-p", remote])
@@ -248,6 +276,8 @@ def columns_for(env: Env, tag: str, twin_keys: set[str] | None) -> list[str]:
 def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
             settle: float, twin_keys: set[str] | None, commit: str,
             themes_override: list[str] | None = None) -> dict:
+    if env.reboot_before_run:
+        env.reboot_and_wait()
     print(f"[{env.name}] reachability check …")
     if not env.reachable():
         raise SystemExit(f"[{env.name}] SSH not reachable: ssh -o BatchMode=yes {env.hostspec} true failed")

@@ -125,6 +125,14 @@ Two gotchas this encodes (both verified empirically, and one **corrects an earli
   the runner skips `window-id` and captures the rect `present` just returned, immediately. Disable via
   `[environments.<name>.capture] present = false` (falls back to a single `window-id` lookup, unfocused).
 
+**Clean-session cleanup (`reboot_before_run`).** External display/UTM changes (resizing the UTM window,
+lid-close/reopen) can leave the VM's WindowServer confused about display geometry — app windows then open
+with bogus bounds and aren't visible or AX-enumerable, and re-setting the *same* resolution in-run doesn't
+fix it (a mode *toggle* helps, which `set-resolution` now does, but isn't always enough). The robust cleanup
+is `[capture] reboot_before_run = true`: the runner reboots the VM (passwordless `sudo reboot`) and waits for
+SSH + the Aqua session to settle before deploying. The VM boots fast (~20s to SSH), so this is cheap insurance
+for a guaranteed-clean session.
+
 To make interaction fully geometry-independent (instead of absolute coords), use the DevFlow `automation_id`
 path (tap by name): build the gallery with `-DMAUI_DEVFLOW=ON` and set the columns to `cpp_devflow`.
 

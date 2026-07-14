@@ -29,7 +29,11 @@ height = 800
 # scenarios (calibrated to screen x=640 center) stay valid. Geometry-independent taps: DevFlow automation_id.
 [environments.macos-arm64.capture]
 present = true                           # false → single window-id lookup, unfocused (old behavior)
-# geometry = { x = 128, y = 30, w = 1024, h = 800 }   # h clamps to the screen max (uniform across apps)
+reboot_before_run = true                 # reboot the VM first for a guaranteed-clean WindowServer session
+#                                        # (the VM boots fast; needs passwordless `sudo reboot`). The most
+#                                        # reliable cleanup after external display/UTM changes confuse the
+#                                        # session so app windows open with bogus geometry. Off → adds nothing.
+# geometry = { x = 128, y = 30, w = 1024, h = 800 }   # present pins this rect; x=128 keeps scenario taps aligned
 
 [environments.macos-arm64.staging]
 root = "/Users/testinguser/maui-comparison"   # remote staging; its scratch/ is cleaned each run
