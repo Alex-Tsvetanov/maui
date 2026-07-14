@@ -1,0 +1,4 @@
+# Ephemeral E2E runner output: timestamped run dirs + local machine config.
+# The canonical, committed comparison assets live in captures/ + comparison.json + README.md.
+[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*/
+config/local.toml

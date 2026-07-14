@@ -150,6 +150,40 @@ def cmd_window_id(a) -> int:
     return _emit(ok=False, error="no window found (Quartz absent or empty; AppleScript found none)")
 
 
+def cmd_present(a) -> int:
+    """Bring the process's window to the FRONT (key window → colored, not greyed, traffic lights) and set it
+    to an EXPLICIT position+size so every column captures at the SAME rect. Returns the ACTUAL resulting rect.
+
+    Two empirically-verified facts (contrary to the README's earlier note that Catalyst windows can't be
+    externally sized): (1) `set position`/`set size` of window 1 DO take on Mac Catalyst apps — both the C++
+    gallery and the C# MauiReference obey them; height clamps to the screen's max usable height, which is the
+    SAME for every app, so a common target yields an identical rect. (2) The traffic lights only draw colored
+    while the window is key AT CAPTURE TIME, and any System Events call between this present and the shot (e.g.
+    a separate window-id query) steals key focus back — so the caller must `shot -R <this rect>` IMMEDIATELY,
+    with no intervening agent call. `--zoom` is accepted for back-compat (ignored; explicit sizing supersedes)."""
+    x, y, w, h = a.x, a.y, a.w, a.h
+    out = _osa(
+        'with timeout of 10 seconds\n'
+        f'tell application "System Events" to tell process "{a.proc}"\n'
+        '  set frontmost to true\n'
+        '  try\n'
+        f'    set position of window 1 to {{{x}, {y}}}\n'
+        f'    set size of window 1 to {{{w}, {h}}}\n'
+        '  end try\n'
+        '  set p to position of window 1\n  set s to size of window 1\n'
+        '  return (item 1 of p as string) & "," & (item 2 of p as string) & "," & '
+        '(item 1 of s as string) & "," & (item 2 of s as string)\n'
+        'end tell\nend timeout')
+    parts = out.split(",")
+    if len(parts) == 4:
+        try:
+            rect = [int(float(p)) for p in parts]
+            return _emit(ok=True, proc=a.proc, rect=",".join(map(str, rect)), bounds=rect)
+        except ValueError:
+            pass
+    return _emit(ok=False, proc=a.proc, error=out[:200] or "no rect from System Events")
+
+
 def cmd_click(a) -> int:
     rc = subprocess.run([CLICLICK, f"c:{a.x},{a.y}"], capture_output=True, text=True)
     return _emit(ok=rc.returncode == 0, stderr=rc.stderr.strip()[:400])
@@ -216,6 +250,12 @@ def main(argv=None) -> int:
     s.add_argument("--proc", default="", help="process name (for the no-pyobjc AppleScript fallback)")
     s.add_argument("--retries", type=int, default=15); s.add_argument("--delay", type=float, default=0.3)
     s.set_defaults(fn=cmd_window_id)
+
+    s = sub.add_parser("present"); s.add_argument("--proc", required=True)
+    s.add_argument("--x", type=int, default=128); s.add_argument("--y", type=int, default=30)
+    s.add_argument("--w", type=int, default=1024); s.add_argument("--h", type=int, default=800)
+    s.add_argument("--zoom", action="store_true", help="(ignored; explicit --x/--y/--w/--h supersede)")
+    s.set_defaults(fn=cmd_present)
 
     s = sub.add_parser("click"); s.add_argument("x", type=int); s.add_argument("y", type=int)
     s.set_defaults(fn=cmd_click)

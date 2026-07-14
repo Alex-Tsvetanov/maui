@@ -72,6 +72,13 @@ class Env:
         self.tools = cfg.get("tools", {})
         self.python3 = self.tools.get("python3", "/usr/bin/python3")
         self.display = cfg.get("display", {})
+        cap = cfg.get("capture", {})
+        # Before each shot, activate the window (key → colored traffic lights) and set it to an explicit
+        # rect so every column captures at the SAME size. Default on; [environments.<name>.capture]
+        # present = false falls back to a single window-id lookup. The default geometry {128,30} matches the
+        # centered-window origin the scenarios are calibrated to; height 800 clamps to the screen max.
+        self.present = cap.get("present", True)
+        self.geom = {"x": 128, "y": 30, "w": 1024, "h": 800, **cap.get("geometry", {})}
         self.columns = cfg["columns"]
         self.agent_remote = posixpath.join(self.staging, "vm_agent_macos.py")
         self.apps_remote = posixpath.join(self.staging, "apps")
@@ -290,14 +297,28 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                     print(f"  ! {tag}/{col}/{theme}: launch failed: {res.get('error')}")
                     continue
                 time.sleep(settle)
-                win = env.agent("window-id", pid, "--proc", ccfg["process"])
-                win_id, win_rect, bounds = win.get("id"), win.get("rect"), win.get("bounds")
+                # With `present`, we activate + set an explicit rect right before EACH shot and capture that
+                # exact rect — no window-id call in between (a System Events query there steals key focus back
+                # and greys the traffic lights). Otherwise, resolve the window rect once up front.
+                win_id = win_rect = bounds = None
+                g = env.geom
+                if not env.present:
+                    win = env.agent("window-id", pid, "--proc", ccfg["process"])
+                    win_id, win_rect, bounds = win.get("id"), win.get("rect"), win.get("bounds")
                 try:
                     for step in scenario["steps"]:
                         driver.run_action(step)
                         time.sleep(settle)
                         n += 1
-                        if win_id:
+                        if env.present:
+                            pr = env.agent("present", "--proc", ccfg["process"],
+                                           "--x", g["x"], "--y", g["y"], "--w", g["w"], "--h", g["h"])
+                            bounds = pr.get("bounds") or bounds
+                            if pr.get("rect"):
+                                env.agent("shot", remote_shot, "--rect", pr["rect"])
+                            else:
+                                env.agent("shot", remote_shot)  # present failed → whole-display last resort
+                        elif win_id:
                             env.agent("shot", remote_shot, "--window", win_id)
                         elif win_rect:
                             env.agent("shot", remote_shot, "--rect", win_rect)

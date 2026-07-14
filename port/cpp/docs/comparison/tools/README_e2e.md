@@ -103,13 +103,30 @@ that mode in the UTM VM's display settings. If `set-resolution` can't find the c
 warning and continues at the current resolution — at which point absolute coords will be off, so make
 sure the display width matches what the scenarios were calibrated for.
 
-Why not just pin the window position instead of relying on the resolution? Because **Mac Catalyst
-windows can't be repositioned externally** — the accessibility API reports their position/size as
-unsettable (`kAXErrorAttributeUnsupported`), and System Events (which drives the same AX layer, and also
-needs an un-answerable Automation prompt over SSH) can't either. The window instead **centers
-deterministically** for the display size, so pinning the *resolution* is what fixes the geometry. The
-only way to make interaction fully geometry-independent is the DevFlow `automation_id` path (tap by
-name): build the gallery with `-DMAUI_DEVFLOW=ON` and set the columns to `cpp_devflow`.
+### Focused + uniform-size capture (`present`)
+
+Before every shot the runner runs the agent's **`present`** step, which (a) activates the window so it is
+the **key** window — the traffic-light buttons draw *colored*, not greyed — and (b) sets it to an
+**explicit position + size** (`[capture].geometry`, default `{x=128, y=30, w=1024, h=800}`) so all three
+columns capture at the **same rect**, removing the maui-vs-cpp window-height mismatch that otherwise
+vertically-squashes one image against the other and inflates the pixel diff. Height clamps to the screen's
+max usable height (identical for every app), so the columns end up byte-for-byte the same dimensions.
+
+Two gotchas this encodes (both verified empirically, and one **corrects an earlier claim in this doc**):
+
+- **`set position` / `set size` DO work on Mac Catalyst** via System Events. (An earlier note here said
+  they were unsettable — `kAXErrorAttributeUnsupported`; that is wrong for these apps: both the C++ gallery
+  and the C# MauiReference obey `set position`/`set size`.) So the geometry is pinned directly; you no
+  longer *rely* on the window centering deterministically for the resolution (though it still does, and the
+  default `x=128` equals that centered origin, so the shipped scenario coordinates — calibrated to screen
+  `x=640` center — remain valid).
+- **The window must be key AT CAPTURE TIME.** Any System Events call between `present` and the shot (e.g. a
+  separate `window-id` query) steals key focus back and re-greys the traffic lights. So with `present` on,
+  the runner skips `window-id` and captures the rect `present` just returned, immediately. Disable via
+  `[environments.<name>.capture] present = false` (falls back to a single `window-id` lookup, unfocused).
+
+To make interaction fully geometry-independent (instead of absolute coords), use the DevFlow `automation_id`
+path (tap by name): build the gallery with `-DMAUI_DEVFLOW=ON` and set the columns to `cpp_devflow`.
 
 ## Interaction drivers
 
