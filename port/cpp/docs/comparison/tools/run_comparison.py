@@ -246,7 +246,8 @@ def columns_for(env: Env, tag: str, twin_keys: set[str] | None) -> list[str]:
 
 
 def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
-            settle: float, twin_keys: set[str] | None, commit: str) -> dict:
+            settle: float, twin_keys: set[str] | None, commit: str,
+            themes_override: list[str] | None = None) -> dict:
     print(f"[{env.name}] reachability check …")
     if not env.reachable():
         raise SystemExit(f"[{env.name}] SSH not reachable: ssh -o BatchMode=yes {env.hostspec} true failed")
@@ -275,7 +276,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
     frames: dict[tuple, dict] = {}  # (tag, column, n) -> {theme, step, local}
     for tag in tags:
         scenario = load_scenario(scenarios_dir, tag)
-        themes = scenario["themes"]
+        themes = themes_override or scenario["themes"]
         for col in columns_for(env, tag, twin_keys):
             ccfg = env.columns[col]
             if ccfg.get("_missing"):
@@ -393,8 +394,10 @@ def main(argv=None) -> int:
     ap.add_argument("--only", help="comma-separated tags (default: all manifest pages minus gap_*)")
     ap.add_argument("--scenarios", default=str(COMP / "scenarios"), help="scenarios dir")
     ap.add_argument("--settle", type=float, default=1.0, help="seconds to settle after each action")
+    ap.add_argument("--themes", help="comma-separated theme override for ALL tags, e.g. 'light,dark'")
     ap.add_argument("--plan", action="store_true", help="validate config/scenarios and print the plan; no SSH")
     args = ap.parse_args(argv)
+    themes_override = [t.strip() for t in args.themes.split(",")] if args.themes else None
 
     cfg = tomllib.loads(Path(args.config).read_text())
     out_root = REPO / cfg.get("output", {}).get("root", "port/cpp/docs/comparison")
@@ -429,7 +432,7 @@ def main(argv=None) -> int:
     all_summaries = {}
     for name in env_names:
         summary = run_env(Env(name, cfg["environments"][name]), tags, scenarios_dir, run_root,
-                          args.settle, twin_keys, commit)
+                          args.settle, twin_keys, commit, themes_override)
         all_summaries[name] = summary
 
     (run_root / "summary.json").write_text(json.dumps(all_summaries, indent=2))

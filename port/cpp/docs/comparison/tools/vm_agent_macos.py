@@ -46,20 +46,52 @@ def _pgrep(proc: str) -> set[str]:
 
 
 def cmd_set_resolution(a) -> int:
-    # Find the main display's persistent id, then request the mode. Best-effort: the VM must offer WxH.
+    # Find the main display's persistent id + its available modes, then request WxH. If that exact mode is
+    # gone (UTM regenerates the mode list when its window is resized — this bit us once, silently leaving a
+    # wrong resolution), fall back to ANY same-WIDTH mode (the scenario x-calibration only needs the width),
+    # preferring the height closest to the request. Read back + return the ACTUAL current mode so the caller
+    # can trust the geometry. Fail loudly if no same-width mode exists.
+    import re
     listing = subprocess.run([DISPLAYPLACER, "list"], capture_output=True, text=True).stdout
     disp_id = None
+    modes = []  # (w, h) available on the main display
     for line in listing.splitlines():
-        line = line.strip()
-        if line.lower().startswith("persistent screen id:"):
-            disp_id = line.split(":", 1)[1].strip()
-            break
+        s = line.strip()
+        if s.lower().startswith("persistent screen id:") and disp_id is None:
+            disp_id = s.split(":", 1)[1].strip()
+        m = re.search(r"res:(\d+)x(\d+)", s)
+        if m and "mode" in s:
+            modes.append((int(m.group(1)), int(m.group(2))))
     if not disp_id:
         return _emit(ok=False, error="no display id from `displayplacer list`", raw=listing[:400])
-    rc = subprocess.run([DISPLAYPLACER, f"id:{disp_id} res:{a.width}x{a.height}"],
-                        capture_output=True, text=True)
-    return _emit(ok=rc.returncode == 0, display=disp_id, width=a.width, height=a.height,
-                 stderr=rc.stderr.strip()[:400])
+    want = (a.width, a.height)
+    if want in modes:
+        target = want
+    else:
+        same_w = sorted((h for (w, h) in modes if w == a.width), key=lambda h: abs(h - a.height))
+        if not same_w:
+            return _emit(ok=False, error=f"no {a.width}-wide mode available", available=sorted(set(modes)))
+        target = (a.width, same_w[0])
+    # Toggle through a different mode first, THEN set the target. Re-setting the CURRENT mode is a no-op and
+    # does NOT re-sync a WindowServer that got confused about display geometry (seen after a UTM window resize
+    # + lid events: apps then open with bogus bounds and their windows are invisible / not AX-enumerable).
+    # A real mode change forces the session to re-apply, which fixes it. Pick the most-different-size mode.
+    others = [m for m in dict.fromkeys(modes) if m != target]
+    if others:
+        scratch = max(others, key=lambda m: abs(m[0] - target[0]) + abs(m[1] - target[1]))
+        subprocess.run([DISPLAYPLACER, f"id:{disp_id} res:{scratch[0]}x{scratch[1]}"], capture_output=True, text=True)
+        time.sleep(1.0)
+    subprocess.run([DISPLAYPLACER, f"id:{disp_id} res:{target[0]}x{target[1]}"], capture_output=True, text=True)
+    time.sleep(1.0)
+    cur = subprocess.run([DISPLAYPLACER, "list"], capture_output=True, text=True).stdout
+    actual = None
+    for s in cur.splitlines():
+        if "current mode" in s.lower():
+            m = re.search(r"res:(\d+)x(\d+)", s)
+            if m:
+                actual = [int(m.group(1)), int(m.group(2))]
+    ok = actual == list(target)
+    return _emit(ok=ok, display=disp_id, requested=[a.width, a.height], set=list(target), actual=actual)
 
 
 def cmd_clean(a) -> int:
