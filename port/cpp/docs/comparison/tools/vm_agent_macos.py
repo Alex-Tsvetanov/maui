@@ -194,14 +194,23 @@ def cmd_present(a) -> int:
     a separate window-id query) steals key focus back — so the caller must `shot -R <this rect>` IMMEDIATELY,
     with no intervening agent call. `--zoom` is accepted for back-compat (ignored; explicit sizing supersedes)."""
     x, y, w, h = a.x, a.y, a.w, a.h
+    # Mac Catalyst sometimes ignores the FIRST `set size` (it restores a remembered window size and only
+    # accepts the resize on a later attempt), which left some columns at their restored height (e.g. 548) while
+    # others hit the target (800) — non-reproducible captures. So retry position+size until the window actually
+    # reaches the target (within a few pt) or we run out of tries, then return the ACTUAL rect regardless.
     out = _osa(
-        'with timeout of 10 seconds\n'
+        'with timeout of 20 seconds\n'
         f'tell application "System Events" to tell process "{a.proc}"\n'
         '  set frontmost to true\n'
-        '  try\n'
-        f'    set position of window 1 to {{{x}, {y}}}\n'
-        f'    set size of window 1 to {{{w}, {h}}}\n'
-        '  end try\n'
+        '  repeat 8 times\n'
+        '    try\n'
+        f'      set position of window 1 to {{{x}, {y}}}\n'
+        f'      set size of window 1 to {{{w}, {h}}}\n'
+        '    end try\n'
+        '    delay 0.25\n'
+        '    set s to size of window 1\n'
+        f'    if (item 1 of s) > {w - 5} and (item 2 of s) > {h - 5} then exit repeat\n'
+        '  end repeat\n'
         '  set p to position of window 1\n  set s to size of window 1\n'
         '  return (item 1 of p as string) & "," & (item 2 of p as string) & "," & '
         '(item 1 of s as string) & "," & (item 2 of s as string)\n'
