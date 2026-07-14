@@ -56,6 +56,7 @@
 #include "maui/controls/slider.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/font.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/corner_radius.hpp"
@@ -86,6 +87,7 @@ namespace maui::samples
 
             // ---- Border Shape picker (Rectangle / RoundRectangle / Ellipse; default index 1) ----
             shape_heading_.set_text("Border Shape");
+            style_heading(shape_heading_); // XAML: FontSize=24 FontAttributes=Bold
             shape_picker_.items().add("Rectangle");
             shape_picker_.items().add("RoundRectangle");
             shape_picker_.items().add("Ellipse");
@@ -93,7 +95,9 @@ namespace maui::samples
 
             // ---- Border Width slider (0..20, default 5) ----
             border_heading_.set_text("Border");
+            style_heading(border_heading_);
             width_readout_.set_text("Border Width: 5");
+            style_readout(width_readout_); // XAML InfoStyle FontSize=8
             width_slider_.set_minimum(0);
             width_slider_.set_maximum(20);
             width_slider_.value_changed.connect([this](double /*old_value*/, double new_value) {
@@ -103,6 +107,7 @@ namespace maui::samples
 
             // ---- Corner Radius sliders (each 0..60; defaults TL=60, TR=0, BL=0, BR=12) ----
             corner_heading_.set_text("Corner Radius");
+            style_heading(corner_heading_);
             init_corner(top_left_readout_, top_left_slider_, "Top Left Corner Radius", 60);
             init_corner(top_right_readout_, top_right_slider_, "Top Right Corner Radius", 0);
             init_corner(bottom_left_readout_, bottom_left_slider_, "Bottom Left Corner Radius", 0);
@@ -165,6 +170,7 @@ namespace maui::samples
         void init_corner(maui::controls::label& readout, maui::controls::slider& slider, const char* label,
                          double default_value)
         {
+            style_readout(readout); // XAML InfoStyle FontSize=8
             slider.set_minimum(0);
             slider.set_maximum(60);
             slider.value_changed.connect([this, &readout, label](double /*old_value*/, double new_value) {
@@ -214,6 +220,18 @@ namespace maui::samples
 
             border_.set_stroke_shape(std::move(border_shape));
             border_.set_stroke_thickness(width_slider_.value());
+        }
+
+        // XAML section headers: FontSize=24 FontAttributes=Bold (lines 28/36/40 of the .xaml twin).
+        static void style_heading(maui::controls::label& heading)
+        {
+            heading.set_font(maui::core::font::system_font_of_size(24.0, maui::core::font_weight::bold));
+        }
+
+        // XAML InfoStyle readouts: FontSize=8.
+        static void style_readout(maui::controls::label& readout)
+        {
+            readout.set_font(maui::core::font::system_font_of_size(8.0));
         }
 
         static void set_readout(maui::controls::label& readout, const char* label, double value)
