@@ -15,6 +15,8 @@
 #include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_stack_layout.hpp"
 #include "maui/core/layout_handler.hpp"
+#include "maui/core/safe_area_edges.hpp"   // U20: Layout.SafeAreaEdges (default Container)
+#include "maui/core/safe_area_regions.hpp" // U20
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -450,5 +452,87 @@ namespace
         EXPECT_FALSE(safe.ignore_safe_area()); // Layout.IgnoreSafeArea default
         stack.set_ignore_safe_area(true);
         EXPECT_TRUE(safe.ignore_safe_area());
+    }
+
+    // ---- Layout.SafeAreaEdges (U20 gap) — ported from src/Controls/tests/Core.UnitTests/SafeAreaTests.cs
+    //      (Layout_ImplementsISafeAreaView / Layout_GetSafeAreaRegionsForEdge_UsesDirectProperty /
+    //      Layout_GetSafeAreaRegionsForEdge_FallsBackToLegacyProperty) + the exact rule in
+    //      src/Controls/src/Core/Layout/Layout.cs's ISafeAreaView2.GetSafeAreaRegionsForEdge:
+    //        region = SafeAreaEdges.GetEdge(edge)
+    //        if (region == Default) return IgnoreSafeArea ? None : Container
+    //        if (IgnoreSafeArea)    return None            // legacy override wins on every edge
+    //        return region
+    //      NOTE the default: Layout.SafeAreaEdgesDefaultValueCreator() returns SafeAreaEdges.Container
+    //      ("content stays out of bars/notch") — UNLIKE ContentPage/Border/ContentView, which return None.
+
+    TEST(layout_safe_area, safe_area_edges_defaults_to_container)
+    {
+        vertical_stack_layout stack;
+        // Layout.cs SafeAreaEdgesDefaultValueCreator() => SafeAreaEdges.Container
+        EXPECT_EQ(stack.safe_area_edges(), maui::core::safe_area_edges::container());
+    }
+
+    TEST(layout_safe_area, implements_the_safe_area_view2_face)
+    {
+        vertical_stack_layout stack;
+        auto* face = dynamic_cast<maui::core::i_safe_area_view2*>(&stack);
+        EXPECT_NE(face, nullptr); // Layout_ImplementsISafeAreaView
+    }
+
+    TEST(layout_safe_area, get_regions_for_edge_uses_the_explicit_property_per_edge)
+    {
+        vertical_stack_layout stack;
+        stack.set_safe_area_edges(
+            maui::core::safe_area_edges{maui::core::safe_area_regions::none, maui::core::safe_area_regions::all,
+                                        maui::core::safe_area_regions::none, maui::core::safe_area_regions::all});
+
+        auto& face = static_cast<maui::core::i_safe_area_view2&>(stack);
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::none); // left
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(1), maui::core::safe_area_regions::all);  // top
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(2), maui::core::safe_area_regions::none); // right
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(3), maui::core::safe_area_regions::all);  // bottom
+    }
+
+    // The default (unset) edges are Container, so with IgnoreSafeArea=false every edge reads Container.
+    TEST(layout_safe_area, get_regions_for_edge_defaults_to_container_on_every_edge)
+    {
+        vertical_stack_layout stack;
+        auto& face = static_cast<maui::core::i_safe_area_view2&>(stack);
+        for (int edge = 0; edge < 4; ++edge)
+        {
+            EXPECT_EQ(face.get_safe_area_regions_for_edge(edge), maui::core::safe_area_regions::container);
+        }
+    }
+
+    // Layout_GetSafeAreaRegionsForEdge_FallsBackToLegacyProperty: the obsolete IgnoreSafeArea=true
+    // overrides EVERY edge to None (edge-to-edge), even though the edges default to Container.
+    TEST(layout_safe_area, legacy_ignore_safe_area_overrides_every_edge_to_none)
+    {
+        vertical_stack_layout stack;
+        stack.set_ignore_safe_area(true);
+        auto& face = static_cast<maui::core::i_safe_area_view2&>(stack);
+        for (int edge = 0; edge < 4; ++edge)
+        {
+            EXPECT_EQ(face.get_safe_area_regions_for_edge(edge), maui::core::safe_area_regions::none);
+        }
+    }
+
+    // An edge explicitly set to Default resolves via the legacy flag: !IgnoreSafeArea => Container.
+    TEST(layout_safe_area, explicit_default_edge_resolves_to_container_when_not_ignoring)
+    {
+        vertical_stack_layout stack;
+        stack.set_safe_area_edges(maui::core::safe_area_edges::default_edges());
+        auto& face = static_cast<maui::core::i_safe_area_view2&>(stack);
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(1), maui::core::safe_area_regions::container);
+    }
+
+    // ...and IgnoreSafeArea=true flips that same Default edge to None.
+    TEST(layout_safe_area, explicit_default_edge_resolves_to_none_when_ignoring)
+    {
+        vertical_stack_layout stack;
+        stack.set_safe_area_edges(maui::core::safe_area_edges::default_edges());
+        stack.set_ignore_safe_area(true);
+        auto& face = static_cast<maui::core::i_safe_area_view2&>(stack);
+        EXPECT_EQ(face.get_safe_area_regions_for_edge(1), maui::core::safe_area_regions::none);
     }
 } // namespace

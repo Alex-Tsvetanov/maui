@@ -36,6 +36,8 @@
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_handler.hpp"
 #include "maui/core/property.hpp"
+#include "maui/core/safe_area_edges.hpp"   // Layout.SafeAreaEdges (default Container)
+#include "maui/core/safe_area_regions.hpp" // its per-edge regions
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -49,10 +51,20 @@ namespace maui::controls
     // src/controls/layout.cpp. Default false (Layout.IsClippedToBoundsProperty).
     const maui::core::bindable_property<bool>& clips_to_bounds_property();
 
+    // The shared bindable descriptor for Layout.SafeAreaEdges (SafeAreaElement.SafeAreaEdgesProperty).
+    // NON-template free-function descriptor for the same reason as clips_to_bounds_property above — one
+    // descriptor shared across every layout<LayoutInterface>, so the mapper key ("safe_area_edges") is
+    // identical for every layout control; defined out-of-line in src/controls/layout.cpp. Static metadata
+    // default is SafeAreaEdges.Default, but Layout's per-element default-value creator
+    // (Layout.SafeAreaEdgesDefaultValueCreator) returns SafeAreaEdges.Container — so every LAYOUT reads
+    // Container ("content stays out of bars/notch") by default, UNLIKE ContentPage/Border/ContentView (None).
+    const maui::core::bindable_property<maui::core::safe_area_edges>& layout_safe_area_edges_property();
+
     template <class LayoutInterface>
     class layout : public view<LayoutInterface>,
                    public maui::core::i_cross_platform_layout,
-                   public maui::core::i_safe_area_view
+                   public maui::core::i_safe_area_view,
+                   public maui::core::i_safe_area_view2
     {
         static_assert(std::is_base_of_v<maui::core::i_layout, LayoutInterface>,
                       "LayoutInterface must derive maui::core::i_layout");
@@ -201,6 +213,45 @@ namespace maui::controls
             ignore_safe_area_ = value;
         }
 
+        // ---- Layout.SafeAreaEdges (the per-edge successor to IgnoreSafeArea) ----
+        [[nodiscard]] maui::core::safe_area_edges safe_area_edges() const
+        {
+            return safe_area_edges_.get();
+        }
+        void set_safe_area_edges(maui::core::safe_area_edges value)
+        {
+            safe_area_edges_.set(value);
+        }
+
+        // ---- i_safe_area_view2 ----
+        // C# `Thickness ISafeAreaView2.SafeAreaInsets { set { } }` — "Default no-op implementation for
+        // layouts" (Layout.cs): a layout does NOT store the realized insets; the native host reads them from
+        // its own platform view (MauiView) when it applies the adjustment.
+        void set_safe_area_insets(const maui::core::thickness& value) override
+        {
+            (void)value;
+        }
+
+        // C# Layout.cs ISafeAreaView2.GetSafeAreaRegionsForEdge — ported VERBATIM:
+        //   region = SafeAreaEdges.GetEdge(edge)
+        //   if (region == Default) return IgnoreSafeArea ? None : Container
+        //   if (IgnoreSafeArea)    return None      // the obsolete flag overrides EVERY edge
+        //   return region
+        [[nodiscard]] maui::core::safe_area_regions get_safe_area_regions_for_edge(int edge) const override
+        {
+            const maui::core::safe_area_regions region = safe_area_edges_.get().edge(edge);
+            if (region == maui::core::safe_area_regions::default_value)
+            {
+                return ignore_safe_area_ ? maui::core::safe_area_regions::none
+                                         : maui::core::safe_area_regions::container;
+            }
+            if (ignore_safe_area_)
+            {
+                return maui::core::safe_area_regions::none;
+            }
+            return region;
+        }
+
     protected:
         explicit layout(const maui::core::bindable_property<maui::core::thickness>& padding_descriptor)
             : padding_(*this, padding_descriptor)
@@ -281,5 +332,7 @@ namespace maui::controls
         maui::core::property<bool> clips_to_bounds_{*this, clips_to_bounds_property()};
         std::unique_ptr<maui::layouts::i_layout_manager> manager_;
         bool ignore_safe_area_ = false; // Layout.IgnoreSafeArea (the obsolete auto-property, default false)
+        // Layout.SafeAreaEdges — reads Container by default (the descriptor's default-value creator).
+        maui::core::property<maui::core::safe_area_edges> safe_area_edges_{*this, layout_safe_area_edges_property()};
     };
 } // namespace maui::controls
