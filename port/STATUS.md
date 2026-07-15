@@ -4,6 +4,34 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Per-view safe area (U20 completion) — 🚧 IN PROGRESS (contract ✅ / application ⬜) (2026-07-15)
+
+Closing the last MAUI safe-area fidelity gap, surfaced by the maccatalyst parity sweep: the port's content
+sits a **uniform ~32px below MAUI** on Mac Catalyst (41pt safeAreaInsets.top × the ~0.77 Catalyst UIKit scale).
+
+**Root cause (source-derived, not inferred):** MAUI applies the safe area **per view**, gated by
+`MauiView.cs:771` `_appliesSafeAreaAdjustments = !IsParentHandlingSafeArea() && RespondsToSafeArea() &&
+!_safeArea.IsEmpty` (`RespondsToSafeArea()` = *not a UIScrollView descendant*; the parent check is
+edge-aware), with each control's `SafeAreaEdgesDefaultValueCreator` deciding participation:
+`ContentPage`/`Border`/`ContentView` → **None** (edge-to-edge), `Layout` → **Container**, `ScrollView` →
+**Default** (→ `ContentInsetAdjustmentBehavior.Automatic`), and `UICollectionView` **bypasses MAUI's arrange
+chain entirely** (MauiView.cs:67). The port instead insets ONCE at the **page/host** level, which is wrong for
+CollectionView-rooted pages (full 32px off) and only approximates Layout-rooted pages (25px off).
+
+- ✅ **Contract** (commit `65ff28596f`): `layout` gains `SafeAreaEdges` (default **Container**) +
+  `i_safe_area_view2` with `Layout.cs`'s verbatim `GetSafeAreaRegionsForEdge` rule; shared non-template
+  descriptor (`layout_safe_area_edges_property`); `set_safe_area_insets` no-op per Layout.cs. Tests ported
+  from `SafeAreaTests.cs` (8 cases, red→green). Full headless **3754/3754**. Inert — no consumer yet.
+- ⬜ **Application** (next slice), designed: (1) host stops pre-insetting — pass FULL bounds, since
+  `content_page::layout_inset()` already folds per-edge correctly and pages read None ⇒ zero; (2) give
+  `layout` the same `layout_inset()` fold (padding + per-edge safe area) so a **Container** layout insets its
+  CHILDREN while its own frame stays full — matching `AdjustForSafeArea(bounds) → CrossPlatformArrange(bounds)`
+  (insetting the frame instead would wrongly inset layout BACKGROUNDS); (3) plumb the realized native insets to
+  layouts (the `ios_page::get_safe_area_insets` analog); (4) the gate (scroll-descendant + edge-aware
+  parent-handling). Validated data point: host-full-bounds ALONE takes basic_grouping 39.5%→**0.1%** but leaves
+  Layout pages ~25-38px too high — so (1) must NOT land without (2)/(3). **Must be verified on iOS-sim AND
+  maccatalyst** (this changes the validated iOS surface too).
+
 ## DevFlow test/automation agent (`maui::devflow`) — ✅ DONE (headless), gallery opt-in compile-checked (2026-07-12)
 
 A minimal, **debug-gated** in-app test/automation agent modeled on Microsoft's experimental .NET MAUI DevFlow
