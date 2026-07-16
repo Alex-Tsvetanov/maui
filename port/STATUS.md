@@ -155,10 +155,38 @@ regressions and fixed 2 (`ios_time_picker_seam` x2). Remaining, all pre-existing
 - `collection_view_measure.*` x4 (content-height reporting)
 Run `ctest --preset ios -j 8` to see them; consider adding `ios` to the gate for the iOS phase.
 
-- **Known remaining (macOS):** border_playground 25.7%, context_flyout 25.6%, entry 19.9% (a +20px pure
-  offset, residual 0.93), swipe_view_margin 10.6%, radio_button_border 5.6% (**-8px** — a RadioButton
-  border not counted in the measure; the same CLASS as the Button fix above but a different handler),
-  nested_collection 3.6%.
+## RadioButton indicator: matching the template's 21x21 is WRONG — tried and reverted (2026-07-16)
+
+`radio_button_border` runs **-8px** through its option rows and the port's radio ring looks visibly
+smaller/thinner than MAUI's. The obvious fix is to draw C#'s DefaultTemplate geometry
+(`RadioButton.cs:546-566`: outer `Ellipse` 21x21 `StrokeThickness=2`, check mark 11x11) instead of the
+port's SF symbols (`circle` / `smallcircle.filled.circle`), which size to the FONT and measure 19.67x19.
+
+**Tried it (CG-drawn 21x21 ring + 11pt dot, mirroring check_box_handler's renderer). MEASURED WORSE —
+reverted.** vs HEAD, on the macOS board:
+| page | HEAD | with 21x21 |
+| --- | --- | --- |
+| `radio_button_content` | green 0.6% | **red 3.77%** |
+| `scattered_radio_button` | green 0.29% | yellow 0.88% |
+| `radio_button_group` | green 0.36% | green 0.63% |
+| `radio_button_border` | red 5.63% | red 5.04% (marginal) |
+
+**Why the hypothesis is falsified:** the SF-symbol ring (19.67x19) is EMPIRICALLY closer to MAUI's render
+than the template's nominal 21. The port's native fallback composes the indicator as an IMAGE inside a
+UIButton; MAUI composes an Ellipse inside the template's Grid next to a ContentPresenter. Those do not
+size alike, so forcing the image to the Ellipse's declared 21 changes the BUTTON's intrinsic size in a way
+MAUI's template never does. Reverted per the loop's rule — the change was *wrong*, not incomplete.
+
+Whoever picks this up: do NOT re-try "just use 21x21". The -8px is a ROW-HEIGHT question about how the
+fallback's image+title button measures against MAUI's templated Grid — likely the template's Border
+padding / the Grid's row sizing, not the glyph's nominal size. Ported templated content (the deferred
+work the file header names) would settle it properly.
+
+- **Known remaining (macOS):** border_playground 25.7% + entry 19.9% — BOTH 🟡 blocked on the CheckBox
+  ruling in `docs/comparison/PARITY_REVIEW.md` (not red: the port matches at residual 0.00 apart from the
+  CheckBox row). context_flyout 25.6% — **verified match**; the whole diff is its live bing.com WebView
+  (rows 36-217 differ by 0.000), prose corrected. Genuinely open: swipe_view_margin 10.6%,
+  radio_button_border 5.0% (see above), nested_collection 3.6%.
 - **Known caveat:** 5 `xaml` maccatalyst captures (`gap_menu_bar`, `gap_swipe_view_items`, `gap_title_bar`,
   `swipe_transition_mode`) are 2048x1536 leftovers from an older capture era and are not in the sweep's
   page list, so they went unrefreshed. Pre-existing; not this slice's.
