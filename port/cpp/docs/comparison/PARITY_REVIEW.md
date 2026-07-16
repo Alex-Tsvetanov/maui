@@ -84,3 +84,51 @@ Until then `entry` is 🟡 blocked, not 🔴. Everything else on the page matche
 python3 port/cpp/tools/parity/capture_ios_clean.py --app maui --themes light --only entry   # MAUI iOS
 # then measure the Entry borders bracketing the CheckBox in a text-free column.
 ```
+
+---
+
+## 2. 🟡 `nested_collection` cpp_xaml blank — XAML loader can't realize a nested templated CollectionView
+
+**Status:** open — larger framework work, not a ruling. The last genuinely-open macOS red
+(`nested_collection`, 3.64% — mostly white). NOT a port rendering bug: the port's own framework renders
+it correctly (see below); the gap is specific to the **compile-time-XAML loader**.
+
+### The finding
+
+`nested_collection.xaml` is an OUTER `CollectionView` (VerticalList) whose ItemTemplate root is an INNER
+`CollectionView` (HorizontalList, HeightRequest=100) with its own `Header="{Binding Title}"`,
+HeaderTemplate, `ItemsSource="{Binding Items}"`, and ItemTemplate (`{Binding Caption}`). The outer
+ItemsSource is assigned in **code-behind** (NestedCollectionPage.xaml.cs), not in the XAML.
+
+Measured (clean captures): `maui` 72 content rows, `cpp` (code-first) 102 content rows — both render
+fully; **`xaml` 0 content rows — completely blank** (only the banner).
+
+### Two-part cause — part 1 fixed locally, part 2 is the blocker
+
+- **Part 1 (data — SOLVED, but reverted with part 2).** cpp_xaml used `build_page<no_view_model, …>` so
+  the outer CV had NO source. I built the `super_teams`-style bindable VM (`ViewModels/nested_sources.hpp`:
+  `gallery_item` with a registered `Caption`, `nested_source` with `Title` + `Items`) and wired
+  `nested_collection.xaml.cpp` (`find<collection_view>("CollectionView")` → `set_items_source`). VERIFIED
+  by diagnostic: `find` succeeds, **20 items set, `item_template` + `items_layout` both present**.
+- **Part 2 (rendering — THE BLOCKER).** With all of the above set, the outer CV STILL realizes **zero
+  cells**. `basic_grouping` uses the identical late-`set_items_source` pattern and renders, so it is not a
+  data/timing issue — the XAML loader cannot **realize an outer cell whose DataTemplate root is a nested
+  CollectionView** (with its own Header/ItemTemplate + `{Binding Items}`). The code-first `cpp` column
+  builds that template in C++ (`data_template::of<collection_view>()` + `add_setup` for the inner
+  ItemsLayout, which "is a plain slot, NOT a bindable_property, so it cannot be staged through the
+  template's Values" — nested_collection_page.hpp) and works; the XAML template-inflater path does not.
+
+The part-1 VM was reverted because alone it produces NO board change (still blank) — shipping it would be
+correct-but-dead code implying progress. It is ~80 lines following `super_teams.hpp` and trivially
+recreated alongside the loader work.
+
+### What it needs
+
+XAML-loader support for realizing a DataTemplate whose root is a templated `CollectionView` — staging the
+inner CV's non-bindable `ItemsLayout`, its `{Binding Items}`/`{Binding Title}` against each outer item's
+binding context, and its own Header/ItemTemplate. This is a real layer-6 feature, not a page tweak; the
+port's framework (cpp) already renders the page, so it is a demo-column-only gap at low pixel impact.
+
+**Evidence to reproduce:** wire the VM as above, add `fprintf(stderr, …)` after `set_items_source`, launch
+`gallery_xaml` with `MAUI_SAMPLE_PAGE=nested_collection` and stderr redirected — shows 20 items +
+item_template set, render still blank.
