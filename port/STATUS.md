@@ -4,6 +4,26 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## iOS phase — STARTED (2026-07-16)
+
+Advanced to iOS after the macOS board reached its practical limit (pixel_xaml 149🟢/21🟡/2🔴, the 2 reds
+recorded framework items). Key finding on entry: **the iOS board had NEVER been pixel-scored** — all
+172 pages were `pixel`/`pixel_xaml` = null (iOS was judged only by Sonnet/Gemini vision). And the maui
+column the scorer reads (`captures/ios/maui/`) was a 2026-07-05 frozen capture, ~5/255 off the fresh
+`maui-reference/captures/ios/` (ruling 6's ground truth) and only 51/172 pages overlapped. So iOS pixel
+parity is NEW foundation work, not a refresh.
+
+Pipeline (validated end-to-end on 4 pages — entry/button/swipe_view_margin/absolute_layout):
+1. `capture_ios_clean.py --app {maui,cpp,xaml}` — maui→maui-reference/captures/ios, cpp/xaml→board.
+2. Sync `maui-reference/captures/ios/*.png` → `captures/ios/maui/` (the scorer's maui column; consistent
+   with how the macOS import refreshes captures/<platform>/maui/).
+3. `pixel_score.py --platform ios` → the first iOS pixel board.
+Validated verdicts: entry 0.03% GREEN (checkbox fix carried to iOS), swipe_view_margin 0.03% GREEN (margin
+fix), absolute_layout GREEN, button 1.01% YELLOW (border fix helped; small residual). This session's
+shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin) all carry to iOS.
+
+IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
+
 ## Per-view safe area (U20 completion) — ✅ DONE (contract ✅ / application ✅) (2026-07-15)
 
 Closing the last MAUI safe-area fidelity gap, surfaced by the maccatalyst parity sweep: the port's content
