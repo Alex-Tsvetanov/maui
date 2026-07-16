@@ -4672,9 +4672,9 @@ _Not yet reviewed._
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 163 | 147 | 0 | 129 | 146 |
-| 🟡 Minor | 9 | 23 | 0 | 30 | 19 |
-| 🔴 Major | 0 | 2 | 0 | 13 | 7 |
+| 🟢 Match | 163 | 147 | 0 | 129 | 147 |
+| 🟡 Minor | 9 | 23 | 0 | 31 | 19 |
+| 🔴 Major | 0 | 2 | 0 | 12 | 6 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
 
@@ -6506,13 +6506,13 @@ Matches MAUI's 2-column grouped GridItemsLayout (bars, members, footers, spacing
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.4684, 41.24% pixels differ · Dark: SSIM 0.4068, 44.99% pixels differ
+Light: SSIM 0.9685, 1.54% pixels differ · Dark: SSIM 0.9715, 1.83% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.4679, 41.25% pixels differ · Dark: SSIM 0.4065, 44.97% pixels differ
+Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9967, 0.11% pixels differ
 
 ### 69. Grouping No Templates — 🟢/⏳
 <sub>grouping_no_templates</sub>
@@ -8695,11 +8695,11 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9816, 0.61% pixels differ · Dark: SSIM 0.9834, 0.86% pixels differ
+Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9978, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9803, 0.65% pixels differ · Dark: SSIM 0.9821, 0.89% pixels differ
+Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels differ
 
 ### 150. Swipe Gesture — 🟢/⏳
 <sub>swipe_gesture</sub>

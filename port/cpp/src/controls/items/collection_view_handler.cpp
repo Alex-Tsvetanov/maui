@@ -813,6 +813,7 @@ namespace maui::controls
         {
             platform->orientation = items_layout_orientation::vertical;
             platform->span = 1;
+            platform->grid = false;
             platform->item_spacing = 0;
             platform->snap_points_type = controls::snap_points_type::none;
             platform->snap_points_alignment = controls::snap_points_alignment::start;
@@ -824,11 +825,13 @@ namespace maui::controls
         if (const auto* linear = dynamic_cast<const linear_items_layout*>(layout))
         {
             platform->span = 1;
+            platform->grid = false;
             platform->item_spacing = linear->item_spacing();
         }
         else if (const auto* grid = dynamic_cast<const grid_items_layout*>(layout))
         {
             platform->span = grid->span();
+            platform->grid = true; // C# LayoutFactory2 dispatches to CreateGridLayout for this type
             // The main-axis row spacing: vertical lists stack rows vertically and vice versa.
             platform->item_spacing = layout->orientation() == items_layout_orientation::vertical
                                          ? grid->vertical_item_spacing()
@@ -837,6 +840,7 @@ namespace maui::controls
         else
         {
             platform->span = 1;
+            platform->grid = false;
             platform->item_spacing = 0;
         }
     }

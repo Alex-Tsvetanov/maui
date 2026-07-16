@@ -113,8 +113,52 @@ on `button` alone, so iOS pixel verdicts are measured against the wrong referenc
 button as red 27.48% while the fresh reference measures 0/2.09). Ruling 6 says never write to the frozen
 tree, so the fix is to point the scorer at `port/maui-reference/` — iOS-phase work, not re-litigated here.
 
-- **Known remaining (macOS):** grid_grouping 45%, border_playground 25.7%, context_flyout 25.6%,
-  entry 19.9%, swipe_view_margin 10.6%, radio_button_border 5.6%, nested_collection 3.6%.
+## CollectionView: a GROUPED GRID drops the view-level Header/Footer — ✅ DONE (2026-07-16)
+
+`grid_grouping` measured **+16px at residual 0.87** (identical content, one extra row): the port rendered
+the authored `Header="This is a header"`, MAUI did not. **Verified MAUI on BOTH iOS and Mac Catalyst —
+neither renders it**, so this is NOT a Catalyst "renders-less" quirk (ruling 10) and not a ruling-3
+escalation; per ruling 1 MAUI's render is ground truth and the PORT was wrong.
+
+**C# rule** (`Handlers/Items2/iOS/LayoutFactory2.cs`) — the two layouts are ASYMMETRIC:
+- `CreateListLayout` (:89-94) sets `layoutConfiguration.BoundarySupplementaryItems =
+  CreateSupplementaryItems(null, layoutHeaderFooterInfo, …)` — *"//create global header and footer"* —
+  passing NULL grouping, so a LIST shows the view-level Header/Footer grouped or not (its section call
+  passes null headerFooterInfo → group headers only).
+- `CreateGridLayout` (:153-198) **never touches** `layoutConfiguration.BoundarySupplementaryItems`. Its
+  only call is section-level and passes the groupingInfo — and `CreateSupplementaryItems` (:30-55)
+  **early-returns** on `groupingInfo.IsGrouped` after adding just the group header/footer, so the
+  LayoutHeaderFooterInfo is never read. ⇒ a grouped GRID renders NO view-level Header/Footer.
+  (Non-grouped grid: IsGrouped false ⇒ no early return ⇒ header/footer render as SECTION items — visually
+  the same place, a flat CV having one section. So gating on `grid && grouped` is exact.)
+
+The port applied the LIST rule to every layout (a previous fix cited `CreateListLayout` explicitly). Fix:
+`platform->grid` (set from the `grid_items_layout` dynamic_cast, mirroring C#'s type-based dispatch —
+span alone will not do, a Span=1 grid is still a grid) + drop the CV header/footer when `grid && grouped`.
+
+- 1 new `collection_view_ios` test (grouped GRID drops the view-level pair; group supplementaries and the
+  grouped-LIST test both still green). Headless 3765/3765.
+- **Measured:** grid_grouping +16px/0.87 → **0 / 0.0 pixel-perfect**. Scope verified: of the 17 pages
+  authoring a Header/Footer, `grid_grouping` is the ONLY grid+grouped one; basic_grouping (grouped LIST),
+  items, collectionview, footer_only_string, header_footer, header_footer_template, switch_grouping,
+  some_empty_groups, scroll_to_group, grouping_plus_selection all re-measured **0/0.0**.
+  Board pixel_xaml **147 green / 19 yellow / 6 red**.
+
+## ⚠️ iOS lane: 7 PRE-EXISTING test failures, invisible to the commit gate (for the iOS phase)
+
+`tools/gate.sh --fast` runs lanes `headless tidy apple` — it **skips `ios`** by design, so the iOS suite
+is not gated on commit and these went unnoticed. Baseline measured at `38bda6b25a` (before this session):
+**9 failures / 2328**; the branch now has **7** — a strict SUBSET, so this session introduced no iOS
+regressions and fixed 2 (`ios_time_picker_seam` x2). Remaining, all pre-existing:
+- `collection_view_ios.programmatic_scroll_reuses_cell_instances` (cell reuse: 30 distinct, expected < 30)
+- `items_view_test.{vertical,horizontal}_list_measurement_reports_content_not_the_screen`
+- `collection_view_measure.*` x4 (content-height reporting)
+Run `ctest --preset ios -j 8` to see them; consider adding `ios` to the gate for the iOS phase.
+
+- **Known remaining (macOS):** border_playground 25.7%, context_flyout 25.6%, entry 19.9% (a +20px pure
+  offset, residual 0.93), swipe_view_margin 10.6%, radio_button_border 5.6% (**-8px** — a RadioButton
+  border not counted in the measure; the same CLASS as the Button fix above but a different handler),
+  nested_collection 3.6%.
 - **Known caveat:** 5 `xaml` maccatalyst captures (`gap_menu_bar`, `gap_swipe_view_items`, `gap_title_bar`,
   `swipe_transition_mode`) are 2048x1536 leftovers from an older capture era and are not in the sweep's
   page list, so they went unrefreshed. Pre-existing; not this slice's.

@@ -469,6 +469,50 @@ namespace
         (void)window;
     }
 
+    // …and the GRID twin of the test above renders NO view-level Header/Footer — MAUI's LayoutFactory2
+    // treats the two layouts asymmetrically:
+    //   * CreateListLayout (:89-94) sets `layoutConfiguration.BoundarySupplementaryItems =
+    //     CreateSupplementaryItems(null, layoutHeaderFooterInfo, …)` — "//create global header and footer"
+    //     — and passes NULL headerFooterInfo at section level, so a grouped LIST shows both.
+    //   * CreateGridLayout (:153-198) NEVER touches layoutConfiguration.BoundarySupplementaryItems. Its
+    //     only call is section-level and passes the groupingInfo, and CreateSupplementaryItems (:30-55)
+    //     EARLY-RETURNS on `groupingInfo.IsGrouped` having added just the group header/footer — so the
+    //     LayoutHeaderFooterInfo is never consulted and the view-level Header/Footer is dropped.
+    // Confirmed against real MAUI on BOTH iOS and Mac Catalyst: grid_grouping's authored
+    // Header="This is a header" appears on neither (the port rendered it, putting the whole page 16px
+    // low). A non-grouped grid is unaffected — there IsGrouped is false, so the same call falls through
+    // to the LayoutHeaderFooterInfo branch and the header renders as a section item.
+    TEST(collection_view_ios, grouped_grid_drops_the_cv_header_and_footer)
+    {
+        struct local_rig
+        {
+            std::shared_ptr<observable_collection<grouping_ptr>> groups; // publisher FIRST (§8)
+            test_context ctx;                                            // before the handler (back-pointer)
+            collection_view view;
+            std::shared_ptr<collection_view_handler> handler = std::make_shared<collection_view_handler>();
+        } r;
+        wire_basic_grouping(r); // grouped, CV Header + Footer, group templates — as the list test above
+        // …but a GRID items layout (the grid_grouping page's `ItemsLayout="VerticalGrid, 2"`).
+        r.view.set_items_layout(std::make_shared<grid_items_layout>(2, items_layout_orientation::vertical));
+
+        UIWindow* const window = make_host_window();
+        [window addSubview:native_collection_view(r.handler)];
+        [window makeKeyAndVisible];
+        r.handler->native_force_layout(200, 600);
+        pump_until([&] { return r.handler->native_visible_cell_count() > 0; });
+
+        EXPECT_EQ([native_collection_view(r.handler) numberOfSections], 2);
+
+        // The per-group supplementaries still render — only the VIEW-level pair is dropped.
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/0, /*header=*/true), "Avengers");
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/0, /*header=*/false), "Total members: 2");
+
+        // No global (CV-level) header/footer exists at all (section < 0 reads the global; absent -> "").
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/-1, /*header=*/true), "");
+        EXPECT_EQ(r.handler->native_supplementary_text(/*section=*/-1, /*header=*/false), "");
+        (void)window;
+    }
+
     // ---- reorder ----
 
     // A completed reorder moves the bound model (exactly what a native drag's IList mutation does) and

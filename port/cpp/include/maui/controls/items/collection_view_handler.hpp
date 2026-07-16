@@ -188,6 +188,11 @@ namespace maui::controls
         // ---- mirrors of the mapped surface ----
         items_layout_orientation orientation = items_layout_orientation::vertical;
         int span = 1;
+        // Whether the ItemsLayout is a GRID (a GridItemsLayout) rather than a linear list. C#'s
+        // LayoutFactory2 branches on the TYPE — CreateGridLayout vs CreateListLayout — and the two treat
+        // the view-level Header/Footer differently, so span alone will not do (a GridItemsLayout with
+        // Span=1 is still a grid).
+        bool grid = false;
         double item_spacing = 0; // main-axis row spacing (linear ItemSpacing / grid main-axis spacing)
         controls::snap_points_type snap_points_type = controls::snap_points_type::none;
         controls::snap_points_alignment snap_points_alignment = controls::snap_points_alignment::start;

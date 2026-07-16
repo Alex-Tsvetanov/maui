@@ -605,6 +605,28 @@ namespace maui::controls
                 cv_header = structured->header().has_value() || structured->header_template() != nullptr;
                 cv_footer = structured->footer().has_value() || structured->footer_template() != nullptr;
             }
+            // …EXCEPT on a GROUPED GRID, which renders no view-level Header/Footer at all. C#'s
+            // LayoutFactory2 treats the two layouts asymmetrically, and the comment above (written for the
+            // LIST path) does not hold for a grid:
+            //   * CreateListLayout (:89-94) sets layoutConfiguration.BoundarySupplementaryItems =
+            //     CreateSupplementaryItems(null, layoutHeaderFooterInfo, …) — "//create global header and
+            //     footer" — passing NULL grouping, so the CV header/footer land on the GLOBAL config
+            //     whether or not the CV is grouped (and its section call passes null headerFooterInfo).
+            //   * CreateGridLayout (:153-198) NEVER touches layoutConfiguration.BoundarySupplementaryItems.
+            //     Its ONLY call is section-level and passes the groupingInfo — and CreateSupplementaryItems
+            //     (:30-55) EARLY-RETURNS on `groupingInfo.IsGrouped` after adding just the group
+            //     header/footer, so the LayoutHeaderFooterInfo is never read and the view-level pair is
+            //     dropped. (Non-grouped grid: IsGrouped is false, the early return does not fire, and the
+            //     header/footer render as SECTION items — visually the same place as the global one, since
+            //     a flat CV has exactly one section. So gating on grouped is enough.)
+            // Verified against real MAUI on BOTH iOS and Mac Catalyst: grid_grouping authors
+            // Header="This is a header" and NEITHER renders it. The port did, which pushed the entire page
+            // 16px down (measured: +16px offset at residual 0.87 — i.e. identical content, one extra row).
+            if (platform != nullptr && platform->grid && grouped)
+            {
+                cv_header = false;
+                cv_footer = false;
+            }
 
             UICollectionViewCompositionalLayoutConfiguration* const config =
                 [[UICollectionViewCompositionalLayoutConfiguration alloc] init];
