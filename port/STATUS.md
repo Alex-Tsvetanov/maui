@@ -221,11 +221,26 @@ fallback's image+title button measures against MAUI's templated Grid — likely 
 padding / the Grid's row sizing, not the glyph's nominal size. Ported templated content (the deferred
 work the file header names) would settle it properly.
 
-- **Known remaining (macOS):** border_playground 25.7% + entry 19.9% — BOTH 🟡 blocked on the CheckBox
-  ruling in `docs/comparison/PARITY_REVIEW.md` (not red: the port matches at residual 0.00 apart from the
-  CheckBox row). context_flyout 25.6% — **verified match**; the whole diff is its live bing.com WebView
-  (rows 36-217 differ by 0.000), prose corrected. Genuinely open: swipe_view_margin 10.6%,
-  radio_button_border 5.0% (see above), nested_collection 3.6%.
+## CheckBox 44 floor dropped — user ruling 11 (2026-07-16) — ✅ DONE
+
+`src/`'s CheckBoxHandler.iOS.cs floors the checkbox at MinimumSize=44f, but the SHIPPED MAUI the board
+renders against (MauiReference pins MauiVersion 10.0.71) draws it at DefaultSize=18pt with no floor
+(measured 18pt on both Catalyst and iOS). Escalated as PARITY_REVIEW item 1 (the two MAUI versions
+disagree; picking one is a version call I could not make). **User ruled: the render wins — drop the 44
+floor.** Now `port/CLAUDE.md` ruling 11 (the general rule: when src/ and the shipped MauiVersion diverge,
+match the render; src/ stays the oracle for mechanism, not stale values).
+
+Fix: `check_box_handler.mm` `minimumViewSize = k_default_size` (18, was 44), a DOCUMENTED DEVIATION citing
+both sides + the ruling. Test updated (get_desired_size 44 → 18). Measured: **entry +20px → 0/0.00 (green)**,
+**border_playground 25.72% → 1.1% (yellow)** — the checkbox row is now 18pt, content bands identical to
+MAUI (150/183/209/219). Headless 3765/3765; iOS 10/2331 (== baseline, no regression).
+
+- **macOS board: pixel_xaml 149 green / 21 yellow / 2 red.** The last 2 reds are both recorded in
+  PARITY_REVIEW.md and neither is a quick port fix: radio_button_border 5.6% (the falsified 21x21
+  hypothesis — a row-height question about the native fallback's image+title button vs MAUI's templated
+  Grid), nested_collection 3.6% (item 2 — the XAML loader can't realize a nested templated CollectionView;
+  the port's own framework renders it correctly via the cpp column). context_flyout is a verified match
+  behind a live bing.com WebView.
 - **Known caveat:** 5 `xaml` maccatalyst captures (`gap_menu_bar`, `gap_swipe_view_items`, `gap_title_bar`,
   `swipe_transition_mode`) are 2048x1536 leftovers from an older capture era and are not in the sweep's
   page list, so they went unrefreshed. Pre-existing; not this slice's.

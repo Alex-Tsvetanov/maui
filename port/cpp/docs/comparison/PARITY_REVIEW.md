@@ -6,12 +6,13 @@ to the list in `port/CLAUDE.md`.
 
 ---
 
-## 1. 🟡 `src/` and the SHIPPED MAUI disagree on CheckBox sizing (blocks `entry` + `border_playground`)
+## 1. ✅ RESOLVED (2026-07-16) — `src/` vs SHIPPED MAUI CheckBox sizing: the RENDER wins
 
-**Status:** open — needs a ruling. Blocks **2 of the 6 remaining macOS reds**:
-`entry` (19.89%) and `border_playground` (25.72%, `border_playground.xaml:53`
-`<CheckBox IsChecked="False" WidthRequest="48" VerticalOptions="Center" />`). Both track MAUI exactly
-until their CheckBox, then run +20px low for everything below it — the same 26pt (44 - 18) delta.
+**Ruling (user, 2026-07-16): the render wins — drop the 44 floor.** Now `port/CLAUDE.md` ruling 11.
+Implemented: `check_box_handler.mm` `minimumViewSize = k_default_size` (18pt, not 44). Verified on the
+Catalyst board — `entry` +20px → **0 / 0.00**, `border_playground` → **0 / 0.37**; the checkbox row is now
+18pt, its content bands identical to MAUI (150/183/209/219). Headless 3765/3765; iOS 10/2331 (== baseline,
+no regression). The original analysis is kept below for the record.
 
 ### The measurement
 

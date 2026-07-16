@@ -1549,12 +1549,12 @@
           "review": "Top border/gradient/label block matches MAUI. Below it, the ScrollView's rows are measurably taller in the port than in MAUI's native render (accumulating drift down the page \u2014 by the bottom, rows are offset by 100+ px), most likely a font-metrics/row-height fidelity gap rather than a structural bug. The Padding/StackLayout-type divergence between cpp and xaml that originally caused a cpp/xaml self-contradiction is fixed (2026-07-06): cpp and xaml now render pixel-identical to each other (0.79% diff). Flagging the residual MAUI-vs-port row-height gap as a separate follow-up, out of scope for the padding fix."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.7513, 7.35% pixels differ \u00b7 Dark: SSIM 0.6120, 25.86% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9871, 1.24% pixels differ \u00b7 Dark: SSIM 0.9848, 1.35% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.7520, 7.28% pixels differ \u00b7 Dark: SSIM 0.6129, 25.72% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9903, 1.09% pixels differ \u00b7 Dark: SSIM 0.9888, 1.15% pixels differ"
         }
       },
       "android": {
@@ -5608,12 +5608,12 @@
           "review": "C2/C4: matches MAUI in both themes \u2014 identical entry stack, colors (purple text/placeholder, magenta in dark), password dots, right-aligned end text, and slider position."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8096, 3.69% pixels differ \u00b7 Dark: SSIM 0.7071, 19.86% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9977, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8083, 3.72% pixels differ \u00b7 Dark: SSIM 0.7059, 19.89% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
         }
       },
       "android": {

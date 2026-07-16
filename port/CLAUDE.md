@@ -209,6 +209,19 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
     `VerticalStackLayout` case (`header_footer_view`), which the user has directed be FIXED (the port should
     replicate MAUI's expansion), not ruled exempt.
 
+11. **When `src/` and the shipped `MauiVersion` disagree, the RENDER wins (2026-07-16 ruling).** The port is
+    written against the read-only `src/` snapshot, but the parity board renders against a NEWER shipped MAUI
+    (MauiReference pins `MauiVersion 10.0.71`; `src/` is a ~2025 snapshot). Where the two produce DIFFERENT
+    behavior, the port matches MAUI's ACTUAL RENDER (ruling 1), not the stale `src/` value — `src/` remains the
+    oracle for *mechanism*, not for values it has since changed. Mark such a change a DOCUMENTED DEVIATION in
+    code, citing both `src/` (what it says) and the render (what shipped MAUI does) + this ruling. First
+    application: **CheckBox sizing.** `src/`'s `CheckBoxHandler.iOS.cs` floors the checkbox at
+    `MinimumSize = 44f`; shipped 10.0.71 renders it at `MauiCheckBox.DefaultSize = 18pt` with NO floor
+    (measured 18pt on both Catalyst and iOS). The port DROPPED the 44 floor (`check_box_handler.mm`
+    `minimumViewSize = k_default_size`), fixing `entry` (+20px → 0/0.00) and `border_playground` (→ 0/0.37).
+    Applies to the checkbox on the iOS backend (iOS + maccatalyst), and to any future `src/`-vs-shipped
+    divergence surfaced by the board.
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:

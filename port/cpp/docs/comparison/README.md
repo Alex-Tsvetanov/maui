@@ -4672,9 +4672,9 @@ _Not yet reviewed._
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 164 | 148 | 0 | 130 | 148 |
-| 🟡 Minor | 8 | 22 | 0 | 32 | 20 |
-| 🔴 Major | 0 | 2 | 0 | 10 | 4 |
+| 🟢 Match | 164 | 148 | 0 | 131 | 149 |
+| 🟡 Minor | 8 | 22 | 0 | 33 | 21 |
+| 🔴 Major | 0 | 2 | 0 | 8 | 2 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
 
@@ -5102,13 +5102,13 @@ Top border/gradient/label block matches MAUI. Below it, the ScrollView's rows ar
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7513, 7.35% pixels differ · Dark: SSIM 0.6120, 25.86% pixels differ
+Light: SSIM 0.9871, 1.24% pixels differ · Dark: SSIM 0.9848, 1.35% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.7520, 7.28% pixels differ · Dark: SSIM 0.6129, 25.72% pixels differ
+Light: SSIM 0.9903, 1.09% pixels differ · Dark: SSIM 0.9888, 1.15% pixels differ
 
 ### 17. Border Resize Content — 🟡/⏳
 <sub>border_resize_content</sub>
@@ -6209,13 +6209,13 @@ C2/C4: matches MAUI in both themes — identical entry stack, colors (purple tex
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8096, 3.69% pixels differ · Dark: SSIM 0.7071, 19.86% pixels differ
+Light: SSIM 0.9977, 0.09% pixels differ · Dark: SSIM 0.9978, 0.08% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8083, 3.72% pixels differ · Dark: SSIM 0.7059, 19.89% pixels differ
+Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels differ
 
 ### 58. Filter Collection — 🟢/⏳
 <sub>filter_collection</sub>

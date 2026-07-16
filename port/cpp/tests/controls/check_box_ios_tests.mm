@@ -131,18 +131,20 @@ namespace
         EXPECT_NEAR(green, 0.0, 0.01);
     }
 
-    TEST(ios_check_box_seam, minimum_size_floors_the_desired_size)
+    TEST(ios_check_box_seam, desired_size_is_the_default_18pt_glyph_not_the_44_floor)
     {
         check_box control;
         auto handler = std::make_shared<check_box_handler>();
         control.set_handler(handler);
 
-        // The drawn control squares itself at MinimumViewSize (44pt) under free constraints
-        // (MauiCheckBox.SizeThatFits + CheckBoxHandler.iOS.GetDesiredSize).
+        // The drawn control squares itself at DefaultSize (18pt) under free constraints — NOT the 44pt
+        // MinimumSize touch-target floor src/'s CheckBoxHandler.iOS.cs applies. User ruling 11
+        // (2026-07-16): the shipped MAUI (MauiVersion 10.0.71) renders 18pt on both Catalyst and iOS and
+        // the render wins over src/'s stale 2025 snapshot. See docs/comparison/PARITY_REVIEW.md item 1.
         const maui::graphics::size measured =
             handler->get_desired_size(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
-        EXPECT_EQ(measured.width, 44.0);
-        EXPECT_EQ(measured.height, 44.0);
+        EXPECT_EQ(measured.width, 18.0);
+        EXPECT_EQ(measured.height, 18.0);
     }
 
     TEST(ios_check_box_seam, accessibility_value_reports_the_checked_state)

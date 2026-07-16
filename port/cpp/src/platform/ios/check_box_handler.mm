@@ -335,9 +335,16 @@ namespace maui::core
     std::unique_ptr<check_box_platform> check_box_handler::create_platform_view()
     {
         auto platform = std::make_unique<check_box_platform>();
-        // CheckBoxHandler.iOS.CreatePlatformView: MinimumViewSize = MinimumSize (44pt touch target).
+        // C# CheckBoxHandler.iOS.CreatePlatformView sets MinimumViewSize = MinimumSize (44pt touch
+        // target). DOCUMENTED DEVIATION from src/ (user ruling 11, 2026-07-16): the SHIPPED MAUI the parity
+        // board renders against (MauiReference pins MauiVersion 10.0.71) draws the checkbox at DefaultSize
+        // (18pt), with NO 44 floor — measured 18pt on both Catalyst and iOS. src/'s MauiCheckBox.cs is a
+        // 2025-01-26 snapshot that still floors at 44; the two MAUI versions disagree, and the ruling is
+        // that the RENDER wins (ruling 1 — MAUI's actual render is ground truth for content). So the floor
+        // is DefaultSize, not 44 — the checkbox measures to its natural 18pt glyph. See
+        // docs/comparison/PARITY_REVIEW.md item 1.
         MauiCheckBox* const native = [[MauiCheckBox alloc] initWithFrame:CGRectZero];
-        native.minimumViewSize = 44.0;
+        native.minimumViewSize = k_default_size;
         platform->native = (__bridge_retained void*)native; // the void* slot owns one reference
         return platform;
     }
