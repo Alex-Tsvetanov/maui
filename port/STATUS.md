@@ -79,8 +79,42 @@ CollectionView-rooted pages (full 32px off) and only approximates Layout-rooted 
     −32→**0 / 0.4**. iOS re-verified: `button` unchanged (+24/15.21 vs +24/15.23 = noise); `slider`/`picker`
     render correctly with **0px** horizontal/vertical shift vs HEAD (their residual is runtime state — a
     slider value, a picker selection).
-- **Known remaining (macOS, separate slice):** `button` ≈6px cumulative offset (residual 10.5) — content
-  structurally identical, not safe-area related.
+## Button BorderWidth measure (macOS + iOS) — ✅ DONE (2026-07-16)
+
+`button` sat ≈6px high from y≈280 down (rows 40-280 matched EXACTLY, residual 0.00 — a single short
+element shifting everything below it). Root-caused by measuring the colored bands: only the
+`BorderWidth="4"` button differed — MAUI 30px vs port 24px (2 x 4pt x the 0.77 Catalyst scale = 6px);
+the other four buttons were byte-identical.
+
+**C# rule** (`Button.iOS.cs` ICrossPlatformLayout.CrossPlatformMeasure :44, :59-83, :124-130): the border
+gets space via the content edge insets — `contentEdgeInsets = new Thickness(borderWidth)` (+ padding for
+the `image is null` branch), and the returned height is `titleRectHeight + padding.Top + padding.Bottom +
+borderWidth * 2`. It applies to TEXT-ONLY buttons, not just the image path.
+
+**The port's bug was subtle**: `get_desired_size` had that exact formula — but only on the IMAGE path. A
+text-only button early-returned a bare `-[UIButton sizeThatFits:]`, which sees only the insets
+`map_padding` left behind, and the mapper order is Padding BEFORE StrokeThickness (mirroring C#'s), so
+`layer.borderWidth` was still 0 and the border never reached the insets. C# survives the same order
+because its Controls-level Button REPLACES MapPadding on iOS with a measure-invalidate
+(`Button.Mapper.cs:19-21`) and recomputes the insets inside CrossPlatformMeasure — i.e. at MEASURE time,
+from the live BorderWidth. Fix: `apply_content_edge_insets(button, padding, border_width)` with the
+border passed IN, called from the text-only measure path — order-independent by construction.
+
+- 2 new `ios_button_seam` tests (border grows by 2x; negative clamps to 0), red -> green. Headless 3765/3765.
+- **Measured:** maccatalyst `button` -6px/10.5 -> **0/0.5**, band heights now `[25,24,25,30,25]` == MAUI
+  EXACTLY. Board pixel_xaml red -> **green** (0.40%).
+- **iOS (shared code) also fixed**: `button` **+24px/15.23 -> 0/2.09** vs the ruling-6 ground truth. The
+  iOS board's own verdict was NOT published for it — see the caveat below.
+
+**⚠️ iOS board scores against a STALE MAUI reference (pre-existing; for the iOS phase).**
+`pixel_score.py` reads `captures/ios/maui/`, but nothing refreshes it — `capture_ios_clean.py --app maui`
+writes to `port/maui-reference/captures/ios/` (the ruling-6 ground truth). The two differ by mean **54.6**
+on `button` alone, so iOS pixel verdicts are measured against the wrong reference (it scored the FIXED
+button as red 27.48% while the fresh reference measures 0/2.09). Ruling 6 says never write to the frozen
+tree, so the fix is to point the scorer at `port/maui-reference/` — iOS-phase work, not re-litigated here.
+
+- **Known remaining (macOS):** grid_grouping 45%, border_playground 25.7%, context_flyout 25.6%,
+  entry 19.9%, swipe_view_margin 10.6%, radio_button_border 5.6%, nested_collection 3.6%.
 - **Known caveat:** 5 `xaml` maccatalyst captures (`gap_menu_bar`, `gap_swipe_view_items`, `gap_title_bar`,
   `swipe_transition_mode`) are 2048x1536 leftovers from an older capture era and are not in the sweep's
   page list, so they went unrefreshed. Pre-existing; not this slice's.

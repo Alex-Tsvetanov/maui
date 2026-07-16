@@ -621,4 +621,53 @@ namespace
         EXPECT_EQ(control.content_layout().position, button_content_layout::image_position::right);
         EXPECT_EQ(control.content_layout().spacing, 6.0);
     }
+
+    // C# Button.iOS.cs ICrossPlatformLayout.CrossPlatformMeasure (:44, :59-83, :124-130): a BorderWidth
+    // grows the button, because the border is given space via the ContentEdgeInsets —
+    //   var borderWidth = button.BorderWidth < 0 ? 0 : button.BorderWidth;
+    //   var contentEdgeInsets = new Thickness(borderWidth);          // all four edges
+    //   else if (image is null || ...) { contentEdgeInsets.Left += padding.Left; ... }
+    //   buttonContentHeight = max(titleRectHeight, imageHeight) + padding.Top + padding.Bottom
+    //                         + borderWidth * 2;
+    // …and this applies to a TEXT-ONLY button, not just the image path. The port measured text-only
+    // buttons with a bare -[UIButton sizeThatFits:], which only sees the insets map_padding left behind —
+    // and map_padding runs BEFORE map_stroke_thickness (mapper order, same as C#'s), so layer.borderWidth
+    // was still 0 and the border never reached the insets. Measured on the maccatalyst board: MAUI's
+    // BorderWidth=4 button is 30px tall, the port's 24px (2 x 4pt x the 0.77 Catalyst scale = 6px), and
+    // every control below it on the `button` page inherited that -6px shift.
+    TEST(ios_button_seam, border_width_grows_a_text_only_button_by_twice_the_border)
+    {
+        button plain;
+        plain.set_text("BorderWidth");
+        plain.set_handler(std::make_shared<button_handler>());
+        const maui::graphics::size without = plain.measure(1000, 1000);
+
+        button bordered;
+        bordered.set_text("BorderWidth");
+        bordered.set_stroke_thickness(4);
+        bordered.set_handler(std::make_shared<button_handler>());
+        const maui::graphics::size with = bordered.measure(1000, 1000);
+
+        EXPECT_DOUBLE_EQ(with.height, without.height + 8.0); // borderWidth * 2, top+bottom
+        EXPECT_DOUBLE_EQ(with.width, without.width + 8.0);   // …and left+right
+    }
+
+    // C#: `borderWidth = button.BorderWidth < 0 ? 0 : button.BorderWidth` — a negative clamps to 0, so an
+    // unset/negative stroke must not shrink the button.
+    TEST(ios_button_seam, negative_border_width_does_not_change_the_measure)
+    {
+        button plain;
+        plain.set_text("BorderWidth");
+        plain.set_handler(std::make_shared<button_handler>());
+        const maui::graphics::size without = plain.measure(1000, 1000);
+
+        button negative;
+        negative.set_text("BorderWidth");
+        negative.set_stroke_thickness(-3);
+        negative.set_handler(std::make_shared<button_handler>());
+        const maui::graphics::size with = negative.measure(1000, 1000);
+
+        EXPECT_DOUBLE_EQ(with.height, without.height);
+        EXPECT_DOUBLE_EQ(with.width, without.width);
+    }
 } // namespace

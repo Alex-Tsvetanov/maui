@@ -95,7 +95,13 @@ def main():
             # are the separate xaml-vs-maui verdict a framework=xaml sweep writes. They are only added
             # when a sweep has produced them, so pages without an xaml review stay byte-identical and the
             # current README output is unchanged. See tools/parity/comparison_paths.review_slot().
-            for slot in ("sonnet_xaml", "gemini_xaml"):
+            # …and the pixel-score slots, which are NOT regenerable from here — only
+            # tools/parity/pixel_score.py computes them, from the captures. Dropping them made this script
+            # silently destructive: the documented publish chain is import -> build_comparison_json ->
+            # `pixel_score --only <page>` -> gen_readme, so a SCOPED publish rebuilt the json without the
+            # scores and then only put ONE page's back — wiping the other 171 pages' verdicts and shrinking
+            # the README by ~20KB with no error. Anything this script cannot recompute, it must carry over.
+            for slot in ("sonnet_xaml", "gemini_xaml", "pixel", "pixel_xaml"):
                 if op.get(slot):
                     entry[slot] = op[slot]
             page["platforms"][plat] = entry

@@ -128,6 +128,47 @@ namespace
         return (__bridge UIButton*)native;
     }
 
+    // ButtonExtensions.UpdatePadding(button, DefaultPadding): NaN padding falls back to the default, the
+    // border width is added on every side (int-truncated, as in C#), and a top/bottom of exactly 0 becomes
+    // AlmostZero so UIKit does not floor it back to its own default.
+    //
+    // `border_width` is passed IN rather than read from `button.layer.borderWidth` so this is correct
+    // whatever order the mappers ran in. The mapper order is Padding BEFORE StrokeThickness (mirroring
+    // C#'s), so at map time the layer's border is still 0 and reading it there silently dropped the
+    // border from the insets. C# gets away with the same order because the Controls-level Button REPLACES
+    // MapPadding on iOS with one that only invalidates measure (Button.Mapper.cs:19-21) and recomputes the
+    // insets inside CrossPlatformMeasure — i.e. at MEASURE time, from the live BorderWidth. The port does
+    // the same by calling this from get_desired_size.
+    void apply_content_edge_insets(UIButton* button, const maui::core::thickness& raw_padding, double border_width)
+    {
+        maui::core::thickness padding = raw_padding;
+        if (padding.is_nan())
+        {
+            padding = maui::core::thickness(k_default_padding_horizontal, k_default_padding_vertical);
+        }
+        const int additional_padding = static_cast<int>(border_width);
+        padding = maui::core::thickness(padding.left + additional_padding, padding.top + additional_padding,
+                                        padding.right + additional_padding, padding.bottom + additional_padding);
+        double top = padding.top;
+        if (top == 0.0)
+        {
+            top = k_almost_zero;
+        }
+        double bottom = padding.bottom;
+        if (bottom == 0.0)
+        {
+            bottom = k_almost_zero;
+        }
+        // ContentEdgeInsets is deprecated on iOS 15+ but still functional for non-UIButtonConfiguration
+        // buttons; C#'s UpdatePadding uses it under the very same suppression (#pragma warning disable
+        // CA1416/CA1422), so the port mirrors that — including the suppression.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        button.contentEdgeInsets = UIEdgeInsetsMake(top, padding.left, bottom, padding.right);
+#pragma clang diagnostic pop
+    }
+
+
     using maui::platform::ios::to_ui_color;
     using maui::platform::ios::to_ui_font;
 
@@ -467,34 +508,7 @@ namespace maui::core
             return;
         }
         UIButton* const button = as_button(platform->native);
-        // ButtonExtensions.UpdatePadding(button, DefaultPadding): NaN padding falls back to the default,
-        // the current border width is added on every side (int-truncated, as in C#), and top/bottom of
-        // exactly 0 become AlmostZero so UIKit does not floor them back to its own default.
-        maui::core::thickness padding = view.padding();
-        if (padding.is_nan())
-        {
-            padding = maui::core::thickness(k_default_padding_horizontal, k_default_padding_vertical);
-        }
-        const int additional_padding = static_cast<int>(button.layer.borderWidth);
-        padding = maui::core::thickness(padding.left + additional_padding, padding.top + additional_padding,
-                                        padding.right + additional_padding, padding.bottom + additional_padding);
-        double top = padding.top;
-        if (top == 0.0)
-        {
-            top = k_almost_zero;
-        }
-        double bottom = padding.bottom;
-        if (bottom == 0.0)
-        {
-            bottom = k_almost_zero;
-        }
-        // ContentEdgeInsets is deprecated on iOS 15+ but still functional for non-UIButtonConfiguration
-        // buttons; C#'s UpdatePadding uses it under the very same suppression (#pragma warning disable
-        // CA1416/CA1422), so the port mirrors that — including the suppression.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        button.contentEdgeInsets = UIEdgeInsetsMake(top, padding.left, bottom, padding.right);
-#pragma clang diagnostic pop
+        apply_content_edge_insets(button, view.padding(), button.layer.borderWidth);
     }
 
     void button_handler::map_stroke_color(button_handler& handler, i_button& view)
@@ -538,15 +552,32 @@ namespace maui::core
         const CGFloat width = std::isfinite(width_constraint) ? static_cast<CGFloat>(width_constraint) : CGFLOAT_MAX;
         const CGFloat height = std::isfinite(height_constraint) ? static_cast<CGFloat>(height_constraint) : CGFLOAT_MAX;
         UIButton* const button = as_button(platform->native);
+        const i_button* const vv = virtual_view();
 
         UIImage* image = [button imageForState:UIControlStateNormal];
         if (image == nil)
         {
-            // No image: a text-only (or empty) button. Keep the native measure — SizeThatFits is correct for
-            // a title + content insets — and drop any captured original image (Button.iOS.cs's else branch
-            // and OnHandlerChangingCore both reset _originalImageSize / _originalCGImage).
+            // No image: a text-only (or empty) button. Drop any captured original image (Button.iOS.cs's
+            // else branch and OnHandlerChangingCore both reset _originalImageSize / _originalCGImage).
             platform->original_image_valid = false;
             platform->original_cg_image = nullptr;
+
+            // C# Button.iOS.cs CrossPlatformMeasure runs for a text-only button too, and it seeds the
+            // insets with the BORDER before measuring: `var contentEdgeInsets = new Thickness(borderWidth)`
+            // then, for the `image is null` branch, `contentEdgeInsets.Left += padding.Left` … , then
+            // UpdateContentEdgeInsets (Button.iOS.cs:44, :59, :76-83). Its returned height is
+            // `titleRectHeight + padding.Top + padding.Bottom + borderWidth * 2` (:124-130) — SizeThatFits
+            // reproduces exactly that once the insets carry border+padding, which is why the native measure
+            // is still the right tool here.
+            //
+            // Applying them HERE (not just from map_padding) is the whole point: the mapper order is
+            // Padding before StrokeThickness, so at map time layer.borderWidth is still 0 and the border
+            // was silently dropped — MAUI's BorderWidth=4 button measured 30px against the port's 24px
+            // (2 x 4pt x the 0.77 Catalyst scale = 6px), shifting the rest of the `button` page up with it.
+            const double border_width =
+                vv != nullptr && vv->stroke_thickness() > 0 ? vv->stroke_thickness() : 0.0; // C#: <0 -> 0
+            apply_content_edge_insets(button, vv != nullptr ? vv->padding() : maui::core::thickness{}, border_width);
+
             const CGSize fitting = [button sizeThatFits:CGSizeMake(width, height)];
             return {fitting.width, fitting.height};
         }
@@ -568,7 +599,6 @@ namespace maui::core
         // seam (a narrow projection of Button.ContentLayout, like image_source()), so the measure composes
         // the image + title along the correct axis: Left/Right → WIDTH, Top/Bottom → HEIGHT (C#'s
         // layout.Position branches). The gallery's settings buttons use Top, so this axis choice matters.
-        const i_button* const vv = virtual_view();
         const auto* const tvv = dynamic_cast<const i_text_button*>(vv);
         const maui::core::button_content_spec content_layout =
             tvv != nullptr ? tvv->content_layout_spec() : maui::core::button_content_spec{};

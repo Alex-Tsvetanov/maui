@@ -4672,9 +4672,9 @@ _Not yet reviewed._
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 163 | 147 | 0 | 128 | 145 |
+| 🟢 Match | 163 | 147 | 0 | 129 | 146 |
 | 🟡 Minor | 9 | 23 | 0 | 30 | 19 |
-| 🔴 Major | 0 | 2 | 0 | 14 | 8 |
+| 🔴 Major | 0 | 2 | 0 | 13 | 7 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
 
@@ -5237,13 +5237,13 @@ Matches MAUI: identical button rows including the two 'settings' image buttons a
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7156, 13.38% pixels differ · Dark: SSIM 0.7510, 11.02% pixels differ
+Light: SSIM 0.9904, 0.37% pixels differ · Dark: SSIM 0.9906, 0.37% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.7143, 13.41% pixels differ · Dark: SSIM 0.7497, 11.06% pixels differ
+Light: SSIM 0.9892, 0.40% pixels differ · Dark: SSIM 0.9893, 0.40% pixels differ
 
 ### 22. Carousel Page — 🟢/⏳
 <sub>carousel_page</sub>
