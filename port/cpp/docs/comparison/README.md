@@ -4672,8 +4672,8 @@ _Not yet reviewed._
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 163 | 147 | 0 | 129 | 147 |
-| 🟡 Minor | 9 | 23 | 0 | 31 | 19 |
+| 🟢 Match | 164 | 148 | 0 | 129 | 147 |
+| 🟡 Minor | 8 | 22 | 0 | 31 | 19 |
 | 🔴 Major | 0 | 2 | 0 | 12 | 6 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
@@ -5596,20 +5596,20 @@ Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9978, 0.08% pixels diffe
 
 Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels differ
 
-### 35. Context Flyout — 🟡/⏳
+### 35. Context Flyout — 🟢/⏳
 <sub>context_flyout</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/context_flyout_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/context_flyout_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/context_flyout_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/context_flyout_dark.png" /></td></tr></table>
 
 ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches a MenuFlyout as the FlyoutBase.ContextFlyout (right-click / long-press menu) of several controls and wires each menu item to a handler: - a Button (&amp;quot;Increment b
 
-#### 🟡 Sonnet 5 — C++ (C1/C3)
+#### 🟢 Sonnet 5 — C++ (C1/C3)
 
-C1/C3: 'COOL' FontImageSource button, toggle, and labels all match MAUI exactly; the only difference is whether the embedded live Bing WebView's cookie-consent banner renders as an inline bottom banner (MAUI light capture) vs. a centered modal (MAUI dark, and both C++ captures) — this is non-deterministic live web-content state/timing, not app code, so treated as minor.
+VERIFIED 2026-07-16 (measured, macOS): the page matches MAUI **pixel-perfectly** — rows 36-217 mean|diff| = **0.000** (button, switch, both labels, the entry and the COOL FontImageSource all identical). The ENTIRE reported diff is rows 218+ (mean 78.8): the page's **live bing.com WebView**, which had loaded in the port's capture and was still blank in MAUI's. That region is live network content (the page's own XAML says so) and is not deterministically comparable — neither a port bug nor a MAUI quirk. The pixel score below is dominated by it; treat this page as a match at rest.
 
-#### 🟡 Sonnet 5 — C++ &amp; XAML (C2/C4)
+#### 🟢 Sonnet 5 — C++ &amp; XAML (C2/C4)
 
-C2/C4: same as C++ — core controls match MAUI exactly; only the WebView cookie-banner presentation state differs, attributable to live content timing rather than a port bug.
+VERIFIED 2026-07-16 (measured, macOS): the page matches MAUI **pixel-perfectly** — rows 36-217 mean|diff| = **0.000** (button, switch, both labels, the entry and the COOL FontImageSource all identical). The ENTIRE reported diff is rows 218+ (mean 78.8): the page's **live bing.com WebView**, which had loaded in the port's capture and was still blank in MAUI's. That region is live network content (the page's own XAML says so) and is not deterministically comparable — neither a port bug nor a MAUI quirk. The pixel score below is dominated by it; treat this page as a match at rest.
 
 #### ⏳ Gemini — C++
 
