@@ -155,6 +155,45 @@ regressions and fixed 2 (`ios_time_picker_seam` x2). Remaining, all pre-existing
 - `collection_view_measure.*` x4 (content-height reporting)
 Run `ctest --preset ios -j 8` to see them; consider adding `ios` to the gate for the iOS phase.
 
+## `layout::measure` omitted the layout's own MARGIN — ✅ FIXED (2026-07-16)
+
+`swipe_view_margin` measured **residual 10.53 at shift 0** — not an offset, three localized bands. Measured
+the gray content grids (`<Grid HeightRequest="100" Padding="12" Margin="12">` inside a `SwipeView`):
+
+| | SwipeView span | gray grid |
+| --- | --- | --- |
+| MAUI | 292-386 = 95px ≈ **123pt** (content 100 + margin 24) | **77px = 100pt** ✓ |
+| the port | 273-349 = 77px ≈ **100pt** | **58px ≈ 75pt** ✗ |
+
+**Root cause — an UNBALANCED add/subtract in the port's own contract.** The margin is meant to be added by
+measure and taken back by arrange:
+  * `view<>::measure` (view.hpp:626-650) ADDS the margin to `desired_size_` — C#
+    `LayoutExtensions.ComputeDesiredSize`, which does it for EVERY IView.
+  * `compute_frame` (the `LayoutExtensions.ComputeFrame` port, shared by BOTH) SUBTRACTS it:
+    `frame_width = consumed_width - margin.horizontal_thickness()`.
+`layout::measure` never did the ADD — but `layout::arrange` calls the same `compute_frame`, which did the
+SUBTRACT anyway. So every layout's frame lost 2x its margin outright: the grid resolved to 100, then
+compute_frame handed it 100-24 = **76pt** — exactly the ~75pt measured. (The parent also under-reserved the
+gap, since neither MAUI's managers nor the port's add child margins themselves — grep: no `Margin` in either
+VerticalStackLayoutManager — both rely on the child's `Measure()` already including it.) `view<>` was
+balanced all along; only the `layout<>` override was half-wired.
+
+Fix: `layout::measure` shrinks the constraint by the margin and adds it back to the reported size, exactly
+as `view<>::measure` does; `arrange`'s `compute_frame` already subtracts it back out (measure adds, arrange
+subtracts — a no-op at zero margin).
+
+**Two theories killed by measurement first** (recorded so they are not re-tried):
+1. *"padding shrinks the HeightRequest"* — FALSE. A headless probe (grid, HeightRequest=100, Padding=12)
+   measures 100. C# `LayoutManager.ResolveConstraints:21` makes the explicit length win, and the port
+   already matches.
+2. *"swipe_view::measure ignores its own margin"* — FALSE. It handles that explicitly (swipe_view.cpp:238-247).
+   The margin belonged to its CONTENT.
+
+- **Measured:** swipe_view_margin 10.53 -> **0 / 0.0**. No regressions on the layout pages: basic_swipe,
+  absolute_layout, flex_layout, grid, vertical_stack_layout all **0/0.0**; nested_collection 3.64% -> 2.5.
+- Headless **3765/3765**. iOS **10 failed / 2331 — identical to baseline** (the 10 are the known flaky
+  locale/parallel ones), so no iOS regression from this shared-header change.
+
 ## RadioButton indicator: matching the template's 21x21 is WRONG — tried and reverted (2026-07-16)
 
 `radio_button_border` runs **-8px** through its option rows and the port's radio ring looks visibly

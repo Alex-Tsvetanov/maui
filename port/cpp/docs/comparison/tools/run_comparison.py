@@ -79,19 +79,19 @@ def shoot_presented(env, ccfg, g, remote_shot, pid=None, attempts=3):
     no-op) and retry; if it still will not present, return None and let the caller drop the frame.
     """
     for attempt in range(attempts):
+        # ATOMIC present-and-capture: present shoots `remote_shot` itself the instant it confirms the size.
+        # Splitting present and shot into two SSH round-trips let a heavier app (MauiReference, gallery_xaml)
+        # re-lay-out its window to content size in the ~300ms gap — present confirmed 1024x800, the app
+        # shrank to 1024x548, and the separate shot captured 548. Capturing in-process closes that gap.
+        # REQUIRE the window id + the shot path: the -l <id> capture cannot be occluded, unlike a -R <rect>
+        # region shot (which once put gallery_xaml into the MAUI column across 40 pages). No window / no
+        # shot => drop and self-heal, never a fallback capture.
         args = ["present", "--proc", ccfg["process"],
-                "--x", g["x"], "--y", g["y"], "--w", g["w"], "--h", g["h"]]
+                "--x", g["x"], "--y", g["y"], "--w", g["w"], "--h", g["h"], "--shot", remote_shot]
         if pid:
             args += ["--pid", pid]
         pr = env.agent(*args)
-        # REQUIRE the window id. Shooting the window's own backing store (-l <id>) is the only capture
-        # here that cannot be occluded; the -R <rect> alternative photographs a screen REGION, so any
-        # window sitting on top composites in and yields a perfectly legitimate-looking screenshot of the
-        # WRONG APP. That is not a hypothetical trade-off: falling back cost 40 alphabetically-contiguous
-        # pages of one sweep, which captured gallery_xaml into the MAUI reference column. If the window
-        # cannot be identified we would rather drop the frame and say so.
-        if pr.get("rect") and pr.get("window"):
-            env.agent("shot", remote_shot, "--window", pr["window"])
+        if pr.get("rect") and pr.get("window") and pr.get("shot"):
             return pr.get("bounds")
         if attempt < attempts - 1:
             why = pr.get("error") or ("no window id — Quartz could not see the window" if pr.get("rect") else "?")
@@ -402,13 +402,20 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                         if not env.pull(remote_shot, local):
                             print(f"  ! {tag}/{col}/{theme}#{n}: capture pull failed")
                             continue
-                        # A shot the size of the DISPLAY rather than the window is the desktop — `present`
-                        # failed and we photographed whatever was on screen. It is not obviously broken to
-                        # look at, so it must be rejected mechanically or it reaches the board as data.
+                        # The window is presented at an EXPLICIT size, so a correct shot is exactly g[w]xg[h].
+                        # ANY other size is a failed present, and neither failure looks broken on the board:
+                        #   - LARGER  => the desktop (present returned no rect, or an occluding window);
+                        #   - SMALLER => the window had not finished resizing to the target. This is what a
+                        #     freshly-restarted / loaded VM produces: `present`'s retry loop times out before
+                        #     Catalyst settles the window and returns the actual (short) rect, e.g. 1024x548.
+                        #     The old guard only caught LARGER, so ~400 short frames banked silently before a
+                        #     size sweep caught them. pixel_score then LANCZOS-resizes the mismatch into noise.
+                        # Reject either way — the frame is dropped, reported, and the page re-run when healthy.
                         size = png_size(local)
-                        if size is not None and (size[0] > g["w"] + 4 or size[1] > g["h"] + 4):
+                        if size is not None and (abs(size[0] - g["w"]) > 4 or abs(size[1] - g["h"]) > 4):
+                            why = "desktop captured" if size[1] > g["h"] + 4 else "window not settled to target"
                             print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — {size[0]}x{size[1]} is not the "
-                                  f"{g['w']}x{g['h']} window (present failed; desktop captured)")
+                                  f"{g['w']}x{g['h']} window ({why})")
                             local.unlink(missing_ok=True)
                             failed_frames.append(f"{tag}/{col}/{theme}#{n}")
                             continue

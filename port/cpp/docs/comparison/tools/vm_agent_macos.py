@@ -229,16 +229,20 @@ def cmd_present(a) -> int:
     # accepts the resize on a later attempt), which left some columns at their restored height (e.g. 548) while
     # others hit the target (800) — non-reproducible captures. So retry position+size until the window actually
     # reaches the target (within a few pt) or we run out of tries, then return the ACTUAL rect regardless.
+    # Patient loop: ~20 tries x 0.4s = 8s. On a freshly-restarted / loaded VM Catalyst can take several
+    # seconds to actually apply the resize, and a short 2s loop timed out and returned the WRONG (restored,
+    # e.g. 548-tall) size. The caller treats a short return as a failure and self-heals (see below), so it
+    # is better to wait here than to bounce through a resolution toggle.
     out = _osa(
-        'with timeout of 20 seconds\n'
+        'with timeout of 30 seconds\n'
         f'tell application "System Events" to tell process "{a.proc}"\n'
         '  set frontmost to true\n'
-        '  repeat 8 times\n'
+        '  repeat 20 times\n'
         '    try\n'
         f'      set position of window 1 to {{{x}, {y}}}\n'
         f'      set size of window 1 to {{{w}, {h}}}\n'
         '    end try\n'
-        '    delay 0.25\n'
+        '    delay 0.4\n'
         '    set s to size of window 1\n'
         f'    if (item 1 of s) > {w - 5} and (item 2 of s) > {h - 5} then exit repeat\n'
         '  end repeat\n'
@@ -252,6 +256,14 @@ def cmd_present(a) -> int:
             rect = [int(float(p)) for p in parts]
         except ValueError:
             return _emit(ok=False, proc=a.proc, error=out[:200] or "no rect from System Events")
+        # FAIL if the window never reached the target size. Returning it as a "success" is how ~800 short
+        # frames got banked across two sweeps: present handed back e.g. 1024x548, the shot captured the
+        # window at that size, and only a downstream size sweep noticed. A short return here instead routes
+        # the caller (shoot_presented) into its resolution-toggle self-heal + retry, which re-syncs a
+        # desynced / load-stalled WindowServer session — the actual recovery, not a silent bad capture.
+        if rect[2] < w - 5 or rect[3] < h - 5:
+            return _emit(ok=False, proc=a.proc, error=f"window did not reach target: got {rect[2]}x{rect[3]}, "
+                                                      f"want {w}x{h}", rect="", bounds=rect)
         # …and the window's CGWindowID, so the caller can shoot THAT WINDOW rather than the screen region
         # it happens to occupy. `screencapture -R` photographs whatever is on top of the rect: a lingering
         # window from a previous page composites straight into the shot, and the result looks perfectly
@@ -266,6 +278,7 @@ def cmd_present(a) -> int:
         # 40 alphabetically-contiguous pages that way, capturing the previous column's window into the MAUI
         # reference column.
         window_id = None
+        quartz_bounds = None
         if a.pid:
             for _ in range(10):
                 try:
@@ -273,9 +286,30 @@ def cmd_present(a) -> int:
                 except Exception:  # noqa: BLE001 — pyobjc missing/odd state; report it rather than guess
                     break
                 if found:
-                    window_id = found[0]
+                    window_id, quartz_bounds = found
                     break
                 time.sleep(0.2)
+
+        # Atomic present-and-capture. present and shot used to be two SEPARATE SSH round-trips, and a
+        # heavier app (the .NET MauiReference, the compile-time-XAML gallery_xaml) re-lays-out its window
+        # to CONTENT size in the ~300ms gap: present confirmed 1024x800, the app shrank the window back to
+        # 1024x548, and the -l shot captured 548. The lean cpp gallery fills its window so never shrinks —
+        # which is why only the two MAUI columns dropped, a per-app symptom that looked like a settle bug.
+        # Capturing HERE, in the same process the instant the size is confirmed, closes the gap. Quartz's
+        # freshly-read bounds are the last-moment size check: if the app already shrank, fail so the caller
+        # self-heals instead of banking a short frame.
+        if a.shot and window_id is not None:
+            if quartz_bounds is not None and (quartz_bounds[2] < w - 5 or quartz_bounds[3] < h - 5):
+                return _emit(ok=False, proc=a.proc, rect="", bounds=rect,
+                             error=f"window shrank before capture: {quartz_bounds[2]}x{quartz_bounds[3]}")
+            os.makedirs(os.path.dirname(a.shot) or ".", exist_ok=True)
+            rc = subprocess.run([SCREENCAPTURE, "-x", "-o", "-l", str(window_id), a.shot],
+                                capture_output=True, text=True)
+            if rc.returncode != 0 or not os.path.isfile(a.shot):
+                return _emit(ok=False, proc=a.proc, rect="", bounds=rect,
+                             error=f"capture failed: {rc.stderr.strip()[:120]}")
+            return _emit(ok=True, proc=a.proc, rect=",".join(map(str, rect)), bounds=rect,
+                         window=window_id, shot=a.shot)
         return _emit(ok=True, proc=a.proc, rect=",".join(map(str, rect)), bounds=rect, window=window_id)
     return _emit(ok=False, proc=a.proc, error=out[:200] or "no rect from System Events")
 
@@ -352,6 +386,7 @@ def main(argv=None) -> int:
     s.add_argument("--w", type=int, default=1024); s.add_argument("--h", type=int, default=800)
     s.add_argument("--zoom", action="store_true", help="(ignored; explicit --x/--y/--w/--h supersede)")
     s.add_argument("--pid", type=int, default=0, help="the app's pid; enables the occlusion-proof -l <window> shot")
+    s.add_argument("--shot", default="", help="capture the window to this path ATOMICALLY once size is confirmed")
     s.set_defaults(fn=cmd_present)
 
     s = sub.add_parser("click"); s.add_argument("x", type=int); s.add_argument("y", type=int)

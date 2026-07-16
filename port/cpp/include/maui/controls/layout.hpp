@@ -166,9 +166,25 @@ namespace maui::controls
             const maui::core::thickness safe_area = effective_safe_area();
             const double horizontal = safe_area.left + safe_area.right;
             const double vertical = safe_area.top + safe_area.bottom;
-            const maui::graphics::size measured =
-                ensure_manager().measure(width_constraint - horizontal, height_constraint - vertical);
-            this->desired_size_ = maui::graphics::size{measured.width + horizontal, measured.height + vertical};
+            // …and the layout's own MARGIN, exactly as the leaf view<>::measure does (view.hpp:626-650) and
+            // as C# LayoutExtensions.ComputeDesiredSize does for every IView: the constraint loses it, the
+            // reported size regains it, so the PARENT reserves the gap (neither MAUI's layout managers nor
+            // the port's add child margins themselves — both rely on the child's Measure() already
+            // including it).
+            //
+            // Omitting it here was not merely an under-reserve, it was UNBALANCED: arrange calls the shared
+            // compute_frame (the LayoutExtensions.ComputeFrame port), which SUBTRACTS the margin from the
+            // desired size regardless — so a layout's frame lost 2x its margin outright. Measured on
+            // swipe_view_margin: `<Grid HeightRequest="100" Padding="12" Margin="12">` resolved to 100 and
+            // compute_frame handed it 100-24 = 76pt, against MAUI's 100pt. view<> always added it; only this
+            // override was half-wired. A no-op at zero margin.
+            const maui::core::thickness view_margin = this->margin();
+            const double margin_h = view_margin.horizontal_thickness();
+            const double margin_v = view_margin.vertical_thickness();
+            const maui::graphics::size measured = ensure_manager().measure(width_constraint - horizontal - margin_h,
+                                                                          height_constraint - vertical - margin_v);
+            this->desired_size_ = maui::graphics::size{measured.width + horizontal + margin_h,
+                                                       measured.height + vertical + margin_v};
             return this->desired_size_;
         }
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override
