@@ -32,6 +32,7 @@
 #include "maui/core/i_cross_platform_layout.hpp"
 #include "maui/core/i_layout.hpp"
 #include "maui/core/i_safe_area_view.hpp"
+#include "maui/core/i_scroll_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_handler.hpp"
@@ -158,9 +159,17 @@ namespace maui::controls
         // the children into it via the manager (C# Layout.CrossPlatformArrange(Frame)).
         maui::graphics::size measure(double width_constraint, double height_constraint) override
         {
-            const maui::graphics::size measured = ensure_manager().measure(width_constraint, height_constraint);
-            this->desired_size_ = measured;
-            return measured;
+            // C# MauiView.CrossPlatformMeasure (MauiView.cs:605-620): shrink the constraints by the safe
+            // area, measure the content in what is left, then add the safe area back so the layout still
+            // ASKS for the full span it occupies. An all-zero safe area makes both terms no-ops, which is
+            // exactly C#'s `if (!effectiveSafeArea.IsEmpty)` guard.
+            const maui::core::thickness safe_area = effective_safe_area();
+            const double horizontal = safe_area.left + safe_area.right;
+            const double vertical = safe_area.top + safe_area.bottom;
+            const maui::graphics::size measured =
+                ensure_manager().measure(width_constraint - horizontal, height_constraint - vertical);
+            this->desired_size_ = maui::graphics::size{measured.width + horizontal, measured.height + vertical};
+            return this->desired_size_;
         }
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override
         {
@@ -181,7 +190,16 @@ namespace maui::controls
             // border::arrange / templated_view::arrange (which likewise arrange their content host-relative).
             // (cross_platform_arrange below keeps the raw bounds — the native-driven path passes the host's
             // own already-0-origin bounds, so it must not be flattened.)
-            const maui::graphics::rect host_relative{0, 0, this->frame_.width, this->frame_.height};
+            //
+            // The safe area is folded in HERE, on the children's bounds — C# MauiView.CrossPlatformArrange
+            // (MauiView.cs:634-637: `bounds = AdjustForSafeArea(bounds)` → `_safeArea.InsetRect(bounds)`),
+            // which likewise insets what it hands the layout manager and NOT the host's own frame. That
+            // distinction is load-bearing: `frame_` stays full-span, so the layout's BACKGROUND still runs
+            // edge-to-edge under the bars/notch while only its CHILDREN are kept clear of them.
+            const maui::core::thickness safe_area = effective_safe_area();
+            const maui::graphics::rect host_relative{safe_area.left, safe_area.top,
+                                                     this->frame_.width - safe_area.left - safe_area.right,
+                                                     this->frame_.height - safe_area.top - safe_area.bottom};
             return ensure_manager().arrange_children(host_relative); // position the children within the host
         }
 
@@ -224,12 +242,99 @@ namespace maui::controls
         }
 
         // ---- i_safe_area_view2 ----
-        // C# `Thickness ISafeAreaView2.SafeAreaInsets { set { } }` — "Default no-op implementation for
-        // layouts" (Layout.cs): a layout does NOT store the realized insets; the native host reads them from
-        // its own platform view (MauiView) when it applies the adjustment.
+        // C# `Thickness ISafeAreaView2.SafeAreaInsets { set { } }` is a no-op "for layouts" (Layout.cs)
+        // because the NATIVE MauiView holds `_safeArea` and does the adjusting itself. DOCUMENTED
+        // DEVIATION (form, not semantics — PROFILE/CLAUDE.md "idiomatic adaptation in form"): the port
+        // arranges layouts CROSS-PLATFORM (layout::arrange plays MauiView.CrossPlatformArrange's role), so
+        // the realized insets must reach this object.
+        //
+        // Who pushes: app_host::drive_layout seeds the page's ROOT content layout from the platform's
+        // realized insets. That covers the tree MAUI actually insets, because UIKit computes safeAreaInsets
+        // PER VIEW: once the root layout keeps its children clear of the unsafe region, every descendant
+        // reads zero anyway (MAUI's `!_safeArea.IsEmpty` gate), and a scroll-view descendant is excluded
+        // outright (responds_to_safe_area). NOT yet covered: a layout nested under a NON-layout that stays
+        // edge-to-edge (page → Border → layout), which UIKit would hand real insets — that needs a
+        // per-panel safeAreaInsetsDidChange push in the iOS layout host, and no board page exercises it
+        // today. Headless pushes nothing ⇒ zero ⇒ no adjustment.
         void set_safe_area_insets(const maui::core::thickness& value) override
         {
-            (void)value;
+            safe_area_insets_ = value;
+        }
+
+        // C# MauiView.RespondsToSafeArea() (MauiView.cs:196-213) — a view INSIDE a UIScrollView must not
+        // apply the safe area: "The scrollview itself is responsible for applying the correct insets, and
+        // child views should not apply additional safe area logic" (it exists to break an invalidation
+        // loop). The native `GetParentOfType<UIScrollView>()` maps to walking the logical parent chain for
+        // an i_scroll_view ancestor (the core contract — no dependency on the concrete control).
+        [[nodiscard]] bool responds_to_safe_area() const
+        {
+            for (const maui::controls::element* ancestor = this->logical_parent(); ancestor != nullptr;
+                 ancestor = ancestor->logical_parent())
+            {
+                if (dynamic_cast<const maui::core::i_scroll_view*>(ancestor) != nullptr)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // C# MauiView.IsParentHandlingSafeArea() (MauiView.cs:505-526) — an ancestor that is ALREADY
+        // insetting by an edge this view also obeys has handled it; re-insetting would double it. The
+        // native `FindParent(x is MauiView mv && mv._appliesSafeAreaAdjustments)` maps to walking the
+        // logical parent chain for an i_safe_area_view2 ancestor that applies. The edge-aware AND
+        // ("parent handling only TOP doesn't block child handling BOTTOM") is ported verbatim.
+        //
+        // Not redundant with UIKit's inset propagation, though it looks it: in the STEADY state an
+        // ancestor that applies has arranged this layout clear of the unsafe region, so UIKit hands it
+        // zero insets and the emptiness check alone would suffice. But on the FIRST pass the ancestor has
+        // not inset yet, both views still overlap the unsafe region, and both are pushed the same non-zero
+        // insets — this check is the synchronous guard against that transient double-inset.
+        [[nodiscard]] bool is_parent_handling_safe_area() const
+        {
+            for (const maui::controls::element* ancestor = this->logical_parent(); ancestor != nullptr;
+                 ancestor = ancestor->logical_parent())
+            {
+                const auto* safe_area_ancestor = dynamic_cast<const maui::core::i_safe_area_view2*>(ancestor);
+                if (safe_area_ancestor == nullptr || !safe_area_ancestor->applies_safe_area_adjustments())
+                {
+                    continue;
+                }
+                for (int edge = 0; edge < 4; ++edge)
+                {
+                    if (get_safe_area_regions_for_edge(edge) != maui::core::safe_area_regions::none &&
+                        safe_area_ancestor->get_safe_area_regions_for_edge(edge) != maui::core::safe_area_regions::none)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // C# MauiView._appliesSafeAreaAdjustments (MauiView.cs:771) — the gate the two adjust sites
+        // (CrossPlatformMeasure:605, CrossPlatformArrange:634) consult. An all-zero effective_safe_area()
+        // IS `_safeArea.IsEmpty`, so this is exactly the line-771 conjunction.
+        [[nodiscard]] bool applies_safe_area_adjustments() const override
+        {
+            return !effective_safe_area().is_empty();
+        }
+
+        // C# MauiView._safeArea after GetAdjustedSafeAreaInsets + the line-771 gate, folded into one:
+        //   !IsParentHandlingSafeArea() && RespondsToSafeArea() && !_safeArea.IsEmpty
+        // Per edge, GetSafeAreaForEdge zeroes an edge whose region is None; an all-zero result IS
+        // `_safeArea.IsEmpty`, so callers need no separate emptiness check.
+        [[nodiscard]] maui::core::thickness effective_safe_area() const
+        {
+            if (!responds_to_safe_area() || is_parent_handling_safe_area())
+            {
+                return {};
+            }
+            const auto obeyed = [this](int edge, double value) -> double {
+                return get_safe_area_regions_for_edge(edge) != maui::core::safe_area_regions::none ? value : 0.0;
+            };
+            return maui::core::thickness{obeyed(0, safe_area_insets_.left), obeyed(1, safe_area_insets_.top),
+                                         obeyed(2, safe_area_insets_.right), obeyed(3, safe_area_insets_.bottom)};
         }
 
         // C# Layout.cs ISafeAreaView2.GetSafeAreaRegionsForEdge — ported VERBATIM:
@@ -332,6 +437,9 @@ namespace maui::controls
         maui::core::property<bool> clips_to_bounds_{*this, clips_to_bounds_property()};
         std::unique_ptr<maui::layouts::i_layout_manager> manager_;
         bool ignore_safe_area_ = false; // Layout.IgnoreSafeArea (the obsolete auto-property, default false)
+        // C# MauiView._safeArea — the realized native insets the host pushed in (see set_safe_area_insets).
+        // Headless never pushes, so this stays zero and every safe-area path below is a no-op.
+        maui::core::thickness safe_area_insets_;
         // Layout.SafeAreaEdges — reads Container by default (the descriptor's default-value creator).
         maui::core::property<maui::core::safe_area_edges> safe_area_edges_{*this, layout_safe_area_edges_property()};
     };

@@ -109,18 +109,31 @@ def preview_table(sc, fws):
 def counts(pages, plat, model):
     c = {"green": 0, "yellow": 0, "red": 0, "blank": 0, "none": 0}
     for p in pages:
-        st = p["platforms"][plat][model].get("status")
+        st = (p["platforms"][plat].get(model) or {}).get("status")
         c[st if st in c else "none"] += 1
     return c
 
 
+# The review models rendered per page, in order: (comparison.json key, display name). Per CLAUDE.md
+# parity ruling 5 every model judges FOUR pairs — MAUI-light/dark vs BOTH the cpp and the xaml column —
+# and each comparison keeps its OWN verdict rather than being averaged into a cpp-only score. So the
+# cpp-vs-xaml split is carried through as separate rows here.
+MODELS = [
+    ("sonnet", "Sonnet 5 — C++ (C1/C3)"),
+    ("sonnet_xaml", "Sonnet 5 — C++ &amp; XAML (C2/C4)"),
+    ("gemini", "Gemini — C++"),
+    ("pixel", "Pixel-Perfect Score — C++ (C1/C3)"),
+    ("pixel_xaml", "Pixel-Perfect Score — C++ &amp; XAML (C2/C4)"),
+]
+
+
 def summary_table(pages, plat, n):
-    s = counts(pages, plat, "sonnet")
-    g = counts(pages, plat, "gemini")
-    out = ["| Classification | Sonnet 5 | Gemini |", "| --- | --- | --- |"]
+    cols = [(label, counts(pages, plat, key)) for key, label in MODELS]
+    out = ["| Classification | " + " | ".join(l for l, _ in cols) + " |",
+           "| --- | " + " | ".join("---" for _ in cols) + " |"]
     for k in ("green", "yellow", "red", "blank"):
-        out.append(f"| {CLASS_LABEL[k]} | {s[k]} | {g[k]} |")
-    out.append(f"| ⏳ Unreviewed | {s['none']} | {g['none']} |")
+        out.append(f"| {CLASS_LABEL[k]} | " + " | ".join(str(c[k]) for _, c in cols) + " |")
+    out.append("| ⏳ Unreviewed | " + " | ".join(str(c["none"]) for _, c in cols) + " |")
     return "\n".join(out)
 
 
@@ -139,20 +152,17 @@ def page_section(i, p, plat, fws):
         out.append(esc(p["description"]))
         out.append("")
 
-    out.append(f"#### {status_emoji(sonnet, sc, fws)} Sonnet 5 Review")
-    out.append("")
-    out.append(review_body(sonnet))
-    out.append("")
-
-    out.append(f"#### {status_emoji(gemini, sc, fws)} Gemini Review")
-    out.append("")
-    out.append(review_body(gemini))
-    out.append("")
-
-    out.append("#### ⏳ Pixel-Perfect Score")
-    out.append("")
-    out.append("_Not yet computed — no automated pixel-diff score is recorded for this page yet._")
-    return "\n".join(out)
+    # Every model that has a section in MODELS, INCLUDING the pixel scores. The pixel rows used to be
+    # hardcoded to "⏳ Not yet computed" here, which meant pixel_score.py's verdicts never reached the
+    # README at all — it showed a stale hand-written tally while the automated score sat unread in
+    # comparison.json. The README is the project's status reference; it renders what was computed.
+    for key, label in MODELS:
+        model = page.get(key)
+        out.append(f"#### {status_emoji(model, sc, fws)} {label}")
+        out.append("")
+        out.append(review_body(model))
+        out.append("")
+    return "\n".join(out).rstrip()
 
 
 def section(pages, plat, display, fws, n):

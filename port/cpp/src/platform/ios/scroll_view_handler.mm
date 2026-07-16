@@ -27,6 +27,7 @@
 
 #include "ios_semantics_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/controls/scroll_view.hpp"
 #include "maui/core/i_scroll_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -37,8 +38,102 @@
 
 // Obj-C delegate trampoline: forwards the scroll events to the C++ handler's virtual view — the
 // ScrollEventProxy twin (Scrolled + ScrollAnimationEnded).
+// The MauiScrollView twin, cut down to its safe-area job. C# MauiScrollView is a UIScrollView subclass
+// that overrides SafeAreaInsetsDidChange + AdjustedContentInsetDidChange and re-runs its layout; the port
+// keeps its cross-platform arrange, so this subclass only PUSHES the two platform facts the control needs
+// (scroll_view::effective_safe_area) and asks for a re-layout. Both are needed because iOS sets
+// AdjustedContentInset only when the content OVERFLOWS: when it fits, that stays zero and the control has
+// to inset its own content (MauiScrollView.cs:383-386).
+@interface MauiIosScrollView : UIScrollView
+@property(nonatomic) maui::core::scroll_view_handler* mauiHandler;
+@end
+
 @interface MauiScrollViewDelegate : NSObject <UIScrollViewDelegate>
 @property(nonatomic) maui::core::scroll_view_handler* handler;
+@end
+
+@implementation MauiIosScrollView
+{
+    maui::core::thickness _lastPushedSafeArea;
+    maui::core::thickness _lastPushedSystemInset;
+    BOOL _inPush;      // we are inside our own arrange (UIKit's inset callbacks re-enter it)
+    BOOL _pendingPush; // …and a re-entrant call arrived while we were, so run another pass
+}
+
+// Push the two platform facts to the control and re-drive the content arrange if either MOVED.
+// C# MauiScrollView does this from SafeAreaInsetsDidChange / AdjustedContentInsetDidChange (which call
+// InvalidateMeasure + InvalidateAncestorsMeasures); the port re-arranges in place instead, because its
+// arrange is cross-platform and re-entering it with the same frame is idempotent.
+- (void)mauiPushSafeAreaState
+{
+    // A re-entrant call must be DEFERRED, never dropped. Our own arrange sets contentSize, and UIKit
+    // answers by calling adjustedContentInsetDidChange RIGHT BACK, synchronously, from inside it — and
+    // that callback carries the very value that decides which CrossPlatformArrange branch is correct.
+    // An early `return` here swallows it: the control stays on the manual branch (content already at the
+    // inset origin) while UIKit ALSO offsets by its contentInset, double-insetting to 82pt. That is not
+    // hypothetical — it put slider/layout_is_enabled at +32px (too LOW) on a full board sweep, the exact
+    // mirror of the -32px this slice set out to fix, while a --only run of the same pages passed on
+    // timing luck. So: latch, re-run, and let the loop converge.
+    if (_inPush)
+    {
+        _pendingPush = YES;
+        return;
+    }
+    if (self.mauiHandler == nullptr || self.mauiHandler->virtual_view() == nullptr)
+    {
+        return;
+    }
+    // The concrete control, not an interface: MAUI parks this whole decision on the PLATFORM view
+    // (MauiScrollView), so there is no ISafeAreaView2-style seam for the system inset. The port moved the
+    // decision into the control, so the platform pushes into it directly (other iOS handlers likewise
+    // reach for controls/ types).
+    auto* const scroller = dynamic_cast<maui::controls::scroll_view*>(self.mauiHandler->virtual_view());
+    if (scroller == nullptr)
+    {
+        return;
+    }
+    _inPush = YES;
+    // Bounded: the anti-flip-flop clamp in platform_arrange keeps UIKit's decision stable, so this
+    // settles in about two passes (manual -> UIKit adds its inset -> system -> values repeat). The cap is
+    // a backstop against a pathological oscillation hanging the UI, which is what an unbounded version
+    // did on iOS.
+    for (int pass = 0; pass < 4; ++pass)
+    {
+        _pendingPush = NO;
+        const UIEdgeInsets safe = self.safeAreaInsets;
+        const UIEdgeInsets system = self.adjustedContentInset;
+        const maui::core::thickness safe_area{safe.left, safe.top, safe.right, safe.bottom};
+        const maui::core::thickness system_inset{system.left, system.top, system.right, system.bottom};
+        if (safe_area == _lastPushedSafeArea && system_inset == _lastPushedSystemInset)
+        {
+            break; // converged — nothing moved since the last arrange
+        }
+        _lastPushedSafeArea = safe_area;
+        _lastPushedSystemInset = system_inset;
+        scroller->set_safe_area_insets(safe_area);
+        scroller->set_system_adjusted_content_inset(system_inset);
+        // Re-arrange in place: same frame, so platform_arrange's setFrame is a no-op and only the CONTENT
+        // moves (to the other branch of MauiScrollView.CrossPlatformArrange).
+        scroller->arrange(scroller->frame());
+        if (!_pendingPush)
+        {
+            break;
+        }
+    }
+    _inPush = NO;
+}
+
+- (void)safeAreaInsetsDidChange
+{
+    [super safeAreaInsetsDidChange];
+    [self mauiPushSafeAreaState];
+}
+
+- (void)adjustedContentInsetDidChange
+{
+    [super adjustedContentInsetDidChange];
+    [self mauiPushSafeAreaState];
+}
 @end
 
 @implementation MauiScrollViewDelegate
@@ -174,7 +269,7 @@ namespace maui::core
     std::unique_ptr<scroll_view_platform> scroll_view_handler::create_platform_view()
     {
         auto platform = std::make_unique<scroll_view_platform>();
-        UIScrollView* const scroller = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+        MauiIosScrollView* const scroller = [[MauiIosScrollView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
         platform->native = (__bridge_retained void*)scroller; // the void* slot owns one reference
         return platform;
     }
@@ -184,6 +279,10 @@ namespace maui::core
     void scroll_view_handler::on_connect_handler(scroll_view_platform& platform)
     {
         UIScrollView* const scroller = as_scroller(platform.native);
+        if ([scroller isKindOfClass:[MauiIosScrollView class]])
+        {
+            ((MauiIosScrollView*)scroller).mauiHandler = this; // non-owning backref; cleared on disconnect
+        }
         MauiScrollViewDelegate* const delegate = [[MauiScrollViewDelegate alloc] init];
         delegate.handler = this;
         scroller.delegate = delegate;
@@ -193,6 +292,10 @@ namespace maui::core
     void scroll_view_handler::on_disconnect_handler(scroll_view_platform& platform)
     {
         UIScrollView* const scroller = as_scroller(platform.native);
+        if ([scroller isKindOfClass:[MauiIosScrollView class]])
+        {
+            ((MauiIosScrollView*)scroller).mauiHandler = nullptr; // drop the backref (no ownership)
+        }
         if (auto* const delegate = (MauiScrollViewDelegate*)objc_getAssociatedObject(scroller, &k_delegate_key))
         {
             delegate.handler = nullptr;
@@ -317,6 +420,41 @@ namespace maui::core
             }
             extent =
                 CGSizeMake(CGRectGetMaxX(content.frame) + inset.right, CGRectGetMaxY(content.frame) + inset.bottom);
+        }
+        // C# MauiScrollView.cs:474-490 — the anti-flip-flop clamp, and the reason this whole thing is
+        // stable. With ContentInsetAdjustmentBehavior.Automatic, UIKit decides whether to inset the SCROLL
+        // VIEW (AdjustedContentInset, when the content overflows) or to push the safe area into the CHILD
+        // (when it fits). Content sized between "fits alone" and "fits with the safe area" makes it flip
+        // between the two, and since our contentSize depends on which branch arranged the content, the two
+        // chase each other forever — a hang, not a wobble (measured: the iOS gallery stopped responding on
+        // exactly the ScrollView-rooted pages). MAUI's fix, ported verbatim: when the content is nearly
+        // large enough to scroll, force contentSize PAST the bounds so UIKit stays in scrollable mode and
+        // keeps the inset at the scroll-view level. The width/height asymmetry (+= vs =) is C#'s own.
+        if (scroller.contentInsetAdjustmentBehavior == UIScrollViewContentInsetAdjustmentAutomatic)
+        {
+            maui::core::thickness safe_area;
+            if (auto* const control = dynamic_cast<maui::controls::scroll_view*>(virtual_view()))
+            {
+                safe_area = control->effective_safe_area();
+            }
+            if (extent.width <= frame.width && (safe_area.horizontal_thickness() + extent.width) >= frame.width)
+            {
+                extent.width += frame.width + 1;
+            }
+            // DOCUMENTED DEVIATION: C# uses `>` here; the port uses `>=`. With `>`, content that fills the
+            // window EXACTLY never converges: the manual branch yields extent 1039 (clamped to 1040 ->
+            // UIKit adds its inset) but the system branch then arranges into the reduced 998, and
+            // 41 + 998 > 1039 is false BY ONE BOUNDARY, so contentSize drops back under the threshold,
+            // UIKit removes the inset, and the two branches trade places forever (measured: sysTop
+            // 0/41/0/41 on every pass, leaving whichever branch the pass cap happened to stop on — which
+            // is why this page measured 0, then +32, then -32 across three runs). MAUI never notices
+            // because its LayoutSubviews only re-arranges when the FRAME changed, so a pure inset flip
+            // does not re-enter its arrange; the port drives layout itself and does. `>=` pins UIKit in
+            // scrollable mode for the exactly-fits case, which converges in two passes (verified).
+            if (extent.height <= frame.height && (safe_area.vertical_thickness() + extent.height) >= frame.height)
+            {
+                extent.height = frame.height + 1;
+            }
         }
         if (!CGSizeEqualToSize(scroller.contentSize, extent))
         {

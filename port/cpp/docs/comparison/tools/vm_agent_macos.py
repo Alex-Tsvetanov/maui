@@ -100,9 +100,40 @@ def cmd_clean(a) -> int:
     return _emit(dir=a.dir)
 
 
+def _bundle_id(bundle: str) -> str | None:
+    plist = os.path.join(bundle, "Contents", "Info.plist")
+    rc = subprocess.run(
+        ["/usr/libexec/PlistBuddy", "-c", "Print :CFBundleIdentifier", plist], capture_output=True, text=True
+    )
+    return rc.stdout.strip() or None if rc.returncode == 0 else None
+
+
+def _clear_saved_state(bundle: str) -> str | None:
+    """Drop macOS's window-restoration state for `bundle`.
+
+    Catalyst apps opt into NSWindow restoration: on relaunch AppKit reopens the window the app had last
+    time and restores its page, IGNORING the MAUI_SAMPLE_PAGE env var the runner passes. That silently
+    captures the WRONG PAGE — and it is not a visibly broken capture, it is a plausible screenshot of some
+    other page, which then gets scored against the right MAUI reference. It bit hardest right after
+    `reboot_before_run` (a reboot is exactly when macOS re-opens everything it had), but nothing about it
+    is reboot-specific, so clear it on EVERY launch rather than once per run.
+    """
+    bid = _bundle_id(bundle)
+    if not bid:
+        return None
+    state = os.path.expanduser(f"~/Library/Saved Application State/{bid}.savedState")
+    shutil.rmtree(state, ignore_errors=True)
+    # …and stop it being rewritten on the next quit, so a launch never inherits a sibling run's window.
+    subprocess.run(
+        ["/usr/bin/defaults", "write", bid, "NSQuitAlwaysKeepsWindows", "-bool", "false"], capture_output=True
+    )
+    return bid
+
+
 def cmd_launch(a) -> int:
     # `open -g -n --env ...`: background (no focus theft), new instance. Find the new pid by diffing
     # pgrep before/after (mirrors e2e.py::_launch_background).
+    cleared = _clear_saved_state(a.bundle)
     before = _pgrep(a.proc)
     cmd = [OPEN, "-g", "-n"]
     for kv in a.env or []:
@@ -114,7 +145,7 @@ def cmd_launch(a) -> int:
     for _ in range(40):
         fresh = _pgrep(a.proc) - before
         if fresh:
-            return _emit(pid=int(next(iter(fresh))))
+            return _emit(pid=int(next(iter(fresh))), cleared_saved_state=cleared)
         time.sleep(0.25)
     return _emit(ok=False, error="process did not register after launch")
 
@@ -219,9 +250,33 @@ def cmd_present(a) -> int:
     if len(parts) == 4:
         try:
             rect = [int(float(p)) for p in parts]
-            return _emit(ok=True, proc=a.proc, rect=",".join(map(str, rect)), bounds=rect)
         except ValueError:
-            pass
+            return _emit(ok=False, proc=a.proc, error=out[:200] or "no rect from System Events")
+        # …and the window's CGWindowID, so the caller can shoot THAT WINDOW rather than the screen region
+        # it happens to occupy. `screencapture -R` photographs whatever is on top of the rect: a lingering
+        # window from a previous page composites straight into the shot, and the result looks perfectly
+        # legitimate — a full board sweep captured the C++ gallery's window into the MAUI reference column
+        # for scroll_view and scored it as a 96% "diff". `-l <id>` reads the window's own backing store and
+        # cannot be occluded. Looked up via QUARTZ, deliberately: it is a read-only window-server query, so
+        # unlike a System Events / AX call it does NOT steal key focus back and grey the traffic lights,
+        # which is why the earlier window-id lookup had to be removed.
+        # Retry the lookup: the window is up as far as System Events is concerned (we just positioned it),
+        # but Quartz's ON-SCREEN list can lag by a beat, and a miss here is not harmless — the caller would
+        # fall back to a rect shot and silently photograph whatever occupies that region. A whole sweep lost
+        # 40 alphabetically-contiguous pages that way, capturing the previous column's window into the MAUI
+        # reference column.
+        window_id = None
+        if a.pid:
+            for _ in range(10):
+                try:
+                    found = _window_info_quartz(int(a.pid))
+                except Exception:  # noqa: BLE001 — pyobjc missing/odd state; report it rather than guess
+                    break
+                if found:
+                    window_id = found[0]
+                    break
+                time.sleep(0.2)
+        return _emit(ok=True, proc=a.proc, rect=",".join(map(str, rect)), bounds=rect, window=window_id)
     return _emit(ok=False, proc=a.proc, error=out[:200] or "no rect from System Events")
 
 
@@ -296,6 +351,7 @@ def main(argv=None) -> int:
     s.add_argument("--x", type=int, default=128); s.add_argument("--y", type=int, default=30)
     s.add_argument("--w", type=int, default=1024); s.add_argument("--h", type=int, default=800)
     s.add_argument("--zoom", action="store_true", help="(ignored; explicit --x/--y/--w/--h supersede)")
+    s.add_argument("--pid", type=int, default=0, help="the app's pid; enables the occlusion-proof -l <window> shot")
     s.set_defaults(fn=cmd_present)
 
     s = sub.add_parser("click"); s.add_argument("x", type=int); s.add_argument("y", type=int)

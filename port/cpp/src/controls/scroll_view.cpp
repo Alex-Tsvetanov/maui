@@ -74,9 +74,53 @@ namespace maui::controls
         return descriptor;
     }
 
+    // C# `Thickness ISafeAreaView2.SafeAreaInsets { set { } }` on ScrollView is a no-op with the comment
+    // "For ScrollView, we don't need to store the SafeAreaInsets / The platform-specific MauiScrollView
+    // handles this" (ScrollView.cs:559). DOCUMENTED DEVIATION, identical in kind to layout's: MAUI's
+    // MauiScrollView holds the insets natively AND arranges the content natively, so the control never
+    // needs them; the port arranges CROSS-PLATFORM (scroll_view::arrange plays MauiScrollView.
+    // CrossPlatformArrange's role), so the realized insets must reach this object. Headless pushes
+    // nothing ⇒ zero ⇒ every safe-area path below is a no-op.
     void scroll_view::set_safe_area_insets(const maui::core::thickness& value)
     {
-        (void)value;
+        safe_area_insets_ = value;
+    }
+
+    // C# MauiScrollView.ValidateSafeArea's _safeArea assignment (MauiScrollView.cs:383-386) + the
+    // line-389 gate, folded into one:
+    //
+    //   _safeArea = (SystemAdjustedContentInset == Zero || behavior == Never) ? GetInset()
+    //                                                                         : SystemAdjustedContentInset
+    //   _appliesSafeAreaAdjustments = !IsParentHandlingSafeArea() && RespondsToSafeArea() && !_safeArea.IsEmpty
+    //
+    // iOS sets AdjustedContentInset ONLY when the content overflows the scroll view; when it fits, the
+    // inset stays zero and the scroll view is responsible for its own safe area (GetInset — per edge,
+    // GetManualInsetForEdge zeroes an edge whose region is None). An all-zero result IS `_safeArea.IsEmpty`,
+    // so callers need no separate emptiness check.
+    //
+    // RespondsToSafeArea() (MauiScrollView.cs:124-128) is `Superview.GetParentOfType<UIScrollView>()` — a
+    // scroll view nested INSIDE another scroll view defers to the outer one. Note it starts at the
+    // SUPERVIEW, so this scroll view never disqualifies itself (unlike layout's, which walks from its own
+    // parent for the same reason).
+    maui::core::thickness scroll_view::effective_safe_area() const
+    {
+        for (const element* ancestor = logical_parent(); ancestor != nullptr; ancestor = ancestor->logical_parent())
+        {
+            if (dynamic_cast<const maui::core::i_scroll_view*>(ancestor) != nullptr)
+            {
+                return {}; // nested in another scroll view — the outer one owns the insets
+            }
+        }
+        if (system_applied_the_inset())
+        {
+            return system_adjusted_content_inset_;
+        }
+        const auto manual = [this](int edge, double value) -> double {
+            // C# GetManualInsetForEdge (MauiScrollView.cs:266-273): None ⇒ edge-to-edge ⇒ 0, else the inset.
+            return get_safe_area_regions_for_edge(edge) != maui::core::safe_area_regions::none ? value : 0.0;
+        };
+        return maui::core::thickness{manual(0, safe_area_insets_.left), manual(1, safe_area_insets_.top),
+                                     manual(2, safe_area_insets_.right), manual(3, safe_area_insets_.bottom)};
     }
 
     maui::core::safe_area_regions scroll_view::get_safe_area_regions_for_edge(int edge) const
@@ -110,6 +154,13 @@ namespace maui::controls
             return desired_size_;
         }
 
+        // C# MauiScrollView.CrossPlatformMeasure (MauiScrollView.cs:548-562): shrink the constraints by the
+        // safe area, measure, then add it back "so the container can allocate the correct space". Zero safe
+        // area makes both terms no-ops — exactly C#'s `if (_appliesSafeAreaAdjustments)` guard.
+        const maui::core::thickness safe_area = effective_safe_area();
+        width_constraint -= safe_area.horizontal_thickness();
+        height_constraint -= safe_area.vertical_thickness();
+
         const maui::core::scroll_orientation direction = orientation();
         const bool scrolls_horizontally = direction == maui::core::scroll_orientation::horizontal ||
                                           direction == maui::core::scroll_orientation::both;
@@ -127,8 +178,10 @@ namespace maui::controls
                                             content_size.height + inset.vertical_thickness()};
 
         // "Our target size is the smaller of it and the constraints."
-        const double width_value = measured.width <= width_constraint ? measured.width : width_constraint;
-        const double height_value = measured.height <= height_constraint ? measured.height : height_constraint;
+        const double width_value =
+            (measured.width <= width_constraint ? measured.width : width_constraint) + safe_area.horizontal_thickness();
+        const double height_value = (measured.height <= height_constraint ? measured.height : height_constraint) +
+                                    safe_area.vertical_thickness();
 
         desired_size_ = {resolve_size_request(width_value, width(), minimum_width(), maximum_width()),
                          resolve_size_request(height_value, height(), minimum_height(), maximum_height())};
@@ -156,13 +209,32 @@ namespace maui::controls
         frame_ = bounds;
         if (content_ != nullptr)
         {
+            // C# MauiScrollView.CrossPlatformArrange (MauiScrollView.cs:432-455): inset the bounds by the
+            // safe area, then arrange the content in one of TWO ways depending on who applied it —
+            //
+            //   if (SystemAdjustedContentInset == Zero || behavior == Never)
+            //       CrossPlatformArrange(bounds.ToRectangle());              // the inset rect, ORIGIN AND ALL
+            //   else
+            //       CrossPlatformArrange(new Rect(new Point(), bounds.Size)); // 0-origin, inset SIZE only
+            //
+            // The split is the whole point: when UIKit adjusted the contentInset itself (content overflows)
+            // it ALREADY offsets the content visually, so honoring the origin here too would double it.
+            // When UIKit declined (content fits), nothing else will inset the content and the origin is the
+            // only thing that keeps it out from under the bars/notch. Both branches shrink the SIZE.
+            const maui::core::thickness safe_area = effective_safe_area();
+            const double safe_x = system_applied_the_inset() ? 0.0 : safe_area.left;
+            const double safe_y = system_applied_the_inset() ? 0.0 : safe_area.top;
+            const double safe_width = bounds.width - safe_area.horizontal_thickness();
+            const double safe_height = bounds.height - safe_area.vertical_thickness();
+
             const maui::core::thickness inset = padding();
             const maui::graphics::size desired = content_->desired_size();
-            const double expanded_width = std::max(bounds.width, desired.width + inset.horizontal_thickness());
-            const double expanded_height = std::max(bounds.height, desired.height + inset.vertical_thickness());
+            const double expanded_width = std::max(safe_width, desired.width + inset.horizontal_thickness());
+            const double expanded_height = std::max(safe_height, desired.height + inset.vertical_thickness());
             // ArrangeContent within the expanded bounds: the padding insets off the expanded rect, at the
-            // scroller-relative origin (bounds.x/bounds.y dropped — see the header note above).
-            content_->arrange({inset.left, inset.top, expanded_width - inset.horizontal_thickness(),
+            // scroller-relative origin (bounds.x/bounds.y dropped — see the header note above) plus the
+            // safe-area origin from the branch above.
+            content_->arrange({safe_x + inset.left, safe_y + inset.top, expanded_width - inset.horizontal_thickness(),
                                expanded_height - inset.vertical_thickness()});
 
             const maui::graphics::rect content_frame = content_->frame();

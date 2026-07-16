@@ -53,6 +53,54 @@ def git_commit() -> str:
     return r.stdout.strip() or "unknown"
 
 
+def png_size(path):
+    """(w, h) of a PNG, straight from the IHDR — no image library needed for a 24-byte read."""
+    try:
+        with open(path, "rb") as f:
+            head = f.read(24)
+        if len(head) < 24 or head[:8] != b"\x89PNG\r\n\x1a\n":
+            return None
+        return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
+    except OSError:
+        return None
+
+
+def shoot_presented(env, ccfg, g, remote_shot, pid=None, attempts=3):
+    """Present the window at the fixed geometry and capture THAT rect. Returns bounds, or None if the
+    window could not be presented.
+
+    Never falls back to a whole-display shot. That fallback used to live inline at the call site and was
+    the worst failure mode of this runner: when the VM's WindowServer/AX session desyncs (windows stop
+    being enumerable — the same symptom the resolution self-heal exists for), `present` returns no rect,
+    every subsequent shot silently captured the DESKTOP, and those full-display screenshots were written
+    out as ordinary frames. One sweep banked 154 of them across 27 alphabetically-contiguous pages before
+    the session healed itself. A desktop shot is not a degraded capture, it is not a capture — so on
+    failure run the self-heal (a resolution TOGGLE re-syncs the session; re-setting the CURRENT mode is a
+    no-op) and retry; if it still will not present, return None and let the caller drop the frame.
+    """
+    for attempt in range(attempts):
+        args = ["present", "--proc", ccfg["process"],
+                "--x", g["x"], "--y", g["y"], "--w", g["w"], "--h", g["h"]]
+        if pid:
+            args += ["--pid", pid]
+        pr = env.agent(*args)
+        # REQUIRE the window id. Shooting the window's own backing store (-l <id>) is the only capture
+        # here that cannot be occluded; the -R <rect> alternative photographs a screen REGION, so any
+        # window sitting on top composites in and yields a perfectly legitimate-looking screenshot of the
+        # WRONG APP. That is not a hypothetical trade-off: falling back cost 40 alphabetically-contiguous
+        # pages of one sweep, which captured gallery_xaml into the MAUI reference column. If the window
+        # cannot be identified we would rather drop the frame and say so.
+        if pr.get("rect") and pr.get("window"):
+            env.agent("shot", remote_shot, "--window", pr["window"])
+            return pr.get("bounds")
+        if attempt < attempts - 1:
+            why = pr.get("error") or ("no window id — Quartz could not see the window" if pr.get("rect") else "?")
+            print(f"  ~ present failed ({why}) — resolution-toggle self-heal, retrying")
+            env.agent("set-resolution", env.display["width"], env.display["height"])
+            time.sleep(2.0)
+    return None
+
+
 def load_manifest() -> list[dict]:
     if not MANIFEST.is_file():
         return []
@@ -304,6 +352,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
 
     remote_shot = posixpath.join(env.scratch, "shot.png")
     frames: dict[tuple, dict] = {}  # (tag, column, n) -> {theme, step, local}
+    failed_frames: list[str] = []   # frames dropped as un-presentable (see shoot_presented)
     for tag in tags:
         scenario = load_scenario(scenarios_dir, tag)
         themes = themes_override or scenario["themes"]
@@ -342,13 +391,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                         time.sleep(settle)
                         n += 1
                         if env.present:
-                            pr = env.agent("present", "--proc", ccfg["process"],
-                                           "--x", g["x"], "--y", g["y"], "--w", g["w"], "--h", g["h"])
-                            bounds = pr.get("bounds") or bounds
-                            if pr.get("rect"):
-                                env.agent("shot", remote_shot, "--rect", pr["rect"])
-                            else:
-                                env.agent("shot", remote_shot)  # present failed → whole-display last resort
+                            bounds = shoot_presented(env, ccfg, g, remote_shot, pid=pid) or bounds
                         elif win_id:
                             env.agent("shot", remote_shot, "--window", win_id)
                         elif win_rect:
@@ -358,6 +401,16 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                         local = run_root / tag / env.platform / col / f"{n:04d}.png"
                         if not env.pull(remote_shot, local):
                             print(f"  ! {tag}/{col}/{theme}#{n}: capture pull failed")
+                            continue
+                        # A shot the size of the DISPLAY rather than the window is the desktop — `present`
+                        # failed and we photographed whatever was on screen. It is not obviously broken to
+                        # look at, so it must be rejected mechanically or it reaches the board as data.
+                        size = png_size(local)
+                        if size is not None and (size[0] > g["w"] + 4 or size[1] > g["h"] + 4):
+                            print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — {size[0]}x{size[1]} is not the "
+                                  f"{g['w']}x{g['h']} window (present failed; desktop captured)")
+                            local.unlink(missing_ok=True)
+                            failed_frames.append(f"{tag}/{col}/{theme}#{n}")
                             continue
                         sidecar = {
                             "tag": tag, "platform": env.platform, "column": col, "theme": theme,
@@ -372,7 +425,16 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                     env.agent("stop", pid)
                     time.sleep(0.3)
 
-    return score(env, tags, run_root, frames)
+    if failed_frames:
+        # Loud + non-optional: a sweep that silently omits frames looks identical to a clean one, and
+        # the affected pages would keep whatever STALE capture the board already had.
+        print(f"\n  !! {len(failed_frames)} frame(s) DROPPED (window never presented) — these pages are\n     NOT refreshed; re-run --only <pages> once the VM session is healthy:")
+        for f in failed_frames:
+            print(f"       {f}")
+
+    summary = score(env, tags, run_root, frames)
+    summary["dropped_frames"] = failed_frames
+    return summary
 
 
 def score(env: Env, tags: list[str], run_root: Path, frames: dict) -> dict:

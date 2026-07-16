@@ -412,12 +412,101 @@ namespace
         EXPECT_EQ(sv2.get_safe_area_regions_for_edge(1), maui::core::safe_area_regions::default_value);
     }
 
-    TEST(scroll_view_safe_area, set_safe_area_insets_is_noop)
+    TEST(scroll_view_safe_area, set_safe_area_insets_does_not_disturb_the_edges_property)
     {
         maui::controls::scroll_view sv;
         maui::core::i_safe_area_view2& sv2 = sv;
         const maui::core::thickness t{1.0, 2.0, 3.0, 4.0};
         sv2.set_safe_area_insets(t);
         EXPECT_EQ(sv.safe_area_edges(), maui::core::safe_area_edges::default_edges());
+    }
+
+    // ---- MauiScrollView's safe-area application (MauiScrollView.cs:383-386, 432-455) ----
+    //
+    // The branch that matters: iOS only sets AdjustedContentInset when the content OVERFLOWS the scroll
+    // view. When the content FITS, iOS leaves it zero — and MauiScrollView then computes the inset ITSELF
+    // (GetInset) and arranges the content at the inset ORIGIN. Without this a page whose content fits its
+    // window renders flush to the top, under the bars/notch: measured as a real 32px (41pt x the 0.77
+    // Catalyst scale) offset vs MAUI on slider / picker / layout_is_enabled.
+
+    TEST(scroll_view_safe_area_apply, arranges_content_at_the_inset_origin_when_the_system_did_not_adjust)
+    {
+        maui::controls::scroll_view sv;
+        maui::layouts::testing::mock_view content;
+        content.configure({100, 100});
+        sv.set_content(content);
+        // The system did NOT adjust (content fits) => MauiScrollView computes the inset itself.
+        sv.set_system_adjusted_content_inset(maui::core::thickness{});
+        static_cast<maui::core::i_safe_area_view2&>(sv).set_safe_area_insets(maui::core::thickness{0, 41, 0, 0});
+
+        sv.measure(200, 400);
+        sv.arrange(maui::graphics::rect(0, 0, 200, 400));
+
+        EXPECT_DOUBLE_EQ(content.last_arrange.y, 41.0); // the inset ORIGIN is honored
+    }
+
+    TEST(scroll_view_safe_area_apply, keeps_content_at_the_origin_when_the_system_already_adjusted)
+    {
+        maui::controls::scroll_view sv;
+        maui::layouts::testing::mock_view content;
+        content.configure({100, 100});
+        sv.set_content(content);
+        // The system DID adjust (content overflows) => UIKit's contentInset supplies the visual offset, so
+        // the content arranges at 0-origin with only the SIZE reduced. Re-adding the origin here would
+        // double-count against UIKit's own inset.
+        sv.set_system_adjusted_content_inset(maui::core::thickness{0, 41, 0, 0});
+        static_cast<maui::core::i_safe_area_view2&>(sv).set_safe_area_insets(maui::core::thickness{0, 41, 0, 0});
+
+        sv.measure(200, 400);
+        sv.arrange(maui::graphics::rect(0, 0, 200, 400));
+
+        EXPECT_DOUBLE_EQ(content.last_arrange.y, 0.0);
+    }
+
+    TEST(scroll_view_safe_area_apply, no_inset_when_the_edges_are_none)
+    {
+        maui::controls::scroll_view sv;
+        maui::layouts::testing::mock_view content;
+        content.configure({100, 100});
+        sv.set_content(content);
+        sv.set_safe_area_edges(maui::core::safe_area_edges::none()); // GetManualInsetForEdge => 0
+        sv.set_system_adjusted_content_inset(maui::core::thickness{});
+        static_cast<maui::core::i_safe_area_view2&>(sv).set_safe_area_insets(maui::core::thickness{0, 41, 0, 0});
+
+        sv.measure(200, 400);
+        sv.arrange(maui::graphics::rect(0, 0, 200, 400));
+
+        EXPECT_DOUBLE_EQ(content.last_arrange.y, 0.0);
+    }
+
+    TEST(scroll_view_safe_area_apply, no_inset_when_nothing_was_pushed)
+    {
+        maui::controls::scroll_view sv;
+        maui::layouts::testing::mock_view content;
+        content.configure({100, 100});
+        sv.set_content(content);
+
+        sv.measure(200, 400);
+        sv.arrange(maui::graphics::rect(0, 0, 200, 400));
+
+        EXPECT_DOUBLE_EQ(content.last_arrange.y, 0.0); // headless pushes nothing => zero => no adjustment
+    }
+
+    // MauiScrollView.CrossPlatformMeasure (MauiScrollView.cs:548-562) — the same subtract-then-add-back
+    // as MauiView, so the scroll view still reports the full span it occupies.
+    TEST(scroll_view_safe_area_apply, measure_subtracts_the_safe_area_then_adds_it_back)
+    {
+        maui::controls::scroll_view sv;
+        maui::layouts::testing::mock_view content;
+        content.configure({100, 100});
+        sv.set_content(content);
+        sv.set_system_adjusted_content_inset(maui::core::thickness{});
+        static_cast<maui::core::i_safe_area_view2&>(sv).set_safe_area_insets(maui::core::thickness{10, 41, 30, 0});
+
+        const maui::graphics::size measured = sv.measure(200, 400);
+
+        EXPECT_DOUBLE_EQ(content.last_measure_width, 160.0); // 200 - 10 - 30
+        EXPECT_DOUBLE_EQ(measured.width, 140.0);             // the content's 100 + 10 + 30 back
+        EXPECT_DOUBLE_EQ(measured.height, 141.0);            // the content's 100 + 41 back
     }
 } // namespace

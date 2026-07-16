@@ -4,7 +4,7 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
-## Per-view safe area (U20 completion) — 🚧 IN PROGRESS (contract ✅ / application ⬜) (2026-07-15)
+## Per-view safe area (U20 completion) — ✅ DONE (contract ✅ / application ✅) (2026-07-15)
 
 Closing the last MAUI safe-area fidelity gap, surfaced by the maccatalyst parity sweep: the port's content
 sits a **uniform ~32px below MAUI** on Mac Catalyst (41pt safeAreaInsets.top × the ~0.77 Catalyst UIKit scale).
@@ -22,15 +22,68 @@ CollectionView-rooted pages (full 32px off) and only approximates Layout-rooted 
   `i_safe_area_view2` with `Layout.cs`'s verbatim `GetSafeAreaRegionsForEdge` rule; shared non-template
   descriptor (`layout_safe_area_edges_property`); `set_safe_area_insets` no-op per Layout.cs. Tests ported
   from `SafeAreaTests.cs` (8 cases, red→green). Full headless **3754/3754**. Inert — no consumer yet.
-- ⬜ **Application** (next slice), designed: (1) host stops pre-insetting — pass FULL bounds, since
-  `content_page::layout_inset()` already folds per-edge correctly and pages read None ⇒ zero; (2) give
-  `layout` the same `layout_inset()` fold (padding + per-edge safe area) so a **Container** layout insets its
-  CHILDREN while its own frame stays full — matching `AdjustForSafeArea(bounds) → CrossPlatformArrange(bounds)`
-  (insetting the frame instead would wrongly inset layout BACKGROUNDS); (3) plumb the realized native insets to
-  layouts (the `ios_page::get_safe_area_insets` analog); (4) the gate (scroll-descendant + edge-aware
-  parent-handling). Validated data point: host-full-bounds ALONE takes basic_grouping 39.5%→**0.1%** but leaves
-  Layout pages ~25-38px too high — so (1) must NOT land without (2)/(3). **Must be verified on iOS-sim AND
-  maccatalyst** (this changes the validated iOS surface too).
+- ✅ **Application**: (1) `app_host::drive_layout` stops pre-insetting — the page always arranges over FULL
+  bounds, and the host's only safe-area job is now C# `MauiView`'s: report the realized insets to the
+  `i_safe_area_view2` it hosts (MauiView.cs:764). UIKit derives insets from the frame, which isn't set until
+  arrange, so the host seeds the root content layout from the full-vs-safe rect difference it already had.
+  (2) `layout` folds the safe area into `measure` (subtract from the constraint, add back to the reported
+  size — MauiView.cs:605) and `arrange` (inset the CHILDREN's bounds — MauiView.cs:634 `AdjustForSafeArea`),
+  never into its own `frame_`, so layout BACKGROUNDS stay edge-to-edge. (3) `set_safe_area_insets` now
+  STORES (documented deviation: Layout.cs no-ops it because native MauiView holds `_safeArea`; the port
+  arranges cross-platform so the value must reach the object). (4) the gate is ported whole:
+  `responds_to_safe_area()` (scroll-descendant walk) + edge-aware `is_parent_handling_safe_area()` +
+  `applies_safe_area_adjustments()` on `i_safe_area_view2` (C# `MauiView.AppliesSafeAreaAdjustments`,
+  MauiView.cs:496; default false = never insets/never blocks, exact for every non-layout implementer).
+  6 new `layout_safe_area_apply` tests, red→green. Full headless **3760/3760**.
+- ✅ **Deleted the `insets.top = 59.0` guess** in `host_run.mm`. UIKit hasn't populated insets when the port
+  drives its FIRST layout (measured: first pass reads `t=0`, later passes the real `t=41`), and that hack
+  papered over it — inventing a 59pt inset on Catalyst, whose title bar is chrome outside the safe area.
+  Replaced by the real mechanism: `MauiRelayoutView.safeAreaInsetsDidChange` re-drives layout when UIKit
+  reports the true insets (what MAUI gets free from UIKit-driven layout). Can't spin — the safe area never
+  moves a layout's own frame, so re-driving leaves every native frame put.
+- **Verified (maccatalyst, measured not eyeballed):** `vertical_stack_layout` and `basic_grouping` both
+  **0px shift / 0.0 residual — pixel-perfect** vs MAUI. **iOS re-verified (shared change):** `button`
+  unchanged (+24px/15.23 → +24px/15.24 = noise; the 59pt guess happened to equal this sim's real Dynamic
+  Island inset, so removing it is a no-op there); `basic_grouping` **improved** — group header/footer
+  background bands now render (the long-standing "missing bg-fills" cluster: the port was double-counting
+  insets on the UICollectionView path MAUI deliberately bypasses).
+- 🛠️ **Capture-tooling bug fixed in the same slice** (it silently invalidated the first 3 measurements):
+  Catalyst apps restore their last window via macOS saved state and IGNORE `MAUI_SAMPLE_PAGE` → plausible
+  screenshots of the WRONG PAGE, scored against the right MAUI reference. `vm_agent_macos.py` now clears
+  `~/Library/Saved Application State/<bundleid>.savedState` + sets `NSQuitAlwaysKeepsWindows=false` on EVERY
+  launch. Lesson: a measurement that disagrees with the source is a reason to distrust the CAPTURE, not only
+  the code — three "offset" theories (59px, 47px) were pure artifacts of this.
+- ✅ **MauiScrollView's safe area (the second half the host change exposed).** Removing the host pre-inset
+  left every ScrollView-rooted page 32px too high (`slider` / `picker` / `layout_is_enabled`: measured
+  −32px at residual ~1.3–1.9 = identical content, pure offset). `layout`'s fold cannot fix it —
+  `responds_to_safe_area()` correctly refuses to inset scroll DESCENDANTS (MauiView.cs:196), so the scroll
+  view itself must do it. Ported `MauiScrollView`:
+  - `scroll_view::effective_safe_area()` = `MauiScrollView.ValidateSafeArea` (cs:383-386) + the cs:389
+    gate. **The branch is the whole point**: iOS sets `AdjustedContentInset` ONLY when the content
+    overflows; when it FITS, that stays zero and the scroll view must inset its own content (GetInset,
+    per-edge via GetManualInsetForEdge). Verified on-device, not assumed: logging the live Catalyst
+    scroller showed `safeAreaTop=41 adjInsetTop=0 behavior=automatic` once the window grew enough for the
+    content to fit — UIKit had silently stopped adjusting.
+  - `scroll_view::arrange` = `MauiScrollView.CrossPlatformArrange` (cs:432-455): manual branch arranges at
+    the inset ORIGIN; system branch arranges at 0-origin with only the SIZE reduced (UIKit's contentInset
+    already supplies the offset — honoring the origin too would double it). `measure` = cs:548-562.
+  - `MauiIosScrollView` (new) pushes `safeAreaInsets` + `adjustedContentInset` and re-arranges in place.
+  - **The anti-flip-flop clamp (cs:474-490) is load-bearing, not an optimization.** Content sized between
+    "fits alone" and "fits with the safe area" makes UIKit flip between the two branches, and since our
+    contentSize depends on the branch, they chase each other forever. This is not theoretical: without it
+    the iOS gallery HUNG on exactly the ScrollView-rooted pages (launched, went white, SpringBoard killed
+    it). MAUI's fix — force contentSize past the bounds to pin UIKit in scrollable mode — is ported
+    verbatim, plus a re-entrancy latch.
+  - 5 new `scroll_view_safe_area_apply` tests. Full headless **3765/3765**.
+  - **Measured:** `slider` −32→**0 / 0.0**, `picker` −32→**0 / 0.0** (both pixel-perfect), `layout_is_enabled`
+    −32→**0 / 0.4**. iOS re-verified: `button` unchanged (+24/15.21 vs +24/15.23 = noise); `slider`/`picker`
+    render correctly with **0px** horizontal/vertical shift vs HEAD (their residual is runtime state — a
+    slider value, a picker selection).
+- **Known remaining (macOS, separate slice):** `button` ≈6px cumulative offset (residual 10.5) — content
+  structurally identical, not safe-area related.
+- **Known caveat:** 5 `xaml` maccatalyst captures (`gap_menu_bar`, `gap_swipe_view_items`, `gap_title_bar`,
+  `swipe_transition_mode`) are 2048x1536 leftovers from an older capture era and are not in the sweep's
+  page list, so they went unrefreshed. Pre-existing; not this slice's.
 
 ## DevFlow test/automation agent (`maui::devflow`) — ✅ DONE (headless), gallery opt-in compile-checked (2026-07-12)
 

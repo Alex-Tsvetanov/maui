@@ -48,8 +48,16 @@
 // reflows to fill the resized window (MAUI reflows on a size transition; the port's one-shot boot layout did
 // not). It never draws (hidden) and takes no touches — purely a resize sensor. Declared before boot_window
 // (which uses it); defined out-of-line below.
+//
+// It senses the SAFE AREA too (onSafeAreaChange). UIKit does not have the insets ready when the port drives
+// its first layout — even after layoutIfNeeded, the first pass reads all-zero and the real values (e.g. a Mac
+// Catalyst title bar's top=41) only arrive on a later pass. MAUI never notices because its layout is
+// UIKit-driven (LayoutSubviews runs after UIKit populates them) and it re-lays-out from
+// MauiView.SafeAreaInsetsDidChange; the port drives layout ITSELF, so without this hook it would bake in the
+// zero-inset first pass. Pinned to fill root_view, so its insets ARE root_view's.
 @interface MauiRelayoutView : UIView
 @property(nonatomic, copy) void (^onLayout)(void);
+@property(nonatomic, copy) void (^onSafeAreaChange)(void);
 @end
 
 namespace
@@ -165,11 +173,15 @@ namespace
             {
                 return;
             }
-            UIEdgeInsets insets = view.safeAreaInsets;
-            if (insets.top < 1.0)
-            {
-                insets.top = 59.0; // status bar + Dynamic Island fallback (no run-loop spin has happened yet)
-            }
+            // The REAL insets, never a guess. A `if (insets.top < 1.0) insets.top = 59.0;` fallback used to
+            // stand here for "status bar + Dynamic Island — no run-loop spin has happened yet": UIKit has
+            // not populated the insets when the port drives its first layout, so the first pass read zero.
+            // That guess was wrong twice over — it invented a 59pt inset on Mac Catalyst, whose title bar is
+            // chrome OUTSIDE the safe area (real top=41, and a hardcoded 59 is not 41 on any device) — and
+            // it only ever papered over the first pass. The tracker's onSafeAreaChange hook below now
+            // re-drives layout the moment UIKit reports the true insets, which is what MAUI gets for free
+            // from its UIKit-driven layout, so there is nothing left to guess at.
+            const UIEdgeInsets insets = view.safeAreaInsets;
             const maui::graphics::rect full_bounds{0, 0, static_cast<double>(full.size.width),
                                                    static_cast<double>(full.size.height)};
             const maui::graphics::rect safe_area_bounds{
@@ -202,6 +214,17 @@ namespace
           last_size = r.bounds.size;
           relayout(r);
         };
+        // The insets arrive AFTER the boot layout (see the MauiRelayoutView comment) and a pure inset change
+        // moves no frames, so onLayout's size guard would swallow it — hence its own unguarded hook. This
+        // cannot spin: the safe area is folded into the CHILDREN's bounds, never into a layout's own frame,
+        // so re-driving leaves every native frame (and therefore every view's insets) exactly where it was.
+        tracker.onSafeAreaChange = ^{
+          UIView* const r = weak_root;
+          if (r != nil)
+          {
+              relayout(r);
+          }
+        };
 
         return native_window;
     }
@@ -214,6 +237,14 @@ namespace
     if (self.onLayout != nil)
     {
         self.onLayout();
+    }
+}
+- (void)safeAreaInsetsDidChange
+{
+    [super safeAreaInsetsDidChange];
+    if (self.onSafeAreaChange != nil)
+    {
+        self.onSafeAreaChange();
     }
 }
 @end

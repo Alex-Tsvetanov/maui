@@ -48,6 +48,21 @@ namespace maui::core
             return safe_area_regions::none;
         }
 
+        // C# `internal bool MauiView.AppliesSafeAreaAdjustments` (MauiView.cs:496) — "is this view currently
+        // insetting by the safe area?". MAUI parks the bit on the NATIVE MauiView because that is where the
+        // adjust lives, and reads it from a descendant's IsParentHandlingSafeArea() ancestor walk. The port
+        // adjusts CROSS-PLATFORM (layout::measure/arrange), so the bit lives on the same object as the
+        // adjust. ISafeAreaView2 is `internal` in C# too, so this seam is not public surface.
+        //
+        // Default false = "never insets, never blocks a descendant", which is exact for every current
+        // implementer other than layout: content_page/border/content_view all default SafeAreaEdges to None
+        // (see their default-value creators) and so never apply. An implementer that gains a non-None
+        // default must override this, or a child layout could double-inset on the first pass.
+        [[nodiscard]] virtual bool applies_safe_area_adjustments() const
+        {
+            return false;
+        }
+
     protected:
         i_safe_area_view2() = default;
         i_safe_area_view2(const i_safe_area_view2&) = default;

@@ -5,9 +5,11 @@
 // control's add/insert/remove/clear so the native panel stays in sync.
 #include "maui/controls/vertical_stack_layout.hpp"
 
+#include <cmath>
 #include <memory>
 
 #include "maui/controls/horizontal_stack_layout.hpp"
+#include "maui/controls/scroll_view.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_cross_platform_layout.hpp"
 #include "maui/core/i_element_handler.hpp"
@@ -534,5 +536,130 @@ namespace
         stack.set_ignore_safe_area(true);
         auto& face = static_cast<maui::core::i_safe_area_view2&>(stack);
         EXPECT_EQ(face.get_safe_area_regions_for_edge(1), maui::core::safe_area_regions::none);
+    }
+
+    // ---- Layout safe-area APPLICATION (U20) ----
+    // MauiView is PLATFORM code, so no Core.UnitTests case covers the application; per port/CLAUDE.md
+    // ("when there's no test, write one that captures the source's behavior") these encode
+    // src/Core/src/Platform/iOS/MauiView.cs verbatim:
+    //   CrossPlatformArrange : if (_appliesSafeAreaAdjustments) bounds = _safeArea.InsetRect(bounds);
+    //                          CrossPlatformLayout.CrossPlatformArrange(bounds)   ← the view's OWN frame
+    //                          stays full; only the CHILDREN are inset (so a layout's background still
+    //                          paints edge-to-edge, exactly as MAUI renders it).
+    //   CrossPlatformMeasure : constraints -= safeArea; measure; size += safeArea
+    //   line 771             : _appliesSafeAreaAdjustments = !IsParentHandlingSafeArea() &&
+    //                          RespondsToSafeArea() && !_safeArea.IsEmpty
+    //   line 196-213         : RespondsToSafeArea() => NOT a UIScrollView descendant — "the scrollview
+    //                          itself is responsible for applying the correct insets"
+    //   GetSafeAreaForEdge   : an edge whose region is None contributes 0.
+    // The realized insets arrive through ISafeAreaView2.SafeAreaInsets, pushed by the native host (the
+    // MauiIosPageView.safeAreaInsetsDidChange analog). Headless pushes none ⇒ _safeArea is empty ⇒ no
+    // adjustment, so the headless geometry above is unaffected.
+
+    // Layout defaults to Container ⇒ every edge obeys ⇒ the realized top inset moves the CHILDREN down.
+    TEST(layout_safe_area_apply, arrange_insets_children_by_the_realized_safe_area)
+    {
+        vertical_stack_layout stack;
+        mock_view child;
+        child.configure({100, 100});
+        stack.add(child);
+        static_cast<maui::core::i_safe_area_view2&>(stack).set_safe_area_insets(maui::core::thickness{0, 41, 0, 0});
+
+        stack.measure(100, 200);
+        stack.arrange(rect(0, 0, 100, 200));
+
+        EXPECT_EQ(child.last_arrange, rect(0, 41, 100, 100));
+    }
+
+    // Nothing pushed (the headless default) ⇒ _safeArea.IsEmpty ⇒ no adjustment.
+    TEST(layout_safe_area_apply, no_inset_when_no_insets_were_pushed)
+    {
+        vertical_stack_layout stack;
+        mock_view child;
+        child.configure({100, 100});
+        stack.add(child);
+
+        stack.measure(100, 200);
+        stack.arrange(rect(0, 0, 100, 200));
+
+        EXPECT_EQ(child.last_arrange, rect(0, 0, 100, 100));
+    }
+
+    // SafeAreaEdges=None ⇒ every edge contributes 0 even though insets were pushed (edge-to-edge).
+    TEST(layout_safe_area_apply, no_inset_when_regions_are_none)
+    {
+        vertical_stack_layout stack;
+        stack.set_safe_area_edges(maui::core::safe_area_edges::none());
+        mock_view child;
+        child.configure({100, 100});
+        stack.add(child);
+        static_cast<maui::core::i_safe_area_view2&>(stack).set_safe_area_insets(maui::core::thickness{0, 41, 0, 0});
+
+        stack.measure(100, 200);
+        stack.arrange(rect(0, 0, 100, 200));
+
+        EXPECT_EQ(child.last_arrange, rect(0, 0, 100, 100));
+    }
+
+    // PER-EDGE (GetSafeAreaForEdge): "None,All,None,All" obeys only top + bottom, so the pushed
+    // left(10)/right(30) contribute 0 while top(20)/bottom(40) inset.
+    TEST(layout_safe_area_apply, arrange_insets_only_the_edges_whose_region_obeys)
+    {
+        vertical_stack_layout stack;
+        stack.set_safe_area_edges(
+            maui::core::safe_area_edges{maui::core::safe_area_regions::none, maui::core::safe_area_regions::all,
+                                        maui::core::safe_area_regions::none, maui::core::safe_area_regions::all});
+        mock_view child;
+        child.configure({100, 100});
+        stack.add(child);
+        static_cast<maui::core::i_safe_area_view2&>(stack).set_safe_area_insets(maui::core::thickness{10, 20, 30, 40});
+
+        stack.measure(100, 200);
+        stack.arrange(rect(0, 0, 100, 200));
+
+        EXPECT_EQ(child.last_arrange, rect(0, 20, 100, 100)); // left/right NOT inset; top is
+    }
+
+    // CrossPlatformMeasure: the constraint loses the safe area, and the safe area is added back to the
+    // returned size "so the container can allocate the correct space".
+    TEST(layout_safe_area_apply, measure_subtracts_the_safe_area_then_adds_it_back)
+    {
+        vertical_stack_layout stack;
+        mock_view child;
+        child.configure({100, 100});
+        stack.add(child);
+        static_cast<maui::core::i_safe_area_view2&>(stack).set_safe_area_insets(maui::core::thickness{10, 41, 30, 0});
+
+        const size measured = stack.measure(100, 200);
+
+        // The child sees the constraint MINUS the safe area. Only the width leg can witness this: a
+        // vertical stack hands every child an INFINITE height by design (children stack freely), so the
+        // height constraint never reaches the child — subtracting the safe area from it changes nothing
+        // the child can observe. It still matters for the layout's own returned size, asserted below.
+        EXPECT_DOUBLE_EQ(child.last_measure_width, 60.0); // 100 - 10 - 30
+        EXPECT_TRUE(std::isinf(child.last_measure_height));
+
+        // …and the safe area is added back to what the layout REPORTS, so its container still allocates
+        // the full span the layout occupies (bars/notch included) — the child's 100 tall + 41 top.
+        EXPECT_DOUBLE_EQ(measured.height, 141.0);
+        EXPECT_DOUBLE_EQ(measured.width, 100.0); // the child's 60 + 10 + 30 back
+    }
+
+    // RespondsToSafeArea(): a layout INSIDE a scroll view must not apply the safe area — the scroll view
+    // owns its insets (MauiView.cs:196-213, which exists to break an invalidation loop).
+    TEST(layout_safe_area_apply, no_inset_when_the_layout_is_a_scroll_view_descendant)
+    {
+        maui::controls::scroll_view scroller;
+        vertical_stack_layout stack;
+        mock_view child;
+        child.configure({100, 100});
+        stack.add(child);
+        scroller.set_content(stack); // parents the stack under the scroll view
+        static_cast<maui::core::i_safe_area_view2&>(stack).set_safe_area_insets(maui::core::thickness{0, 41, 0, 0});
+
+        stack.measure(100, 200);
+        stack.arrange(rect(0, 0, 100, 200));
+
+        EXPECT_EQ(child.last_arrange, rect(0, 0, 100, 100));
     }
 } // namespace

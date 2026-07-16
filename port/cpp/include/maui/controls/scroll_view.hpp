@@ -89,6 +89,29 @@ namespace maui::controls
         void set_safe_area_insets(const maui::core::thickness& value) override;
         [[nodiscard]] maui::core::safe_area_regions get_safe_area_regions_for_edge(int edge) const override;
 
+        // C# `MauiScrollView.SystemAdjustedContentInset` — UIKit's OWN computed contentInset. It decides
+        // which of MauiScrollView's two branches runs (MauiScrollView.cs:383-386), because UIKit only sets
+        // it when the content OVERFLOWS the scroll view; when the content FITS it stays zero and the scroll
+        // view must inset its content ITSELF. The native handler pushes it here — the port arranges
+        // cross-platform, so this platform fact has to reach the control (same documented deviation as
+        // set_safe_area_insets). Headless never pushes ⇒ zero ⇒ the manual branch over zero insets ⇒ no-op.
+        void set_system_adjusted_content_inset(const maui::core::thickness& value)
+        {
+            system_adjusted_content_inset_ = value;
+        }
+
+        // C# MauiScrollView._safeArea after ValidateSafeArea + the line-389 gate. Zero unless a native host
+        // pushed real insets, so every headless path is unaffected.
+        [[nodiscard]] maui::core::thickness effective_safe_area() const;
+
+        // True when UIKit already applied the inset via its own contentInset (the content overflows). Then
+        // the content arranges at 0-origin with only the SIZE reduced — UIKit supplies the visual offset,
+        // and re-adding the origin would double it.
+        [[nodiscard]] bool system_applied_the_inset() const
+        {
+            return !system_adjusted_content_inset_.is_empty();
+        }
+
         // ---- events ----
         // C# ScrollView.Scrolled (ScrolledEventArgs.ScrollX/ScrollY).
         maui::core::event<double, double> scrolled;
@@ -287,6 +310,10 @@ namespace maui::controls
             }
         }
 
+        // C# MauiScrollView._safeArea inputs: the realized UIKit insets, and UIKit's own contentInset
+        // adjustment (which selects the manual-vs-system branch). Both pushed by the native handler.
+        maui::core::thickness safe_area_insets_;
+        maui::core::thickness system_adjusted_content_inset_;
         maui::core::i_view* content_ = nullptr; // NON-owning: the caller owns the content's lifetime
         maui::graphics::size content_size_;     // read-only ContentSize (see header)
         double scroll_x_ = 0;                   // read-only ScrollX

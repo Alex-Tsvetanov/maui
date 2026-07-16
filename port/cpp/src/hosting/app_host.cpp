@@ -16,10 +16,13 @@
 #include "maui/controls/element.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/handler_registry.hpp"
+#include "maui/core/i_content_view.hpp"
 #include "maui/core/i_element.hpp"
 #include "maui/core/i_element_handler.hpp"
+#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -127,19 +130,32 @@ namespace maui::hosting
             return {0, 0};
         }
 
-        // VC-backed-root-page contract (factored from ios_gallery.mm boot_page + ios host_run.mm): a page
-        // whose handler is an i_view_handler exposing a non-null root_view_controller() (flyout_page →
-        // UISplitViewController, tabbed_page → UITabBarController) made its OWN controller the window's
-        // rootViewController, so the split/tab child-VC lifecycle + Auto Layout position the columns / tab
-        // content area. The controller owns the chrome (split divider / tab bar) and each inner content_page
-        // tracks its own safeAreaInsets, so the cross-platform tree lays out over the FULL controller bounds
-        // — NOT the safe-area inset. On non-iOS backends root_view_controller() is always null, so this picks
-        // the safe-area rect (which the headless/macOS callers pass equal to the full rect).
-        const auto* page_handler = dynamic_cast<const maui::core::i_view_handler*>(page->handler().get());
-        const bool vc_backed = page_handler != nullptr && page_handler->root_view_controller() != nullptr;
-        const maui::graphics::rect& bounds = vc_backed ? full_bounds : safe_area_bounds;
+        // The page ALWAYS lays out over the FULL bounds — never a pre-inset rect. MAUI insets PER VIEW, not
+        // once at the host: ContentPage's SafeAreaEdges default-value creator returns None (edge-to-edge),
+        // while Layout's returns Container, so the page runs under the bars/notch and its CONTENT LAYOUT is
+        // what keeps the children clear of them (layout::effective_safe_area, ported from
+        // MauiView.CrossPlatformArrange). Pre-insetting here instead insets the page's whole subtree —
+        // which double-counts on the views that MAUI never insets (a UICollectionView applies its own
+        // scroll-view insets and bypasses this chain entirely: MauiView.RespondsToSafeArea, MauiView.cs:196).
+        //
+        // So the host's only safe-area job is the one C# MauiView does natively: report the REALIZED insets
+        // to the ISafeAreaView2 it hosts (MauiView.cs:764) and let that view decide. UIKit derives them from
+        // the frame, which is not set until arrange, so the host seeds the root content layout from the rect
+        // the platform already handed it — the difference between the full and safe-area rects. Headless and
+        // AppKit pass the two rects equal ⇒ zero insets ⇒ every safe-area path downstream is a no-op.
+        const maui::core::thickness realized_insets{
+            safe_area_bounds.x - full_bounds.x, safe_area_bounds.y - full_bounds.y,
+            (full_bounds.x + full_bounds.width) - (safe_area_bounds.x + safe_area_bounds.width),
+            (full_bounds.y + full_bounds.height) - (safe_area_bounds.y + safe_area_bounds.height)};
+        if (const auto* content_host = dynamic_cast<const maui::core::i_content_view*>(page))
+        {
+            if (auto* safe_area_content = dynamic_cast<maui::core::i_safe_area_view2*>(content_host->content()))
+            {
+                safe_area_content->set_safe_area_insets(realized_insets);
+            }
+        }
 
-        page->measure(bounds.width, bounds.height);
-        return page->arrange(bounds);
+        page->measure(full_bounds.width, full_bounds.height);
+        return page->arrange(full_bounds);
     }
 } // namespace maui::hosting
