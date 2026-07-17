@@ -1943,7 +1943,7 @@ ports HeaderFooterGrid.xaml (+ HeaderFooterGrid.xaml.cs) of the C# CollectionVie
 
 #### 🟢 Sonnet 5 — C++ (C1/C3)
 
-Matches MAUI in both themes against the fresh iOS MauiReference baseline. The item grid now applies the shared XAML's Margin=6 (cross-platform builder fix) so rows are properly spaced, and the fresh MAUI loads the header/footer dog images (the old frozen ref showed a plain background — a stale-ref artifact, like clipping's coffee.png). Toggle Header/Footer, 'This Is A Header'/'This Is A Footer', 'Add Content' links, and the 3-column grid all align; residual pixel% is the dense image content + status-bar clock.
+RULING 12 (2026-07-17): the code-first C++ render is CORRECT — its GridItemsLayout keeps the original C# item spacing (HorizontalItemSpacing=4, VerticalItemSpacing=2), so the item grid runs ~18px taller than MAUI's. The shared twin XAML degrades GridItemsLayout to the ItemsLayout string form ("VerticalGrid, 3"), which can't express item spacing (loader lacks the &lt;GridItemsLayout&gt; element form), so MAUI and C++&amp;XAML both render the grid flush (0 spacing). The cpp-vs-maui item-grid offset is this exempt, intended divergence, NOT a port bug.
 
 #### ⏳ Sonnet 5 — C++ &amp; XAML (C2/C4)
 
@@ -2942,7 +2942,7 @@ ports NestedGalleries/NestedCollectionViewGallery.xaml (+ NestedCollectionViewGa
 
 #### 🟢 Sonnet 5 — C++ (C1/C3)
 
-Match. Fresh recapture after commit b83563e75d (match MAUI inner-caption data) — which postdated the prior iOS capture: cpp now shows the filename inner captions ("cover1.jpg, 0", "oasis.jpg, 1", "photo.jpg, 2", "Vegetables.jpg, 3"...) matching MAUI, not the stale "Caption N-M" data. Outer "Source N" labels wrap identically. Both themes.
+RULING 12 (2026-07-17): the code-first C++ render is CORRECT — its inner (nested) CollectionView keeps the original item spacing, so its rows run slightly wider/taller than MAUI's flush twin (the shared XAML degrades the inner GridItemsLayout to the string form, losing item spacing). The cpp-vs-maui offset is this exempt divergence, NOT a port bug.
 
 #### ⏳ Sonnet 5 — C++ &amp; XAML (C2/C4)
 

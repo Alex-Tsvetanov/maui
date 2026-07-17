@@ -294,3 +294,22 @@ iOS paints the persistent selection band whenever items are actually selected. s
 now fully green (cpp 0.09% / xaml 0.00%); preselected_items xaml green (cpp 7.76% is a separate pre-existing
 code-first cell-layout difference vs the twin's plain `<Label Margin=6>`, not the selection). maccatalyst
 recapture is a follow-up (there ruling 9 keeps the port's band exempt vs MAUI-Catalyst's no-band).
+
+## header_footer_grid cpp — GridItemsLayout item spacing degraded by the twin (ruling 12, 2026-07-17)
+
+`header_footer_grid` cpp (4.33%) is exempt per ruling 12: the code-first page sets the original C#
+`GridItemsLayout(Span=3, HorizontalItemSpacing=4, VerticalItemSpacing=2)`, so its item grid runs ~18px
+taller (verified). The shared twin degrades it to `ItemsLayout="VerticalGrid, 3"` (the loader lacks the
+`<GridItemsLayout>` element form — no default ctor / `set_orientation`), which can't carry item spacing, so
+MAUI + C++&XAML render the grid flush. The cpp keeps the original spacing → correct per ruling 12; the
+cpp-vs-maui offset is exempt. A future `<GridItemsLayout>`-element loader feature would let the twin carry
+the spacing and green all three.
+
+## nested_collection — cpp inner item-spacing (ruling 12) + xaml renders the nested CV BLANK (2026-07-17)
+
+- **cpp (4.51%)**: exempt per ruling 12 — the code-first inner CollectionView keeps the original item
+  spacing; the shared twin degrades the inner GridItemsLayout to the string form (no spacing). cpp correct.
+- **C++&XAML (scored ~2.67% yellow, actually BLANK)**: a REAL deferred bug — the compile-XAML path does not
+  hydrate a CollectionView nested inside another CollectionView's ItemTemplate, so the inner lists render
+  empty (0.6% body content vs MAUI's 3.6%). The scorer under-reports it because the item text is sparse.
+  Fixing needs the loader/template-inflater to realize a nested CollectionView cell — deferred.
