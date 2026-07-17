@@ -24,6 +24,29 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## iOS CollectionView cell/header self-size CEILING — ✅ FIXED (2026-07-16)
+
+The grouping/CV cluster (grid_grouping/grouping_plus_selection/basic_grouping ~9-10%, footer_only_string,
+preselected_items) showed a growing per-cell drift down the list — periodic diff bands, ~0.67px per cell.
+VSL Label pages match at residual 0.09, so it was the CV cell self-size, not the Label measure.
+
+Root cause: `preferredLayoutAttributesFittingAttributes` on BOTH the item cell (MauiCollectionViewCell) and
+the group-header/footer supplementary (MauiCollectionReusableView) did `std::ceil(measured.height)`. C#
+TemplatedCell2.PreferredLayoutAttributesFittingAttributes (:139-142, and :131-133 for the supplementary
+branch) uses `_measuredSize.Height` DIRECTLY — no rounding. Ceiling a Body/16pt-bold Label's 19.33pt -> 20pt
+made every cell ~0.67px too tall, accumulating down the list; a 2px shift of full-width colored bands reads
+as 100%-different rows (inflating the pixel-%).
+
+Fix (both self-size paths): use the raw `measured` extent, no ceil. Kept the supplementary's `<= 0` ->
+estimate floor (the blank-section guard — header_footer_view/header_footer_template stay green).
+
+- collection_view headless 51/51; iOS 10/2333 (== baseline); gate.sh --fast PASS.
+- **Measured iOS:** grid_grouping 10.4%->**0.08%**, grouping_plus_selection 9.1%->**0.08%**, basic_grouping
+  9.0%->**0.07%**, footer_only_string 3.6%->**0.09%**, preselected_items 5.4%->**0.08%** — all GREEN. Board
+  iOS pixel_xaml **135->140 green, 13->8 red**, 0 regressions.
+- **Catalyst UNREGRESSED** (re-captured 7 pages: all green/unchanged; board 149 green / 2 red).
+- scroll_to_group still red 5.8% — a separate cause (scroll position), not the cell height.
+
 ## iOS gradient DatePicker/TimePicker collapses to text-height — ✅ FIXED (2026-07-16)
 
 date_picker/time_picker ~10% red: a DatePicker/TimePicker with a GRADIENT/image background rendered

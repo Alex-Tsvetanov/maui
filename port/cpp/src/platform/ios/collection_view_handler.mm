@@ -248,29 +248,35 @@ namespace
     const double width_constraint = vertical ? frame.size.width : std::numeric_limits<double>::infinity();
     const double height_constraint = vertical ? std::numeric_limits<double>::infinity() : frame.size.height;
     const maui::graphics::size measured = view->measure(width_constraint, height_constraint);
-    // Honor an explicit HeightRequest/WidthRequest on the cell ROOT. MAUI's TemplatedCell measures the
-    // outer content view, whose DesiredSize already folds in Height/WidthRequest; a LEAF cell root
-    // (view::measure) does the same in the port. But a LAYOUT-rooted cell (e.g. an item template whose
-    // root is a `<Grid HeightRequest="60">`) reports only its children's content extent from the
-    // cross-platform layout::measure — the native layout host would apply the request on the normal path,
-    // but this CV self-size path bypasses it. Clamp so the cell never sizes below its requested extent
-    // (e.g. adaptive_collection's 60pt rows instead of collapsing to the ~20pt label height). Unset
-    // requests return negative from width()/height(), so the clamp is a no-op there.
+    // Use the RAW measured extent — do NOT ceil it. C# TemplatedCell2.PreferredLayoutAttributesFittingAttributes
+    // (:139-142) sets the freed axis to `_measuredSize.Height/Width` directly, with no rounding. Ceiling a
+    // fractional self-size (e.g. a Body-font label's 19.33pt -> 20pt) makes EVERY templated cell ~0.67px
+    // too tall, and the error ACCUMULATES down the list — measured on the iOS board as a growing drift on
+    // every templated-CV page (grid_grouping, grouping_plus_selection, basic_grouping, footer_only_string,
+    // preselected_items), where a 2px shift of full-width colored bands reads as 100%-different rows.
+    //
+    // Honor an explicit HeightRequest/WidthRequest on the cell ROOT. MAUI's TemplatedCell measures the outer
+    // content view, whose DesiredSize already folds in Height/WidthRequest; a LEAF cell root (view::measure)
+    // does the same in the port. But a LAYOUT-rooted cell (e.g. an item template whose root is a
+    // `<Grid HeightRequest="60">`) reports only its children's content extent from layout::measure — the
+    // native layout host would apply the request on the normal path, but this self-size path bypasses it.
+    // Clamp so the cell never sizes below its requested extent (adaptive_collection's 60pt rows instead of
+    // collapsing to the ~20pt label height). Unset requests return negative from width()/height() (no-op).
     if (vertical)
     {
-        double h = std::ceil(measured.height);
+        double h = measured.height;
         if (view->height() >= 0.0)
         {
-            h = std::max(h, std::ceil(view->height()));
+            h = std::max(h, view->height());
         }
         frame.size.height = static_cast<CGFloat>(h);
     }
     else
     {
-        double w = std::ceil(measured.width);
+        double w = measured.width;
         if (view->width() >= 0.0)
         {
-            w = std::max(w, std::ceil(view->width()));
+            w = std::max(w, view->width());
         }
         frame.size.width = static_cast<CGFloat>(w);
     }
@@ -462,12 +468,18 @@ namespace
     }
     CGRect frame = layoutAttributes.frame;
     const maui::graphics::size desired = view->measure(frame.size.width, std::numeric_limits<double>::infinity());
-    // Floor the main-axis extent to a positive minimum. A CV-level (global) boundary supplementary that hosts
-    // a real/templated view can measure 0 before its subtree has laid out (freshly realized, bounds still
-    // zero) — and a zero-height global boundary makes UIKit's compositional layout drop the whole section,
-    // rendering the page BLANK (header_footer_view / header_footer_template). Never let self-sizing yield a
-    // non-positive extent; fall back to the estimated boundary dimension the layout already reserves.
-    CGFloat measured_height = static_cast<CGFloat>(std::ceil(desired.height));
+    // Use the RAW measured height — no ceil — matching C# TemplatedCell2's supplementary branch
+    // (TemplatedCell2.cs:131-133,141, `_measuredSize = virtualView.Measure(...)` used directly). Ceiling a
+    // fractional group-header self-size (a 16pt-bold Label's 19.33pt -> 20pt) made every group header ~0.67px
+    // too tall and drifted the grouping pages down (grid_grouping/grouping_plus_selection/basic_grouping/
+    // scroll_to_group stayed red at ~9% after the item-cell ceil was removed — this is the header path).
+    //
+    // Floor to a positive minimum (unchanged): a CV-level (global) boundary supplementary hosting a real/
+    // templated view can measure 0 before its subtree has laid out (freshly realized, bounds still zero), and
+    // a zero-height global boundary makes UIKit's compositional layout drop the whole section, rendering the
+    // page BLANK (header_footer_view / header_footer_template). Never let self-sizing yield a non-positive
+    // extent; fall back to the estimated boundary dimension the layout already reserves.
+    CGFloat measured_height = static_cast<CGFloat>(desired.height);
     if (measured_height <= 0)
     {
         measured_height = k_estimated_item_extent;
