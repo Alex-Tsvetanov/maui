@@ -6,7 +6,12 @@
 // per-control special-casing: every container already exposes its children + host command through those
 // three element hooks.
 
+#if defined(__APPLE__)
+    #include <TargetConditionals.h> // TARGET_OS_MACCATALYST — the safe-area margin fork below is iOS-only
+#endif
+
 #include "maui/hosting/app_host.hpp"
+#include <algorithm>
 
 #include <cstdio>
 #include <memory>
@@ -143,7 +148,7 @@ namespace maui::hosting
         // the frame, which is not set until arrange, so the host seeds the root content layout from the rect
         // the platform already handed it — the difference between the full and safe-area rects. Headless and
         // AppKit pass the two rects equal ⇒ zero insets ⇒ every safe-area path downstream is a no-op.
-        const maui::core::thickness realized_insets{
+        maui::core::thickness realized_insets{
             safe_area_bounds.x - full_bounds.x, safe_area_bounds.y - full_bounds.y,
             (full_bounds.x + full_bounds.width) - (safe_area_bounds.x + safe_area_bounds.width),
             (full_bounds.y + full_bounds.height) - (safe_area_bounds.y + safe_area_bounds.height)};
@@ -151,6 +156,32 @@ namespace maui::hosting
         {
             if (auto* safe_area_content = dynamic_cast<maui::core::i_safe_area_view2*>(content_host->content()))
             {
+                // iOS ONLY: reduce the pushed insets by the content's OWN MARGIN (per edge, clamped at 0).
+                // The content layout is offset from the page edge by its margin (Layout.compute_frame /
+                // LayoutExtensions.ComputeFrame), so that margin already provides part of the clearance from
+                // the unsafe region. On iOS the status bar OVERLAYS the content (both the safe area and the
+                // margin are measured from the screen edge), so pushing the FULL page-level inset on top of
+                // the margin offset double-counts it — exactly what UIKit's per-view safeAreaInsets avoid (a
+                // view offset N pt into its parent reports parent.safeAreaInsets - N). The port pushes a
+                // single page-level inset instead of per-view, so it subtracts the content's margin here to
+                // match. Measured: a <VerticalStackLayout Margin="20"> ran 20pt low on iOS before this.
+                //
+                // NOT on Mac Catalyst: there the titlebar is window chrome ABOVE the content area, so the
+                // margin is measured from the content-area top and is ADDITIVE with the inset — MAUI renders
+                // content at inset + margin, and subtracting the margin moved it 20pt too high (measured:
+                // ios_blur_effect green 0.12% -> red 8.8%). The two platforms genuinely differ (ruling 1 —
+                // match each platform's render); same theme as the CollectionView .Never fork. See
+                // PARITY_REVIEW.md item 3. Headless (non-Apple) pushes zero insets, so this is a no-op there.
+#if !defined(TARGET_OS_MACCATALYST) || !TARGET_OS_MACCATALYST
+                if (const auto* content_view = dynamic_cast<const maui::core::i_view*>(content_host->content()))
+                {
+                    const maui::core::thickness margin = content_view->margin();
+                    realized_insets = maui::core::thickness{std::max(0.0, realized_insets.left - margin.left),
+                                                            std::max(0.0, realized_insets.top - margin.top),
+                                                            std::max(0.0, realized_insets.right - margin.right),
+                                                            std::max(0.0, realized_insets.bottom - margin.bottom)};
+                }
+#endif
                 safe_area_content->set_safe_area_insets(realized_insets);
             }
         }

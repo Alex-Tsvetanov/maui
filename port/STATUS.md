@@ -24,6 +24,32 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## iOS root-layout Margin over-inset (safe-area double-count) — ✅ FIXED, platform-forked (2026-07-16)
+
+Next iOS cluster: a page-direct layout with a Margin ran exactly its Margin-in-pt low vs MAUI (Margin 12
+-> 12pt shift, 20 -> 20pt, 10 -> 10pt; residual ~0.05 after aligning — identical content). Green on
+Catalyst, red/yellow on iOS.
+
+Root cause (instrumented, not guessed): `app_host::drive_layout` pushes the FULL page-level safe-area inset
+to the top-level content layout, but the layout is ALSO offset from the page edge by its own Margin
+(compute_frame / LayoutExtensions.ComputeFrame). On iOS the status bar OVERLAYS content (safe area + margin
+both measured from the screen edge), so pushing the full inset on top of the margin double-counts it —
+UIKit's per-view safeAreaInsets avoid this (a view offset N reports parent.insets - N). Fix: subtract the
+content's own margin from the pushed inset (per edge, clamped at 0).
+
+Regressed Catalyst (ios_blur_effect green 0.12% -> red 8.8%): there the titlebar is chrome ABOVE the
+content area, so the margin is ADDITIVE with the inset (MAUI renders inset + margin). Forked
+`#if !TARGET_OS_MACCATALYST` — subtract on iOS, keep full on Catalyst. Matches both renders (ruling 1); same
+platform-difference theme as the CV .Never fork (PARITY_REVIEW item 3). No-op on headless (zero insets).
+
+- Headless 3765/3765; iOS 10/2332; gate.sh --fast PASS.
+- **Measured iOS:** ios_blur_effect 28.8%->0.07% GREEN, app_theme_binding 4.6%->0.08% GREEN, ios_first_responder
+  4.6%->0.07% GREEN, alerts 3.3%->0.08% GREEN, behaviors 1.9%->0.07% GREEN, + ios_slider_update_on_tap /
+  ios_time_picker / menu_bar GREEN. Board iOS pixel_xaml **126->134 green, 18->15 red**, 0 regressions.
+- **Catalyst UNREGRESSED** (re-captured the 5 pages: all back to green 0.12%; board 149 green / 2 red unchanged).
+- Also removed a stale 2026-07-05 ios_blur_effect .gif (all columns) — build_comparison_json preferred it over
+  the fresh .png, masking the fix (scored the old gif at 28.8%). Not animated; the gif was an old-board artifact.
+
 ## iOS CollectionView content-inset (.Never) — ✅ FIXED, platform-forked (2026-07-16)
 
 The biggest iOS red cluster (8 full-page CollectionView pages, 35-47%) root-caused to
