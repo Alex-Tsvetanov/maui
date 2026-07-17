@@ -24,6 +24,23 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## iOS red board — remaining 8 reds triaged to root cause (2026-07-17)
+
+After the RadioButton fix below, the 8 remaining iOS pixel_xaml reds are all root-caused and each is a
+deferred/recorded limitation, NOT an un-diagnosed port bug. Full write-ups in `PARITY_REVIEW.md`:
+- **image** (67%) — deferred network image loading (architectural, pre-existing).
+- **radio_button_content / radio_content_properties / radio_button_group_gallery** (~5-6%) — the native
+  UIButton+SF-symbol RadioButton fallback: wrapped-ring 51px vs MAUI's 21pt Ellipse (63px) + iOS-3× font AA
+  that Catalyst-0.77× absorbs. The fixable parts (wrapped-height, cpp padding) LANDED; Catalyst greened.
+- **pointer_gesture / gestures / ios_swipe_transition** (~5-10%) — CAPTURE-infra gap: the port's gif capture
+  produces 1-frame static gifs (gesture interaction not driven) vs MAUI's driven animations (pointer_gesture
+  maui 13 frames, port 1); the frame-0 pixel comparison is non-representative (cpp coincidentally matches,
+  xaml catches a wrong frame — their static PNGs are 0.05% apart). Static content correct.
+- **scroll_to_group** (5.8%) — clean uniform −72px offset: shipped-MAUI Grid lays an Auto row of a text
+  input ~6pt taller than iOS-26 `sizeThatFits` (=34pt, which the port correctly returns; the `entry` page is
+  green proving the base measure is right). A ruling-11 render-vs-`src/` Grid divergence whose fix is a
+  board-wide Grid change → escalated, not made autonomously.
+
 ## RadioButton wrapped-height double-count + cpp page padding — ✅ FIXED (2026-07-17)
 
 The 2026-07-16 note below ("matching the template's 21x21 is WRONG") correctly predicted the residual is a

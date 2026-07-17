@@ -195,3 +195,49 @@ wrapped ring plus font anti-aliasing keep `radio_button_content` (~5%), `radio_c
 custom Baskerville/Arial fonts + CharacterSpacing at 3×), and `radio_button_group_gallery` (~5%) red — all
 minor, dominated by high-DPI rendering the native fallback can't match pixel-for-pixel. The deferred
 RadioButton ControlTemplate port is the proper settlement. Not a per-page port bug beyond what landed.
+
+## Gesture animated-gif cluster on iOS — capture-infrastructure gap (2026-07-17)
+
+**Status:** recorded (capture-tooling gap); static content verified correct; NOT a port rendering bug.
+
+`pointer_gesture` (xaml 10.55% / cpp 0.11%), `gestures` (5.09% / 0.24%), `ios_swipe_transition` (~5.9%)
+score against the animated `.gif` capture (build_comparison_json prefers `.gif` over `.png`; the scorer
+`Image.open`s frame 0). But the **port's gesture gifs are single-frame** while MAUI's are driven animations
+(measured: `pointer_gesture` maui **13 frames**, cpp **1**, xaml **1**) — the port's capture does not INJECT
+the pointer/hover/gesture interaction, so it records the resting frame only. Comparing a 1-frame static port
+capture to MAUI's animation frame-0 is non-representative: `cpp` coincidentally matches MAUI's frame-0
+(0.11% "green"), `xaml` happens to catch a different resting frame (10.55% "red") — a frame-timing artifact,
+NOT a real cpp-vs-xaml difference (their static PNGs are **0.05%** apart, i.e. identical; both are ~2.6% off
+MAUI's resting frame = the pointer-trail state MAUI's driven capture leaves behind).
+
+The port renders these pages' static content correctly. The fix is capture-infrastructure: drive the
+pointer/gesture interaction for the port apps during gif capture (MAUI's own capture does this), so the port
+produces a comparable multi-frame animation. That injection path does not exist yet for the port's iOS gif
+capture. NOTE: a blanket "score PNG not GIF" scorer change is WRONG — some port gifs ARE valid animations
+(cpp `activity_indicator`; xaml `activity_indicator`/`empty_view_load_simulate`/`swipe_item_position`), so
+the gif comparison is meaningful there. Per-page capture-driving is the correct fix. Deferred.
+
+## scroll_to_group on iOS — Grid rows 6pt tighter than shipped MAUI (2026-07-17)
+
+**Status:** diagnosed; ruling-11 (render-vs-src) Grid divergence; fix is board-wide → escalate.
+
+`scroll_to_group` (5.84%) is a CLEAN uniform −72px offset: rings/CV below align at residual ~0 once
+shifted; the top form (two 3-row/2-col Grids of Label+Entry, ScrollToGroup.xaml) is 72px SHORTER in the
+port. Root-caused to the Grid row height: each of the 4 entry-row gaps is ~6pt (18px @3×) tighter in the
+port than in MAUI (4 × 18px = 72px).
+
+Measured/probed on the iOS-26 simulator (the same sim that shot the MAUI reference):
+- The Entry's visible box (33.7pt) and the "0" glyph (14pt font) are IDENTICAL between MAUI and the port.
+- A **bare RoundedRect UITextField `sizeThatFits` returns 34pt, FIXED across font sizes** (14pt→37×34,
+  17pt→39×34, default→39×34) — only width tracks the font. The port's Entry `get_desired_size` returns
+  exactly 34pt (matches the bare field) — provably correct for this OS.
+- The standalone `entry` page (a `VerticalStackLayout` of plain Entries) is GREEN — MAUI's Entries there
+  are also 34pt. So MAUI's base Entry measure IS 34pt; the extra 6pt appears ONLY inside the Grid rows.
+
+So MAUI's SHIPPED (10.0.71) Grid lays an Auto row of a text input ~6pt taller than `sizeThatFits` (a row
+min / baseline pad / RowSpacing default not present in the read-only `src/` snapshot, whose Grid
+`RowSpacing` default is 0 — matching the port). Per ruling 11 the render wins, but reproducing it means
+changing the port's Grid Auto-row measure/default board-wide — every Grid on every platform — which is a
+high-blast-radius change that must be user-ruled, not made autonomously. The port's per-control Entry
+measure is correct and must NOT be inflated (would regress the green `entry` page). Deferred pending a
+ruling on the Grid row behavior. NOTE: content otherwise matches (pure offset).
