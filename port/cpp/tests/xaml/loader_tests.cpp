@@ -684,6 +684,63 @@ namespace
         EXPECT_EQ(source->at(2).text(), "Ship wave 2"); // document order preserved
     }
 
+    TEST(xaml_loader, collection_view_selected_items_x_array_preselection)
+    {
+        // W13: element-form <CollectionView.SelectedItems><x:Array Type="{x:Type x:String}"><x:String>…
+        // declares a static preselection (the shared twin's stand-in for the original code-behind
+        // SelectedItems.Add). try_set_selected_items_from_array boxes each string via boxed_item::of (VALUE
+        // equality), so the selection value-matches the ItemsSource's boxed strings. Applied on multi-select.
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" SelectionMode="Multiple">
+	<CollectionView.ItemsSource>
+		<x:Array Type="{x:Type x:String}">
+			<x:String>Item 1</x:String>
+			<x:String>Item 2</x:String>
+			<x:String>Item 3</x:String>
+			<x:String>Item 4</x:String>
+		</x:Array>
+	</CollectionView.ItemsSource>
+	<CollectionView.SelectedItems>
+		<x:Array Type="{x:Type x:String}">
+			<x:String>Item 2</x:String>
+			<x:String>Item 3</x:String>
+		</x:Array>
+	</CollectionView.SelectedItems>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        ASSERT_EQ(view.selected_items().count(), 2U);
+        EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 2"})));
+        EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 3"})));
+        EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 1"})));
+    }
+
+    TEST(xaml_loader, collection_view_selected_item_literal_preselection)
+    {
+        // Single-selection preselect: SelectedItem="Item 2" (a literal string) boxes via boxed_item::of and
+        // value-matches the ItemsSource. Registered as a collection_view string property.
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                SelectionMode="Single" SelectedItem="Item 2">
+	<CollectionView.ItemsSource>
+		<x:Array Type="{x:Type x:String}">
+			<x:String>Item 1</x:String>
+			<x:String>Item 2</x:String>
+			<x:String>Item 3</x:String>
+		</x:Array>
+	</CollectionView.ItemsSource>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        EXPECT_EQ(view.selected_item().text(), "Item 2");
+    }
+
     TEST(xaml_loader, collection_view_items_layout_string_vertical_grid)
     {
         // W14: ItemsLayout="VerticalGrid, 3" (the MAUI ItemsLayoutTypeConverter string form) sets a

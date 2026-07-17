@@ -3,10 +3,11 @@
              x:Class="MauiReference.Pages.SelectionSynchronizationPage" Title="Selection Synchronization">
     <!-- Twin of SelectionSynchronization.xaml: an instructions Label + nine CollectionViews, each setting
          ItemsSource and Selected* in a documented order (the "CV" style = HeightRequest 250, Margin 5,2,5,5,
-         cell = Label {Binding .} Margin 0,3,0,3). note: the per-cell "selected" visual state has no markup
-         sink at rest, and the SelectedItem/SelectedItems seeds + {x:Reference} bindings + the Switch Source
-         button handler are interaction wiring — degraded. Each CV shows the same four items; a per-CV readout
-         Label stands in for the resting "should be selected" expectation, as the code-first page does. -->
+         cell = Label {Binding .} Margin 0,3,0,3). The original C# preselects in code-behind; the twin
+         declares the RESTING selection inline (SelectedItem / SelectedItems x:Array). The CVs whose
+         Selected* items are NOT in the source resolve to nothing selected (no inline selection). The
+         {x:Reference} bindings + the Switch Source button handler are interaction wiring — degraded; each
+         per-CV "Selected:" Label states the resting expectation. -->
     <ScrollView>
         <StackLayout Spacing="2">
             <Label Text="Each CollectionView below sets ItemsSource and Selected* in a particular order. Only selected items that exist in the source should stay selected." />
@@ -22,6 +23,12 @@
                         <x:String>Item 4</x:String>
                     </x:Array>
                 </CollectionView.ItemsSource>
+                <CollectionView.SelectedItems>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Item 2</x:String>
+                        <x:String>Item 3</x:String>
+                    </x:Array>
+                </CollectionView.SelectedItems>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -40,6 +47,12 @@
                         <x:String>Item 4</x:String>
                     </x:Array>
                 </CollectionView.ItemsSource>
+                <CollectionView.SelectedItems>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Item 2</x:String>
+                        <x:String>Item 3</x:String>
+                    </x:Array>
+                </CollectionView.SelectedItems>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -49,7 +62,7 @@
 
             <Label Text="Set ItemsSource then SelectedItem — should have item 2 selected (or nothing, if not in source)" />
             <Label Text="Selected: Item 2" />
-            <CollectionView SelectionMode="Single" HeightRequest="250" Margin="5,2,5,5">
+            <CollectionView SelectionMode="Single" SelectedItem="Item 2" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemsSource>
                     <x:Array Type="{x:Type x:String}">
                         <x:String>Item 1</x:String>
@@ -67,7 +80,7 @@
 
             <Label Text="Set SelectedItem then ItemsSource — should have item 2 selected (or nothing, if not in source)" />
             <Label Text="Selected: Item 2" />
-            <CollectionView SelectionMode="Single" HeightRequest="250" Margin="5,2,5,5">
+            <CollectionView SelectionMode="Single" SelectedItem="Item 2" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemsSource>
                     <x:Array Type="{x:Type x:String}">
                         <x:String>Item 1</x:String>
@@ -168,6 +181,12 @@
                         <x:String>Item 4</x:String>
                     </x:Array>
                 </CollectionView.ItemsSource>
+                <CollectionView.SelectedItems>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Item 2</x:String>
+                        <x:String>Item 3</x:String>
+                    </x:Array>
+                </CollectionView.SelectedItems>
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />

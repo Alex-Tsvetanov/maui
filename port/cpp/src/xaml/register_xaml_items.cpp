@@ -308,6 +308,14 @@ namespace maui::xaml
         register_items_view_surface<controls::collection_view>(properties);
         properties.register_bindable_property<controls::collection_view>(
             "SelectionMode", controls::selectable_items_view::selection_mode_property());
+        // SelectedItem (single-selection preselect): the original C# preselects in code-behind; the shared
+        // XAML twin declares it as a literal string that boxes via boxed_item::of (value equality, so it
+        // value-matches the ItemsSource's boxed string and the CV highlights that cell). SelectedItems (the
+        // multiple form) is the element-array path in xaml_visitors' try_set_selected_items_from_array.
+        properties.register_property<controls::collection_view, std::string>(
+            "SelectedItem", [](controls::collection_view& view, const std::string& text) {
+                view.set_selected_item(maui::controls::boxed_item::of(text));
+            });
         // IsGrouped + the group templates (W6): groupable_items_view — CollectionView derives it,
         // CarouselView does not. GroupHeader/FooterTemplate take the same minted-data_template object
         // route as ItemTemplate / HeaderTemplate.

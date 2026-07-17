@@ -275,3 +275,22 @@ on Catalyst), which would flip these pages green.
 Affected pages (ruling 9's named cluster): preselected_item, preselected_items, multiple_bound_selection,
 selection_synchronization, and any similar applied-selection CV page. `header_footer_grid` (4.33%) and
 `nested_collection` (4.51%) are cpp-only reds too but are cluster-A structural (StackLayout-vs-VSL) — separate.
+
+## ✅ RESOLVED (2026-07-17): ruling 9 STANDS — the twin was omitting the preselection
+
+The escalation above ("fresh iOS MAUI shows NO selection band") was based on a FALSE premise. Root cause:
+the shared-XAML twins for `preselected_items` and `selection_synchronization` declared `SelectionMode` but
+**no `SelectedItems`/`SelectedItem`** — the original C# preselects in code-behind, which the twin dropped.
+So MAUI (and the port's xaml column, both rendering the twin) had NOTHING selected → no band. MAUI wasn't
+suppressing the band; there was no selection to paint.
+
+User ruling (2026-07-17): "MAUI and C++ look correct on iOS, C++ & XAML is obviously wrong" — i.e. the
+selection MUST be applied (cpp does it in code; xaml failed to). Fix: declared the preselection inline in
+the shared XAML (`<CollectionView.SelectedItems><x:Array>` + `SelectedItem="…"`) and taught the loader to
+apply it (xaml_visitors `try_set_selected_items_from_array` + a `SelectedItem` string property in
+register_xaml_items; boxed via `boxed_item::of` for value-matching). Verified end-to-end on the iOS sim:
+MAUI now paints the band (0 → 104177 px), and xaml matches MAUI (0.01% / 0.00%). **Ruling 9 holds** — MAUI
+iOS paints the persistent selection band whenever items are actually selected. selection_synchronization is
+now fully green (cpp 0.09% / xaml 0.00%); preselected_items xaml green (cpp 7.76% is a separate pre-existing
+code-first cell-layout difference vs the twin's plain `<Label Margin=6>`, not the selection). maccatalyst
+recapture is a follow-up (there ruling 9 keeps the port's band exempt vs MAUI-Catalyst's no-band).

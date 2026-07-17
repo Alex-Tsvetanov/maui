@@ -29,8 +29,10 @@
 #include "maui/controls/font_image_source.hpp" // W17: <FontImageSource> element form (Image.Source)
 #include "maui/controls/formatted_string.hpp"  // W8: element-form formatted_string object-coercion (FormattedText)
 #include "maui/controls/grid.hpp"
-#include "maui/controls/items/items_view.hpp" // W4: ItemTemplate target (CollectionView/CarouselView)
-#include "maui/controls/picker.hpp"           // W12: <Picker.Items> x:String child sink
+#include "maui/controls/items/boxed_item.hpp"            // W13: box preselected SelectedItems strings
+#include "maui/controls/items/items_view.hpp"            // W4: ItemTemplate target (CollectionView/CarouselView)
+#include "maui/controls/items/selectable_items_view.hpp" // W13: SelectedItems/SelectedItem preselection target
+#include "maui/controls/picker.hpp"                      // W12: <Picker.Items> x:String child sink
 #include "maui/controls/resource_dictionary.hpp"
 #include "maui/controls/setter.hpp"
 #include "maui/controls/style.hpp"
@@ -823,6 +825,44 @@ namespace maui::xaml
             return true;
         }
 
+        // W13 — element-form <CollectionView.SelectedItems><x:Array Type="{x:Type x:String}"><x:String>… — a
+        // static PRESELECTION. The original C# preselects in code-behind (SelectedItems.Add(Items.Skip(n))),
+        // which the shared-XAML twin can't run, so the selection is declared inline. Mirrors
+        // try_set_items_source_from_array: box each string via boxed_item::of(std::string) — VALUE equality
+        // (boxed_item.hpp), so the boxes value-match the ItemsSource's boxed strings and the CV highlights the
+        // corresponding cells. Only string element types (the gallery's caption lists). Returns true if consumed.
+        [[nodiscard]] bool try_set_selected_items_from_array(maui::core::bindable_object& target,
+                                                             const std::string& property_name, const std::any& value)
+        {
+            if (property_name != "SelectedItems")
+            {
+                return false;
+            }
+            const auto* array = std::any_cast<xaml_array>(&value);
+            if (array == nullptr)
+            {
+                return false;
+            }
+            auto* view = dynamic_cast<maui::controls::selectable_items_view*>(&target);
+            if (view == nullptr)
+            {
+                return false;
+            }
+            std::vector<maui::controls::boxed_item> selection;
+            selection.reserve(array->items.size());
+            for (const std::any& item : array->items)
+            {
+                const auto* text = std::any_cast<std::string>(&item);
+                if (text == nullptr)
+                {
+                    return false; // a non-string element type — not the string-list subset W13 supports
+                }
+                selection.push_back(maui::controls::boxed_item::of(*text));
+            }
+            view->set_selected_items(std::move(selection));
+            return true;
+        }
+
         // W7/W8 — element-form object-property coercion. A property element value is a CREATED element (boxed
         // as shared_ptr<bindable_object> by register_type), but the property expects shared_ptr<Derived>
         // (Derived : bindable_object) — e.g. Background<-brush, FormattedText<-formatted_string. try_set's
@@ -886,6 +926,12 @@ namespace maui::xaml
 
             // W13 — element-form <CollectionView.ItemsSource><x:Array> static string-list items source.
             if (try_set_items_source_from_array(target, local_name, value))
+            {
+                return;
+            }
+
+            // W13 — element-form <CollectionView.SelectedItems><x:Array> static preselection.
+            if (try_set_selected_items_from_array(target, local_name, value))
             {
                 return;
             }

@@ -63,6 +63,15 @@
                     <x:String>cover1.jpg, 49</x:String>
                 </x:Array>
             </CollectionView.ItemsSource>
+            <CollectionView.SelectedItems>
+                <!-- The original C# preselects items 2/4/5 in code-behind (SelectedItems.Add(Items.Skip(n)));
+                     the twin has no code-behind, so it declares the same preselection inline. -->
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>photo.jpg, 2</x:String>
+                    <x:String>Fruits.jpg, 4</x:String>
+                    <x:String>FlowerBuds.jpg, 5</x:String>
+                </x:Array>
+            </CollectionView.SelectedItems>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Label Text="{Binding .}" Margin="6" />
