@@ -62,6 +62,7 @@
 #include "maui/controls/templates/content_presenter.hpp"
 #include "maui/controls/templates/control_template.hpp"
 #include "maui/core/line_break_mode.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 
@@ -118,6 +119,7 @@ namespace maui::samples
         {
             page_.set_title("RadioButton Content");
             stack_.set_spacing(8);
+            stack_.set_padding(maui::core::thickness(16)); // shared XAML: <StackLayout Spacing="8" Padding="16">
 
             // 1) Content as a string (always supported).
             caption_string_.set_text("We can set 'Content' on a RadioButton to a string:");

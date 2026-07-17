@@ -136,6 +136,47 @@ namespace
         EXPECT_TRUE(native_button(handler2).selected);
     }
 
+    // A wrapping (multi-line) title's measured height is the wrapped-text height + the button's VERTICAL
+    // content insets (the template's Border(6)+Grid(2) padding folded into contentEdgeInsets), NOT +
+    // (fitting.height - one_line.height). The latter folds in the indicator RING's excess over one text line
+    // (the ~21pt ring is taller than a single 14pt line), double-counting it once the wrapped text is itself
+    // taller than the ring — which made radio_button_content's Frame-wrapped radio ~5pt too tall (Frame box
+    // 304px vs MAUI's 288px) and shifted everything below it down. Guard: the wrapped height equals
+    // ceil(wrapped-text) + vertical insets, and is strictly LESS than the ring-inflated old formula.
+    TEST(ios_radio_button_seam, wrapped_title_height_uses_content_insets_not_ring_excess)
+    {
+        radio_button control;
+        control.set_content("Can't use View for Content on this platform, so just plain old text");
+        auto handler = std::make_shared<radio_button_handler>();
+        control.set_handler(handler);
+        UIButton* const button = native_button(handler);
+
+        constexpr double width = 250.0; // narrow enough to wrap the title to multiple lines
+        const maui::graphics::size sz = handler->get_desired_size(width, INFINITY);
+        const CGSize fitting = [button sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
+
+        UIFont* const font = button.titleLabel.font;
+        NSString* const title = [button titleForState:UIControlStateNormal];
+        NSDictionary* const attrs = @{NSFontAttributeName : font};
+        const CGSize one_line = [title sizeWithAttributes:attrs];
+        const CGFloat reserved = std::max<CGFloat>(0, fitting.width - one_line.width);
+        const CGFloat text_width = std::max<CGFloat>(1, static_cast<CGFloat>(width) - reserved);
+        const CGRect wrapped =
+            [title boundingRectWithSize:CGSizeMake(text_width, CGFLOAT_MAX)
+                                options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                             attributes:attrs
+                                context:nil];
+        ASSERT_GT(wrapped.size.height, one_line.height * 1.5); // sanity: it actually wrapped
+
+        const CGFloat insets = button.contentEdgeInsets.top + button.contentEdgeInsets.bottom;
+        const double expected = std::ceil(wrapped.size.height) + insets;
+        EXPECT_NEAR(sz.height, expected, 1.0);
+
+        // The reverted double-count formula would add the ring's excess-over-one-line on top:
+        const double ring_inflated = std::ceil(wrapped.size.height) + (fitting.height - std::ceil(one_line.height));
+        EXPECT_LT(sz.height, ring_inflated); // the ring excess is NOT folded in
+    }
+
     TEST(ios_radio_button_seam, text_style_maps_to_the_native_button)
     {
         radio_button control;

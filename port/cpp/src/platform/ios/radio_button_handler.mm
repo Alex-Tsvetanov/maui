@@ -346,8 +346,16 @@ namespace maui::core
                                     options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
                                  attributes:attrs
                                     context:nil];
-            const CGFloat chrome_height = std::max<CGFloat>(0, fitting.height - std::ceil(one_line.height));
-            result.height = std::max<double>(result.height, std::ceil(wrapped.size.height) + chrome_height);
+            // The wrapped height is the text's own height plus the button's VERTICAL chrome (content insets).
+            // Do NOT use (fitting.height - one_line.height): that folds in the indicator RING's excess over a
+            // single text line (the ~21pt ring is taller than one 14pt line), double-counting it once the
+            // 2-line text is itself taller than the ring. MAUI's template sizes the row as max(ring, text) +
+            // Border/Grid padding, so a wrapped (text-driven) row is text + padding only; result.height still
+            // carries fitting.height (the ring-driven single-line height) via the max below, covering the
+            // ring-taller case. Fixes radio_button_content's Frame-wrapped radio measuring ~5pt too tall
+            // (Frame box 304px vs MAUI's 288px), which shifted everything below it down ~16px.
+            const CGFloat vertical_chrome = button.contentEdgeInsets.top + button.contentEdgeInsets.bottom;
+            result.height = std::max<double>(result.height, std::ceil(wrapped.size.height) + vertical_chrome);
         }
         return result;
     }

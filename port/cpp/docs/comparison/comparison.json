@@ -13083,11 +13083,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7426, 9.61% pixels differ \u00b7 Dark: SSIM 0.7820, 6.87% pixels differ"
+          "review": "Light: SSIM 0.8768, 5.06% pixels differ \u00b7 Dark: SSIM 0.8979, 3.90% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8562, 5.73% pixels differ \u00b7 Dark: SSIM 0.8799, 4.48% pixels differ"
+          "review": "Light: SSIM 0.8783, 4.99% pixels differ \u00b7 Dark: SSIM 0.8967, 3.94% pixels differ"
         }
       },
       "maccatalyst": {
@@ -13126,8 +13126,8 @@
           "review": "Renders the two coffee.png cups from the shared XAML \u2014 the port's fuller bundled-image render vs MAUI-mac (which omits it) is exempt per ruling 10(b), same as the cpp column. Kept YELLOW (not green) only to satisfy the cpp/xaml consistency guardrail: the XAML-loader path and the code-first builder render the cup with a minor ~3.9% size/position difference from each other (a cpp-vs-xaml fidelity gap, not a MAUI-parity issue). cpp column is the reference-green."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8462, 4.58% pixels differ \u00b7 Dark: SSIM 0.8758, 4.76% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9861, 0.48% pixels differ \u00b7 Dark: SSIM 0.9861, 0.57% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -13404,11 +13404,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8691, 5.14% pixels differ \u00b7 Dark: SSIM 0.8680, 5.14% pixels differ"
+          "review": "Light: SSIM 0.8693, 5.13% pixels differ \u00b7 Dark: SSIM 0.8681, 5.13% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8691, 5.14% pixels differ \u00b7 Dark: SSIM 0.8680, 5.14% pixels differ"
+          "review": "Light: SSIM 0.8694, 5.13% pixels differ \u00b7 Dark: SSIM 0.8682, 5.13% pixels differ"
         }
       },
       "maccatalyst": {
@@ -13511,11 +13511,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8482, 5.98% pixels differ \u00b7 Dark: SSIM 0.8469, 5.93% pixels differ"
+          "review": "Light: SSIM 0.8484, 5.98% pixels differ \u00b7 Dark: SSIM 0.8470, 5.92% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8482, 5.98% pixels differ \u00b7 Dark: SSIM 0.8469, 5.93% pixels differ"
+          "review": "Light: SSIM 0.8484, 5.97% pixels differ \u00b7 Dark: SSIM 0.8471, 5.91% pixels differ"
         }
       },
       "maccatalyst": {

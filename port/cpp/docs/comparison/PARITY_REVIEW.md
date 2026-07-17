@@ -168,3 +168,30 @@ The 3 still-red grouping pages (~9%) are a per-group-header height difference: t
 band is 60px @3x (20.0pt) vs MAUI's 58px (19.33pt), accumulating +2px per group. A 2px shift of full-width
 colored bands reads as 100%-different rows, inflating the pixel-%. Separate root cause (group-header cell
 sizing), tracked for a later pass.
+
+## RadioButton indicator ring on iOS-3× — native-fallback limitation (2026-07-17)
+
+**Status:** recorded (native-fallback architecture limit); Catalyst greened, iOS residual left minor.
+
+The port renders `RadioButton` on the iOS backend as a native `UIButton` + SF-symbol pair (`circle` /
+`smallcircle.filled.circle`) — NOT the C# DefaultTemplate (`Border`→`Grid`→`Ellipse 21x21` +
+`ContentPresenter`, `RadioButton.cs:516-635`). That template port is deferred. Two consequences on
+`radio_button_content`:
+
+1. **Wrapped indicator shrinks (unfixed).** MAUI's ring is a fixed 21x21 `Ellipse` (63px @3×), invariant to
+   content. UIButton renders the SF-symbol at 21pt (63px) for a single-line title but shrinks it to ~17pt
+   (51px) once the title WRAPS to multiple lines (the `<Frame>`-wrapped "Can't use View…" radio). Attempts:
+   - `preferredSymbolConfiguration configurationWithFont:21` → holds the ring at 63px BUT enlarges the
+     symbol's layout box, inflating single-line rows +14px each (regression, reverted).
+   - `imageView.contentMode = UIViewContentModeCenter` → no effect on the symbol size (reverted).
+   No clean fix exists without porting the ControlTemplate (the real Ellipse) or a fragile config hack.
+
+2. **Wrapped-height double-count + cpp padding (FIXED — see STATUS 2026-07-17).** These landed: the Frame box
+   went 304→297px and the cpp twin got `Padding=16`. Catalyst `radio_button_content` is now GREEN on both
+   columns (cpp 0.48%, xaml 0.51%).
+
+**Net:** on **Mac Catalyst (0.77×)** the residual ring-AA is absorbed → green. On **iOS (3×)** the 51-vs-63
+wrapped ring plus font anti-aliasing keep `radio_button_content` (~5%), `radio_content_properties` (~6%,
+custom Baskerville/Arial fonts + CharacterSpacing at 3×), and `radio_button_group_gallery` (~5%) red — all
+minor, dominated by high-DPI rendering the native fallback can't match pixel-for-pixel. The deferred
+RadioButton ControlTemplate port is the proper settlement. Not a per-page port bug beyond what landed.

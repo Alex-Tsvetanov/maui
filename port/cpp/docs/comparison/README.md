@@ -3332,11 +3332,11 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7426, 9.61% pixels differ · Dark: SSIM 0.7820, 6.87% pixels differ
+Light: SSIM 0.8768, 5.06% pixels differ · Dark: SSIM 0.8979, 3.90% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8562, 5.73% pixels differ · Dark: SSIM 0.8799, 4.48% pixels differ
+Light: SSIM 0.8783, 4.99% pixels differ · Dark: SSIM 0.8967, 3.94% pixels differ
 
 ### 124. Radio Button Group — 🟢/⏳
 <sub>radio_button_group</sub>
@@ -3413,11 +3413,11 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8691, 5.14% pixels differ · Dark: SSIM 0.8680, 5.14% pixels differ
+Light: SSIM 0.8693, 5.13% pixels differ · Dark: SSIM 0.8681, 5.13% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8691, 5.14% pixels differ · Dark: SSIM 0.8680, 5.14% pixels differ
+Light: SSIM 0.8694, 5.13% pixels differ · Dark: SSIM 0.8682, 5.13% pixels differ
 
 ### 127. Radio Content Properties — 🟢/⏳
 <sub>radio_content_properties</sub>
@@ -3440,11 +3440,11 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8482, 5.98% pixels differ · Dark: SSIM 0.8469, 5.93% pixels differ
+Light: SSIM 0.8484, 5.98% pixels differ · Dark: SSIM 0.8470, 5.92% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8482, 5.98% pixels differ · Dark: SSIM 0.8469, 5.93% pixels differ
+Light: SSIM 0.8484, 5.97% pixels differ · Dark: SSIM 0.8471, 5.91% pixels differ
 
 ### 128. Radio Template From Style — ⬛/⏳
 <sub>radio_template_from_style</sub>
@@ -4672,9 +4672,9 @@ Light: SSIM 0.9981, 0.09% pixels differ · Dark: SSIM 0.9981, 0.09% pixels diffe
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 164 | 148 | 0 | 131 | 149 |
+| 🟢 Match | 164 | 148 | 0 | 132 | 149 |
 | 🟡 Minor | 8 | 22 | 0 | 33 | 21 |
-| 🔴 Major | 0 | 2 | 0 | 8 | 2 |
+| 🔴 Major | 0 | 2 | 0 | 7 | 2 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
 
@@ -7991,9 +7991,9 @@ Renders the two coffee.png cups from the shared XAML — the port's fuller bundl
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8462, 4.58% pixels differ · Dark: SSIM 0.8758, 4.76% pixels differ
+Light: SSIM 0.9861, 0.48% pixels differ · Dark: SSIM 0.9861, 0.57% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 

@@ -24,6 +24,38 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## RadioButton wrapped-height double-count + cpp page padding — ✅ FIXED (2026-07-17)
+
+The 2026-07-16 note below ("matching the template's 21x21 is WRONG") correctly predicted the residual is a
+ROW-HEIGHT question, not a glyph-size one. Root-caused it on `radio_button_content`: the offset builds
+ENTIRELY at the `<Frame>`-wrapped radio (rings 1-2 match +1/+2px; the Frame box then runs +16px tall), whose
+title WRAPS to 2 lines. Two independent bugs:
+
+1. **`radio_button_handler::get_desired_size` wrapped-height double-count** (shared iOS/Catalyst handler).
+   The wrapped-text branch added `chrome_height = fitting.height - one_line.height`, but `fitting.height`
+   (single-line) is RING-driven (the ~21pt indicator exceeds one 14pt text line), so the chrome wrongly folded
+   in the ring's excess-over-one-line even when the 2-line text is itself taller than the ring — over-counting
+   by ~5pt. MAUI's template sizes the row `max(ring, text) + Border(6)/Grid(2) padding`, i.e. a text-driven
+   row is `text + padding` only. Fix: `chrome = contentEdgeInsets.top+bottom` (the real vertical insets);
+   `result.height` still carries `fitting.height` via the max for the ring-taller (single-line) case. Frame box
+   304→297px. Guarded: single-line radios unchanged (wrapped≈one_line ⇒ result stays fitting.height).
+2. **cpp gallery page missing `Padding=16`** (`examples/gallery/pages/radio_button_content_page.hpp`). The
+   shared XAML is `<StackLayout Spacing="8" Padding="16">`; the code-first twin set spacing but not padding, so
+   its text column ran wider → labels wrapped later/differently → the cpp column diffed ~2× the xaml column.
+
+**Measured (maui vs cpp / maui vs xaml):**
+| page | platform | before | after |
+| --- | --- | --- | --- |
+| radio_button_content | maccatalyst | cpp **4.58% red** / xaml 0.51% grn | cpp **0.48% grn** / xaml 0.51% grn |
+| radio_button_content | ios | cpp 9.46% / xaml ~5.5% | cpp 5.06% / xaml 4.99% |
+
+Catalyst radio_button_content fully GREEN both columns; the shared height fix did NOT regress Catalyst's
+already-green xaml (0.51%→0.51%). iOS improved but stays red: the residual ~5% is the wrapped-ring rendering
+at 51px vs MAUI's 63px (the native UIButton+SF-symbol fallback shrinks the symbol on multi-line wrap — no
+clean fix: `preferredSymbolConfiguration` font-21 re-inflates single-line rows; `imageView.contentMode=Center`
+is a no-op) PLUS iOS-3× font anti-aliasing that Catalyst-0.77× absorbs. Recorded as a native-fallback limit in
+PARITY_REVIEW.md (the deferred RadioButton ControlTemplate port would settle it). 11 ios_radio tests green.
+
 ## iOS CollectionView cell/header self-size CEILING — ✅ FIXED (2026-07-16)
 
 The grouping/CV cluster (grid_grouping/grouping_plus_selection/basic_grouping ~9-10%, footer_only_string,
