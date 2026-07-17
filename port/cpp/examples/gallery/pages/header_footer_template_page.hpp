@@ -318,12 +318,14 @@ namespace maui::samples
         }
 
     private:
-        // DemoFilteredItemSource(3).AddItems: three rows, captioned "<image>, <n>" off the image ring. The
-        // CAPTION stays per-row ("cover1.jpg, 0" / "oasis.jpg, 1" / "photo.jpg, 2" — {Binding .}), but the
-        // per-row Image FILE is fixed to "cover1.jpg": the maui-reference twin (ruling 6 ground truth)
-        // degrades the original PhotoTemplate's {Binding Image} to a hardcoded <Image Source="cover1.jpg">
-        // (an x:Array of plain strings can't bind an Image), so MAUI renders cover1.jpg in EVERY item cell.
-        // (Original C# bound the per-row image name; the twin's fixed source is what the board compares.)
+        // DemoFilteredItemSource(3).AddItems: three rows, captioned "<image>, <n>" off the image ring, with
+        // each row's Image FILE = that row's image (cover1.jpg / oasis.jpg / photo.jpg) — the ORIGINAL C#
+        // PhotoTemplate's {Binding Image}. RULING 12 (2026-07-17, user): the code-first C++ render is the
+        // CORRECT one for this page; MAUI and C++&XAML both render cover1.jpg in EVERY cell (the shared twin
+        // XAML degrades {Binding Image} to a hardcoded <Image Source="cover1.jpg"> because an x:Array of plain
+        // strings can't bind an Image) — that degradation is WRONG. The code-first builder is not string-bound,
+        // so it shows each row's real image, matching the original MAUI CoreGallery. This DELIBERATELY diverges
+        // from the degraded maui-reference (do NOT count the cpp-vs-maui item-image diff on this page).
         [[nodiscard]] static std::vector<demo_item> seed_items()
         {
             static const std::vector<std::string> images{"cover1.jpg", "oasis.jpg", "photo.jpg"};
@@ -331,7 +333,7 @@ namespace maui::samples
             for (int n = 0; n < 3; ++n)
             {
                 const std::string& image = images[static_cast<std::size_t>(n) % images.size()];
-                rows.push_back(demo_item{.caption = image + ", " + std::to_string(n), .image_name = "cover1.jpg"});
+                rows.push_back(demo_item{.caption = image + ", " + std::to_string(n), .image_name = image});
             }
             return rows;
         }

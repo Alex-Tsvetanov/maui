@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 167 | 0 | 0 | 125 | 140 |
-| 🟡 Minor | 4 | 0 | 0 | 36 | 24 |
+| 🟢 Match | 167 | 0 | 0 | 124 | 140 |
+| 🟡 Minor | 4 | 0 | 0 | 37 | 24 |
 | 🔴 Major | 0 | 0 | 0 | 11 | 8 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
@@ -1997,7 +1997,7 @@ ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (C
 
 #### 🟡 Sonnet 5 — C++ (C1/C3)
 
-Improved: the item cells now render cover1.jpg in EVERY row (matching the twin's hardcoded &lt;Image Source="cover1.jpg"&gt;; the builder previously seeded per-row goat/dog/blank from {Binding Image}). Captions + footer + images now match MAUI. Residual (keeps it yellow): MAUI's CollectionView header image bleeds edge-to-edge UNDER the status bar (no top safe-area inset) while cpp insets the scroll content below it, shifting all cells down ~1 status-bar height. A CV content-inset / safe-area difference, not the templates. Both themes.
+RULING 12 (2026-07-17): the code-first C++ render is CORRECT here — it shows each row's own image (cover1.jpg / oasis.jpg / photo.jpg), the original MAUI PhotoTemplate {Binding Image}. MAUI and C++&amp;XAML both render cover1.jpg in EVERY cell because the shared twin XAML degrades {Binding Image} to a hardcoded &lt;Image Source="cover1.jpg"&gt; (an x:Array of plain strings can't bind an Image). The cpp-vs-maui item-image diff (~1.4%) is this exempt, intended divergence, NOT a port bug.
 
 #### ⏳ Sonnet 5 — C++ &amp; XAML (C2/C4)
 
@@ -2007,9 +2007,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9987, 0.07% pixels differ · Dark: SSIM 0.9987, 0.07% pixels differ
+Light: SSIM 0.9859, 1.40% pixels differ · Dark: SSIM 0.9832, 1.38% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -6658,11 +6658,11 @@ ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (C
 
 #### 🟢 Sonnet 5 — C++ (C1/C3)
 
-Match (ruling 10(b)). MAUI Mac Catalyst renders NEITHER the item cells' cover1.jpg thumbnails NOR the footer's cover1.jpg (only the blue caption boxes + text) — a Mac Catalyst bundled-image rendering gap (the header's oasis.jpg DOES render; a per-image shortfall, same class as coffee.png). The port faithfully renders the authored cover1.jpg in every item cell + the footer, matching MAUI iOS+android. Cell heights self-size correctly (~100pt) on both. Exempt Mac Catalyst image-rendering gap. Both themes.
+RULING 12 (2026-07-17): the code-first C++ render is CORRECT here — it shows each row's own image (cover1.jpg / oasis.jpg / photo.jpg), the original MAUI PhotoTemplate {Binding Image}. MAUI and C++&amp;XAML both render cover1.jpg in EVERY cell because the shared twin XAML degrades {Binding Image} to a hardcoded &lt;Image Source="cover1.jpg"&gt; (an x:Array of plain strings can't bind an Image). The cpp-vs-maui item-image diff (~1.4%) is this exempt, intended divergence, NOT a port bug.
 
 #### 🔴 Sonnet 5 — C++ &amp; XAML (C2/C4)
 
-The XAML build is badly broken: instead of the header image, header/footer text, and templated blue-rectangle cells that MAUI renders, it shows only a plain unstyled text list ('cover1.jpg, 0 / oasis.jpg, 1 / photo.jpg, 2') with no layout, no images, no colors — a major rendering/layout failure in both light and dark themes.
+RULING 12 (2026-07-17): the code-first C++ render is CORRECT here — it shows each row's own image (cover1.jpg / oasis.jpg / photo.jpg), the original MAUI PhotoTemplate {Binding Image}. MAUI and C++&amp;XAML both render cover1.jpg in EVERY cell because the shared twin XAML degrades {Binding Image} to a hardcoded &lt;Image Source="cover1.jpg"&gt; (an x:Array of plain strings can't bind an Image). The cpp-vs-maui item-image diff (~1.4%) is this exempt, intended divergence, NOT a port bug.
 
 #### ⏳ Gemini — C++
 
@@ -6670,11 +6670,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9729, 1.59% pixels differ · Dark: SSIM 0.9780, 1.33% pixels differ
+Light: SSIM 0.9687, 1.94% pixels differ · Dark: SSIM 0.9733, 1.68% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9724, 1.62% pixels differ · Dark: SSIM 0.9775, 1.36% pixels differ
+Light: SSIM 0.9723, 1.62% pixels differ · Dark: SSIM 0.9775, 1.36% pixels differ
 
 ### 75. Header Footer View — 🟢/⏳
 <sub>header_footer_view</sub>

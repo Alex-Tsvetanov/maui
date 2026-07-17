@@ -222,6 +222,20 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
     Applies to the checkbox on the iOS backend (iOS + maccatalyst), and to any future `src/`-vs-shipped
     divergence surfaced by the board.
 
+12. **When the shared-XAML twin DEGRADES original MAUI content, the code-first C++ render is the correct one
+    (2026-07-17 ruling).** The `port/maui-reference` shared-XAML pages (ruling 6) are best-effort twins of the
+    original MAUI CoreGallery pages, and some SIMPLIFY content the compile-time-XAML dialect can't express —
+    so MAUI (the reference render) AND C++&XAML (the same XAML through the port's loader) can BOTH look wrong
+    versus what original MAUI actually renders. In that case the **code-first C++ builder render is the
+    reference of record**, not the degraded twin. First application: **`header_footer_template` item images.**
+    The original C# PhotoTemplate binds each row's `{Binding Image}` (cover1.jpg / oasis.jpg / photo.jpg), but
+    the shared twin uses an `<x:Array>` of plain strings, which can't bind an `Image`, so it hard-codes
+    `<Image Source="cover1.jpg">` — MAUI and C++&XAML both show cover1.jpg in EVERY cell. The code-first builder
+    is not string-bound, so it shows each row's real image (the original behavior). Per this ruling the port's
+    per-row images are CORRECT; do NOT count the resulting cpp-vs-maui item-image diff on this page, and do NOT
+    "fix" the code-first builder back down to the degraded fixed source. (Scope: only content a shared-XAML twin
+    demonstrably degrades below original MAUI — NOT a license to diverge from a faithful twin.)
+
 ## Progress tracking
 
 Maintain a `port/STATUS.md` (create it on first run) with one row per component:

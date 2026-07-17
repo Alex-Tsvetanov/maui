@@ -22,6 +22,7 @@ set(GALLERY_RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/dotnet_bot.png
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/ionicons.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/oasis.jpg
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/photo.jpg
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/settings.png)
 
 # The "C++ & XAML" parity column is the separate examples/gallery_xaml app (the same demo pages authored as
