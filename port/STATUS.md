@@ -24,6 +24,26 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## iOS cpp-only reds — border cluster fixed; CV selection cluster ESCALATED (2026-07-17)
+
+Beyond the 8 pixel_xaml reds, the cpp (code-first) column had extra reds where the gallery PAGE diverged
+from its shared XAML (the xaml column matched MAUI). Triaged:
+- **border_stroke / border_resize_content — ✅ FIXED to yellow** (23.93%/12.08% → 1.97%/1.55%): the
+  code-first pages omitted the shared XAML's root `Padding` (12 / 16) and border_stroke's Section-1
+  `MinimumHeightRequest=20`. Added them; moved both out of `gallery_structure_equivalence` known_diverging
+  (cluster B). Same class as the radio_button_content padding fix.
+- **border_clip_playground — improved** (7.96% → 3.63%, still red): added root `Padding=12` + set the two
+  StackLayout spacings to 0 (StackBase default). Remainder is the ruling-8 exempt Picker init-value text
+  (`SelectedIndex=1` shows "RoundRectangle" in the port, blank in MAUI) + minor residual. Stays known_diverging.
+- **preselected_items / selection_synchronization — ⚠️ ESCALATED (ruling 9 conflict, see PARITY_REVIEW).**
+  The port paints the persistent at-rest CollectionView selection band on iOS (per ruling 9); the FRESH
+  MAUI 10.0.71 iOS reference shows NO band (verified zoomed). Shipped MAUI iOS appears to have dropped it
+  (ruling-11 render-wins). NO code changed — ruling 9 is standing; the user must rule (suppress the iOS band
+  vs keep it and exempt the diff). Would flip the whole selection cluster.
+- **header_footer_grid (4.33%) / nested_collection (4.51%)** — cluster-A structural (code-first uses
+  V/HStackLayout where the twin uses StackLayout); fiddly item-cell content diffs, not a clean padding fix.
+  Deferred (diminishing returns).
+
 ## iOS red board — remaining 8 reds triaged to root cause (2026-07-17)
 
 After the RadioButton fix below, the 8 remaining iOS pixel_xaml reds are all root-caused and each is a
