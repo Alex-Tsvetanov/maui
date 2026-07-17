@@ -552,9 +552,28 @@ namespace maui::core
         // sizeThatFits: / .frame are UIView members — on Catalyst `native` is the UIDatePicker, on iOS the
         // MauiIosTimePicker (UITextField); cast to the common base so the measure/arrange path targets the
         // real platform view on both.
-        const CGSize fitting = [((__bridge UIView*)platform->native)
-            sizeThatFits:CGSizeMake(width_constraint > 0 ? width_constraint : CGFLOAT_MAX,
-                                    height_constraint > 0 ? height_constraint : CGFLOAT_MAX)];
+        const CGSize constraint = CGSizeMake(width_constraint > 0 ? width_constraint : CGFLOAT_MAX,
+                                             height_constraint > 0 ? height_constraint : CGFLOAT_MAX);
+#if !TARGET_OS_MACCATALYST
+        // Measure at the ROUNDEDRECT height even when a gradient/image background dropped borderStyle to
+        // None for the flat fill — borderStyle drives sizeThatFits's height (RoundedRect adds ~8pt padding),
+        // and MAUI keeps the gradient field at the full RoundedRect height. Same fix as date_picker_handler
+        // (identical MauiIos* text-field path); without it a gradient TimePicker collapsed to text-height.
+        UITextField* const field = as_field(platform->native);
+        const UITextBorderStyle visible_border = field.borderStyle;
+        const bool restore_border = visible_border == UITextBorderStyleNone;
+        if (restore_border)
+        {
+            field.borderStyle = UITextBorderStyleRoundedRect;
+        }
+        const CGSize fitting = [field sizeThatFits:constraint];
+        if (restore_border)
+        {
+            field.borderStyle = visible_border;
+        }
+#else
+        const CGSize fitting = [((__bridge UIView*)platform->native) sizeThatFits:constraint];
+#endif
         return {fitting.width, fitting.height};
     }
 

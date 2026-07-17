@@ -342,4 +342,35 @@ namespace
         EXPECT_EQ(gradient_layer.zPosition, -1);
         EXPECT_EQ(field.layer.sublayers.firstObject, gradient_layer);
     }
+
+    // A gradient/image background drops the field's borderStyle to None so the fill renders flat (see
+    // date_picker_platform::update_background). But borderStyle also drives the field's sizeThatFits
+    // HEIGHT: RoundedRect adds ~8pt of vertical padding, None gives the bare text height. MAUI's gradient
+    // DatePicker keeps the full RoundedRect height (the gradient fills it) — measured on iOS, MAUI's
+    // gradient field is 34pt while the port's collapsed to ~18.7pt (text only), so every gradient DatePicker
+    // below the first was half-height, drifting the whole date_picker page (10% red). The measure must
+    // report the RoundedRect height regardless of the visible border.
+    TEST(ios_date_picker_seam, gradient_background_measures_at_the_rounded_rect_height)
+    {
+        using maui::graphics::gradient_stop;
+        using maui::graphics::linear_gradient_paint;
+
+        // A plain (solid-default) date picker: its RoundedRect measured height is the reference.
+        date_picker plain;
+        auto plain_handler = std::make_shared<date_picker_handler>();
+        plain.set_handler(plain_handler);
+        const maui::graphics::size plain_size = plain_handler->get_desired_size(1000, 1000);
+
+        // …and one with a gradient background (which drops borderStyle to None for the flat fill).
+        date_picker bordered;
+        auto grad_handler = std::make_shared<date_picker_handler>();
+        bordered.set_handler(grad_handler);
+        bordered.set_background(std::make_shared<linear_gradient_paint>(std::vector<gradient_stop>{
+            gradient_stop(0.0F, maui::graphics::colors::green), gradient_stop(1.0F, maui::graphics::colors::blue)}));
+        EXPECT_EQ(native_field(grad_handler).borderStyle, UITextBorderStyleNone); // flat fill, as designed
+        const maui::graphics::size grad_size = grad_handler->get_desired_size(1000, 1000);
+
+        // The gradient field measures the SAME height as the plain one — not the shorter borderless height.
+        EXPECT_DOUBLE_EQ(grad_size.height, plain_size.height);
+    }
 } // namespace

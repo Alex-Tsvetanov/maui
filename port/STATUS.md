@@ -24,6 +24,25 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## iOS gradient DatePicker/TimePicker collapses to text-height — ✅ FIXED (2026-07-16)
+
+date_picker/time_picker ~10% red: a DatePicker/TimePicker with a GRADIENT/image background rendered
+half-height (measured 18.7pt vs MAUI 34pt; the first SOLID-background field matched, so gradient-specific),
+drifting the whole page. Cause: update_background drops the MauiIos* text-field `borderStyle` to None so the
+gradient fills FLAT — but borderStyle also drives `sizeThatFits`'s HEIGHT (RoundedRect adds ~8pt padding,
+None gives bare text height), so get_desired_size measured the collapsed height. MAUI keeps the gradient
+field at full RoundedRect height (the gradient fills it).
+
+Fix (date_picker_handler.mm + time_picker_handler.mm, iOS `#if !TARGET_OS_MACCATALYST`): in get_desired_size,
+temporarily restore RoundedRect around sizeThatFits (synchronous — flat-fill render unchanged), so a gradient
+field measures the same height as a plain one. Catalyst uses a UIDatePicker (not a text field) — unaffected.
+
+- 1 new ios_date_picker_seam test (gradient measures == plain height); date_picker suites 12/12 + 31/31;
+  gate.sh --fast PASS.
+- **Measured iOS:** date_picker 10.2% -> **yellow 1.08%**, time_picker 10.0% -> **green 0.70%**. Board iOS
+  pixel_xaml 134 -> **135 green, 15 -> 13 red**, 0 regressions. Catalyst unchanged (date green / time yellow
+  == HEAD; fix is iOS-only).
+
 ## iOS root-layout Margin over-inset (safe-area double-count) — ✅ FIXED, platform-forked (2026-07-16)
 
 Next iOS cluster: a page-direct layout with a Margin ran exactly its Margin-in-pt low vs MAUI (Margin 12

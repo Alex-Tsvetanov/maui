@@ -654,9 +654,32 @@ namespace maui::core
         // sizeThatFits: / .frame are UIView members — on Catalyst `native` is the UIDatePicker, on iOS the
         // MauiIosDatePicker (UITextField); cast to the common base so the measure/arrange path targets the
         // real platform view on both.
-        const CGSize fitting = [((__bridge UIView*)platform->native)
-            sizeThatFits:CGSizeMake(width_constraint > 0 ? width_constraint : CGFLOAT_MAX,
-                                    height_constraint > 0 ? height_constraint : CGFLOAT_MAX)];
+        const CGSize constraint = CGSizeMake(width_constraint > 0 ? width_constraint : CGFLOAT_MAX,
+                                             height_constraint > 0 ? height_constraint : CGFLOAT_MAX);
+#if !TARGET_OS_MACCATALYST
+        // A gradient/image background dropped the field's borderStyle to None (update_background — so the
+        // fill renders flat), but borderStyle also drives sizeThatFits's HEIGHT: RoundedRect adds ~8pt of
+        // vertical padding, None gives the bare text height. MAUI keeps the gradient DatePicker at the full
+        // RoundedRect height (the gradient fills it) — the port's collapsed to text-height, so every gradient
+        // field below the first rendered half-tall and drifted the whole date_picker page (measured 34pt vs
+        // MAUI 34pt for the first field, 18.7pt for the gradient ones). Measure at the ROUNDEDRECT height
+        // regardless of the visible border: temporarily restore it around sizeThatFits (synchronous — no
+        // intermediate render), so the flat-fill render is unchanged.
+        UITextField* const field = as_field(platform->native);
+        const UITextBorderStyle visible_border = field.borderStyle;
+        const bool restore_border = visible_border == UITextBorderStyleNone;
+        if (restore_border)
+        {
+            field.borderStyle = UITextBorderStyleRoundedRect;
+        }
+        const CGSize fitting = [field sizeThatFits:constraint];
+        if (restore_border)
+        {
+            field.borderStyle = visible_border;
+        }
+#else
+        const CGSize fitting = [((__bridge UIView*)platform->native) sizeThatFits:constraint];
+#endif
         return {fitting.width, fitting.height};
     }
 
