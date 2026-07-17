@@ -241,3 +241,37 @@ changing the port's Grid Auto-row measure/default board-wide — every Grid on e
 high-blast-radius change that must be user-ruled, not made autonomously. The port's per-control Entry
 measure is correct and must NOT be inflated (would regress the green `entry` page). Deferred pending a
 ruling on the Grid row behavior. NOTE: content otherwise matches (pure offset).
+
+## ⚠️ RULING NEEDED: iOS CollectionView persistent selection band contradicts ruling 9 (2026-07-17)
+
+**Status: ESCALATION — needs a user ruling. NO code changed. Affects the whole ruling-9 selection cluster.**
+
+Ruling 9 (2026-07-08) states: "MAUI **iOS and Android** render a persistent gray selection background on the
+selected cells … but MAUI **Mac Catalyst** does NOT," and concludes the port's band (drawn on iOS+Catalyst
+because Catalyst reuses the iOS handlers) is CORRECT on iOS and only the Catalyst absence is exempt.
+
+**The FRESH iOS MAUI reference contradicts that premise.** On `preselected_items` and
+`selection_synchronization` (both iOS, MauiReference 10.0.71, zoomed + verified):
+- **MAUI iOS shows NO persistent selection band** at rest on the preselected cells (photo.jpg 2 / Item 2 /
+  Item 3 render on a plain white background — identical to unselected cells).
+- The port's **cpp** column DOES paint the gray band (per ruling 9) → diverges from MAUI → scored RED
+  (preselected_items 10.22%, selection_synchronization 12.79%).
+- The port's **xaml** column shows NO band and matches MAUI (green/near-green) — but for a DIFFERENT reason:
+  the XAML loader does not apply the `SelectedItems` preselection at all (a loader gap), so its CV has no
+  selection to paint. (So xaml's match is coincidental, not a correct application-then-suppress.)
+
+So shipped MAUI 10.0.71 **iOS** appears to have DROPPED the persistent at-rest selection band that ruling 9
+says it draws — a ruling-11 (render-wins) divergence from the behavior ruling 9 was written against. If so,
+the port's iOS band is now WRONG and should be suppressed at rest (the same way ruling 9 already exempts it
+on Catalyst), which would flip these pages green.
+
+**Two ways to resolve — user's call (do NOT decide autonomously; ruling 9 is a standing ruling):**
+1. **Ruling 11 wins** → suppress the port's persistent at-rest selection band on the iOS backend
+   (iOS + Catalyst), matching the fresh MAUI render. Flips the selection cluster green. Requires amending
+   ruling 9's iOS claim.
+2. **Ruling 9 stands** → treat the fresh MAUI-iOS no-band as an exempt MAUI quirk (like the Catalyst case)
+   and stop counting the band as a diff on these iOS pages; the port keeps painting it.
+
+Affected pages (ruling 9's named cluster): preselected_item, preselected_items, multiple_bound_selection,
+selection_synchronization, and any similar applied-selection CV page. `header_footer_grid` (4.33%) and
+`nested_collection` (4.51%) are cpp-only reds too but are cluster-A structural (StackLayout-vs-VSL) — separate.
