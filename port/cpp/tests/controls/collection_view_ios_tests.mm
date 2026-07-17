@@ -208,6 +208,32 @@ namespace
         EXPECT_TRUE([native_collection_view(r.handler) isKindOfClass:[UICollectionView class]]);
     }
 
+    // C# ItemsViewController2.ViewDidLoad (:163-183) — on iOS 11+ AND Mac Catalyst 11+ (the `else` of the
+    // negated version check) MAUI sets:
+    //     CollectionView.ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior.Never;
+    // "We set this property to keep iOS from trying to be helpful about insetting all the CollectionView
+    // content … The SetUseSafeArea Platform Specific is already taking care of this for us."
+    //
+    // The port never set it, so UIKit's DEFAULT (.automatic) applied and insets the content below the safe
+    // area. Measured on the first iOS pixel board: every full-page CollectionView page ran a ~status-bar
+    // height low against MAUI — MAUI's group header sits at y=0 under the status bar with the view-level
+    // Header scrolled out of sight, the port's sat below the bar. Identical content, 8 pages red
+    // (grid_grouping 47%, grouping_plus_selection 47%, basic_grouping 45%, header_footer_template 35%, …).
+    // iOS ONLY: C# sets .Never for Catalyst too, but MAUI's Catalyst render shows the content BELOW the
+    // titlebar, which the port's full-bounds CV frame reproduces only with .automatic (forcing .Never there
+    // measured red 44% vs green 0.12%). See the handler's comment + PARITY_REVIEW.md item 3.
+    TEST(collection_view_ios, content_inset_adjustment_behavior_is_never)
+    {
+        const rig r;
+#if TARGET_OS_MACCATALYST
+        EXPECT_EQ(native_collection_view(r.handler).contentInsetAdjustmentBehavior,
+                  UIScrollViewContentInsetAdjustmentAutomatic);
+#else
+        EXPECT_EQ(native_collection_view(r.handler).contentInsetAdjustmentBehavior,
+                  UIScrollViewContentInsetAdjustmentNever);
+#endif
+    }
+
     TEST(collection_view_ios, data_realizes_cells_after_layout)
     {
         const rig r;

@@ -24,6 +24,28 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## iOS CollectionView content-inset (.Never) — ✅ FIXED, platform-forked (2026-07-16)
+
+The biggest iOS red cluster (8 full-page CollectionView pages, 35-47%) root-caused to
+`ItemsViewController2.ViewDidLoad` (:163-183): MAUI sets `ContentInsetAdjustmentBehavior = .Never` so the
+CV content goes edge-to-edge under the status bar. The port never set it, so UIKit's `.automatic` inset the
+content below the safe area — a status-bar-height offset on every full-page CV.
+
+Ported it, but it REGRESSED Catalyst (basic_grouping green 0.12% -> red 44%): MAUI's SAME source line renders
+differently — iOS content under the status bar, Catalyst content below the titlebar. So MAUI's CV FRAME is
+inset on Catalyst but not iOS; the port's full-bounds CV frame (U20) reproduced Catalyst's render only with
+`.automatic`. Forked `#if !TARGET_OS_MACCATALYST` — `.Never` on iOS, `.automatic` (default) on Catalyst.
+Matches BOTH renders (ruling 1). Deeper frame question recorded in PARITY_REVIEW.md item 3.
+
+- 1 new `collection_view_ios` test (platform-forked assertion). Headless 3765/3765; iOS 10/2332 (==baseline).
+- **Measured iOS:** header_footer_template 35%->0.08% GREEN, grouping_no_templates 6%->0.07% GREEN,
+  collectionview 4.5%->0.23% GREEN; grid_grouping 47%->10.4%, grouping_plus_selection 47%->9.1%,
+  basic_grouping 45%->9.0%. Board pixel_xaml **123->126 green, 21->18 red**.
+- **Catalyst UNREGRESSED** (re-captured the 6-page cluster: all back to HEAD, 149 green / 2 red unchanged).
+- Residual on the 3 still-red pages (~9%): group-header band 60px vs MAUI 58px (@3x), +2px/group accumulating
+  — a full-width colored band shifted 2px reads 100%-different, inflating the %. Separate cell-sizing item.
+
+
 ## Per-view safe area (U20 completion) — ✅ DONE (contract ✅ / application ✅) (2026-07-15)
 
 Closing the last MAUI safe-area fidelity gap, surfaced by the maccatalyst parity sweep: the port's content

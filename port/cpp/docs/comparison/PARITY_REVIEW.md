@@ -133,3 +133,38 @@ port's framework (cpp) already renders the page, so it is a demo-column-only gap
 **Evidence to reproduce:** wire the VM as above, add `fprintf(stderr, …)` after `set_items_source`, launch
 `gallery_xaml` with `MAUI_SAMPLE_PAGE=nested_collection` and stderr redirected — shows 20 items +
 item_template set, render still blank.
+
+---
+
+## 3. 🟡 MAUI's CollectionView FRAME is inset on Mac Catalyst but not iOS (informational — fix landed platform-forked)
+
+**Status:** open observation, not blocking. The CV `.Never` fix (iOS, big win — 47%→~9%, 3 pages green)
+had to be **forked by platform** and this records why, so a future frame-level fix can unify it.
+
+### The finding
+
+C# `ItemsViewController2.ViewDidLoad` (:163-183) sets `ContentInsetAdjustmentBehavior = .Never` on iOS 11+
+AND Mac Catalyst 11+ (one code path, both platforms). Yet MAUI *renders* the two differently, measured:
+- **iOS:** the CV content goes edge-to-edge UNDER the status bar (group header at y=0, the view-level
+  Header scrolled out of sight). `.Never` matches; the UIKit default `.automatic` insets below the safe
+  area and puts the whole CV a status-bar height low (the 8-page cluster, 35-47%).
+- **Mac Catalyst:** the CV content sits BELOW the titlebar. The port's page-direct CV, arranged over full
+  bounds (the U20 safe-area slice), reproduces that only with `.automatic` (green 0.12%); forcing `.Never`
+  moves content under the titlebar and regresses to red 44%.
+
+### The implication
+
+Same C# line, different render ⇒ MAUI's CV **frame** (or its host's safe-area handling) must be inset on
+Catalyst but NOT iOS — with `.Never` on both, the only remaining variable is the frame the CV is laid into.
+The port arranges a page-direct CV over full bounds on both backends, so today `.automatic` is what happens
+to supply Catalyst's inset. The landed fix forks `#if !TARGET_OS_MACCATALYST` (contentInsetAdjustmentBehavior
+= .Never on iOS only), which matches BOTH renders (ruling 1). A cleaner future fix would inset the CV's
+FRAME on Catalyst (matching MAUI's actual mechanism) and then set `.Never` uniformly as C# does; that needs
+locating why MAUI's Catalyst CV frame is inset (likely the page/host safe-area path the U20 work touched).
+
+### Residual after the iOS fix (separate, smaller)
+
+The 3 still-red grouping pages (~9%) are a per-group-header height difference: the port's green group-header
+band is 60px @3x (20.0pt) vs MAUI's 58px (19.33pt), accumulating +2px per group. A 2px shift of full-width
+colored bands reads as 100%-different rows, inflating the pixel-%. Separate root cause (group-header cell
+sizing), tracked for a later pass.

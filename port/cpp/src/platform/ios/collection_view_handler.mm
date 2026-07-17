@@ -1528,6 +1528,32 @@ namespace maui::controls
         // set before the controller reads data.
         auto* const controller = [[MauiItemsCollectionViewController alloc] initWithCollectionViewLayout:layout];
         controller.collectionView.backgroundColor = UIColor.clearColor;
+        // C# ItemsViewController2.ViewDidLoad (:163-183): on iOS 11+ AND Mac Catalyst 11+ — the `else` of
+        // its NEGATED version check, i.e. every modern target — MAUI sets
+        //     CollectionView.ContentInsetAdjustmentBehavior = .Never
+        // "to keep iOS from trying to be helpful about insetting all the CollectionView content … The
+        // SetUseSafeArea Platform Specific is already taking care of this for us". (The other branch's
+        // AutomaticallyAdjustsScrollViewInsets = false is the pre-iOS-11 path and does not apply.)
+        //
+        // DOCUMENTED DEVIATION — applied on iOS ONLY, though C# sets it for Catalyst too. MAUI's single
+        // source line produces DIFFERENT renders on the two platforms, and ruling 1 makes the render the
+        // ground truth. Measured, both directions:
+        //   * iOS: MAUI's group header sits at y=0 UNDER the status bar, the view-level Header scrolled out
+        //     of sight. The UIKit default (.automatic) insets below the safe area, which put every full-page
+        //     CollectionView a status-bar height low (grid_grouping 47%, grouping_plus_selection 47%,
+        //     basic_grouping 45%, header_footer_template 35%, +4). `.Never` restores it: 3 pages -> green,
+        //     the rest 47% -> ~9%.
+        //   * Mac Catalyst: MAUI's content sits BELOW the titlebar, which the port's full-bounds CV frame
+        //     reproduces only with `.automatic` (green 0.12%). Forcing `.Never` there moves the content
+        //     under the titlebar and REGRESSES it to red 44% (measured).
+        // So MAUI's CV FRAME must be inset on Catalyst but not on iOS — the port arranges a page-direct CV
+        // over full bounds on both (the U20 safe-area slice), so `.automatic` is what supplies Catalyst's
+        // inset today. Matching each platform's render is correct now; the deeper question (why MAUI's
+        // Catalyst CV frame is inset) is recorded in docs/comparison/PARITY_REVIEW.md item 3.
+#if !TARGET_OS_MACCATALYST
+        controller.collectionView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+#endif
+        controller.collectionView.scrollsToTop = YES; // C# ItemsViewController2.ViewDidLoad (:185)
 
         // Register the cell + supplementary classes (the C# RegisterViewTypes; the unified classes mean
         // a single registration covers default + templated, header + footer).
