@@ -67,6 +67,7 @@ namespace maui::samples
         {
             page_.set_title("Preselected Items");
             stack_.set_spacing(2);
+            stack_.set_margin(maui::core::thickness{10}); // shared XAML: <StackLayout Margin="10" Spacing="2">
 
             instructions_.set_text("The CollectionView below should have several items already selected.");
 
