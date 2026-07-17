@@ -48,6 +48,7 @@
 #include "maui/core/font.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/shapes/ellipse.hpp"
@@ -63,6 +64,8 @@ namespace maui::samples
         {
             page_.set_title("Border resize Content");
             stack_.set_spacing(10);
+            stack_.set_padding(
+                maui::core::thickness(16)); // shared XAML: <VerticalStackLayout Spacing="10" Padding="16">
 
             // Grid: ColumnDefinitions "*,*", RowDefinitions "*,*,*", 10-unit spacing both axes.
             grid_.add_column_definition(maui::core::grid_length::star());

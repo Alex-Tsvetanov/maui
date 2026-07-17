@@ -258,8 +258,6 @@ namespace
             "some_empty_groups",
             // cluster B — root Padding/Spacing set on one side only
             "behaviors",
-            "border_resize_content",
-            "border_stroke",
             "check_box",
             "gestures",
             "input_controls",

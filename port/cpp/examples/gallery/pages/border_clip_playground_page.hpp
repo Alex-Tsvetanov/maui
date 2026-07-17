@@ -73,8 +73,10 @@ namespace maui::samples
         border_clip_playground_page()
         {
             page_.set_title("Borders");
-            controls_stack_.set_spacing(6);
-            corner_stack_.set_spacing(6);
+            // shared XAML uses plain <StackLayout> (StackBase.Spacing default = 0, StackBase.cs); match it —
+            // set_spacing(6) spread the sections wider than MAUI's render.
+            controls_stack_.set_spacing(0);
+            corner_stack_.set_spacing(0);
 
             // ---- the preview Border (red stroke, 100x100) clipping the AspectFill image ----
             border_.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::red));
@@ -132,6 +134,7 @@ namespace maui::samples
             scroller_.set_content(controls_stack_);
 
             root_.set_spacing(12);
+            root_.set_padding(maui::core::thickness(12)); // shared XAML root: <Grid Padding="12">
             root_.add(border_);
             root_.add(scroller_);
             page_.set_content(root_);

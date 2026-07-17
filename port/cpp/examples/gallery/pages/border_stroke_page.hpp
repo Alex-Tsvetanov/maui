@@ -50,6 +50,7 @@
 #include "maui/core/grid_length.hpp"
 #include "maui/core/grid_unit_type.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -63,6 +64,8 @@ namespace maui::samples
         {
             page_.set_title("Border Stroke options");
             stack_.set_spacing(12);
+            stack_.set_padding(
+                maui::core::thickness(12)); // shared XAML: <VerticalStackLayout Spacing="12" Padding="12">
 
             // --- Section 1: "Using different StrokeThickness" (fixed-height content).
             fixed_caption_.set_text("Using different StrokeThickness");
@@ -72,6 +75,10 @@ namespace maui::samples
             init_label(fixed_label1_, "1");
             init_label(fixed_label2_, "5");
             init_label(fixed_label3_, "10");
+            // shared XAML: each Section-1 Label has MinimumHeightRequest="20" (Section 2 uses HeightRequest=60).
+            fixed_label1_.set_minimum_height_request(20);
+            fixed_label2_.set_minimum_height_request(20);
+            fixed_label3_.set_minimum_height_request(20);
             add_stroke_row(fixed_grid_, fixed_border1_, fixed_label1_, 1, 0);
             add_stroke_row(fixed_grid_, fixed_border2_, fixed_label2_, 5, 1);
             add_stroke_row(fixed_grid_, fixed_border3_, fixed_label3_, 10, 2);
