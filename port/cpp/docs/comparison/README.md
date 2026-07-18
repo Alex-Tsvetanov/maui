@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 167 | 0 | 0 | 145 | 146 |
-| 🟡 Minor | 4 | 0 | 0 | 20 | 19 |
+| 🟢 Match | 167 | 0 | 0 | 146 | 146 |
+| 🟡 Minor | 4 | 0 | 0 | 19 | 19 |
 | 🔴 Major | 0 | 0 | 0 | 7 | 7 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
@@ -4518,13 +4518,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9763, 0.60% pixels differ · Dark: SSIM 0.9987, 0.06% pixels differ
+Light: SSIM 0.9985, 0.07% pixels differ · Dark: SSIM 0.9984, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9990, 0.04% pixels differ · Dark: SSIM 0.9990, 0.04% pixels differ
+Light: SSIM 0.9987, 0.07% pixels differ · Dark: SSIM 0.9986, 0.07% pixels differ
 
 ### 168. Varied Size Selector — 🟢/⏳
 <sub>varied_size_selector</sub>
@@ -9181,11 +9181,11 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9978, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels differ
 
 ### 168. Varied Size Selector — 🟢/⏳
 <sub>varied_size_selector</sub>

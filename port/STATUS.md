@@ -4,6 +4,20 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Path-page yellows — update_path_data twin fixed; path_transform_string exempt (2026-07-18)
+
+Two Shapes-gallery yellows where the shared twin degraded the Path geometry (ruling-12 family):
+- **update_path_data** (was cpp 0.6% yellow) — the twin approximated the cubic Bézier
+  `M 10,100 C 10,300 300,-200 300,100` with an S-curve/checkmark Polyline, but shipped MAUI renders THIS
+  curve as straight zig-zag through its control points (the code-first render, verified vs the maccatalyst
+  capture). "Fixed both sides": corrected the twin's Polyline to the control points
+  `10,100 10,300 300,-200 300,100`. Now maui-vs-cpp AND maui-vs-xaml GREEN (0.07-0.12%) on iOS + macOS.
+- **path_transform_string** (cpp 1.13% yellow) — EXEMPT (ruling 12, cannot fix both sides): the first Path
+  carries `RenderTransform="0.75 scale"`, which the port applies (correct) but the loader/twin cannot express
+  (transforms aren't on the supported shape surface), so MAUI + xaml render the un-scaled path. The code-first
+  scaled render is the reference of record; the residual cpp-vs-maui diff is a twin-degradation artifact, not
+  a port bug. Do NOT drop the transform to match the twin.
+
 ## More Tier-1 yellows — check_box padding + staggered grid spacing (2026-07-18)
 
 Continuing the yellow plan (code-first divergence vs a green xaml column):

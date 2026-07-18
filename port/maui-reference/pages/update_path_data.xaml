@@ -13,9 +13,12 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <!-- Path.Data geometry is unsupported; the cubic Bézier "M 10,100 C 10,300 300,-200 300,100" is
-             approximated by a Polyline sampling its S-curve (a downward then upward swing between the two
-             endpoints) — the same resting silhouette. -->
-        <Polyline Grid.Row="0" Stroke="Black" Points="10,100 80,180 150,100 220,20 300,100" />
+             approximated by a Polyline through the SAME four control points. Shipped MAUI renders this
+             specific curve as straight zig-zag segments through its control points (verified against the
+             maccatalyst capture — see update_path_data_page.hpp), so the faithful approximation is the
+             control-point polyline (10,100)->(10,300)->(300,-200)->(300,100), matching the code-first render.
+             (A prior S-curve/checkmark sampling did NOT match MAUI's actual render.) -->
+        <Polyline Grid.Row="0" Stroke="Black" Points="10,100 10,300 300,-200 300,100" />
         <Label Grid.Row="1" Text="counter = 0 | Data: M 10,100 C 10,300 300,-200 300,100" />
         <Button Grid.Row="2" Text="Update Path Data" />
     </Grid>
