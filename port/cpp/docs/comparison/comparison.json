@@ -2320,11 +2320,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9868, 1.29% pixels differ \u00b7 Dark: SSIM 0.9940, 0.73% pixels differ"
+          "review": "Light: SSIM 0.9884, 1.05% pixels differ \u00b7 Dark: SSIM 0.9944, 0.73% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9856, 1.33% pixels differ \u00b7 Dark: SSIM 0.9928, 0.76% pixels differ"
+          "review": "Light: SSIM 0.9871, 1.08% pixels differ \u00b7 Dark: SSIM 0.9932, 0.76% pixels differ"
         }
       },
       "android": {
@@ -5423,11 +5423,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
         }
       },
       "android": {
@@ -7883,12 +7883,12 @@
           "review": "RULING 12 (2026-07-17): the code-first C++ render is CORRECT here \u2014 it shows each row's own image (cover1.jpg / oasis.jpg / photo.jpg), the original MAUI PhotoTemplate {Binding Image}. MAUI and C++&XAML both render cover1.jpg in EVERY cell because the shared twin XAML degrades {Binding Image} to a hardcoded <Image Source=\"cover1.jpg\"> (an x:Array of plain strings can't bind an Image). The cpp-vs-maui item-image diff (~1.4%) is this exempt, intended divergence, NOT a port bug."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9688, 1.94% pixels differ \u00b7 Dark: SSIM 0.9733, 1.68% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9937, 0.44% pixels differ \u00b7 Dark: SSIM 0.9932, 0.43% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9724, 1.62% pixels differ \u00b7 Dark: SSIM 0.9775, 1.36% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9966, 0.12% pixels differ \u00b7 Dark: SSIM 0.9967, 0.11% pixels differ"
         }
       },
       "android": {
