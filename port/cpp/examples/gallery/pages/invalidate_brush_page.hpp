@@ -58,6 +58,8 @@ namespace maui::samples
         {
             page_.set_title("Invalidate Brushes Playground");
             stack_.set_spacing(4); // C# per-control Margin=4 → an approximate stack spacing (best-effort)
+            stack_.set_padding(maui::core::thickness(12)); // shared XAML root <VerticalStackLayout Padding="12">
+            // (without it the page rendered 12pt up-and-left: content at (186,0) vs MAUI (222,36))
 
             // The "Change color" button — each tap advances the shared brush color and repaints both.
             change_color_.set_text("Change color");

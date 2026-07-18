@@ -94,7 +94,10 @@ namespace maui::samples
         behaviors_page()
         {
             page_.set_title("Behaviors");
-            stack_.set_spacing(12);
+            // Mirror the shared-XAML twin <VerticalStackLayout Margin="12"> (no Spacing → default 0). The
+            // code-first previously set spacing 12 (wrong: spread the Label/Entry) and no margin (content sat
+            // 12pt left of MAUI).
+            stack_.set_margin(maui::core::thickness(12));
 
             // Label Text="Red when the number isn't valid" Style="Headline". The port has no app-level
             // Headline resource, so size it inline to match MAUI's Headline style (FontSize 32) — the C#

@@ -30,6 +30,7 @@ namespace maui::samples
 
             // VerticalStackLayout (Margin=12 → padding here, the headless-safe analogue).
             stack_.set_padding(maui::core::thickness(12));
+            stack_.set_spacing(6); // shared XAML <VerticalStackLayout … Spacing="6"> (was missing → rows drifted)
 
             heading_.set_text("VerticalStackLayout");
 
