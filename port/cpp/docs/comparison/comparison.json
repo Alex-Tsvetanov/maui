@@ -7884,7 +7884,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9937, 0.44% pixels differ \u00b7 Dark: SSIM 0.9932, 0.43% pixels differ"
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
