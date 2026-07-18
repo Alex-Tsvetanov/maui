@@ -585,6 +585,12 @@ namespace maui::core
             return;
         }
         ((__bridge UIView*)platform->native).frame = CGRectMake(frame.x, frame.y, frame.width, frame.height);
+        // Re-size gradient/image background sublayers to the arranged bounds. Idempotent on iOS (the
+        // MauiIosTimePicker UITextField subclass already does it in layoutSubviews), but on Mac Catalyst the
+        // native view is a bare UIDatePicker with NO layoutSubviews override, so without this hook a
+        // LinearGradientBrush Background stays pinned at the tiny initial layer size instead of stretching
+        // to the field's full arranged width.
+        maui::platform::ios::resize_background_layers(platform->native);
     }
 
     // Render transform pushed to the native UIView via the shared ios apply_transform helper

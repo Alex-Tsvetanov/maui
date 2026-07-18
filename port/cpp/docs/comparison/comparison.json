@@ -4415,12 +4415,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9790, 1.01% pixels differ \u00b7 Dark: SSIM 0.9782, 1.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9907, 0.49% pixels differ \u00b7 Dark: SSIM 0.9899, 0.52% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9784, 1.06% pixels differ \u00b7 Dark: SSIM 0.9777, 1.06% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.44% pixels differ \u00b7 Dark: SSIM 0.9925, 0.44% pixels differ"
         }
       },
       "maccatalyst": {
@@ -4460,11 +4460,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9966, 0.16% pixels differ \u00b7 Dark: SSIM 0.9964, 0.17% pixels differ"
+          "review": "Light: SSIM 0.9974, 0.13% pixels differ \u00b7 Dark: SSIM 0.9975, 0.13% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9953, 0.19% pixels differ \u00b7 Dark: SSIM 0.9952, 0.20% pixels differ"
+          "review": "Light: SSIM 0.9961, 0.16% pixels differ \u00b7 Dark: SSIM 0.9963, 0.16% pixels differ"
         }
       },
       "android": {
@@ -17153,7 +17153,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9863, 0.68% pixels differ \u00b7 Dark: SSIM 0.9862, 0.69% pixels differ"
+          "review": "Light: SSIM 0.9865, 0.68% pixels differ \u00b7 Dark: SSIM 0.9864, 0.68% pixels differ"
         }
       },
       "maccatalyst": {
@@ -17192,12 +17192,12 @@
           "review": "The XAML build's 'Default with time' row correctly shows '00:00', matching MAUI exactly, unlike the cpp (non-XAML) build. All other rows also match in both light and dark themes."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9499, 3.88% pixels differ \u00b7 Dark: SSIM 0.9499, 3.97% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9486, 3.92% pixels differ \u00b7 Dark: SSIM 0.9487, 4.00% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
         }
       },
       "android": {

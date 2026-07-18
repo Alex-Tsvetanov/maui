@@ -691,6 +691,10 @@ namespace maui::core
             return;
         }
         ((__bridge UIView*)platform->native).frame = CGRectMake(frame.x, frame.y, frame.width, frame.height);
+        // Re-size gradient/image background sublayers to the arranged bounds — the Mac Catalyst bare
+        // UIDatePicker has no layoutSubviews override (unlike the iOS MauiIosDatePicker subclass), so a
+        // gradient Background otherwise stays at the tiny initial size. Idempotent on iOS.
+        maui::platform::ios::resize_background_layers(platform->native);
     }
 
     // Render transform pushed to the native UIView via the shared ios apply_transform helper
