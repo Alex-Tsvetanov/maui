@@ -8374,12 +8374,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.5054, 67.61% pixels differ \u00b7 Dark: SSIM 0.9226, 5.61% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9575, 3.95% pixels differ \u00b7 Dark: SSIM 0.9975, 0.17% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.5046, 67.64% pixels differ \u00b7 Dark: SSIM 0.9219, 5.64% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9572, 3.96% pixels differ \u00b7 Dark: SSIM 0.9972, 0.18% pixels differ"
         }
       },
       "maccatalyst": {

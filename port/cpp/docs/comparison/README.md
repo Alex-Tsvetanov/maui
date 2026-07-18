@@ -12,8 +12,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
 | 🟢 Match | 167 | 0 | 0 | 149 | 152 |
-| 🟡 Minor | 4 | 0 | 0 | 19 | 16 |
-| 🔴 Major | 0 | 0 | 0 | 4 | 4 |
+| 🟡 Minor | 4 | 0 | 0 | 20 | 17 |
+| 🔴 Major | 0 | 0 | 0 | 3 | 3 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
 
@@ -2142,13 +2142,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.5054, 67.61% pixels differ · Dark: SSIM 0.9226, 5.61% pixels differ
+Light: SSIM 0.9575, 3.95% pixels differ · Dark: SSIM 0.9975, 0.17% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.5046, 67.64% pixels differ · Dark: SSIM 0.9219, 5.64% pixels differ
+Light: SSIM 0.9572, 3.96% pixels differ · Dark: SSIM 0.9972, 0.18% pixels differ
 
 ### 80. Image Button — 🟢/⏳
 <sub>image_button</sub>

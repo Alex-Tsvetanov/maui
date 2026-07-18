@@ -20,6 +20,10 @@ public static class MauiProgram
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+				// Ionicons — the image page's FontImageSource Glyph="&#xf30c;" FontFamily="Ionicons"; without
+				// this MAUI can't resolve the glyph and renders a broken ❓ box (the port bundles ionicons.ttf
+				// and renders it, so registering it here makes the maui column match).
+				fonts.AddFont("ionicons.ttf", "Ionicons");
 			});
 
 #if MACCATALYST
