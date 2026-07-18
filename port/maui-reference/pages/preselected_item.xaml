@@ -16,7 +16,10 @@
         <Label Grid.Row="0" Text="Preselected: photo.jpg, 2" />
         <Label Grid.Row="1" Text="" />
         <Label Grid.Row="2" Text="" />
-        <CollectionView Grid.Row="3" Header="This is the header" SelectionMode="Single">
+        <!-- SelectedItem seeds the resting single selection (the index-2 item) so MAUI + the loader draw the
+             selection band, matching the code-first render (ruling 9). The twin previously omitted it, so only
+             the code-first column showed the preselection. -->
+        <CollectionView Grid.Row="3" Header="This is the header" SelectionMode="Single" SelectedItem="photo.jpg, 2">
             <CollectionView.ItemsSource>
                 <x:Array Type="{x:Type x:String}">
                     <x:String>cover1.jpg, 0</x:String>

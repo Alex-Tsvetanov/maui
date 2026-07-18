@@ -17,6 +17,16 @@
                     <x:String>Item 3</x:String>
                 </x:Array>
             </CollectionView.ItemsSource>
+            <!-- Seed the resting selection so MAUI + the loader (xaml column) draw the persistent selection
+                 band on Item 1/Item 2 — matching the "Selected: Item 1, Item 2" readout and the code-first
+                 render (ruling 9: iOS/Android draw the band). The twin previously omitted this, so only the
+                 code-first column showed the selection. -->
+            <CollectionView.SelectedItems>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Item 1</x:String>
+                    <x:String>Item 2</x:String>
+                </x:Array>
+            </CollectionView.SelectedItems>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Label Text="{Binding .}" />
