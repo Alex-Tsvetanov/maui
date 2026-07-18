@@ -4,6 +4,19 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Radio cluster iOS reds — ring is 0.81x MAUI's; NEW iOS-specific data (2026-07-18)
+
+The 3 iOS radio reds (radio_button_content 5.0%, radio_button_group_gallery 5.1%, radio_content_properties
+6.0%; all cpp+xaml) share ONE cause: the port's iOS radio ring renders at ~16.7pt (50px @3x) vs MAUI's
+~20.7pt (62px @3x) — ratio **0.81**, rings concentric (both centred x~100). The diff is otherwise near-
+matching text that accumulates vertical drift from the smaller rows. **NEW vs the 2026-07-16 note:** those
+same pages are GREEN on macOS/Catalyst (0 reds) with the SAME handlers — so this is an iOS-SPECIFIC ring
+undersize, not a universal one. That means the 2026-07-16 fix (CG-draw a 21x21 ring) is STILL wrong to
+re-try globally (it broke macOS-green then and would now), because the ring must grow on iOS WITHOUT changing
+the already-correct macOS render — a per-platform SF-symbol point-size question, not a nominal-geometry one.
+Left as-is this iteration: shared-handler risk (fixing iOS red vs macOS green) makes it unsafe to change
+blind; belongs with the deferred ported-templated-content work the 2026-07-16 note names. Recorded, not fixed.
+
 ## header_footer_template per-row images — "fix both sides", ruling-12 RESOLVED (2026-07-18)
 
 The user chose "fix both sides to match" for the CollectionView item images: instead of exempting the
