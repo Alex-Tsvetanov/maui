@@ -53,6 +53,7 @@ namespace maui::samples
         {
             page_.set_title("Gestures");
             stack_.set_spacing(12);
+            stack_.set_padding(maui::core::thickness(12)); // shared XAML root <VerticalStackLayout Padding="12">
 
             instructions_.set_text("Gesture target (tap / pan / pinch / swipe / pointer)");
             readout_.set_text("Last gesture: (none)");
