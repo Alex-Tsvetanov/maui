@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 167 | 0 | 0 | 150 | 153 |
-| 🟡 Minor | 4 | 0 | 0 | 19 | 16 |
+| 🟢 Match | 167 | 0 | 0 | 151 | 153 |
+| 🟡 Minor | 4 | 0 | 0 | 18 | 16 |
 | 🔴 Major | 0 | 0 | 0 | 3 | 3 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
@@ -3060,13 +3060,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9783, 1.13% pixels differ · Dark: SSIM 0.9985, 0.07% pixels differ
+Light: SSIM 0.9860, 0.63% pixels differ · Dark: SSIM 0.9981, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9987, 0.06% pixels differ · Dark: SSIM 0.9987, 0.06% pixels differ
+Light: SSIM 0.9994, 0.03% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 114. Picker — 🟢/⏳
 <sub>picker</sub>

@@ -8,14 +8,17 @@
          hydrated). Each Path.Data is the object-element PathGeometry of two closed triangles. -->
     <ScrollView>
         <StackLayout Padding="12">
-            <!-- Path.Data geometry (and RenderTransform on shapes) are unsupported; each two-closed-triangle
-                 PathGeometry degrades to two overlaid Polygons in a Grid (one per closed PathFigure), which
-                 gives the same resting silhouette. The RenderTransform 0.75 scale is dropped (transforms are
-                 not on the supported shape surface). -->
+            <!-- Path.Data geometry is unsupported; each two-closed-triangle PathGeometry degrades to two
+                 overlaid Polygons in a Grid (one per closed PathFigure), which gives the same silhouette.
+                 The FIRST figure's RenderTransform="0.75 0 0 0.75 0 0" is origin-based (no translation), so
+                 rather than drop it, its 0.75 scale is BAKED into the Polygon points (x0.75) and stroke
+                 (4x0.75=3) — the identical render to the code-first column's matrix_transform, and to
+                 original MAUI (whose "Without RenderTransform" label sits, per the original sample, on the
+                 TRANSFORMED path). The layout box stays 100x100; only the drawn figure shrinks to 75x75. -->
             <Label Text="Without RenderTransform" />
             <Grid WidthRequest="100" HeightRequest="100">
-                <Polygon Points="10,100 100,100 100,50" Stroke="Black" StrokeThickness="4" />
-                <Polygon Points="10,10 100,10 100,40" Stroke="Black" StrokeThickness="4" />
+                <Polygon Points="7.5,75 75,75 75,37.5" Stroke="Black" StrokeThickness="3" />
+                <Polygon Points="7.5,7.5 75,7.5 75,30" Stroke="Black" StrokeThickness="3" />
             </Grid>
             <Label Text="With RenderTransform" />
             <Grid WidthRequest="100" HeightRequest="100">
