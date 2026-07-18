@@ -11,9 +11,9 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 167 | 0 | 0 | 152 | 153 |
-| 🟡 Minor | 4 | 0 | 0 | 17 | 16 |
-| 🔴 Major | 0 | 0 | 0 | 3 | 3 |
+| 🟢 Match | 167 | 0 | 0 | 154 | 155 |
+| 🟡 Minor | 4 | 0 | 0 | 18 | 17 |
+| 🔴 Major | 0 | 0 | 0 | 0 | 0 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
 
@@ -3305,11 +3305,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9253, 5.65% pixels differ · Dark: SSIM 0.9101, 5.65% pixels differ
+Light: SSIM 0.9248, 5.79% pixels differ · Dark: SSIM 0.9079, 5.78% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9250, 5.66% pixels differ · Dark: SSIM 0.9098, 5.66% pixels differ
+Light: SSIM 0.9248, 5.78% pixels differ · Dark: SSIM 0.9079, 5.78% pixels differ
 
 ### 123. Radio Button Content — 🟢/⏳
 <sub>radio_button_content</sub>
@@ -3330,13 +3330,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8778, 5.02% pixels differ · Dark: SSIM 0.8977, 3.91% pixels differ
+Light: SSIM 0.9544, 2.17% pixels differ · Dark: SSIM 0.9561, 2.00% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8775, 5.02% pixels differ · Dark: SSIM 0.8973, 3.92% pixels differ
+Light: SSIM 0.9544, 2.17% pixels differ · Dark: SSIM 0.9561, 2.00% pixels differ
 
 ### 124. Radio Button Group — 🟢/⏳
 <sub>radio_button_group</sub>
@@ -3357,13 +3357,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9773, 0.90% pixels differ · Dark: SSIM 0.9771, 0.90% pixels differ
+Light: SSIM 0.9821, 0.71% pixels differ · Dark: SSIM 0.9822, 0.71% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9781, 0.87% pixels differ · Dark: SSIM 0.9779, 0.87% pixels differ
+Light: SSIM 0.9820, 0.72% pixels differ · Dark: SSIM 0.9821, 0.72% pixels differ
 
 ### 125. Radio Button Group Binding — 🟢/⏳
 <sub>radio_button_group_binding</sub>
@@ -3384,13 +3384,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9762, 1.00% pixels differ · Dark: SSIM 0.9757, 1.00% pixels differ
+Light: SSIM 0.9820, 0.72% pixels differ · Dark: SSIM 0.9822, 0.71% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9766, 0.98% pixels differ · Dark: SSIM 0.9761, 0.98% pixels differ
+Light: SSIM 0.9820, 0.72% pixels differ · Dark: SSIM 0.9821, 0.72% pixels differ
 
 ### 126. Radio Button Group Gallery — 🟢/⏳
 <sub>radio_button_group_gallery</sub>
@@ -3411,13 +3411,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8695, 5.12% pixels differ · Dark: SSIM 0.8683, 5.12% pixels differ
+Light: SSIM 0.9005, 4.06% pixels differ · Dark: SSIM 0.9010, 4.05% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8698, 5.11% pixels differ · Dark: SSIM 0.8687, 5.11% pixels differ
+Light: SSIM 0.9005, 4.06% pixels differ · Dark: SSIM 0.9010, 4.06% pixels differ
 
 ### 127. Radio Content Properties — 🟢/⏳
 <sub>radio_content_properties</sub>
@@ -3438,13 +3438,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8485, 5.97% pixels differ · Dark: SSIM 0.8472, 5.91% pixels differ
+Light: SSIM 0.9493, 2.13% pixels differ · Dark: SSIM 0.9509, 2.08% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8489, 5.95% pixels differ · Dark: SSIM 0.8475, 5.89% pixels differ
+Light: SSIM 0.9492, 2.14% pixels differ · Dark: SSIM 0.9509, 2.08% pixels differ
 
 ### 128. Radio Template From Style — ⬛/⏳
 <sub>radio_template_from_style</sub>
@@ -3467,11 +3467,11 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9922, 0.18% pixels differ · Dark: SSIM 0.9884, 0.36% pixels differ
+Light: SSIM 0.9919, 0.20% pixels differ · Dark: SSIM 0.9881, 0.37% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9970, 0.06% pixels differ · Dark: SSIM 0.9920, 0.29% pixels differ
+Light: SSIM 0.9962, 0.09% pixels differ · Dark: SSIM 0.9913, 0.32% pixels differ
 
 ### 129. Rectangle Gallery — 🟢/⏳
 <sub>rectangle_gallery</sub>
@@ -3575,11 +3575,11 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9827, 0.75% pixels differ · Dark: SSIM 0.9857, 0.56% pixels differ
+Light: SSIM 0.9818, 0.78% pixels differ · Dark: SSIM 0.9848, 0.60% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9823, 0.76% pixels differ · Dark: SSIM 0.9854, 0.57% pixels differ
+Light: SSIM 0.9818, 0.78% pixels differ · Dark: SSIM 0.9848, 0.60% pixels differ
 
 ### 133. Scroll Mode Test — 🟢/⏳
 <sub>scroll_mode_test</sub>

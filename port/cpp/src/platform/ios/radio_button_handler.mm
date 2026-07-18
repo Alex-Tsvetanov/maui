@@ -341,21 +341,31 @@ namespace maui::core
             // (indicator + content/title insets). Subtract that to get the text column at this constraint.
             const CGFloat reserved = std::max<CGFloat>(0, fitting.width - one_line.width);
             const CGFloat text_width = std::max<CGFloat>(1, width - reserved);
-            const CGRect wrapped =
-                [title boundingRectWithSize:CGSizeMake(text_width, CGFLOAT_MAX)
-                                    options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
-                                 attributes:attrs
-                                    context:nil];
-            // The wrapped height is the text's own height plus the button's VERTICAL chrome (content insets).
-            // Do NOT use (fitting.height - one_line.height): that folds in the indicator RING's excess over a
-            // single text line (the ~21pt ring is taller than one 14pt line), double-counting it once the
-            // 2-line text is itself taller than the ring. MAUI's template sizes the row as max(ring, text) +
-            // Border/Grid padding, so a wrapped (text-driven) row is text + padding only; result.height still
-            // carries fitting.height (the ring-driven single-line height) via the max below, covering the
-            // ring-taller case. Fixes radio_button_content's Frame-wrapped radio measuring ~5pt too tall
-            // (Frame box 304px vs MAUI's 288px), which shifted everything below it down ~16px.
+            const CGRect wrapped = [title boundingRectWithSize:CGSizeMake(text_width, CGFLOAT_MAX)
+                                                       options:NSStringDrawingUsesLineFragmentOrigin
+                                                    attributes:attrs
+                                                       context:nil];
+            // Size the row from MAUI's DefaultTemplate geometry DIRECTLY, calibrated to the SHIPPED render
+            // (ruling 11): the outer Ellipse measures 21pt (63px @3x) and a single-14pt-line row is 35pt tall
+            // (measured ring-center pitch 41pt − Spacing 6pt), so the vertical chrome is 35−21 = 14pt. Thus
+            // row = max(21pt ring, text) + 14. UIButton's own sizeThatFits height is NOT used: it adds its
+            // internal title metrics and over-measures a large-font (e.g. 18pt) title by ~2pt, and that
+            // per-large-radio excess accumulated into the vertical drift that reddened the content-heavy radio
+            // pages (radio_content_properties / radio_button_group_gallery / radio_button_content). Prior tries
+            // with chrome=16 (too tall) or ring-floor=16 (too short) both missed; this pair matches MAUI at
+            // both 14pt (35) and 18pt (35.5). The ring still RENDERS at the SF-symbol's ~16.7pt (a separate
+            // ring-size residual), but the row heights — hence the vertical alignment — now match.
+#if TARGET_OS_MACCATALYST
+            // Mac Catalyst renders the radio differently (a smaller ~15.5pt ring) and its pages are already
+            // fine, so keep its measurement on UIButton's native height (max with the wrapped multi-line
+            // height) — the iOS ring/chrome calibration below is tuned to the iOS shipped render only.
             const CGFloat vertical_chrome = button.contentEdgeInsets.top + button.contentEdgeInsets.bottom;
             result.height = std::max<double>(result.height, std::ceil(wrapped.size.height) + vertical_chrome);
+#else
+            constexpr CGFloat k_ring_pt = 21.0;   // Ellipse HeightRequest, shipped render
+            constexpr CGFloat k_chrome_pt = 14.0; // measured row(35) − ring(21) for 14pt content
+            result.height = std::max<double>(k_ring_pt, std::ceil(wrapped.size.height)) + k_chrome_pt;
+#endif
         }
         return result;
     }
