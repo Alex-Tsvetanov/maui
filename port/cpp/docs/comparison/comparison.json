@@ -7625,8 +7625,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8941, 4.31% pixels differ \u00b7 Dark: SSIM 0.8897, 4.27% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9930, 0.45% pixels differ \u00b7 Dark: SSIM 0.9889, 0.52% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -7669,8 +7669,8 @@
           "review": "C2/C4: same as cpp \u2014 all content present and themed correctly, but the rotated footer label is placed above the footer image instead of below it, and grid rows are slightly tighter than MAUI. Minor."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9155, 2.75% pixels differ \u00b7 Dark: SSIM 0.9157, 2.74% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9951, 0.24% pixels differ \u00b7 Dark: SSIM 0.9917, 0.31% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -7733,7 +7733,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9663, 1.15% pixels differ \u00b7 Dark: SSIM 0.9657, 1.15% pixels differ"
+          "review": "Light: SSIM 0.9748, 0.78% pixels differ \u00b7 Dark: SSIM 0.9745, 0.78% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -7777,7 +7777,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9743, 0.69% pixels differ \u00b7 Dark: SSIM 0.9731, 0.91% pixels differ"
+          "review": "Light: SSIM 0.9786, 0.53% pixels differ \u00b7 Dark: SSIM 0.9774, 0.72% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",

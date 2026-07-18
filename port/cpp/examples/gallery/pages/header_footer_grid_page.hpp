@@ -96,11 +96,17 @@ namespace maui::samples
             toggles_.add(toggle_footer_button_);
 
             // ---- the CollectionView (Grid row 1) with a GridItemsLayout(Span=3) ----
-            // GridItemsLayout Span="3" Orientation="Vertical" HorizontalItemSpacing="4" VerticalItemSpacing="2".
+            // This code-first page MIRRORS the shared-XAML twin (header_footer_grid.xaml), which the two-
+            // framework board compares against MAUI. That twin uses the STRING form `ItemsLayout="VerticalGrid, 3"`
+            // — the loader has no <GridItemsLayout> element-form support (register_xaml_items.cpp: needs the
+            // [Parameter("Orientation")] ctor-arg reflection the port lacks), so it and MAUI both render with
+            // the DEFAULT item spacing (0). The original C# HeaderFooterGrid.xaml used the element form with
+            // HorizontalItemSpacing="4" VerticalItemSpacing="2"; setting those here made the code-first grid
+            // rows 2pt taller than the twin (measured: pitch 93px vs 87px @3x → the cpp-only iOS red). Mirror
+            // the twin's string form — default spacing — so all three columns match. (If the loader ever gains
+            // element-form spacing, upgrade the twin + restore 4/2 on both sides.)
             auto grid_layout = std::make_shared<maui::controls::grid_items_layout>(
                 3, maui::controls::items_layout_orientation::vertical);
-            grid_layout->set_horizontal_item_spacing(4);
-            grid_layout->set_vertical_item_spacing(2);
             list_.set_items_layout(grid_layout);
 
             // The PhotoTemplate caption Label: Text binds to the item's caption (C# Binding("Caption")).

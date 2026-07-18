@@ -4,6 +4,21 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## header_footer_grid cpp red — code-first grid over-applied spacing the twin lost (2026-07-18)
+
+`header_footer_grid` was cpp-RED on iOS (4.31%) while xaml was GREEN — so the shared XAML renders right; only
+the code-first page diverged. Root cause: the shared twin uses the STRING form `ItemsLayout="VerticalGrid, 3"`
+(the loader has no `<GridItemsLayout>` element-form support — needs the `[Parameter("Orientation")]` ctor-arg
+reflection the port lacks), so MAUI + xaml render the grid with DEFAULT item spacing (0). But the code-first
+page set the ORIGINAL C#'s `HorizontalItemSpacing="4" VerticalItemSpacing="2"`, making its grid rows 2pt taller
+(measured pitch 93px vs 87px @3x) — the divergence accumulated down the grid and shoved the footer. The
+code-first gallery is a MIRROR of the shared twin (one page, two frameworks), so it must mirror the string
+form's spacing, not the original element form. Dropped the explicit spacing on `header_footer_grid_page.hpp`
+(+ the same on `header_footer_grid_horizontal_page.hpp`). Result: header_footer_grid iOS cpp RED→GREEN (0.45%),
+macOS cpp YELLOW→GREEN (0.24%); horizontal sibling cpp now consistent with xaml (~0.77% iOS, both yellow — a
+separate shared port-vs-MAUI horizontal-grid diff, not the spacing). iOS reds 15→14, macOS 0 reds held, 0
+regressions. (If the loader ever gains element-form spacing, upgrade the twin + restore 4/2 on both sides.)
+
 ## Radio cluster iOS reds — ring is 0.81x MAUI's; NEW iOS-specific data (2026-07-18)
 
 The 3 iOS radio reds (radio_button_content 5.0%, radio_button_group_gallery 5.1%, radio_content_properties
