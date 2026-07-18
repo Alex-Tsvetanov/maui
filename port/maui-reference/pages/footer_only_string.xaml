@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiReference.Pages.FooterOnlyStringPage" Title="Footer only (string)">
+             x:Class="MauiReference.Pages.FooterOnlyStringPage" Title="Footer only (string)"
+             SafeAreaEdges="Container">
     <!-- A single CollectionView with a plain-string Footer and NO Header. Twenty caption
          rows seeded from DemoFilteredItemSource(20). -->
     <CollectionView Footer="This is a footer">

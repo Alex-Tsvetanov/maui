@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiReference.Pages.CarouselPagePage" Title="CarouselView">
+             x:Class="MauiReference.Pages.CarouselPagePage" Title="CarouselView"
+             SafeAreaEdges="Container">
     <!-- This twin never set an ItemsSource, so the CarouselView had no items to realize and rendered
          completely blank in real MAUI (an ItemTemplate with nothing to bind it to paints nothing) —
          see docs/EQUIVALENCE_FINDINGS.md's retracted "carousel_page" quirk. Give it an inline x:Array

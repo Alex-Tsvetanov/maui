@@ -29,6 +29,8 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/label.hpp"
@@ -63,6 +65,10 @@ namespace maui::samples
             list_.set_header(maui::controls::boxed_item::of(std::string{"Just a string as a header"}));
             list_.set_footer(maui::controls::boxed_item::of(std::string{"This footer is also a string"}));
 
+            // page-direct CollectionView bypasses the layout safe-area inset (+ .Never) so its
+            // content would render under the notch/status-bar cutout; inset the page content below the
+            // container safe area (mirrors the shared XAML ContentPage SafeAreaEdges="Container").
+            page_.set_safe_area_edges(maui::core::safe_area_edges{maui::core::safe_area_regions::container});
             page_.set_content(list_);
         }
 

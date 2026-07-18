@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiReference.Pages.HeaderFooterTemplatePage" Title="Header/Footer (template)">
+             x:Class="MauiReference.Pages.HeaderFooterTemplatePage" Title="Header/Footer (template)"
+             SafeAreaEdges="Container">
     <!-- Twin of HeaderFooterTemplate.xaml: a CollectionView whose HeaderTemplate/FooterTemplate are each a
          two-row Grid (an AspectFill cover Image + an overlaid bold AntiqueWhite time Label in row 0, a
          static "This Is A Header/Footer" Label in row 1), and whose ItemTemplate is the PhotoTemplate

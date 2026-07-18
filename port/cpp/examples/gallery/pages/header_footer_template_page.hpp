@@ -67,6 +67,8 @@
 #include "maui/controls/command.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/file_image_source.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/controls/grid.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/controls/items/boxed_item.hpp"
@@ -264,6 +266,12 @@ namespace maui::samples
             list_.set_header(maui::controls::boxed_item::of(model_));
             list_.set_footer(maui::controls::boxed_item::of(model_));
 
+            // A page-direct CollectionView bypasses the layout safe-area inset and (matching MAUI's
+            // ItemsViewController2) runs with .Never, so without a page-level inset its header/first item
+            // renders UNDER the status-bar/notch cutout. Inset the page content below the container safe area
+            // so the content starts below the cutout (usability). Mirrors the shared XAML's ContentPage
+            // SafeAreaEdges="Container"; MAUI applies the same, so all three columns match.
+            page_.set_safe_area_edges(maui::core::safe_area_edges{maui::core::safe_area_regions::container});
             page_.set_content(list_);
         }
 

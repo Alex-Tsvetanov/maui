@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiReference.Pages.StaggeredLayoutPage" Title="Staggered Layout">
+             x:Class="MauiReference.Pages.StaggeredLayoutPage" Title="Staggered Layout"
+             SafeAreaEdges="Container">
     <!-- Twin of StaggeredLayout.xaml: a 3-across grid CollectionView standing in for the never-shipped
          StaggeredGridItemsLayout (Span=3, the C# comment's own GridItemsLayout fallback) over a
          RandomSizeTemplate-like source of varied-height cells. note: the element-form GridItemsLayout +

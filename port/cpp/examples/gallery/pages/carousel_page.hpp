@@ -34,6 +34,8 @@
 
 #include "maui/controls/border.hpp"
 #include "maui/controls/content_page.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
@@ -82,6 +84,10 @@ namespace maui::samples
             carousel_.set_items_source(items_);
 
             // The ContentPage's only content IS the CarouselView (the shared XAML root).
+            // page-direct CollectionView bypasses the layout safe-area inset (+ .Never) so its
+            // content would render under the notch/status-bar cutout; inset the page content below the
+            // container safe area (mirrors the shared XAML ContentPage SafeAreaEdges="Container").
+            page_.set_safe_area_edges(maui::core::safe_area_edges{maui::core::safe_area_regions::container});
             page_.set_content(carousel_);
         }
 

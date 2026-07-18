@@ -307,6 +307,12 @@ namespace maui::xaml
                                                                       controls::content_page::title_property());
         properties.register_bindable_property<controls::content_page>("Padding",
                                                                       controls::content_page::padding_property());
+        // SafeAreaElement.SafeAreaEdges (per-view safe area): lets a page opt its content INTO the container
+        // safe-area inset (below the notch/status bar). Default is None (edge-to-edge); a page-direct
+        // CollectionView needs SafeAreaEdges="Container" so its header/first item is not hidden under the
+        // cutout. Converter convert_safe_area_edges already registered.
+        properties.register_bindable_property<controls::content_page>(
+            "SafeAreaEdges", controls::content_page::safe_area_edges_property());
         properties.register_add_child<controls::content_page>(
             "Content", [](controls::content_page& page, maui::core::bindable_object& child) {
                 auto* view = dynamic_cast<maui::core::i_view*>(&child);

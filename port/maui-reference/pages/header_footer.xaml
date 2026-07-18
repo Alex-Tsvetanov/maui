@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiReference.Pages.HeaderFooterPage" Title="Header/Footer (string)">
+             x:Class="MauiReference.Pages.HeaderFooterPage" Title="Header/Footer (string)"
+             SafeAreaEdges="Container">
     <!-- Twin of HeaderFooterString.xaml: a CollectionView with plain STRING Header + Footer and the
          PhotoTemplate caption Label as the item template. The C# markup leaves ItemsSource for
          code-behind (DemoFilteredItemSource(3)); here the three caption rows are inlined via x:Array so

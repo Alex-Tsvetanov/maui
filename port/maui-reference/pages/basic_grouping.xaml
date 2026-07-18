@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiReference.Pages.BasicGroupingPage" Title="Basic Grouping">
+             x:Class="MauiReference.Pages.BasicGroupingPage" Title="Basic Grouping"
+             SafeAreaEdges="Container">
     <!-- Twin of BasicGrouping.xaml: a grouped CollectionView (IsGrouped=True) with a view-level Header +
          Footer and three DataTemplates — ItemTemplate ({Binding Name}), GroupHeaderTemplate (LightGreen
          bold, {Binding Name}) and GroupFooterTemplate (Orange, {Binding Count, StringFormat}). note: the

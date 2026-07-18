@@ -1,6 +1,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MauiReference.Pages.GroupingPlusSelectionPage" Title="Grouping Plus Selection">
+             x:Class="MauiReference.Pages.GroupingPlusSelectionPage" Title="Grouping Plus Selection"
+             SafeAreaEdges="Container">
     <!-- Twin of GroupingPlusSelection.xaml: a grouped CollectionView (IsGrouped=True) with
          SelectionMode=Single and the three DataTemplates — ItemTemplate ({Binding Name}),
          GroupHeaderTemplate (LightGreen bold {Binding Name}) and GroupFooterTemplate (Orange
