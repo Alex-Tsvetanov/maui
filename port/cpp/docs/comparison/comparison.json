@@ -1035,8 +1035,8 @@
           "review": "Matches MAUI: identical group-header/footer bars, member rows, and \u2014 verified \u2014 identical row spacing (bar Y-gaps 392/261/210/209 vs MAUI 393/262/209/210). The only delta is a uniform +28px top offset (harness inset, ruling 2 exempt), which is why the raw whole-frame SSIM looks low on this tall list."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9700, 1.54% pixels differ \u00b7 Dark: SSIM 0.9718, 1.86% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9977, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -2533,8 +2533,8 @@
           "review": "C2/C4: xaml matches MAUI at the same ~0.8% (same shared XAML via the loader)."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9723, 0.97% pixels differ \u00b7 Dark: SSIM 0.9736, 1.23% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9972, 0.11% pixels differ \u00b7 Dark: SSIM 0.9973, 0.11% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -7241,8 +7241,8 @@
           "review": "Matches MAUI's 2-column grouped GridItemsLayout (bars, members, footers, spacing); raw SSIM depressed only by the uniform top-offset on this tall list (ruling 2)."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9685, 1.54% pixels differ \u00b7 Dark: SSIM 0.9715, 1.83% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -7455,8 +7455,8 @@
           "review": "Matches MAUI's grouped roster; raw SSIM depressed only by the uniform top-offset (ruling 2)."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9701, 1.55% pixels differ \u00b7 Dark: SSIM 0.9718, 1.85% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -14624,8 +14624,8 @@
           "review": "Consistency check: cpp and xaml were both marked green vs MAUI, but the xaml CollectionView item rows render with visibly more line spacing than cpp's tighter rows (SSIM ~0.968, ~1% pixels differ) \u2014 text content is identical, only row height/spacing differs between the two hydration paths. Downgraded from green to yellow since both cannot be a perfect match to the same MAUI ground truth if they visibly differ from each other."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9556, 1.32% pixels differ \u00b7 Dark: SSIM 0.9549, 1.85% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -15694,8 +15694,8 @@
           "review": "Light and dark match MAUI exactly, identical to cpp column."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9803, 0.70% pixels differ \u00b7 Dark: SSIM 0.9799, 0.94% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",

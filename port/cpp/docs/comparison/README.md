@@ -4672,8 +4672,8 @@ Light: SSIM 0.9987, 0.06% pixels differ · Dark: SSIM 0.9987, 0.06% pixels diffe
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 164 | 148 | 0 | 152 | 161 |
-| 🟡 Minor | 8 | 22 | 0 | 20 | 11 |
+| 🟢 Match | 164 | 148 | 0 | 158 | 161 |
+| 🟡 Minor | 8 | 22 | 0 | 14 | 11 |
 | 🔴 Major | 0 | 2 | 0 | 0 | 0 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
@@ -4940,9 +4940,9 @@ Matches MAUI: identical group-header/footer bars, member rows, and — verified 
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9700, 1.54% pixels differ · Dark: SSIM 0.9718, 1.86% pixels differ
+Light: SSIM 0.9977, 0.09% pixels differ · Dark: SSIM 0.9978, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -5318,9 +5318,9 @@ C2/C4: xaml matches MAUI at the same ~0.8% (same shared XAML via the loader).
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9723, 0.97% pixels differ · Dark: SSIM 0.9736, 1.23% pixels differ
+Light: SSIM 0.9972, 0.11% pixels differ · Dark: SSIM 0.9973, 0.11% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -6506,9 +6506,9 @@ Matches MAUI's 2-column grouped GridItemsLayout (bars, members, footers, spacing
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9685, 1.54% pixels differ · Dark: SSIM 0.9715, 1.83% pixels differ
+Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9979, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -6560,9 +6560,9 @@ Matches MAUI's grouped roster; raw SSIM depressed only by the uniform top-offset
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9701, 1.55% pixels differ · Dark: SSIM 0.9718, 1.85% pixels differ
+Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9979, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -8369,9 +8369,9 @@ Consistency check: cpp and xaml were both marked green vs MAUI, but the xaml Col
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9556, 1.32% pixels differ · Dark: SSIM 0.9549, 1.85% pixels differ
+Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9978, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -8639,9 +8639,9 @@ Light and dark match MAUI exactly, identical to cpp column.
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9803, 0.70% pixels differ · Dark: SSIM 0.9799, 0.94% pixels differ
+Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9978, 0.08% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
