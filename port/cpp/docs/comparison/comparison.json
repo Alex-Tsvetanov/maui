@@ -180,11 +180,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9972, 0.12% pixels differ"
+          "review": "Light: SSIM 0.9975, 0.09% pixels differ \u00b7 Dark: SSIM 0.9974, 0.11% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9961, 0.15% pixels differ"
+          "review": "Light: SSIM 0.9963, 0.13% pixels differ \u00b7 Dark: SSIM 0.9963, 0.13% pixels differ"
         }
       },
       "android": {
@@ -929,7 +929,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
+          "review": "Light: SSIM 0.9960, 0.71% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -1463,8 +1463,8 @@
           "review": "C2/C4: matches MAUI closely in both themes \u2014 thin red border on the clipped image, bold section headers with small sub-labels, empty Border Shape entry, identical slider positions/values. Only a tiny uniform vertical shift of the image (window-chrome class), no content differences."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8345, 6.13% pixels differ \u00b7 Dark: SSIM 0.8343, 5.31% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9149, 2.57% pixels differ \u00b7 Dark: SSIM 0.9177, 2.81% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -1784,8 +1784,8 @@
           "review": "C2/C4: same triangle defect as the cpp column \u2014 hollow green triangle with tiny interior fill instead of MAUI's overflowing salmon/plus (left) and dog-filled triangle (right); circle and square cells match in both themes. Also the same slight uniform downward shift."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8724, 5.21% pixels differ \u00b7 Dark: SSIM 0.8487, 6.63% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9930, 0.55% pixels differ \u00b7 Dark: SSIM 0.9934, 0.61% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -1891,8 +1891,8 @@
           "review": "Both themes reproduce MAUI's three stroke-thickness bars, slider position, and the 60pt content-height section faithfully; dark-theme slider track matches MAUI's gray. Only the exempt uniform outer inset differs."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.6866, 20.74% pixels differ \u00b7 Dark: SSIM 0.6693, 20.54% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9747, 3.60% pixels differ \u00b7 Dark: SSIM 0.9748, 3.60% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -2534,11 +2534,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9716, 0.95% pixels differ \u00b7 Dark: SSIM 0.9729, 1.19% pixels differ"
+          "review": "Light: SSIM 0.9723, 0.97% pixels differ \u00b7 Dark: SSIM 0.9736, 1.23% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9743, 0.84% pixels differ \u00b7 Dark: SSIM 0.9754, 1.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
         }
       },
       "android": {
@@ -3069,11 +3069,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9921, 0.91% pixels differ \u00b7 Dark: SSIM 0.9933, 0.94% pixels differ"
+          "review": "Light: SSIM 0.9921, 0.92% pixels differ \u00b7 Dark: SSIM 0.9932, 0.95% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9908, 0.94% pixels differ \u00b7 Dark: SSIM 0.9920, 0.97% pixels differ"
+          "review": "Light: SSIM 0.9908, 0.95% pixels differ \u00b7 Dark: SSIM 0.9919, 0.98% pixels differ"
         }
       },
       "android": {
@@ -3711,11 +3711,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9190, 3.37% pixels differ \u00b7 Dark: SSIM 0.9191, 3.37% pixels differ"
+          "review": "Light: SSIM 0.9183, 3.34% pixels differ \u00b7 Dark: SSIM 0.9186, 3.34% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9146, 3.47% pixels differ \u00b7 Dark: SSIM 0.9148, 3.47% pixels differ"
+          "review": "Light: SSIM 0.9157, 3.42% pixels differ \u00b7 Dark: SSIM 0.9160, 3.42% pixels differ"
         }
       },
       "android": {
@@ -3817,12 +3817,12 @@
           "review": "C2/C4: XAML column matches MAUI in both themes \u2014 same control set, same slider/progress values, same colors."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9362, 2.07% pixels differ \u00b7 Dark: SSIM 0.9352, 2.23% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9962, 0.12% pixels differ \u00b7 Dark: SSIM 0.9962, 0.12% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9350, 2.10% pixels differ \u00b7 Dark: SSIM 0.9339, 2.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9949, 0.15% pixels differ \u00b7 Dark: SSIM 0.9949, 0.16% pixels differ"
         }
       },
       "android": {
@@ -4460,11 +4460,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 0.9966, 0.16% pixels differ \u00b7 Dark: SSIM 0.9964, 0.17% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 0.9953, 0.19% pixels differ \u00b7 Dark: SSIM 0.9952, 0.20% pixels differ"
         }
       },
       "android": {
@@ -4995,11 +4995,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5102,11 +5102,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5209,11 +5209,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5316,11 +5316,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5423,11 +5423,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9926, 0.23% pixels differ \u00b7 Dark: SSIM 0.9925, 0.29% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9913, 0.26% pixels differ \u00b7 Dark: SSIM 0.9913, 0.32% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5530,11 +5530,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9966, 0.13% pixels differ \u00b7 Dark: SSIM 0.9964, 0.14% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5637,11 +5637,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5744,11 +5744,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9938, 0.22% pixels differ \u00b7 Dark: SSIM 0.9936, 0.26% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5851,11 +5851,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -5958,11 +5958,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -7884,11 +7884,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9687, 1.94% pixels differ \u00b7 Dark: SSIM 0.9733, 1.68% pixels differ"
+          "review": "Light: SSIM 0.9688, 1.94% pixels differ \u00b7 Dark: SSIM 0.9733, 1.68% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9723, 1.62% pixels differ \u00b7 Dark: SSIM 0.9775, 1.36% pixels differ"
+          "review": "Light: SSIM 0.9724, 1.62% pixels differ \u00b7 Dark: SSIM 0.9775, 1.36% pixels differ"
         }
       },
       "android": {
@@ -8097,12 +8097,12 @@
           "review": "Same as cpp: XAML build matches MAUI reference pixel-for-pixel in structure and content for both light and dark themes."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9300, 2.94% pixels differ \u00b7 Dark: SSIM 0.9350, 3.21% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9977, 0.11% pixels differ \u00b7 Dark: SSIM 0.9977, 0.11% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9287, 2.97% pixels differ \u00b7 Dark: SSIM 0.9338, 3.24% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9964, 0.14% pixels differ \u00b7 Dark: SSIM 0.9965, 0.14% pixels differ"
         }
       },
       "android": {
@@ -8632,12 +8632,12 @@
           "review": "C2/C4: the compile-time-XAML column renders the IndicatorView dots (exempt vs MAUI Mac Catalyst's blank per ruling 10), but its dot layout differs ~2.8% from the cpp column (minor cpp/xaml IndicatorView positioning divergence) \u2014 held yellow to reflect that cpp/xaml delta. Both themes."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9522, 3.50% pixels differ \u00b7 Dark: SSIM 0.9322, 3.95% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9873, 2.51% pixels differ \u00b7 Dark: SSIM 0.9698, 2.63% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -8739,12 +8739,12 @@
           "review": "C2/C4 yellow: same as cpp \u2014 full content match in both themes except the lighter-weight radio glyphs vs MAUI's bolder ring/dot."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9719, 0.38% pixels differ \u00b7 Dark: SSIM 0.9659, 0.47% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9938, 0.22% pixels differ \u00b7 Dark: SSIM 0.9937, 0.23% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -8847,11 +8847,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -8954,11 +8954,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9861, 0.61% pixels differ \u00b7 Dark: SSIM 0.9875, 0.69% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9060,12 +9060,12 @@
           "review": "C2/C4: MAUI vs C++&XAML (light+dark) match \u2014 identical layout, slider positions, and green-bordered white host box in both themes."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9937, 1.09% pixels differ \u00b7 Dark: SSIM 0.9946, 0.69% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9925, 1.12% pixels differ \u00b7 Dark: SSIM 0.9934, 0.72% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9168,11 +9168,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9275,11 +9275,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9382,11 +9382,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9489,11 +9489,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9596,11 +9596,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9703,11 +9703,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9810,11 +9810,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -9917,11 +9917,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10024,11 +10024,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10131,11 +10131,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10238,11 +10238,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10345,11 +10345,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10452,11 +10452,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10559,11 +10559,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10666,11 +10666,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10773,11 +10773,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9879, 0.37% pixels differ \u00b7 Dark: SSIM 0.9877, 0.47% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9827, 0.47% pixels differ \u00b7 Dark: SSIM 0.9823, 0.63% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10880,11 +10880,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -10987,11 +10987,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11094,11 +11094,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11201,11 +11201,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9891, 0.36% pixels differ \u00b7 Dark: SSIM 0.9891, 0.46% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11308,11 +11308,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11414,12 +11414,12 @@
           "review": "C2/C4: text/buttons match, but the compile-time-XAML column does NOT apply the VM-bound CollectionView selection \u2014 it renders NO selection band, whereas the cpp column (and MAUI on iOS+android) applies and renders the seeded selection. This is a functional gap in the XAML selection-binding path: the no-band result only coincidentally matches MAUI Mac Catalyst (which also paints no persistent band, per ruling 9) but would be wrong on iOS/android. Diverges from the faithful cpp column (~3.7% pixels, the band). Both themes."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9703, 3.34% pixels differ \u00b7 Dark: SSIM 0.9598, 3.58% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11522,11 +11522,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11628,12 +11628,12 @@
           "review": "Only the 'It's CollectionViews all the way down.' header renders; the nested content is empty \u2014 code-behind data gap."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8496, 5.17% pixels differ \u00b7 Dark: SSIM 0.9751, 6.45% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8872, 2.70% pixels differ \u00b7 Dark: SSIM 0.9827, 3.64% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11736,11 +11736,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9968, 0.14% pixels differ \u00b7 Dark: SSIM 0.9967, 0.14% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9966, 0.12% pixels differ \u00b7 Dark: SSIM 0.9967, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11843,11 +11843,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -11950,11 +11950,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12057,11 +12057,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9886, 0.43% pixels differ \u00b7 Dark: SSIM 0.9916, 0.24% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12164,11 +12164,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12271,11 +12271,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9956, 0.16% pixels differ \u00b7 Dark: SSIM 0.9956, 0.18% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12378,11 +12378,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12485,11 +12485,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12592,11 +12592,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9853, 0.42% pixels differ \u00b7 Dark: SSIM 0.9865, 0.56% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12698,12 +12698,12 @@
           "review": "C2/C4: content and (absent) selection state match MAUI, but list row spacing is tighter (~31px vs ~44px pitch), compressing the list vertically. Both themes."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9704, 2.96% pixels differ \u00b7 Dark: SSIM 0.9621, 3.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12805,12 +12805,12 @@
           "review": "C2/C4: grid content and unhighlighted selection state match MAUI; row spacing tighter (~31px vs ~44px pitch). Both themes."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8302, 7.00% pixels differ \u00b7 Dark: SSIM 0.8232, 8.91% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -12913,11 +12913,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13019,12 +13019,12 @@
           "review": "C2/C4: matches MAUI in both themes \u2014 bold title, row heights, red/green borders, yellow fills, and the (MAUI-inherited) white-on-yellow dark-mode text are all reproduced."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8861, 5.60% pixels differ \u00b7 Dark: SSIM 0.8787, 5.46% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8848, 5.63% pixels differ \u00b7 Dark: SSIM 0.8775, 5.49% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13127,11 +13127,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9861, 0.48% pixels differ \u00b7 Dark: SSIM 0.9861, 0.57% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9848, 0.51% pixels differ \u00b7 Dark: SSIM 0.9848, 0.60% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13233,12 +13233,12 @@
           "review": "C2/C4: matches MAUI in both themes \u2014 same option layout, Option D grid placement, text, and row spacing."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9615, 1.12% pixels differ \u00b7 Dark: SSIM 0.9600, 1.51% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9900, 0.32% pixels differ \u00b7 Dark: SSIM 0.9898, 0.36% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13341,11 +13341,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9911, 0.29% pixels differ \u00b7 Dark: SSIM 0.9911, 0.34% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9899, 0.33% pixels differ \u00b7 Dark: SSIM 0.9898, 0.38% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13447,12 +13447,12 @@
           "review": "C2/C4: identical content and layout to MAUI in both themes; radio glyphs, text, and spacing all match."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9613, 1.42% pixels differ \u00b7 Dark: SSIM 0.9593, 1.68% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9600, 1.45% pixels differ \u00b7 Dark: SSIM 0.9581, 1.72% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13554,12 +13554,12 @@
           "review": "C2/C4: matches MAUI in both themes - text properties (color, transform, weight, size) propagate to content identically."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9262, 2.69% pixels differ \u00b7 Dark: SSIM 0.9276, 3.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9250, 2.72% pixels differ \u00b7 Dark: SSIM 0.9264, 3.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13662,11 +13662,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9953, 0.14% pixels differ \u00b7 Dark: SSIM 0.9959, 0.26% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9964, 0.12% pixels differ \u00b7 Dark: SSIM 0.9955, 0.26% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13769,11 +13769,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13876,11 +13876,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -13983,11 +13983,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -14090,11 +14090,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9924, 0.26% pixels differ \u00b7 Dark: SSIM 0.9949, 0.20% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9911, 0.29% pixels differ \u00b7 Dark: SSIM 0.9936, 0.23% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -14197,11 +14197,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9959, 0.14% pixels differ \u00b7 Dark: SSIM 0.9958, 0.14% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -14304,11 +14304,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -14411,11 +14411,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9649, 0.73% pixels differ \u00b7 Dark: SSIM 0.9973, 0.10% pixels differ"
+          "review": "Light: SSIM 0.9483, 1.28% pixels differ \u00b7 Dark: SSIM 0.9973, 0.10% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9638, 0.76% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 0.9472, 1.31% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
         }
       },
       "android": {
@@ -14522,7 +14522,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9965, 0.11% pixels differ"
         }
       },
       "android": {
@@ -14731,8 +14731,8 @@
           "review": "C2/C4: no selection highlight, matching the MAUI reference, and all text/sections present in both themes. Minor: the item labels (Item 1..4) render noticeably larger than in MAUI (font-size diff on the cell labels)."
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8902, 13.35% pixels differ \u00b7 Dark: SSIM 0.8481, 14.22% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -17299,12 +17299,12 @@
           "review": "C2/C4: identical to the cpp column \u2014 same radio label-above-circle misalignment and taller row spacing vs MAUI's compact inline radio rows, in both themes. All content, colors and controls otherwise match."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9693, 0.84% pixels differ \u00b7 Dark: SSIM 0.9669, 1.57% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9680, 0.87% pixels differ \u00b7 Dark: SSIM 0.9656, 1.60% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -17407,11 +17407,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -17514,11 +17514,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.15% pixels differ \u00b7 Dark: SSIM 0.9965, 0.14% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -17621,11 +17621,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -17728,11 +17728,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -17834,12 +17834,12 @@
           "review": "Light and dark: xaml column's zigzag path shape matches MAUI exactly, unlike the cpp column which is broken."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9797, 0.33% pixels differ \u00b7 Dark: SSIM 0.9927, 0.08% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -17941,12 +17941,12 @@
           "review": "Light and dark match MAUI exactly, identical to cpp column."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9596, 1.08% pixels differ \u00b7 Dark: SSIM 0.9097, 2.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9605, 0.98% pixels differ \u00b7 Dark: SSIM 0.9095, 2.10% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -18049,11 +18049,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9913, 0.60% pixels differ \u00b7 Dark: SSIM 0.9915, 0.61% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -18156,11 +18156,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -18263,11 +18263,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9901, 0.31% pixels differ \u00b7 Dark: SSIM 0.9903, 0.31% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9968, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
@@ -18370,11 +18370,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "android": {
