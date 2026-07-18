@@ -54,7 +54,9 @@
 #include "maui/controls/picker.hpp"
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/slider.hpp"
+#include "maui/controls/grid.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
+#include "maui/core/grid_length.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/visibility.hpp"
@@ -83,6 +85,8 @@ namespace maui::samples
             border_.set_padding(maui::core::thickness(0));
             border_.set_width_request(100);
             border_.set_height_request(100);
+            border_.set_margin(maui::core::thickness(5)); // shared XAML <Border Margin="5">
+            border_.set_horizontal_layout_alignment(maui::core::layout_alignment::center); // HorizontalOptions="Center"
             content_image_.set_aspect(maui::core::aspect::aspect_fill);
             content_image_.set_source(maui::controls::image_source::from_file("oasis.jpg"));
             border_.set_content(content_image_);
@@ -133,10 +137,17 @@ namespace maui::samples
             controls_stack_.add(corner_stack_);
             scroller_.set_content(controls_stack_);
 
-            root_.set_spacing(12);
-            root_.set_padding(maui::core::thickness(12)); // shared XAML root: <Grid Padding="12">
+            // shared XAML root: <Grid Padding="12"> with RowDefinitions [110, *] — the Border in the fixed
+            // 110px row 0 (100 + 5+5 margin), the ScrollView filling row 1. (Was a vertical_stack_layout with
+            // spacing 12, which added a 12px gap the Grid has not and shoved every control below it.)
+            root_.set_padding(maui::core::thickness(12));
+            root_.set_row_spacing(0);
+            root_.add_row_definition(maui::core::grid_length(110));
+            root_.add_row_definition(maui::core::grid_length::star());
             root_.add(border_);
+            root_.set_row(border_, 0);
             root_.add(scroller_);
+            root_.set_row(scroller_, 1);
             page_.set_content(root_);
 
             // BorderClipPlayground() ctor: SelectedIndex = 1; UpdateBorder(); UpdateCornerRadius();
@@ -245,7 +256,7 @@ namespace maui::samples
         }
 
         maui::controls::content_page page_;
-        maui::controls::vertical_stack_layout root_;
+        maui::controls::grid root_;
         maui::controls::scroll_view scroller_;
         maui::controls::vertical_stack_layout controls_stack_;
 

@@ -12,8 +12,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
 | 🟢 Match | 167 | 0 | 0 | 146 | 146 |
-| 🟡 Minor | 4 | 0 | 0 | 19 | 19 |
-| 🔴 Major | 0 | 0 | 0 | 7 | 7 |
+| 🟡 Minor | 4 | 0 | 0 | 20 | 19 |
+| 🔴 Major | 0 | 0 | 0 | 6 | 7 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
 
@@ -387,9 +387,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8921, 3.35% pixels differ · Dark: SSIM 0.8793, 3.59% pixels differ
+Light: SSIM 0.9695, 1.86% pixels differ · Dark: SSIM 0.9694, 1.86% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -4672,8 +4672,8 @@ Light: SSIM 0.9987, 0.06% pixels differ · Dark: SSIM 0.9987, 0.06% pixels diffe
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 164 | 148 | 0 | 159 | 161 |
-| 🟡 Minor | 8 | 22 | 0 | 13 | 11 |
+| 🟢 Match | 164 | 148 | 0 | 160 | 161 |
+| 🟡 Minor | 8 | 22 | 0 | 12 | 11 |
 | 🔴 Major | 0 | 2 | 0 | 0 | 0 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
@@ -5048,9 +5048,9 @@ C2/C4: matches MAUI closely in both themes — thin red border on the clipped im
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9149, 2.57% pixels differ · Dark: SSIM 0.9177, 2.81% pixels differ
+Light: SSIM 0.9888, 0.57% pixels differ · Dark: SSIM 0.9889, 0.60% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 

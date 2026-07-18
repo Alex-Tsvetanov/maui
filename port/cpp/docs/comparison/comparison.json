@@ -1419,8 +1419,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8921, 3.35% pixels differ \u00b7 Dark: SSIM 0.8793, 3.59% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9695, 1.86% pixels differ \u00b7 Dark: SSIM 0.9694, 1.86% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -1463,8 +1463,8 @@
           "review": "C2/C4: matches MAUI closely in both themes \u2014 thin red border on the clipped image, bold section headers with small sub-labels, empty Border Shape entry, identical slider positions/values. Only a tiny uniform vertical shift of the image (window-chrome class), no content differences."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9149, 2.57% pixels differ \u00b7 Dark: SSIM 0.9177, 2.81% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9888, 0.57% pixels differ \u00b7 Dark: SSIM 0.9889, 0.60% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
