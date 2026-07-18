@@ -152,6 +152,23 @@ macOS cpp YELLOW→GREEN (0.24%); horizontal sibling cpp now consistent with xam
 separate shared port-vs-MAUI horizontal-grid diff, not the spacing). iOS reds 15→14, macOS 0 reds held, 0
 regressions. (If the loader ever gains element-form spacing, upgrade the twin + restore 4/2 on both sides.)
 
+## Radio ring — transform-scale ALSO fails; needs a decoupled custom ring (2026-07-18)
+
+Under the max-effort directive, tried two more approaches — both fail:
+- `UIImageSymbolConfiguration pointSize:21` -> ring diameter matches (62px) but SHIFTS the ring horizontally
+  (radio_button_group cpp xcenter 61 vs maui 100) and the title, because UIButton's image/title auto-layout
+  reflows around the bigger image. Net board WORSE.
+- `button.imageView.transform = scale(1.24)` -> NO effect: UIButton resets imageView.transform on
+  layoutSubviews, ring stays 49px.
+CONCLUSION: the SF-symbol-on-UIButton fallback is fundamentally resistant to ring resizing — any size change
+couples into the button's image/title layout. The ONLY robust fix is to render the ring DECOUPLED from the
+button's image slot: a dedicated CAShapeLayer (or the full RadioButton ControlTemplate: Ellipse + Grid +
+ContentPresenter) drawn at the exact per-platform size (20.7pt iOS / 15.5pt Catalyst) and positioned to
+MAUI's ring center, with an empty/placeholder image driving the title layout. That is a real handler rewrite
+with cross-platform regression risk (Catalyst is ALREADY correct and must stay so) — a dedicated, reviewed
+effort, not a loop tweak. ALSO NOTED: radio_button_group has a separate ~13pt horizontal-indent diff (cpp
+ring xleft 29 vs maui 69) independent of ring size — a page/group layout gap to check during that rewrite.
+
 ## Radio ring config-bump RE-ATTEMPTED with double-count fixed — STILL fails (2026-07-18)
 
 Measured precisely: iOS maui ring 20.3pt vs cpp 17.0pt (0.84); macOS both 15.5pt (match) — so an iOS-ONLY
