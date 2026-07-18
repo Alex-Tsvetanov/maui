@@ -794,11 +794,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9851, 3.52% pixels differ · Dark: SSIM 0.9764, 3.52% pixels differ
+Light: SSIM 0.9879, 3.39% pixels differ · Dark: SSIM 0.9783, 3.44% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9840, 3.56% pixels differ · Dark: SSIM 0.9753, 3.57% pixels differ
+Light: SSIM 0.9869, 3.44% pixels differ · Dark: SSIM 0.9783, 3.44% pixels differ
 
 ### 30. Clipping — 🟢/⏳
 <sub>clipping</sub>

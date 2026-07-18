@@ -4,6 +4,26 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Tier-2 shared-render-gap yellows — triage (2026-07-18): mostly sub-pixel noise / subtle rendering
+
+After the code-first-divergence cluster was exhausted (iOS 292🟢/38🟡/14🔴), the remaining yellows are
+"Tier-2": BOTH port columns (cpp + xaml) differ from MAUI, so no code-first fix applies. Investigated the
+top candidates — none is a clean fix:
+- **border_stroke** (1.97%) — NOT the "2× thicker stroke" it looks like at montage scale. Measured the
+  border widths: maui bar-10 left border 14px vs cpp 15px — they MATCH (port correctly ports MauiCALayer's
+  `2*thickness` stroke + outer-half clip; src MauiCALayer.cs:350 confirms 2×). The 1.97% is thin high-diff
+  bands ONLY at the stroke EDGES (~1px sub-pixel AA misalignment), no vertical drift. Effectively green.
+- **clip_views** (3.4%) — NOT the DatePicker capture-day date (recaptured all 3 columns same-day 07-18, still
+  3.4%). Real subtle clip-mask AA difference in the swoosh clip, both port columns vs MAUI.
+- **composition_gallery** (1.23%) — shape-composition rendering (the triangle/circle/bar overlay positions,
+  hot band 522-736), page-specific, not a property fix.
+- The rest (button/date_picker/radio_button_group_binding/header_footer_grid_horizontal, all <1.1%) are
+  diffuse whole-page sub-pixel AA — effectively green.
+**Conclusion:** the clean, high-yield parity work is DONE. The residual yellows are sub-pixel AA noise or
+subtle per-feature rendering; the only fixable reds (border_clip_playground Grid-vs-Stack, nested_collection
+nested-CV) are structural and cap at YELLOW. Further gains need focused per-feature rendering work, not the
+loop's quick-fix cadence.
+
 ## Path-page yellows — update_path_data twin fixed; path_transform_string exempt (2026-07-18)
 
 Two Shapes-gallery yellows where the shared twin degraded the Path geometry (ruling-12 family):

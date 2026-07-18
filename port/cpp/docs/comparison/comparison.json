@@ -3025,11 +3025,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9851, 3.52% pixels differ \u00b7 Dark: SSIM 0.9764, 3.52% pixels differ"
+          "review": "Light: SSIM 0.9879, 3.39% pixels differ \u00b7 Dark: SSIM 0.9783, 3.44% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9840, 3.56% pixels differ \u00b7 Dark: SSIM 0.9753, 3.57% pixels differ"
+          "review": "Light: SSIM 0.9869, 3.44% pixels differ \u00b7 Dark: SSIM 0.9783, 3.44% pixels differ"
         }
       },
       "maccatalyst": {
