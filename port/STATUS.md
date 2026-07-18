@@ -18,12 +18,14 @@ Continuing the yellow plan (code-first divergence vs a green xaml column):
   measure investigation, not a layout-property fix.
 iOS 281→283 green, 49→47 yellow, 0 regressions.
 
-**VM CAPTURE BLOCKER (escalating):** the cpp gallery's Mac Catalyst window now shrinks to 1024x648 and the
-capture grabs the wrong (MauiReference) window for EVERY cpp page tried this session (grouping + check_box +
-staggered), even at --settle 3.0. Earlier hfg Catalyst captures worked, so it degraded mid-session — likely
-gallery.app window saved-state restoring a small size. macOS recaptures for all these fixes are BLOCKED until
-the VM/app window state is reset (reboot the VM guest / clear the gallery app's saved window state). The iOS
-fixes are verified; macOS will carry the same improvement once the window presents at 1024x800 again.
+**VM CAPTURE BLOCKER — RESOLVED (2026-07-18).** The cpp gallery's Mac Catalyst window had degraded mid-session
+to 1024x648, so the capture grabbed the wrong (MauiReference) window for every cpp page — even at --settle 3.0.
+Root cause = the gallery app restoring a stale saved WINDOW SIZE (the [[cpp-e2e-vm-runner]] saved-app-state
+gotcha). Fix (self-serve over SSH): `pkill -f gallery.app/MauiReference.app` + `rm -rf ~/Library/Saved
+Application State/dev.maui-cpp.ios-gallery{,-xaml}~iosmac.savedState` (+ dev.mauicpp.mauireference…). The window
+then presented at 1024x800 and all 6 pending pages captured clean (0 present-failures) → all macOS cpp
+YELLOW→GREEN (commit `554ae579ef`, macOS 313→319 green). **If the wrong-window/shrink artifact recurs, clear
+the saved app state again before recapturing — do NOT just retry --settle.**
 
 ## Grouping-cluster yellows — code-first pages dropped shared-XAML item margins/padding (2026-07-18)
 
