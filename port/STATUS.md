@@ -4,6 +4,20 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## nested_collection loader HANGS (not just blank) — deep bug, reverted (2026-07-18)
+
+Attempted the "render nested CVs in the loader" fix (the xaml column renders nested_collection blank because
+the gallery_xaml view provides no outer ItemsSource). Built bindable models (nested_source{Title, Items} +
+nested_gallery_item{Caption}) and wired the code-behind to set the outer CV's ItemsSource (the header_footer_
+template pattern). ItemsSource + inner `ItemsSource="{Binding Items}"` ARE loader-bindable, so this should
+work — BUT providing the data makes the gallery_xaml app **HANG** on the page: black screen, process alive at
+25s, no crash report. The code-first gallery renders the same nesting fine (yellow), so it's a LOADER-PATH
+hang (infinite loop / O(n²) explosion) in realizing 20 nested inner CVs (~200 inner cells) — NOT a quick fix.
+Reverted (deleted ViewModels/nested_sources.hpp + restored the view + captures); the xaml column stays at the
+safe blank state. Needs a focused lldb/profiler debugging session on the sim to locate the loop — deferred.
+(Also: the inner `Header="{Binding Title}"` is a second gap — Header is registered as a plain string property,
+not bindable, in register_xaml_items.cpp.)
+
 ## nested_collection + FAKE-GREEN macOS captures discovered (2026-07-18)
 
 Fixed the last non-exempt structural red: **nested_collection** — the code-first inner CV item Label dropped
