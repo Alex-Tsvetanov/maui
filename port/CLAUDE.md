@@ -235,6 +235,15 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
     per-row images are CORRECT; do NOT count the resulting cpp-vs-maui item-image diff on this page, and do NOT
     "fix" the code-first builder back down to the degraded fixed source. (Scope: only content a shared-XAML twin
     demonstrably degrades below original MAUI — NOT a license to diverge from a faithful twin.)
+    **RESOLVED 2026-07-18 (user "fix both sides to match"):** rather than exempt the diff, header_footer_template
+    was UPGRADED on both sides so all three columns show the real per-row images. The shared twin now sets NO
+    inline `<x:Array>`; the CollectionView is `x:Name="ItemsCV"` and the ItemTemplate binds `{Binding Image}` /
+    `{Binding Caption}` off a per-row model assigned in code-behind (MAUI: `HeaderFooterTemplatePage.xaml.cs`
+    `PhotoItem`; port: `gallery_xaml/Views/header_footer_template.xaml.cpp` + `ViewModels/photo_items.hpp`, whose
+    `Image` is a real `i_image_source` since the loader has no string→ImageSource binding converter). `photo.jpg`
+    was added to MauiReference `Resources/Images` and the gallery_xaml bundle (it was missing, so MAUI rendered
+    row-2 blank). Result: iOS maui-vs-cpp SSIM 0.9998 / maui-vs-xaml 0.998 — both green. The ruling's PRINCIPLE
+    stands for any future shared-XAML degradation, but this first example is now a matched page, not an exemption.
 
 ## Progress tracking
 

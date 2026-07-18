@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 167 | 0 | 0 | 129 | 146 |
-| 🟡 Minor | 4 | 0 | 0 | 35 | 19 |
+| 🟢 Match | 167 | 0 | 0 | 130 | 146 |
+| 🟡 Minor | 4 | 0 | 0 | 34 | 19 |
 | 🔴 Major | 0 | 0 | 0 | 8 | 7 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
@@ -2007,13 +2007,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9871, 1.34% pixels differ · Dark: SSIM 0.9849, 1.30% pixels differ
+Light: SSIM 0.9998, 0.01% pixels differ · Dark: SSIM 0.9998, 0.01% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9987, 0.06% pixels differ · Dark: SSIM 0.9986, 0.06% pixels differ
+Light: SSIM 0.9984, 0.07% pixels differ · Dark: SSIM 0.9983, 0.07% pixels differ
 
 ### 75. Header Footer View — 🟢/⏳
 <sub>header_footer_view</sub>

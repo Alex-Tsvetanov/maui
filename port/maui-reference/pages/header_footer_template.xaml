@@ -9,7 +9,7 @@
          model (deferred): the {Binding CurrentTime} readout is replaced with static representative text,
          and the Image's TapGestureRecognizer (Command binding) is omitted (resting UI only). Item rows are
          inlined via x:Array; each row's Image {Binding Image} degrades to a fixed representative source. -->
-    <CollectionView>
+    <CollectionView x:Name="ItemsCV">
         <CollectionView.HeaderTemplate>
             <DataTemplate>
                 <Grid>
@@ -40,13 +40,9 @@
             </DataTemplate>
         </CollectionView.FooterTemplate>
 
-        <CollectionView.ItemsSource>
-            <x:Array Type="{x:Type x:String}">
-                <x:String>cover1.jpg, 0</x:String>
-                <x:String>oasis.jpg, 1</x:String>
-                <x:String>photo.jpg, 2</x:String>
-            </x:Array>
-        </CollectionView.ItemsSource>
+        <!-- ItemsSource is code-behind (PhotoItem { Image, Caption }) — the original PhotoTemplate binds each
+             row's {Binding Image}, so the item template shows each row's real image (cover1/oasis/photo), not
+             a single fixed source. MAUI: HeaderFooterTemplatePage.xaml.cs; port: header_footer_template.xaml.cpp. -->
         <CollectionView.ItemTemplate>
             <DataTemplate>
                 <Grid WidthRequest="200" HeightRequest="100">
@@ -54,9 +50,9 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <Image Source="cover1.jpg" WidthRequest="100" Aspect="AspectFit"
+                    <Image Source="{Binding Image}" WidthRequest="100" Aspect="AspectFit"
                            HorizontalOptions="Center" VerticalOptions="Center" Margin="2,5,2,2" />
-                    <Label Grid.Row="1" Text="{Binding .}" FontSize="12" BackgroundColor="Blue"
+                    <Label Grid.Row="1" Text="{Binding Caption}" FontSize="12" BackgroundColor="Blue"
                            HorizontalTextAlignment="Center" Margin="2,0,2,2" />
                 </Grid>
             </DataTemplate>

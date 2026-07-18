@@ -4,6 +4,24 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## header_footer_template per-row images — "fix both sides", ruling-12 RESOLVED (2026-07-18)
+
+The user chose "fix both sides to match" for the CollectionView item images: instead of exempting the
+cpp-vs-maui item-image diff (ruling 12), MAUI and C++&XAML were UPGRADED so all three columns show each
+row's real image (cover1/oasis/photo), matching the code-first builder. Two root causes were fixed:
+1. **String `{Binding Image}` never bound an image.** The shared twin's `<x:Array>` of plain strings can't
+   bind an `Image`, and the loader has NO string→ImageSource binding converter. Fix: the CollectionView is
+   now `x:Name="ItemsCV"` with NO inline items; the ItemTemplate binds `{Binding Image}`/`{Binding Caption}`
+   off a per-row model assigned in code-behind — MAUI `HeaderFooterTemplatePage.xaml.cs` (`PhotoItem`), port
+   `gallery_xaml/Views/header_footer_template.xaml.cpp` + new `ViewModels/photo_items.hpp` whose `Image` is a
+   real `i_image_source` (`image_source::from_file`), so the `std::any` binding value matches
+   `image::source_property()` exactly and applies directly (no converter).
+2. **MAUI rendered row-2 blank** because `photo.jpg` was missing from MauiReference `Resources/Images` (and
+   the gallery_xaml bundle). Added it to both.
+Result (iOS): maui-vs-cpp SSIM 0.9998 (0.01%) and maui-vs-xaml SSIM 0.998 (0.07%) — both GREEN (was cpp
+yellow). comparison.json diff scoped to this one page; iOS green cells 275→276, 0 regressions. Ruling 12's
+principle stands for future shared-XAML degradations; its first example is now a matched page, not an exemption.
+
 ## iOS phase — STARTED (2026-07-16)
 
 Advanced to iOS after the macOS board reached its practical limit (pixel_xaml 149🟢/21🟡/2🔴, the 2 reds

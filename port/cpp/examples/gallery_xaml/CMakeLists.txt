@@ -23,6 +23,7 @@ set(GALLERY_XAML_RESOURCES
     ${GALLERY_DIR}/resources/dotnet_bot.png
     ${GALLERY_DIR}/resources/ionicons.ttf
     ${GALLERY_DIR}/resources/oasis.jpg
+    ${GALLERY_DIR}/resources/photo.jpg
     ${GALLERY_DIR}/resources/settings.png)
 
 # One translation unit per page (Views/<name>.xaml.cpp, each owning its #embed). Configure-time glob: a new

@@ -13,6 +13,8 @@
 #include <cstddef>
 #include <string_view>
 
+#include "ViewModels/photo_items.hpp"
+#include "maui/controls/items/collection_view.hpp"
 #include "maui/fixed_string.hpp"
 #include "maui/xaml_build.hpp"
 
@@ -62,7 +64,15 @@ namespace examples::Views
     std::unique_ptr<maui::controls::content_page> header_footer_template_page(
         const maui::xaml::xaml_load_options& options)
     {
+        auto page = maui::build_page<maui::no_view_model, header_footer_template_xaml>(options);
+        // Code-behind data assignment (the reflection-free analog of HeaderFooterTemplatePage.xaml.cs): give
+        // the x:Name'd CollectionView the per-row photo items so the ItemTemplate's {Binding Image}/{Binding
+        // Caption} paths resolve to each row's own image (cover1/oasis/photo), matching original MAUI.
+        if (auto list = page->find<maui::controls::collection_view>("ItemsCV"))
+        {
+            list->set_items_source(examples::ViewModels::photo_items());
+        }
         // unique_ptr<page_impl<no_view_model>> upcasts to unique_ptr<content_page> on return.
-        return maui::build_page<maui::no_view_model, header_footer_template_xaml>(options);
+        return page;
     }
 } // namespace examples::Views
