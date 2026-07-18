@@ -125,6 +125,8 @@ namespace maui::samples
             inner_cell->set_binding<std::string, gallery_item>(maui::controls::label::text_property(),
                                                                [](const gallery_item& item) { return item.caption; });
             inner_cell->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::blue);
+            inner_cell->set_value(maui::controls::label::font_property(),
+                                  maui::core::font::system_font_of_size(10)); // shared XAML inner Label FontSize="10"
             outer_cell->set_value(maui::controls::items_view::item_template_property(), inner_cell);
 
             // The inner CV chrome: HeightRequest=100 + both scroll bars Never (the XAML inner CV attrs).

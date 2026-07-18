@@ -11584,8 +11584,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8783, 4.55% pixels differ \u00b7 Dark: SSIM 0.8977, 4.55% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9056, 3.70% pixels differ \u00b7 Dark: SSIM 0.9242, 3.70% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -11628,12 +11628,12 @@
           "review": "Only the 'It's CollectionViews all the way down.' header renders; the nested content is empty \u2014 code-behind data gap."
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9166, 3.18% pixels differ \u00b7 Dark: SSIM 0.9834, 3.76% pixels differ"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.8872, 2.70% pixels differ \u00b7 Dark: SSIM 0.9827, 3.64% pixels differ"
         }
       },
       "android": {

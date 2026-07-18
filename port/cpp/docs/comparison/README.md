@@ -12,8 +12,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
 | 🟢 Match | 167 | 0 | 0 | 146 | 146 |
-| 🟡 Minor | 4 | 0 | 0 | 20 | 19 |
-| 🔴 Major | 0 | 0 | 0 | 6 | 7 |
+| 🟡 Minor | 4 | 0 | 0 | 21 | 19 |
+| 🔴 Major | 0 | 0 | 0 | 5 | 7 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
 
@@ -2952,9 +2952,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8783, 4.55% pixels differ · Dark: SSIM 0.8977, 4.55% pixels differ
+Light: SSIM 0.9056, 3.70% pixels differ · Dark: SSIM 0.9242, 3.70% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -4672,9 +4672,9 @@ Light: SSIM 0.9987, 0.06% pixels differ · Dark: SSIM 0.9987, 0.06% pixels diffe
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 164 | 148 | 0 | 160 | 161 |
-| 🟡 Minor | 8 | 22 | 0 | 12 | 11 |
-| 🔴 Major | 0 | 2 | 0 | 0 | 0 |
+| 🟢 Match | 164 | 148 | 0 | 159 | 160 |
+| 🟡 Minor | 8 | 22 | 0 | 13 | 11 |
+| 🔴 Major | 0 | 2 | 0 | 0 | 1 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
 
@@ -7613,13 +7613,13 @@ Only the 'It's CollectionViews all the way down.' header renders; the nested con
 
 _Not yet reviewed._
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9166, 3.18% pixels differ · Dark: SSIM 0.9834, 3.76% pixels differ
 
-#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.8872, 2.70% pixels differ · Dark: SSIM 0.9827, 3.64% pixels differ
 
 ### 110. Pan Gesture Events — 🟡/⏳
 <sub>pan_gesture_events</sub>

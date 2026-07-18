@@ -4,6 +4,24 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## nested_collection + FAKE-GREEN macOS captures discovered (2026-07-18)
+
+Fixed the last non-exempt structural red: **nested_collection** — the code-first inner CV item Label dropped
+the twin's `FontSize="10"` (rendered ~17pt), so the blue captions were too big. Added `system_font_of_size(10)`.
+iOS cpp RED 4.70% → YELLOW 3.70% (iOS reds 13→12).
+
+**⚠️ FAKE-GREEN macOS captures found.** Recapturing nested_collection's macOS column revealed its committed
+"green" was FAKE: BOTH pixel and pixel_xaml were `SSIM 1.0000 / 0.00%` (byte-identical across maui/cpp/xaml) —
+the signature of the **wrong-window capture bug** (all three columns grabbed the same MauiReference window
+before the saved-state fix). The real recapture shows maui + cpp render the nested content (match, yellow
+3.18%) and **xaml renders BLANK** (the nested-CV-blank loader bug — the compile-time-XAML loader doesn't
+render nested inner CollectionViews), which lands at a borderline red on macOS (SSIM 0.887) vs iOS yellow
+(0.907). So macOS 0→1 red is a CORRECTION of fake-green, not a regression. **Implication:** other pages
+captured during the wrong-window window (roughly the grouping-cluster recapture attempts) may also carry
+fake-green macOS captures → a FULL from-scratch macOS recapture (the loop's "when done" step) is now genuinely
+warranted to re-verify the whole board. The xaml nested-CV-blank is a real deferred loader gap (render nested
+CVs), tracked separately.
+
 ## Tier-2 shared-render-gap yellows — triage (2026-07-18): mostly sub-pixel noise / subtle rendering
 
 After the code-first-divergence cluster was exhausted (iOS 292🟢/38🟡/14🔴), the remaining yellows are
