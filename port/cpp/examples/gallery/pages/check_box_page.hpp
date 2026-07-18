@@ -28,6 +28,8 @@ namespace maui::samples
         {
             page_.set_title("CheckBox");
             stack_.set_spacing(6);
+            stack_.set_padding(maui::core::thickness(16)); // shared XAML root <VerticalStackLayout Padding="16">
+            // (without it the whole page rendered 16pt up-and-left: Default at (197,5) vs MAUI (245,53))
 
             // --- Default ---
             default_headline_.set_text("Default");

@@ -4,6 +4,27 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## More Tier-1 yellows — check_box padding + staggered grid spacing (2026-07-18)
+
+Continuing the yellow plan (code-first divergence vs a green xaml column):
+- **check_box** (cpp 2.32% yellow): the shared root `<VerticalStackLayout Spacing="6" Padding="16">` — the
+  code-first stack had spacing but NO padding, so the page rendered 16pt up-and-left (Default at (197,5) vs
+  MAUI (245,53)). Added `set_padding(16)`. → GREEN 0.16%.
+- **staggered_layout** (cpp 1.53% yellow): same class as header_footer_grid — the code-first set grid
+  `item_spacing=5` (the commented StaggeredGrid's value) but the shared twin degrades to the string form
+  `VerticalGrid, 3` (spacing 0). Dropped the spacing to mirror the twin. → GREEN 0.08%.
+- **alerts** (cpp 2.46%): DEFERRED — margin/spacing already match; the row-pitch differences are irregular
+  (7/24/3px, not a constant), pointing at native Button height rather than stack spacing. Needs a button-
+  measure investigation, not a layout-property fix.
+iOS 281→283 green, 49→47 yellow, 0 regressions.
+
+**VM CAPTURE BLOCKER (escalating):** the cpp gallery's Mac Catalyst window now shrinks to 1024x648 and the
+capture grabs the wrong (MauiReference) window for EVERY cpp page tried this session (grouping + check_box +
+staggered), even at --settle 3.0. Earlier hfg Catalyst captures worked, so it degraded mid-session — likely
+gallery.app window saved-state restoring a small size. macOS recaptures for all these fixes are BLOCKED until
+the VM/app window state is reset (reboot the VM guest / clear the gallery app's saved window state). The iOS
+fixes are verified; macOS will carry the same improvement once the window presents at 1024x800 again.
+
 ## Grouping-cluster yellows — code-first pages dropped shared-XAML item margins/padding (2026-07-18)
 
 Tier-1 of the yellow plan: 4 grouped-CollectionView pages were cpp-YELLOW while xaml was ~perfect

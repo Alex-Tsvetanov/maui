@@ -34,8 +34,6 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
-#include "maui/core/safe_area_edges.hpp"
-#include "maui/core/safe_area_regions.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
 #include "maui/controls/items/items_layout_orientation.hpp"
@@ -43,16 +41,18 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/view.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 
 namespace maui::samples
 {
     class staggered_layout_page
     {
     public:
-        // The commented XAML's StaggeredGridItemsLayout attributes, carried verbatim onto the shipped
-        // GridItemsLayout stand-in (header note).
-        static constexpr int staggered_span = 3;              // Span="3"
-        static constexpr double staggered_item_spacing = 5.0; // Horizontal/VerticalItemSpacing="5"
+        // Span from the commented XAML's StaggeredGridItemsLayout (header note). The commented
+        // Horizontal/VerticalItemSpacing="5" is intentionally NOT applied — the shared-XAML twin degrades
+        // to the string form (spacing 0); the code-first mirror follows it (see set_items_layout below).
+        static constexpr int staggered_span = 3; // Span="3"
 
         // One row of the RandomSizeTemplate-like source: a caption + the per-cell height the
         // RandomSizeTemplate would assign (the "staggered" signal — deterministic here, not Random(),
@@ -69,12 +69,15 @@ namespace maui::samples
         {
             page_.set_title("Staggered Layout");
 
-            // ---- the ItemsLayout: the GridItemsLayout stand-in carrying the commented StaggeredGrid
-            // attributes (Span=3, Vertical, Horizontal+Vertical ItemSpacing=5) — header note ----
+            // ---- the ItemsLayout: the GridItemsLayout stand-in (Span=3, Vertical) ----
+            // This code-first page MIRRORS the shared-XAML twin, which the board compares against MAUI. The
+            // twin degrades the element-form StaggeredGrid to the STRING form `ItemsLayout="VerticalGrid, 3"`
+            // (the loader has no <GridItemsLayout> element-form support), so MAUI + xaml render DEFAULT item
+            // spacing (0), not the commented 5. Applying `staggered_item_spacing` here spread the cells 5pt
+            // wider than the twin (the cpp-only yellow); mirror the string form's default spacing instead.
+            // (If the loader ever gains element-form spacing, upgrade the twin + restore 5 on both sides.)
             auto layout = std::make_shared<maui::controls::grid_items_layout>(
                 staggered_span, maui::controls::items_layout_orientation::vertical);
-            layout->set_horizontal_item_spacing(staggered_item_spacing);
-            layout->set_vertical_item_spacing(staggered_item_spacing);
             list_.set_items_layout(layout);
 
             // ---- the item template: a plain caption Label, exactly what the canonical shared
