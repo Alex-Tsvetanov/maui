@@ -24,6 +24,21 @@ shared-handler fixes (safe-area, button border, checkbox 44-floor, layout margin
 
 IN PROGRESS: full 172-page x 2-theme capture of all 3 apps, then sync + score + triage.
 
+## From-scratch iOS + macOS recapture — 0 regressions confirmed (2026-07-18)
+
+Rebuilt all 3 apps per platform and recaptured the FULL board (every page x 2 themes x 3 columns),
+synced maui, rescored both boards, and diffed status vs the pre-recapture commit:
+- **iOS**: 0 regressions, 9 improvements (`49d615316b`). Board cpp 129🟢/35🟡/8🔴, xaml 146🟢/19🟡/7🔴.
+- **macOS (Catalyst)**: 0 regressions, 31 improvements (`2a39a424fd`). Board cpp 150🟢/22🟡/**0🔴**, xaml
+  160🟢/12🟡/**0🔴** — zero reds.
+Verifies this session's changes (loader SelectedItems/SelectedItem + shared-XAML preselection, gallery-page
+margins/padding, per-row images, radio/CV/picker handler fixes) introduced no regressions. The only apparent
+"regressions" were transient VM/sim CAPTURE artifacts (ios_scroll_view dark grayish frame; Catalyst entry
+wrong-page saved-state restore, time_picker xaml light-in-dark, context_flyout live-Bing-WebView, 5
+present-retry 2048x1536 frames) — all recaptured clean. Remaining iOS reds are all recorded exemptions/
+deferrals (image=network, gestures/pointer/swipe=animated-gif capture gap, radios=native-fallback,
+header_footer_grid + nested_collection=ruling-12 item-spacing, nested_collection xaml=nested-CV-blank bug).
+
 ## iOS cpp-only reds — border cluster fixed; CV selection cluster ESCALATED (2026-07-17)
 
 Beyond the 8 pixel_xaml reds, the cpp (code-first) column had extra reds where the gallery PAGE diverged
