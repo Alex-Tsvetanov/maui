@@ -349,8 +349,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9366, 2.46% pixels differ \u00b7 Dark: SSIM 0.9356, 2.46% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9979, 0.10% pixels differ \u00b7 Dark: SSIM 0.9979, 0.10% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -393,8 +393,8 @@
           "review": "Bold section headers and all five blue action links match MAUI's content and placement in both light and dark themes."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9682, 1.11% pixels differ \u00b7 Dark: SSIM 0.9685, 1.41% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",

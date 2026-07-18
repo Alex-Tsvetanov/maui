@@ -32,7 +32,9 @@ namespace maui::samples
         alerts_page()
         {
             page_.set_title("Alerts");
-            stack_.set_spacing(8);
+            // The twin is <StackLayout Margin="12"> (no Spacing → MAUI StackLayout default 0, confirmed by the
+            // green xaml column). The code-first previously used spacing 8, spreading the rows wider than MAUI.
+            stack_.set_spacing(0);
             stack_.set_margin(maui::core::thickness(12)); // the XAML Margin="12" (uniform) on the content stack
 
             // The shared alerts.xaml has NO general readout label (results surface as native DisplayAlert
@@ -41,6 +43,7 @@ namespace maui::samples
 
             // ---- Display Alert section ----
             alert_header_.set_text("Display Alert");
+            alert_header_.set_font(maui::core::font::system_font_of_size(24, maui::core::font_weight::bold));
             alert_simple_.set_text("Alert Simple");
             alert_simple_.clicked.connect([this] { set_readout("Alert: You have been alerted [OK]"); });
             alert_yes_no_.set_text("Alert Yes/No");
@@ -49,6 +52,7 @@ namespace maui::samples
 
             // ---- Display ActionSheet section ----
             action_header_.set_text("Display ActionSheet");
+            action_header_.set_font(maui::core::font::system_font_of_size(24, maui::core::font_weight::bold));
             action_simple_.set_text("ActionSheet Simple");
             // C# DisplayActionSheet("Send to?", "Cancel", null, "Email","Twitter","Facebook").
             action_simple_.clicked.connect([this] { set_readout("ActionSheet: Send to? -> Email"); });
@@ -58,6 +62,7 @@ namespace maui::samples
 
             // ---- Display Prompt section ----
             prompt_header_.set_text("Display Prompt");
+            prompt_header_.set_font(maui::core::font::system_font_of_size(24, maui::core::font_weight::bold));
             question1_button_.set_text("Question 1");
             // C# OnQuestion1ButtonClicked: result -> "Hello {result}." The canned answer is "Maui".
             question1_button_.clicked.connect([this] {
