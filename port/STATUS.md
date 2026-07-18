@@ -4,6 +4,23 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Grouping-cluster yellows — code-first pages dropped shared-XAML item margins/padding (2026-07-18)
+
+Tier-1 of the yellow plan: 4 grouped-CollectionView pages were cpp-YELLOW while xaml was ~perfect
+(0.02–0.05%) — code-first divergences the loader path renders right. All were dropped-layout-property bugs
+(the code-first page is a MIRROR of the shared twin and must copy its templates verbatim):
+- `basic_grouping`, `grid_grouping`, `grouping_plus_selection`: the item template `<Label Margin="5,0,0,0">`
+  — the code-first item cell set NO margin, so every member row's text sat 5pt (15px @3x) too far left
+  (measured item-left-x 3 vs 18). Added `margin(5,0,0,0)`.
+- `selection_command_param`: the root `<VerticalStackLayout Spacing="6" Padding="12">` — the code-first
+  stack set neither, so the whole page rendered 12pt up-and-left (Pending at (195,4) vs MAUI (231,40), both
+  axes exactly the 12pt padding). Added `set_spacing(6)` + `set_padding(12)`.
+Result: all 4 iOS cpp YELLOW→GREEN (0.07%). iOS 277→281 green, 53→49 yellow, 0 regressions.
+**macOS recapture VM-GATED:** the VM capture grabbed the MauiReference window for the cpp column on all 4
+grouping pages (persistent "window shrank → wrong-window" artifact this session, even at --settle 3.0), so
+the pre-change macOS captures were restored (they stay valid cpp-yellow, ~1.5%). The code fix greens them on
+iOS; a clean VM recapture will carry the same improvement to macOS — REDO when the VM cooperates.
+
 ## Remaining iOS reds — triage after the 2026-07-18 fixes (14 left)
 
 Snapshot after header_footer_template + header_footer_grid landed (iOS reds 15→14):

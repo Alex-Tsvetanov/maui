@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 167 | 0 | 0 | 131 | 146 |
-| 🟡 Minor | 4 | 0 | 0 | 34 | 19 |
+| 🟢 Match | 167 | 0 | 0 | 135 | 146 |
+| 🟡 Minor | 4 | 0 | 0 | 30 | 19 |
 | 🔴 Major | 0 | 0 | 0 | 7 | 7 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
@@ -279,9 +279,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9217, 3.31% pixels differ · Dark: SSIM 0.9201, 3.31% pixels differ
+Light: SSIM 0.9984, 0.07% pixels differ · Dark: SSIM 0.9983, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -1845,9 +1845,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9071, 3.96% pixels differ · Dark: SSIM 0.9053, 3.96% pixels differ
+Light: SSIM 0.9985, 0.07% pixels differ · Dark: SSIM 0.9984, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -1899,9 +1899,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9191, 3.45% pixels differ · Dark: SSIM 0.9171, 3.46% pixels differ
+Light: SSIM 0.9985, 0.07% pixels differ · Dark: SSIM 0.9984, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -3708,9 +3708,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9080, 2.88% pixels differ · Dark: SSIM 0.9070, 2.88% pixels differ
+Light: SSIM 0.9984, 0.07% pixels differ · Dark: SSIM 0.9983, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 

@@ -100,6 +100,11 @@ namespace maui::samples
             // on_selection_changed_command); selection_changed itself need not be subscribed for the test.
             list_.selection_changed_command = [this] { on_selection_changed_command(); };
 
+            // Mirror the shared-XAML root <VerticalStackLayout Spacing="6" Padding="12">. Without these the
+            // whole page rendered 12pt up-and-left of MAUI (measured: content at (195,4) vs MAUI (231,40) —
+            // exactly the 12pt padding on both axes; the item Margin="6" was already set).
+            stack_.set_spacing(6);
+            stack_.set_padding(maui::core::thickness(12));
             stack_.add(result_);
             stack_.add(list_);
             page_.set_content(stack_);

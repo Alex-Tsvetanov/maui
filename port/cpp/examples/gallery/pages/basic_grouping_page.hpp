@@ -34,14 +34,14 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
-#include "maui/core/safe_area_edges.hpp"
-#include "maui/core/safe_area_regions.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/item_collection.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -76,6 +76,8 @@ namespace maui::samples
             auto item_cell = maui::controls::data_template::of<maui::controls::label>();
             item_cell->set_binding<std::string, member>(maui::controls::label::text_property(),
                                                         [](const member& value) { return value.name; });
+            item_cell->set_value(maui::controls::margin_property(),
+                                 maui::core::thickness(5, 0, 0, 0)); // shared XAML item Label Margin="5,0,0,0"
             list_.set_item_template(item_cell);
 
             // ---- the group header template: a LightGreen bold Label bound to Team.Name ----
