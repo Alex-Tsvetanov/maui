@@ -38,6 +38,8 @@ namespace maui::samples
         {
             page_.set_title("Input controls");
             stack_.set_spacing(12);
+            stack_.set_padding(maui::core::thickness(16)); // shared XAML root <VerticalStackLayout Padding="16">
+            // (without it the page rendered 16pt up-and-left: content at (196,4) vs MAUI (244,52))
 
             readout_.set_text("LENGTH: 0");
 

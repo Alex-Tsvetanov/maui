@@ -8695,8 +8695,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9657, 0.88% pixels differ \u00b7 Dark: SSIM 0.9249, 1.18% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9904, 0.45% pixels differ \u00b7 Dark: SSIM 0.9904, 0.45% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -8740,11 +8740,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: SSIM 0.9950, 0.18% pixels differ \u00b7 Dark: SSIM 0.9950, 0.20% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: SSIM 0.9938, 0.22% pixels differ \u00b7 Dark: SSIM 0.9937, 0.23% pixels differ"
         }
       },
       "android": {
