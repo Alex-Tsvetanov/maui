@@ -39,6 +39,7 @@
 #include "maui/controls/radio_button_group.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/core/grid_length.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -48,6 +49,11 @@ namespace maui::samples
         radio_button_group_page()
         {
             page_.set_title("RadioButton Group (Attached Property)");
+
+            // The shared radio_button_group.xaml root is <StackLayout Padding="16" Spacing="6"> — match it
+            // so the code-first column's positions line up with the maui/xaml columns.
+            stack_.set_padding(maui::core::thickness(16));
+            stack_.set_spacing(6);
 
             header_.set_text("All of the RadioButtons in this StackLayout will automatically be given the "
                              "GroupName of 'foo'");

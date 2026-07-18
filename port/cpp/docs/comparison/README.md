@@ -3359,7 +3359,7 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9301, 2.34% pixels differ · Dark: SSIM 0.9292, 2.34% pixels differ
+Light: SSIM 0.9773, 0.90% pixels differ · Dark: SSIM 0.9771, 0.90% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
