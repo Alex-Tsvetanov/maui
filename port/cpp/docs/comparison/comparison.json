@@ -8588,12 +8588,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9315, 5.39% pixels differ \u00b7 Dark: SSIM 0.9027, 5.34% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9867, 0.81% pixels differ \u00b7 Dark: SSIM 0.9829, 0.86% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9953, 2.71% pixels differ \u00b7 Dark: SSIM 0.9699, 2.71% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9882, 0.77% pixels differ \u00b7 Dark: SSIM 0.9846, 0.82% pixels differ"
         }
       },
       "maccatalyst": {

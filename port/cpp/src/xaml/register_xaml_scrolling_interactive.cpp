@@ -22,8 +22,8 @@
 // (try_add_swipe_view_items) into the pre-existing OWNED default collections via *_items_collection().
 //
 // Deferred (no bindable_property accessor, or no text converter and binding-only):
-//   - IndicatorView ItemsSource / Count: std::shared_ptr<i_item_collection> has no text converter;
-//     Count is driven programmatically from ItemsSource; both omitted here.
+//   - IndicatorView ItemsSource: std::shared_ptr<i_item_collection> has no text converter; omitted here.
+//     (Count is a plain int with a public setter and IS registered below — it does not require ItemsSource.)
 //
 // Pattern mirrors register_xaml_range_progress.cpp and uses the register_view_properties<T> helper
 // from register_xaml_helpers.hpp to flatten the shared IView/VisualElement attribute surface.
@@ -312,6 +312,11 @@ namespace maui::xaml
         register_view_properties<controls::indicator_view>(properties);
         properties.register_bindable_property<controls::indicator_view>(
             "IndicatorsShape", controls::indicator_view::indicators_shape_property());
+        // Count is a plain int bindable with a public setter (IndicatorView.cs CountProperty) — settable
+        // directly from XAML text exactly like Position. (Only ItemsSource, whose value is an
+        // i_item_collection with no text converter, stays deferred; Count does NOT require it.)
+        properties.register_bindable_property<controls::indicator_view>("Count",
+                                                                        controls::indicator_view::count_property());
         properties.register_bindable_property<controls::indicator_view>("Position",
                                                                         controls::indicator_view::position_property());
         properties.register_bindable_property<controls::indicator_view>(

@@ -50,6 +50,7 @@
 #include "maui/controls/label.hpp"
 #include "maui/core/grid_length.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
@@ -62,6 +63,13 @@ namespace maui::samples
         indicator_page()
         {
             page_.set_title("IndicatorView");
+
+            // The shared indicator.xaml root is <Grid Padding="12" RowSpacing="6" ColumnSpacing="6"> — set
+            // the same so the code-first column's row positions line up with the maui/xaml columns (without
+            // this the rows pack ~6pt tighter each and the whole grid rides ~12pt higher).
+            grid_.set_padding(maui::core::thickness(12));
+            grid_.set_row_spacing(6);
+            grid_.set_column_spacing(6);
 
             // Eight rows (seven 50-unit caption/indicator rows + a star row for the carousel block);
             // two columns (caption | indicator) — the C# Grid.RowDefinitions/ColumnDefinitions.
@@ -184,6 +192,9 @@ namespace maui::samples
         {
             text.set_text(value);
             text.set_horizontal_text_alignment(maui::core::text_alignment::center);
+            // Each caption is FontAttributes="Bold" in the shared indicator.xaml — match it (default size,
+            // bold weight) so the code-first column agrees with the maui/xaml columns.
+            text.set_font(maui::core::font::system_font_of_weight(maui::core::font_weight::bold));
             grid_.add(text);
             grid_.set_row(text, row);
             grid_.set_column(text, 0);

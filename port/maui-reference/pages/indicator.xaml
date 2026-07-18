@@ -1,8 +1,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.IndicatorPage" Title="IndicatorView">
-    <!-- IndicatorView Count/ItemsSource are not settable from XAML text (loader note), so each row's dot
-         count is driven programmatically at runtime; the caption + supported knobs are reproduced here. -->
+    <!-- Count is a plain int with a public setter (IndicatorView.cs) so each row's dot count is set from
+         XAML text directly — real MAUI parses it natively and the port loader now registers it too, so all
+         three columns render the same dots. (ItemsSource stays code-only; it is not needed here.) -->
     <Grid Padding="12" RowSpacing="6" ColumnSpacing="6">
         <Grid.RowDefinitions>
             <RowDefinition Height="50" />
@@ -20,30 +21,30 @@
         </Grid.ColumnDefinitions>
 
         <Label Text="Basic" FontAttributes="Bold" HorizontalTextAlignment="Center" Grid.Row="0" Grid.Column="0" />
-        <IndicatorView Position="2" Grid.Row="0" Grid.Column="1" />
+        <IndicatorView Count="5" Position="2" Grid.Row="0" Grid.Column="1" />
 
         <Label Text="Colors" FontAttributes="Bold" HorizontalTextAlignment="Center" Grid.Row="1" Grid.Column="0" />
-        <IndicatorView Position="2" SelectedIndicatorColor="Red" IndicatorColor="Blue" BackgroundColor="Yellow"
+        <IndicatorView Count="5" Position="2" SelectedIndicatorColor="Red" IndicatorColor="Blue" BackgroundColor="Yellow"
                        Grid.Row="1" Grid.Column="1" />
 
         <Label Text="Indicator Shape" FontAttributes="Bold" HorizontalTextAlignment="Center" Grid.Row="2" Grid.Column="0" />
-        <IndicatorView Position="2" IndicatorsShape="Square" Grid.Row="2" Grid.Column="1" />
+        <IndicatorView Count="5" Position="2" IndicatorsShape="Square" Grid.Row="2" Grid.Column="1" />
 
         <Label Text="Indicator Size" FontAttributes="Bold" HorizontalTextAlignment="Center" Grid.Row="3" Grid.Column="0" />
-        <IndicatorView Position="2" IndicatorSize="15" Grid.Row="3" Grid.Column="1" />
+        <IndicatorView Count="5" Position="2" IndicatorSize="15" Grid.Row="3" Grid.Column="1" />
 
         <Label Text="Indicator HideSingle" FontAttributes="Bold" HorizontalTextAlignment="Center" Grid.Row="4" Grid.Column="0" />
-        <IndicatorView HideSingle="True" Grid.Row="4" Grid.Column="1" />
+        <IndicatorView Count="1" HideSingle="True" Grid.Row="4" Grid.Column="1" />
 
         <Label Text="Indicator MaximumVisible -  7 of 10" FontAttributes="Bold" HorizontalTextAlignment="Center" Grid.Row="5" Grid.Column="0" />
-        <IndicatorView Position="3" MaximumVisible="7" Grid.Row="5" Grid.Column="1" />
+        <IndicatorView Count="10" Position="3" MaximumVisible="7" Grid.Row="5" Grid.Column="1" />
 
         <Label Text="Indicator Template" FontAttributes="Bold" HorizontalTextAlignment="Center" Grid.Row="6" Grid.Column="0" />
-        <IndicatorView Position="2" IndicatorColor="Transparent" SelectedIndicatorColor="Transparent"
+        <IndicatorView Count="5" Position="2" IndicatorColor="Transparent" SelectedIndicatorColor="Transparent"
                        Grid.Row="6" Grid.Column="1" />
 
         <Label Text="Using with CarouselView" FontAttributes="Bold" HorizontalTextAlignment="Center"
                VerticalTextAlignment="Start" Grid.Row="7" Grid.Column="0" />
-        <IndicatorView IndicatorColor="LightGray" SelectedIndicatorColor="DarkGray" Grid.Row="7" Grid.Column="1" />
+        <IndicatorView Count="3" IndicatorColor="LightGray" SelectedIndicatorColor="DarkGray" Grid.Row="7" Grid.Column="1" />
     </Grid>
 </ContentPage>
