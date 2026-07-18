@@ -996,7 +996,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9996, 0.02% pixels differ \u00b7 Dark: SSIM 0.9996, 0.02% pixels differ"
+          "review": "Light: SSIM 0.9984, 0.07% pixels differ \u00b7 Dark: SSIM 0.9996, 0.02% pixels differ"
         }
       },
       "maccatalyst": {
@@ -3243,7 +3243,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9995, 0.03% pixels differ \u00b7 Dark: SSIM 0.9994, 0.03% pixels differ"
+          "review": "Light: SSIM 0.9985, 0.07% pixels differ \u00b7 Dark: SSIM 0.9994, 0.03% pixels differ"
         }
       },
       "maccatalyst": {
@@ -7523,7 +7523,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9998, 0.01% pixels differ \u00b7 Dark: SSIM 0.9998, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9985, 0.07% pixels differ \u00b7 Dark: SSIM 0.9998, 0.01% pixels differ"
         }
       },
       "maccatalyst": {
@@ -10412,7 +10412,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9990, 0.04% pixels differ \u00b7 Dark: SSIM 0.9989, 0.04% pixels differ"
+          "review": "Light: SSIM 0.9984, 0.07% pixels differ \u00b7 Dark: SSIM 0.9989, 0.04% pixels differ"
         }
       },
       "maccatalyst": {
@@ -11589,7 +11589,7 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9066, 2.64% pixels differ \u00b7 Dark: SSIM 0.9188, 2.64% pixels differ"
+          "review": "Light: SSIM 0.9062, 3.68% pixels differ \u00b7 Dark: SSIM 0.9247, 3.68% pixels differ"
         }
       },
       "maccatalyst": {
@@ -11632,8 +11632,8 @@
           "review": "Light: SSIM 0.9166, 3.18% pixels differ \u00b7 Dark: SSIM 0.9834, 3.76% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8872, 2.70% pixels differ \u00b7 Dark: SSIM 0.9827, 3.64% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9154, 3.21% pixels differ \u00b7 Dark: SSIM 0.9822, 3.79% pixels differ"
         }
       },
       "android": {

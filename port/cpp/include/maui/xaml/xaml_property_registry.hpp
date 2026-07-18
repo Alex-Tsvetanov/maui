@@ -133,6 +133,34 @@ namespace maui::xaml
                          property_entry{.set = std::move(set), .value_type = value_type});
         }
 
+        // A property whose XAML LITERAL is a plain string (boxed by `box_set` into the control's
+        // object-ish target — e.g. CollectionView.Header, a boxed_item) but which ALSO supports a
+        // {Binding}: `bindable_name` is the backing bindable_property's name, so the M7 binding applier
+        // routes Header="{Binding …}" through element::set_binding (the bound value must already match
+        // the property's type at runtime). Literals behave EXACTLY as the plain register_property<…,string>
+        // form (value_type stays std::string, boxed on set), so pages using a literal Header/Footer are
+        // unaffected; only the {Binding} path is added.
+        template <class TControl>
+        void register_string_literal_bindable(std::string xaml_name, std::string_view bindable_name,
+                                              std::function<void(TControl&, const std::string&)> box_set)
+        {
+            add_property(maui::core::type_tag::of<TControl>(), std::move(xaml_name),
+                         property_entry{.set =
+                                            [box_set = std::move(box_set)](maui::core::bindable_object& target,
+                                                                           const std::any& value) {
+                                                auto* control = dynamic_cast<TControl*>(&target);
+                                                const std::string* text = std::any_cast<std::string>(&value);
+                                                if (control == nullptr || text == nullptr)
+                                                {
+                                                    return false;
+                                                }
+                                                box_set(*control, *text);
+                                                return true;
+                                            },
+                                        .value_type = maui::core::type_tag::of<std::string>(),
+                                        .bindable_name = bindable_name});
+        }
+
         // [ContentProperty("Text")]-style VALUE content: name the XAML attribute element text routes to.
         template <class TControl> void register_content_property(std::string xaml_name)
         {

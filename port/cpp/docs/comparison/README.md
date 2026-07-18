@@ -285,7 +285,7 @@ Light: SSIM 0.9984, 0.07% pixels differ · Dark: SSIM 0.9983, 0.07% pixels diffe
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9996, 0.02% pixels differ · Dark: SSIM 0.9996, 0.02% pixels differ
+Light: SSIM 0.9984, 0.07% pixels differ · Dark: SSIM 0.9996, 0.02% pixels differ
 
 ### 11. Basic Swipe — 🟢/⏳
 <sub>basic_swipe</sub>
@@ -852,7 +852,7 @@ Light: SSIM 0.9994, 0.03% pixels differ · Dark: SSIM 0.9993, 0.03% pixels diffe
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9995, 0.03% pixels differ · Dark: SSIM 0.9994, 0.03% pixels differ
+Light: SSIM 0.9985, 0.07% pixels differ · Dark: SSIM 0.9994, 0.03% pixels differ
 
 ### 32. Composition Gallery — 🟢/⏳
 <sub>composition_gallery</sub>
@@ -1932,7 +1932,7 @@ Light: SSIM 0.9983, 0.08% pixels differ · Dark: SSIM 0.9983, 0.08% pixels diffe
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9998, 0.01% pixels differ · Dark: SSIM 0.9998, 0.01% pixels differ
+Light: SSIM 0.9985, 0.07% pixels differ · Dark: SSIM 0.9998, 0.01% pixels differ
 
 ### 72. Header Footer Grid — 🟢/⏳
 <sub>header_footer_grid</sub>
@@ -2661,7 +2661,7 @@ Light: SSIM 0.9985, 0.07% pixels differ · Dark: SSIM 0.9985, 0.07% pixels diffe
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9990, 0.04% pixels differ · Dark: SSIM 0.9989, 0.04% pixels differ
+Light: SSIM 0.9984, 0.07% pixels differ · Dark: SSIM 0.9989, 0.04% pixels differ
 
 ### 99. Items Updating Scroll Mode — 🟢/⏳
 <sub>items_updating_scroll_mode</sub>
@@ -2958,7 +2958,7 @@ Light: SSIM 0.9056, 3.70% pixels differ · Dark: SSIM 0.9242, 3.70% pixels diffe
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9066, 2.64% pixels differ · Dark: SSIM 0.9188, 2.64% pixels differ
+Light: SSIM 0.9062, 3.68% pixels differ · Dark: SSIM 0.9247, 3.68% pixels differ
 
 ### 110. Pan Gesture Events — 🟢/⏳
 <sub>pan_gesture_events</sub>
@@ -4673,8 +4673,8 @@ Light: SSIM 0.9987, 0.06% pixels differ · Dark: SSIM 0.9987, 0.06% pixels diffe
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
 | 🟢 Match | 164 | 148 | 0 | 160 | 160 |
-| 🟡 Minor | 8 | 22 | 0 | 12 | 11 |
-| 🔴 Major | 0 | 2 | 0 | 0 | 1 |
+| 🟡 Minor | 8 | 22 | 0 | 12 | 12 |
+| 🔴 Major | 0 | 2 | 0 | 0 | 0 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 | 172 | 0 | 0 |
 
@@ -7617,9 +7617,9 @@ _Not yet reviewed._
 
 Light: SSIM 0.9166, 3.18% pixels differ · Dark: SSIM 0.9834, 3.76% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8872, 2.70% pixels differ · Dark: SSIM 0.9827, 3.64% pixels differ
+Light: SSIM 0.9154, 3.21% pixels differ · Dark: SSIM 0.9822, 3.79% pixels differ
 
 ### 110. Pan Gesture Events — 🟡/⏳
 <sub>pan_gesture_events</sub>

@@ -269,12 +269,18 @@ namespace maui::xaml
             //   - HeaderTemplate / FooterTemplate: the same minted-data_template object route as
             //     ItemTemplate (an inline <DataTemplate> or a {StaticResource} key).
             //   - ItemSizingStrategy: an enum literal via the converter registered below.
-            properties.register_property<TControl, std::string>("Header", [](TControl& view, const std::string& text) {
-                view.set_header(maui::controls::boxed_item::of(text));
-            });
-            properties.register_property<TControl, std::string>("Footer", [](TControl& view, const std::string& text) {
-                view.set_footer(maui::controls::boxed_item::of(text));
-            });
+            // Header/Footer take a literal string (boxed into the boxed_item object stand-in) OR a
+            // {Binding} to an object — nested_collection.xaml's inner CV uses Header="{Binding Title}".
+            // register_string_literal_bindable keeps the literal path identical (value_type std::string,
+            // boxed on set) while adding the bindable_name so the {Binding} routes through set_binding; the
+            // bound value must already be a boxed_item (the item model supplies boxed_item, matching
+            // header_property/footer_property's type).
+            properties.register_string_literal_bindable<TControl>(
+                "Header", maui::controls::structured_items_view::header_property().name(),
+                [](TControl& view, const std::string& text) { view.set_header(maui::controls::boxed_item::of(text)); });
+            properties.register_string_literal_bindable<TControl>(
+                "Footer", maui::controls::structured_items_view::footer_property().name(),
+                [](TControl& view, const std::string& text) { view.set_footer(maui::controls::boxed_item::of(text)); });
             properties.register_property<TControl, std::shared_ptr<maui::controls::data_template>>(
                 "HeaderTemplate", [](TControl& view, const std::shared_ptr<maui::controls::data_template>& tmpl) {
                     view.set_header_template(tmpl);
