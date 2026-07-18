@@ -4,6 +4,24 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Remaining iOS reds — triage after the 2026-07-18 fixes (14 left)
+
+Snapshot after header_footer_template + header_footer_grid landed (iOS reds 15→14):
+- **Exemptions (do not fix):** `image` (network image, deferred), `gestures`/`pointer_gesture` (xaml,
+  animated-gif capture gap), `ios_swipe_transition` (swipe capture gap).
+- **Radio cluster** (`radio_button_content`, `radio_button_group_gallery`, `radio_content_properties`):
+  ring 0.81x MAUI's, iOS-specific (green on macOS), shared-handler — deferred (see the radio-ring note below).
+- **`border_clip_playground`** (cpp 5.5% vs maui, but cpp-vs-xaml also 5.5% and maui-vs-xaml only 1.85%):
+  the code-first page diverges from the shared twin. ROOT: the twin root is `<Grid Padding="12">` rows
+  `[110, *]` (Border in the fixed 110px row 0, ScrollView in row 1); the code-first page uses a
+  `vertical_stack_layout` with `set_spacing(12)` — the 12px stack gap the Grid lacks cascades every control
+  below. Fix = rebuild the root as a 2-row grid `[110,*]`. CEILING: even matched, cpp lands ~yellow (the
+  shared twin's own border render is 1.85% off maui) plus the ruling-8 picker text (cpp shows the selected
+  "RoundRectangle", maui blank — cpp CORRECT per ruling 8). So it's a red→yellow at best; structural change,
+  next iteration.
+- **`nested_collection`** (cpp 4.55% red, xaml 2.64% yellow): nested inner-CollectionView; BOTH port columns
+  are off maui, so there's a shared nested-CV render gap on top of a cpp divergence — deeper, needs its own pass.
+
 ## header_footer_grid cpp red — code-first grid over-applied spacing the twin lost (2026-07-18)
 
 `header_footer_grid` was cpp-RED on iOS (4.31%) while xaml was GREEN — so the shared XAML renders right; only
