@@ -152,6 +152,19 @@ macOS cpp YELLOW→GREEN (0.24%); horizontal sibling cpp now consistent with xam
 separate shared port-vs-MAUI horizontal-grid diff, not the spacing). iOS reds 15→14, macOS 0 reds held, 0
 regressions. (If the loader ever gains element-form spacing, upgrade the twin + restore 4/2 on both sides.)
 
+## Radio ring config-bump RE-ATTEMPTED with double-count fixed — STILL fails (2026-07-18)
+
+Measured precisely: iOS maui ring 20.3pt vs cpp 17.0pt (0.84); macOS both 15.5pt (match) — so an iOS-ONLY
+enlargement is justified. Applied a `UIImageSymbolConfiguration configurationWithPointSize:21` to the SF-symbol
+ring images, forked `#if !TARGET_OS_MACCATALYST` (Catalyst untouched). The ring size then MATCHED (cpp 20.7pt
+vs maui 21.0pt, 0.98) — but the board got WORSE: radio_button_content 5%→8.1%, radio_content_properties
+6%→9.2%, and scattered_radio_button REGRESSED green→yellow. The bigger ring lifts the row height past MAUI's
+(ring + the existing 8pt contentEdgeInsets vpad overshoots) and shifts the whole layout / re-wraps multi-line
+content. So even with the row-height double-count fixed (8e85cec9cb), the config-bump is a NET NEGATIVE —
+confirming the 2026-07-16 finding a 3rd time. **Reverted.** The ONLY correct fix is rendering the RadioButton
+ControlTemplate (Ellipse indicator + ContentPresenter) natively instead of the SF-symbol UIButton fallback —
+a real templated-content feature, not a tweak. Do NOT re-try symbol/geometry size bumps.
+
 ## Radio cluster iOS reds — ring is 0.81x MAUI's; NEW iOS-specific data (2026-07-18)
 
 The 3 iOS radio reds (radio_button_content 5.0%, radio_button_group_gallery 5.1%, radio_content_properties
