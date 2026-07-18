@@ -122,8 +122,11 @@ def main():
     # The keys that have a hand-written XAML twin (examples/gallery_xaml/Views/*.xaml) — the ONLY keys the
     # C++ & XAML column can render. The MAUI + C++ (builder) columns cover the full 172 (the builder gallery
     # renders every MAUI_GALLERY_PAGES key, exactly as the iOS capture does).
-    xaml_twins = set(os.path.splitext(os.path.basename(f))[0]
-                     for f in glob.glob(os.path.join(ROOT, "examples", "gallery_xaml", "Views", "*.xaml")))
+    # The XAML twins are the gallery_xaml Views TUs: each is <key>.xaml.cpp (it #embeds the shared
+    # ../maui-reference/pages/<key>.xaml — there is NO bare *.xaml file in Views anymore, which is why the
+    # old *.xaml glob silently matched nothing and the xaml column stopped being captured).
+    xaml_twins = set(os.path.basename(f)[: -len(".xaml.cpp")]
+                     for f in glob.glob(os.path.join(ROOT, "examples", "gallery_xaml", "Views", "*.xaml.cpp")))
     builtins = {"controls_stack", "alignment", "shapes", "border", "collectionview", "fonts", "grid", "gradient"}
     def snake(p):
         import re
