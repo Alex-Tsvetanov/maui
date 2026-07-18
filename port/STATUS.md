@@ -152,6 +152,28 @@ macOS cpp YELLOW→GREEN (0.24%); horizontal sibling cpp now consistent with xam
 separate shared port-vs-MAUI horizontal-grid diff, not the spacing). iOS reds 15→14, macOS 0 reds held, 0
 regressions. (If the loader ever gains element-form spacing, upgrade the twin + restore 4/2 on both sides.)
 
+## Max-effort sweep — loop-tractable work EXHAUSTED; 3 reds need dedicated features (2026-07-18)
+
+Under the "resolve ALL no matter how hard/risky" directive, resolved everything loop-tractable and PROVED the
+rest isn't:
+- **Capture-gap reds were STALE GIFs** (not port bugs): ios_swipe_transition, pointer_gesture -> green by
+  refreshing each column's single-frame GIF from a fresh matching capture; gestures also needed the shared-XAML
+  root Padding=12. Same for 3 stale-GIF yellows (empty_view_load_simulate, ios_pan_gesture, swipe_gesture).
+  iOS reds 12->8, +8 green. (activity_indicator=46f / animation=10f are TRULY animated -> phase noise, exempt.)
+- **radio ×3 (6 red cells):** FOUR approaches tried & reverted — pointSize config (ring right, shifts layout),
+  imageView.transform (reset by UIButton), vpad+2 (rows overshoot). Definitive localization of
+  radio_button_content: multi-factor (cumulative drift 0%->26% at the mid bordered-box + ~3.3pt offset), NOT a
+  single-tweak fix. Needs the full ControlTemplate render (Ellipse+Grid+ContentPresenter) — a handler rewrite
+  with regression risk to the currently-GREEN radio pages + Catalyst (which is already correct). Reviewed effort.
+- **image (2 cells):** MIXED — port renders the Font-Image Xbox glyph CORRECTLY (MAUI shows a broken ❓, a
+  MAUI-side quirk) but leaves UriSource (https://aka.ms/campus.jpg) BLANK (no network-image pipeline). Clean
+  green needs BOTH a network-image feature (+ a determinism decision on the live URL) AND fixing the MauiReference
+  font glyph. Twin+port work.
+- **nested_collection:xaml (macOS red):** loader nested-CV realization is a non-deterministic crash/hang (2
+  attempts) — needs interactive lldb.
+Everything else (35 iOS / 23 macOS yellows) is sub-pixel AA, exempt ruling-cases, or animation-phase — not
+resolvable without sub-pixel rendering changes or ruling overrides. Board: iOS 301/35/8, macOS 320/23/1.
+
 ## Radio ring — transform-scale ALSO fails; needs a decoupled custom ring (2026-07-18)
 
 Under the max-effort directive, tried two more approaches — both fail:
