@@ -539,13 +539,30 @@ namespace maui::core
     // through the shared layer applier.
     void search_bar_platform::update_background(const maui::graphics::paint* value)
     {
+        UISearchBar* const bar = as_search_bar(native);
         if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
         {
-            as_search_bar(native).backgroundColor = maui::platform::ios::to_ui_color(solid->color());
+            // SearchBarExtensions.UpdateBackground: a solid Background tints the whole bar chrome via
+            // BarTintColor — NOT layer.backgroundColor, which UISearchBar draws its own chrome OVER (leaving
+            // the red fill partial, the clip_views diff). Transparent clears the bar to a blank image.
+            if (solid->color().alpha <= 0.0F)
+            {
+                bar.backgroundImage = [[UIImage alloc] init];
+                bar.barTintColor = UIColor.clearColor;
+            }
+            else
+            {
+                bar.backgroundImage = nil;
+                bar.barTintColor = maui::platform::ios::to_ui_color(solid->color());
+            }
+        }
+        else if (value == nullptr)
+        {
+            bar.barTintColor = UISearchBar.appearance.barTintColor; // C# null case
         }
         else
         {
-            as_search_bar(native).backgroundColor = nil;
+            // GradientPaint / image → the shared layer applier (ViewExtensions.UpdateBackground path).
             maui::platform::ios::apply_background(native, value);
         }
     }

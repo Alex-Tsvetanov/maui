@@ -58,8 +58,15 @@ namespace maui::platform::ios
     }
 
     // The name tagging the border's shadow layer — a SIBLING of the host in the host's superlayer (see
-    // apply_border_shadow for why the shadow can't live on the masked host layer).
-    inline NSString* const k_border_shadow_layer_name = @"maui.border.shadow";
+    // apply_border_shadow for why the shadow can't live on the masked host layer). The name is scoped PER
+    // HOST (the host layer's address): sibling border/Frame controls in the SAME parent layout (e.g. the
+    // containers page's shadow-less Border next to a HasShadow Frame) share one superlayer, so a single
+    // global name made find_border_shadow_layer match the FIRST such sibling — the Border's reframe then
+    // drove the Frame's shadow layer, painting a spurious halo around the shadow-less Border.
+    inline NSString* border_shadow_layer_name(CALayer* host_layer)
+    {
+        return [NSString stringWithFormat:@"maui.border.shadow.%p", (void*)host_layer];
+    }
 
     // The border's shadow sibling, searched among the host's siblings (the host's superlayer's sublayers).
     inline CALayer* find_border_shadow_layer(CALayer* host_layer)
@@ -69,9 +76,10 @@ namespace maui::platform::ios
         {
             return nil;
         }
+        NSString* const name = border_shadow_layer_name(host_layer);
         for (CALayer* const sub in super_layer.sublayers)
         {
-            if ([sub.name isEqualToString:k_border_shadow_layer_name])
+            if ([sub.name isEqualToString:name])
             {
                 return sub;
             }
@@ -158,7 +166,7 @@ namespace maui::platform::ios
         if (shadow_layer == nil)
         {
             shadow_layer = [CALayer layer];
-            shadow_layer.name = k_border_shadow_layer_name;
+            shadow_layer.name = border_shadow_layer_name(host_layer);
             shadow_layer.backgroundColor = UIColor.clearColor.CGColor; // shadowPath casts the shadow, not content
             [super_layer insertSublayer:shadow_layer below:host_layer];
         }

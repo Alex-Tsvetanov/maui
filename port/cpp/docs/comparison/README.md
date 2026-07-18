@@ -11,8 +11,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 167 | 0 | 0 | 154 | 155 |
-| 🟡 Minor | 4 | 0 | 0 | 18 | 17 |
+| 🟢 Match | 167 | 0 | 0 | 156 | 157 |
+| 🟡 Minor | 4 | 0 | 0 | 16 | 15 |
 | 🔴 Major | 0 | 0 | 0 | 0 | 0 |
 | ⬛ Blank | 1 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
@@ -362,7 +362,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9904, 0.35% pixels differ · Dark: SSIM 0.9912, 0.35% pixels differ
+Light: SSIM 0.9902, 0.36% pixels differ · Dark: SSIM 0.9912, 0.35% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -443,7 +443,7 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9812, 1.34% pixels differ · Dark: SSIM 0.9807, 1.34% pixels differ
+Light: SSIM 0.9817, 1.32% pixels differ · Dark: SSIM 0.9807, 1.34% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -470,7 +470,7 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9785, 1.54% pixels differ · Dark: SSIM 0.9753, 1.55% pixels differ
+Light: SSIM 0.9791, 1.52% pixels differ · Dark: SSIM 0.9753, 1.55% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -497,7 +497,7 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9521, 1.96% pixels differ · Dark: SSIM 0.9523, 1.96% pixels differ
+Light: SSIM 0.9526, 1.95% pixels differ · Dark: SSIM 0.9523, 1.96% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -792,13 +792,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9879, 3.39% pixels differ · Dark: SSIM 0.9783, 3.44% pixels differ
+Light: SSIM 0.9974, 0.12% pixels differ · Dark: SSIM 0.9973, 0.12% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9869, 3.44% pixels differ · Dark: SSIM 0.9783, 3.44% pixels differ
+Light: SSIM 0.9974, 0.12% pixels differ · Dark: SSIM 0.9973, 0.12% pixels differ
 
 ### 30. Clipping — 🟢/⏳
 <sub>clipping</sub>
@@ -900,13 +900,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9726, 2.38% pixels differ · Dark: SSIM 0.9887, 0.57% pixels differ
+Light: SSIM 0.9892, 0.42% pixels differ · Dark: SSIM 0.9883, 0.43% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9732, 2.36% pixels differ · Dark: SSIM 0.9894, 0.55% pixels differ
+Light: SSIM 0.9900, 0.40% pixels differ · Dark: SSIM 0.9897, 0.38% pixels differ
 
 ### 34. Content View — 🟢/⏳
 <sub>content_view</sub>
@@ -2144,7 +2144,7 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9575, 3.95% pixels differ · Dark: SSIM 0.9975, 0.17% pixels differ
+Light: SSIM 0.9565, 3.99% pixels differ · Dark: SSIM 0.9975, 0.17% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -2171,7 +2171,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9882, 0.77% pixels differ · Dark: SSIM 0.9882, 0.77% pixels differ
+Light: SSIM 0.9874, 0.80% pixels differ · Dark: SSIM 0.9882, 0.77% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -3683,7 +3683,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9975, 0.20% pixels differ · Dark: SSIM 0.9973, 0.20% pixels differ
+Light: SSIM 0.9976, 0.19% pixels differ · Dark: SSIM 0.9973, 0.20% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
