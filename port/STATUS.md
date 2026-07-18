@@ -15,6 +15,15 @@ work — BUT providing the data makes the gallery_xaml app **HANG** on the page:
 hang (infinite loop / O(n²) explosion) in realizing 20 nested inner CVs (~200 inner cells) — NOT a quick fix.
 Reverted (deleted ViewModels/nested_sources.hpp + restored the view + captures); the xaml column stays at the
 safe blank state. Needs a focused lldb/profiler debugging session on the sim to locate the loop — deferred.
+**DEEPER DIAGNOSIS (2026-07-18, 2nd attempt):** reduced the data to 2 sources x 3 items — STILL fails, so it is
+NOT an O(n²) count explosion, it is a STRUCTURAL fault in one level of loader nested-CV realization. The
+failure is NON-DETERMINISTIC: sometimes the process exits (crash, no .ips/console), sometimes it hangs with a
+BLACK screen and the MAIN THREAD IDLE in the run loop (`sample` shows only run_app→UIApplicationMain→_run —
+no hot maui frame), and under lldb `continue` it hung with no crash signal. Main-thread-idle + black ⇒ the
+page build/first-layout failed and the render never attached (an exception swallowed, or a background-thread
+crash), NOT a main-thread spin. Pinning it needs INTERACTIVE lldb with breakpoints in the loader's nested
+DataTemplate hydration + the collection_view cell-realization/measure path — not drivable efficiently through
+the Bash tool. This is a dedicated-debugging-session item, confirmed twice.
 (Also: the inner `Header="{Binding Title}"` is a second gap — Header is registered as a plain string property,
 not bindable, in register_xaml_items.cpp.)
 
