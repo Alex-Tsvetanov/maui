@@ -103,20 +103,22 @@ namespace maui::samples
             thick_line_.set_opacity(0.5);
             grid_one_.add(thick_line_);
 
+            // Polygon (100,100 200,100 100,200) — green fill, opacity .5. Added BEFORE the circle: the C#
+            // CompositionGallery.xaml draws the Polygon THEN the yellow Path/EllipseGeometry, so the yellow
+            // circle paints on TOP of the green triangle (not the other way round).
+            triangle_.set_points({{100, 100}, {200, 100}, {100, 200}});
+            triangle_.set_fill(solid(maui::graphics::colors::green));
+            triangle_.set_opacity(0.5);
+            grid_one_.add(triangle_);
+
             // The yellow circle: a plain 100x100 ellipse, no explicit position (Grid-centers itself,
             // landing at 125,125 radius 50 — see header note on MAUI's actual render), yellow fill,
-            // opacity .5. Added BEFORE the triangle so the triangle paints on top, matching MAUI.
+            // opacity .5. Added LAST so it paints on top of the green triangle, matching MAUI's shape order.
             circle_.set_width_request(100);
             circle_.set_height_request(100);
             circle_.set_fill(solid(maui::graphics::colors::yellow));
             circle_.set_opacity(0.5);
             grid_one_.add(circle_);
-
-            // Polygon (100,100 200,100 100,200) — green fill, opacity .5, painted OVER the circle.
-            triangle_.set_points({{100, 100}, {200, 100}, {100, 200}});
-            triangle_.set_fill(solid(maui::graphics::colors::green));
-            triangle_.set_opacity(0.5);
-            grid_one_.add(triangle_);
 
             stack_.add(grid_one_);
 
