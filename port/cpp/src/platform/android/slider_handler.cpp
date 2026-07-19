@@ -882,7 +882,17 @@ namespace maui::core
         {
             return {0, 0};
         }
-        return {static_cast<double>(measured_width) / density, static_cast<double>(measured_height) / density};
+        // DOCUMENTED DEVIATION (ruling 1 + 11 — match the shipped RENDER): real MAUI renders the Slider as a
+        // Material AppCompatSeekBar (~31dp measured row height), but this AAR-less host's plain
+        // android.widget.SeekBar under Theme.DeviceDefault measures only ~18dp, so a page of stacked sliders
+        // accumulated a large upward drift vs MAUI (slider/swipe_threshold/transform* clusters). Floor the
+        // measured height to the Material seekbar row height; the SeekBar centers its thin track/thumb in the
+        // taller band (as MAUI does), so this fixes the row spacing without altering the track visual. Same
+        // spirit as create_platform_view's seed_default_material_tints (reproduce the Material RENDER on the
+        // AAR-less host).
+        constexpr double k_material_seekbar_height_dp = 31.6; // measured off the shipped MAUI render (~87px @2.75)
+        const double height_dp = std::max(static_cast<double>(measured_height) / density, k_material_seekbar_height_dp);
+        return {static_cast<double>(measured_width) / density, height_dp};
     }
 
     void slider_handler::platform_arrange(const maui::graphics::rect& frame)
