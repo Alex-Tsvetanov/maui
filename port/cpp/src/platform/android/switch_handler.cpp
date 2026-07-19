@@ -773,7 +773,14 @@ namespace maui::core
         {
             return {0, 0};
         }
-        return {static_cast<double>(measured_width) / density, static_cast<double>(measured_height) / density};
+        // DOCUMENTED DEVIATION (ruling 1 + 11 — match the shipped RENDER): real MAUI renders the Switch as a
+        // Material SwitchCompat (~48dp measured touch-target row), but this AAR-less host's plain
+        // android.widget.Switch under Theme.DeviceDefault measures shorter, so a page of stacked switches
+        // drifts up vs MAUI. Floor the measured height to the Material switch row height (the thumb/track
+        // center in the taller band as MAUI does) — same fix as slider's k_material_seekbar_height_dp.
+        constexpr double k_material_switch_height_dp = 48.0;
+        const double height_dp = std::max(static_cast<double>(measured_height) / density, k_material_switch_height_dp);
+        return {static_cast<double>(measured_width) / density, height_dp};
     }
 
     void switch_handler::platform_arrange(const maui::graphics::rect& frame)
