@@ -9333,9 +9333,9 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Sonnet 5 — C++ (C1/C3) | Sonnet 5 — C++ &amp; XAML (C2/C4) | Gemini — C++ | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- | --- | --- | --- |
-| 🟢 Match | 162 | 0 | 0 | 96 | 98 |
-| 🟡 Minor | 9 | 0 | 0 | 45 | 44 |
-| 🔴 Major | 1 | 0 | 0 | 31 | 30 |
+| 🟢 Match | 162 | 0 | 0 | 106 | 104 |
+| 🟡 Minor | 9 | 0 | 0 | 45 | 43 |
+| 🔴 Major | 1 | 0 | 0 | 21 | 25 |
 | ⬛ Blank | 0 | 0 | 0 | 0 | 0 |
 | ⏳ Unreviewed | 0 | 172 | 172 | 0 | 0 |
 
@@ -9385,13 +9385,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9913, 1.17% pixels differ
+Light: SSIM 0.9965, 0.40% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9912, 1.18% pixels differ
+Light: SSIM 0.9949, 0.56% pixels differ
 
 ### 3. Adaptive Collection — 🟢/⏳
 <sub>adaptive_collection</sub>
@@ -9418,7 +9418,7 @@ Light: SSIM 0.9976, 0.15% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9999, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ
 
 ### 4. Alerts — 🟢/⏳
 <sub>alerts</sub>
@@ -9601,13 +9601,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7219, 37.92% pixels differ
+Light: SSIM 0.9841, 1.86% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8206, 23.12% pixels differ
+Light: SSIM 0.8204, 23.12% pixels differ
 
 ### 11. Basic Swipe — 🟢/⏳
 <sub>basic_swipe</sub>
@@ -9765,7 +9765,7 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9488, 3.35% pixels differ
+Light: SSIM 0.9548, 2.92% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -10116,11 +10116,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9601, 1.83% pixels differ
+Light: SSIM 0.9603, 1.83% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9601, 1.83% pixels differ
+Light: SSIM 0.9603, 1.83% pixels differ
 
 ### 30. Clipping — 🟢/⏳
 <sub>clipping</sub>
@@ -10168,13 +10168,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8881, 3.98% pixels differ
+Light: SSIM 0.9918, 0.24% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8881, 3.98% pixels differ
+Light: SSIM 0.9918, 0.24% pixels differ
 
 ### 32. Composition Gallery — 🟢/⏳
 <sub>composition_gallery</sub>
@@ -10278,11 +10278,11 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8863, 8.43% pixels differ
+Light: SSIM 0.8861, 4.67% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8863, 8.43% pixels differ
+Light: SSIM 0.8861, 4.67% pixels differ
 
 ### 36. Controls Stack — 🟡/⏳
 <sub>controls_stack</sub>
@@ -10305,11 +10305,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9544, 2.93% pixels differ
+Light: SSIM 0.9538, 2.98% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9544, 2.93% pixels differ
+Light: SSIM 0.9539, 2.98% pixels differ
 
 ### 37. Custom Layout — 🟢/⏳
 <sub>custom_layout</sub>
@@ -10440,11 +10440,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9467, 1.92% pixels differ
+Light: SSIM 0.9467, 1.94% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9467, 1.92% pixels differ
+Light: SSIM 0.9467, 1.94% pixels differ
 
 ### 42. Date Picker — 🟢/⏳
 <sub>date_picker</sub>
@@ -10494,7 +10494,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9883, 0.45% pixels differ
+Light: SSIM 0.9884, 0.45% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -10656,11 +10656,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9118, 3.09% pixels differ
+Light: SSIM 0.9118, 3.12% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9118, 3.09% pixels differ
+Light: SSIM 0.9118, 3.12% pixels differ
 
 ### 50. Empty View Load Simulate — 🟢/⏳
 <sub>empty_view_load_simulate</sub>
@@ -10737,11 +10737,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9218, 2.85% pixels differ
+Light: SSIM 0.9219, 2.88% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9245, 2.80% pixels differ
+Light: SSIM 0.9245, 2.83% pixels differ
 
 ### 53. Empty View Selector — 🟢/⏳
 <sub>empty_view_selector</sub>
@@ -10764,11 +10764,11 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9816, 0.58% pixels differ
+Light: SSIM 0.9816, 0.61% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9816, 0.58% pixels differ
+Light: SSIM 0.9816, 0.61% pixels differ
 
 ### 54. Empty View Swap — 🟢/⏳
 <sub>empty_view_swap</sub>
@@ -10791,11 +10791,11 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8905, 5.18% pixels differ
+Light: SSIM 0.8906, 5.20% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8930, 5.12% pixels differ
+Light: SSIM 0.8931, 5.15% pixels differ
 
 ### 55. Empty View Template — 🟢/⏳
 <sub>empty_view_template</sub>
@@ -10818,11 +10818,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9398, 2.10% pixels differ
+Light: SSIM 0.9399, 2.13% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9398, 2.10% pixels differ
+Light: SSIM 0.9399, 2.13% pixels differ
 
 ### 56. Empty View View — 🟢/⏳
 <sub>empty_view_view</sub>
@@ -10845,11 +10845,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9398, 2.10% pixels differ
+Light: SSIM 0.9399, 2.13% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9398, 2.10% pixels differ
+Light: SSIM 0.9399, 2.13% pixels differ
 
 ### 57. Entry — 🟢/⏳
 <sub>entry</sub>
@@ -10899,11 +10899,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9031, 2.97% pixels differ
+Light: SSIM 0.9030, 2.99% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9035, 2.97% pixels differ
+Light: SSIM 0.9035, 2.99% pixels differ
 
 ### 59. Filter Selection — 🟢/⏳
 <sub>filter_selection</sub>
@@ -10926,11 +10926,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9206, 3.44% pixels differ
+Light: SSIM 0.9207, 3.46% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9206, 3.44% pixels differ
+Light: SSIM 0.9207, 3.46% pixels differ
 
 ### 60. Flex Layout — 🟢/⏳
 <sub>flex_layout</sub>
@@ -11034,7 +11034,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9997, 0.00% pixels differ
+Light: SSIM 0.9998, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -11167,13 +11167,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.5950, 49.58% pixels differ
+Light: SSIM 0.9719, 2.33% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.7337, 33.49% pixels differ
+Light: SSIM 0.7332, 33.49% pixels differ
 
 ### 69. Grouping No Templates — 🟢/⏳
 <sub>grouping_no_templates</sub>
@@ -11194,9 +11194,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8544, 5.73% pixels differ
+Light: SSIM 0.9997, 0.00% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -11221,9 +11221,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7255, 38.72% pixels differ
+Light: SSIM 0.9835, 2.12% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -11250,11 +11250,11 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9820, 0.64% pixels differ
+Light: SSIM 0.9999, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9820, 0.64% pixels differ
+Light: SSIM 0.9999, 0.00% pixels differ
 
 ### 72. Header Footer Grid — 🟢/⏳
 <sub>header_footer_grid</sub>
@@ -11277,7 +11277,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9992, 0.09% pixels differ
+Light: SSIM 0.9993, 0.09% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -11335,7 +11335,7 @@ Light: SSIM 0.9902, 0.28% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8458, 23.47% pixels differ
+Light: SSIM 0.8457, 23.47% pixels differ
 
 ### 75. Header Footer View — 🟢/⏳
 <sub>header_footer_view</sub>
@@ -11547,11 +11547,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9785, 0.80% pixels differ
+Light: SSIM 0.9785, 0.83% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9785, 0.80% pixels differ
+Light: SSIM 0.9785, 0.83% pixels differ
 
 ### 83. Input Transparent — 🟢/⏳
 <sub>input_transparent</sub>
@@ -11871,11 +11871,11 @@ _Not yet reviewed._
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9487, 3.16% pixels differ
+Light: SSIM 0.9488, 3.18% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9487, 3.16% pixels differ
+Light: SSIM 0.9488, 3.18% pixels differ
 
 ### 95. Ios Slider Update On Tap — 🟢/⏳
 <sub>ios_slider_update_on_tap</sub>
@@ -11977,13 +11977,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9787, 0.74% pixels differ
+Light: SSIM 0.9947, 0.18% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9787, 0.74% pixels differ
+Light: SSIM 0.9947, 0.18% pixels differ
 
 ### 99. Items Updating Scroll Mode — 🟢/⏳
 <sub>items_updating_scroll_mode</sub>
@@ -12004,13 +12004,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8366, 5.60% pixels differ
+Light: SSIM 0.9994, 0.00% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8366, 5.60% pixels differ
+Light: SSIM 0.9994, 0.00% pixels differ
 
 ### 100. Label — 🟢/⏳
 <sub>label</sub>
@@ -12139,9 +12139,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8787, 4.75% pixels differ
+Light: SSIM 0.9996, 0.00% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -12220,13 +12220,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9284, 11.12% pixels differ
+Light: SSIM 0.9545, 7.33% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9284, 11.12% pixels differ
+Light: SSIM 0.9545, 7.33% pixels differ
 
 ### 108. Navigation Gallery — 🟢/⏳
 <sub>navigation_gallery</sub>
@@ -12442,7 +12442,7 @@ Light: SSIM 0.9937, 0.63% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9992, 0.41% pixels differ
+Light: SSIM 0.9993, 0.41% pixels differ
 
 ### 116. Pointer Gesture — 🟢/⏳
 <sub>pointer_gesture</sub>
@@ -12544,13 +12544,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8885, 5.45% pixels differ
+Light: SSIM 0.9775, 2.04% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8885, 5.45% pixels differ
+Light: SSIM 0.9785, 2.04% pixels differ
 
 ### 120. Preselected Items — 🟢/⏳
 <sub>preselected_items</sub>
@@ -12571,13 +12571,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7822, 9.23% pixels differ
+Light: SSIM 0.9645, 2.48% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.7822, 9.23% pixels differ
+Light: SSIM 0.9692, 2.20% pixels differ
 
 ### 121. Progress Bar — 🟢/⏳
 <sub>progress_bar</sub>
@@ -12897,7 +12897,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9941, 0.20% pixels differ
+Light: SSIM 0.9940, 0.20% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -12949,9 +12949,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9077, 3.72% pixels differ
+Light: SSIM 0.9995, 0.19% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -13005,11 +13005,11 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8792, 3.67% pixels differ
+Light: SSIM 0.8793, 3.92% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8792, 3.67% pixels differ
+Light: SSIM 0.8793, 3.92% pixels differ
 
 ### 137. Selection Command Param — 🟢/⏳
 <sub>selection_command_param</sub>
@@ -13030,13 +13030,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9418, 1.96% pixels differ
+Light: SSIM 0.9998, 0.00% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9418, 1.96% pixels differ
+Light: SSIM 0.9998, 0.00% pixels differ
 
 ### 138. Selection Synchronization — 🟢/⏳
 <sub>selection_synchronization</sub>
@@ -13086,11 +13086,11 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8749, 5.51% pixels differ
+Light: SSIM 0.8750, 5.55% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8749, 5.51% pixels differ
+Light: SSIM 0.8750, 5.55% pixels differ
 
 ### 140. Shadow Playground — 🟢/⏳
 <sub>shadow_playground</sub>
@@ -13194,11 +13194,11 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9883, 0.42% pixels differ
+Light: SSIM 0.9999, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9883, 0.42% pixels differ
+Light: SSIM 0.9999, 0.00% pixels differ
 
 ### 144. Slider — 🟢/⏳
 <sub>slider</sub>
@@ -13246,9 +13246,9 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9152, 3.32% pixels differ
+Light: SSIM 0.9944, 0.36% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -13300,13 +13300,13 @@ _Not yet reviewed._
 
 _Not yet reviewed._
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9505, 1.61% pixels differ
+Light: SSIM 0.9999, 0.00% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9505, 1.61% pixels differ
+Light: SSIM 0.9999, 0.00% pixels differ
 
 ### 148. Stepper — 🟢/⏳
 <sub>stepper</sub>
@@ -13383,7 +13383,7 @@ _Not yet reviewed._
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9999, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -13599,7 +13599,7 @@ _Not yet reviewed._
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8558, 5.65% pixels differ
+Light: SSIM 0.8563, 6.00% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 

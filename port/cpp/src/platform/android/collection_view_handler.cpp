@@ -867,7 +867,10 @@ namespace maui::controls
                 return 0.0;
             }
             // The band's height (dp): measure the content at the full viewport width with an UNBOUNDED height
-            // (a header stack takes its natural height), then max with the native measure and the min floor.
+            // (a header stack takes its natural height), then max with the native measure. The k_min_row_extent
+            // floor is a FALLBACK for a total measure failure (0) only — MAUI floors nothing, so a naturally
+            // short band (a bare group-header/footer Label ~19-21dp) keeps its real height instead of being
+            // bumped to 24dp (part of the grouping-family drift).
             double height_dp = 0.0;
             if (auto* const v = dynamic_cast<maui::core::i_view*>(realized.get()); v != nullptr)
             {
@@ -876,7 +879,10 @@ namespace maui::controls
             jint height_px = to_pixels(height_dp, density);
             height_px =
                 std::max<jint>(height_px, measure_main_extent(env, child, viewport_width_px, /*vertical=*/true));
-            height_px = std::max<jint>(height_px, to_pixels(k_min_row_extent, density));
+            if (height_px <= 0)
+            {
+                height_px = to_pixels(k_min_row_extent, density);
+            }
             const double band_height_dp = static_cast<double>(height_px) / static_cast<double>(density);
             // The band's top (dp): a VERTICAL CV places header/footer inline along the main-axis cursor; a
             // HORIZONTAL CV places the header at the very top (band_top_dp) and the footer at the very bottom
@@ -1106,7 +1112,7 @@ namespace maui::controls
                 for (int first = 0; first < count; first += span)
                 {
                     const int row_n = std::min(span, count - first);
-                    jint row_extent_px = to_pixels(k_min_row_extent, density);
+                    jint measured_px = 0;
                     // Realize the row's columns, measure each, then place them across the cross axis at the
                     // shared row extent.
                     struct realized_col
@@ -1137,15 +1143,12 @@ namespace maui::controls
                         if (col.native != nullptr)
                         {
                             // Main extent: prefer the realized cell's CROSS-PLATFORM measure (it includes the
-                            // cell's children — the whole point of a templated row), falling back to / taking
-                            // the max with the native View.measure. This mirrors MAUI's Android
-                            // ItemContentView.OnMeasure, which delegates to View.Measure(w,h) (the virtual
-                            // view's cross-platform measure) rather than a naked ViewGroup measure — and the
-                            // port's own place_full_width supplemental path, which already measures the realized
-                            // MAUI view first. WITHOUT this a templated cell whose root is a MauiLayout collapses:
+                            // cell's children — the whole point of a templated row), taking the max with the
+                            // native View.measure. This mirrors MAUI's Android ItemContentView.OnMeasure, which
+                            // delegates to View.Measure(w,h) (the virtual view's cross-platform measure). WITHOUT
+                            // the cross-platform measure a templated cell whose root is a MauiLayout collapses:
                             // MauiLayout.onMeasure resolveSize(0, UNSPECIFIED) == 0, so the native measure returns
-                            // 0, every row floors to k_min_row_extent, and adjacent rows OVERLAP (the Android
-                            // collectionview / nested_collection parity red).
+                            // 0 (handled by the k_min_row_extent fallback below).
                             const double col_cross_dp = static_cast<double>(item_col_px) / static_cast<double>(density);
                             if (auto* const cell_view = dynamic_cast<maui::core::i_view*>(col.retain.get());
                                 cell_view != nullptr)
@@ -1155,13 +1158,21 @@ namespace maui::controls
                                         ? cell_view->measure(col_cross_dp, std::numeric_limits<double>::infinity())
                                         : cell_view->measure(std::numeric_limits<double>::infinity(), col_cross_dp);
                                 const double desired_main_dp = vertical ? desired.height : desired.width;
-                                row_extent_px = std::max(row_extent_px, to_pixels(desired_main_dp, density));
+                                measured_px = std::max(measured_px, to_pixels(desired_main_dp, density));
                             }
-                            row_extent_px =
-                                std::max(row_extent_px, measure_main_extent(env, col.native, item_col_px, vertical));
+                            measured_px =
+                                std::max(measured_px, measure_main_extent(env, col.native, item_col_px, vertical));
                         }
                         cols.push_back(std::move(col));
                     }
+                    // The row's main extent is the max measured of its columns; ONLY a total measure failure
+                    // (every column 0 — e.g. a MauiLayout root resolving UNSPECIFIED to 0) falls back to the
+                    // k_min_row_extent floor so the row can't collapse and overlap the next. MAUI floors nothing:
+                    // an unconditional max with the 24dp floor pushed a naturally short cell (a bare 14sp Label
+                    // that measures ~19dp) up to 24dp/row, accumulating a growing downward drift vs MAUI's ~19dp
+                    // rows (the grid_grouping / grouping-family Android reds — measured cross=native=52px both
+                    // floored to 66px).
+                    const jint row_extent_px = measured_px > 0 ? measured_px : to_pixels(k_min_row_extent, density);
                     const jint row_start_px = to_pixels(cursor_dp, density);
                     for (int c = 0; c < static_cast<int>(cols.size()); ++c)
                     {
