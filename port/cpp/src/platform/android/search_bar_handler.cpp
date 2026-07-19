@@ -224,6 +224,10 @@ namespace
     // [33,33,33] on the light board vs the port's gray [134,134,134]). Tint to that dark default on unset
     // so the icons match the reference; an explicit SearchIconColor / CancelButtonColor still overrides.
     constexpr jint k_default_icon_tint = static_cast<jint>(0xDE000000U);
+    // MAUI's SearchView plate shows only a FAINT gray field underline (measured rgb ~217,217,217); the
+    // DeviceDefault EditText's default 9-patch underline is a dark accent (~rgb 64,72,77). Tint the field
+    // background to the faint gray so the underline matches MAUI (the dark line is a per-row structural diff).
+    constexpr jint k_underline_tint = static_cast<jint>(0xFFD9D9D9U);
 
     // FontManager.DefaultFontSize (Android) — 14sp. (FontManager.GetFontSize fallback.)
     constexpr float k_default_font_size = 14.0F;
@@ -966,6 +970,27 @@ namespace maui::core
         // SearchViewExtensions.UpdateVerticalTextAlignment's TextAlignment.Center fallback.
         call_void_int(env.get(), widget.get(), "setTextAlignment", k_text_alignment_view_start);
         call_void_int(env.get(), widget.get(), "setGravity", k_gravity_center_vertical);
+
+        // Tint the field's 9-patch underline to MAUI's faint gray (see k_underline_tint) via
+        // setBackgroundTintList(ColorStateList.valueOf(...)) — the framework default is a dark accent that
+        // reads as a per-row structural diff vs MAUI's barely-visible SearchView plate underline.
+        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
+        {
+            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
+                                                     "(I)Landroid/content/res/ColorStateList;");
+            jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
+                                                 "(Landroid/content/res/ColorStateList;)V");
+            if (value_of != nullptr && set_bg_tint != nullptr)
+            {
+                const local_ref<jobject> tint{env.get(),
+                                              env->CallStaticObjectMethod(csl_class, value_of, k_underline_tint)};
+                if (!clear_pending(env.get()) && tint)
+                {
+                    env->CallVoidMethod(widget.get(), set_bg_tint, tint.get());
+                    clear_pending(env.get());
+                }
+            }
+        }
 
         // Wrap-content LayoutParams up front: a parentless TextView with null LayoutParams NPEs in
         // checkForRelayout on any setText AFTER the first measure (TextView.java reads

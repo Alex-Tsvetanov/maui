@@ -1384,15 +1384,11 @@ namespace maui::controls
             return std::nullopt;
         }
 
-        // Horizontal CVs use arrange_native's full-width-band model (items flow in the vertical space between
-        // header/footer bands); the measure-first-item main (width) extent does not map onto that cleanly.
-        // Return nullopt so the existing flat estimate stands (unchanged from today) rather than a wrong
-        // width — arrange_native still renders horizontal CVs correctly.
+        // Horizontal CVs: measure-first-item on the CROSS (height) axis — see the !vertical branch after the
+        // measure_element lambda is defined. (Previously this early-returned nullopt, letting the flat
+        // estimate report the CV as filling the viewport height, which over-stretched grid rows to
+        // frame.height/span; header_footer_grid_horizontal drifted its footer to the screen bottom.)
         const bool vertical = platform->orientation == items_layout_orientation::vertical;
-        if (!vertical)
-        {
-            return std::nullopt;
-        }
 
         const scoped_env env_guard;
         if (!env_guard)
@@ -1448,6 +1444,24 @@ namespace maui::controls
             // `realized` (and its off-tree native view) is dropped here — never hosted, never retained.
             return static_cast<double>(main_px) / static_cast<double>(density);
         };
+
+        // HORIZONTAL grid: MAUI sizes the CV to `span × naturalCellHeight` on the cross (height) axis
+        // (default ItemSizingStrategy.MeasureFirstItem) — NOT the full viewport. Measure the first cell at
+        // the full cross width to get its natural one-line height, then the CV height is span rows of it.
+        // arrange_native derives each grid row's height as frame.height/span, so this makes rows pack at
+        // natural height and the following (VSL-sibling) footer sit directly below the CV.
+        if (!vertical)
+        {
+            const double cell_extent_dp =
+                measure_element(view->item_template(), src->item(index_path{.section = 0, .item = 0}), cross_extent_dp,
+                                viewport_width_px);
+            const double height_dp = static_cast<double>(span) * cell_extent_dp;
+            if (height_dp <= 0)
+            {
+                return std::nullopt; // nothing measurable → keep the flat estimate
+            }
+            return maui::graphics::size{cross_extent_dp, height_dp};
+        }
 
         double total_dp = 0;
 
