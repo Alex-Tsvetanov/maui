@@ -97,6 +97,7 @@
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/i_font_image_source.hpp" // font-source band sizing in get_desired_size
 #include "maui/core/i_image.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp" // image_bytes
@@ -962,6 +963,22 @@ namespace maui::core
         {
             return {0, 0};
         }
+        // FONT image source: the AAR-less host has no glyph rasterizer (so no bitmap decodes and the intrinsic
+        // stays 0), but MAUI rasterizes the glyph to a ~Size-dp bitmap and the Image measures to it — its green
+        // background then paints a band at that height. Report the font Size as the intrinsic so the band
+        // renders at MAUI's height (small 20dp / large 90dp); the glyph itself stays blank (inherent — no
+        // rasterizer). Read straight off the virtual view: map_source clears only the platform mirror when the
+        // glyph is empty, NOT the view's Source, so font().size() is still reachable here.
+        if (const auto* view = virtual_view())
+        {
+            if (const auto* font_src = dynamic_cast<const maui::core::i_font_image_source*>(view->source()))
+            {
+                if (const double sz = font_src->font().size(); sz > 0.0)
+                {
+                    return {sz, sz};
+                }
+            }
+        }
         // Intrinsic-bitmap fast path (the iOS SizeThatFitsImage analog): when a file source decoded into a
         // bitmap, report its intrinsic size aspect-fit to any finite constraint. The old path measured the
         // native ImageView, which — with adjustViewBounds + a wrap-content drawable — returns the right
@@ -972,6 +989,34 @@ namespace maui::core
         {
             const double w = platform->intrinsic_width;
             const double h = platform->intrinsic_height;
+            // Single-axis aspect-fit (MAUI's Android ImageView AdjustViewBounds): when ONE of WidthRequest/
+            // HeightRequest is set (EXACTLY) and the other is auto, derive the free axis from the fixed one,
+            // preserving the decoded aspect. The shrink-to-constraint below never re-derives the free axis
+            // from an EXACT request, so e.g. the WidthRequest=200 400x300 animated_heart.gif measured 112dp
+            // tall instead of MAUI's 200*(300/400)=150dp, shifting every image row below it. (Mirrors the
+            // image_button_handler fix; a plain Image has no padding.)
+            // Single-axis aspect-fit ONLY when the free axis is UNCONSTRAINED (infinite) — the exact
+            // WidthRequest-image-in-a-VerticalStackLayout case (e.g. the WidthRequest=200 400x300
+            // animated_heart.gif, whose parent passes infinite height): derive the free axis from the exact
+            // request, preserving the decoded aspect. When the free axis HAS a finite constraint (a bounded
+            // parent such as a Grid cell), the shrink-to-constraint logic below already fits within both axes
+            // and matches MAUI — do NOT override it (that regressed header_footer_template's photo_cell).
+            if (platform->image_aspect == aspect::aspect_fit)
+            {
+                if (const auto* view = virtual_view())
+                {
+                    const double req_w = view->width();  // WidthRequest (NaN when unset)
+                    const double req_h = view->height(); // HeightRequest (NaN when unset)
+                    if (!std::isnan(req_w) && std::isnan(req_h) && !std::isfinite(height_constraint))
+                    {
+                        return {req_w, req_w * (h / w)};
+                    }
+                    if (!std::isnan(req_h) && std::isnan(req_w) && !std::isfinite(width_constraint))
+                    {
+                        return {req_h * (w / h), req_h};
+                    }
+                }
+            }
             double scale = 1.0;
             if (std::isfinite(width_constraint) && width_constraint < w)
             {
