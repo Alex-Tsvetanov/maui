@@ -211,6 +211,12 @@ namespace
     // The icon-to-text inset (CompoundDrawablePadding), a modest gap matching the SearchView's
     // magnifier-to-query indent so the text sits inset from the loupe like MAUI's expanded field.
     constexpr double k_compound_drawable_padding_dp = 8.0;
+    // Default magnifier / clear-X tint when SearchIconColor / CancelButtonColor are UNSET. The framework
+    // ic_menu_search / ic_menu_close_clear_cancel drawables render a mid-GRAY (~#868686) untinted, but
+    // MAUI's SearchView renders its icons at the theme textColorPrimary (~87% black = #DE000000, measured
+    // [33,33,33] on the light board vs the port's gray [134,134,134]). Tint to that dark default on unset
+    // so the icons match the reference; an explicit SearchIconColor / CancelButtonColor still overrides.
+    constexpr jint k_default_icon_tint = static_cast<jint>(0xDE000000U);
 
     // FontManager.DefaultFontSize (Android) — 14sp. (FontManager.GetFontSize fallback.)
     constexpr float k_default_font_size = 14.0F;
@@ -621,12 +627,16 @@ namespace
         {
             return;
         }
+        // Always tint: an explicit color when set, else the dark default (the untinted framework drawable
+        // is a mid-gray that doesn't match MAUI's textColorPrimary icons — see k_default_icon_tint).
+        const jint left_eff = left_is_set ? left_tint : k_default_icon_tint;
+        const jint right_eff = right_is_set ? right_tint : k_default_icon_tint;
         const local_ref<jobject> left =
-            resolve_framework_drawable(env, widget, k_search_icon_field, left_is_set, left_tint);
+            resolve_framework_drawable(env, widget, k_search_icon_field, /*apply_tint=*/true, left_eff);
         local_ref<jobject> right;
         if (has_text)
         {
-            right = resolve_framework_drawable(env, widget, k_clear_icon_field, right_is_set, right_tint);
+            right = resolve_framework_drawable(env, widget, k_clear_icon_field, /*apply_tint=*/true, right_eff);
         }
         env->CallVoidMethod(widget, set_compound, left.get(), static_cast<jobject>(nullptr), right.get(),
                             static_cast<jobject>(nullptr));
