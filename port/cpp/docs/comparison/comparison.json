@@ -647,8 +647,8 @@
           "review": "C2/C4: identical situation to the cpp column \u2014 same sub, same three buttons, same colors in light and dark, but the whole group sits at the top instead of MAUI's sub-centered/buttons-bottom arrangement. Positional/animation-state gap only."
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9783, 0.88% pixels differ \u00b7 Dark: SSIM 0.9810, 1.00% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
