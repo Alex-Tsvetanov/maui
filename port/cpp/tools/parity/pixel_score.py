@@ -89,8 +89,14 @@ def load_pair(path_a, path_b):
     return ia, ib
 
 
-def score_theme(maui_path, other_path):
-    """One (page, platform, theme) MAUI-vs-<framework> score, or None if either file is missing."""
+def score_theme(maui_path, other_path, crop_top=0):
+    """One (page, platform, theme) MAUI-vs-<framework> score, or None if either file is missing.
+
+    crop_top: rows to drop from the TOP of both images before comparing — used on Android to exclude the
+    system STATUS BAR (clock/battery/wifi), which differs between captures purely because they were shot at
+    different times, not because of any port rendering (the same capture-chrome exemption the iOS harness
+    inset gets under ruling 2). Measured: the status bar occupies rows 0..~135 and differs on 100% of pages;
+    the page content below it aligns. Both hosts run NoActionBar, so there is no app title bar to keep."""
     if not maui_path or not other_path:
         return None
     abs_maui = os.path.join(COMP, maui_path)
@@ -98,6 +104,10 @@ def score_theme(maui_path, other_path):
     if not (os.path.isfile(abs_maui) and os.path.isfile(abs_other)):
         return None
     ia, ib = load_pair(abs_maui, abs_other)
+    if crop_top > 0:
+        w, h = ia.size
+        if h > crop_top:
+            ia, ib = ia.crop((0, crop_top, w, h)), ib.crop((0, crop_top, w, h))
     a_rgb = np.asarray(ia.convert("RGB"), dtype=np.int16)
     b_rgb = np.asarray(ib.convert("RGB"), dtype=np.int16)
     diff_pct = float(np.mean(np.max(np.abs(a_rgb - b_rgb), axis=-1) > DIFF_THRESHOLD) * 100)
@@ -157,7 +167,8 @@ def main():
             themes = THEMES if plat != "android" else ("light",)
             for fw, slot in SLOTS:
                 other = sc.get(fw, {})
-                theme_scores = {t: score_theme(maui.get(t), other.get(t)) for t in themes}
+                crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_theme)
+                theme_scores = {t: score_theme(maui.get(t), other.get(t), crop_top) for t in themes}
                 status, review = classify(theme_scores)
                 platform[slot] = {"status": status, "review": review}
                 scored += 1
