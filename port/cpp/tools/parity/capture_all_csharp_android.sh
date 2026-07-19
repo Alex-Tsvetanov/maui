@@ -1,23 +1,28 @@
 #!/usr/bin/env bash
-# Capture every maui-compare (REAL .NET MAUI) gallery page on the `maui-test` Android emulator into
+# Capture every MauiReference (REAL .NET MAUI, the canonical shared-XAML ground truth per port/CLAUDE.md
+# ruling 6) gallery page on the `maui-test` Android emulator into
 # docs/comparison/captures/android/maui/<key>_light.png — the ground-truth MAUI reference column (twin
 # of the iOS capture_all_csharp.py and the C++ column's build_android_apphost.sh; the canonical layout
 # build_comparison_json.py + gen_readme.py read). Android has no dark capture, hence the fixed _light suffix.
 #
-# The maui-compare app (~/maui-compare, MauiCompare.csproj) already renders all 172 canonical pages
-# (8 built-in switch keys in ComparePages.cs + 168 Pages/<Pascal>Page.cs resolved by reflection). On
-# Android the page key is passed as an INTENT EXTRA (--es MAUI_COMPARE_PAGE <key>) because `am start`
-# does NOT propagate process env vars; App.xaml.cs reads Platform.CurrentActivity.Intent on ANDROID
+# MIGRATED 2026-07-19 from the superseded ~/maui-compare app (com.companyname.mauicompare) to the in-repo
+# port/maui-reference/app (MauiReference, dev.mauicpp.mauireference) — the same app iOS/maccatalyst already
+# use, which renders the CANONICAL shared XAML (port/maui-reference/pages/*.xaml, the exact bytes gallery_xaml
+# #embeds). The old maui-compare rendered its own hand-written C# pages, which had DIVERGED from the shared
+# XAML after the P2 conversion (22e594be2e), so the Android maui column was stale-vs-the-other-platforms.
+# MauiReference reads the SAME MAUI_COMPARE_PAGE intent extra (App.xaml.cs ResolveValue), so only the package
+# name changed. On Android the page key is passed as an INTENT EXTRA (--es MAUI_COMPARE_PAGE <key>) because
+# `am start` does NOT propagate process env vars; App.xaml.cs reads Platform.CurrentActivity.Intent on ANDROID
 # and falls back to the env var on iOS/maccatalyst (unchanged there).
 #
-# BUILD + INSTALL (do this before running, from ~/maui-compare — assemblies must be EMBEDDED in the
+# BUILD + INSTALL (do this before running, from port/maui-reference/app — assemblies must be EMBEDDED in the
 # APK, i.e. NOT Fast Deployment, so a plain `adb install` is self-contained):
 #   export PATH=/opt/homebrew/bin:$PATH                       # the workload-bearing (Homebrew) dotnet
 #   export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
 #   export JAVA_HOME=/opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home
 #   dotnet build -f net10.0-android -c Debug -p:EmbedAssembliesIntoApk=true -p:AndroidFastDeploymentType=
 #   adb -s emulator-5554 install -r \
-#     bin/Debug/net10.0-android/com.companyname.mauicompare-Signed.apk
+#     bin/Debug/net10.0-android/dev.mauicpp.mauireference-Signed.apk
 # (This script only DRIVES an already-installed app; it does not build.)
 #
 # Deterministic per-page capture (mirrors build_android_apphost.sh's wave-15 fix, NOT a blind sleep):
@@ -37,7 +42,7 @@ source "${cpp_root}/tools/android-emu-lib.sh"
 maui_android_resolve_tools
 maui_android_ensure_booted   # reuse the running maui-test emulator, or boot it
 
-pkg="com.companyname.mauicompare"
+pkg="dev.mauicpp.mauireference"
 # MAUI mangles the Activity name; resolve it from the launcher intent rather than hard-coding the crc.
 activity="$("${maui_adb}" -s "${maui_serial}" shell cmd package resolve-activity \
   -c android.intent.category.LAUNCHER "${pkg}" 2>/dev/null \
