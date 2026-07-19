@@ -52,6 +52,7 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/grid.hpp"
 #include "maui/controls/items/boxed_item.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/i_items_view.hpp"
@@ -64,9 +65,14 @@
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/grid_length.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/layout_alignment.hpp"
+#include "maui/core/layout_handler.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/graphics/colors.hpp"
+#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -95,6 +101,69 @@ namespace maui::samples
             }
         };
 
+        // The OUTER cell — a 2-COLUMN Grid reproducing MAUI's shipped render: the red-italic Title in a
+        // width-Auto column 0, the inner HORIZONTAL CollectionView (its image/caption items) in the star
+        // column 1, so the Title sits on the LEFT and the captions flow to its RIGHT on the same top line
+        // (measured off the Android maui capture — Title at x~0, first caption at x~146). This replaces the
+        // earlier "Title as the inner CV's Header" reduction: the port renders a horizontal CV's Header as a
+        // full-width TOP band (the wave-27 no-horizontal-scroll deviation, kept for header_footer_grid_
+        // horizontal), which put the Title ABOVE the captions instead of beside them. Carrying the Title in
+        // its own Grid column — NOT the CV Header — sidesteps that band model and matches MAUI. Mirrors the
+        // header_footer_template.hpp `photo_cell : grid` pattern; default-constructible so a
+        // data_template::of<source_cell>() activates it; its handler is the shared layout_handler
+        // (registered in register_handlers). on_binding_context_changed pushes the bound Title + inner items.
+        class source_cell : public maui::controls::grid
+        {
+        public:
+            source_cell()
+            {
+                add_column_definition(maui::core::grid_length::automatic()); // col 0: the Title (Auto width)
+                add_column_definition(maui::core::grid_length::star());      // col 1: the inner horizontal CV
+                set_column_spacing(4); // caption lands just right of the Title (~x146 in the MAUI render)
+
+                // col 0 — the red italic Title (XAML TextColor=Red / FontAttributes=Italic), top-aligned.
+                title_.set_text_color(maui::graphics::colors::red);
+                title_.set_font(maui::core::font::system_font_of_weight(maui::core::font_weight::regular,
+                                                                        maui::core::font_slant::italic));
+                title_.set_vertical_layout_alignment(maui::core::layout_alignment::start);
+                add(title_); // column 0 (default)
+
+                // col 1 — the inner HORIZONTAL CollectionView: HeightRequest=100, both scroll bars Never, an
+                // ItemTemplate of a blue 10pt caption Label bound to gallery_item.caption (the XAML inner CV).
+                inner_.set_items_layout(maui::controls::linear_items_layout::create_horizontal_default());
+                inner_.set_height_request(100);
+                inner_.set_vertical_layout_alignment(maui::core::layout_alignment::start);
+                inner_.set_horizontal_scroll_bar_visibility(maui::core::scroll_bar_visibility::never);
+                inner_.set_vertical_scroll_bar_visibility(maui::core::scroll_bar_visibility::never);
+                auto caption = maui::controls::data_template::of<maui::controls::label>();
+                caption->set_binding<std::string, gallery_item>(maui::controls::label::text_property(),
+                                                                [](const gallery_item& it) { return it.caption; });
+                caption->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::blue);
+                caption->set_value(maui::controls::label::font_property(),
+                                   maui::core::font::system_font_of_size(10)); // XAML inner Label FontSize="10"
+                inner_.set_item_template(caption);
+                add(inner_);
+                set_column(inner_, 1);
+            }
+
+        protected:
+            // The realize path sets this cell's BindingContext to the outer nested_source; push its Title to
+            // the Label and its Items to the inner CV's ItemsSource (so each realized inner CV hosts its own).
+            void on_binding_context_changed() override
+            {
+                maui::controls::grid::on_binding_context_changed(); // propagate to children first
+                if (const auto src = binding_context<nested_source>())
+                {
+                    title_.set_text(src->title);
+                    inner_.set_items_source(src->items);
+                }
+            }
+
+        private:
+            maui::controls::label title_;
+            maui::controls::collection_view inner_;
+        };
+
         nested_collection_page()
             : sources_(std::make_shared<maui::core::observable_collection<nested_source>>(build_sources()))
         {
@@ -107,62 +176,12 @@ namespace maui::samples
             // ---- the OUTER CollectionView (ItemsLayout VerticalList) ----
             outer_.set_items_layout(maui::controls::linear_items_layout::create_vertical_default());
 
-            // ---- the outer item template: the cell IS an inner collection_view (header note) ----
-            auto outer_cell = maui::controls::data_template::of<maui::controls::collection_view>();
-
-            // The XAML inner CV is a HorizontalList. ItemsLayout is a plain slot (NOT a
-            // bindable_property), so it cannot be staged through the template's Values; a template SETUP
-            // action carries the C# lambda template's `inner.ItemsLayout = LinearItemsLayout.Horizontal`
-            // instead (data_template::add_setup) — so each realized inner CV flows its image/caption
-            // items in a horizontal row, matching MAUI (the prior "horizontal CV renders vertically"
-            // gap is closed).
-            outer_cell->add_setup<maui::controls::collection_view>([](maui::controls::collection_view& inner) {
-                inner.set_items_layout(maui::controls::linear_items_layout::create_horizontal_default());
-            });
-
-            // The inner CV's own ItemTemplate: a blue caption Label bound to gallery_item.Caption.
-            auto inner_cell = maui::controls::data_template::of<maui::controls::label>();
-            inner_cell->set_binding<std::string, gallery_item>(maui::controls::label::text_property(),
-                                                               [](const gallery_item& item) { return item.caption; });
-            inner_cell->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::blue);
-            inner_cell->set_value(maui::controls::label::font_property(),
-                                  maui::core::font::system_font_of_size(10)); // shared XAML inner Label FontSize="10"
-            outer_cell->set_value(maui::controls::items_view::item_template_property(), inner_cell);
-
-            // The inner CV chrome: HeightRequest=100 + both scroll bars Never (the XAML inner CV attrs).
-            outer_cell->set_value(maui::controls::height_request_property(), 100.0);
-            outer_cell->set_value(maui::controls::items_view::horizontal_scroll_bar_visibility_property(),
-                                  maui::core::scroll_bar_visibility::never);
-            outer_cell->set_value(maui::controls::items_view::vertical_scroll_bar_visibility_property(),
-                                  maui::core::scroll_bar_visibility::never);
-
-            // The inner CV's ItemsSource = the outer item's {Binding Items}: bind it off each outer
-            // nested_source so every realized inner CV hosts its own source.
-            outer_cell->set_binding<std::shared_ptr<maui::controls::i_item_collection>, nested_source>(
-                maui::controls::items_view::items_source_property(),
-                [](const nested_source& src) { return src.items; });
-
-            // The outer item's Title is the red italic Label that sits ABOVE the inner horizontal list
-            // (XAML: TextColor=Red, FontAttributes=Italic). The port's templated cell renders a single
-            // root (the inner CV), so the Title surfaces as that inner CV's HEADER (header note). The
-            // Header VALUE is the source Title (a boxed string bound off each outer item — so the realized
-            // header's BindingContext IS that title string), and a Header TEMPLATE renders it RED + ITALIC
-            // like MAUI instead of the plain headline-font default supplementary. The header label binds
-            // the self path (the boxed string context = the title) and carries the red color + italic
-            // slant (FontAttributes.Italic → font_slant::italic, the port convention).
-            auto header_cell = maui::controls::data_template::of<maui::controls::label>();
-            header_cell->set_binding<std::string, std::string>(maui::controls::label::text_property(),
-                                                               [](const std::string& title) { return title; });
-            header_cell->set_value(maui::controls::label::text_color_property(), maui::graphics::colors::red);
-            header_cell->set_value(maui::controls::label::font_property(),
-                                   maui::core::font::system_font_of_weight(maui::core::font_weight::regular,
-                                                                           maui::core::font_slant::italic));
-            outer_cell->set_binding<maui::controls::boxed_item, nested_source>(
-                maui::controls::structured_items_view::header_property(),
-                [](const nested_source& src) { return maui::controls::boxed_item::of(src.title); });
-            outer_cell->set_value(maui::controls::structured_items_view::header_template_property(), header_cell);
-
-            outer_.set_item_template(outer_cell);
+            // ---- the outer item template: a source_cell (Title in col 0, inner horizontal CV in col 1) ----
+            // Each realized source_cell binds its Title + inner ItemsSource off the outer nested_source in
+            // source_cell::on_binding_context_changed — so the Title sits LEFT of the captions on one line,
+            // matching MAUI (see the source_cell doc comment for why the prior Title-as-CV-Header rendered
+            // the Title as a top band instead).
+            outer_.set_item_template(maui::controls::data_template::of<source_cell>());
 
             // ---- ItemsSource = the view model's 20 sources ----
             outer_.set_items_source(sources_);
@@ -175,6 +194,16 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
+        }
+
+        // PRE-MOUNT hook (gallery_host.hpp gallery_pre_mount detects it via `requires`): register the
+        // source_cell handler BEFORE the collection_view realize walks the tree. source_cell is a brand-new
+        // user type (like header_footer_template's photo_cell), so of<source_cell>() → create_handler resolves
+        // it through THIS app's per-app handler_registry — without this it falls back to the text mirror and
+        // the captions/inner CV go missing. source_cell is a grid subclass, so it uses the layout_handler.
+        void register_handlers(maui::hosting::maui_app& app)
+        {
+            maui::core::register_handler<source_cell, maui::core::layout_handler>(app.handlers());
         }
 
         // The owned controls, exposed for the hosting main's bottom-up handler attachment / tests.
