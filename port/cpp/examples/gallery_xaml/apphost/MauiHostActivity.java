@@ -25,6 +25,24 @@ public final class MauiHostActivity extends Activity {
     // returns the window's content FrameLayout (or null on failure).
     private native View nativeMount(String pageKey);
 
+    // The window's USABLE CONTENT height in PIXELS = getCurrentWindowMetrics().getBounds().height() minus the
+    // system-bar insets — see the C++ builder host's twin (src/platform/android/apphost/MauiHostActivity.java)
+    // for the full rationale (DisplayMetrics.heightPixels double-subtract on API 30+). The native display_size
+    // uses this DIRECTLY. 0 => the legacy DisplayMetrics - dimen-chrome fallback. Called via JNI ("usableContentHeightPx" "()I").
+    public int usableContentHeightPx() {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                android.view.WindowMetrics wm = getWindowManager().getCurrentWindowMetrics();
+                android.graphics.Insets bars = wm.getWindowInsets()
+                    .getInsets(android.view.WindowInsets.Type.systemBars());
+                return wm.getBounds().height() - bars.top - bars.bottom;
+            }
+        } catch (Throwable t) {
+            // fall through to 0 -> native dimen fallback
+        }
+        return 0;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

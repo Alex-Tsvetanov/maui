@@ -27,6 +27,28 @@ public final class MauiHostActivity extends Activity {
     // connects a maui window to it, and returns the window's content FrameLayout (or null on failure).
     private native View nativeMount(String pageKey);
 
+    // The window's USABLE CONTENT height in PIXELS = getCurrentWindowMetrics().getBounds().height() minus the
+    // system-bar insets (status bar top + navigation/gesture bar bottom), via the timing-safe
+    // WindowManager.getCurrentWindowMetrics() (API 30+, valid at mount time — no view-attachment dependency).
+    // This is exactly the area MAUI lays its content into. The native display_size uses it DIRECTLY instead of
+    // DisplayMetrics.heightPixels - navigation_bar_height dimen, which double-subtracted the chrome on API 30+
+    // (DisplayMetrics.heightPixels already excludes the bars there), leaving *-row / auto-sized pages ~200px
+    // short of the gesture-nav pill the real MAUI app reaches. Returns 0 on older APIs / any failure, so the
+    // caller falls back to the legacy DisplayMetrics - dimen-chrome path. Called via JNI ("usableContentHeightPx" "()I").
+    public int usableContentHeightPx() {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 30) {
+                android.view.WindowMetrics wm = getWindowManager().getCurrentWindowMetrics();
+                android.graphics.Insets bars = wm.getWindowInsets()
+                    .getInsets(android.view.WindowInsets.Type.systemBars());
+                return wm.getBounds().height() - bars.top - bars.bottom;
+            }
+        } catch (Throwable t) {
+            // fall through to 0 -> native dimen fallback
+        }
+        return 0;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -341,6 +341,44 @@ namespace
         return total;
     }
 
+    // MauiHostActivity.usableContentHeightPx() via JNI — the window's usable content height in PIXELS
+    // (getCurrentWindowMetrics().getBounds().height() minus the system-bar insets, API 30+). This is what
+    // MAUI lays out into; using it directly avoids the double-subtract of the chrome (DisplayMetrics.heightPixels
+    // already excludes the bars on API 30+). Returns 0 on older API / any failure, so display_size falls back
+    // to the legacy DisplayMetrics - content_chrome_height_px path.
+    [[nodiscard]] jint usable_content_height_px(JNIEnv* env, jobject activity)
+    {
+        if (env == nullptr || activity == nullptr)
+        {
+            return 0;
+        }
+        const auto clear = [&]() {
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+            }
+        };
+        const maui::platform::android::local_ref<jclass> activity_class{env, env->GetObjectClass(activity)};
+        if (!activity_class)
+        {
+            clear();
+            return 0;
+        }
+        const jmethodID mid = env->GetMethodID(activity_class.get(), "usableContentHeightPx", "()I");
+        if (mid == nullptr)
+        {
+            clear();
+            return 0;
+        }
+        const jint px = env->CallIntMethod(activity, mid);
+        if (env->ExceptionCheck() == JNI_TRUE)
+        {
+            clear();
+            return 0;
+        }
+        return px > 0 ? px : 0;
+    }
+
     // The Activity's display metrics (widthPixels x heightPixels) via JNI:
     // activity.getResources().getDisplayMetrics().{widthPixels,heightPixels}, divided by the metrics
     // `density` to yield framework POINTS. The height is reduced by the system chrome the content view does
@@ -414,15 +452,28 @@ namespace
         {
             return fallback;
         }
-        // Reduce the height by the system chrome the content view never receives (status bar + navigation
-        // bar; NO action bar — the NoActionBar theme has none). Without this, a bottom-anchored row (a
-        // `*`-over-`Auto` Grid like update_path_data) lands below the visible content frame. Clamp so a
-        // bogus chrome read can never zero/invert the height.
-        const jint chrome_px = content_chrome_height_px(env, activity);
+        // The content view never receives the system chrome (status bar + navigation/gesture bar; NO action
+        // bar — NoActionBar theme). Prefer the TRUE usable content height from the window metrics
+        // (MauiHostActivity.usableContentHeightPx() = getCurrentWindowMetrics().getBounds().height() minus the
+        // systemBars insets, API 30+) — this is exactly what MAUI lays out into, and it AVOIDS the
+        // double-subtract bug: on API 30+ DisplayMetrics.heightPixels ALREADY excludes the bars, so the legacy
+        // `heightPixels - content_chrome_height_px` path subtracted the ~200px chrome twice (a bottom-anchored
+        // row / *-star grid then stopped ~200px short of the gesture-nav pill the real MAUI app reaches).
+        // Fallback (older API / helper unavailable): the legacy heightPixels - dimen-chrome, clamped so a bogus
+        // read can never zero/invert the height (this still fixes the update_path_data bottom-row case there).
         jint content_height_px = height_px;
-        if (chrome_px > 0 && chrome_px < height_px)
+        const jint usable_px = usable_content_height_px(env, activity);
+        if (usable_px > 0)
         {
-            content_height_px -= chrome_px;
+            content_height_px = usable_px;
+        }
+        else
+        {
+            const jint chrome_px = content_chrome_height_px(env, activity);
+            if (chrome_px > 0 && chrome_px < height_px)
+            {
+                content_height_px -= chrome_px;
+            }
         }
         return {static_cast<double>(width_px) / density, static_cast<double>(content_height_px) / density};
     }

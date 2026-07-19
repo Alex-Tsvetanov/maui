@@ -243,6 +243,43 @@ namespace
         return total;
     }
 
+    // MauiHostActivity.usableContentHeightPx() via JNI — the window's usable content height in PIXELS
+    // (getCurrentWindowMetrics().getBounds().height() minus the system-bar insets, API 30+). Used DIRECTLY by
+    // display_size to avoid the DisplayMetrics.heightPixels double-subtract of the chrome (see the C++ builder
+    // host's twin). 0 on older API / failure => the legacy DisplayMetrics - content_chrome_height_px fallback.
+    [[nodiscard]] jint usable_content_height_px(JNIEnv* env, jobject activity)
+    {
+        if (env == nullptr || activity == nullptr)
+        {
+            return 0;
+        }
+        const auto clear = [&]() {
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+            }
+        };
+        const maui::platform::android::local_ref<jclass> activity_class{env, env->GetObjectClass(activity)};
+        if (!activity_class)
+        {
+            clear();
+            return 0;
+        }
+        const jmethodID mid = env->GetMethodID(activity_class.get(), "usableContentHeightPx", "()I");
+        if (mid == nullptr)
+        {
+            clear();
+            return 0;
+        }
+        const jint px = env->CallIntMethod(activity, mid);
+        if (env->ExceptionCheck() == JNI_TRUE)
+        {
+            clear();
+            return 0;
+        }
+        return px > 0 ? px : 0;
+    }
+
     // The Activity's display metrics -> framework POINTS, reduced by the system chrome. Verbatim from the
     // C++ host (falls back to the ios/headless portrait phone viewport when any JNI step fails).
     size2 display_size(JNIEnv* env)
@@ -307,11 +344,23 @@ namespace
         {
             return fallback;
         }
-        const jint chrome_px = content_chrome_height_px(env, activity);
+        // Prefer the TRUE usable content height from the window metrics (bounds - system-bar insets), matching
+        // MAUI and avoiding the DisplayMetrics.heightPixels double-subtract on API 30+ (see the C++ builder
+        // host's twin). Fallback: the legacy heightPixels - dimen-chrome (which here also omitted the bottom
+        // nav inset, so the page over-extended under the gesture-nav pill).
         jint content_height_px = height_px;
-        if (chrome_px > 0 && chrome_px < height_px)
+        const jint usable_px = usable_content_height_px(env, activity);
+        if (usable_px > 0)
         {
-            content_height_px -= chrome_px;
+            content_height_px = usable_px;
+        }
+        else
+        {
+            const jint chrome_px = content_chrome_height_px(env, activity);
+            if (chrome_px > 0 && chrome_px < height_px)
+            {
+                content_height_px -= chrome_px;
+            }
         }
         return {static_cast<double>(width_px) / density, static_cast<double>(content_height_px) / density};
     }
