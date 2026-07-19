@@ -468,6 +468,23 @@ namespace
             env->CallVoidMethod(widget, set_minimum_height, min_px);
             clear_pending(env);
         }
+        // Zero the framework style's 88dp Material min-WIDTH (MauiMaterialButton's android:minWidth=0dp) so a
+        // no-WidthRequest button sizes to its content + padding, not the ~242px Material floor — otherwise every
+        // unsized button renders far too wide (custom_layout, clipping, header_footer_view, …). Width can't
+        // collapse like height here: WRAP_CONTENT + the re-supplied 16dp horizontal padding give the intrinsic
+        // content width.
+        jmethodID set_min_width = cache.method(env, k_button_class, "setMinWidth", "(I)V");
+        if (set_min_width != nullptr)
+        {
+            env->CallVoidMethod(widget, set_min_width, 0);
+            clear_pending(env);
+        }
+        jmethodID set_minimum_width = cache.method(env, k_button_class, "setMinimumWidth", "(I)V");
+        if (set_minimum_width != nullptr)
+        {
+            env->CallVoidMethod(widget, set_minimum_width, 0);
+            clear_pending(env);
+        }
     }
 
     // Install a two-state text ColorStateList {disabled → disabled_argb, default → default_argb} so the
@@ -1416,6 +1433,21 @@ namespace maui::core
         {
             maui::platform::android::apply_outline_clip(platform->native, platform->clip_shape, density, frame.width,
                                                         frame.height);
+        }
+        // Re-apply the render transform against the just-laid-out bounds (the same reapply the label handler
+        // does). apply_transform's pivot is AnchorX/Y × the View's laid-out size; at map time the Button is 0×0,
+        // so the pivot resolved to (0,0) and a rotated/scaled button pivoted about its top-left corner instead
+        // of its center (the hit_testing transforms). Post-layout getWidth()/getHeight() are the real size, so
+        // re-pushing the stored spec lands the pivot correctly. Only when the transform depends on the pivot
+        // (any rotation, or a scale ≠ 1) — a pure translation/identity is already correct from the map-time push.
+        {
+            const auto& t = platform->transform;
+            const bool pivot_matters = t.rotation != 0.0 || t.rotation_x != 0.0 || t.rotation_y != 0.0 ||
+                                       t.scale != 1.0 || t.scale_x != 1.0 || t.scale_y != 1.0;
+            if (pivot_matters)
+            {
+                maui::platform::android::apply_transform(platform->native, t);
+            }
         }
     }
 

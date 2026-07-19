@@ -737,6 +737,15 @@ namespace maui::controls
         {
             return platform;
         }
+        // MAUI's MauiRecyclerView resolves ItemsView.VerticalScrollBarVisibility=Default → Never (no bar),
+        // but a plain ScrollView defaults to VerticalScrollBarEnabled=true, which paints a bar AND reserves an
+        // ~11px gutter that shrinks the content band vs MAUI's full width. Disable it to match.
+        if (jmethodID set_sb = cache.method(env.get(), k_scroll_view_class, "setVerticalScrollBarEnabled", "(Z)V");
+            set_sb != nullptr)
+        {
+            env->CallVoidMethod(scroller.get(), set_sb, static_cast<jboolean>(JNI_FALSE));
+            clear_pending(env.get());
+        }
         const local_ref<jobject> host{env.get(), env->NewObject(layout_class, layout_ctor, context)};
         if (clear_pending(env.get()) || !host)
         {
@@ -946,7 +955,10 @@ namespace maui::controls
                 jobject context = app_context();
                 if (context != nullptr)
                 {
-                    text_view = make_text_view(env, context, value.text());
+                    // MAUI's SimpleViewHolder.FromText(fill:false) center-gravities a plain-string (no-template)
+                    // global Header/Footer TextView; without center=true the string sits left-aligned vs MAUI's
+                    // centered "This is a header"/"This is a footer" (grid_grouping / header_footer* drift).
+                    text_view = make_text_view(env, context, value.text(), /*center=*/true);
                     native = text_view.get();
                 }
             }

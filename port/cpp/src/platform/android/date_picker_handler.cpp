@@ -75,6 +75,7 @@
 // (tools/android-testhost-run.sh) / the android APP HOST additionally observes the real widget.
 
 #include "maui/core/date_picker_handler.hpp"
+#include "maui/core/bindable_object.hpp"
 
 #include <jni.h>
 
@@ -765,11 +766,17 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // DatePickerExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()). The null guard
-            // (keep the theme default) collapses for the value-type color + the ColorStateList path → int
-            // overload (header deviations) — byte-for-byte the picker / editor map_text_color.
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(view.text_color().to_int()));
+            // DatePickerExtensions.UpdateTextColor: `if (textColor != null) SetTextColor(...)`. Mirror the
+            // C# null guard via BindableObject.IsSet: pushing an UNSET color (value-type default = opaque
+            // black) via the single-int setTextColor REPLACES the native EditText ColorStateList that carries
+            // the disabled-state dim, so a disabled field never dims (and an unset color paints flat black
+            // instead of the theme default). Leave the native ColorStateList intact when unset.
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            if (bindable != nullptr && bindable->is_property_set("text_color"))
+            {
+                call_void_int(env.get(), widget_of(*platform), "setTextColor",
+                              static_cast<jint>(view.text_color().to_int()));
+            }
         }
     }
 

@@ -74,6 +74,7 @@
 // observes the real widget.
 
 #include "maui/core/picker_handler.hpp"
+#include "maui/core/bindable_object.hpp"
 
 #include <jni.h>
 
@@ -774,11 +775,17 @@ namespace maui::core
         if (env)
         {
             // PickerExtensions.UpdateTitleColorCore: the TITLE color maps onto the HINT text color (the
-            // Title IS the hint on Android) → SetHintTextColor(titleColor.ToPlatform()). The null guard
-            // collapses for the port's value-type color + the ColorStateList path → int overload (header
-            // deviations).
-            call_void_int(env.get(), widget_of(*platform), "setHintTextColor",
-                          static_cast<jint>(view.title_color().to_int()));
+            // Title IS the hint on Android) → `if (titleColor is not null) SetHintTextColor(...)`. Mirror the
+            // C# null guard (and the apple twin, picker_handler.mm) via BindableObject.IsSet: pushing an UNSET
+            // color (the value-type default = opaque BLACK) would REPLACE the native textColorHint gray
+            // ColorStateList with flat black — the placeholder/Title then reads black instead of MAUI's native
+            // ~#666666 hint. Leave the native default untouched when unset.
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            if (bindable != nullptr && bindable->is_property_set("title_color"))
+            {
+                call_void_int(env.get(), widget_of(*platform), "setHintTextColor",
+                              static_cast<jint>(view.title_color().to_int()));
+            }
         }
     }
 

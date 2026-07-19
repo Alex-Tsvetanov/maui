@@ -174,8 +174,12 @@ namespace maui::samples
             footer_label_.set_font(maui::core::font::system_font_of_size(20, maui::core::font_weight::bold));
 
             add_button_.set_text("Add 2 Items");
+            add_button_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::center);     // HorizontalOptions="Center"
             add_button_.command = [this] { add_items(); }; // Command="{Binding AddCommand}"
             clear_button_.set_text("Clear All Items");
+            clear_button_.set_horizontal_layout_alignment(
+                maui::core::layout_alignment::center);         // HorizontalOptions="Center"
             clear_button_.command = [this] { clear_items(); }; // Command="{Binding ClearCommand}"
 
             // Grid.Row="0" Grid.ColumnSpan="2" for the image + label; the buttons on Row 1, Cols 0/1.
