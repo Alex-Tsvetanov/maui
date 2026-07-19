@@ -31,10 +31,12 @@
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/file_image_source.hpp"
+#include "maui/controls/grid.hpp"
 #include "maui/controls/image.hpp"
-#include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/view_extensions.hpp"
+#include "maui/core/grid_length.hpp"
 #include "maui/core/layout_alignment.hpp"
+#include "maui/core/thickness.hpp"
 
 namespace maui::samples
 {
@@ -44,7 +46,18 @@ namespace maui::samples
         animation_page()
         {
             page_.set_title("Animations");
-            stack_.set_spacing(12);
+            // C# AnimationPage.xaml is a StackLayout whose <Image VerticalOptions="CenterAndExpand"> takes all
+            // leftover vertical space (centered) and pushes the three buttons to the BOTTOM. The port's
+            // vertical_stack_layout has no Expands surface, so the code-first page uses a Grid instead — a `*`
+            // row centers the image and three `Auto` rows stack the buttons at the bottom, reproducing MAUI's
+            // rendered layout (ruling 12: the code-first render is the reference of record for what the shared
+            // XAML dialect can't express).
+            grid_.add_row_definition(maui::core::grid_length::star());
+            grid_.add_row_definition(maui::core::grid_length::automatic());
+            grid_.add_row_definition(maui::core::grid_length::automatic());
+            grid_.add_row_definition(maui::core::grid_length::automatic());
+            grid_.set_row_spacing(12);
+            grid_.set_margin(maui::core::thickness(12)); // the shared XAML's <StackLayout Margin="12">
 
             // The animation target — the C# <Image Source="dotnet_bot.png" VerticalOptions="CenterAndExpand">
             // (AnimationPage.xaml). An image is a view<…>, so fade/scale/rotate/translate + cancel apply to
@@ -65,11 +78,14 @@ namespace maui::samples
             cancel_button_.set_is_enabled(false); // C# IsEnabled="false" at rest
             cancel_button_.clicked.connect([this] { on_cancel_animation(); });
 
-            stack_.add(target_);
-            stack_.add(start_button_);
-            stack_.add(custom_button_);
-            stack_.add(cancel_button_);
-            page_.set_content(stack_);
+            grid_.add(target_); // row 0 (the `*` row) — centered image, expands like CenterAndExpand
+            grid_.add(start_button_);
+            grid_.set_row(start_button_, 1);
+            grid_.add(custom_button_);
+            grid_.set_row(custom_button_, 2);
+            grid_.add(cancel_button_);
+            grid_.set_row(cancel_button_, 3);
+            page_.set_content(grid_);
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -168,7 +184,7 @@ namespace maui::samples
         }
 
         maui::controls::content_page page_;
-        maui::controls::vertical_stack_layout stack_;
+        maui::controls::grid grid_;
         maui::controls::image target_;
         maui::controls::button start_button_;
         maui::controls::button custom_button_;
