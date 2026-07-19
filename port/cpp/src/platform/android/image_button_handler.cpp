@@ -72,6 +72,7 @@
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
 #include "maui/core/aspect.hpp"
+#include "maui/core/dimension.hpp" // dimension::unset (NaN) for the view-null fallback
 #include "maui/core/i_image_button.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp" // image_bytes
@@ -1101,6 +1102,28 @@ namespace maui::core
         {
             const double w = platform->intrinsic_width;
             const double h = platform->intrinsic_height;
+            // Single-axis aspect-fit auto-size (mirrors MAUI's Android CreateMeasureSpec + AdjustViewBounds):
+            // when ONE of WidthRequest/HeightRequest is set (EXACTLY spec) and the other is auto, the native
+            // FIT_CENTER ImageView derives the free axis from the fixed one, preserving the drawable aspect,
+            // and includes the button padding (+stroke). The plain intrinsic fast-path below ignores this, so
+            // e.g. WidthRequest=200 aspect_fit cog.png measured 128dp tall instead of MAUI's (200-32)*1+18=186dp,
+            // shifting every row below it. Compute the aspect-derived free axis here. (aspect_fill/fill use
+            // FIT_XY/CENTER_CROP — AdjustViewBounds does NOT resize them — so they keep the fast-path.)
+            const auto* view = virtual_view();
+            const double req_w = view != nullptr ? view->width() : maui::core::dimension::unset;
+            const double req_h = view != nullptr ? view->height() : maui::core::dimension::unset;
+            const double stroke2 = 2.0 * (platform->stroke_thickness > 0 ? platform->stroke_thickness : 0.0);
+            const double pad_h =
+                (platform->padding.is_nan() ? 0.0 : platform->padding.horizontal_thickness()) + stroke2;
+            const double pad_v = (platform->padding.is_nan() ? 0.0 : platform->padding.vertical_thickness()) + stroke2;
+            if (platform->image_aspect == aspect::aspect_fit && !std::isnan(req_w) && std::isnan(req_h))
+            {
+                return {req_w, std::max(0.0, req_w - pad_h) * (h / w) + pad_v};
+            }
+            if (platform->image_aspect == aspect::aspect_fit && !std::isnan(req_h) && std::isnan(req_w))
+            {
+                return {std::max(0.0, req_h - pad_v) * (w / h) + pad_h, req_h};
+            }
             double scale = 1.0;
             if (std::isfinite(width_constraint) && width_constraint < w)
             {

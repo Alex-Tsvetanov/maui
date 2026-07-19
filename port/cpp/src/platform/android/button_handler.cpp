@@ -51,6 +51,7 @@
 #include <string_view>
 
 #include "android_clip_ops.hpp"
+#include "android_image_decode.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -1460,11 +1461,127 @@ namespace maui::core
     {
     }
 
+    // Push the decoded file image as the Button's COMPOUND DRAWABLE, positioned per ContentLayout (C#'s
+    // ButtonExtensions.UpdateContentLayout composes MaterialButton.Icon + IconGravity; the AAR-less host has
+    // no MaterialButton, so the plain android.widget.Button uses the TextView compound-drawable seam — the
+    // same setCompoundDrawablesWithIntrinsicBounds recipe the search bar uses for its magnifier). The bundled
+    // bytes decode via the shared image_decode helper (the image control's fast-path). No-op on decode
+    // failure (leaves the button text-only), matching a nil apple decode.
+    // Free helper (internal linkage): decode platform.source_file → BitmapDrawable → the button's compound
+    // drawable, positioned per platform.content_layout. Static so it needs no header declaration (the other
+    // backends' partials don't carry it); map_content_layout / the source primitives below all call it.
+    static void apply_button_icon(button_platform& platform)
+    {
+        if (platform.native == nullptr || !platform.source_loaded || platform.source_file.empty())
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        namespace img = maui::platform::android::image_decode;
+        const auto bytes = img::resolve_file_bytes(env.get(), platform.source_file);
+        const local_ref<jobject> bitmap = img::decode_bitmap(env.get(), bytes);
+        jobject widget = widget_of(platform);
+        auto& cache = default_jni_cache();
+        if (!bitmap)
+        {
+            return; // decode failed — leave the button text-only
+        }
+        // new BitmapDrawable(context.getResources(), bitmap) — the density-aware BitmapDrawable ctor so the
+        // icon renders at its natural dp size (like MAUI's ImageSource icon), then hung on the button.
+        jmethodID get_context = cache.method(env.get(), k_button_class, "getContext", "()Landroid/content/Context;");
+        const local_ref<jobject> context{env.get(),
+                                         get_context != nullptr ? env->CallObjectMethod(widget, get_context) : nullptr};
+        if (clear_pending(env.get()) || !context)
+        {
+            return;
+        }
+        jmethodID get_resources =
+            cache.method(env.get(), "android/content/Context", "getResources", "()Landroid/content/res/Resources;");
+        const local_ref<jobject> resources{
+            env.get(), get_resources != nullptr ? env->CallObjectMethod(context.get(), get_resources) : nullptr};
+        if (clear_pending(env.get()) || !resources)
+        {
+            return;
+        }
+        jclass drawable_class = cache.find_class(env.get(), "android/graphics/drawable/BitmapDrawable");
+        jmethodID drawable_ctor = cache.method(env.get(), "android/graphics/drawable/BitmapDrawable", "<init>",
+                                               "(Landroid/content/res/Resources;Landroid/graphics/Bitmap;)V");
+        if (drawable_class == nullptr || drawable_ctor == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> drawable{env.get(),
+                                          env->NewObject(drawable_class, drawable_ctor, resources.get(), bitmap.get())};
+        if (clear_pending(env.get()) || !drawable)
+        {
+            return;
+        }
+        // Size the icon to the bitmap's natural size treated as DP, scaled by display density — exactly the
+        // mdpi(1x)→device-density upscale MAUI's resizetizer performs by emitting settings.png into the
+        // density-less res/drawable/ folder (so Android upscales it ×density). The plain BitmapDrawable's
+        // intrinsic bounds would instead scale the asset DOWN under DeviceDefault, so set explicit bounds:
+        // to_pixels(128, 2.75)=352px canvas → ~175px visible gear + 399px button, matching MAUI on icon size
+        // AND button height. setCompoundDrawables (not …WithIntrinsicBounds) honors these bounds.
+        const float density = display_density(env.get(), widget);
+        jmethodID get_bw = cache.method(env.get(), "android/graphics/Bitmap", "getWidth", "()I");
+        jmethodID get_bh = cache.method(env.get(), "android/graphics/Bitmap", "getHeight", "()I");
+        const jint bw = get_bw != nullptr ? env->CallIntMethod(bitmap.get(), get_bw) : 0;
+        const jint bh = get_bh != nullptr ? env->CallIntMethod(bitmap.get(), get_bh) : 0;
+        clear_pending(env.get());
+        if (bw > 0 && bh > 0)
+        {
+            jmethodID set_bounds =
+                cache.method(env.get(), "android/graphics/drawable/BitmapDrawable", "setBounds", "(IIII)V");
+            if (set_bounds != nullptr)
+            {
+                env->CallVoidMethod(drawable.get(), set_bounds, 0, 0, to_pixels(static_cast<double>(bw), density),
+                                    to_pixels(static_cast<double>(bh), density));
+                clear_pending(env.get());
+            }
+        }
+        // Position the icon per ContentLayout (Left/Top/Right/Bottom) + the icon-title spacing (the mirror
+        // map_content_layout keeps current — the static primitive can't read the virtual view).
+        const maui::core::button_content_spec& spec = platform.content_layout;
+        jmethodID set_compound =
+            cache.method(env.get(), k_button_class, "setCompoundDrawables",
+                         "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/"
+                         "drawable/Drawable;Landroid/graphics/drawable/Drawable;)V");
+        if (set_compound != nullptr)
+        {
+            jobject d = drawable.get();
+            jobject nul = nullptr;
+            using pos = maui::core::button_content_spec::image_position;
+            switch (spec.position)
+            {
+                case pos::top:
+                    env->CallVoidMethod(widget, set_compound, nul, d, nul, nul);
+                    break;
+                case pos::right:
+                    env->CallVoidMethod(widget, set_compound, nul, nul, d, nul);
+                    break;
+                case pos::bottom:
+                    env->CallVoidMethod(widget, set_compound, nul, nul, nul, d);
+                    break;
+                case pos::left:
+                default:
+                    env->CallVoidMethod(widget, set_compound, d, nul, nul, nul);
+                    break;
+            }
+            clear_pending(env.get());
+        }
+        call_void_int(env.get(), widget, "setCompoundDrawablePadding", to_pixels(spec.spacing, density));
+    }
+
     void button_handler::load_file_source_sync(button_platform& platform, const i_file_image_source& file_src)
     {
         platform.source_kind = "file";
         platform.source_file = std::string(file_src.file());
         platform.source_loaded = true;
+        apply_button_icon(platform);
     }
 
     void button_handler::apply_loaded_result(button_platform& platform, const image_source_result& result)
@@ -1477,6 +1594,7 @@ namespace maui::core
         platform.source_kind = result.kind();
         platform.source_file = result.detail();
         platform.source_loaded = true;
+        apply_button_icon(platform);
     }
 
     void button_handler::clear_source_native(button_platform& platform)
@@ -1484,5 +1602,25 @@ namespace maui::core
         platform.source_kind.clear();
         platform.source_file.clear();
         platform.source_loaded = false;
+        // Remove the compound-drawable icon (setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)).
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        jmethodID set_compound = default_jni_cache().method(
+            env.get(), k_button_class, "setCompoundDrawablesWithIntrinsicBounds",
+            "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/"
+            "graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;)V");
+        if (set_compound != nullptr)
+        {
+            jobject nul = nullptr;
+            env->CallVoidMethod(widget_of(platform), set_compound, nul, nul, nul, nul);
+            clear_pending(env.get());
+        }
     }
 } // namespace maui::core

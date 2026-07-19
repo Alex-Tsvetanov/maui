@@ -890,7 +890,7 @@ namespace maui::core
         // taller band (as MAUI does), so this fixes the row spacing without altering the track visual. Same
         // spirit as create_platform_view's seed_default_material_tints (reproduce the Material RENDER on the
         // AAR-less host).
-        constexpr double k_material_seekbar_height_dp = 31.6; // measured off the shipped MAUI render (~87px @2.75)
+        constexpr double k_material_seekbar_height_dp = 32.0; // Material seekbar row (to_pixels(32,2.75)=88px, = MAUI)
         const double height_dp = std::max(static_cast<double>(measured_height) / density, k_material_seekbar_height_dp);
         return {static_cast<double>(measured_width) / density, height_dp};
     }

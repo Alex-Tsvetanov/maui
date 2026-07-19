@@ -211,6 +211,13 @@ namespace
     // The icon-to-text inset (CompoundDrawablePadding), a modest gap matching the SearchView's
     // magnifier-to-query indent so the text sits inset from the loupe like MAUI's expanded field.
     constexpr double k_compound_drawable_padding_dp = 8.0;
+    // MAUI's Material SearchView icons render ~17dp (magnifier/clear-X); the framework ic_menu_* drawables'
+    // intrinsic bounds are ~24dp, which over-inflates the plain EditText row. Set explicit 18dp bounds.
+    constexpr double k_search_icon_size_dp = 18.0;
+    // MAUI's SearchView plate is a fixed 48dp min-height (Material). The AAR-less DeviceDefault EditText has no
+    // such plate, so once the icon no longer inflates it the row measures short; floor it to 48dp (same
+    // Material-height-floor pattern as slider/switch) so a page of stacked search bars doesn't drift.
+    constexpr double k_material_search_height_dp = 48.0;
     // Default magnifier / clear-X tint when SearchIconColor / CancelButtonColor are UNSET. The framework
     // ic_menu_search / ic_menu_close_clear_cancel drawables render a mid-GRAY (~#868686) untinted, but
     // MAUI's SearchView renders its icons at the theme textColorPrimary (~87% black = #DE000000, measured
@@ -619,7 +626,9 @@ namespace
                                    bool right_is_set, jint right_tint, float density)
     {
         auto& cache = default_jni_cache();
-        jmethodID set_compound = cache.method(env, k_edit_text_class, "setCompoundDrawablesWithIntrinsicBounds",
+        // setCompoundDrawables (NOT …WithIntrinsicBounds) so the manually-set 18dp bounds below are honored;
+        // the framework ic_menu_* intrinsic bounds are ~24dp and over-inflate the EditText row.
+        jmethodID set_compound = cache.method(env, k_edit_text_class, "setCompoundDrawables",
                                               "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/"
                                               "Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/"
                                               "drawable/Drawable;)V");
@@ -637,6 +646,22 @@ namespace
         if (has_text)
         {
             right = resolve_framework_drawable(env, widget, k_clear_icon_field, /*apply_tint=*/true, right_eff);
+        }
+        // Size both icons to MAUI's ~18dp Material search icon via explicit setBounds (setCompoundDrawables
+        // honors these; …WithIntrinsicBounds would reset to the oversized ~24dp framework intrinsics).
+        const jint icon_px = to_pixels(k_search_icon_size_dp, density);
+        if (jmethodID set_bounds = cache.method(env, k_drawable_class, "setBounds", "(IIII)V"))
+        {
+            if (left)
+            {
+                env->CallVoidMethod(left.get(), set_bounds, 0, 0, icon_px, icon_px);
+                clear_pending(env);
+            }
+            if (right)
+            {
+                env->CallVoidMethod(right.get(), set_bounds, 0, 0, icon_px, icon_px);
+                clear_pending(env);
+            }
         }
         env->CallVoidMethod(widget, set_compound, left.get(), static_cast<jobject>(nullptr), right.get(),
                             static_cast<jobject>(nullptr));
@@ -1628,7 +1653,11 @@ namespace maui::core
         {
             return {0, 0};
         }
-        return {static_cast<double>(measured_width) / density, static_cast<double>(measured_height) / density};
+        // Floor the row to MAUI's fixed 48dp SearchView plate (Material) — the DeviceDefault EditText has no
+        // plate, so with the icon no longer inflating it the row measures short and a stack of search bars
+        // drifts. Same Material-height-floor pattern as slider/switch.
+        const double height_dp = std::max(static_cast<double>(measured_height) / density, k_material_search_height_dp);
+        return {static_cast<double>(measured_width) / density, height_dp};
     }
 
     void search_bar_handler::platform_arrange(const maui::graphics::rect& frame)

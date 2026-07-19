@@ -74,6 +74,9 @@ namespace maui::core
         std::string source_file;
         bool source_loaded = false;
         int content_layout_push_count = 0;
+        // The current ContentLayout (position + spacing), mirrored by map_content_layout so the static
+        // apply_button_icon primitive can place the compound-drawable icon without a virtual-view read.
+        maui::core::button_content_spec content_layout;
         move_only_function<void()> on_click;
         move_only_function<void()> on_press;
         move_only_function<void()> on_release;

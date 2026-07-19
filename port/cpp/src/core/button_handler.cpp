@@ -75,6 +75,11 @@ namespace maui::core
         {
             return;
         }
+        // Record the current ContentLayout (position + spacing) on the mirror BEFORE the load, so the
+        // per-backend icon primitive (android apply_button_icon) places the compound drawable correctly —
+        // "source" runs before "content_layout" in the mapper table, so the icon primitive can't rely on
+        // map_content_layout having run yet.
+        platform->content_layout = view.content_layout_spec();
 
         // Push the in-flight loading state back to the control so UpdateIsLoading re-pushes ContentLayout
         // on completion (C# Button.cs:499-505 — IImageSourcePart.UpdateIsLoading). Mirror image_handler.
@@ -106,11 +111,12 @@ namespace maui::core
     // but defers the text+image composition (no container infra), so the cross-platform mapper just records
     // a push for tests to observe. A real UpdateContentLayout (image positioning + spacing) lands when the
     // container subsystem does (see button_handler.hpp / the iOS partial header).
-    void button_handler::map_content_layout(button_handler& handler, i_text_button& /*view*/)
+    void button_handler::map_content_layout(button_handler& handler, i_text_button& view)
     {
         if (auto* platform = handler.typed_platform_view())
         {
             ++platform->content_layout_push_count;
+            platform->content_layout = view.content_layout_spec(); // mirror for the android icon primitive
         }
     }
 
