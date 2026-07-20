@@ -328,12 +328,36 @@ def cmd_gen(args: argparse.Namespace) -> int:
             print("error: --out-dir must NOT be Views/ (it would clobber the committed #embed TUs)")
             return 2
         os.makedirs(out_dir, exist_ok=True)
+        kept_bytes = 0
         for name in names:
             src = os.path.join(PAGES if name in shared else VIEWS, name + ".xaml")
-            with open(os.path.join(out_dir, name + ".xaml.cpp"), "w") as fh:
-                fh.write(BYTES_CPP.format(name=name, byte_rows=_byte_rows(src), mark=GENERATED_MARK))
+            # PRESERVE a hand-written port-side code-behind (the .xaml.cpp analog of MAUI's .xaml.cs, e.g.
+            # the grouping / nested / header-footer pages whose ItemsSource is assigned in code-behind via
+            # find<collection_view>() + set_items_source). The non-bytes Views path skips regenerating these
+            # (GENERATED_MARK absent); the bytes path must do the same, or the NDK build drops the wiring and
+            # every code-behind-fed CollectionView renders an EMPTY body. NDK Clang 18 can't parse the #embed,
+            # so swap ONLY that one directive line for the byte-array literal, keeping the code-behind verbatim.
+            committed = os.path.join(VIEWS, name + ".xaml.cpp")
+            committed_text = None
+            if os.path.isfile(committed):
+                with open(committed, encoding="utf-8") as fh:
+                    text = fh.read()
+                if GENERATED_MARK not in text:
+                    committed_text = text
+            if committed_text is not None:
+                body, n = re.subn(r'^[ \t]*#embed[ \t]+"[^"]*"[ \t]*$',
+                                  lambda _m: _byte_rows(src), committed_text, count=1, flags=re.MULTILINE)
+                if n != 1:
+                    print(f"error: {committed}: expected exactly one #embed directive line, found {n}")
+                    return 2
+                with open(os.path.join(out_dir, name + ".xaml.cpp"), "w") as fh:
+                    fh.write(body)
+                kept_bytes += 1
+            else:
+                with open(os.path.join(out_dir, name + ".xaml.cpp"), "w") as fh:
+                    fh.write(BYTES_CPP.format(name=name, byte_rows=_byte_rows(src), mark=GENERATED_MARK))
         print(f"generated {len(names)} bytes-mode TUs into {out_dir} "
-              f"({len(shared)} shared, {len(legacy)} legacy)")
+              f"({len(shared)} shared, {len(legacy)} legacy, {kept_bytes} hand-written code-behind preserved)")
         return 0
 
     written = []
