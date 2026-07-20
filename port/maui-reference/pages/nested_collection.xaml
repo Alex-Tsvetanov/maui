@@ -14,23 +14,30 @@
         <CollectionView x:Name="CollectionView" ItemsLayout="VerticalList">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <CollectionView ItemsLayout="HorizontalList"
-                                    HeightRequest="100"
-                                    ItemsSource="{Binding Items}"
-                                    HorizontalScrollBarVisibility="Never"
-                                    VerticalScrollBarVisibility="Never"
-                                    Header="{Binding Title}">
-                        <CollectionView.HeaderTemplate>
-                            <DataTemplate>
-                                <Label Text="{Binding .}" TextColor="Red" FontAttributes="Italic" />
-                            </DataTemplate>
-                        </CollectionView.HeaderTemplate>
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Label Text="{Binding Caption}" TextColor="Blue" FontSize="10" />
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <!-- The outer cell is a 2-column Grid: the red-italic Title in an Auto column 0, the
+                         inner HorizontalList in the star column 1 — so the Title sits on the LEFT and the
+                         captions flow to its right on the same line (real MAUI renders a horizontal CV's
+                         Header on its leading/left edge, which this Grid reproduces on every backend; the
+                         port's loader renders a horizontal CV's Header as a full-width TOP band, so the
+                         earlier inner-CV Header form rendered the Title ABOVE the captions there). Matches
+                         the green code-first source_cell twin. -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
+                        <Label Grid.Column="0" Text="{Binding Title}" TextColor="Red"
+                               FontAttributes="Italic" VerticalOptions="Start" />
+                        <CollectionView Grid.Column="1"
+                                        ItemsLayout="HorizontalList"
+                                        HeightRequest="100"
+                                        ItemsSource="{Binding Items}"
+                                        VerticalOptions="Start"
+                                        HorizontalScrollBarVisibility="Never"
+                                        VerticalScrollBarVisibility="Never">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Label Text="{Binding Caption}" TextColor="Blue" FontSize="10" />
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>

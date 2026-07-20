@@ -47,14 +47,13 @@ namespace examples::ViewModels
     public:
         nested_source_item(std::string title, std::shared_ptr<maui::controls::i_item_collection> items)
         {
-            Title.set(maui::controls::boxed_item::of(std::move(title)));
+            Title.set(std::move(title));
             Items.set(std::move(items));
         }
-        // boxed_item (not std::string): CollectionView.Header is a boxed_item property, and the M7 binding
-        // applier sets the resolved value straight onto it with no coercion — so {Binding Title} must
-        // already yield a boxed_item. The header TEMPLATE's {Binding .} then unwraps it back to the title
-        // string for its Label (the same boxed_item→string context unwrap the C++ builder page relies on).
-        maui::core::observable<maui::controls::boxed_item> Title{*this, "Title"};
+        // std::string: the outer cell's Title now binds to a Label.Text (Grid column 0) — a string property
+        // — instead of the inner CollectionView.Header (a boxed_item). So {Binding Title} yields the title
+        // string directly for the red-italic Label.
+        maui::core::observable<std::string> Title{*this, "Title"};
         maui::core::observable<std::shared_ptr<maui::controls::i_item_collection>> Items{*this, "Items"};
     };
 

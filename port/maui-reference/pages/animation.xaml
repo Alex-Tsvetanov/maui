@@ -3,15 +3,23 @@
              x:Class="MauiReference.Pages.AnimationPage" Title="Animations">
     <!-- Twin of AnimationPage.xaml: the dotnet_bot animation target above three buttons (Cancel starts
          disabled). The Clicked handlers / animation logic are omitted (structural twin). The image is
-         sized 120x120 so the bot icon renders clearly at rest (mirrors the reference page's render). -->
-    <StackLayout Margin="12" Spacing="12">
+         sized 120x120 so the bot icon renders clearly at rest (mirrors the reference page's render).
+         The original page's <StackLayout> centers the <Image VerticalOptions="CenterAndExpand"> and
+         pushes the buttons to the bottom via the legacy *AndExpand distribution — which the port's XAML
+         loader deliberately dropped (layout_alignment has no Expands; the code-first twin uses a Grid).
+         Expressed as a Grid so BOTH real MAUI and the port's loader render identically (image centered in
+         the leftover `*` row, buttons at the bottom) — the same shape as the green code-first
+         animation_page.hpp (ruling 12: code-first render is the reference where the shared dialect can't
+         express *AndExpand). -->
+    <Grid Margin="12" RowSpacing="12" RowDefinitions="*,Auto,Auto,Auto">
         <Image Source="dotnet_bot.png"
                WidthRequest="120"
                HeightRequest="120"
                HorizontalOptions="Center"
-               VerticalOptions="CenterAndExpand" />
-        <Button Text="Start Animation" />
-        <Button Text="Start Custom Animation" />
-        <Button Text="Cancel Animation" IsEnabled="false" />
-    </StackLayout>
+               VerticalOptions="Center"
+               Grid.Row="0" />
+        <Button Text="Start Animation" Grid.Row="1" />
+        <Button Text="Start Custom Animation" Grid.Row="2" />
+        <Button Text="Cancel Animation" IsEnabled="false" Grid.Row="3" />
+    </Grid>
 </ContentPage>

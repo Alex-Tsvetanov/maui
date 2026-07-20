@@ -683,8 +683,8 @@
           "review": "Light: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.9159, 27.15% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ"
         }
       }
     }
@@ -12524,12 +12524,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9077, 3.90% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9999, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8122, 5.38% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9999, 0.00% pixels differ"
         }
       }
     }
