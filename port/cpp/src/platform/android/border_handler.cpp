@@ -62,6 +62,30 @@
 // observes exactly the headless partial's behavior. The JNI GradientDrawable + MauiLayout pushes are
 // layered ON TOP, behind scoped_env/app_context guards, and run only when a VM + a native host exist
 // (the widget testhost + the app host).
+//
+// THE CONTENT CLIP — MAUI's ½·strokeThickness gap (dispatchDraw CHILD-clip, NOT the ViewOutlineProvider):
+// MAUI does NOT inset the content by the stroke thickness (content flush against the stroke). Its
+// ContentViewGroup.GetClipPath insets the CONTENT CLIP by strokeThickness on every side and then
+// ShapeExtensions.ToPlatform(innerPath:true) insets a FURTHER strokeThickness/2 — the non-IRoundRectangle
+// branch yields Rect(1.5·st, 1.5·st, W−3·st, H−3·st), the IRoundRectangle branch nets an inset-by-st box with
+// each corner radius reduced by st (RoundRectangle.InnerPathForBounds). Meanwhile the stroke, drawn by
+// MauiDrawable/BorderDrawable, stays FULL width — so a ½·st band of the Border fill / page shows THROUGH
+// between the stroke's inner edge (at st) and the content clip (at 1.5·st). border_content_inner_path_points
+// reproduces that inner path exactly (in points); native_border_clip_path scales it to pixels.
+//
+// Android CANNOT express this with the ViewOutlineProvider + setClipToOutline the earlier convex-shape fix
+// used: an Outline clip clips the BACKGROUND drawable TOGETHER with the children, so pulling the content
+// inside the stroke would clip the stroke to the same inner edge (thinning the GradientDrawable stroke to
+// half width). Only a canvas.clipPath INSIDE MauiLayout.dispatchDraw — applied AFTER the drawable background
+// is drawn — clips the CHILDREN alone, leaving the GradientDrawable stroke full width. So the dispatchDraw
+// Phase-2 children-clip that was built for arbitrary/canvas StrokeShapes (nativeBorderClipPath / borderPeer)
+// is now REPURPOSED for the convex GradientDrawable path too: arrange_native installs the borderPeer for ANY
+// shaped Border (not just canvas ones), and native_draw_border_fill / native_draw_border_stroke early-out for
+// convex shapes (shape_needs_canvas == false) so the GradientDrawable keeps painting the stroke + fill while
+// dispatchDraw drives ONLY the child clip (no double draw). The ViewOutlineProvider is thereby freed for the
+// colored elevation shadow (clipToOutline stays OFF), so a shadowed Border now gets BOTH its shadow AND the
+// content clip — resolving the old one-Outline-slot shadow-vs-clip deviation for GradientDrawable-shaped
+// borders. Cites ContentViewGroup.GetClipPath + ShapeExtensions.ToPlatform(innerPath:true) + BorderDrawable.
 
 #include "maui/core/border_handler.hpp"
 
@@ -513,52 +537,6 @@ namespace
                std::abs(r.top_left - r.bottom_right) < k_eps;
     }
 
-    // The Border CONTENT clip path (in POINTS, over the host's laid-out size) — the port's mirror of C#'s
-    // ContentViewGroup.GetClipPath: the StrokeShape inset by the stroke thickness so the content is confined
-    // strictly INSIDE the stroke (C# insets bounds by strokeThickness and, for a RoundRectangle, reduces
-    // each corner radius by the thickness via GetInnerPath; the offset is strokeThickness/2 on every side).
-    // Returns an empty path (→ apply_outline_clip_path clears the clip) when there is no rounding shape to
-    // clip to: a null shape, a plain Rectangle (a square Border does not round its content — the content
-    // already fills the box), or a degenerate size. A RoundRectangle builds the inner rounded rect (honoring
-    // per-corner radii); an Ellipse builds the inset ellipse.
-    [[nodiscard]] maui::graphics::path_f border_content_clip_path(const maui::core::border_stroke_spec& spec,
-                                                                  double width, double height)
-    {
-        maui::graphics::path_f path;
-        const maui::graphics::i_shape* shape = spec.shape;
-        if (shape == nullptr || width <= 0.0 || height <= 0.0)
-        {
-            return path; // no clip
-        }
-        const double t = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0.0;
-        const auto x = static_cast<float>(t / 2.0);
-        const auto y = static_cast<float>(t / 2.0);
-        const auto w = static_cast<float>(width - t);
-        const auto h = static_cast<float>(height - t);
-        if (w <= 0 || h <= 0)
-        {
-            return path; // stroke swallows the box → nothing to clip
-        }
-        if (const auto* rr = dynamic_cast<const maui::graphics::shapes::round_rectangle*>(shape))
-        {
-            const maui::graphics::corner_radius& r = rr->corner_radius();
-            // GetInnerPath: each corner radius reduced by the stroke thickness, clamped ≥0.
-            const auto reduce = [t](double radius) { return static_cast<float>(std::max(0.0, radius - t)); };
-            path.append_rounded_rectangle(x, y, w, h, reduce(r.top_left), reduce(r.top_right), reduce(r.bottom_left),
-                                          reduce(r.bottom_right));
-            return path;
-        }
-        if (dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr)
-        {
-            path.append_ellipse(x, y, w, h);
-            return path;
-        }
-        // A Rectangle (or any other non-rounding shape): a square Border leaves the content unclipped — the
-        // content already fills the box, and an outline clip to a plain rect is a visual no-op that would
-        // needlessly contend with the shadow slot. Return empty → clip cleared.
-        return path;
-    }
-
     // Whether the Border's StrokeShape needs the CANVAS draw (dispatchDraw + android_canvas) rather than
     // the GradientDrawable + Outline-clip fast path. The GradientDrawable expresses a rounded rect (incl. a
     // plain rectangle = 0 radius) and, with the outline clip, an ellipse — the convex shapes the last fix
@@ -607,25 +585,60 @@ namespace
         return spec.shape->path_for_bounds(maui::graphics::rect{x, y, w, h});
     }
 
-    // The Border's CONTENT clip path fitted to the INNER (stroke-inset) bounds, in POINTS — the children are
-    // clipped to this so the content is confined strictly inside the stroke. Mirrors C#'s
-    // ContentViewGroup.GetClipPath: inset the shape by the full stroke thickness on every side (x=y=st,
-    // w=fw-2*st). Empty when there is no shape or the stroke swallows the box.
-    [[nodiscard]] maui::graphics::path_f border_arbitrary_clip_points(const maui::core::border_stroke_spec& spec,
-                                                                      double width_pt, double height_pt)
+    // The Border CONTENT clip path (in POINTS, over the host's laid-out size) — the ONE mirror of C#'s
+    // ContentViewGroup.GetClipPath + ShapeExtensions.ToPlatform(innerPath:true), driving BOTH the convex
+    // GradientDrawable path (via dispatchDraw's Phase-2 children-clip, repurposed — see the header) and the
+    // arbitrary canvas path. MAUI insets the CONTENT CLIP by 1.5·strokeThickness while the stroke stays full
+    // width, so a ½·st band of the Border fill / page shows through between the stroke's inner edge (at st)
+    // and this clip (at 1.5·st). Let st = the resolved stroke thickness (0 when unstroked). Per shape:
+    //   • round_rectangle → RoundRectangle.InnerPathForBounds: an inset-by-st box (st, st, W−2st, H−2st) with
+    //     each corner radius reduced by st (max(0, r−st)); the Fill-aspect transform nets the inset-by-st box.
+    //   • ellipse → the non-IRoundRectangle ToPlatform branch: an ellipse in Rect(1.5st, 1.5st, W−3st, H−3st).
+    //   • plain rectangle / polygon / path / any other → the same non-IRoundRectangle branch:
+    //     shape->path_for_bounds(Rect(1.5st, 1.5st, W−3st, H−3st)); a bare rectangle is a rect inset 1.5·st
+    //     (the border_stroke gap). Empty when the shape is null or the stroke swallows the box (W−3st ≤ 0).
+    [[nodiscard]] maui::graphics::path_f border_content_inner_path_points(const maui::core::border_stroke_spec& spec,
+                                                                          double width_pt, double height_pt)
     {
-        if (spec.shape == nullptr || width_pt <= 0.0 || height_pt <= 0.0)
+        maui::graphics::path_f path;
+        const maui::graphics::i_shape* shape = spec.shape;
+        if (shape == nullptr || width_pt <= 0.0 || height_pt <= 0.0)
         {
-            return {};
+            return path;
         }
         const double st = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0.0;
-        const double w = width_pt - (2.0 * st);
-        const double h = height_pt - (2.0 * st);
-        if (w <= 0.0 || h <= 0.0)
+        // ToPlatform's non-IRoundRectangle inset: bounds shrink by 1.5·st on every side (GetClipPath's st plus
+        // ToPlatform's st/2). The IRoundRectangle branch nets an inset-by-st box, but a stroke wider than a
+        // third of the box swallows even the round-rect content, so the uniform W−3st ≤ 0 guard bails on all.
+        const double inner_w3 = width_pt - (3.0 * st);
+        const double inner_h3 = height_pt - (3.0 * st);
+        if (inner_w3 <= 0.0 || inner_h3 <= 0.0)
         {
-            return {};
+            return path; // the stroke swallows the box → nothing to clip
         }
-        return spec.shape->path_for_bounds(maui::graphics::rect{st, st, w, h});
+        if (dynamic_cast<const maui::graphics::shapes::round_rectangle*>(shape) != nullptr)
+        {
+            // RoundRectangle.InnerPathForBounds: inset by st on every side; each corner radius reduced by st.
+            const maui::graphics::corner_radius r = corner_radii_all_of(shape);
+            const auto reduce = [st](double radius) { return static_cast<float>(std::max(0.0, radius - st)); };
+            const auto x = static_cast<float>(st);
+            const auto y = static_cast<float>(st);
+            const auto w = static_cast<float>(width_pt - (2.0 * st));
+            const auto h = static_cast<float>(height_pt - (2.0 * st));
+            path.append_rounded_rectangle(x, y, w, h, reduce(r.top_left), reduce(r.top_right), reduce(r.bottom_left),
+                                          reduce(r.bottom_right));
+            return path;
+        }
+        // The non-IRoundRectangle ToPlatform branch: pathBounds = Rect(1.5st, 1.5st, W−3st, H−3st).
+        const maui::graphics::rect inner{1.5 * st, 1.5 * st, inner_w3, inner_h3};
+        if (dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr)
+        {
+            path.append_ellipse(static_cast<float>(inner.x), static_cast<float>(inner.y),
+                                static_cast<float>(inner.width), static_cast<float>(inner.height));
+            return path;
+        }
+        // A plain Rectangle / Polygon / Path / any other geometry: fit the shape path to the inset inner box.
+        return shape->path_for_bounds(inner);
     }
 
     // The content's native android.view.View, via its view-handler's native_view() (C#'s ToPlatform()
@@ -851,6 +864,13 @@ namespace
         {
             return;
         }
+        // Convex shapes (rectangle / round-rect / ellipse) keep the GradientDrawable for their fill + stroke;
+        // the borderPeer only drives the dispatchDraw CHILD-clip for them (header). Draw the canvas fill ONLY
+        // for a shape the GradientDrawable cannot trace, so a convex border is not double-filled.
+        if (!shape_needs_canvas(platform->border.shape))
+        {
+            return;
+        }
         if (platform->background == nullptr)
         {
             return; // an unfilled border draws no fill (the stroke still traces the outline)
@@ -873,8 +893,10 @@ namespace
         bridge.fill_path(path, maui::graphics::winding_mode::non_zero);
     }
 
-    // Build the content clip Path (the stroke-inset inner shape, in PIXELS) for MauiLayout.dispatchDraw to
-    // clipPath the children. Returns null (→ no clip) when there is no shape or the stroke swallows the box.
+    // Build the content clip Path (the 1.5·st-inset inner shape, in PIXELS) for MauiLayout.dispatchDraw to
+    // clipPath the CHILDREN (Phase 2), for BOTH convex and arbitrary shapes — the ½·st gap MAUI's
+    // ContentViewGroup.GetClipPath reveals (header). Returns null (→ no clip) when there is no shape or the
+    // stroke swallows the box.
     jobject JNICALL native_border_clip_path(JNIEnv* env, jobject host, jlong peer, jint width, jint height)
     {
         auto* platform = reinterpret_cast<maui::core::border_platform*>(peer);
@@ -886,7 +908,7 @@ namespace
         const float scale = density > 0 ? density : 1.0F;
         const auto w_pt = static_cast<double>(width) / scale;
         const auto h_pt = static_cast<double>(height) / scale;
-        const maui::graphics::path_f path = border_arbitrary_clip_points(platform->border, w_pt, h_pt);
+        const maui::graphics::path_f path = border_content_inner_path_points(platform->border, w_pt, h_pt);
         if (path.count() == 0)
         {
             return nullptr;
@@ -907,6 +929,13 @@ namespace
             return;
         }
         const maui::core::border_stroke_spec& spec = platform->border;
+        // Convex shapes stroke via the GradientDrawable (full width, behind the children); the borderPeer only
+        // drives the dispatchDraw child-clip for them (header). Trace the canvas stroke ONLY for a shape the
+        // GradientDrawable cannot express, so a convex border is not double-stroked.
+        if (!shape_needs_canvas(spec.shape))
+        {
+            return;
+        }
         if (!spec.has_stroke || spec.thickness <= 0)
         {
             return; // no stroke → nothing to trace
@@ -1368,23 +1397,29 @@ namespace maui::core
             return;
         }
 
-        // A GradientDrawable-expressible shape (rounded rect / ellipse / plain rect): clear the borderPeer so
-        // dispatchDraw stays the plain ViewGroup default (no canvas draw), then keep the existing shadow /
-        // Outline-clip path — the working border/border_layout/border_clip_playground/clip_views behavior.
-        set_border_peer(env.get(), host, 0);
+        // A GradientDrawable-expressible shape (rounded rect / ellipse / plain rect): the GradientDrawable
+        // (push_border_to_host) paints the stroke + fill FULL width; the CONTENT clip moves to
+        // MauiLayout.dispatchDraw's Phase-2 CHILD-clip so the content is inset 1.5·st WITHOUT thinning the
+        // stroke — the ½·st gap MAUI's ContentViewGroup reveals (header). So install the borderPeer for ANY
+        // shaped Border (native_border_clip_path then runs; native_draw_border_fill/stroke early-out for these
+        // convex shapes, so dispatchDraw drives ONLY the clip). A null shape (no StrokeShape at all) needs no
+        // clip → leave the plain ViewGroup default (peer 0).
+        if (platform->border.shape != nullptr)
+        {
+            set_border_peer(env.get(), host, reinterpret_cast<jlong>(platform));
+        }
+        else
+        {
+            set_border_peer(env.get(), host, 0);
+        }
 
-        // Re-resolve the (bounds-dependent) native shadow outline against the just-laid-out size + the border's
-        // recovered corner radius — update_shadow ran before layout when the host was 0×0 (apply_shadow cleared
-        // the elevation then). Mirrors the stroke-path refresh: the shadow silhouette follows the rounded box.
-        //
-        // SHADOW vs CONTENT-CLIP share the ONE ViewOutlineProvider slot: a shadow needs its silhouette
-        // outline with clipToOutline OFF; a content clip needs the shape outline with clipToOutline ON. A
-        // single View has one outline provider, so a Border cannot express BOTH a colored shadow AND a
-        // per-corner content clip at once. Precedence = shadow wins (it was the earlier-shipped native
-        // effect and its silhouette already follows the rounded box); a Border that carries BOTH is a
-        // documented deviation (the iOS WrapperView layers them; the Android outline path cannot). The
-        // common case — a clipping Border with NO shadow (border_clip_playground, clip_views) — installs the
-        // clip; a shadowed Border keeps the shadow.
+        // The ViewOutlineProvider is now FREE of the content clip (dispatchDraw owns it), so it carries ONLY
+        // the colored elevation shadow — a shadowed Border keeps BOTH its shadow AND the dispatchDraw content
+        // clip at once (resolving the old one-Outline-slot shadow-vs-clip deviation for these shapes). Re-
+        // resolve the bounds-dependent shadow silhouette against the just-laid-out size + the recovered corner
+        // radius (update_shadow ran before layout when the host was 0×0). With no shadow, tear down any stale
+        // Outline clip a previous run installed (an empty path routes apply_outline_clip_path → clear), so
+        // clipToOutline is OFF and the GradientDrawable stroke is never eaten by a lingering outline clip.
         if (platform->shadow != nullptr)
         {
             const maui::graphics::corner_radius radius = corner_radii_of(platform->border.shape);
@@ -1393,15 +1428,9 @@ namespace maui::core
         }
         else
         {
-            // ContentViewGroup content clip: clip the border's single content child to the StrokeShape's
-            // per-corner INNER path (C#'s ContentViewGroup.GetClipPath → RoundRectangle.GetInnerPath): the
-            // content is confined strictly INSIDE the stroke, so the shape is inset by the stroke thickness
-            // and each corner radius is reduced by the thickness (clamped ≥0). The port builds that inner
-            // path_f here (mirroring GetInnerPath) and hands it to apply_outline_clip_path (Outline.setPath —
-            // a rounded rect is convex, so the framework clips the hosted image to it). A square/absent shape
-            // yields an empty path → the clip clears (a square Border does not clip, matching C#).
-            const maui::graphics::path_f inner = border_content_clip_path(platform->border, frame.width, frame.height);
-            maui::platform::android::apply_outline_clip_path(host, inner, density, frame.width, frame.height);
+            maui::platform::android::apply_outline_clip_path(host, maui::graphics::path_f{}, density, frame.width,
+                                                             frame.height);
         }
+        invalidate_host(env.get(), host); // redraw so the dispatchDraw child-clip takes effect at the new size
     }
 } // namespace maui::core

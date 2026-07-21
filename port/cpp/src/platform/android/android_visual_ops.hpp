@@ -169,6 +169,76 @@ namespace maui::platform::android
             }
             return colors;
         }
+
+        // Build the framework GradientDrawable that expresses a gradient_paint (the no-MauiDrawable
+        // stand-in): the ordered stop colors as an L→R linear ramp, switched to RADIAL_GRADIENT with a
+        // representative radius for a radial_gradient_paint. Returns an EMPTY ref on any JNI miss (the
+        // caller then leaves the existing background — no guess). Factored VERBATIM out of apply_background
+        // so its behavior is unchanged; apply_field_background reuses it for a gradient FILL layer.
+        [[nodiscard]] inline local_ref<jobject> make_gradient_drawable(JNIEnv* env,
+                                                                       const maui::graphics::gradient_paint& gradient)
+        {
+            auto& cache = default_jni_cache();
+            const local_ref<jintArray> colors = stop_color_array(env, gradient);
+            if (!colors)
+            {
+                return {};
+            }
+            // new GradientDrawable(Orientation.LEFT_RIGHT, int[] colors) — the orientation/colors ctor.
+            // Orientation.LEFT_RIGHT is a STATIC enum field, read via GetStaticFieldID directly.
+            jclass orientation_class = cache.find_class(env, k_gradient_orientation);
+            jmethodID drawable_ctor = cache.method(env, k_gradient_drawable, "<init>",
+                                                   "(Landroid/graphics/drawable/GradientDrawable$Orientation;[I)V");
+            jclass drawable_class = cache.find_class(env, k_gradient_drawable);
+            if (orientation_class == nullptr || drawable_ctor == nullptr || drawable_class == nullptr)
+            {
+                return {};
+            }
+            jfieldID left_right = env->GetStaticFieldID(orientation_class, k_orientation_left_right,
+                                                        "Landroid/graphics/drawable/GradientDrawable$Orientation;");
+            if (left_right == nullptr)
+            {
+                env->ExceptionClear(); // NoSuchFieldError -> leave the existing background (no guess)
+                return {};
+            }
+            const local_ref<jobject> orientation{env, env->GetStaticObjectField(orientation_class, left_right)};
+            if (env->ExceptionCheck() == JNI_TRUE || !orientation)
+            {
+                env->ExceptionClear();
+                return {};
+            }
+            local_ref<jobject> drawable{env,
+                                        env->NewObject(drawable_class, drawable_ctor, orientation.get(), colors.get())};
+            if (env->ExceptionCheck() == JNI_TRUE || !drawable)
+            {
+                env->ExceptionClear();
+                return {};
+            }
+
+            // A radial gradient switches the drawable's gradient type + sets a representative radius (the
+            // GradientDrawable radius is in px; the paint radius is relative 0..1, so a non-zero radius maps
+            // to a positive gradient radius — the plain-drawable expression of a radial ramp).
+            if (const auto* const radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(&gradient))
+            {
+                jmethodID set_type = cache.method(env, k_gradient_drawable, "setGradientType", "(I)V");
+                jmethodID set_radius = cache.method(env, k_gradient_drawable, "setGradientRadius", "(F)V");
+                if (set_type != nullptr)
+                {
+                    env->CallVoidMethod(drawable.get(), set_type, k_radial_gradient_type);
+                    env->ExceptionClear();
+                }
+                if (set_radius != nullptr)
+                {
+                    // A relative radius scaled to a nominal px extent (GradientDrawable has no "relative"
+                    // mode without a bounds pass; a positive value yields a visible radial ramp).
+                    constexpr float k_nominal_radial_extent = 100.0F;
+                    env->CallVoidMethod(drawable.get(), set_radius,
+                                        static_cast<jfloat>(radial->radius()) * k_nominal_radial_extent);
+                    env->ExceptionClear();
+                }
+            }
+            return drawable;
+        }
     } // namespace detail
 
     inline void apply_background(void* native, const maui::graphics::paint* p)
@@ -235,65 +305,12 @@ namespace maui::platform::android
             return; // an unmodeled paint kind: leave the existing background (no guess)
         }
 
-        const local_ref<jintArray> colors = detail::stop_color_array(env.get(), *gradient);
-        if (!colors)
+        // Build the framework GradientDrawable (the ordered color ramp; radial switches type + radius) via
+        // the shared detail helper — the same construction apply_field_background reuses for a gradient fill.
+        const local_ref<jobject> drawable = detail::make_gradient_drawable(env.get(), *gradient);
+        if (!drawable)
         {
-            return;
-        }
-
-        // new GradientDrawable(Orientation.LEFT_RIGHT, int[] colors) — the orientation/colors ctor.
-        // Orientation.LEFT_RIGHT is a STATIC enum field (the jni_cache::field helper resolves INSTANCE
-        // fields via GetFieldID), so read the static field id directly via GetStaticFieldID.
-        jclass orientation_class = cache.find_class(env.get(), detail::k_gradient_orientation);
-        jmethodID drawable_ctor = cache.method(env.get(), detail::k_gradient_drawable, "<init>",
-                                               "(Landroid/graphics/drawable/GradientDrawable$Orientation;[I)V");
-        jclass drawable_class = cache.find_class(env.get(), detail::k_gradient_drawable);
-        if (orientation_class == nullptr || drawable_ctor == nullptr || drawable_class == nullptr)
-        {
-            return;
-        }
-        jfieldID left_right = env->GetStaticFieldID(orientation_class, detail::k_orientation_left_right,
-                                                    "Landroid/graphics/drawable/GradientDrawable$Orientation;");
-        if (left_right == nullptr)
-        {
-            env->ExceptionClear(); // NoSuchFieldError -> leave the existing background (no guess)
-            return;
-        }
-        const local_ref<jobject> orientation{env.get(), env->GetStaticObjectField(orientation_class, left_right)};
-        if (env->ExceptionCheck() == JNI_TRUE || !orientation)
-        {
-            env->ExceptionClear();
-            return;
-        }
-        const local_ref<jobject> drawable{
-            env.get(), env->NewObject(drawable_class, drawable_ctor, orientation.get(), colors.get())};
-        if (env->ExceptionCheck() == JNI_TRUE || !drawable)
-        {
-            env->ExceptionClear();
-            return;
-        }
-
-        // A radial gradient switches the drawable's gradient type + sets a representative radius (the
-        // GradientDrawable radius is in px; the paint radius is relative 0..1, so a non-zero radius maps
-        // to a positive gradient radius — the plain-drawable expression of a radial ramp).
-        if (const auto* const radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(gradient))
-        {
-            jmethodID set_type = cache.method(env.get(), detail::k_gradient_drawable, "setGradientType", "(I)V");
-            jmethodID set_radius = cache.method(env.get(), detail::k_gradient_drawable, "setGradientRadius", "(F)V");
-            if (set_type != nullptr)
-            {
-                env->CallVoidMethod(drawable.get(), set_type, detail::k_radial_gradient_type);
-                env->ExceptionClear();
-            }
-            if (set_radius != nullptr)
-            {
-                // A relative radius scaled to a nominal px extent (GradientDrawable has no "relative"
-                // mode without a bounds pass; a positive value yields a visible radial ramp).
-                constexpr float k_nominal_radial_extent = 100.0F;
-                env->CallVoidMethod(drawable.get(), set_radius,
-                                    static_cast<jfloat>(radial->radius()) * k_nominal_radial_extent);
-                env->ExceptionClear();
-            }
+            return; // a JNI miss during construction: leave the existing background (no guess)
         }
 
         jmethodID set_background = cache.method(env.get(), detail::k_visual_view_class, "setBackground",
@@ -301,6 +318,164 @@ namespace maui::platform::android
         if (set_background != nullptr)
         {
             env->CallVoidMethod(view, set_background, drawable.get());
+            env->ExceptionClear();
+        }
+    }
+
+    // apply_field_background — compose the framework EditText underline 9-patch OVER an explicit fill so the
+    // at-rest underline SURVIVES a colored/gradient Background (the date/time picker fields). MAUI's Android
+    // EditText composites its underline on top of the fill (a LayerDrawable); apply_background alone REPLACES
+    // the 9-patch with the fill (setBackgroundColor / setBackground), so the underline vanishes over a
+    // colored field. This op reads the current framework background (the underline 9-patch), tints it to the
+    // measured at-rest underline color (a SEMI-TRANSPARENT tint via SRC_IN → out.rgb = tint.rgb, out.a =
+    // ninepatch.a × tint.a, so only the line pixels stay opaque and they composite over whatever is beneath),
+    // builds the fill drawable, and stacks {fill, underline} in a LayerDrawable (fill bottom, underline top).
+    // underline_argb is the composited-at-rest underline: 0x99000000 (black@60%) light, 0xB3FFFFFF
+    // (white@70%) dark — measured to match MAUI over white / #121212 / a blue fill. When there is NO existing
+    // framework background (null), there is no underline to preserve, so it degrades to apply_background.
+    //
+    // This is a NEW composer kept SEPARATE from apply_background (which must not change behavior for its other
+    // generic-IView callers): only the date/time picker update_background overrides call it, precisely because
+    // those fields carry the defStyleRes underline chrome the plain apply_background would erase.
+    inline void apply_field_background(void* native, const maui::graphics::paint* fill, jint underline_argb)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        auto* const view = static_cast<jobject>(native);
+        auto& cache = default_jni_cache();
+
+        // The framework underline 9-patch currently installed as the View background.
+        jmethodID get_background = cache.method(env.get(), detail::k_visual_view_class, "getBackground",
+                                                "()Landroid/graphics/drawable/Drawable;");
+        const local_ref<jobject> old_bg{
+            env.get(), get_background != nullptr ? env->CallObjectMethod(view, get_background) : nullptr};
+        env->ExceptionClear();
+        if (!old_bg)
+        {
+            // No framework chrome to preserve → just install the fill (the plain apply_background path).
+            apply_background(native, fill);
+            return;
+        }
+
+        // Tint the underline 9-patch DIRECTLY to the at-rest underline color. A SEMI-TRANSPARENT tint with
+        // SRC_IN keeps the 9-patch shape (only the line pixels are opaque) and composites over the fill.
+        // setTintList / setTintMode resolve on Drawable and dispatch to the 9-patch subclass instance.
+        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
+        {
+            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
+                                                     "(I)Landroid/content/res/ColorStateList;");
+            jmethodID set_tint_list = cache.method(env.get(), "android/graphics/drawable/Drawable", "setTintList",
+                                                   "(Landroid/content/res/ColorStateList;)V");
+            if (value_of != nullptr && set_tint_list != nullptr)
+            {
+                const local_ref<jobject> tint{env.get(),
+                                              env->CallStaticObjectMethod(csl_class, value_of, underline_argb)};
+                if (env->ExceptionCheck() != JNI_TRUE && tint)
+                {
+                    env->CallVoidMethod(old_bg.get(), set_tint_list, tint.get());
+                }
+                env->ExceptionClear();
+            }
+        }
+        if (jclass mode_class = cache.find_class(env.get(), "android/graphics/PorterDuff$Mode"))
+        {
+            jmethodID set_tint_mode = cache.method(env.get(), "android/graphics/drawable/Drawable", "setTintMode",
+                                                   "(Landroid/graphics/PorterDuff$Mode;)V");
+            jfieldID src_in = env->GetStaticFieldID(mode_class, "SRC_IN", "Landroid/graphics/PorterDuff$Mode;");
+            if (set_tint_mode != nullptr && src_in != nullptr)
+            {
+                const local_ref<jobject> mode{env.get(), env->GetStaticObjectField(mode_class, src_in)};
+                if (env->ExceptionCheck() != JNI_TRUE && mode)
+                {
+                    env->CallVoidMethod(old_bg.get(), set_tint_mode, mode.get());
+                }
+            }
+            env->ExceptionClear();
+        }
+
+        // Build the fill drawable beneath the underline. gradient → GradientDrawable (the shared helper);
+        // solid / system_background → a flat ColorDrawable of the resolved argb (system_background_paint
+        // derives from solid_paint, so it is checked FIRST, matching apply_background).
+        local_ref<jobject> fill_dr;
+        if (const auto* const gradient = dynamic_cast<const maui::graphics::gradient_paint*>(fill))
+        {
+            fill_dr = detail::make_gradient_drawable(env.get(), *gradient);
+        }
+        else
+        {
+            jint fill_argb = 0;
+            if (dynamic_cast<const maui::graphics::system_background_paint*>(fill) != nullptr)
+            {
+                fill_argb = detail::system_background_argb(env.get());
+            }
+            else if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(fill))
+            {
+                fill_argb = static_cast<jint>(solid->color().to_int());
+            }
+            else
+            {
+                return; // an unmodeled paint kind: leave the (now-tinted) underline in place (no guess)
+            }
+            jclass color_class = cache.find_class(env.get(), "android/graphics/drawable/ColorDrawable");
+            jmethodID color_ctor = cache.method(env.get(), "android/graphics/drawable/ColorDrawable", "<init>", "(I)V");
+            if (color_class == nullptr || color_ctor == nullptr)
+            {
+                return;
+            }
+            fill_dr = local_ref<jobject>{env.get(), env->NewObject(color_class, color_ctor, fill_argb)};
+        }
+        if (env->ExceptionCheck() == JNI_TRUE || !fill_dr)
+        {
+            env->ExceptionClear();
+            return; // fill construction failed: leave the existing background (no guess)
+        }
+
+        // LayerDrawable(new Drawable[]{ fill, underline }) — fill on the bottom, tinted underline on top.
+        jclass drawable_class = cache.find_class(env.get(), "android/graphics/drawable/Drawable");
+        jclass layer_class = cache.find_class(env.get(), "android/graphics/drawable/LayerDrawable");
+        jmethodID layer_ctor = cache.method(env.get(), "android/graphics/drawable/LayerDrawable", "<init>",
+                                            "([Landroid/graphics/drawable/Drawable;)V");
+        if (drawable_class == nullptr || layer_class == nullptr || layer_ctor == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobjectArray> layers{env.get(), env->NewObjectArray(2, drawable_class, nullptr)};
+        if (env->ExceptionCheck() == JNI_TRUE || !layers)
+        {
+            env->ExceptionClear();
+            return;
+        }
+        env->SetObjectArrayElement(layers.get(), 0, fill_dr.get());
+        env->SetObjectArrayElement(layers.get(), 1, old_bg.get());
+        env->ExceptionClear();
+        const local_ref<jobject> layer{env.get(), env->NewObject(layer_class, layer_ctor, layers.get())};
+        if (env->ExceptionCheck() == JNI_TRUE || !layer)
+        {
+            env->ExceptionClear();
+            return;
+        }
+
+        // Clear the create-time view-level underline tint (the plain-field STEP-A tint) so it does not
+        // DOUBLE-tint the fill, then install the composed stack.
+        jmethodID set_bg_tint = cache.method(env.get(), detail::k_visual_view_class, "setBackgroundTintList",
+                                             "(Landroid/content/res/ColorStateList;)V");
+        if (set_bg_tint != nullptr)
+        {
+            env->CallVoidMethod(view, set_bg_tint, static_cast<jobject>(nullptr));
+            env->ExceptionClear();
+        }
+        jmethodID set_background = cache.method(env.get(), detail::k_visual_view_class, "setBackground",
+                                                "(Landroid/graphics/drawable/Drawable;)V");
+        if (set_background != nullptr)
+        {
+            env->CallVoidMethod(view, set_background, layer.get());
             env->ExceptionClear();
         }
     }

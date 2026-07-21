@@ -787,8 +787,8 @@ namespace maui::core
         else if (maui::platform::android::detail::is_night_mode(env.get()))
         {
             // DARK default text: the AAR-less Theme.DeviceDefault dark textColorPrimary is a dim blue-gray
-            // (~#6F767A), while MAUI's Material dark render shows the neutral ~#B8B8B8 (measured). The LIGHT
-            // DeviceDefault default already matches MAUI, so ONLY dark needs a seed. Seed TRANSLUCENT WHITE
+            // (~#6F767A), while MAUI's Material dark render shows the neutral ~#B8B8B8 (measured). (The LIGHT
+            // unset default is seeded in the else branch below — it is NOT a no-op.) Seed TRANSLUCENT WHITE
             // (0xB8FFFFFF = white @ 0xB8/72% alpha), NOT opaque #B8B8B8: setTextColor honors the alpha channel
             // and alpha-blends the glyph over whatever is behind it, so a label on the black/#121212 page bg
             // still composites to ~184-189 (matches MAUI's #B8B8B8, stays green) AND a label sitting on a
@@ -799,8 +799,23 @@ namespace maui::core
             // DeviceDefault-vs-Material gap the light board closed per-control (editor/search_bar underlines).
             call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0xB8FFFFFFU));
         }
-        // else (light, unset): leave the widget's original theme ColorStateList untouched (C# UpdateTextColor's
-        // null-TextColor path is a no-op) — preserves the correct light default gray AND the disabled dimming.
+        else
+        {
+            // LIGHT default text (DOCUMENTED DEVIATION): C# UpdateTextColor's null-TextColor path is a no-op,
+            // leaving the AAR-less DeviceDefault opaque #70777C — which matches MAUI only on a WHITE bg. MAUI's
+            // real unset-label text is #8A000000 (black @ 0x8A/54% alpha — Material light textColorSecondary),
+            // which ALPHA-composites over whatever is behind it: white→[117,117,117], LightGreen→[66,109,66],
+            // Orange→[117,70,0] (verified per-channel), so it stays neutral on white AND darkens correctly over
+            // a colored group-header/footer band, where the flat #70777C stayed light (basic_grouping /
+            // grid_grouping / grouping_plus_selection). setTextColor honors alpha and blends the glyph over the
+            // cell bg, exactly what the dark 0xB8FFFFFF seed relies on. src/ (UpdateTextColor no-op) says leave
+            // it; shipped MAUI RENDERS #8A000000 — DEVIATION per ruling 1 (render is truth) + ruling 11 (same
+            // DeviceDefault-vs-Material class as the dark seed). TRADEOFF: a flat setTextColor collapses the
+            // theme ColorStateList, so a light-mode DISABLED unset-color label stops dimming — the same tradeoff
+            // the dark branch accepts. Follow-up if a disabled-label regression appears: upgrade both seeds to a
+            // two-state ColorStateList rather than a flat int.
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0x8A000000U));
+        }
     }
 
     void label_handler::map_font(label_handler& handler, i_label& view)

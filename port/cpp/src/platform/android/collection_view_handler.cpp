@@ -51,10 +51,13 @@
 //   - estimated self-sizing is reduced to: each view measured at its column width with an unbounded main
 //     axis, then laid out at its measured main extent (deterministic, matches the text-height rows).
 //   - the selection highlight IS drawn: a selected cell gets the theme's colorActivatedHighlight fill
-//     (SelectableViewHolder.GetSelectedDrawable() — orange on the emulator's Material theme), painted onto
-//     the cell View from the cross-platform selected_paths mirror (see apply_selection_highlight below).
-//     Interactive reorder-drag has no plain-View analog and is not drawn (the cross-platform mirror carries
-//     it as state; the emulator is the asserted surface).
+//     (SelectableViewHolder.GetSelectedDrawable() — orange on the emulator's Material theme) on a dedicated
+//     solid background View (make_solid_view) that fills the WHOLE cell slot and is added BEFORE the content
+//     (host addView order = z-order, so the highlight sits BEHIND), keyed off the cross-platform
+//     selected_paths mirror. MAUI paints the Selected fill over the entire cell slot (margin included), not the
+//     margin-inset content, so the separate View matches it without shrinking to the content's arrange rect or
+//     clobbering a styled cell's own background. Interactive reorder-drag has no plain-View analog and is not
+//     drawn (the cross-platform mirror carries it as state; the emulator is the asserted surface).
 //   - snap points / peek insets / scroll-bar-visibility nuances are iOS-only knobs with no plain-ScrollView
 //     analog (the cross-platform mirror carries them as state) — same as the other android container
 //     deviations.
@@ -92,7 +95,6 @@
 #include <string>
 #include <vector>
 
-#include "android_clip_ops.hpp"
 #include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
@@ -276,18 +278,25 @@ namespace
         const local_ref<jstring> text_str = to_jstring(env, text);
         env->CallVoidMethod(view.get(), set_text, text_str.get());
         clear_pending(env);
-        // PARITY (dark only): this default (no-template) cell / header / footer / empty-view TextView never
-        // sets a text color, so it inherits the AAR-less DeviceDefault dark textColorPrimary (~#70777C dim
-        // blue-gray) instead of MAUI's Material dark #B8B8B8 (measured on the dark page bg). Seed it in night
-        // mode only — light DeviceDefault already matches MAUI. Mirrors label_handler::map_text_color's dark seed.
-        if (maui::platform::android::detail::is_night_mode(env))
+        // PARITY: this default (no-template) cell / header / footer / empty-view TextView never sets a text
+        // color, so it inherits the AAR-less DeviceDefault textColorPrimary instead of MAUI's Material default
+        // — off in BOTH themes, so seed per theme. DARK: DeviceDefault is a dim blue-gray (~#70777C) vs MAUI's
+        // neutral #B8B8B8; seed opaque 0xFFB8B8B8 (measured on the dark page bg). LIGHT: DeviceDefault is opaque
+        // #70777C, which matches MAUI only on white — over a colored group band it stays flat, while MAUI's
+        // unset text is #8A000000 (Material light textColorSecondary) that ALPHA-composites over the band
+        // (white→[117,117,117] / LightGreen→[66,109,66] / Orange→[117,70,0], verified). setTextColor honors
+        // alpha, so seeding 0x8A000000 composites correctly. Mirrors label_handler::map_text_color's dark +
+        // light seeds (ruling 1 + ruling 11).
+        if (jmethodID set_text_color = cache.method(env, k_text_view_class, "setTextColor", "(I)V");
+            set_text_color != nullptr)
         {
-            if (jmethodID set_text_color = cache.method(env, k_text_view_class, "setTextColor", "(I)V");
-                set_text_color != nullptr)
+            jint seed = static_cast<jint>(0x8A000000U); // LIGHT: Material light textColorSecondary (composites)
+            if (maui::platform::android::detail::is_night_mode(env))
             {
-                env->CallVoidMethod(view.get(), set_text_color, static_cast<jint>(0xFFB8B8B8U));
-                clear_pending(env);
+                seed = static_cast<jint>(0xFFB8B8B8U); // DARK: MAUI Material dark neutral #B8B8B8
             }
+            env->CallVoidMethod(view.get(), set_text_color, seed);
+            clear_pending(env);
         }
         if (center)
         {
@@ -298,6 +307,32 @@ namespace
                 clear_pending(env);
             }
         }
+        return view;
+    }
+
+    // Construct a plain android.view.View filled with a solid `argb` color (View.setBackgroundColor). Used as a
+    // dedicated per-cell selection-highlight background that fills the WHOLE slot rect (margin included) and sits
+    // BEHIND the content native — MAUI paints the CommonStates Selected fill over the entire cell, not the
+    // margin-inset content (the former in-place paint shrank the fill to the content's arrange rect and clobbered
+    // a styled cell's own background). Returns a local ref (caller add_and_frame's it); empty on any JNI failure.
+    // The caller resolves the color via selected_highlight_argb and passes it in.
+    [[nodiscard]] local_ref<jobject> make_solid_view(JNIEnv* env, jobject context, jint argb)
+    {
+        auto& cache = default_jni_cache();
+        jclass view_class = cache.find_class(env, k_view_class);
+        jmethodID ctor = cache.method(env, k_view_class, "<init>", "(Landroid/content/Context;)V");
+        jmethodID set_background_color = cache.method(env, k_view_class, "setBackgroundColor", "(I)V");
+        if (view_class == nullptr || ctor == nullptr || set_background_color == nullptr)
+        {
+            return {};
+        }
+        local_ref<jobject> view{env, env->NewObject(view_class, ctor, context)};
+        if (clear_pending(env) || !view)
+        {
+            return {};
+        }
+        env->CallVoidMethod(view.get(), set_background_color, argb);
+        clear_pending(env);
         return view;
     }
 
@@ -403,13 +438,13 @@ namespace
     // DeviceDefault/Material theme that attribute is the translucent accent (orange), NOT gray — the port
     // previously hardcoded iOS systemGray here, so selected cells rendered gray instead of MAUI's orange.
     //
-    // We paint that resolved color onto the realized cell's native View via View.setBackgroundColor when the
-    // cell's index path is in the handler's selected_paths mirror (kept current by the cross-platform
-    // update_platform_selection on every backend). MAUI's StateListDrawable only shows the fill in the
-    // activated state; the port paints only when `selected`, so a solid ColorDrawable of the resolved color
-    // is the faithful visible result. An UNselected cell gets a TRANSPARENT background, so a re-realized
-    // previously-selected cell (arrange_native rebuilds every cell each pass) does not keep a stale highlight.
-    // No-op when the View has no setBackgroundColor (never, for an android.view.View) or on any JNI failure.
+    // The column-placement loop fills a dedicated background View (make_solid_view) with this resolved color
+    // and frames it over the WHOLE cell slot, BEHIND the content, when the cell's index path is in the handler's
+    // selected_paths mirror (kept current by the cross-platform update_platform_selection on every backend).
+    // MAUI's StateListDrawable only shows the fill in the activated state; the port creates the highlight View
+    // only when `selected`, so a solid fill of the resolved color is the faithful visible result — and because
+    // removeAllViews clears the host each pass, a de-selected cell simply gets no highlight View (no stale fill
+    // to clear). Returns the gray fallback if any JNI/resolve step fails.
     constexpr jint k_selected_highlight_fallback_argb =
         static_cast<jint>(0xFF8E8E93U); // gray, only if theme lookup fails
     // android.R.attr.colorActivatedHighlight — the public framework attribute id
@@ -473,50 +508,6 @@ namespace
         return data;
     }
 
-    // `content` is the realized cell's virtual view (its retained bindable_object), or nullptr for the
-    // text-mirror default cell. In the port's single-root cell reduction the cell ROOT native view IS the
-    // content view (e.g. the chat_example bubble Label), so forcing a TRANSPARENT background on the unselected
-    // branch would CLOBBER the content's OWN background — the styled-bubble fill the template staged. C#
-    // never has this collision because the "Selected" drawable rides on the ItemContentView WRAPPER
-    // (SelectableViewHolder: `ItemView.Background = _selectedDrawable`, null when unselected), a distinct view
-    // from the content, so the content's own background is untouched. Mirror that here: SELECTED paints the
-    // resolved highlight over the cell; UNSELECTED RESTORES the content's own Background paint (via the shared
-    // apply_background) instead of zeroing it, then re-installs the content's own Clip outline so the restored
-    // fill keeps its rounding (the chat bubble's RoundRectangle). With no content view (default text cell)
-    // there is no own-background to restore, so the historical transparent clear stands.
-    void apply_selection_highlight(JNIEnv* env, jobject native, bool selected,
-                                   const std::shared_ptr<maui::core::bindable_object>& content, float density)
-    {
-        if (native == nullptr)
-        {
-            return;
-        }
-        if (selected)
-        {
-            jmethodID set_background_color =
-                default_jni_cache().method(env, k_view_class, "setBackgroundColor", "(I)V");
-            if (set_background_color != nullptr)
-            {
-                env->CallVoidMethod(native, set_background_color, selected_highlight_argb(env, native));
-                clear_pending(env);
-            }
-            return;
-        }
-        // Unselected: restore the content's OWN background (nullptr paint clears to transparent inside
-        // apply_background — the same visible result as the old transparent clear for a cell with no own
-        // fill), then re-apply the content's own convex Clip so the restored fill stays rounded.
-        auto* const view = dynamic_cast<maui::core::i_view*>(content.get());
-        maui::graphics::paint* const own_background = view != nullptr ? view->background() : nullptr;
-        maui::platform::android::apply_background(native, own_background);
-        if (view != nullptr)
-        {
-            if (const maui::graphics::i_shape* const own_clip = view->clip(); own_clip != nullptr)
-            {
-                const maui::graphics::rect bounds = view->frame();
-                maui::platform::android::apply_outline_clip(native, own_clip, density, bounds.width, bounds.height);
-            }
-        }
-    }
 } // namespace
 
 namespace maui::controls
@@ -945,7 +936,7 @@ namespace maui::controls
         // Realize a supplemental (header/footer/group header/footer): template content > boxed view >
         // text mirror, hosted full cross-width. Returns nothing — appends to the host + retains.
         auto realize_supplemental_native = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
-                                               bool is_footer) {
+                                               bool is_footer, bool center) {
             if (!tmpl && !value.has_value())
             {
                 return; // nothing to show
@@ -968,10 +959,13 @@ namespace maui::controls
                 jobject context = app_context();
                 if (context != nullptr)
                 {
-                    // MAUI's SimpleViewHolder.FromText(fill:false) center-gravities a plain-string (no-template)
-                    // global Header/Footer TextView; without center=true the string sits left-aligned vs MAUI's
-                    // centered "This is a header"/"This is a footer" (grid_grouping / header_footer* drift).
-                    text_view = make_text_view(env, context, value.text(), /*center=*/true);
+                    // A plain-string (no-template) supplemental TextView; `center` is threaded from the call
+                    // site. A GRID CV's global header/footer (span > 1) and every GROUP header/footer center
+                    // (MAUI's SimpleViewHolder.FromText centers "This is a header"/"This is a footer"), but a
+                    // LINEAR CV's global header/footer LEFT-aligns — MAUI's linear header sits at the leading
+                    // edge, and the former unconditional center pushed it to the middle (grid_grouping /
+                    // header_footer* drift).
+                    text_view = make_text_view(env, context, value.text(), center);
                     native = text_view.get();
                 }
             }
@@ -1040,7 +1034,8 @@ namespace maui::controls
         auto* structured = dynamic_cast<structured_items_view*>(view);
         if (!is_carousel && view != nullptr && structured != nullptr)
         {
-            realize_supplemental_native(structured->header_template(), structured->header(), /*is_footer=*/false);
+            realize_supplemental_native(structured->header_template(), structured->header(), /*is_footer=*/false,
+                                        /*center=*/span > 1);
         }
 
         if (is_carousel)
@@ -1130,7 +1125,7 @@ namespace maui::controls
                     // A group header/footer only occurs in a (vertical) grouped list — it advances the main
                     // cursor inline (is_footer=false keeps it on the vertical flow, not a horizontal band).
                     realize_supplemental_native(group_header_t, src->group(index_path{.section = section, .item = -1}),
-                                                /*is_footer=*/false);
+                                                /*is_footer=*/false, /*center=*/true);
                 }
                 const int count = src->item_count_in_group(section);
                 // Lay items across `span` columns; each row's height is the max measured of its columns.
@@ -1213,29 +1208,41 @@ namespace maui::controls
                         const double col_cross_dp = static_cast<double>(item_col_px) / static_cast<double>(density);
                         const double col_cross_origin_dp =
                             static_cast<double>(col_start) / static_cast<double>(density);
-                        if (vertical)
-                        {
-                            add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, col_start, row_start_px,
-                                          col_start + item_col_px, row_start_px + row_extent_px);
-                        }
-                        else
-                        {
-                            add_and_frame(env, host, cols[static_cast<std::size_t>(c)].native, row_start_px, col_start,
-                                          row_start_px + row_extent_px, col_start + item_col_px);
-                        }
-                        // The "Selected" VisualState fill (the C# CommonStates Selected highlight; iOS shows
-                        // the cell's selectedBackgroundView while isSelected). This realized cell is selected
-                        // iff its index path is in the cross-platform selected_paths mirror (kept current by
-                        // update_platform_selection on every backend); a selected cell gets the resolved
-                        // highlight fill, an unselected cell RESTORES its own content Background (not a blind
-                        // transparent clear — which would clobber a styled single-root cell like the
-                        // chat_example bubble Label; see apply_selection_highlight). The retained content view
-                        // (col.retain) carries that own Background + Clip.
+                        // The cell's slot rect (pixels), in the orientation's coordinate order: a vertical CV runs
+                        // columns across x and rows down y; a horizontal CV swaps the two. Both the selection
+                        // highlight and the content native frame at this SAME rect.
+                        const jint slot_left = vertical ? col_start : row_start_px;
+                        const jint slot_top = vertical ? row_start_px : col_start;
+                        const jint slot_right = vertical ? col_start + item_col_px : row_start_px + row_extent_px;
+                        const jint slot_bottom = vertical ? row_start_px + row_extent_px : col_start + item_col_px;
+                        // The "Selected" VisualState fill (the C# CommonStates Selected highlight; iOS shows the
+                        // cell's selectedBackgroundView while isSelected). This realized cell is selected iff its
+                        // index path is in the cross-platform selected_paths mirror (kept current by
+                        // update_platform_selection on every backend). MAUI paints the highlight over the WHOLE
+                        // cell slot (margin included), so it rides on a dedicated solid background View filling the
+                        // slot, added BEFORE the content native (host addView order = z-order → the highlight sits
+                        // BEHIND). Painting onto the content native instead (the former apply_selection_highlight)
+                        // shrank the fill to the content's margin-inset arrange rect AND clobbered a styled
+                        // single-root cell's own background (e.g. the chat_example bubble Label); the separate View
+                        // avoids both and leaves col.retain's own Background + Clip untouched.
                         const index_path cell_path{.section = section, .item = first + c};
                         const bool selected =
                             std::ranges::find(platform->selected_paths, cell_path) != platform->selected_paths.end();
-                        apply_selection_highlight(env, cols[static_cast<std::size_t>(c)].native, selected,
-                                                  cols[static_cast<std::size_t>(c)].retain, density);
+                        auto* const cell_native = cols[static_cast<std::size_t>(c)].native;
+                        if (selected)
+                        {
+                            if (jobject context = app_context(); context != nullptr)
+                            {
+                                const local_ref<jobject> highlight =
+                                    make_solid_view(env, context, selected_highlight_argb(env, cell_native));
+                                if (highlight)
+                                {
+                                    add_and_frame(env, host, highlight.get(), slot_left, slot_top, slot_right,
+                                                  slot_bottom);
+                                }
+                            }
+                        }
+                        add_and_frame(env, host, cell_native, slot_left, slot_top, slot_right, slot_bottom);
                         // Frame the cell's CHILDREN / inner cells via the cross-platform arrange at the cell's
                         // ABSOLUTE placed rect — a templated cell whose root is itself a CollectionView (the
                         // nested_collection inner CV) needs its own arrange_native to run so its inner cells
@@ -1257,7 +1264,7 @@ namespace maui::controls
                 if (grouped && group_footer_t)
                 {
                     realize_supplemental_native(group_footer_t, src->group(index_path{.section = section, .item = -1}),
-                                                /*is_footer=*/false);
+                                                /*is_footer=*/false, /*center=*/true);
                 }
             }
         }
@@ -1267,7 +1274,8 @@ namespace maui::controls
         // Add/Clear buttons). A carousel carries no footer (its paged path realized only the current item).
         if (!is_carousel && view != nullptr && structured != nullptr)
         {
-            realize_supplemental_native(structured->footer_template(), structured->footer(), /*is_footer=*/true);
+            realize_supplemental_native(structured->footer_template(), structured->footer(), /*is_footer=*/true,
+                                        /*center=*/span > 1);
         }
         content_main_dp = cursor_dp;
 

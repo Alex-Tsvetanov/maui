@@ -502,13 +502,22 @@ namespace maui::core
         // .UpdateBackground(datePicker) — the shared android view op pushes the solid/gradient/image
         // background to the View (VM-less safe). The headless mirror keeps the base body.
         view_platform_base::update_background(value);
-        // WAVE 14: a NULL paint must NOT call apply_background — setBackground(null) would ERASE the
+        // WAVE 14: a NULL paint must NOT touch the background — setBackground(null) would ERASE the
         // defStyleRes field chrome (the underline the styled ctor installed). MAUI leaves the native
         // default when Background is null; the EditText's styled background IS that default.
-        if (value != nullptr)
+        if (value == nullptr)
         {
-            maui::platform::android::apply_background(native, value);
+            return;
         }
+        // A colored/gradient Background must NOT erase the at-rest underline: apply_background alone REPLACES
+        // the 9-patch with the fill, but MAUI composites the underline ON TOP of the fill. apply_field_background
+        // stacks {fill, tinted-underline}. The underline tint is the measured composited at-rest color —
+        // black@60% (light) / white@70% (dark) — which matches MAUI over white, #121212, and colored fills.
+        const scoped_env env;
+        const jint underline_argb = (env && maui::platform::android::detail::is_night_mode(env.get()))
+                                        ? static_cast<jint>(0xB3FFFFFFU)
+                                        : static_cast<jint>(0x99000000U);
+        maui::platform::android::apply_field_background(native, value, underline_argb);
     }
 
     // Render transform + flow direction + semantics pushed to the real widget via the shared android ops.
@@ -667,6 +676,35 @@ namespace maui::core
         // SetSingleLine(true): the date field shows the single formatted line (a date string is never
         // multi-line) — the picker partial's choice (unlike the editor, which sets it false).
         call_void_bool(env.get(), widget.get(), "setSingleLine", JNI_TRUE);
+
+        // Tint the framework EditText's underline 9-patch to MAUI's rendered at-rest gray — the same fix as
+        // the entry/editor partials: the @android:drawable/edit_text alpha-mask 9-patch is tinted by the host
+        // theme's colorControlNormal (Theme.DeviceDefault's opaque dark blue-gray ~#40484D — catastrophic on
+        // the dark surface, a near-black line on near-black), but real MAUI renders the at-rest underline at
+        // #666666 (light) / #B8B8B8 (dark). Best-effort (a JNI miss leaves the framework chrome). This is the
+        // PLAIN (no-explicit-Background) path; a colored/gradient Background instead composites the underline
+        // via apply_field_background (update_background), which also clears this view-level tint so it does
+        // not double-tint the fill.
+        const jint k_field_underline_tint = maui::platform::android::detail::is_night_mode(env.get())
+                                                ? static_cast<jint>(0xFFB8B8B8U)
+                                                : static_cast<jint>(0xFF666666U);
+        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
+        {
+            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
+                                                     "(I)Landroid/content/res/ColorStateList;");
+            jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
+                                                 "(Landroid/content/res/ColorStateList;)V");
+            if (value_of != nullptr && set_bg_tint != nullptr)
+            {
+                const local_ref<jobject> tint{env.get(),
+                                              env->CallStaticObjectMethod(csl_class, value_of, k_field_underline_tint)};
+                if (!clear_pending(env.get()) && tint)
+                {
+                    env->CallVoidMethod(widget.get(), set_bg_tint, tint.get());
+                    clear_pending(env.get());
+                }
+            }
+        }
 
         // Wrap-content LayoutParams up front: a parentless TextView with null LayoutParams NPEs in
         // checkForRelayout on any setText AFTER the first measure (TextView.java reads

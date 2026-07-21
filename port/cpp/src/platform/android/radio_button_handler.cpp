@@ -562,10 +562,18 @@ namespace maui::core
         // the background fill AND the stroke/corner border. The port expresses that drawable as the shared
         // GradientDrawable stand-in (header deviation): the IView background paint lands as the drawable's
         // setColor, the SAME drawable the stroke mappers push setStroke/setCornerRadius onto — so a Border
-        // radio's yellow fill and its red/green rounded stroke compose in one drawable. A null paint clears
-        // OUR drawable's fill to transparent when one is installed; an untouched radio never installs one.
-        const local_ref<jobject> drawable =
-            maui_border_drawable(env.get(), widget_of(*this), /*install=*/value != nullptr);
+        // radio's yellow fill and its red/green rounded stroke compose in one drawable.
+        //
+        // PARITY: MAUI installs the BorderDrawable UNCONDITIONALLY at connect and, when the IView Background
+        // is null, BorderDrawable.SetBackground(null) → SetDefaultBackgroundColor() paints the OPAQUE
+        // windowBackground (#FFFFFF light / #121212 dark). So every MAUI radio has an opaque box behind it.
+        // The port previously installed the drawable only when a paint was set, leaving an unstyled radio
+        // TRANSPARENT — so a radio over a non-page-bg parent (a white Frame / an AliceBlue band) let the
+        // parent bleed through and the dark-mode WHITE radio text vanished (white-on-white). Install the
+        // drawable ALWAYS and, on an unset paint, fill it with the resolved windowBackground (mirrors
+        // BorderDrawable.cs:375 SetDefaultBackgroundColor). Radios sitting on the page bg are unchanged
+        // (box color == page color → invisible); only radios over a different parent change, toward MAUI.
+        const local_ref<jobject> drawable = maui_border_drawable(env.get(), widget_of(*this), /*install=*/true);
         if (!drawable)
         {
             return;
@@ -573,7 +581,8 @@ namespace maui::core
         jmethodID set_color = default_jni_cache().method(env.get(), k_gradient_drawable_class, "setColor", "(I)V");
         if (set_color != nullptr)
         {
-            const jint argb = value != nullptr ? static_cast<jint>(value->background_color().to_int()) : 0;
+            const jint argb = value != nullptr ? static_cast<jint>(value->background_color().to_int())
+                                               : maui::platform::android::detail::system_background_argb(env.get());
             env->CallVoidMethod(drawable.get(), set_color, argb);
             clear_pending(env.get());
         }
