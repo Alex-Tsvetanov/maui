@@ -784,9 +784,19 @@ namespace maui::core
             call_void_int(env.get(), widget_of(*platform), "setTextColor",
                           static_cast<jint>(view.text_color().to_int()));
         }
-        // else: unset → leave the widget's original theme ColorStateList untouched (C# UpdateTextColor's
-        // null-TextColor path is a no-op). This preserves the disabled-state dimming the ColorStateList
-        // encodes — a flat setTextColor(default_text_color) would have destroyed it.
+        else if (maui::platform::android::detail::is_night_mode(env.get()))
+        {
+            // DARK default text: the AAR-less Theme.DeviceDefault dark textColorPrimary is a dim blue-gray
+            // (~#6F767A), while MAUI's Material dark textColorPrimary is a brighter neutral ~#B8B8B8 (measured
+            // off the shipped dark render). The LIGHT DeviceDefault default already matches MAUI, so ONLY dark
+            // needs a seed. A flat setTextColor collapses the theme ColorStateList (so a DARK disabled label
+            // won't dim — a rare edge, e.g. layout_is_enabled), but keeping the dim-blue default mismatches
+            // MAUI on every unset label in dark, which is far more common. Same DeviceDefault-vs-Material gap
+            // the light board closed per-control (editor/search_bar underlines, slider tracks).
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0xFFB8B8B8U));
+        }
+        // else (light, unset): leave the widget's original theme ColorStateList untouched (C# UpdateTextColor's
+        // null-TextColor path is a no-op) — preserves the correct light default gray AND the disabled dimming.
     }
 
     void label_handler::map_font(label_handler& handler, i_label& view)
