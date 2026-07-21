@@ -23,7 +23,7 @@ public final class MauiHostActivity extends Activity {
     // Implemented in examples/gallery_xaml/apphost/app_host.cpp: pins the JavaVM + this Activity as the
     // process-wide app Context, builds the gallery_xaml page for pageKey, connects a maui window to it, and
     // returns the window's content FrameLayout (or null on failure).
-    private native View nativeMount(String pageKey);
+    private native View nativeMount(String pageKey, String appearance);
 
     // The window's USABLE CONTENT height in PIXELS = getCurrentWindowMetrics().getBounds().height() minus the
     // system-bar insets — see the C++ builder host's twin (src/platform/android/apphost/MauiHostActivity.java)
@@ -46,12 +46,28 @@ public final class MauiHostActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Match MAUI's status-bar colorization (parity C1/C3): MauiReference's Maui.MainTheme sets
+        // colorPrimaryDark = #BDBDBD (both themes) as android:statusBarColor — a light-gray bar with dark
+        // icons. This bare host otherwise leaves the default ~#F0F0F3 bar. Set the color + light-status-bar
+        // flag so the top bar matches MAUI in light AND dark (mirrors the C++ apphost's MauiHostActivity).
+        getWindow().setStatusBarColor(0xFFBDBDBD);
+        android.view.View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+            decorView.getSystemUiVisibility() | android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         String pageKey = getIntent() != null ? getIntent().getStringExtra("MAUI_SAMPLE_PAGE") : null;
         if (pageKey == null || pageKey.isEmpty()) {
             pageKey = "value_controls";
         }
-        View root = nativeMount(pageKey);
+        // MAUI_APPEARANCE=light|dark drives the app theme; forward the intent extra (am start can't set env).
+        String appearance = getIntent() != null ? getIntent().getStringExtra("MAUI_APPEARANCE") : null;
+        if (appearance == null) {
+            appearance = "light";
+        }
+        View root = nativeMount(pageKey, appearance);
         if (root != null) {
+            // Theme-aware content-root surface (MAUI's page bg: white light / #121212 dark) so transparent
+            // pages match MAUI; a page with an explicit Background paints over it. Mirrors the C++ apphost.
+            root.setBackgroundColor("dark".equals(appearance) ? 0xFF121212 : 0xFFFFFFFF);
             setContentView(root);
         }
     }

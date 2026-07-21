@@ -123,10 +123,10 @@ namespace
     // Read pageKey / appearance, build + mount the app, and return the window's content-view FrameLayout (a
     // JNI local ref to hand back to the Activity), or nullptr on any failure. Identical shape to the C++
     // host's mount_gallery — only make_selected_page differs (XAML factory vs C++ page type).
-    jobject mount_gallery(JNIEnv* env, const std::string& page_key)
+    jobject mount_gallery(JNIEnv* env, const std::string& page_key, bool dark)
     {
-        const char* const appearance = std::getenv("MAUI_APPEARANCE");
-        const bool dark = appearance != nullptr && std::strcmp(appearance, "dark") == 0;
+        // `dark` is forwarded from the JNI export (the MAUI_APPEARANCE intent extra the Activity reads — am
+        // start cannot set the process env, so getenv is empty under a normal launch).
 
         // (1) Build from a FRESH builder (create_builder() already seeded the controls handler table).
         host_app_slot() =
@@ -370,7 +370,8 @@ namespace
 // fully-qualified class dev.mauicpp.apphost.xaml.MauiHostActivity (underscores escaped per JNI mangling).
 extern "C" JNIEXPORT jobject JNICALL Java_dev_mauicpp_apphost_xaml_MauiHostActivity_nativeMount(JNIEnv* env,
                                                                                                 jobject activity,
-                                                                                                jstring page_key)
+                                                                                                jstring page_key,
+                                                                                                jstring appearance)
 {
     namespace android = maui::platform::android;
 
@@ -382,5 +383,16 @@ extern "C" JNIEXPORT jobject JNICALL Java_dev_mauicpp_apphost_xaml_MauiHostActiv
     android::set_app_context(env->NewGlobalRef(activity));
 
     const std::string key = to_utf8(env, page_key);
-    return mount_gallery(env, key.empty() ? std::string{"value_controls"} : key);
+    // Dark from the forwarded MAUI_APPEARANCE intent extra (env var is the fallback the gallery mains use).
+    std::string appear = to_utf8(env, appearance);
+    if (appear.empty())
+    {
+        const char* const env_appear = std::getenv("MAUI_APPEARANCE");
+        if (env_appear != nullptr)
+        {
+            appear = env_appear;
+        }
+    }
+    const bool dark = appear == "dark";
+    return mount_gallery(env, key.empty() ? std::string{"value_controls"} : key, dark);
 }

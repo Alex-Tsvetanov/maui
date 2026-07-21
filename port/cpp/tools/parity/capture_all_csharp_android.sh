@@ -54,6 +54,15 @@ echo "[csharp-android] component: ${component}" >&2
 out_dir="${cpp_root}/docs/comparison/captures/android/maui"
 mkdir -p "${out_dir}"
 
+# Theme: MauiReference forces its appearance from the MAUI_THEME intent extra (App.xaml.cs: UserAppTheme =
+# ResolveValue("MAUI_THEME") == "Dark" ? Dark : Light) — NOT the system uimode. So MAUI_APPEARANCE=dark
+# passes `--es MAUI_THEME Dark` on each launch and writes the _dark suffix; light passes nothing (the default).
+appearance="${MAUI_APPEARANCE:-light}"
+[[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
+suffix="_${appearance}"
+theme_extra=()
+[[ "${appearance}" == "dark" ]] && theme_extra=(--es MAUI_THEME Dark)
+
 wait_process_gone() {
   for _ in $(seq 1 40); do # ~10s ceiling
     local pid
@@ -88,14 +97,14 @@ capture_one() {
   "${maui_adb}" -s "${maui_serial}" logcat -c > /dev/null 2>&1 || true
   # (c) Launch this page (intent extra) with -W (blocks to first frame), then poll the readiness barrier.
   "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${component}" \
-    --es MAUI_COMPARE_PAGE "${key}" > /dev/null
+    --es MAUI_COMPARE_PAGE "${key}" "${theme_extra[@]}" > /dev/null
   wait_displayed || echo "[csharp-android] WARNING: never saw first-frame for ${key}; capturing anyway" >&2
   # Dismiss a transient "isn't responding" ANR dialog if the load burst raised one.
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
   # Settle: the window's first frame can precede the maui tree's content draw by a frame or two.
   sleep 1.5
-  "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}_light.png"
-  echo "[csharp-android] wrote ${out_dir}/${key}_light.png ($(stat -f%z "${out_dir}/${key}_light.png" 2>/dev/null || echo 0)B)" >&2
+  "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
+  echo "[csharp-android] wrote ${out_dir}/${key}${suffix}.png ($(stat -f%z "${out_dir}/${key}${suffix}.png" 2>/dev/null || echo 0)B)" >&2
 }
 
 # Post-install / first-run warm-up: absorb the cold-start + JIT churn on a throwaway launch.

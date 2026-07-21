@@ -11,14 +11,11 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        // Parity-comparison theme toggle: MAUI_THEME=Dark|Light forces the app appearance so captures can be
-        // matched light-vs-light and dark-vs-dark against the C++ galleries (default: Light). Pairs with the
-        // C++ galleries' MAUI_APPEARANCE toggle.
-        // On Android `am start` does NOT pass process env vars, so the theme (like the page key) is carried
-        // as a launch-intent extra which ResolveValue() reads; env var is the fallback for iOS/maccatalyst.
-        UserAppTheme = ResolveValue("MAUI_THEME") == "Dark"
-            ? Microsoft.Maui.ApplicationModel.AppTheme.Dark
-            : Microsoft.Maui.ApplicationModel.AppTheme.Light;
+        // NOTE: UserAppTheme is set in CreateWindow (below), NOT here. On Android the theme is carried as a
+        // launch-intent extra, but at App-ctor time Platform.CurrentActivity is still null (the Activity is
+        // created AFTER the App), so ResolveValue("MAUI_THEME") reads nothing here and the app stayed Light on
+        // every dark run. CreateWindow runs once the Activity + its Intent exist (same place MAUI_COMPARE_PAGE
+        // is read), so the theme toggle is reliable there.
     }
 
     // Resolves a parity knob from the platform first (Android intent extra), then the process env var.
@@ -37,6 +34,12 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
+        // Parity-comparison theme toggle: MAUI_THEME=Dark|Light forces the app appearance so captures match
+        // light-vs-light and dark-vs-dark against the C++ galleries (default: Light). Read here (not in the
+        // ctor) so Platform.CurrentActivity + its intent extras exist — same reliable point as the page key.
+        UserAppTheme = ResolveValue("MAUI_THEME") == "Dark"
+            ? Microsoft.Maui.ApplicationModel.AppTheme.Dark
+            : Microsoft.Maui.ApplicationModel.AppTheme.Light;
         var key = ResolveValue("MAUI_COMPARE_PAGE") ?? "controls_stack";
         var page = PageDispatch.Create(key);
         var window = new Window(page);

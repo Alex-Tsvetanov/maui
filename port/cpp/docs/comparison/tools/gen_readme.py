@@ -48,7 +48,6 @@ FW_LABEL_PLAIN = {
 EMOJI = {"green": "🟢", "yellow": "🟡", "red": "🔴", "blank": "⬛"}
 CLASS_LABEL = {"green": "🟢 Match", "yellow": "🟡 Minor", "red": "🔴 Major", "blank": "⬛ Blank"}
 
-# Android has no dark theme; its dark cells are always placeholders.
 NOTES = {
     "ios": "Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery, "
            "captured on the same iOS simulator in light and dark. MAUI is the content ground truth.",
@@ -56,7 +55,7 @@ NOTES = {
                    "columns are the strict parity board. The **AppKit** columns are the native-NSView "
                    "backend (no MAUI reference; they track completeness, C++ == C++&amp;XAML).",
     "android": "Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the same "
-               "Android emulator. Android is captured single-theme, so the Dark row is a placeholder.",
+               "Android emulator in light and dark. MAUI is the content ground truth.",
 }
 
 
@@ -114,14 +113,11 @@ def counts(pages, plat, model):
     return c
 
 
-# The review models rendered per page, in order: (comparison.json key, display name). Per CLAUDE.md
-# parity ruling 5 every model judges FOUR pairs — MAUI-light/dark vs BOTH the cpp and the xaml column —
-# and each comparison keeps its OWN verdict rather than being averaged into a cpp-only score. So the
-# cpp-vs-xaml split is carried through as separate rows here.
+# The review models rendered per page, in order: (comparison.json key, display name). AI-based review
+# (Sonnet 5 + Gemini) was INVALIDATED (removed) — those models diverged and over-flagged, so the board
+# now reports ONLY the deterministic pixel-perfect score. Per CLAUDE.md parity ruling 5 the pixel score
+# judges MAUI-vs-C++ AND MAUI-vs-C++&XAML independently (C1/C3 and C2/C4), carried as separate rows.
 MODELS = [
-    ("sonnet", "Sonnet 5 — C++ (C1/C3)"),
-    ("sonnet_xaml", "Sonnet 5 — C++ &amp; XAML (C2/C4)"),
-    ("gemini", "Gemini — C++"),
     ("pixel", "Pixel-Perfect Score — C++ (C1/C3)"),
     ("pixel_xaml", "Pixel-Perfect Score — C++ &amp; XAML (C2/C4)"),
 ]
@@ -142,8 +138,8 @@ def page_section(i, p, plat, fws):
     table, then a `####` subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score)."""
     page = p["platforms"][plat]
     sc = page["screenshots"]
-    sonnet, gemini = page["sonnet"], page["gemini"]
-    combo = f"{EMOJI.get((sonnet or {}).get('status'), '⏳')}/{EMOJI.get((gemini or {}).get('status'), '⏳')}"
+    # The compact header glyph is now the deterministic pixel score (C1/C3 over C2/C4); AI review removed.
+    combo = f"{EMOJI.get((page.get('pixel') or {}).get('status'), '⏳')}/{EMOJI.get((page.get('pixel_xaml') or {}).get('status'), '⏳')}"
 
     out = [f"### {i}. {esc(p['title'])} — {combo}", f"<sub>{esc(p['name'])}</sub>", ""]
     out.append(preview_table(sc, fws))
@@ -170,8 +166,8 @@ def section(pages, plat, display, fws, n):
     out = ["<details>", f"<summary><h2>{display} ({n} examples) — click to expand</h2></summary>", ""]
     out.append(NOTES[plat])
     out.append("")
-    out.append("**Discrepancy counts** (MAUI-vs-C++ parity verdicts; Sonnet 5 `claude-sonnet-5` and "
-               "Gemini review each page independently):")
+    out.append("**Discrepancy counts** (MAUI-vs-C++ parity verdicts from the deterministic pixel-perfect "
+               "score — SSIM + per-pixel diff; AI-based review has been invalidated/removed):")
     out.append("")
     out.append(summary_table(pages, plat, n))
     out.append("")

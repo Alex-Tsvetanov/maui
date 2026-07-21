@@ -183,11 +183,11 @@ namespace
     // Read pageKey / appearance, build + mount the app, and return the window's content-view FrameLayout
     // (a JNI local ref to hand back to the Activity), or nullptr on any failure. Separated from the JNI
     // export so the export stays a thin trampoline.
-    jobject mount_gallery(JNIEnv* env, const std::string& page_key)
+    jobject mount_gallery(JNIEnv* env, const std::string& page_key, bool dark)
     {
-        // Appearance from the same env var the gallery mains read (the capture pipeline sets it per shot).
-        const char* const appearance = std::getenv("MAUI_APPEARANCE");
-        const bool dark = appearance != nullptr && std::strcmp(appearance, "dark") == 0;
+        // `dark` is forwarded from the JNI export (the MAUI_APPEARANCE intent extra the Activity reads —
+        // `am start` cannot set the process env, so getenv is empty under a normal launch; the export falls
+        // back to the env var for the gallery mains that DO export it).
 
         // (1) Build from a FRESH builder. The configurator registers our application; create_builder() has
         //     already seeded the controls handler table (maui_app_builder ctor -> add_maui_controls_handlers).
@@ -486,7 +486,8 @@ namespace
 // app_context()), then mount the gallery and return the root view.
 extern "C" JNIEXPORT jobject JNICALL Java_dev_mauicpp_apphost_MauiHostActivity_nativeMount(JNIEnv* env,
                                                                                            jobject activity,
-                                                                                           jstring page_key)
+                                                                                           jstring page_key,
+                                                                                           jstring appearance)
 {
     namespace android = maui::platform::android;
 
@@ -502,5 +503,18 @@ extern "C" JNIEXPORT jobject JNICALL Java_dev_mauicpp_apphost_MauiHostActivity_n
     android::set_app_context(env->NewGlobalRef(activity));
 
     const std::string key = to_utf8(env, page_key);
-    return mount_gallery(env, key.empty() ? std::string{"label"} : key);
+    // Dark from the forwarded MAUI_APPEARANCE intent extra (am start can't set the process env, so getenv is
+    // empty under a normal launch — the Activity reads the extra and forwards it here); env var is the
+    // fallback for the gallery mains that export it.
+    std::string appear = to_utf8(env, appearance);
+    if (appear.empty())
+    {
+        const char* const env_appear = std::getenv("MAUI_APPEARANCE");
+        if (env_appear != nullptr)
+        {
+            appear = env_appear;
+        }
+    }
+    const bool dark = appear == "dark";
+    return mount_gallery(env, key.empty() ? std::string{"label"} : key, dark);
 }

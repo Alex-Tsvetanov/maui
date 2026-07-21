@@ -45,6 +45,7 @@
 #include <cmath>
 #include <vector>
 
+#include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
@@ -57,6 +58,7 @@
 #include "maui/graphics/point.hpp"
 #include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/solid_paint.hpp"
+#include "maui/graphics/system_background_paint.hpp"
 
 namespace maui::platform::android
 {
@@ -65,6 +67,57 @@ namespace maui::platform::android
         inline constexpr const char* k_visual_view_class = "android/view/View";
         inline constexpr const char* k_gradient_drawable = "android/graphics/drawable/GradientDrawable";
         inline constexpr const char* k_gradient_orientation = "android/graphics/drawable/GradientDrawable$Orientation";
+
+        // Whether the app is in dark (night) mode, from the process Context's resource Configuration:
+        // (Configuration.uiMode & UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES. Used to resolve
+        // system_background_paint (MAUI's UIColor.systemBackground twin) to MAUI's dark surface. The capture
+        // pipeline sets the emulator to night mode for dark shots, so this tracks the shot's theme.
+        [[nodiscard]] inline bool is_night_mode(JNIEnv* env)
+        {
+            jobject context = app_context();
+            if (env == nullptr || context == nullptr)
+            {
+                return false;
+            }
+            auto& cache = default_jni_cache();
+            jmethodID get_resources =
+                cache.method(env, "android/content/Context", "getResources", "()Landroid/content/res/Resources;");
+            jmethodID get_config = cache.method(env, "android/content/res/Resources", "getConfiguration",
+                                                "()Landroid/content/res/Configuration;");
+            if (get_resources == nullptr || get_config == nullptr)
+            {
+                return false;
+            }
+            const local_ref<jobject> res{env, env->CallObjectMethod(context, get_resources)};
+            if (env->ExceptionCheck() == JNI_TRUE || !res)
+            {
+                env->ExceptionClear();
+                return false;
+            }
+            const local_ref<jobject> config{env, env->CallObjectMethod(res.get(), get_config)};
+            if (env->ExceptionCheck() == JNI_TRUE || !config)
+            {
+                env->ExceptionClear();
+                return false;
+            }
+            jfieldID ui_mode_field = cache.field(env, "android/content/res/Configuration", "uiMode", "I");
+            if (ui_mode_field == nullptr)
+            {
+                return false;
+            }
+            constexpr jint k_ui_mode_night_mask = 0x30;
+            constexpr jint k_ui_mode_night_yes = 0x20;
+            const jint ui_mode = env->GetIntField(config.get(), ui_mode_field);
+            env->ExceptionClear();
+            return (ui_mode & k_ui_mode_night_mask) == k_ui_mode_night_yes;
+        }
+
+        // MAUI's Android system background: white in light, #121212 (Material dark surface, measured off the
+        // shipped MAUI render) in dark — the resolution of system_background_paint's dynamic color.
+        [[nodiscard]] inline jint system_background_argb(JNIEnv* env)
+        {
+            return is_night_mode(env) ? static_cast<jint>(0xFF121212U) : static_cast<jint>(0xFFFFFFFFU);
+        }
 
         // GradientDrawable.GradientType.RADIAL_GRADIENT (LINEAR_GRADIENT is the constructed default = 0).
         inline constexpr jint k_radial_gradient_type = 1;
@@ -140,6 +193,23 @@ namespace maui::platform::android
             if (set_background != nullptr)
             {
                 env->CallVoidMethod(view, set_background, static_cast<jobject>(nullptr));
+                env->ExceptionClear();
+            }
+            return;
+        }
+
+        // system_background_paint (MAUI's UIColor.systemBackground twin — the default page/frame fill when
+        // BackgroundColor is null) resolves DYNAMICALLY to the theme surface: white in light, MAUI's #121212
+        // in dark. The base solid_paint carries only the static white fallback, so resolve it here from the
+        // Context's night mode (the Android analog of the iOS trait-collection resolution in ios_visual_ops).
+        // Checked BEFORE the plain solid_paint branch since it derives from solid_paint.
+        if (dynamic_cast<const maui::graphics::system_background_paint*>(p) != nullptr)
+        {
+            jmethodID set_background_color =
+                cache.method(env.get(), detail::k_visual_view_class, "setBackgroundColor", "(I)V");
+            if (set_background_color != nullptr)
+            {
+                env->CallVoidMethod(view, set_background_color, detail::system_background_argb(env.get()));
                 env->ExceptionClear();
             }
             return;

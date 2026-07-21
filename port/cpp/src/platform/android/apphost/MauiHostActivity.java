@@ -25,7 +25,7 @@ public final class MauiHostActivity extends Activity {
     // Implemented in src/platform/android/apphost/app_host.cpp: pins the JavaVM + this Activity as the
     // process-wide app Context (set_java_vm / set_app_context), builds the gallery page for pageKey,
     // connects a maui window to it, and returns the window's content FrameLayout (or null on failure).
-    private native View nativeMount(String pageKey);
+    private native View nativeMount(String pageKey, String appearance);
 
     // The window's USABLE CONTENT height in PIXELS = getCurrentWindowMetrics().getBounds().height() minus the
     // system-bar insets (status bar top + navigation/gesture bar bottom), via the timing-safe
@@ -52,12 +52,32 @@ public final class MauiHostActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Match MAUI's status-bar colorization for a pixel-accurate top bar (parity C1/C3): MauiReference's
+        // Maui.MainTheme sets colorPrimaryDark = #BDBDBD (no values-night, so both themes), which Android uses
+        // as android:statusBarColor — a light-gray bar with dark icons. This bare app_process host otherwise
+        // leaves the default white/translucent bar (~#F0F0F3). Set both the color and the light-status-bar
+        // flag (dark icons over the light bar) so the top bar matches MAUI in light AND dark.
+        getWindow().setStatusBarColor(0xFFBDBDBD);
+        android.view.View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+            decorView.getSystemUiVisibility() | android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         String pageKey = getIntent() != null ? getIntent().getStringExtra("MAUI_SAMPLE_PAGE") : null;
         if (pageKey == null || pageKey.isEmpty()) {
             pageKey = "label";
         }
-        View root = nativeMount(pageKey);
+        // MAUI_APPEARANCE=light|dark drives the app theme (AppThemeBinding). `am start` cannot set the
+        // process env, so forward the intent extra into the native call (getenv is empty under a launch).
+        String appearance = getIntent() != null ? getIntent().getStringExtra("MAUI_APPEARANCE") : null;
+        if (appearance == null) {
+            appearance = "light";
+        }
+        View root = nativeMount(pageKey, appearance);
         if (root != null) {
+            // The port's ContentPage has no default background (transparent), so the window shows through.
+            // MAUI's page surface follows the theme (white in light, #121212 dark). Paint the content root
+            // with that theme surface so transparent pages match MAUI; a page with an explicit Background
+            // still paints over it.
+            root.setBackgroundColor("dark".equals(appearance) ? 0xFF121212 : 0xFFFFFFFF);
             setContentView(root);
         }
     }

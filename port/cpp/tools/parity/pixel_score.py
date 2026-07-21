@@ -164,7 +164,7 @@ def main():
                 continue
             sc = platform["screenshots"]
             maui = sc.get("maui", {})
-            themes = THEMES if plat != "android" else ("light",)
+            themes = THEMES  # Android is now captured in both light + dark (like iOS/macOS)
             for fw, slot in SLOTS:
                 other = sc.get(fw, {})
                 crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_theme)
