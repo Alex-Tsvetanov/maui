@@ -274,6 +274,39 @@ namespace
             env->CallVoidMethod(button.get(), set_text, raw.get());
             clear_pending(env);
         }
+        // PARITY (dark only): a plain android.widget.Button inherits the AAR-less DeviceDefault default — a
+        // light-gray rounded button (with the inter-button gap) + dark glyph. That matches MAUI's Material
+        // stepper button in LIGHT but not in DARK, where MAUI renders the Material tonal button (#5A595B fill,
+        // white glyph — measured). TINT the existing button drawable (setBackgroundTintList), do NOT replace
+        // it with a flat setBackgroundColor — a flat ColorDrawable erases the rounded shape + gap and fuses
+        // the two buttons into one bar. The tint recolors while preserving the shape AND the disabled-state
+        // alpha (so a disabled button still dims, matching MAUI's dimmed Disabled row). Night-mode only; light
+        // keeps the matching DeviceDefault default.
+        if (maui::platform::android::detail::is_night_mode(env))
+        {
+            if (jclass csl_class = cache.find_class(env, "android/content/res/ColorStateList"))
+            {
+                jmethodID value_of = cache.static_method(env, "android/content/res/ColorStateList", "valueOf",
+                                                         "(I)Landroid/content/res/ColorStateList;");
+                jmethodID set_bg_tint = cache.method(env, k_button_class, "setBackgroundTintList",
+                                                     "(Landroid/content/res/ColorStateList;)V");
+                if (value_of != nullptr && set_bg_tint != nullptr)
+                {
+                    const local_ref<jobject> tint{
+                        env, env->CallStaticObjectMethod(csl_class, value_of, static_cast<jint>(0xFF5A595BU))};
+                    if (!clear_pending(env) && tint)
+                    {
+                        env->CallVoidMethod(button.get(), set_bg_tint, tint.get());
+                        clear_pending(env);
+                    }
+                }
+            }
+            if (jmethodID set_text_color = cache.method(env, k_button_class, "setTextColor", "(I)V"))
+            {
+                env->CallVoidMethod(button.get(), set_text_color, static_cast<jint>(0xFFFFFFFFU));
+                clear_pending(env);
+            }
+        }
         if (jmethodID set_description =
                 cache.method(env, k_button_class, "setContentDescription", "(Ljava/lang/CharSequence;)V"))
         {

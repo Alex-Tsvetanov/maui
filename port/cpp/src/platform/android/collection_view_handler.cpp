@@ -276,6 +276,19 @@ namespace
         const local_ref<jstring> text_str = to_jstring(env, text);
         env->CallVoidMethod(view.get(), set_text, text_str.get());
         clear_pending(env);
+        // PARITY (dark only): this default (no-template) cell / header / footer / empty-view TextView never
+        // sets a text color, so it inherits the AAR-less DeviceDefault dark textColorPrimary (~#70777C dim
+        // blue-gray) instead of MAUI's Material dark #B8B8B8 (measured on the dark page bg). Seed it in night
+        // mode only — light DeviceDefault already matches MAUI. Mirrors label_handler::map_text_color's dark seed.
+        if (maui::platform::android::detail::is_night_mode(env))
+        {
+            if (jmethodID set_text_color = cache.method(env, k_text_view_class, "setTextColor", "(I)V");
+                set_text_color != nullptr)
+            {
+                env->CallVoidMethod(view.get(), set_text_color, static_cast<jint>(0xFFB8B8B8U));
+                clear_pending(env);
+            }
+        }
         if (center)
         {
             if (jmethodID set_gravity = cache.method(env, k_text_view_class, "setGravity", "(I)V");

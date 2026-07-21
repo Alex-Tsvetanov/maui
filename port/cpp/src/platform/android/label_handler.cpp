@@ -787,13 +787,17 @@ namespace maui::core
         else if (maui::platform::android::detail::is_night_mode(env.get()))
         {
             // DARK default text: the AAR-less Theme.DeviceDefault dark textColorPrimary is a dim blue-gray
-            // (~#6F767A), while MAUI's Material dark textColorPrimary is a brighter neutral ~#B8B8B8 (measured
-            // off the shipped dark render). The LIGHT DeviceDefault default already matches MAUI, so ONLY dark
-            // needs a seed. A flat setTextColor collapses the theme ColorStateList (so a DARK disabled label
-            // won't dim — a rare edge, e.g. layout_is_enabled), but keeping the dim-blue default mismatches
-            // MAUI on every unset label in dark, which is far more common. Same DeviceDefault-vs-Material gap
-            // the light board closed per-control (editor/search_bar underlines, slider tracks).
-            call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0xFFB8B8B8U));
+            // (~#6F767A), while MAUI's Material dark render shows the neutral ~#B8B8B8 (measured). The LIGHT
+            // DeviceDefault default already matches MAUI, so ONLY dark needs a seed. Seed TRANSLUCENT WHITE
+            // (0xB8FFFFFF = white @ 0xB8/72% alpha), NOT opaque #B8B8B8: setTextColor honors the alpha channel
+            // and alpha-blends the glyph over whatever is behind it, so a label on the black/#121212 page bg
+            // still composites to ~184-189 (matches MAUI's #B8B8B8, stays green) AND a label sitting on a
+            // light-gray box (a SwipeView item, a light Grid cell) composites to ~243 instead of a flat dim
+            // #B8B8B8 — matching MAUI, which greens swipe_item_size / basic_swipe. A flat setTextColor also
+            // collapses the theme ColorStateList (so a DARK disabled label won't dim — a rare edge, e.g.
+            // layout_is_enabled); the far more common unset-label case is what this seeds. Same
+            // DeviceDefault-vs-Material gap the light board closed per-control (editor/search_bar underlines).
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0xB8FFFFFFU));
         }
         // else (light, unset): leave the widget's original theme ColorStateList untouched (C# UpdateTextColor's
         // null-TextColor path is a no-op) — preserves the correct light default gray AND the disabled dimming.

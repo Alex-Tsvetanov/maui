@@ -741,7 +741,11 @@ namespace maui::core
         // AppCompat/Material EditText renders the at-rest underline at #666666. Seed the background tint so
         // the underline matches (SRC_IN so the tint replaces the mask color). Same idiom as the search_bar
         // underline tint + the check_box glyph seed; best-effort (a JNI miss leaves the framework chrome).
-        constexpr jint k_editor_underline_tint = static_cast<jint>(0xFF666666U);
+        // DARK: MAUI's Material dark underline is the brighter #B8B8B8 (measured), so fork on night mode
+        // (mirrors the entry underline dark seed).
+        const jint k_editor_underline_tint = maui::platform::android::detail::is_night_mode(env.get())
+                                                 ? static_cast<jint>(0xFFB8B8B8U)
+                                                 : static_cast<jint>(0xFF666666U);
         if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
         {
             jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",

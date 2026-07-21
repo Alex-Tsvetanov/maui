@@ -539,6 +539,9 @@ namespace maui::core
         if (value != nullptr)
         {
             maui::platform::android::apply_background(native, value);
+            // An explicit Background overrides the field chrome, so drop the create-time dark underline tint —
+            // otherwise it recolors the explicit background (mirrors entry_platform::update_background).
+            maui::platform::android::clear_background_tint(native);
         }
     }
 
@@ -673,6 +676,33 @@ namespace maui::core
         // SetSingleLine(true): the picker field shows the single selected line (unlike the editor, which
         // sets it false for multi-line). A picker selection is never multi-line.
         call_void_bool(env.get(), widget.get(), "setSingleLine", JNI_TRUE);
+
+        // PARITY (dark only): the picker field's DeviceDefault underline 9-patch resolves a dim blue-gray
+        // (~#40484D) in dark, but MAUI's Material dark underline is #B8B8B8 (measured). The picker is GREEN
+        // in light already (the light DeviceDefault underline matches MAUI), so tint ONLY in dark — leaving
+        // the light render untouched. Same setBackgroundTintList idiom as the entry/editor underline seed; an
+        // explicit Background drops this via update_background's clear_background_tint (else it recolors the bg).
+        if (maui::platform::android::detail::is_night_mode(env.get()))
+        {
+            constexpr jint k_picker_underline_tint_dark = static_cast<jint>(0xFFB8B8B8U);
+            if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
+            {
+                jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
+                                                         "(I)Landroid/content/res/ColorStateList;");
+                jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
+                                                     "(Landroid/content/res/ColorStateList;)V");
+                if (value_of != nullptr && set_bg_tint != nullptr)
+                {
+                    const local_ref<jobject> tint{
+                        env.get(), env->CallStaticObjectMethod(csl_class, value_of, k_picker_underline_tint_dark)};
+                    if (!clear_pending(env.get()) && tint)
+                    {
+                        env->CallVoidMethod(widget.get(), set_bg_tint, tint.get());
+                        clear_pending(env.get());
+                    }
+                }
+            }
+        }
 
         // Wrap-content LayoutParams up front: a parentless TextView with null LayoutParams NPEs in
         // checkForRelayout on any setText AFTER the first measure (TextView.java reads
