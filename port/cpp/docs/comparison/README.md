@@ -5206,8 +5206,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
 | 🟢 Match | 143 | 143 |
-| 🟡 Minor | 26 | 24 |
-| 🔴 Major | 3 | 5 |
+| 🟡 Minor | 26 | 25 |
+| 🔴 Major | 3 | 4 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -5730,11 +5730,11 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8823, 8.55% pixels differ · Dark: SSIM 0.1808, 95.79% pixels differ
+Light: SSIM 0.9601, 1.50% pixels differ · Dark: SSIM 0.5388, 51.19% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8823, 8.55% pixels differ · Dark: SSIM 0.1808, 95.79% pixels differ
+Light: SSIM 0.9601, 1.50% pixels differ · Dark: SSIM 0.5388, 51.19% pixels differ
 
 ### 36. Controls Stack — 🟢/🟢
 <sub>controls_stack</sub>
@@ -6375,11 +6375,11 @@ ports HybridWebViewPage.xaml (+ HybridWebViewPage.xaml.cs)
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8864, 10.31% pixels differ · Dark: SSIM 0.6412, 38.01% pixels differ
+Light: SSIM 0.8706, 8.65% pixels differ · Dark: SSIM 0.8026, 14.57% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8864, 10.31% pixels differ · Dark: SSIM 0.6412, 38.01% pixels differ
+Light: SSIM 0.8706, 8.65% pixels differ · Dark: SSIM 0.8026, 14.57% pixels differ
 
 ### 79. Image — 🟡/🟡
 <sub>image</sub>
@@ -7761,7 +7761,7 @@ Light: SSIM 0.9944, 0.18% pixels differ · Dark: SSIM 0.9945, 0.18% pixels diffe
 
 Light: SSIM 0.9943, 0.18% pixels differ · Dark: SSIM 0.9945, 0.18% pixels differ
 
-### 171. Web View — 🟡/🔴
+### 171. Web View — 🟡/🟡
 <sub>web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/web_view_light.png" /></td><td><img width="300px" src="captures/android/cpp/web_view_light.png" /></td><td><img width="300px" src="captures/android/xaml/web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/web_view_dark.png" /></td><td><img width="300px" src="captures/android/cpp/web_view_dark.png" /></td><td><img width="300px" src="captures/android/xaml/web_view_dark.png" /></td></tr></table>
@@ -7770,11 +7770,11 @@ a self-contained demo page for the W1-08 web_view vertical: a web_view loading a
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9625, 1.51% pixels differ · Dark: SSIM 0.9625, 1.51% pixels differ
+Light: SSIM 0.9625, 1.51% pixels differ · Dark: SSIM 0.9625, 1.64% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9703, 1.14% pixels differ · Dark: SSIM 0.5868, 40.77% pixels differ
+Light: SSIM 0.9703, 1.14% pixels differ · Dark: SSIM 0.9700, 1.17% pixels differ
 
 ### 172. Z Index — 🟢/🟢
 <sub>z_index</sub>

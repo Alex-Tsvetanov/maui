@@ -250,6 +250,16 @@ namespace maui::controls
                             clear_pending(env.get());
                         }
                     }
+                    // SOFTWARE render layer so the WebView draws IN-VIEW, not through a hardware SurfaceView
+                    // that punches a window-level hole (the dark page-surface bug — twin of web_view_handler).
+                    if (jmethodID set_layer_type =
+                            cache.method(env.get(), k_web_view_class, "setLayerType", "(ILandroid/graphics/Paint;)V"))
+                    {
+                        constexpr jint k_layer_type_software = 1; // android.view.View.LAYER_TYPE_SOFTWARE
+                        env->CallVoidMethod(widget.get(), set_layer_type, k_layer_type_software,
+                                            static_cast<jobject>(nullptr));
+                        clear_pending(env.get());
+                    }
                     platform->native = env->NewGlobalRef(widget.get()); // released in ~hybrid_web_view_platform
                 }
                 else

@@ -475,6 +475,19 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
+        // Force a SOFTWARE render layer so the WebView draws IN-VIEW rather than through a hardware
+        // SurfaceView that punches a WINDOW-LEVEL hole. That hole is what let the (white) window background
+        // show through on WebView-hosting pages in dark — the apphost paints the content-root VIEW #121212,
+        // but a SurfaceView composites against the window, not the view. An in-view (software) WebView lets
+        // the dark #121212 root/ContentPage surface show below/around the cell, matching MAUI. (The window
+        // background is also painted #121212 in the apphost as a belt-and-suspenders for the same reason.)
+        if (jmethodID set_layer_type =
+                cache.method(env.get(), k_web_view_class, "setLayerType", "(ILandroid/graphics/Paint;)V"))
+        {
+            constexpr jint k_layer_type_software = 1; // android.view.View.LAYER_TYPE_SOFTWARE
+            env->CallVoidMethod(widget.get(), set_layer_type, k_layer_type_software, static_cast<jobject>(nullptr));
+            clear_pending(env.get());
+        }
         platform->native = env->NewGlobalRef(widget.get()); // released in ~web_view_platform
         return platform;
     }
