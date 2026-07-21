@@ -16,6 +16,10 @@
 
     <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
 
+    <!-- (G5 hybrid_web_view) the android.webkit.WebView loads AppOrigin (https://0.0.0.1/); INTERNET lets
+         it attempt the load and paint the "Webpage not available" error page, matching MAUI. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="MAUI C++ Gallery (XAML)"
         android:hasCode="true"

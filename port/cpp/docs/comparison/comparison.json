@@ -8960,11 +8960,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9121, 6.90% pixels differ \u00b7 Dark: SSIM 0.4060, 64.13% pixels differ"
+          "review": "Light: SSIM 0.8864, 10.31% pixels differ \u00b7 Dark: SSIM 0.6412, 38.14% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9121, 6.90% pixels differ \u00b7 Dark: SSIM 0.4060, 64.13% pixels differ"
+          "review": "Light: SSIM 0.8864, 10.31% pixels differ \u00b7 Dark: SSIM 0.6412, 38.01% pixels differ"
         }
       }
     }
