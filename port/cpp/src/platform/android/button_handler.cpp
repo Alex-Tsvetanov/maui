@@ -1129,7 +1129,14 @@ namespace maui::core
         // here because an explicit TextColor=White would equal that default and be misread. This AAR-less
         // backend has no captured _defaultTextColors ColorStateList, but the Material button's default
         // label IS white, so a white constant reproduces the same on-screen result MAUI's restore does.
-        constexpr jint k_material_default_text_color = static_cast<jint>(0xFFFFFFFFU); // opaque white
+        // LIGHT: MAUI's default filled-MaterialButton label is WHITE, so a white constant reproduces MAUI's
+        // _defaultTextColors restore. DARK: MAUI's theme-dependent _defaultTextColors flips the default label
+        // to BLACK on the same light-gray #E0E0E0 fill (measured off the shipped dark render —
+        // toolbar/semantics/ios pages), so seed black when unset + night. Same DeviceDefault-vs-Material dark
+        // gap the label default-text seed closed.
+        const jint k_material_default_text_color = maui::platform::android::detail::is_night_mode(env.get())
+                                                       ? static_cast<jint>(0xFF000000U)  // dark: black label
+                                                       : static_cast<jint>(0xFFFFFFFFU); // light: white label
         const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
         // TextViewExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()) — the ARGB int.

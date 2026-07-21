@@ -83,11 +83,13 @@
 
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
+#include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/flow_direction.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/i_radio_button.hpp"
@@ -785,9 +787,16 @@ namespace maui::core
         if (env)
         {
             // TextViewExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()). C#'s null guard
-            // collapses (non-nullable color), exactly as in the label/button/apple partials.
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(view.text_color().to_int()));
+            // collapses (non-nullable color = opaque BLACK default), exactly as in the label/button/apple
+            // partials — correct on the LIGHT surface, but invisible on MAUI's #121212 DARK surface where
+            // MAUI renders the radio label pure WHITE. Discriminate on BindableObject.IsSet and seed white
+            // when unset + night; light + explicit paths unchanged. Mirrors label_handler's dark seed.
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
+                                  ? static_cast<jint>(0xFFFFFFFFU)
+                                  : static_cast<jint>(view.text_color().to_int());
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
         }
     }
 

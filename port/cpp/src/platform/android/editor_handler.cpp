@@ -875,8 +875,17 @@ namespace maui::core
             // EditTextExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()). The null branch
             // (restore the theme default) collapses for the port's non-nullable color (header deviations);
             // the ColorStateList path is replaced by the int overload (header deviations).
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(view.text_color().to_int()));
+            //
+            // The port's non-nullable TextColor default (color{}) is opaque BLACK — correct on the LIGHT
+            // white field, but invisible on MAUI's #121212 DARK surface where MAUI leaves the EditText's
+            // WHITE textColorPrimary. Discriminate on BindableObject.IsSet (C#'s `!= null` stand-in) and
+            // seed white when unset + night; light + explicit-color paths unchanged. Mirrors label_handler.
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
+                                  ? static_cast<jint>(0xFFFFFFFFU)
+                                  : static_cast<jint>(view.text_color().to_int());
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
         }
     }
 

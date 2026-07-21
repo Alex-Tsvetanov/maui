@@ -733,6 +733,12 @@ namespace maui::core
                 call_void_int(env.get(), widget_of(*platform), "setTextColor",
                               static_cast<jint>(view.text_color().to_int()));
             }
+            else if (maui::platform::android::detail::is_night_mode(env.get()))
+            {
+                // DARK: the DeviceDefault dark value text is a dim blue-gray (~#40484D, near-invisible);
+                // MAUI's Material dark renders the value WHITE. Seed white (light keeps the native default).
+                call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0xFFFFFFFFU));
+            }
         }
     }
 

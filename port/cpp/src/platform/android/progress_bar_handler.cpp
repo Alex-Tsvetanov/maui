@@ -456,9 +456,14 @@ namespace maui::core
             jclass color_state_list_class = cache.find_class(env.get(), k_color_state_list_class);
             if (track_value_of != nullptr && set_background_tint != nullptr && color_state_list_class != nullptr)
             {
+                // The 0x5F seed composites through the ~0.256-alpha secondaryProgress drawable over the LIGHT
+                // white field to MAUI's #D7D7D7. DARK composites the same seed over #121212 to #262626 (too
+                // dark vs MAUI's #444444), so fork the seed to 0xD5D5D5, which lands #444444 over #121212.
+                const jint track_seed = maui::platform::android::detail::is_night_mode(env.get())
+                                            ? static_cast<jint>(0xFFD5D5D5U)
+                                            : k_native_default_track_color;
                 const local_ref<jobject> track_tint{
-                    env.get(),
-                    env->CallStaticObjectMethod(color_state_list_class, track_value_of, k_native_default_track_color)};
+                    env.get(), env->CallStaticObjectMethod(color_state_list_class, track_value_of, track_seed)};
                 if (!clear_pending(env.get()) && track_tint)
                 {
                     env->CallVoidMethod(widget.get(), set_background_tint, track_tint.get());

@@ -640,10 +640,14 @@ namespace
         {
             return;
         }
-        // Always tint: an explicit color when set, else the dark default (the untinted framework drawable
-        // is a mid-gray that doesn't match MAUI's textColorPrimary icons — see k_default_icon_tint).
-        const jint left_eff = left_is_set ? left_tint : k_default_icon_tint;
-        const jint right_eff = right_is_set ? right_tint : k_default_icon_tint;
+        // Always tint: an explicit color when set, else the default (the untinted framework drawable is a
+        // mid-gray that doesn't match MAUI's textColorPrimary icons — see k_default_icon_tint). LIGHT uses the
+        // near-black k_default_icon_tint; DARK uses white (MAUI's Material dark magnifier/clear icons are white,
+        // and the near-black default is invisible on the #121212 bar).
+        const jint default_icon_tint =
+            maui::platform::android::detail::is_night_mode(env) ? static_cast<jint>(0xFFFFFFFFU) : k_default_icon_tint;
+        const jint left_eff = left_is_set ? left_tint : default_icon_tint;
+        const jint right_eff = right_is_set ? right_tint : default_icon_tint;
         const local_ref<jobject> left =
             resolve_framework_drawable(env, widget, k_search_icon_field, /*apply_tint=*/true, left_eff);
         local_ref<jobject> right;
@@ -982,8 +986,12 @@ namespace maui::core
                                                  "(Landroid/content/res/ColorStateList;)V");
             if (value_of != nullptr && set_bg_tint != nullptr)
             {
+                // LIGHT underline #D9D9D9 matches MAUI's faint plate; DARK's Material underline is #444444.
+                const jint underline_tint = maui::platform::android::detail::is_night_mode(env.get())
+                                                ? static_cast<jint>(0xFF444444U)
+                                                : k_underline_tint;
                 const local_ref<jobject> tint{env.get(),
-                                              env->CallStaticObjectMethod(csl_class, value_of, k_underline_tint)};
+                                              env->CallStaticObjectMethod(csl_class, value_of, underline_tint)};
                 if (!clear_pending(env.get()) && tint)
                 {
                     env->CallVoidMethod(widget.get(), set_bg_tint, tint.get());
@@ -1125,9 +1133,15 @@ namespace maui::core
             // SearchViewExtensions.UpdateTextColor → inner EditText.SetTextColor(color). The null branch
             // (TryGetDefaultStateColor + the search_mag_icon co-tint) collapses for the port's non-nullable
             // color + the deferred SearchView chrome (header deviations); the ColorStateList path is
-            // replaced by the int overload (header deviations).
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(view.text_color().to_int()));
+            // replaced by the int overload (header deviations). The non-nullable default (color{}) is opaque
+            // BLACK — invisible on MAUI's #121212 DARK surface where MAUI's SearchView text is WHITE — so seed
+            // white when unset + night (light + explicit paths unchanged), mirroring editor/entry.
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
+                                  ? static_cast<jint>(0xFFFFFFFFU)
+                                  : static_cast<jint>(view.text_color().to_int());
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
         }
     }
 
@@ -1189,7 +1203,11 @@ namespace maui::core
             // theme-textColorHint result deterministically. An explicit PlaceholderColor still overrides via
             // the SET branch. (The search_mag_icon co-tint stays deferred to SearchIconColor — header
             // deviations; ColorStateList → int overload — header deviations.)
-            constexpr jint k_native_default_hint_color = static_cast<jint>(0xFF666666U);
+            // Light native hint gray #666666 matches MAUI on white; MAUI's Material DARK textColorHint is the
+            // brighter #B8B8B8, so seed that when unset + night (mirrors label/entry dark hint seeds).
+            const jint k_native_default_hint_color = maui::platform::android::detail::is_night_mode(env.get())
+                                                         ? static_cast<jint>(0xFFB8B8B8U)
+                                                         : static_cast<jint>(0xFF666666U);
             const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
             const bool color_is_set = bindable != nullptr && bindable->is_property_set("placeholder_color");
             const jint argb =

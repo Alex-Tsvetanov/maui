@@ -335,8 +335,12 @@ namespace
     {
         const auto track =
             maui::graphics::color::from_rgb(k_material_track_gray, k_material_track_gray, k_material_track_gray);
-        const auto inactive_track = maui::graphics::color::from_rgb(
-            k_material_inactive_track_gray, k_material_inactive_track_gray, k_material_inactive_track_gray);
+        // The 0x5F inactive-track seed composites through the ~0.256-alpha SeekBar background drawable over the
+        // LIGHT white page to MAUI's #D7 (214). DARK composites the same seed over #121212 to #26 (38, far
+        // below MAUI's Material-dark inactive track #444444=68), so fork to 0xD5, which lands 68 over #121212.
+        const int inactive_gray =
+            maui::platform::android::detail::is_night_mode(env) ? 0xD5 : k_material_inactive_track_gray;
+        const auto inactive_track = maui::graphics::color::from_rgb(inactive_gray, inactive_gray, inactive_gray);
         const auto thumb =
             maui::graphics::color::from_rgb(k_material_thumb_gray, k_material_thumb_gray, k_material_thumb_gray);
         push_tint_list(env, widget, "setProgressTintList", track);                    // min (active) track

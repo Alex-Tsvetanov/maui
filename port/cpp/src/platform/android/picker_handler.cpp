@@ -786,6 +786,12 @@ namespace maui::core
                 call_void_int(env.get(), widget_of(*platform), "setHintTextColor",
                               static_cast<jint>(view.title_color().to_int()));
             }
+            else if (maui::platform::android::detail::is_night_mode(env.get()))
+            {
+                // DARK: the DeviceDefault dark hint resolves near-black (invisible on the #121212 field);
+                // MAUI's Material dark hint is the brighter #B8B8B8. Seed it (light stays the native gray).
+                call_void_int(env.get(), widget_of(*platform), "setHintTextColor", static_cast<jint>(0xFFB8B8B8U));
+            }
         }
     }
 
@@ -806,9 +812,15 @@ namespace maui::core
         {
             // PickerExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()). The null branch
             // (restore the theme default) collapses for the value-type color + ColorStateList → int
-            // overload (header deviations) — byte-for-byte the editor's map_text_color.
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(view.text_color().to_int()));
+            // overload (header deviations) — byte-for-byte the editor's map_text_color, including the
+            // DARK unset→white seed (an unset selected value would otherwise render black-invisible on the
+            // #121212 field, where MAUI shows white).
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
+                                  ? static_cast<jint>(0xFFFFFFFFU)
+                                  : static_cast<jint>(view.text_color().to_int());
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
         }
     }
 

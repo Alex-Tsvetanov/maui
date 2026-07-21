@@ -807,7 +807,10 @@ namespace maui::core
         // as the editor: the @android:drawable/edit_text alpha-mask 9-patch is tinted by the host theme's
         // colorControlNormal, which under Theme.DeviceDefault is a dark blue-gray (~#40484D), but real MAUI
         // renders the at-rest underline at #666666. Best-effort (a JNI miss leaves the framework chrome).
-        constexpr jint k_entry_underline_tint = static_cast<jint>(0xFF666666U);
+        // DARK: MAUI's Material dark underline is the brighter #B8B8B8, so fork the tint on night mode.
+        const jint k_entry_underline_tint = maui::platform::android::detail::is_night_mode(env.get())
+                                                ? static_cast<jint>(0xFFB8B8B8U)
+                                                : static_cast<jint>(0xFF666666U);
         if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
         {
             jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
@@ -941,8 +944,17 @@ namespace maui::core
             // EditTextExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()). The null branch
             // (restore the theme default) collapses for the port's non-nullable color (header deviations);
             // the ColorStateList path is replaced by the int overload (header deviations).
-            call_void_int(env.get(), widget_of(*platform), "setTextColor",
-                          static_cast<jint>(view.text_color().to_int()));
+            //
+            // The port's non-nullable TextColor default (color{}) is opaque BLACK — correct on the LIGHT
+            // white field (and the password dots), but invisible on MAUI's #121212 DARK surface where MAUI
+            // keeps the EditText's WHITE textColorPrimary. Discriminate on BindableObject.IsSet (C#'s
+            // `!= null` stand-in) and seed white when unset + night; light + explicit paths unchanged.
+            const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+            const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
+            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
+                                  ? static_cast<jint>(0xFFFFFFFFU)
+                                  : static_cast<jint>(view.text_color().to_int());
+            call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
         }
     }
 
@@ -1003,7 +1015,11 @@ namespace maui::core
             // samples) instead of black — reproducing C#'s theme-textColorHint result deterministically. An
             // explicit PlaceholderColor still overrides via the SET branch. (ColorStateList → int overload
             // — header deviations.)
-            constexpr jint k_native_default_hint_color = static_cast<jint>(0xFF666666U);
+            // Light native hint gray #666666 matches MAUI on white; MAUI's Material DARK textColorHint is the
+            // brighter #B8B8B8, so seed that when unset + night (mirrors the label default-text dark seed).
+            const jint k_native_default_hint_color = maui::platform::android::detail::is_night_mode(env.get())
+                                                         ? static_cast<jint>(0xFFB8B8B8U)
+                                                         : static_cast<jint>(0xFF666666U);
             const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
             const bool color_is_set = bindable != nullptr && bindable->is_property_set("placeholder_color");
             const jint argb =
