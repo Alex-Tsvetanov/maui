@@ -149,7 +149,12 @@ namespace maui::samples
         void load_page(const std::string& heading, std::string base_url)
         {
             browser_.set_source(std::make_shared<maui::controls::html_web_view_source>(
-                "<html><body><h1>" + heading + "</h1><p>Served from a static HtmlWebViewSource.</p></body></html>",
+                // <meta color-scheme> opts this WebView out of MAUI's DayNight dark-darkening (parity
+                // ruling 12, fix-both-sides): white in both themes, matching the shared web_view.xaml twin.
+                "<html><head><meta name=\"color-scheme\" content=\"light\">"
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head>"
+                "<body><h1>" +
+                    heading + "</h1><p>Served from a static HtmlWebViewSource.</p></body></html>",
                 std::move(base_url)));
         }
 

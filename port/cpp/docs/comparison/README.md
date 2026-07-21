@@ -7770,11 +7770,11 @@ a self-contained demo page for the W1-08 web_view vertical: a web_view loading a
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9262, 3.02% pixels differ · Dark: SSIM 0.3113, 69.12% pixels differ
+Light: SSIM 0.9625, 1.51% pixels differ · Dark: SSIM 0.5700, 41.45% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9924, 0.29% pixels differ · Dark: SSIM 0.3111, 68.57% pixels differ
+Light: SSIM 0.9703, 1.14% pixels differ · Dark: SSIM 0.5868, 40.77% pixels differ
 
 ### 172. Z Index — 🟢/🟢
 <sub>z_index</sub>

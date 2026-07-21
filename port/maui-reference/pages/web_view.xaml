@@ -3,12 +3,15 @@
              x:Class="MauiReference.Pages.WebViewPage" Title="Web view">
     <!-- Twin of the web_view demo page: a WebView over a status label, an eval-result label, and
          Page A/Page B/Back/Forward/Reload/Eval buttons. The navigation / eval wiring is interactive and
-         omitted. DEGRADE: the page loads a static HtmlWebViewSource (not text-convertible in the loader),
-         so the WebView.Source is a representative url string; the status/result labels carry their
-         resting text. -->
+         omitted; the status/result labels carry their resting text ("No navigation yet" / "<none>").
+         Source="welcome.html" is a packaged Resources/Raw asset (rebases to file:///android_asset/
+         welcome.html on Android). Per parity ruling 12 (fix-both-sides) welcome.html opts out of the
+         DayNight WebView's algorithmic dark-darkening via <meta name="color-scheme" content="light dark">,
+         so BOTH this MAUI/XAML page and the code-first C++ twin render the same theme-independent white
+         Welcome page — the RED was MAUI's dark-mode darkening, not real content. -->
     <VerticalStackLayout Spacing="8">
-        <WebView Source="https://demo.test/welcome" HeightRequest="240" />
-        <Label Text="new_page -> https://demo.test/welcome" />
+        <WebView Source="welcome.html" HeightRequest="240" />
+        <Label Text="No navigation yet" />
         <Label Text="Eval result: &lt;none&gt;" />
         <Button Text="Page A" />
         <Button Text="Page B" />

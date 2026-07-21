@@ -200,6 +200,19 @@ fi
 echo "[apphost-xaml] staged ${asset_count} gallery asset(s) into assets/ (from ${gallery_res_dir})" >&2
 [[ "${asset_count}" -gt 0 ]] || echo "[apphost-xaml] WARNING: no gallery assets found — image pages will render blank" >&2
 
+# Also stage the WebView welcome page. The shared web_view.xaml uses Source="welcome.html", a relative
+# source the android WebView handler rebases to file:///android_asset/welcome.html — so the canonical
+# Resources/Raw asset must land at assets/welcome.html (MAUI's own build packages Resources/Raw the same
+# way; this mirrors it for the gallery_xaml apphost). Single source of truth: the maui-reference Raw file.
+welcome_html="${cpp_root}/../maui-reference/app/Resources/Raw/welcome.html"
+if [[ -f "${welcome_html}" ]]; then
+  cp "${welcome_html}" "${work}/assets/welcome.html"
+  asset_count=$((asset_count + 1))
+  echo "[apphost-xaml] staged welcome.html into assets/ (from ${welcome_html})" >&2
+else
+  echo "[apphost-xaml] WARNING: ${welcome_html} missing — web_view.xaml Source=welcome.html will 404" >&2
+fi
+
 echo "[apphost-xaml] adding classes.dex + lib/${abi}/*.so + assets/*..." >&2
 unaligned_apk="${work}/app-unaligned.apk"
 cp "${base_apk}" "${unaligned_apk}"
