@@ -182,6 +182,15 @@ namespace
         }
     }
 
+    void call_void_float(JNIEnv* env, jobject widget, const char* name, jfloat value)
+    {
+        if (jmethodID method = default_jni_cache().method(env, k_image_view_class, name, "(F)V"))
+        {
+            env->CallVoidMethod(widget, method, value);
+            clear_pending(env);
+        }
+    }
+
     // ContextExtensions.ToPixels: ceil(dp * density - Epsilon), then C#'s (int) truncation at the call
     // sites — the ceil already produced an integral value, so truncation is exact.
     [[nodiscard]] jint to_pixels(double dp, float density)
@@ -761,6 +770,24 @@ namespace maui::core
         set_view_background(env.get(), widget_of(*this), value);
     }
 
+    // ViewMapper map_opacity → ViewExtensions.UpdateOpacity: platformView.Alpha = (float)opacity. The base
+    // body runs FIRST (the headless mirror must stay live for the VM-less cross-platform suite), then the
+    // native push sets the MauiImageView's alpha. Mirrors the button partial's update_opacity structure —
+    // the image page fades its Opacity=0.5 rows, so this is the largest light-mode parity contributor.
+    void image_platform::update_opacity(double value)
+    {
+        view_platform_base::update_opacity(value); // headless mirror first (the VM-less suite observes it)
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (env)
+        {
+            call_void_float(env.get(), widget_of(*this), "setAlpha", static_cast<jfloat>(value));
+        }
+    }
+
     std::unique_ptr<image_platform> image_handler::create_platform_view()
     {
         auto platform = std::make_unique<image_platform>();
@@ -919,10 +946,15 @@ namespace maui::core
         platform.intrinsic_height = size.height;
     }
 
-    // The async loader's apply (mirror this cut): copy the result's kind + detail. A !loaded() result clears
-    // it, mirroring SetImageSource(null) / ImageViewExtensions.Clear. The real uri/stream bitmap decode +
-    // setImageBitmap awaits the deferred android image-source services (no bytes flow through the result on
-    // android), so no native push here — only the FILE fast-path above decodes.
+    // The async loader's apply: copy the result's kind + detail mirror, then — when the result carries a
+    // native image (the new android image_source_services FONT rasterizer hands back a global-ref
+    // android.graphics.Bitmap) — push it into the ImageView via setImageBitmap (the android twin of apple's
+    // imageView.image = result.image()). A !loaded() result clears the view, mirroring SetImageSource(null)
+    // / ImageViewExtensions.Clear. uri/stream still carry no bytes on android (result.image() == null), so
+    // this stays mirror-only for them (the deferred Glide pipeline). The loader runs INLINE on the UI thread
+    // (no dispatcher on android — configure_loader is a no-op), and setImageBitmap is UI-thread-safe.
+    // intrinsic_width/height stay {0,0} so the FONT branch of get_desired_size (returns {size,size}) remains
+    // authoritative and the ImageView AspectFit-centers the glyph at MAUI's measured band height.
     void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
     {
         if (!result.loaded())
@@ -933,6 +965,15 @@ namespace maui::core
         platform.source_kind = result.kind();
         platform.source_file = result.detail();
         platform.source_loaded = true;
+        if (platform.native == nullptr || result.image() == nullptr)
+        {
+            return; // VM-less / a mirror-only result (uri/stream, or the font fallback): nothing to push
+        }
+        const scoped_env env;
+        if (env)
+        {
+            set_image_bitmap(env.get(), widget_of(platform), static_cast<jobject>(result.image()));
+        }
     }
 
     // Clear the loaded image (ImageViewExtensions.Clear: stop the animation + drop the drawable). Clears the

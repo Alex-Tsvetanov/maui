@@ -49,6 +49,7 @@
 
 #include <jni.h>
 
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <cstddef>
@@ -206,6 +207,64 @@ namespace
             env->CallVoidMethod(widget, method, value);
             clear_pending(env);
         }
+    }
+
+    // Install a two-state text ColorStateList {disabled → disabled_argb, default → default_argb} so the
+    // framework dims the label to the Material disabled color when the view (or an ancestor layout) is
+    // disabled and restores the resolved color when enabled — with no manual repaint per setEnabled. A plain
+    // setTextColor(int) collapses that stateful behavior to a flat color that NEVER dims (the regression the
+    // unset-color seeds caused on layout_is_enabled). This is a verbatim duplicate of button_handler's helper
+    // (the two android partials already duplicate clear_pending / call_void_* / display_density per the
+    // per-TU self-contained doctrine); the only change is k_text_view_class (TextView.setTextColor(ColorStateList)
+    // is a plain TextView method). Returns false (caller falls back to a flat setTextColor) on any JNI failure
+    // or the VM-less path. Every ref is local; pending exceptions are cleared.
+    [[nodiscard]] bool set_text_color_state_list(JNIEnv* env, jobject widget, jint default_argb, jint disabled_argb)
+    {
+        auto& cache = default_jni_cache();
+        jclass color_state_list_class = cache.find_class(env, "android/content/res/ColorStateList");
+        jmethodID ctor = cache.method(env, "android/content/res/ColorStateList", "<init>", "([[I[I)V");
+        jmethodID set_text_color =
+            cache.method(env, k_text_view_class, "setTextColor", "(Landroid/content/res/ColorStateList;)V");
+        jclass int_array_class = cache.find_class(env, "[I");
+        if (color_state_list_class == nullptr || ctor == nullptr || set_text_color == nullptr ||
+            int_array_class == nullptr)
+        {
+            return false;
+        }
+        // states = { {-state_enabled}, {} }: the disabled spec first, then the empty catch-all (ColorStateList
+        // returns the first matching spec's color). android.R.attr.state_enabled is the stable public framework
+        // id 0x0101009e — hardcoded to avoid an android.R$attr lookup per label.
+        constexpr jint k_state_enabled = 0x0101009e;
+        const jint disabled_spec = -k_state_enabled;
+        const local_ref<jintArray> disabled_state{env, env->NewIntArray(1)};
+        const local_ref<jintArray> default_state{env, env->NewIntArray(0)};
+        if (clear_pending(env) || !disabled_state || !default_state)
+        {
+            return false;
+        }
+        env->SetIntArrayRegion(disabled_state.get(), 0, 1, &disabled_spec);
+        const local_ref<jobjectArray> states{env, env->NewObjectArray(2, int_array_class, nullptr)};
+        if (clear_pending(env) || !states)
+        {
+            return false;
+        }
+        env->SetObjectArrayElement(states.get(), 0, disabled_state.get());
+        env->SetObjectArrayElement(states.get(), 1, default_state.get());
+        const std::array<jint, 2> color_values{disabled_argb, default_argb};
+        const local_ref<jintArray> colors{env, env->NewIntArray(2)};
+        if (clear_pending(env) || !colors)
+        {
+            return false;
+        }
+        env->SetIntArrayRegion(colors.get(), 0, 2, color_values.data());
+        const local_ref<jobject> state_list{env,
+                                            env->NewObject(color_state_list_class, ctor, states.get(), colors.get())};
+        if (clear_pending(env) || !state_list)
+        {
+            return false;
+        }
+        env->CallVoidMethod(widget, set_text_color, state_list.get());
+        return !clear_pending(env);
     }
 
     // ContextExtensions.ToPixels: ceil(dp * density - Epsilon).
@@ -793,11 +852,19 @@ namespace maui::core
             // and alpha-blends the glyph over whatever is behind it, so a label on the black/#121212 page bg
             // still composites to ~184-189 (matches MAUI's #B8B8B8, stays green) AND a label sitting on a
             // light-gray box (a SwipeView item, a light Grid cell) composites to ~243 instead of a flat dim
-            // #B8B8B8 — matching MAUI, which greens swipe_item_size / basic_swipe. A flat setTextColor also
-            // collapses the theme ColorStateList (so a DARK disabled label won't dim — a rare edge, e.g.
-            // layout_is_enabled); the far more common unset-label case is what this seeds. Same
-            // DeviceDefault-vs-Material gap the light board closed per-control (editor/search_bar underlines).
-            call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0xB8FFFFFFU));
+            // #B8B8B8 — matching MAUI, which greens swipe_item_size / basic_swipe. Same DeviceDefault-vs-Material
+            // gap the light board closed per-control (editor/search_bar underlines). Install this seed as the
+            // DEFAULT (enabled) entry of a two-state ColorStateList whose DISABLED entry is white@38%
+            // (0x61FFFFFF = Material dark colorOnSurface disabled), so a disabled label still DIMS (matching MAUI
+            // on layout_is_enabled) instead of the old flat seed collapsing the stateful behavior. Enabled labels
+            // keep the exact 0xB8FFFFFF seed (the many green pages are unchanged). Fall back to a flat
+            // setTextColor(0xB8FFFFFF) if the CSL can't be built (missing class / VM-less).
+            jobject widget = widget_of(*platform);
+            if (!set_text_color_state_list(env.get(), widget, static_cast<jint>(0xB8FFFFFFU),
+                                           static_cast<jint>(0x61FFFFFFU)))
+            {
+                call_void_int(env.get(), widget, "setTextColor", static_cast<jint>(0xB8FFFFFFU));
+            }
         }
         else
         {
@@ -810,11 +877,18 @@ namespace maui::core
             // grid_grouping / grouping_plus_selection). setTextColor honors alpha and blends the glyph over the
             // cell bg, exactly what the dark 0xB8FFFFFF seed relies on. src/ (UpdateTextColor no-op) says leave
             // it; shipped MAUI RENDERS #8A000000 — DEVIATION per ruling 1 (render is truth) + ruling 11 (same
-            // DeviceDefault-vs-Material class as the dark seed). TRADEOFF: a flat setTextColor collapses the
-            // theme ColorStateList, so a light-mode DISABLED unset-color label stops dimming — the same tradeoff
-            // the dark branch accepts. Follow-up if a disabled-label regression appears: upgrade both seeds to a
-            // two-state ColorStateList rather than a flat int.
-            call_void_int(env.get(), widget_of(*platform), "setTextColor", static_cast<jint>(0x8A000000U));
+            // DeviceDefault-vs-Material class as the dark seed). Install this seed as the DEFAULT (enabled) entry
+            // of a two-state ColorStateList whose DISABLED entry is black@38% (0x61000000 = Material light
+            // colorOnSurface disabled — the same overlay button_handler dims its disabled label to), so a
+            // disabled unset-color label still DIMS (matching MAUI on layout_is_enabled) instead of the old flat
+            // seed collapsing the stateful behavior. Enabled labels keep the exact 0x8A000000 seed (the many
+            // green pages are unchanged). Fall back to a flat setTextColor(0x8A000000) if the CSL can't be built.
+            jobject widget = widget_of(*platform);
+            if (!set_text_color_state_list(env.get(), widget, static_cast<jint>(0x8A000000U),
+                                           static_cast<jint>(0x61000000U)))
+            {
+                call_void_int(env.get(), widget, "setTextColor", static_cast<jint>(0x8A000000U));
+            }
         }
     }
 

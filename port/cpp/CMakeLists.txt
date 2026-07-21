@@ -485,6 +485,13 @@ else()
     # image: android.widget.ImageView partial (aspect→ScaleType; source decode deferred to the mirror).
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/image_handler.cpp)
+    # image-source services: the android partial rasterizes FontImageSource glyphs into an android.graphics
+    # .Bitmap over JNI (FontModelResourceDecoder + FontImageSourceService.Android; stock android.graphics,
+    # zero AAR) so the Image page's "Font Image Source" rows render the Ionicons glyph instead of a blank
+    # band. file/uri/stream stay mirror-only (copied verbatim from the headless twin). Without this swap the
+    # headless image_source_services.cpp keeps the font source a mirror and the glyph never draws.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/image_source_services.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/image_source_services.cpp)
     # image_button (wave 19): a tappable dev.mauicpp.MauiImageView reusing the image decode (setImageBitmap
     # + ScaleType) with a button-style GradientDrawable chrome (background fill + stroke + corner radius)
     # and the NativeOnClickListener click trampoline. The static FileSource bot images + the green/purple

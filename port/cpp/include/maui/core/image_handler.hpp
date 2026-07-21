@@ -142,6 +142,10 @@ namespace maui::core
         // keep only the view_platform_base mirrors. // TODO: gradient/tiled brushes when a shared android
         // paint→drawable bridge lands.
         void update_background(const maui::graphics::paint* value) override;
+        // Opacity IS pushed (ViewExtensions.UpdateOpacity: View.Alpha = (float)opacity) — the image page's
+        // Opacity=0.5 rows fade the ImageView. Base mirror first (the VM-less suite observes it), then the
+        // native setAlpha. The remaining generic-IView pushes keep only the view_platform_base mirrors.
+        void update_opacity(double value) override;
 #endif
     };
 

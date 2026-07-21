@@ -406,6 +406,28 @@ namespace
     // Forward decl: the stateful-fill helper is defined below (next to set_text_color_state_list) but used here.
     [[nodiscard]] bool set_fill_color_state_list(JNIEnv* env, jobject drawable, jint default_argb, jint disabled_argb);
 
+    // THEME-AWARE disabled overlays. A disabled MauiMaterialButton dims its container to colorOnSurface@12%
+    // and its label to colorOnSurface@38%, and Material flips colorOnSurface with the theme: BLACK in the
+    // light theme, WHITE in the dark theme. The overlays were hardcoded to the LIGHT (black) values, so a
+    // disabled button in DARK mode dimmed toward black over the dark surface — the WRONG direction (the 38%
+    // layout_is_enabled dark diff + the modal disabled-button gap). Flip the RGB with the theme while keeping
+    // the alpha bytes (0x1F ≈ 12%, 0x61 ≈ 38%) unchanged: light reuses the pixel-exact k_material_disabled_*
+    // constants (already byte-exact), dark uses the same-alpha WHITE overlay. Over the button's #E0E0E0 fill /
+    // a colored parent, white@12% / white@38% reproduce MAUI's measured dark LightBlue/LightPink/Teal/modal
+    // disabled values to the byte. is_night_mode is the same Configuration.uiMode probe map_text_color reads
+    // for the default label color (~line 1137); it is a cold-path property-map call, so re-reading it here
+    // costs nothing (the codebase reads it inline per-site throughout the android handlers).
+    [[nodiscard]] jint disabled_button_overlay(JNIEnv* env)
+    {
+        return maui::platform::android::detail::is_night_mode(env) ? static_cast<jint>(0x1FFFFFFFU)    // white @ ~12%
+                                                                   : k_material_disabled_button_color; // black @ ~12%
+    }
+    [[nodiscard]] jint disabled_text_overlay(JNIEnv* env)
+    {
+        return maui::platform::android::detail::is_night_mode(env) ? static_cast<jint>(0x61FFFFFFU)  // white @ ~38%
+                                                                   : k_material_disabled_text_color; // black @ ~38%
+    }
+
     // Replace the framework Material InsetDrawable background with MAUI's flat MauiMaterialButton fill: a
     // solid #E0E0E0 GradientDrawable with ~4dp corners, installed edge-to-edge (no inset gap between docked
     // buttons, no near-invisible disabled state). setBackground zeroes the view's padding to the drawable's
@@ -430,7 +452,7 @@ namespace
         // Stateful fill so a disabled button dims to colorOnSurface@12% (bleeding a colored parent through)
         // rather than staying opaque #E0E0E0; fall back to the plain opaque fill if the CSL can't be built.
         if (!set_fill_color_state_list(env, drawable.get(), k_material_default_button_color,
-                                       k_material_disabled_button_color))
+                                       disabled_button_overlay(env)))
         {
             env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
         }
@@ -780,7 +802,7 @@ namespace maui::core
             // Restore the flat default with the SAME stateful fill create_platform_view installs, so a null/
             // cleared paint doesn't clobber the disabled colorOnSurface@12% state back to an opaque #E0E0E0.
             if (!set_fill_color_state_list(env.get(), drawable.get(), k_material_default_button_color,
-                                           k_material_disabled_button_color))
+                                           disabled_button_overlay(env.get())))
             {
                 env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
             }
@@ -1141,12 +1163,13 @@ namespace maui::core
         const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
         // TextViewExtensions.UpdateTextColor: SetTextColor(textColor.ToPlatform()) — the ARGB int.
         const jint argb = color_is_set ? static_cast<jint>(view.text_color().to_int()) : k_material_default_text_color;
-        // A disabled MauiMaterialButton dims its label to black@38% over the #E0E0E0 fill (#8B8B8B) while the
-        // fill stays solid. Install a two-state text ColorStateList {disabled → #8B8B8B, default → the resolved
-        // color} so setEnabled dims/restores the label automatically (no per-toggle repaint). Fall back to the
-        // plain single-color setTextColor if the ColorStateList can't be built (missing class / VM-less).
+        // A disabled MauiMaterialButton dims its label to colorOnSurface@38% while the fill stays solid — black
+        // over the light #E0E0E0 fill (#8B8B8B), WHITE in dark (disabled_text_overlay flips the RGB with the
+        // theme; see its comment). Install a two-state text ColorStateList {disabled → that overlay, default →
+        // the resolved color} so setEnabled dims/restores the label automatically (no per-toggle repaint). Fall
+        // back to the plain single-color setTextColor if the ColorStateList can't be built (missing class / VM-less).
         jobject widget = widget_of(*platform);
-        if (!set_text_color_state_list(env.get(), widget, argb, k_material_disabled_text_color))
+        if (!set_text_color_state_list(env.get(), widget, argb, disabled_text_overlay(env.get())))
         {
             call_void_int(env.get(), widget, "setTextColor", argb);
         }
