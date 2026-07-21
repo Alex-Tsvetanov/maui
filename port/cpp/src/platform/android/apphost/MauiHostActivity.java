@@ -77,7 +77,13 @@ public final class MauiHostActivity extends Activity {
             // MAUI's page surface follows the theme (white in light, #121212 dark). Paint the content root
             // with that theme surface so transparent pages match MAUI; a page with an explicit Background
             // still paints over it.
-            root.setBackgroundColor("dark".equals(appearance) ? 0xFF121212 : 0xFFFFFFFF);
+            int surface = "dark".equals(appearance) ? 0xFF121212 : 0xFFFFFFFF;
+            root.setBackgroundColor(surface);
+            // ALSO paint the WINDOW background: a hardware android.webkit.WebView (SurfaceView-backed) punches
+            // through the view layer and composites against the WINDOW bg, which defaults to white — so on
+            // WebView-hosting pages the dark #121212 root did not show (the web_view/hybrid_web_view dark
+            // page-surface RED). Setting the window drawable makes the surface behind everything match the theme.
+            getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(surface));
             setContentView(root);
         }
     }

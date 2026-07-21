@@ -67,7 +67,11 @@ public final class MauiHostActivity extends Activity {
         if (root != null) {
             // Theme-aware content-root surface (MAUI's page bg: white light / #121212 dark) so transparent
             // pages match MAUI; a page with an explicit Background paints over it. Mirrors the C++ apphost.
-            root.setBackgroundColor("dark".equals(appearance) ? 0xFF121212 : 0xFFFFFFFF);
+            int surface = "dark".equals(appearance) ? 0xFF121212 : 0xFFFFFFFF;
+            root.setBackgroundColor(surface);
+            // ALSO paint the WINDOW bg: a hardware WebView (SurfaceView) composites against the window bg
+            // (default white), so WebView pages showed white in dark. Mirrors the C++ apphost fix.
+            getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(surface));
             setContentView(root);
         }
     }
