@@ -288,7 +288,11 @@ namespace
     // MinimumTrackColor / MaximumTrackColor / ThumbColor still overrides the baseline through the mappers
     // below (push_tint_list on a set color wins; on an unset color it early-returns, leaving this gray) —
     // verified against the LightBlue / Pink / Orange / Custom rows on the slider page.
-    constexpr int k_material_track_gray = 0xD7; // #D7D7D7 — MAUI default track (measured)
+    constexpr int k_material_track_gray = 0xD7; // #D7D7D7 — MAUI default (active) track (measured)
+    // The inactive (max) track's framework SeekBar background drawable is drawn at ~0.25 alpha, so seeding it
+    // with #D7D7D7 composites over white to ~#F5 (too light) — MAUI's inactive track renders #D7D7D7 solid.
+    // Seed a darker value that composites through that 0.25 alpha to #D7: 255 - 0.25*(255-0x5F) ≈ 215 = #D7.
+    constexpr int k_material_inactive_track_gray = 0x5F;
     constexpr int k_material_thumb_gray = 0xE0; // #E0E0E0 — MAUI default thumb (measured)
 
     // The shared track-color push: an explicitly-set color installs ColorStateList.valueOf(argb) onto the
@@ -331,11 +335,13 @@ namespace
     {
         const auto track =
             maui::graphics::color::from_rgb(k_material_track_gray, k_material_track_gray, k_material_track_gray);
+        const auto inactive_track = maui::graphics::color::from_rgb(
+            k_material_inactive_track_gray, k_material_inactive_track_gray, k_material_inactive_track_gray);
         const auto thumb =
             maui::graphics::color::from_rgb(k_material_thumb_gray, k_material_thumb_gray, k_material_thumb_gray);
-        push_tint_list(env, widget, "setProgressTintList", track);           // min (active) track
-        push_tint_list(env, widget, "setProgressBackgroundTintList", track); // max (inactive) track
-        push_tint_list(env, widget, "setThumbTintList", thumb);              // thumb
+        push_tint_list(env, widget, "setProgressTintList", track);                    // min (active) track
+        push_tint_list(env, widget, "setProgressBackgroundTintList", inactive_track); // max (inactive) track
+        push_tint_list(env, widget, "setThumbTintList", thumb);                       // thumb
     }
 } // namespace
 

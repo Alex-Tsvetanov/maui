@@ -585,6 +585,9 @@ namespace maui::core
         if (value != nullptr)
         {
             maui::platform::android::apply_background(native, value);
+            // An explicit Background overrides the field chrome, so drop the create-time underline tint —
+            // otherwise it recolors the explicit background (e.g. a green Editor rendered gray).
+            maui::platform::android::clear_background_tint(native);
         }
     }
 
@@ -731,6 +734,31 @@ namespace maui::core
         // TextAlignment = ViewStart + Gravity = Top: the editor's default leading/top alignment.
         call_void_int(env.get(), widget.get(), "setTextAlignment", k_text_alignment_view_start);
         call_void_int(env.get(), widget.get(), "setGravity", k_gravity_top);
+
+        // Tint the framework EditText's underline 9-patch to MAUI's rendered gray. The @android:drawable/
+        // edit_text 9-patch is an alpha mask tinted by the host theme's colorControlNormal; under the bare
+        // Theme.DeviceDefault app_process host that resolves to a dark blue-gray (~#40484D), but real MAUI's
+        // AppCompat/Material EditText renders the at-rest underline at #666666. Seed the background tint so
+        // the underline matches (SRC_IN so the tint replaces the mask color). Same idiom as the search_bar
+        // underline tint + the check_box glyph seed; best-effort (a JNI miss leaves the framework chrome).
+        constexpr jint k_editor_underline_tint = static_cast<jint>(0xFF666666U);
+        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
+        {
+            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
+                                                     "(I)Landroid/content/res/ColorStateList;");
+            jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
+                                                 "(Landroid/content/res/ColorStateList;)V");
+            if (value_of != nullptr && set_bg_tint != nullptr)
+            {
+                const local_ref<jobject> tint{
+                    env.get(), env->CallStaticObjectMethod(csl_class, value_of, k_editor_underline_tint)};
+                if (!clear_pending(env.get()) && tint)
+                {
+                    env->CallVoidMethod(widget.get(), set_bg_tint, tint.get());
+                    clear_pending(env.get());
+                }
+            }
+        }
 
         // Wrap-content LayoutParams up front: a parentless TextView with null LayoutParams NPEs in
         // checkForRelayout on any setText AFTER the first measure (TextView.java reads

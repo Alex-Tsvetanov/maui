@@ -235,6 +235,32 @@ namespace maui::platform::android
         }
     }
 
+    // Clear any background TINT list (View.setBackgroundTintList(null)). The editor/entry handlers seed a gray
+    // underline tint on their default EditText chrome at create time; when an EXPLICIT Background paint is then
+    // applied via apply_background, that tint would recolor the explicit background (e.g. a green Entry
+    // rendered gray — visual_states/clip_views regression). Call this right after apply_background so the
+    // explicit background shows in its own color. No-op / best-effort when the tint or view is absent.
+    inline void clear_background_tint(void* native)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        auto& cache = default_jni_cache();
+        jmethodID set_tint = cache.method(env.get(), detail::k_visual_view_class, "setBackgroundTintList",
+                                          "(Landroid/content/res/ColorStateList;)V");
+        if (set_tint != nullptr)
+        {
+            env->CallVoidMethod(static_cast<jobject>(native), set_tint, static_cast<jobject>(nullptr));
+            env->ExceptionClear();
+        }
+    }
+
     namespace detail
     {
         inline constexpr const char* k_shadow_provider_class = "dev/mauicpp/MauiShadowOutlineProvider";
