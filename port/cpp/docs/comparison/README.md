@@ -5520,11 +5520,11 @@ ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9569, 3.68% pixels differ · Dark: SSIM 0.9569, 3.68% pixels differ
+Light: SSIM 0.9394, 3.73% pixels differ · Dark: SSIM 0.9441, 1.33% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9569, 3.68% pixels differ · Dark: SSIM 0.9569, 3.68% pixels differ
+Light: SSIM 0.9394, 3.73% pixels differ · Dark: SSIM 0.9441, 1.33% pixels differ
 
 ### 22. Carousel Page — 🟢/🟢
 <sub>carousel_page</sub>

@@ -652,6 +652,11 @@ namespace
 
 namespace maui::core
 {
+    // Forward decl: the icon+text composition helper is defined below (next to the source primitives) but
+    // several mappers route through it — map_text (re-splice the icon next to new text), the source loaders
+    // (compose on load), and clear_source_native (drop the icon). Static = internal linkage, one definition.
+    static void apply_button_content(button_platform& platform);
+
     // Releases the global reference pinning the android.widget.Button (the JNI shape of the
     // pimpl-owned-native-view doctrine: the ios twin CFReleases its UIButton here).
     button_platform::~button_platform()
@@ -1101,25 +1106,13 @@ namespace maui::core
             return;
         }
         platform->title = std::string(view.text());
-        if (platform->native == nullptr)
-        {
-            return;
-        }
-        const scoped_env env;
-        if (!env)
-        {
-            return;
-        }
-        // TextViewExtensions.UpdateTextPlainText: textView.Text = label.Text. to_jstring goes through
-        // the real-UTF-8 path (supplementary-plane safe — see jni_string.hpp).
-        jmethodID set_text =
-            default_jni_cache().method(env.get(), k_button_class, "setText", "(Ljava/lang/CharSequence;)V");
-        if (set_text != nullptr)
-        {
-            const local_ref<jstring> text = to_jstring(env.get(), view.text());
-            env->CallVoidMethod(widget_of(*platform), set_text, text.get());
-            clear_pending(env.get());
-        }
+        // TextViewExtensions.UpdateTextPlainText sets textView.Text = label.Text, but on this backend the
+        // button's CharSequence is COUPLED with the icon (an inline Left/Right icon is spliced INTO the text
+        // as an ImageSpan — see apply_button_content), so a bare setText would drop the icon. Route through
+        // the shared helper: it re-composes [icon + text] (or plain text when there's no icon) so a text
+        // change re-splices the icon next to the new label. apply_button_content is a no-op when native is
+        // null (VM-less) — the headless title mirror set above is what that suite observes.
+        apply_button_content(*platform);
     }
 
     void button_handler::map_text_color(button_handler& handler, i_text_button& view)
@@ -1483,50 +1476,101 @@ namespace maui::core
     }
 
     // ---- per-backend image-source primitives (the cross-platform map_image_source routes here) ----
-    // The android Button is a TextView-derived widget whose icon support (CompoundDrawables / MaterialButton
-    // .Icon) is part of the deferred android backend (see port/STATUS.md — the trio is not yet built). The
-    // primitives update the shared headless-style mirrors (kind/file/loaded) so the android preset's pure-
-    // native cross-platform suite still observes the load; the real JNI drawable push is deferred.
+    // The android Button is a TextView-derived widget, so it has no MaterialButton .Icon/IconGravity; the icon
+    // is composed onto the real widget by apply_button_content below (inline ImageSpan for the Left/Right
+    // layouts, compound drawable for Top/Bottom). The primitives ALSO keep the shared headless-style mirrors
+    // (kind/file/loaded) live so the android preset's pure-native cross-platform suite still observes the load
+    // where no Java VM exists (apply_button_content is a no-op there).
     void button_handler::configure_loader(maui::core::image_source_loader& /*loader*/)
     {
     }
 
-    // Push the decoded file image as the Button's COMPOUND DRAWABLE, positioned per ContentLayout (C#'s
-    // ButtonExtensions.UpdateContentLayout composes MaterialButton.Icon + IconGravity; the AAR-less host has
-    // no MaterialButton, so the plain android.widget.Button uses the TextView compound-drawable seam — the
-    // same setCompoundDrawablesWithIntrinsicBounds recipe the search bar uses for its magnifier). The bundled
-    // bytes decode via the shared image_decode helper (the image control's fast-path). No-op on decode
-    // failure (leaves the button text-only), matching a nil apple decode.
-    // Free helper (internal linkage): decode platform.source_file → BitmapDrawable → the button's compound
-    // drawable, positioned per platform.content_layout. Static so it needs no header declaration (the other
-    // backends' partials don't carry it); map_content_layout / the source primitives below all call it.
-    static void apply_button_icon(button_platform& platform)
+    // Compose the Button's CharSequence as [icon + spacing + text] — ONE group centered as a unit — matching
+    // MAUI's MauiMaterialButton, which sets IconGravity = ICON_GRAVITY_TEXT_START: the icon is drawn adjacent
+    // to the label and the whole [icon|text] group is centered by the Material style's gravity=center. A plain
+    // android.widget.Button has no MaterialButton IconGravity; setCompoundDrawables (the previous cut) pins the
+    // icon to the view's LEFT EDGE and then center-gravities only the leftover TEXT, so the icon can never sit
+    // next to centered text (measured: cpp gear+text spanned x=165..795, the gear ~205px too far left of MAUI's
+    // centered group). To reproduce IconGravity=TextStart on a bare TextView, SPLICE the icon INTO the text as
+    // an android.text.style.ImageSpan(ALIGN_CENTER) over a U+FFFC object-replacement char, so the single line —
+    // icon glyph + spacing + letters — is centered as one unit. api-34 honors ImageSpan.ALIGN_CENTER (=2) via
+    // the stock ImageSpan(Drawable,int) ctor (min-api 24; degrades harmlessly to bottom-align below 29).
+    //
+    // Only the inline Left/Right layouts splice: a single-line TextView cannot STACK an icon, so Top/Bottom keep
+    // the compound-drawable seam (already horizontally centered, the h-centered analog of IconGravity=Top). No
+    // decoded source ⇒ plain title + cleared compound drawable. This helper OWNS the button's text now (icon and
+    // label are coupled), so every caller that changes either — map_text / the source loaders / clear_source_native
+    // — routes through it. The bundled bytes decode via the shared image_decode helper (the image control's
+    // fast-path). Ported to stand in for ButtonExtensions.UpdateContentLayout (MaterialButton.Icon+IconGravity).
+    static void apply_button_content(button_platform& platform)
     {
-        if (platform.native == nullptr || !platform.source_loaded || platform.source_file.empty())
+        if (platform.native == nullptr)
         {
-            return;
+            return; // VM-less / headless: the title + content_layout mirrors (maintained by callers) suffice
         }
         const scoped_env env;
         if (!env)
         {
             return;
         }
+        jobject widget = widget_of(platform);
+        auto& cache = default_jni_cache();
+        jmethodID set_text = cache.method(env.get(), k_button_class, "setText", "(Ljava/lang/CharSequence;)V");
+        if (set_text == nullptr)
+        {
+            return;
+        }
+        using pos = maui::core::button_content_spec::image_position;
+        const maui::core::button_content_spec& spec = platform.content_layout;
+        const bool has_icon = platform.source_loaded && !platform.source_file.empty();
+
+        // Set the plain title (to_jstring is supplementary-plane safe — see jni_string.hpp).
+        const auto set_plain_title = [&] {
+            const local_ref<jstring> text = to_jstring(env.get(), platform.title);
+            env->CallVoidMethod(widget, set_text, text.get());
+            clear_pending(env.get());
+        };
+        // Drop any Top/Bottom compound-drawable icon (null×4) — used by the no-icon and inline paths so a
+        // Left↔Top cycle doesn't leave a stale stacked icon behind the spliced/plain text.
+        const auto clear_compound = [&] {
+            jmethodID clear = cache.method(
+                env.get(), k_button_class, "setCompoundDrawablesWithIntrinsicBounds",
+                "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/"
+                "drawable/Drawable;Landroid/graphics/drawable/Drawable;)V");
+            if (clear != nullptr)
+            {
+                jobject nul = nullptr;
+                env->CallVoidMethod(widget, clear, nul, nul, nul, nul);
+                clear_pending(env.get());
+            }
+        };
+
+        if (!has_icon)
+        {
+            set_plain_title();
+            clear_compound();
+            return;
+        }
+
+        // Decode the bundled icon (shared by the inline Left/Right splice + the Top/Bottom compound path).
         namespace img = maui::platform::android::image_decode;
         const auto bytes = img::resolve_file_bytes(env.get(), platform.source_file);
         const local_ref<jobject> bitmap = img::decode_bitmap(env.get(), bytes);
-        jobject widget = widget_of(platform);
-        auto& cache = default_jni_cache();
         if (!bitmap)
         {
-            return; // decode failed — leave the button text-only
+            // Undecodable (e.g. an SVG-only asset) → plain text, no icon (matches a nil apple decode).
+            set_plain_title();
+            clear_compound();
+            return;
         }
-        // new BitmapDrawable(context.getResources(), bitmap) — the density-aware BitmapDrawable ctor so the
-        // icon renders at its natural dp size (like MAUI's ImageSource icon), then hung on the button.
+        // new BitmapDrawable(context.getResources(), bitmap) — the density-aware ctor so the icon renders at
+        // its natural dp size (like MAUI's ImageSource icon).
         jmethodID get_context = cache.method(env.get(), k_button_class, "getContext", "()Landroid/content/Context;");
         const local_ref<jobject> context{env.get(),
                                          get_context != nullptr ? env->CallObjectMethod(widget, get_context) : nullptr};
         if (clear_pending(env.get()) || !context)
         {
+            set_plain_title();
             return;
         }
         jmethodID get_resources =
@@ -1535,6 +1579,7 @@ namespace maui::core
             env.get(), get_resources != nullptr ? env->CallObjectMethod(context.get(), get_resources) : nullptr};
         if (clear_pending(env.get()) || !resources)
         {
+            set_plain_title();
             return;
         }
         jclass drawable_class = cache.find_class(env.get(), "android/graphics/drawable/BitmapDrawable");
@@ -1542,68 +1587,146 @@ namespace maui::core
                                                "(Landroid/content/res/Resources;Landroid/graphics/Bitmap;)V");
         if (drawable_class == nullptr || drawable_ctor == nullptr)
         {
+            set_plain_title();
             return;
         }
         const local_ref<jobject> drawable{env.get(),
                                           env->NewObject(drawable_class, drawable_ctor, resources.get(), bitmap.get())};
         if (clear_pending(env.get()) || !drawable)
         {
+            set_plain_title();
             return;
         }
-        // Size the icon to the bitmap's natural size treated as DP, scaled by display density — exactly the
-        // mdpi(1x)→device-density upscale MAUI's resizetizer performs by emitting settings.png into the
-        // density-less res/drawable/ folder (so Android upscales it ×density). The plain BitmapDrawable's
-        // intrinsic bounds would instead scale the asset DOWN under DeviceDefault, so set explicit bounds:
-        // to_pixels(128, 2.75)=352px canvas → ~175px visible gear + 399px button, matching MAUI on icon size
-        // AND button height. setCompoundDrawables (not …WithIntrinsicBounds) honors these bounds.
+        // Size the icon to the bitmap's natural size treated as DP, scaled by display density — the mdpi(1x)→
+        // device-density upscale MAUI's resizetizer performs by emitting settings.png into the density-less
+        // res/drawable/ folder. setCompoundDrawables / the ImageSpan below honor these explicit bounds.
         const float density = display_density(env.get(), widget);
         jmethodID get_bw = cache.method(env.get(), "android/graphics/Bitmap", "getWidth", "()I");
         jmethodID get_bh = cache.method(env.get(), "android/graphics/Bitmap", "getHeight", "()I");
         const jint bw = get_bw != nullptr ? env->CallIntMethod(bitmap.get(), get_bw) : 0;
         const jint bh = get_bh != nullptr ? env->CallIntMethod(bitmap.get(), get_bh) : 0;
         clear_pending(env.get());
-        if (bw > 0 && bh > 0)
+        const jint icon_w = bw > 0 ? to_pixels(static_cast<double>(bw), density) : 0;
+        const jint icon_h = bh > 0 ? to_pixels(static_cast<double>(bh), density) : 0;
+        if (icon_w > 0 && icon_h > 0)
         {
             jmethodID set_bounds =
                 cache.method(env.get(), "android/graphics/drawable/BitmapDrawable", "setBounds", "(IIII)V");
             if (set_bounds != nullptr)
             {
-                env->CallVoidMethod(drawable.get(), set_bounds, 0, 0, to_pixels(static_cast<double>(bw), density),
-                                    to_pixels(static_cast<double>(bh), density));
+                env->CallVoidMethod(drawable.get(), set_bounds, 0, 0, icon_w, icon_h);
                 clear_pending(env.get());
             }
         }
-        // Position the icon per ContentLayout (Left/Top/Right/Bottom) + the icon-title spacing (the mirror
-        // map_content_layout keeps current — the static primitive can't read the virtual view).
-        const maui::core::button_content_spec& spec = platform.content_layout;
-        jmethodID set_compound =
-            cache.method(env.get(), k_button_class, "setCompoundDrawables",
-                         "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/"
-                         "drawable/Drawable;Landroid/graphics/drawable/Drawable;)V");
-        if (set_compound != nullptr)
+
+        // Top/Bottom: a single-line TextView can't splice inline, so hang the icon above/below via the
+        // compound-drawable seam (already h-centered). Set the plain title, then the drawable + spacing.
+        if (spec.position == pos::top || spec.position == pos::bottom)
         {
-            jobject d = drawable.get();
-            jobject nul = nullptr;
-            using pos = maui::core::button_content_spec::image_position;
-            switch (spec.position)
+            set_plain_title();
+            jmethodID set_compound = cache.method(
+                env.get(), k_button_class, "setCompoundDrawables",
+                "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/"
+                "drawable/Drawable;Landroid/graphics/drawable/Drawable;)V");
+            if (set_compound != nullptr)
             {
-                case pos::top:
+                jobject d = drawable.get();
+                jobject nul = nullptr;
+                if (spec.position == pos::top)
+                {
                     env->CallVoidMethod(widget, set_compound, nul, d, nul, nul);
-                    break;
-                case pos::right:
-                    env->CallVoidMethod(widget, set_compound, nul, nul, d, nul);
-                    break;
-                case pos::bottom:
+                }
+                else
+                {
                     env->CallVoidMethod(widget, set_compound, nul, nul, nul, d);
-                    break;
-                case pos::left:
-                default:
-                    env->CallVoidMethod(widget, set_compound, d, nul, nul, nul);
-                    break;
+                }
+                clear_pending(env.get());
             }
+            call_void_int(env.get(), widget, "setCompoundDrawablePadding", to_pixels(spec.spacing, density));
+            return;
+        }
+
+        // Left/Right: wrap the icon in an InsetDrawable that reserves the ButtonContentLayout spacing on the
+        // side facing the text, then splice it into the label via an ImageSpan(ALIGN_CENTER). The InsetDrawable's
+        // OWN bounds are (0,0, icon_w+spacing, icon_h); its inset pushes the icon to one side, leaving `spacing`
+        // px of gap toward the text — reproducing MauiButtonContentLayout's icon-title spacing inside the single
+        // centered line. ponytail: clamp a negative spacing (the gallery's Decrease-Spacing can drive it < 0) to
+        // 0 so the InsetDrawable never over-draws its bounds — a negative inline gap has no MAUI witness here.
+        jint spacing_px = to_pixels(spec.spacing, density);
+        if (spacing_px < 0)
+        {
+            spacing_px = 0;
+        }
+        jclass inset_class = cache.find_class(env.get(), "android/graphics/drawable/InsetDrawable");
+        jmethodID inset_ctor = cache.method(env.get(), "android/graphics/drawable/InsetDrawable", "<init>",
+                                            "(Landroid/graphics/drawable/Drawable;IIII)V");
+        jclass spannable_class = cache.find_class(env.get(), "android/text/SpannableString");
+        jmethodID spannable_ctor =
+            cache.method(env.get(), "android/text/SpannableString", "<init>", "(Ljava/lang/CharSequence;)V");
+        jmethodID set_span =
+            cache.method(env.get(), "android/text/SpannableString", "setSpan", "(Ljava/lang/Object;III)V");
+        jclass image_span_class = cache.find_class(env.get(), "android/text/style/ImageSpan");
+        jmethodID image_span_ctor = cache.method(env.get(), "android/text/style/ImageSpan", "<init>",
+                                                 "(Landroid/graphics/drawable/Drawable;I)V");
+        if (inset_class == nullptr || inset_ctor == nullptr || spannable_class == nullptr ||
+            spannable_ctor == nullptr || set_span == nullptr || image_span_class == nullptr ||
+            image_span_ctor == nullptr)
+        {
+            set_plain_title(); // old-API / missing-class fallback: keep the label, lose the inline icon
+            return;
+        }
+        // left → inset the gap on the RIGHT (icon before text); right → inset it on the LEFT (icon after text).
+        const jint inset_left = spec.position == pos::right ? spacing_px : 0;
+        const jint inset_right = spec.position == pos::left ? spacing_px : 0;
+        const local_ref<jobject> inset{
+            env.get(), env->NewObject(inset_class, inset_ctor, drawable.get(), inset_left, 0, inset_right, 0)};
+        if (clear_pending(env.get()) || !inset)
+        {
+            set_plain_title();
+            return;
+        }
+        if (jmethodID set_bounds_inset =
+                cache.method(env.get(), "android/graphics/drawable/InsetDrawable", "setBounds", "(IIII)V"))
+        {
+            env->CallVoidMethod(inset.get(), set_bounds_inset, 0, 0, icon_w + spacing_px, icon_h);
             clear_pending(env.get());
         }
-        call_void_int(env.get(), widget, "setCompoundDrawablePadding", to_pixels(spec.spacing, density));
+        // U+FFFC OBJECT REPLACEMENT CHARACTER (UTF-8 EF BF BC) — the single glyph the ImageSpan covers; the
+        // label is spliced before/after it so the [icon|text] group flows as one centered line.
+        constexpr std::string_view k_object_replacement = "\xEF\xBF\xBC";
+        const std::string combined = spec.position == pos::left ? std::string(k_object_replacement) + platform.title
+                                                                : platform.title + std::string(k_object_replacement);
+        const local_ref<jstring> combined_j = to_jstring(env.get(), combined);
+        if (!combined_j)
+        {
+            set_plain_title();
+            return;
+        }
+        constexpr jint k_align_center = 2; // DynamicDrawableSpan.ALIGN_CENTER (API 29+; degrades below)
+        const local_ref<jobject> spannable{env.get(),
+                                           env->NewObject(spannable_class, spannable_ctor, combined_j.get())};
+        const local_ref<jobject> span{env.get(),
+                                      env->NewObject(image_span_class, image_span_ctor, inset.get(), k_align_center)};
+        if (clear_pending(env.get()) || !spannable || !span)
+        {
+            set_plain_title();
+            return;
+        }
+        // The object-replacement char is at index 0 (left) or the last UTF-16 unit (right); GetStringLength
+        // returns the exact UTF-16 length SpannableString copies char-for-char.
+        const jint total_len = env->GetStringLength(combined_j.get());
+        const jint span_start = spec.position == pos::left ? 0 : total_len - 1;
+        constexpr jint k_span_inclusive_exclusive = 33; // Spanned.SPAN_INCLUSIVE_EXCLUSIVE (0x21)
+        env->CallVoidMethod(spannable.get(), set_span, span.get(), span_start, span_start + 1,
+                            k_span_inclusive_exclusive);
+        if (clear_pending(env.get()))
+        {
+            set_plain_title();
+            return;
+        }
+        env->CallVoidMethod(widget, set_text, spannable.get());
+        clear_pending(env.get());
+        clear_compound(); // drop any stale Top/Bottom stacked icon now that the icon rides inline
     }
 
     void button_handler::load_file_source_sync(button_platform& platform, const i_file_image_source& file_src)
@@ -1611,7 +1734,7 @@ namespace maui::core
         platform.source_kind = "file";
         platform.source_file = std::string(file_src.file());
         platform.source_loaded = true;
-        apply_button_icon(platform);
+        apply_button_content(platform);
     }
 
     void button_handler::apply_loaded_result(button_platform& platform, const image_source_result& result)
@@ -1624,7 +1747,7 @@ namespace maui::core
         platform.source_kind = result.kind();
         platform.source_file = result.detail();
         platform.source_loaded = true;
-        apply_button_icon(platform);
+        apply_button_content(platform);
     }
 
     void button_handler::clear_source_native(button_platform& platform)
@@ -1632,25 +1755,9 @@ namespace maui::core
         platform.source_kind.clear();
         platform.source_file.clear();
         platform.source_loaded = false;
-        // Remove the compound-drawable icon (setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)).
-        if (platform.native == nullptr)
-        {
-            return;
-        }
-        const scoped_env env;
-        if (!env)
-        {
-            return;
-        }
-        jmethodID set_compound = default_jni_cache().method(
-            env.get(), k_button_class, "setCompoundDrawablesWithIntrinsicBounds",
-            "(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/"
-            "graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;)V");
-        if (set_compound != nullptr)
-        {
-            jobject nul = nullptr;
-            env->CallVoidMethod(widget_of(platform), set_compound, nul, nul, nul, nul);
-            clear_pending(env.get());
-        }
+        // Re-compose through the shared helper: with no source it restores the plain title (dropping the
+        // spliced inline ImageSpan icon via setText) and clears any Top/Bottom compound drawable. Guards
+        // native == nullptr internally (VM-less no-op), so the source mirrors above are all that suite sees.
+        apply_button_content(platform);
     }
 } // namespace maui::core
