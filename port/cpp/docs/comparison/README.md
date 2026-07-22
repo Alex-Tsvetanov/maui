@@ -5205,8 +5205,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 146 | 146 |
-| 🟡 Minor | 24 | 24 |
+| 🟢 Match | 147 | 147 |
+| 🟡 Minor | 23 | 23 |
 | 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -5286,20 +5286,20 @@ Light: SSIM 0.9790, 1.01% pixels differ · Dark: SSIM 0.9840, 1.01% pixels diffe
 
 Light: SSIM 0.9789, 1.01% pixels differ · Dark: SSIM 0.9840, 1.01% pixels differ
 
-### 6. Animation — 🟡/🟡
+### 6. Animation — 🟢/🟢
 <sub>animation</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/animation_light.png" /></td><td><img width="300px" src="captures/android/cpp/animation_light.png" /></td><td><img width="300px" src="captures/android/xaml/animation_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/animation_dark.png" /></td><td><img width="300px" src="captures/android/cpp/animation_dark.png" /></td><td><img width="300px" src="captures/android/xaml/animation_dark.png" /></td></tr></table>
 
 ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9748, 4.26% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9748, 4.26% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 7. App Theme Binding — 🟢/🟢
 <sub>app_theme_binding</sub>
