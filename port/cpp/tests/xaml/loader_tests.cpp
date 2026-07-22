@@ -564,10 +564,9 @@ namespace
 
     TEST(xaml_loader, app_theme_binding_resolves_the_dark_branch_when_the_app_is_already_dark)
     {
-        // The gallery_xaml capture path: the application seeds Dark BEFORE the page loads
-        // (set_platform_app_theme in main), and the generated factories thread the application into
-        // build_page — so {AppThemeBinding} must resolve the Dark branch AT LOAD (not just re-apply on
-        // a later change; the reactive path is covered by
+        // The application seeds Dark BEFORE the page loads (set_platform_app_theme in main), and the load
+        // threads it explicitly via options.application — so {AppThemeBinding} must resolve the Dark branch
+        // AT LOAD (not just re-apply on a later change; the reactive path is covered by
         // apply_properties_visitor.app_theme_binding_applies_and_reapplies_on_theme_change).
         controls::application app;
         app.set_user_app_theme(maui::core::app_theme::dark);
@@ -579,6 +578,25 @@ namespace
                                                                {.application = &app});
         EXPECT_EQ(label.text(), "night");
         // And the load stays reactive: flipping back to Light re-applies the Light branch.
+        app.set_user_app_theme(maui::core::app_theme::light);
+        EXPECT_EQ(label.text(), "day");
+    }
+
+    TEST(xaml_loader, app_theme_binding_falls_back_to_the_process_current_application)
+    {
+        // The gallery_xaml / apphost build_page path: the generated factories do NOT thread an application
+        // into build_page (load options are the default {}), so the loader must fall back to the
+        // process-current application (Application.Current — application::current()) to read the theme.
+        // Regression guard for the dark-mode bug where an un-threaded load resolved the Light branch always.
+        controls::application app; // ctor sets application::current() = &app
+        app.set_user_app_theme(maui::core::app_theme::dark);
+        controls::label label;
+        // No options.application — exactly what build_page's default path passes.
+        const xaml_load_result result = xaml_loader::load_into(label, R"xml(
+<Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       Text="{AppThemeBinding Light=day, Dark=night}"/>)xml");
+        EXPECT_EQ(label.text(), "night"); // resolved Dark via the current application, not defaulted to Light
+        // Still reactive through the fallback application's event.
         app.set_user_app_theme(maui::core::app_theme::light);
         EXPECT_EQ(label.text(), "day");
     }

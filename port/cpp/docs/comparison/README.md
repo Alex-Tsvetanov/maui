@@ -5205,9 +5205,9 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 143 | 143 |
-| 🟡 Minor | 26 | 25 |
-| 🔴 Major | 3 | 4 |
+| 🟢 Match | 143 | 145 |
+| 🟡 Minor | 26 | 24 |
+| 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -5301,7 +5301,7 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9748, 4.26% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9748, 4.26% pixels differ
 
-### 7. App Theme Binding — 🟢/🟡
+### 7. App Theme Binding — 🟢/🟢
 <sub>app_theme_binding</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/app_theme_binding_light.png" /></td><td><img width="300px" src="captures/android/cpp/app_theme_binding_light.png" /></td><td><img width="300px" src="captures/android/xaml/app_theme_binding_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/app_theme_binding_dark.png" /></td><td><img width="300px" src="captures/android/cpp/app_theme_binding_dark.png" /></td><td><img width="300px" src="captures/android/xaml/app_theme_binding_dark.png" /></td></tr></table>
@@ -5312,9 +5312,9 @@ ports AppThemeBindingPage.xaml
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9928, 1.10% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 8. Application Control — 🟢/🟢
 <sub>application_control</sub>
@@ -7311,7 +7311,7 @@ Light: SSIM 0.9993, 0.10% pixels differ · Dark: SSIM 0.9997, 0.02% pixels diffe
 
 Light: SSIM 0.9993, 0.10% pixels differ · Dark: SSIM 0.9996, 0.02% pixels differ
 
-### 141. Shape App Theme — 🟢/🔴
+### 141. Shape App Theme — 🟢/🟢
 <sub>shape_app_theme</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/android/cpp/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/android/xaml/shape_app_theme_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/android/cpp/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/android/xaml/shape_app_theme_dark.png" /></td></tr></table>
@@ -7322,9 +7322,9 @@ ports ShapeAppThemeGallery.xaml A code-first port of the MAUI Shapes sub-gallery
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.0726, 97.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 142. Shapes — 🟢/🟢
 <sub>shapes</sub>

@@ -44,6 +44,21 @@ namespace maui::controls
     class application : public element, public maui::core::i_application
     {
     public:
+        // ---- Application.Current (the process-current application) ----
+        // C# exposes a static Application.Current, set in the Application constructor. AppThemeBinding.GetValue
+        // resolves its app via target->Window->Parent, then falls back to Application.Current — so a
+        // {AppThemeBinding} loaded WITHOUT an explicitly-threaded application still sees the live theme. The
+        // port has ONE application per process, so current() mirrors that static: set in the ctor, cleared in
+        // the dtor. The XAML loader reads it to fill the ambient hydration_context.application when a load did
+        // not thread one (build_page's default path), so {AppThemeBinding} resolves the correct theme at
+        // hydration AND stays reactive. Non-owning; may be null when no application is alive.
+        application();
+        ~application() override;
+        [[nodiscard]] static application* current() noexcept
+        {
+            return current_;
+        }
+
         // ---- i_element (the handler seam — an application is an IElement, like a window). An application
         // owns no native view at this layer, so it has no handler and no parent (it is the tree root; the
         // windows are its logical children, not parents). ----
@@ -171,7 +186,8 @@ namespace maui::controls
         void send_start();            // idempotent: raise `started` + call on_start once
         void trigger_theme_changed(); // Application.TriggerThemeChangedActual: fire on a real change only
 
-        std::vector<window*> windows_;                           // NON-owning open windows (IApplication.Windows)
+        static application* current_;  // Application.Current stand-in (set in ctor, cleared in dtor)
+        std::vector<window*> windows_; // NON-owning open windows (IApplication.Windows)
         std::shared_ptr<maui::core::i_element_handler> handler_; // always null — no platform application object
         maui::core::app_theme user_app_theme_ = maui::core::app_theme::unspecified;
         maui::core::app_theme platform_app_theme_ = maui::core::app_theme::unspecified;

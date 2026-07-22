@@ -10,6 +10,25 @@
 
 namespace maui::controls
 {
+    // Application.Current stand-in: the last-constructed application is the process-current one (C# sets
+    // Application.Current = this in the ctor). Cleared in the dtor only if we are still current — a newer
+    // application may already have taken over. ponytail: one application per process, so this is enough; if
+    // the port ever runs concurrent applications, current() would need scoping.
+    application* application::current_ = nullptr;
+
+    application::application()
+    {
+        current_ = this;
+    }
+
+    application::~application()
+    {
+        if (current_ == this)
+        {
+            current_ = nullptr;
+        }
+    }
+
     void application::open_window(window& value)
     {
         if (std::ranges::find(windows_, &value) != windows_.end())

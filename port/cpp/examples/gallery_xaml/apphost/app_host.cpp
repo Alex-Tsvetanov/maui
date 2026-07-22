@@ -91,12 +91,8 @@ namespace
     class apphost_app final : public maui::controls::application
     {
     public:
-        explicit apphost_app(const std::string& page_key, bool dark) : page_(make_selected_page(page_key))
+        explicit apphost_app(const std::string& page_key, bool dark) : page_(make_page_themed(page_key, dark))
         {
-            // Seed the CROSS-PLATFORM theme BEFORE the tree mounts (theme-reactive pages read the right slot
-            // at attach), exactly like the C++ host + the gallery_xaml main.cpp's ui::app.
-            set_platform_app_theme(dark ? maui::core::app_theme::dark : maui::core::app_theme::light);
-
             window_.set_title("MAUI C++ — gallery (XAML)");
             window_.set_content(*page_); // window holds a non-owning back-pointer to the page (an element&)
         }
@@ -107,6 +103,23 @@ namespace
         }
 
     private:
+        // Seed the CROSS-PLATFORM theme BEFORE hydrating the XAML page, then build it. make_selected_page
+        // HYDRATES the tree and {AppThemeBinding}.pick reads application::requested_theme() AT hydration — so
+        // the theme MUST be set first. Doing it here (inside the page_ initializer) rather than in the ctor
+        // BODY is the fix: the ctor body runs AFTER the page_ member-init-list construction, so seeding there
+        // was too late and EVERY {AppThemeBinding} resolved to the Light branch in dark mode (shape_app_theme
+        // dark rendered Green-on-White instead of Red-on-Black). NON-static: set_platform_app_theme is an
+        // application member, and the base application subobject is fully constructed before this runs in the
+        // page_ mem-initializer, so this->set_platform_app_theme is valid; only base + free functions are
+        // touched (no derived members), so calling it before page_/window_ init is safe. The C++ host seeds in
+        // the ctor BODY instead — fine there because its code-first pages resolve AppThemeBinding at APPLY
+        // time (post-seed), whereas the XAML loader resolves it at HYDRATION time (make_selected_page).
+        [[nodiscard]] std::unique_ptr<maui::controls::content_page> make_page_themed(const std::string& key, bool dark)
+        {
+            set_platform_app_theme(dark ? maui::core::app_theme::dark : maui::core::app_theme::light);
+            return make_selected_page(key);
+        }
+
         // Page declared BEFORE the window: the window keeps a non-owning back-pointer to the page
         // (set_content), so the page must outlive the window (members destruct in reverse declaration order).
         std::unique_ptr<maui::controls::content_page> page_;

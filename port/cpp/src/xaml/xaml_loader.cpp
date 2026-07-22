@@ -10,6 +10,7 @@
 #include <string_view>
 #include <utility>
 
+#include "maui/controls/application.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/xaml/hydration_context.hpp"
 #include "maui/xaml/i_markup_extension.hpp"
@@ -50,7 +51,12 @@ namespace maui::xaml
                 options.converters != nullptr ? *options.converters : default_xaml_converter_registry(),
                 options.extensions != nullptr ? *options.extensions : markup_extension_registry::instance(),
                 options.exception_handler};
-            context.application = options.application;
+            // The ambient Application.Current (AppThemeBinding's app resolution): prefer the one the load
+            // threaded, else the process-current application. Without this, build_page's default path (its
+            // generated factories thread no application) left context.application null and every
+            // {AppThemeBinding} resolved the Light branch — even in dark mode.
+            context.application =
+                options.application != nullptr ? options.application : maui::controls::application::current();
             return context;
         }
 
