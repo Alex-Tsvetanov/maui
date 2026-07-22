@@ -1432,12 +1432,17 @@ namespace maui::controls
         auto* container = dynamic_cast<maui::core::bindable_object*>(view);
 
         // Measure one element (template content > default text mirror) OFF-TREE and return its main-axis dp
-        // extent, floored to the k_min_row_extent so a row never collapses — the exact per-column measure
-        // arrange_native runs, minus the hosting (add_and_frame). `cross_dp`/`cross_px` are the element's
-        // cross-axis constraint (a column width for an item, the full viewport width for a supplemental).
+        // extent — the exact per-column measure arrange_native runs, minus the hosting (add_and_frame).
+        // `cross_dp`/`cross_px` are the element's cross-axis constraint (a column width for an item, the full
+        // viewport width for a supplemental). k_min_row_extent is a FALLBACK for a total measure failure (0)
+        // applied AT THE END (below), NOT a starting seed: seeding at the floor would round every naturally-
+        // short row (a bare 14sp Label measures ~19dp) UP to 24dp, over-reporting the CV's desired height by
+        // ~5dp/row, while arrange_native (row_extent_px, floor only when measured==0) renders the true ~19dp
+        // rows — the parent VerticalStackLayout then leaves an empty gap below the CV (multiple_bound_selection
+        // / items / cv_visual_states pushed ~one floor-delta per row down). Seed 0; floor only on failure.
         auto measure_element = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value, double cross_dp,
                                    jint cross_px) -> double {
-            jint main_px = to_pixels(k_min_row_extent, density);
+            jint main_px = 0;
             const std::shared_ptr<data_template> resolved =
                 tmpl ? resolve_item_template(tmpl, value, container) : nullptr;
             jobject native = nullptr;
@@ -1463,6 +1468,12 @@ namespace maui::controls
                 main_px = std::max(main_px, measure_main_extent(env, native, cross_px, /*vertical=*/true));
             }
             // `realized` (and its off-tree native view) is dropped here — never hosted, never retained.
+            // Floor ONLY a total measure failure (0) so a row can't collapse — mirrors arrange_native's
+            // `measured_px > 0 ? measured_px : floor`, keeping this measure pass byte-consistent with render.
+            if (main_px <= 0)
+            {
+                main_px = to_pixels(k_min_row_extent, density);
+            }
             return static_cast<double>(main_px) / static_cast<double>(density);
         };
 
