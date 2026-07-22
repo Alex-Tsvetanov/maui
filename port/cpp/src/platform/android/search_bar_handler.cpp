@@ -208,9 +208,16 @@ namespace
     constexpr const char* k_search_icon_field = "ic_menu_search";            // the LEFT magnifier
     constexpr const char* k_clear_icon_field = "ic_menu_close_clear_cancel"; // the RIGHT clear-X
     constexpr const char* k_drawable_class = "android/graphics/drawable/Drawable";
-    // The icon-to-text inset (CompoundDrawablePadding), a modest gap matching the SearchView's
-    // magnifier-to-query indent so the text sits inset from the loupe like MAUI's expanded field.
-    constexpr double k_compound_drawable_padding_dp = 8.0;
+    // The icon-to-text inset (CompoundDrawablePadding), matching the SearchView's magnifier-to-query gap
+    // so the text sits inset from the loupe like MAUI's expanded field. Measured against the board's dark
+    // captures (Pixel, density 2.75): MAUI's magnifier→text gap is ~16dp (icon-bounds-end→text 44px), vs
+    // the port's prior 8dp which left the text ~26px left of MAUI. 16dp is the Material SearchView content
+    // inset; paired with k_query_leading_inset_dp (the pre-magnifier inset) it aligns both to MAUI.
+    constexpr double k_compound_drawable_padding_dp = 16.0;
+    // The leading inset before the magnifier — MAUI's SearchView shell insets its whole query field ~16dp
+    // from the plate's left edge; the port's bare EditText stand-in (no shell) otherwise hugs the field
+    // edge, rendering the magnifier ~45px (16dp @ 2.75) left of MAUI. Added as leading padding at init.
+    constexpr double k_query_leading_inset_dp = 16.0;
     // MAUI's Material SearchView icons render ~17dp (magnifier/clear-X); the framework ic_menu_* drawables'
     // intrinsic bounds are ~24dp, which over-inflates the plain EditText row. Set explicit 18dp bounds.
     constexpr double k_search_icon_size_dp = 18.0;
@@ -274,6 +281,15 @@ namespace
     constexpr jint k_gravity_bottom = 0x50;
     constexpr jint k_gravity_center_vertical = 0x10;
     constexpr jint k_gravity_vertical_mask = k_gravity_top | k_gravity_bottom | k_gravity_center_vertical;
+
+    // android.view.Gravity horizontal bits (TextAlignmentExtensions.UpdateHorizontalAlignment). C#'s
+    // ToHorizontalGravityFlags maps Center → CenterHorizontal, End → End, else → Start; the mask that
+    // clears prior horizontal settings is (CenterHorizontal | End | Start). Start/End carry the
+    // RELATIVE_LAYOUT_DIRECTION bit (0x00800000) so they resolve per the layout direction (RTL-aware).
+    constexpr jint k_gravity_center_horizontal = 0x01;
+    constexpr jint k_gravity_start = 0x00800003; // RELATIVE_LAYOUT_DIRECTION | LEFT
+    constexpr jint k_gravity_end = 0x00800005;   // RELATIVE_LAYOUT_DIRECTION | RIGHT
+    constexpr jint k_gravity_horizontal_mask = k_gravity_center_horizontal | k_gravity_start | k_gravity_end;
 
     // android.text.InputType flags (KeyboardExtensions.ToInputType + SetInputType). Ported verbatim
     // from android.text.InputType so the computed type matches the oracle bit-for-bit.
@@ -449,6 +465,20 @@ namespace
                 return k_gravity_bottom;
             default:
                 return k_gravity_center_vertical;
+        }
+    }
+
+    // AlignmentExtensions.ToHorizontalGravityFlags: Center → CenterHorizontal, End → End, else Start.
+    [[nodiscard]] jint to_horizontal_gravity(maui::core::text_alignment alignment)
+    {
+        switch (alignment)
+        {
+            case maui::core::text_alignment::center:
+                return k_gravity_center_horizontal;
+            case maui::core::text_alignment::end:
+                return k_gravity_end;
+            default:
+                return k_gravity_start;
         }
     }
 
@@ -975,6 +1005,34 @@ namespace maui::core
         call_void_int(env.get(), widget.get(), "setTextAlignment", k_text_alignment_view_start);
         call_void_int(env.get(), widget.get(), "setGravity", k_gravity_center_vertical);
 
+        // Leading inset: MAUI's SearchView shell insets the whole query field ~16dp from the plate edge (the
+        // magnifier + text sit in from the left). The bare EditText stand-in has no shell, so add the inset
+        // as leading padding, preserving the framework default top/right/bottom (read-modify-write). Paired
+        // with the 16dp CompoundDrawablePadding, this lands the magnifier and text on MAUI's positions
+        // (measured: magnifier 62→107px, text 130→~200px, matching MAUI's 107/201 on the dark board).
+        {
+            const float density = display_density(env.get(), widget.get());
+            jmethodID get_pl = cache.method(env.get(), k_edit_text_class, "getPaddingLeft", "()I");
+            jmethodID get_pt = cache.method(env.get(), k_edit_text_class, "getPaddingTop", "()I");
+            jmethodID get_pr = cache.method(env.get(), k_edit_text_class, "getPaddingRight", "()I");
+            jmethodID get_pb = cache.method(env.get(), k_edit_text_class, "getPaddingBottom", "()I");
+            jmethodID set_padding = cache.method(env.get(), k_edit_text_class, "setPadding", "(IIII)V");
+            if (get_pl != nullptr && get_pt != nullptr && get_pr != nullptr && get_pb != nullptr &&
+                set_padding != nullptr && density != 0.0F)
+            {
+                const jint pl = env->CallIntMethod(widget.get(), get_pl);
+                const jint pt = env->CallIntMethod(widget.get(), get_pt);
+                const jint pr = env->CallIntMethod(widget.get(), get_pr);
+                const jint pb = env->CallIntMethod(widget.get(), get_pb);
+                if (!clear_pending(env.get()))
+                {
+                    env->CallVoidMethod(widget.get(), set_padding, pl + to_pixels(k_query_leading_inset_dp, density),
+                                        pt, pr, pb);
+                    clear_pending(env.get());
+                }
+            }
+        }
+
         // Tint the field's 9-patch underline to MAUI's faint gray (see k_underline_tint) via
         // setBackgroundTintList(ColorStateList.valueOf(...)) — the framework default is a dark accent that
         // reads as a per-row structural diff vs MAUI's barely-visible SearchView plate underline.
@@ -1393,19 +1451,32 @@ namespace maui::core
         auto& cache = default_jni_cache();
         // SearchViewExtensions.MapHorizontalTextAlignment → inner EditText.UpdateHorizontalTextAlignment →
         // UpdateHorizontalAlignment (EditText): on RTL-capable Android (every device the port targets) it
-        // sets BOTH TextAlignment and the horizontal gravity bits — "text alignment does not work at
-        // runtime, so we also need gravity". The horizontal-gravity re-masking is done native-side by the
-        // single setTextAlignment here (the gravity half needs a getGravity round-trip; deferred with the
-        // gravity-mask helper, identical to the editor partial — the TextAlignment push is the
-        // runtime-effective one). // TODO: verify against
-        // src/Core/src/Platform/Android/TextAlignmentExtensions.cs (UpdateHorizontalAlignment's Gravity
-        // re-mask) when the getGravity round-trip lands.
+        // sets BOTH TextAlignment AND the horizontal gravity bits, because — per the C# comment — "the text
+        // alignment does not work at runtime, so we also need to update the gravity." So: push TextAlignment
+        // first, then read-modify-write Gravity clearing only the horizontal bits (vertical bits survive,
+        // exactly mirroring map_vertical_text_alignment). Without the gravity half, HorizontalTextAlignment=
+        // End/Center silently no-ops (the inner EditText stays start-aligned).
+        const maui::core::text_alignment alignment = view.horizontal_text_alignment();
         jmethodID set_text_alignment = cache.method(env.get(), k_edit_text_class, "setTextAlignment", "(I)V");
         if (set_text_alignment != nullptr)
         {
-            env->CallVoidMethod(widget, set_text_alignment, to_text_alignment(view.horizontal_text_alignment()));
+            env->CallVoidMethod(widget, set_text_alignment, to_text_alignment(alignment));
             clear_pending(env.get());
         }
+        jmethodID get_gravity = cache.method(env.get(), k_edit_text_class, "getGravity", "()I");
+        jmethodID set_gravity = cache.method(env.get(), k_edit_text_class, "setGravity", "(I)V");
+        if (get_gravity == nullptr || set_gravity == nullptr)
+        {
+            return;
+        }
+        const jint current = env->CallIntMethod(widget, get_gravity);
+        if (clear_pending(env.get()))
+        {
+            return;
+        }
+        const jint updated = (current & ~k_gravity_horizontal_mask) | to_horizontal_gravity(alignment);
+        env->CallVoidMethod(widget, set_gravity, updated);
+        clear_pending(env.get());
     }
 
     void search_bar_handler::map_vertical_text_alignment(search_bar_handler& handler, i_search_bar& view)

@@ -5206,8 +5206,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
 | 🟢 Match | 143 | 145 |
-| 🟡 Minor | 26 | 24 |
-| 🔴 Major | 3 | 3 |
+| 🟡 Minor | 27 | 25 |
+| 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -5640,7 +5640,7 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9694, 4.31% pixels differ · Dark: SSIM 0.9754, 4.27% pixels differ
+Light: SSIM 0.9695, 4.31% pixels differ · Dark: SSIM 0.9754, 4.27% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -7236,20 +7236,20 @@ Light: SSIM 0.9965, 0.41% pixels differ · Dark: SSIM 0.9994, 0.00% pixels diffe
 
 Light: SSIM 0.9965, 0.41% pixels differ · Dark: SSIM 0.9995, 0.00% pixels differ
 
-### 136. Search Bar — 🔴/🔴
+### 136. Search Bar — 🟡/🟡
 <sub>search_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/search_bar_light.png" /></td><td><img width="300px" src="captures/android/cpp/search_bar_light.png" /></td><td><img width="300px" src="captures/android/xaml/search_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/search_bar_dark.png" /></td><td><img width="300px" src="captures/android/cpp/search_bar_dark.png" /></td><td><img width="300px" src="captures/android/xaml/search_bar_dark.png" /></td></tr></table>
 
 ports SearchBarPage.xaml (Microsoft.Maui.Controls sample gallery)
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9053, 2.68% pixels differ · Dark: SSIM 0.8988, 2.95% pixels differ
+Light: SSIM 0.9110, 2.59% pixels differ · Dark: SSIM 0.9047, 2.98% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9053, 2.68% pixels differ · Dark: SSIM 0.8988, 2.95% pixels differ
+Light: SSIM 0.9110, 2.59% pixels differ · Dark: SSIM 0.9047, 2.85% pixels differ
 
 ### 137. Selection Command Param — 🟢/🟢
 <sub>selection_command_param</sub>
