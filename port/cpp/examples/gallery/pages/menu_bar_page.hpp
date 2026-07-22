@@ -65,6 +65,7 @@
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/core/font.hpp"
 #include "maui/core/keyboard_accelerator.hpp"
+#include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 
 namespace maui::samples
@@ -81,6 +82,7 @@ namespace maui::samples
             build_custom_menu();
 
             // ---- the visible body (the C# VerticalStackLayout Margin="12") ----
+            body_.set_margin(maui::core::thickness(12)); // menu_bar.xaml <VerticalStackLayout Margin="12">
             menu_label_.set_text("You clicked on Menu Item:");
             body_.add(menu_label_);
             toggle_button_.set_text("Toggle Menu Bar Item");

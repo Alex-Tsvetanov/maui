@@ -28,7 +28,7 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
-#include "maui/graphics/shapes/round_rectangle.hpp"
+#include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
 namespace maui::samples
@@ -66,11 +66,12 @@ namespace maui::samples
                 sec.caption.set_horizontal_text_alignment(maui::core::text_alignment::center);
                 sec.caption.set_vertical_text_alignment(maui::core::text_alignment::center);
 
-                // The Border: red 5pt stroke, RoundRectangle CornerRadius 5, FIXED 160x40, carrying that
-                // section's HorizontalOptions (the alignment under test) over the Label content.
+                // The Border: red 5pt stroke, default Rectangle stroke shape (the shared XAML sets NO
+                // StrokeShape, so square corners + the ~0.5*st white stroke-to-content gap), FIXED 160x40,
+                // carrying that section's HorizontalOptions (the alignment under test) over the Label content.
                 sec.bordered.set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::red));
                 sec.bordered.set_stroke_thickness(5);
-                sec.bordered.set_stroke_shape(std::make_shared<maui::graphics::shapes::round_rectangle>(5.0));
+                sec.bordered.set_stroke_shape(std::make_shared<maui::graphics::shapes::rectangle>());
                 sec.bordered.set_width_request(160);
                 sec.bordered.set_height_request(40);
                 sec.bordered.set_horizontal_layout_alignment(k_aligns.at(i));
