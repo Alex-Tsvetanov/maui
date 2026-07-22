@@ -100,6 +100,9 @@ namespace maui::samples
 
             // ---- row 1: the "Toggle Between EmptyViews" Label + Switch (horizontal StackLayout) ----
             toggle_caption_.set_text("Toggle Between EmptyViews");
+            // VerticalTextAlignment="Center" (shared XAML): center the caption within the HSL, whose
+            // height is driven by the taller Switch — otherwise the label top-aligns ~40px above MAUI.
+            toggle_caption_.set_vertical_text_alignment(maui::core::text_alignment::center);
             toggle_row_.set_spacing(8);
             toggle_row_.add(toggle_caption_);
             toggle_row_.add(empty_view_switch_);

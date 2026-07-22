@@ -5205,8 +5205,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 144 | 145 |
-| 🟡 Minor | 26 | 25 |
+| 🟢 Match | 145 | 145 |
+| 🟡 Minor | 25 | 25 |
 | 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -6006,16 +6006,16 @@ Light: SSIM 0.9895, 0.24% pixels differ · Dark: SSIM 0.9884, 0.28% pixels diffe
 
 Light: SSIM 0.9895, 0.24% pixels differ · Dark: SSIM 0.9885, 0.28% pixels differ
 
-### 54. Empty View Swap — 🟡/🟢
+### 54. Empty View Swap — 🟢/🟢
 <sub>empty_view_swap</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/empty_view_swap_light.png" /></td><td><img width="300px" src="captures/android/cpp/empty_view_swap_light.png" /></td><td><img width="300px" src="captures/android/xaml/empty_view_swap_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/empty_view_swap_dark.png" /></td><td><img width="300px" src="captures/android/cpp/empty_view_swap_dark.png" /></td><td><img width="300px" src="captures/android/xaml/empty_view_swap_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewSwapGallery.xaml (+ .xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9754, 0.71% pixels differ · Dark: SSIM 0.9738, 0.90% pixels differ
+Light: SSIM 0.9898, 0.27% pixels differ · Dark: SSIM 0.9886, 0.42% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
