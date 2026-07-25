@@ -151,7 +151,9 @@ namespace maui::samples
             browser_.set_source(std::make_shared<maui::controls::html_web_view_source>(
                 // <meta color-scheme> opts this WebView out of MAUI's DayNight dark-darkening (parity
                 // ruling 12, fix-both-sides): white in both themes, matching the shared web_view.xaml twin.
-                "<html><head><meta name=\"color-scheme\" content=\"light\">"
+                // <!DOCTYPE html> selects standards mode — MAUI's welcome.html has it, and without it the
+                // WebView renders in quirks mode (different default font/box metrics → a ~1.5% parity diff).
+                "<!DOCTYPE html><html><head><meta name=\"color-scheme\" content=\"light\">"
                 "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head>"
                 "<body><h1>" +
                     heading + "</h1><p>Served from a static HtmlWebViewSource.</p></body></html>",
