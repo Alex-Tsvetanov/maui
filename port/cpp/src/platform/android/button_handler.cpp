@@ -1665,9 +1665,22 @@ namespace maui::core
             cache.method(env.get(), "android/text/SpannableString", "<init>", "(Ljava/lang/CharSequence;)V");
         jmethodID set_span =
             cache.method(env.get(), "android/text/SpannableString", "setSpan", "(Ljava/lang/Object;III)V");
-        jclass image_span_class = cache.find_class(env.get(), "android/text/style/ImageSpan");
-        jmethodID image_span_ctor = cache.method(env.get(), "android/text/style/ImageSpan", "<init>",
-                                                 "(Landroid/graphics/drawable/Drawable;I)V");
+        // dev.mauicpp.MauiCenteredImageSpan CO-CENTERS the icon with the text (getSize/draw overrides) —
+        // MAUI's IconGravity=TextStart shares one vertical centre. The stock ImageSpan(ALIGN_CENTER) left the
+        // text on its baseline below a tall icon (button "settings" rows). Fall back to the stock span if the
+        // app-dex class is unavailable (e.g. a host that didn't bundle it).
+        jclass image_span_class = cache.find_class(env.get(), "dev/mauicpp/MauiCenteredImageSpan");
+        jmethodID image_span_ctor = image_span_class != nullptr
+                                        ? cache.method(env.get(), "dev/mauicpp/MauiCenteredImageSpan", "<init>",
+                                                       "(Landroid/graphics/drawable/Drawable;)V")
+                                        : nullptr;
+        bool centered_span = image_span_class != nullptr && image_span_ctor != nullptr;
+        if (!centered_span)
+        {
+            image_span_class = cache.find_class(env.get(), "android/text/style/ImageSpan");
+            image_span_ctor = cache.method(env.get(), "android/text/style/ImageSpan", "<init>",
+                                           "(Landroid/graphics/drawable/Drawable;I)V");
+        }
         if (inset_class == nullptr || inset_ctor == nullptr || spannable_class == nullptr ||
             spannable_ctor == nullptr || set_span == nullptr || image_span_class == nullptr ||
             image_span_ctor == nullptr)
@@ -1705,8 +1718,10 @@ namespace maui::core
         constexpr jint k_align_center = 2; // DynamicDrawableSpan.ALIGN_CENTER (API 29+; degrades below)
         const local_ref<jobject> spannable{env.get(),
                                            env->NewObject(spannable_class, spannable_ctor, combined_j.get())};
-        const local_ref<jobject> span{env.get(),
-                                      env->NewObject(image_span_class, image_span_ctor, inset.get(), k_align_center)};
+        // MauiCenteredImageSpan ctor is (Drawable); the stock ImageSpan fallback is (Drawable, alignment).
+        const local_ref<jobject> span{
+            env.get(), centered_span ? env->NewObject(image_span_class, image_span_ctor, inset.get())
+                                     : env->NewObject(image_span_class, image_span_ctor, inset.get(), k_align_center)};
         if (clear_pending(env.get()) || !spannable || !span)
         {
             set_plain_title();

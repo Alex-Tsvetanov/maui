@@ -5205,8 +5205,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 147 | 147 |
-| 🟡 Minor | 23 | 23 |
+| 🟢 Match | 148 | 148 |
+| 🟡 Minor | 22 | 22 |
 | 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -5511,20 +5511,20 @@ Light: SSIM 0.9957, 0.53% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 0.9957, 0.53% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 21. Button — 🟡/🟡
+### 21. Button — 🟢/🟢
 <sub>button</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/button_light.png" /></td><td><img width="300px" src="captures/android/cpp/button_light.png" /></td><td><img width="300px" src="captures/android/xaml/button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/button_dark.png" /></td><td><img width="300px" src="captures/android/cpp/button_dark.png" /></td><td><img width="300px" src="captures/android/xaml/button_dark.png" /></td></tr></table>
 
 ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9394, 3.73% pixels differ · Dark: SSIM 0.9441, 1.33% pixels differ
+Light: SSIM 0.9960, 0.60% pixels differ · Dark: SSIM 0.9960, 0.60% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9394, 3.73% pixels differ · Dark: SSIM 0.9441, 1.33% pixels differ
+Light: SSIM 0.9960, 0.60% pixels differ · Dark: SSIM 0.9960, 0.60% pixels differ
 
 ### 22. Carousel Page — 🟢/🟢
 <sub>carousel_page</sub>

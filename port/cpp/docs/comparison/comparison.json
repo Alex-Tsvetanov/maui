@@ -2404,12 +2404,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9394, 3.73% pixels differ \u00b7 Dark: SSIM 0.9441, 1.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9960, 0.60% pixels differ \u00b7 Dark: SSIM 0.9960, 0.60% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9394, 3.73% pixels differ \u00b7 Dark: SSIM 0.9441, 1.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9960, 0.60% pixels differ \u00b7 Dark: SSIM 0.9960, 0.60% pixels differ"
         }
       }
     }
