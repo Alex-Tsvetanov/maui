@@ -5205,8 +5205,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 148 | 148 |
-| 🟡 Minor | 22 | 22 |
+| 🟢 Match | 149 | 149 |
+| 🟡 Minor | 21 | 21 |
 | 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -5640,11 +5640,11 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9695, 4.31% pixels differ · Dark: SSIM 0.9754, 4.27% pixels differ
+Light: SSIM 0.9852, 0.82% pixels differ · Dark: SSIM 0.9760, 0.66% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9694, 4.31% pixels differ · Dark: SSIM 0.9754, 4.27% pixels differ
+Light: SSIM 0.9853, 0.69% pixels differ · Dark: SSIM 0.9760, 0.66% pixels differ
 
 ### 30. Clipping — 🟢/🟢
 <sub>clipping</sub>
@@ -5745,11 +5745,11 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9856, 0.43% pixels differ · Dark: SSIM 0.9837, 0.53% pixels differ
+Light: SSIM 0.9867, 0.40% pixels differ · Dark: SSIM 0.9848, 0.50% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9856, 0.43% pixels differ · Dark: SSIM 0.9837, 0.53% pixels differ
+Light: SSIM 0.9867, 0.40% pixels differ · Dark: SSIM 0.9848, 0.50% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -7245,7 +7245,7 @@ ports SearchBarPage.xaml (Microsoft.Maui.Controls sample gallery)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9110, 2.59% pixels differ · Dark: SSIM 0.9047, 2.98% pixels differ
+Light: SSIM 0.9110, 2.59% pixels differ · Dark: SSIM 0.9047, 2.85% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -7416,20 +7416,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 148. Stepper — 🟡/🟡
+### 148. Stepper — 🟢/🟢
 <sub>stepper</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/stepper_light.png" /></td><td><img width="300px" src="captures/android/cpp/stepper_light.png" /></td><td><img width="300px" src="captures/android/xaml/stepper_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/stepper_dark.png" /></td><td><img width="300px" src="captures/android/cpp/stepper_dark.png" /></td><td><img width="300px" src="captures/android/xaml/stepper_dark.png" /></td></tr></table>
 
 ports StepperPage.xaml (+ StepperPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9873, 7.37% pixels differ · Dark: SSIM 0.9976, 0.08% pixels differ
+Light: SSIM 0.9988, 0.03% pixels differ · Dark: SSIM 0.9976, 0.08% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9873, 7.37% pixels differ · Dark: SSIM 0.9976, 0.08% pixels differ
+Light: SSIM 0.9988, 0.03% pixels differ · Dark: SSIM 0.9976, 0.08% pixels differ
 
 ### 149. Styles — 🟢/🟢
 <sub>styles</sub>

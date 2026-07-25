@@ -861,6 +861,22 @@ namespace maui::core
         // default when Background is null; the EditText's styled background IS that default.
         if (value != nullptr)
         {
+            // An explicit Background REPLACES the field chrome. create_platform_view installs a background
+            // TINT LIST (the underline gray k_underline_tint / dark #444444) for the UNSET-background field;
+            // left in place it SRC_IN-recolors the explicit fill to that gray — clip_views' SearchBar
+            // BackgroundColor="Red" rendered #D9D9D9 (light) / #444444 (dark) instead of Red. Clear the tint
+            // so the explicit paint lands at its true color (the way MAUI's solid plate fill does). Fires ONLY
+            // for a non-null (explicit) Background, so the unset search_bar underline (value == nullptr) stays.
+            if (const scoped_env env; env)
+            {
+                auto& cache = default_jni_cache();
+                if (jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
+                                                         "(Landroid/content/res/ColorStateList;)V"))
+                {
+                    env->CallVoidMethod(widget_of(*this), set_bg_tint, static_cast<jobject>(nullptr));
+                    clear_pending(env.get());
+                }
+            }
             maui::platform::android::apply_background(native, value);
         }
     }

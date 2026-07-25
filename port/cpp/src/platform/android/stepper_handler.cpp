@@ -282,25 +282,31 @@ namespace
         // the two buttons into one bar. The tint recolors while preserving the shape AND the disabled-state
         // alpha (so a disabled button still dims, matching MAUI's dimmed Disabled row). Night-mode only; light
         // keeps the matching DeviceDefault default.
-        if (maui::platform::android::detail::is_night_mode(env))
+        // TINT to MAUI's Material stepper-button fill in BOTH themes (the DeviceDefault default renders
+        // #F4F5F5 in LIGHT — ~30 units too white vs MAUI's shipped #D6D7D7 per ruling 11 render-wins; DARK is
+        // the tonal #5A595B). Preserve the disabled-state alpha (tint, not flat setBackgroundColor which would
+        // erase the rounded shape + inter-button gap). Only DARK needs the white glyph; light keeps the
+        // DeviceDefault dark glyph (already matches MAUI).
+        const bool stepper_dark = maui::platform::android::detail::is_night_mode(env);
+        if (jclass csl_class = cache.find_class(env, "android/content/res/ColorStateList"))
         {
-            if (jclass csl_class = cache.find_class(env, "android/content/res/ColorStateList"))
+            jmethodID value_of = cache.static_method(env, "android/content/res/ColorStateList", "valueOf",
+                                                     "(I)Landroid/content/res/ColorStateList;");
+            jmethodID set_bg_tint =
+                cache.method(env, k_button_class, "setBackgroundTintList", "(Landroid/content/res/ColorStateList;)V");
+            if (value_of != nullptr && set_bg_tint != nullptr)
             {
-                jmethodID value_of = cache.static_method(env, "android/content/res/ColorStateList", "valueOf",
-                                                         "(I)Landroid/content/res/ColorStateList;");
-                jmethodID set_bg_tint = cache.method(env, k_button_class, "setBackgroundTintList",
-                                                     "(Landroid/content/res/ColorStateList;)V");
-                if (value_of != nullptr && set_bg_tint != nullptr)
+                const jint fill = stepper_dark ? static_cast<jint>(0xFF5A595BU) : static_cast<jint>(0xFFD6D7D7U);
+                const local_ref<jobject> tint{env, env->CallStaticObjectMethod(csl_class, value_of, fill)};
+                if (!clear_pending(env) && tint)
                 {
-                    const local_ref<jobject> tint{
-                        env, env->CallStaticObjectMethod(csl_class, value_of, static_cast<jint>(0xFF5A595BU))};
-                    if (!clear_pending(env) && tint)
-                    {
-                        env->CallVoidMethod(button.get(), set_bg_tint, tint.get());
-                        clear_pending(env);
-                    }
+                    env->CallVoidMethod(button.get(), set_bg_tint, tint.get());
+                    clear_pending(env);
                 }
             }
+        }
+        if (stepper_dark)
+        {
             if (jmethodID set_text_color = cache.method(env, k_button_class, "setTextColor", "(I)V"))
             {
                 env->CallVoidMethod(button.get(), set_text_color, static_cast<jint>(0xFFFFFFFFU));
