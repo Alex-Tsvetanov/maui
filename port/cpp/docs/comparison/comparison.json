@@ -9190,11 +9190,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9307, 5.12% pixels differ \u00b7 Dark: SSIM 0.9264, 5.73% pixels differ"
+          "review": "Light: SSIM 0.9850, 1.28% pixels differ \u00b7 Dark: SSIM 0.9801, 1.85% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9307, 5.12% pixels differ \u00b7 Dark: SSIM 0.9264, 5.73% pixels differ"
+          "review": "Light: SSIM 0.9851, 1.28% pixels differ \u00b7 Dark: SSIM 0.9801, 1.85% pixels differ"
         }
       }
     }

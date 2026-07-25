@@ -1124,16 +1124,26 @@ namespace maui::core
             {
                 return {std::max(0.0, req_h - pad_v) * (w / h) + pad_h, req_h};
             }
+            // Generic (aspect_fill / fill / auto-both) path: FIT the drawable inside the constraint MINUS the
+            // chrome (padding + 2*stroke), then add the chrome back to the reported size — MAUI's Android
+            // measure lays the scaled drawable inside the button's content box and reports content+padding+
+            // stroke. Without folding pad_h/pad_v a BorderWidth ImageButton measured 2*stroke short, so the
+            // rows below rode up (image_button page: the CornerRadius section sat ~23px = 2*4dp border high).
+            // Zero chrome (no padding, no stroke) leaves the unbordered boxes byte-identical.
+            const double avail_w =
+                std::isfinite(width_constraint) ? std::max(0.0, width_constraint - pad_h) : width_constraint;
+            const double avail_h =
+                std::isfinite(height_constraint) ? std::max(0.0, height_constraint - pad_v) : height_constraint;
             double scale = 1.0;
-            if (std::isfinite(width_constraint) && width_constraint < w)
+            if (std::isfinite(avail_w) && avail_w < w)
             {
-                scale = std::min(scale, width_constraint / w);
+                scale = std::min(scale, avail_w / w);
             }
-            if (std::isfinite(height_constraint) && height_constraint < h * scale)
+            if (std::isfinite(avail_h) && avail_h < h * scale)
             {
-                scale = std::min(scale, height_constraint / h);
+                scale = std::min(scale, avail_h / h);
             }
-            return {w * scale, h * scale};
+            return {w * scale + pad_h, h * scale + pad_v};
         }
         if (platform->native == nullptr)
         {
