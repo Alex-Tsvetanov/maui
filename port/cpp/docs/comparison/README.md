@@ -5205,8 +5205,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 152 | 152 |
-| 🟡 Minor | 18 | 18 |
+| 🟢 Match | 153 | 153 |
+| 🟡 Minor | 17 | 17 |
 | 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -6696,20 +6696,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9999, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9999, 0.00% pixels differ
 
-### 100. Label — 🟡/🟡
+### 100. Label — 🟢/🟢
 <sub>label</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/label_light.png" /></td><td><img width="300px" src="captures/android/cpp/label_light.png" /></td><td><img width="300px" src="captures/android/xaml/label_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/label_dark.png" /></td><td><img width="300px" src="captures/android/cpp/label_dark.png" /></td><td><img width="300px" src="captures/android/xaml/label_dark.png" /></td></tr></table>
 
 ports LabelPage.xaml (+ LabelPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9374, 2.50% pixels differ · Dark: SSIM 0.9331, 2.75% pixels differ
+Light: SSIM 0.9865, 0.61% pixels differ · Dark: SSIM 0.9861, 0.78% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9374, 2.50% pixels differ · Dark: SSIM 0.9331, 2.75% pixels differ
+Light: SSIM 0.9865, 0.61% pixels differ · Dark: SSIM 0.9861, 0.65% pixels differ
 
 ### 101. Layout Is Enabled — 🟡/🟡
 <sub>layout_is_enabled</sub>

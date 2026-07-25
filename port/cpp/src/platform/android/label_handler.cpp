@@ -19,8 +19,9 @@
 //     refinement — the exact CreateTypeface tail button documents.
 //   - update_background pushes a SOLID fill via View.setBackgroundColor; gradient/image paints (the
 //     GradientDrawable layering) are deferred. // TODO: verify against ViewExtensions.UpdateBackground.
-//   - MaxLines IS pushed (TextView.setMaxLines); the LineBreakMode → Ellipsize/SingleLine resolution is
-//     deferred (the headless mirror is kept live). // TODO: verify against the Android SetLineBreakMode.
+//   - MaxLines + LineBreakMode ARE pushed together (push_max_lines): the LineBreakMode resolves to
+//     SingleLine + Ellipsize + a per-mode maxLines, an explicit MaxLines overrides it — mirroring
+//     TextViewExtensions.SetLineBreak + SetMaxLines(Label) (src/Compatibility/.../TextViewExtensions.cs).
 //   - FormattedText IS pushed (wave 20): map_formatted_text builds an android.text.SpannableString from
 //     the resolved runs and applies, per character range, the platform-standard spans that mirror
 //     FormattedStringExtensions.ToSpannableString — ForegroundColorSpan (TextColor), BackgroundColorSpan
@@ -318,9 +319,44 @@ namespace
         return density;
     }
 
-    // MapMaxLines → TextView.SetMaxLines (unset -1 → Integer.MAX_VALUE). The LineBreakMode resolution
-    // (Ellipsize / SingleLine) is the deferred half (see header). Shared by map_line_break_mode +
-    // map_max_lines, which both touch the MaxLines/LineBreakMode pair in C#.
+    // Push TextView.setEllipsize(TextUtils.TruncateAt) — `which` is "START"/"MIDDLE"/"END", or nullptr to
+    // clear (setEllipsize(null)). Mirrors the Ellipsize half of MAUI's TextViewExtensions.SetLineBreak. Every
+    // ref is local; a JNI miss is cleared and no-ops (VM-less / older-API safety).
+    void set_ellipsize(JNIEnv* env, jobject widget, const char* which)
+    {
+        jmethodID method = default_jni_cache().method(env, k_text_view_class, "setEllipsize",
+                                                      "(Landroid/text/TextUtils$TruncateAt;)V");
+        if (method == nullptr)
+        {
+            clear_pending(env);
+            return;
+        }
+        jobject value = nullptr;
+        if (which != nullptr)
+        {
+            if (jclass truncate_at = default_jni_cache().find_class(env, "android/text/TextUtils$TruncateAt"))
+            {
+                if (jfieldID field = env->GetStaticFieldID(truncate_at, which, "Landroid/text/TextUtils$TruncateAt;"))
+                {
+                    value = env->GetStaticObjectField(truncate_at, field);
+                }
+            }
+            clear_pending(env);
+        }
+        env->CallVoidMethod(widget, method, value);
+        clear_pending(env);
+        if (value != nullptr)
+        {
+            env->DeleteLocalRef(value);
+        }
+    }
+
+    // MapLineBreakMode + MapMaxLines → the LineBreakMode/MaxLines pair, mirroring MAUI's
+    // TextViewExtensions.SetLineBreak(TextView, LineBreakMode) + SetMaxLines(TextView, Label): the
+    // LineBreakMode resolves to (SingleLine, Ellipsize, and a per-mode maxLines) — NoWrap/Head/Tail/Middle
+    // are single-line (maxLines 1), and Head/Tail/Middle additionally set the START/END/MIDDLE ellipsis; an
+    // explicitly-set MaxLines (!= the -1 default) then OVERRIDES the mode's maxLines. Both C# mappers touch
+    // this pair, so this reads BOTH properties and pushes the full state (idempotent whichever mapper calls it).
     void push_max_lines(const maui::core::label_platform& platform, maui::core::i_label& view)
     {
         if (platform.native == nullptr)
@@ -332,10 +368,39 @@ namespace
         {
             return;
         }
-        const jint max = view.max_lines() > 0 ? view.max_lines() : k_max_lines_unbounded;
-        call_void_int(env.get(), widget_of(platform), "setMaxLines", max);
-        // TODO: verify against src/Core/src/Platform/Android (LabelExtensions.SetLineBreakMode) — the
-        // Ellipsize / SingleLine half of LineBreakMode is not yet pushed.
+        jobject widget = widget_of(platform);
+        jint mode_max = k_max_lines_unbounded;
+        jboolean single_line = JNI_FALSE;
+        const char* ellipsize = nullptr;
+        switch (view.line_break_mode())
+        {
+            case maui::core::line_break_mode::no_wrap:
+                mode_max = 1;
+                single_line = JNI_TRUE;
+                break;
+            case maui::core::line_break_mode::word_wrap:
+            case maui::core::line_break_mode::character_wrap:
+                break;
+            case maui::core::line_break_mode::head_truncation:
+                mode_max = 1;
+                single_line = JNI_TRUE;
+                ellipsize = "START";
+                break;
+            case maui::core::line_break_mode::tail_truncation:
+                mode_max = 1;
+                single_line = JNI_TRUE;
+                ellipsize = "END";
+                break;
+            case maui::core::line_break_mode::middle_truncation:
+                mode_max = 1;
+                single_line = JNI_TRUE;
+                ellipsize = "MIDDLE";
+                break;
+        }
+        call_void_bool(env.get(), widget, "setSingleLine", single_line);
+        set_ellipsize(env.get(), widget, ellipsize);
+        const jint explicit_max = static_cast<jint>(view.max_lines());
+        call_void_int(env.get(), widget, "setMaxLines", explicit_max == -1 ? mode_max : explicit_max);
     }
 
     // Spannable.setSpan(span, start, end, flags). The span jobject is a local ref; cleared on any pending.
