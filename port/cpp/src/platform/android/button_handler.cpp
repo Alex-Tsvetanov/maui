@@ -1552,10 +1552,13 @@ namespace maui::core
             return;
         }
 
-        // Decode the bundled icon (shared by the inline Left/Right splice + the Top/Bottom compound path).
+        // Decode the bundled icon (shared by the inline Left/Right splice + the Top/Bottom compound path). Pick
+        // the density-appropriate @2x/@3x variant when one is packaged (iOS parity), so the icon isn't upscale-
+        // blurred; .scale divides out below to keep the reported dp size logical.
+        const float density = display_density(env.get(), widget);
         namespace img = maui::platform::android::image_decode;
-        const auto bytes = img::resolve_file_bytes(env.get(), platform.source_file);
-        const local_ref<jobject> bitmap = img::decode_bitmap(env.get(), bytes);
+        const auto resolved = img::resolve_scaled_file_bytes(env.get(), platform.source_file, density);
+        const local_ref<jobject> bitmap = img::decode_bitmap(env.get(), resolved.bytes);
         if (!bitmap)
         {
             // Undecodable (e.g. an SVG-only asset) → plain text, no icon (matches a nil apple decode).
@@ -1599,15 +1602,15 @@ namespace maui::core
         }
         // Size the icon to the bitmap's natural size treated as DP, scaled by display density — the mdpi(1x)→
         // device-density upscale MAUI's resizetizer performs by emitting settings.png into the density-less
-        // res/drawable/ folder. setCompoundDrawables / the ImageSpan below honor these explicit bounds.
-        const float density = display_density(env.get(), widget);
+        // res/drawable/ folder. setCompoundDrawables / the ImageSpan below honor these explicit bounds. A @2x/@3x
+        // variant carries N× the pixels for the same dp, so divide the pixel size by resolved.scale first.
         jmethodID get_bw = cache.method(env.get(), "android/graphics/Bitmap", "getWidth", "()I");
         jmethodID get_bh = cache.method(env.get(), "android/graphics/Bitmap", "getHeight", "()I");
         const jint bw = get_bw != nullptr ? env->CallIntMethod(bitmap.get(), get_bw) : 0;
         const jint bh = get_bh != nullptr ? env->CallIntMethod(bitmap.get(), get_bh) : 0;
         clear_pending(env.get());
-        const jint icon_w = bw > 0 ? to_pixels(static_cast<double>(bw), density) : 0;
-        const jint icon_h = bh > 0 ? to_pixels(static_cast<double>(bh), density) : 0;
+        const jint icon_w = bw > 0 ? to_pixels(static_cast<double>(bw) / resolved.scale, density) : 0;
+        const jint icon_h = bh > 0 ? to_pixels(static_cast<double>(bh) / resolved.scale, density) : 0;
         if (icon_w > 0 && icon_h > 0)
         {
             jmethodID set_bounds =

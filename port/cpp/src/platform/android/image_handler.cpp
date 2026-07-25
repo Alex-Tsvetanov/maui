@@ -91,6 +91,7 @@
 #include <string_view>
 #include <vector>
 
+#include "android_image_decode.hpp" // shared byte-fetch + density-variant (@2x/@3x) resolve
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
@@ -103,7 +104,6 @@
 #include "maui/core/i_stream_image_source.hpp" // image_bytes
 #include "maui/core/image_source_loader.hpp"   // configure_loader parameter type
 #include "maui/core/image_source_result.hpp"
-#include "maui/core/uri_bytes.hpp" // read_uri_bytes (disk fallback)
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/paint.hpp"
@@ -120,6 +120,7 @@ namespace
     using maui::platform::android::default_jni_cache;
     using maui::platform::android::local_ref;
     using maui::platform::android::scoped_env;
+    namespace image_decode = maui::platform::android::image_decode; // shared byte-fetch + @2x/@3x resolve
 
     // The native widget is dev.mauicpp.MauiImageView (an android.widget.ImageView subclass that can clip
     // its draw to a native android.graphics.Path — the WrapperView.SetClip analog; the handler now DRIVES
@@ -289,111 +290,11 @@ namespace
     }
 
     // ---- source bytes: APK asset → on-disk file ----
-    // The gallery's from_file("dotnet_bot.png") names a BUNDLED asset. On the real app host the resources
-    // are packaged into the APK under assets/ (build_android_apphost.sh), so the robust, SELinux-/uid-/
-    // reinstall-immune fetch is the AssetManager: context.getAssets().open(name) → an InputStream we drain.
-    // This is the android twin of the apple file fast-path resolving from_file() against the flat .app
-    // bundle. A bare name first tries assets/<name>; if no asset (or no Context — the VM-less / test host),
-    // it falls back to the cross-platform read_uri_bytes (a file:// / absolute path on disk).
-
-    // Drain a java.io.InputStream fully into image_bytes (empty on any JNI failure / empty stream). Reads in
-    // 64 KiB chunks via InputStream.read(byte[]) — the same buffered drain the testhost font loader uses.
-    [[nodiscard]] maui::core::image_bytes drain_input_stream(JNIEnv* env, jobject stream)
-    {
-        auto& cache = default_jni_cache();
-        jmethodID read = cache.method(env, "java/io/InputStream", "read", "([B)I");
-        jmethodID close = cache.method(env, "java/io/InputStream", "close", "()V");
-        if (read == nullptr)
-        {
-            return {};
-        }
-        constexpr jsize k_chunk = 64 * 1024;
-        const local_ref<jbyteArray> buffer{env, env->NewByteArray(k_chunk)};
-        if (clear_pending(env) || !buffer)
-        {
-            return {};
-        }
-        maui::core::image_bytes bytes;
-        for (;;)
-        {
-            const jint n = env->CallIntMethod(stream, read, buffer.get());
-            if (clear_pending(env) || n <= 0)
-            {
-                break; // -1 = EOF (and 0 only for a zero-length request, which we never make)
-            }
-            const std::size_t old = bytes.size();
-            bytes.resize(old + static_cast<std::size_t>(n));
-            // GetByteArrayRegion copies into a temporary jbyte buffer; reinterpret to std::byte is forbidden
-            // (NOLINT would be a suppression), so go through a small jbyte staging span.
-            std::vector<jbyte> staging(static_cast<std::size_t>(n));
-            env->GetByteArrayRegion(buffer.get(), 0, n, staging.data());
-            if (clear_pending(env))
-            {
-                break;
-            }
-            for (jint i = 0; i < n; ++i)
-            {
-                bytes[old + static_cast<std::size_t>(i)] =
-                    static_cast<std::byte>(static_cast<unsigned char>(staging[static_cast<std::size_t>(i)]));
-            }
-        }
-        if (close != nullptr)
-        {
-            env->CallVoidMethod(stream, close);
-            clear_pending(env);
-        }
-        return bytes;
-    }
-
-    // Read assets/<name> from the process Context's AssetManager (empty if no Context, no AssetManager, or
-    // the asset is absent — the caller then falls back to a disk read). context.getAssets() :
-    // android.content.res.AssetManager; assets.open(name) : java.io.InputStream (throws if absent — cleared).
-    [[nodiscard]] maui::core::image_bytes read_asset_bytes(JNIEnv* env, std::string_view name)
-    {
-        jobject context = app_context();
-        if (env == nullptr || context == nullptr)
-        {
-            return {};
-        }
-        auto& cache = default_jni_cache();
-        jmethodID get_assets =
-            cache.method(env, "android/content/Context", "getAssets", "()Landroid/content/res/AssetManager;");
-        jmethodID open =
-            cache.method(env, "android/content/res/AssetManager", "open", "(Ljava/lang/String;)Ljava/io/InputStream;");
-        if (get_assets == nullptr || open == nullptr)
-        {
-            return {};
-        }
-        const local_ref<jobject> assets{env, env->CallObjectMethod(context, get_assets)};
-        if (clear_pending(env) || !assets)
-        {
-            return {};
-        }
-        const local_ref<jstring> jname = maui::platform::android::to_jstring(env, name);
-        if (!jname)
-        {
-            return {};
-        }
-        const local_ref<jobject> stream{env, env->CallObjectMethod(assets.get(), open, jname.get())};
-        if (clear_pending(env) || !stream) // a missing asset throws FileNotFoundException → cleared, empty
-        {
-            return {};
-        }
-        return drain_input_stream(env, stream.get());
-    }
-
-    // Resolve the bytes for a from_file() name: assets/<name> first (the packaged APK resource), then the
-    // cross-platform on-disk reader (an absolute path / file:// uri — and the test host, which has assets
-    // neither). Empty when neither resolves (the caller clears the view, exactly like a nil apple decode).
-    [[nodiscard]] maui::core::image_bytes resolve_file_bytes(JNIEnv* env, std::string_view file)
-    {
-        maui::core::image_bytes bytes = read_asset_bytes(env, file);
-        if (!bytes.empty())
-        {
-            return bytes;
-        }
-        return maui::core::read_uri_bytes(file); // file:// + absolute/relative disk path
-    }
+    // The gallery's from_file("dotnet_bot.png") names a BUNDLED asset packaged into the APK under assets/
+    // (build_android_apphost.sh). The AssetManager fetch (context.getAssets().open(name) → drained InputStream)
+    // plus its disk fallback AND the @2x/@3x density-variant probe all live in the shared android_image_decode.hpp
+    // now (image_decode::resolve_scaled_file_bytes) — the same helper the button/image-button icon paths use, so
+    // there is one asset-fetch. decode_bitmap / bitmap_intrinsic_size stay file-local (image_handler owns them).
 
     // BitmapFactory.decodeByteArray(bytes, 0, len) → android.graphics.Bitmap (null on a failed decode). The
     // returned local ref owns the decoded bitmap; the caller installs it via setImageBitmap (the ImageView
@@ -931,8 +832,12 @@ namespace maui::core
         {
             return;
         }
-        const maui::core::image_bytes bytes = resolve_file_bytes(env.get(), file_src.file());
-        const local_ref<jobject> bitmap = decode_bitmap(env.get(), bytes);
+        // Prefer the density-appropriate @2x/@3x variant when packaged (iOS parity) so the bitmap isn't
+        // upscale-blurred at the device density; resolved.scale divides the pixel intrinsic back to logical dp.
+        const float density = display_density(env.get(), widget_of(platform));
+        const image_decode::scaled_bytes resolved =
+            image_decode::resolve_scaled_file_bytes(env.get(), file_src.file(), density);
+        const local_ref<jobject> bitmap = decode_bitmap(env.get(), resolved.bytes);
         if (!bitmap)
         {
             // A from_file naming an asset that is not packaged (e.g. cog.png — SVG-only, never rasterized) or
@@ -942,8 +847,9 @@ namespace maui::core
         }
         set_image_bitmap(env.get(), widget_of(platform), bitmap.get());
         const bitmap_size size = bitmap_intrinsic_size(env.get(), bitmap.get());
-        platform.intrinsic_width = size.width;
-        platform.intrinsic_height = size.height;
+        // A @2x/@3x asset carries N× the pixels for the same logical size — divide so the intrinsic stays dp.
+        platform.intrinsic_width = size.width / resolved.scale;
+        platform.intrinsic_height = size.height / resolved.scale;
     }
 
     // The async loader's apply: copy the result's kind + detail mirror, then — when the result carries a

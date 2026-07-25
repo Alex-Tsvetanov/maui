@@ -6,7 +6,11 @@
 // service, so this bundled-bytes fast-path is how every bundled from_file() image (dotnet_bot.png,
 // settings.png, cog.png, …) renders on the android backend. All JNI-guarded (empty on any failure).
 
+#include <algorithm>
+#include <cmath>
 #include <cstddef>
+#include <format>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -76,7 +80,7 @@ namespace maui::platform::android::image_decode
         if (close != nullptr)
         {
             env->CallVoidMethod(stream, close);
-            clear_pending(env);
+            static_cast<void>(clear_pending(env)); // best-effort close: drain the pending exception, discard
         }
         return bytes;
     }
@@ -126,6 +130,50 @@ namespace maui::platform::android::image_decode
             return bytes;
         }
         return maui::core::read_uri_bytes(file);
+    }
+
+    // The result of the density-variant probe: the bytes to decode plus the scale the pixels are authored at
+    // (1 = the base 1× asset). The caller MUST divide the decoded bitmap's PIXEL size by .scale to recover the
+    // logical dp intrinsic size — a @2x/256px asset still measures 128dp — so auto-sized images don't measure
+    // 2×/3× too large. Android twin of apple_shared::scaled_file (scaled_file.hpp).
+    struct scaled_bytes
+    {
+        maui::core::image_bytes bytes;
+        int scale = 1;
+    };
+
+    // Insert an "@Nx" density suffix before the extension: ("cog.png", 2) → "cog@2x.png". The dot only counts
+    // as an extension when it follows the last path separator (a "dir.v2/cog" with no ext stays suffix-only).
+    [[nodiscard]] inline std::string scaled_asset_name(std::string_view file, int scale)
+    {
+        const std::size_t dot = file.rfind('.');
+        const std::size_t slash = file.find_last_of("/\\");
+        const bool has_ext = dot != std::string_view::npos && (slash == std::string_view::npos || dot > slash);
+        const std::string_view stem = has_ext ? file.substr(0, dot) : file;
+        const std::string_view ext = has_ext ? file.substr(dot) : std::string_view{};
+        return std::format("{}@{}x{}", stem, scale, ext);
+    }
+
+    // Density-aware resolve — the Android mirror of ImageSourceExtensions.GetScaledFile (apple_shared::
+    // get_scaled_file): round the display density to an int screen scale; when > 1, probe "<stem>@<s>x<ext>"
+    // (assets/ then disk, via resolve_file_bytes) from min(3, scale) down to 2 and use the first packaged
+    // variant, reporting its scale. Otherwise — density 1, or no @Nx variant bundled — fall back to the base
+    // 1× asset at scale 1 (byte-identical to resolve_file_bytes). Density is a PARAMETER (each handler reads
+    // display_density) so this stays deterministic.
+    [[nodiscard]] inline scaled_bytes resolve_scaled_file_bytes(JNIEnv* env, std::string_view file, float density)
+    {
+        constexpr int k_max_scale = 3; // GetScaledFile MaxScale ("max of 3 seems to be what Apple has gone up to")
+        constexpr int k_min_scale = 2; // MinScale ("only 2 because 1 is 'no scale'")
+        const int screen_scale = static_cast<int>(std::lround(density));
+        for (int s = std::min(k_max_scale, screen_scale); s >= k_min_scale; --s)
+        {
+            maui::core::image_bytes variant = resolve_file_bytes(env, scaled_asset_name(file, s));
+            if (!variant.empty())
+            {
+                return {.bytes = std::move(variant), .scale = s};
+            }
+        }
+        return {.bytes = resolve_file_bytes(env, file), .scale = 1};
     }
 
     // BitmapFactory.decodeByteArray(bytes, 0, len) → android.graphics.Bitmap (null local ref on failure).

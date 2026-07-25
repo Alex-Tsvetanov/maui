@@ -63,6 +63,7 @@
 #include <string_view>
 #include <vector>
 
+#include "android_image_decode.hpp" // shared byte-fetch + density-variant (@2x/@3x) resolve
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -79,7 +80,6 @@
 #include "maui/core/image_source_loader.hpp"   // configure_loader parameter type
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/thickness.hpp"
-#include "maui/core/uri_bytes.hpp" // read_uri_bytes (disk fallback)
 #include "maui/core/view_platform_base.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/gradient_paint.hpp"
@@ -93,6 +93,7 @@ namespace
     using maui::platform::android::default_jni_cache;
     using maui::platform::android::local_ref;
     using maui::platform::android::scoped_env;
+    namespace image_decode = maui::platform::android::image_decode; // shared byte-fetch + @2x/@3x resolve
 
     // The native widget is dev.mauicpp.MauiImageView (an android.widget.ImageView subclass — the image
     // partial's widget; reused here so the decode/scale-type/measure surface resolves identically). Because
@@ -375,96 +376,10 @@ namespace
         clear_pending(env);
     }
 
-    // ---- source bytes: APK asset → on-disk file (the image partial's resolver verbatim) ----
-    [[nodiscard]] maui::core::image_bytes drain_input_stream(JNIEnv* env, jobject stream)
-    {
-        auto& cache = default_jni_cache();
-        jmethodID read = cache.method(env, "java/io/InputStream", "read", "([B)I");
-        jmethodID close = cache.method(env, "java/io/InputStream", "close", "()V");
-        if (read == nullptr)
-        {
-            return {};
-        }
-        constexpr jsize k_chunk = 64 * 1024;
-        const local_ref<jbyteArray> buffer{env, env->NewByteArray(k_chunk)};
-        if (clear_pending(env) || !buffer)
-        {
-            return {};
-        }
-        maui::core::image_bytes bytes;
-        for (;;)
-        {
-            const jint n = env->CallIntMethod(stream, read, buffer.get());
-            if (clear_pending(env) || n <= 0)
-            {
-                break; // -1 = EOF
-            }
-            const std::size_t old = bytes.size();
-            bytes.resize(old + static_cast<std::size_t>(n));
-            std::vector<jbyte> staging(static_cast<std::size_t>(n));
-            env->GetByteArrayRegion(buffer.get(), 0, n, staging.data());
-            if (clear_pending(env))
-            {
-                break;
-            }
-            for (jint i = 0; i < n; ++i)
-            {
-                bytes[old + static_cast<std::size_t>(i)] =
-                    static_cast<std::byte>(static_cast<unsigned char>(staging[static_cast<std::size_t>(i)]));
-            }
-        }
-        if (close != nullptr)
-        {
-            env->CallVoidMethod(stream, close);
-            clear_pending(env);
-        }
-        return bytes;
-    }
-
-    [[nodiscard]] maui::core::image_bytes read_asset_bytes(JNIEnv* env, std::string_view name)
-    {
-        jobject context = app_context();
-        if (env == nullptr || context == nullptr)
-        {
-            return {};
-        }
-        auto& cache = default_jni_cache();
-        jmethodID get_assets =
-            cache.method(env, "android/content/Context", "getAssets", "()Landroid/content/res/AssetManager;");
-        jmethodID open =
-            cache.method(env, "android/content/res/AssetManager", "open", "(Ljava/lang/String;)Ljava/io/InputStream;");
-        if (get_assets == nullptr || open == nullptr)
-        {
-            return {};
-        }
-        const local_ref<jobject> assets{env, env->CallObjectMethod(context, get_assets)};
-        if (clear_pending(env) || !assets)
-        {
-            return {};
-        }
-        const local_ref<jstring> jname = maui::platform::android::to_jstring(env, name);
-        if (!jname)
-        {
-            return {};
-        }
-        const local_ref<jobject> stream{env, env->CallObjectMethod(assets.get(), open, jname.get())};
-        if (clear_pending(env) || !stream) // a missing asset throws FileNotFoundException → cleared, empty
-        {
-            return {};
-        }
-        return drain_input_stream(env, stream.get());
-    }
-
-    [[nodiscard]] maui::core::image_bytes resolve_file_bytes(JNIEnv* env, std::string_view file)
-    {
-        maui::core::image_bytes bytes = read_asset_bytes(env, file);
-        if (!bytes.empty())
-        {
-            return bytes;
-        }
-        return maui::core::read_uri_bytes(file); // file:// + absolute/relative disk path
-    }
-
+    // ---- source bytes: APK asset → on-disk file ----
+    // The AssetManager fetch, its disk fallback, and the @2x/@3x density-variant probe all live in the shared
+    // android_image_decode.hpp now (image_decode::resolve_scaled_file_bytes) — the image partial's resolver, now
+    // shared rather than copied. decode_bitmap / bitmap_intrinsic_size stay file-local (this handler owns them).
     [[nodiscard]] local_ref<jobject> decode_bitmap(JNIEnv* env, const maui::core::image_bytes& bytes)
     {
         if (env == nullptr || bytes.empty())
@@ -1040,8 +955,12 @@ namespace maui::core
         {
             return;
         }
-        const maui::core::image_bytes bytes = resolve_file_bytes(env.get(), file_src.file());
-        const local_ref<jobject> bitmap = decode_bitmap(env.get(), bytes);
+        // Prefer the density-appropriate @2x/@3x variant when packaged (iOS parity) so the icon isn't upscale-
+        // blurred at the device density; resolved.scale divides the pixel intrinsic back to logical dp.
+        const float density = display_density(env.get(), widget_of(platform));
+        const image_decode::scaled_bytes resolved =
+            image_decode::resolve_scaled_file_bytes(env.get(), file_src.file(), density);
+        const local_ref<jobject> bitmap = decode_bitmap(env.get(), resolved.bytes);
         if (!bitmap)
         {
             // cog.png (SVG-only) decodes to null → no pixels (the chrome fill is the visible rectangle,
@@ -1051,8 +970,9 @@ namespace maui::core
         }
         set_image_bitmap(env.get(), widget_of(platform), bitmap.get());
         const bitmap_size size = bitmap_intrinsic_size(env.get(), bitmap.get());
-        platform.intrinsic_width = size.width;
-        platform.intrinsic_height = size.height;
+        // A @2x/@3x asset carries N× the pixels for the same logical size — divide so the intrinsic stays dp.
+        platform.intrinsic_width = size.width / resolved.scale;
+        platform.intrinsic_height = size.height / resolved.scale;
     }
 
     void image_button_handler::apply_loaded_result(image_button_platform& platform, const image_source_result& result)
