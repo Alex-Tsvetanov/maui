@@ -326,6 +326,61 @@ namespace
         clear_pending(env);
     }
 
+    // Two-state tint {disabled → dimmed, default → color}: a plain valueOf list applies ONE color to EVERY
+    // state, so a DISABLED SeekBar keeps its full-color track/thumb — but MAUI dims a disabled slider's track
+    // to near-invisible (measured: no track row brighter than ~60). Seed a 2-state list so the framework dims
+    // when disabled and restores the color when enabled (no manual repaint). Mirrors label_handler's
+    // set_text_color_state_list. disabled_argb = the color at a low alpha (Material disabled dimming).
+    void push_tint_list_2state(JNIEnv* env, jobject widget, const char* setter, const maui::graphics::color& color)
+    {
+        if (color == maui::graphics::color{})
+        {
+            return; // unset → keep the seeded baseline
+        }
+        auto& cache = default_jni_cache();
+        jclass csl_class = cache.find_class(env, k_color_state_list_class);
+        jmethodID ctor = cache.method(env, k_color_state_list_class, "<init>", "([[I[I)V");
+        jmethodID set_tint = cache.method(env, k_seek_bar_class, setter, "(Landroid/content/res/ColorStateList;)V");
+        jclass int_array_class = cache.find_class(env, "[I");
+        if (csl_class == nullptr || ctor == nullptr || set_tint == nullptr || int_array_class == nullptr)
+        {
+            return;
+        }
+        constexpr jint k_state_enabled = 0x0101009e; // android.R.attr.state_enabled (stable public id)
+        const jint disabled_spec = -k_state_enabled;
+        const local_ref<jintArray> disabled_state{env, env->NewIntArray(1)};
+        const local_ref<jintArray> default_state{env, env->NewIntArray(0)};
+        if (clear_pending(env) || !disabled_state || !default_state)
+        {
+            return;
+        }
+        env->SetIntArrayRegion(disabled_state.get(), 0, 1, &disabled_spec);
+        const local_ref<jobjectArray> states{env, env->NewObjectArray(2, int_array_class, nullptr)};
+        if (clear_pending(env) || !states)
+        {
+            return;
+        }
+        env->SetObjectArrayElement(states.get(), 0, disabled_state.get());
+        env->SetObjectArrayElement(states.get(), 1, default_state.get());
+        const jint enabled_argb = static_cast<jint>(color.to_int());
+        // Disabled = the color at ~0x1F alpha (Material disabled dim → near-invisible track, matching MAUI).
+        const jint disabled_argb = (enabled_argb & 0x00FFFFFF) | 0x1F000000;
+        const std::array<jint, 2> color_values{disabled_argb, enabled_argb};
+        const local_ref<jintArray> colors{env, env->NewIntArray(2)};
+        if (clear_pending(env) || !colors)
+        {
+            return;
+        }
+        env->SetIntArrayRegion(colors.get(), 0, 2, color_values.data());
+        const local_ref<jobject> tint{env, env->NewObject(csl_class, ctor, states.get(), colors.get())};
+        if (clear_pending(env) || !tint)
+        {
+            return;
+        }
+        env->CallVoidMethod(widget, set_tint, tint.get());
+        clear_pending(env);
+    }
+
     // Seed the just-created SeekBar with the Material light-theme default track + thumb grays (see the
     // k_material_*_gray note) so its UNSET chrome matches real MAUI instead of the DeviceDefault dark-blue
     // accent. Reuses push_tint_list (a concrete, non-unset color, so it takes the ColorStateList.valueOf
@@ -343,9 +398,11 @@ namespace
         const auto inactive_track = maui::graphics::color::from_rgb(inactive_gray, inactive_gray, inactive_gray);
         const auto thumb =
             maui::graphics::color::from_rgb(k_material_thumb_gray, k_material_thumb_gray, k_material_thumb_gray);
-        push_tint_list(env, widget, "setProgressTintList", track);                    // min (active) track
-        push_tint_list(env, widget, "setProgressBackgroundTintList", inactive_track); // max (inactive) track
-        push_tint_list(env, widget, "setThumbTintList", thumb);                       // thumb
+        // 2-state so a DISABLED slider dims to MAUI's near-invisible track/thumb (an enabled slider keeps the
+        // color via the default state — so only the Disabled row changes; every other slider is unaffected).
+        push_tint_list_2state(env, widget, "setProgressTintList", track);                    // min (active) track
+        push_tint_list_2state(env, widget, "setProgressBackgroundTintList", inactive_track); // max (inactive) track
+        push_tint_list_2state(env, widget, "setThumbTintList", thumb);                       // thumb
     }
 } // namespace
 
