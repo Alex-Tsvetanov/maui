@@ -34,11 +34,14 @@ exe="${out_dir}/maui_smoke.exe"
 
 # -municode  : wWinMain (wide entry) is the entry point
 # -mwindows  : GUI subsystem, so launching does not open a console window that would appear in shots
-# -static... : link libstdc++/libgcc statically so the .exe is SELF-CONTAINED — the guest has no mingw
-#              runtime DLLs, and a missing libstdc++-6.dll fails at launch with a dialog that the
-#              runner would report only as "process exited early".
+# -static    : FULLY static — the .exe must be SELF-CONTAINED because a stock Windows guest has no mingw
+#              runtime DLLs, and a missing one fails at launch with a modal dialog that the E2E runner
+#              can report no more precisely than "process exited early".
+#              `-static-libstdc++ -static-libgcc` alone is NOT enough: it leaves libwinpthread-1.dll as a
+#              dynamic import (GCC's threading model), which was verified by objdump on this exact binary.
+#              The import check below is what caught it, so it stays as a build-time gate.
 "${CXX}" -std=c++23 -O2 -municode -mwindows \
-  -static-libstdc++ -static-libgcc \
+  -static \
   -Wall -Wextra \
   "${script_dir}/smoke_window.cpp" \
   -lgdi32 -luser32 \
@@ -52,6 +55,23 @@ file "${exe}" || true
 if ! file "${exe}" | grep -q 'PE32+ executable (GUI)'; then
   echo "error: ${exe} is not a PE32+ GUI executable" >&2
   exit 1
+fi
+
+# GATE: refuse to ship an .exe that imports a mingw runtime DLL. A stock Windows guest has none of them,
+# so the app dies at launch behind a modal dialog and the runner reports only "process exited early" —
+# a failure that costs a VM session to diagnose. api-ms-win-crt-* (the UCRT) is fine: it ships with
+# Windows 10+. Anything named lib*.dll is a mingw runtime that must have been linked statically.
+if objdump="$(command -v "${CXX%-g++}-objdump" || true)"; [[ -n "${objdump}" ]]; then
+  bad="$("${objdump}" -p "${exe}" | awk '/DLL Name:/ {print $3}' | grep -i '^lib' || true)"
+  if [[ -n "${bad}" ]]; then
+    echo "error: ${exe} dynamically imports mingw runtime DLL(s):" >&2
+    echo "${bad}" | sed 's/^/  /' >&2
+    echo "  -> add -static (not just -static-libstdc++ -static-libgcc)" >&2
+    exit 1
+  fi
+  echo "[smoke] import check: no mingw runtime DLLs (self-contained)"
+else
+  echo "[smoke] warning: objdump not found; skipped the self-contained import check" >&2
 fi
 echo "[smoke] ok — deploy + drive it on the VM with:"
 echo "         tools/parity/windows/vm_smoke.py --host <vm> --user <user>"

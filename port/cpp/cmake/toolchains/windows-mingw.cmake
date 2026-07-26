@@ -14,9 +14,17 @@
 # SearchView, and its parity page is permanently yellow because a stand-in widget cannot match the
 # reference's rendering. A Win32/GDI control set would be that mistake applied to an entire platform.
 #
-# Usage:
+# Usage (no CMakePresets entry yet — deliberately: CMakeLists.txt has no `windows` branch in its
+# platform-source selection, so a `windows-mingw` preset would configure the port and then fail at the
+# first missing backend source. Add the preset together with that branch; until then invoke directly):
+#
 #   brew install mingw-w64
-#   cmake --preset windows-mingw && cmake --build --preset windows-mingw
+#   cmake -S . -B build/windows-mingw -G Ninja \
+#         -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/windows-mingw.cmake
+#   cmake --build build/windows-mingw
+#
+# Verified against a scratch project (configure → build → PE32+). The Win32 pipeline smoke app does not
+# go through CMake at all — see tools/parity/windows/build_smoke.sh.
 #
 # Override the triple prefix if a different mingw build is in use:
 #   -DMAUI_MINGW_PREFIX=x86_64-w64-mingw32
@@ -53,10 +61,22 @@ set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
-# Self-contained binaries: the guest has no mingw runtime DLLs, and a missing libstdc++-6.dll surfaces
-# only as a launch-time dialog — which the E2E runner can report no more precisely than "process exited
-# early". Static-linking the toolchain runtimes removes that failure mode entirely.
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-static-libstdc++ -static-libgcc")
+# Self-contained binaries: a stock Windows guest has NO mingw runtime DLLs, and a missing one surfaces
+# only as a launch-time modal dialog — which the E2E runner can report no more precisely than "process
+# exited early", costing a VM session to diagnose.
+#
+# `-static` (fully static), NOT just `-static-libstdc++ -static-libgcc`: verified with objdump on a real
+# binary from this toolchain, the latter still leaves **libwinpthread-1.dll** as a dynamic import
+# (GCC's threading model links it separately). Only the UCRT (api-ms-win-crt-*.dll, present on
+# Windows 10+) and the system DLLs should remain — tools/parity/windows/build_smoke.sh gates on exactly
+# that and will fail the build if a lib*.dll import reappears.
+#
+# NOTE for callers: do NOT pass -municode/-mwindows via a command-line -DCMAKE_EXE_LINKER_FLAGS=… — that
+# REPLACES this _INIT value (losing -static) and, worse, breaks CMake's compiler ABI check, whose test
+# program has a plain main() and cannot link against the wide GUI entry point. Set the GUI/wide-entry
+# flags per TARGET instead:
+#     target_link_options(<gui_target> PRIVATE -municode -mwindows)
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-static")
 
 # Windows.h defines min/max macros that break std::min/std::max, and pulls in a very large surface by
 # default. Both defines are what every Win32 C++ codebase sets; doing it here keeps it off every

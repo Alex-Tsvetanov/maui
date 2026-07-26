@@ -54,8 +54,21 @@ $ tools/parity/windows/build_smoke.sh
 ```
 
 mingw-w64 GCC 15.2 accepts `-std=c++23` and the library features the port uses (`<expected>`,
-`<format>`, …). One gap found: **`std::print` does not link** (mingw's libstdc++ lacks
-`__open_terminal`/`__write_to_terminal`), so Lane 2 code must use `std::format` + `fputs`.
+`<format>`, …). Three findings worth keeping:
+
+1. **`std::print` does not link** — mingw's libstdc++ lacks `__open_terminal`/`__write_to_terminal`. Use
+   `std::format` + `fputs`.
+2. **`-static` is required, not `-static-libstdc++ -static-libgcc`.** Verified with `objdump -p` on a
+   real binary: the latter still leaves **`libwinpthread-1.dll`** as a dynamic import (GCC's threading
+   model links it separately). A stock guest has no mingw DLLs, so the app would have died at launch
+   behind a modal dialog — which the runner reports only as "process exited early". `build_smoke.sh` now
+   **gates** on the import list (any `lib*.dll` fails the build); only the UCRT `api-ms-win-crt-*.dll`
+   (ships with Windows 10+) and the system DLLs may remain.
+3. **Do not pass `-municode`/`-mwindows` via `-DCMAKE_EXE_LINKER_FLAGS=…`.** It replaces the toolchain's
+   `_INIT` (losing `-static`) *and* breaks CMake's compiler ABI check, whose probe has a plain `main()`
+   and cannot link a wide GUI entry point. Use `target_link_options(<tgt> PRIVATE -municode -mwindows)`.
+   The toolchain file was verified end-to-end against a scratch CMake project (configure → build →
+   `PE32+`), which is how findings 2 and 3 surfaced.
 
 ---
 
