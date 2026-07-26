@@ -247,6 +247,27 @@ def main() -> int:
     step("scroll", res.get("ok"),
          f"wheel={res.get('wheel')}" if res.get("ok") else json.dumps(res)[:160])
 
+    # -- the core probe: does the port's cross-platform core actually RUN on Windows? ----------------
+    # Separate from the GUI app on purpose. The smoke window only proves the pipeline can drive a
+    # window; the probe proves the port's own core (property system, control construction, text
+    # measurement, generic mount, measure+arrange) executes correctly on this OS. It self-checks and
+    # exits non-zero, so we assert on its exit status rather than eyeballing output.
+    probe_local = CPP_ROOT / "build/windows-core/maui_core_probe.exe"
+    if probe_local.is_file():
+        remote_probe = posixpath.join(g.apps, probe_local.name)
+        if step("deploy core probe", g.push(probe_local, remote_probe), remote_probe):
+            r = g.sh([remote_probe], timeout=180)
+            out = (r.stdout or "") + (r.stderr or "")
+            passed = r.returncode == 0 and "PASS" in out
+            step("core probe runs on Windows", passed,
+                 out.strip().replace("\n", " | ")[:400] or f"exit={r.returncode}")
+            for line in (r.stdout or "").splitlines():
+                if line.strip().startswith(("ok", "FAIL")):
+                    print(f"        {DIM}{line.strip()}{RESET}")
+    else:
+        print(f"  {DIM}skip core probe: {probe_local} not built "
+              f"(tools/parity/windows/build_core_check.sh){RESET}")
+
     # -- teardown -----------------------------------------------------------------------------------
     if a.keep:
         print(f"  {DIM}--keep: leaving pid {pid} running{RESET}")

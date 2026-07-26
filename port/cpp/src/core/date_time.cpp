@@ -4,7 +4,14 @@
 
 #include "maui/core/date_time.hpp"
 
-#include <__chrono/duration.h> // include-cleaner: std::chrono::days lives here on libc++
+#ifdef _LIBCPP_VERSION
+    // include-cleaner wants the header that DEFINES std::chrono::days, which on libc++ is this private
+    // header. It must stay libc++-only: `<__chrono/…>` is an implementation detail that does not exist in
+    // libstdc++ or MSVC STL, so an unguarded include makes this TU uncompilable on every non-libc++
+    // toolchain — including the MSVC build the WinUI 3 backend needs (found by the mingw cross-compile
+    // sweep, tools/parity/windows/build_core_check.sh). `<chrono>` below is the portable declaration.
+    #include <__chrono/duration.h>
+#endif
 #include <array>
 #include <chrono>
 #include <cstddef>

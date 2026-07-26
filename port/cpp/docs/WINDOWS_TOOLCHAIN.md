@@ -72,6 +72,38 @@ mingw-w64 GCC 15.2 accepts `-std=c++23` and the library features the port uses (
 
 ---
 
+## 2b. The core cross-build found two real portability bugs
+
+`tools/parity/windows/build_core_check.sh` cross-compiles the port's **platform-independent half**
+(graphics, core, controls, layouts, hosting + the headless handler mirrors — 347 sources) for Windows and
+links `core_probe.cpp` against it. `--syntax-only` is the fast portability gate; the full run archives
+`libmaui_core_win.a` and produces a **runnable, self-checking** `maui_core_probe.exe`.
+
+It immediately earned its keep. Two defects that block **any** non-libc++ toolchain — i.e. they would
+equally have blocked the MSVC build that Lane 1 (WinUI 3) requires — were found and fixed:
+
+1. **`src/core/date_time.cpp` included `<__chrono/duration.h>`** — a **libc++ private** header, added
+   only to satisfy clang-tidy's include-cleaner (`<chrono>`, the portable header, was already included
+   two lines below). `<__chrono/…>` does not exist in libstdc++ or MSVC STL, so the TU was
+   uncompilable anywhere else. Now guarded by `#ifdef _LIBCPP_VERSION` — verified that the macro *is*
+   defined under host clang, so include-cleaner still sees the include on macOS (no new finding) while
+   GCC/MSVC skip it.
+2. **`src/layouts/detail/flex.cpp` built a vector from `std::views::iota`'s iterator pair.**
+   `iota_view`'s iterator is a C++20 `input_iterator` but **not** a *Cpp17*InputIterator (its
+   `reference` is a prvalue), so libstdc++ **and** MSVC STL reject `vector(first, last)` — libc++ merely
+   happens to accept it. Replaced with `reserve` + a range-for over the same `views::iota`, which keeps
+   the ranges form the surrounding comment requires and works on all three standard libraries.
+
+Both changed TUs were re-checked against host clang/libc++ (clean), and the full 347-source sweep is
+Windows-clean. This is the concrete argument for keeping Lane 2: it is a cheap, VM-free portability gate
+on the code Lane 1 will depend on.
+
+One non-defect to be aware of: GCC's `-Wextra` reports `-Wmissing-field-initializers` on
+`include/maui/controls/view.hpp`'s designated initializer. That is a GCC-vs-clang strictness difference,
+not a portability problem.
+
+---
+
 ## 3. Guest provisioning (do this once on the VM)
 
 Run in an **elevated** PowerShell on the guest:
@@ -142,6 +174,7 @@ Host-side changes in `run_comparison.py` (macOS behaviour byte-identical — ver
 ```bash
 # on the dev machine, from port/cpp
 tools/parity/windows/build_smoke.sh                       # cross-build the Win32 smoke exe
+tools/parity/windows/build_core_check.sh                  # cross-build the core + the self-checking probe
 
 python3 tools/parity/windows/vm_smoke.py \
         --host <vm-hostname> --user <vm-user>             # deploy + drive + verify, step by step
@@ -149,9 +182,14 @@ python3 tools/parity/windows/vm_smoke.py \
 
 `vm_smoke.py` walks the chain one call at a time and prints PASS/FAIL per step — ssh, DefaultShell,
 python, agent deploy, app deploy, `set-resolution`, `launch`, `window-id`, `present`+shot, pull,
-**PNG decodes at the presented size**, `shot --window`, click/type/scroll, `stop` — so a failure on a
-brand-new guest is attributed to one step instead of being buried in a 182-tag sweep. It saves the
-capture to `build/windows-smoke/vm_smoke_capture.png` for eyeballing.
+**PNG decodes at the presented size**, `shot --window`, click/type/scroll, and finally **deploy + run the
+core probe** (asserting its exit status, not its prose), then `stop` — so a failure on a brand-new guest
+is attributed to one step instead of being buried in a 182-tag sweep. It saves the capture to
+`build/windows-smoke/vm_smoke_capture.png` for eyeballing.
+
+That last step is the one that answers "does the port itself work on Windows": the smoke window only
+proves the pipeline can drive *a* window, whereas the probe exercises the port's own core. If
+`build_core_check.sh` has not been run, the step is skipped with a note rather than failing.
 
 Then the full board:
 
@@ -163,6 +201,10 @@ python3 docs/comparison/tools/run_comparison.py --config docs/comparison/config/
 
 ### What is already verified without a VM
 
+* **The port's entire cross-platform core compiles AND links for Windows**: 393 translation units →
+  a 64 MB `libmaui_core_win.a` → `maui_core_probe.exe` (`PE32+ console x86-64`, self-contained, zero
+  undefined references). Compiling alone would not have shown this: omitting `src/essentials` passed the
+  syntax sweep and failed only at link.
 * Cross-build produces a real `PE32+ executable (GUI) x86-64`, zero warnings.
 * `tools/tests/test_vm_agent_windows.py` — BGRA→RGB channel order (a B↔R swap would tint every
   capture and still look legitimate), stdlib PNG decodes in Pillow with exact pixels, a 1024×800 shot

@@ -224,8 +224,19 @@ namespace maui::layouts::flex
                     // algorithm (libc++ 20), while plain std::iota trips modernize-use-ranges on the host
                     // toolchain. Building the index vector from the views::iota factory is a ranges form
                     // clean on BOTH toolchains (same libc++-18-gap family as the from_chars accommodation).
-                    const auto sequence = std::views::iota(std::size_t{0}, it.count());
-                    std::vector<std::size_t> indices(sequence.begin(), sequence.end());
+                    // Fill by iteration, NOT vector(first, last): std::views::iota's iterator is a C++20
+                    // input_iterator but NOT a Cpp17InputIterator (its reference is a prvalue), so
+                    // libstdc++ and MSVC STL both reject the two-iterator vector constructor — libc++
+                    // merely happens to accept it. Found by the mingw cross-compile sweep
+                    // (tools/parity/windows/build_core_check.sh); it would equally have broken the MSVC
+                    // build the WinUI 3 backend needs. Keeps the views::iota form clean-on-both-toolchains
+                    // that the note above requires.
+                    std::vector<std::size_t> indices;
+                    indices.reserve(it.count());
+                    for (const std::size_t index : std::views::iota(std::size_t{0}, it.count()))
+                    {
+                        indices.push_back(index);
+                    }
                     std::ranges::stable_sort(indices, [&it](std::size_t a, std::size_t b) {
                         return it.child_at(a).order() < it.child_at(b).order();
                     });
