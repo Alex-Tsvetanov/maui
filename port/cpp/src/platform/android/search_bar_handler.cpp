@@ -17,55 +17,63 @@
 // ref lifecycle, and the per-backend view_platform_base overrides are copied from it verbatim where they
 // apply, with the editor-only multi-line knobs removed.
 //
-// THE EDITTEXT STAND-IN (the central documented deviation): MAUI's Android SearchBar is a MauiSearchView
+// THE REAL SEARCHVIEW (primary path, 2026-07-26): MAUI's Android SearchBar is a MauiSearchView
 // (androidx.appcompat.widget.SearchView), whose visible text field is the inner EditText queryEditor
 // (MauiSearchView._queryEditor = this.GetFirstChildOfType<EditText>()). The whole Android text surface of
 // SearchBarHandler — MapText/Placeholder/PlaceholderColor/TextColor/Font/CharacterSpacing/Horizontal+
 // VerticalTextAlignment/IsReadOnly/IsTextPrediction/IsSpellCheck/Keyboard/MaxLength/Cursor/Selection —
 // is delegated by SearchViewExtensions onto THAT inner EditText (via UpdateText/UpdatePlaceholder/… and
-// the EditTextExtensions/TextViewExtensions the editor partial already ports). Because this APK-less
-// backend deliberately carries NO AndroidX AppCompat AAR (the same gradle/AAR gap the button and editor
-// partials document for MauiAppCompatButton / MauiAppCompatEditText), there is no SearchView to host;
-// the port stands the search bar up as the inner EditText DIRECTLY — exactly the picker/editor EditText
-// stand-in approach — and addresses every text map against android/widget/EditText. This is faithful:
-// the inner queryEditor IS an EditText, and the C# maps target it, not the SearchView chrome.
+// the EditTextExtensions/TextViewExtensions the editor partial already ports). This backend carries no
+// AndroidX AppCompat AAR (the gradle/AAR gap the button and editor partials document), but the FRAMEWORK
+// android.widget.SearchView is in android.jar and, under the app host's themed Activity, inflates the
+// SAME Material chrome AppCompat's does: the search_mag_icon ImageView, the inset search_plate (whose
+// 9-patch background IS the field underline), the inner SearchAutoComplete EditText, and the
+// search_close_btn ImageView. create_platform_view therefore builds a real SearchView and replays
+// MauiSearchView.Initialize on it (SetIconifiedByDefault(false) → the always-shown magnifier;
+// MaxWidth = int.MaxValue; search_close_btn.SetMinimumWidth(ToPixels(44))); text_widget_of() re-points
+// every text map at the inner queryEditor (GetFirstChildOfType<EditText>()) and
+// refresh_search_compound_icons tints the real search_mag_icon / search_close_btn ImageViews through
+// SearchViewExtensions' SafeSetTint. Measured on the android parity board this took search_bar from
+// 2.59%/2.85% (light/dark) to 0.52%/0.30% — GREEN — and greened the whole SearchBar-bearing page family.
 //
-// THE SEARCHVIEW CHROME (magnifier + inset + clear-X), reproduced with FRAMEWORK compound drawables:
-// MAUI's visible SearchView chrome is a LEFT magnifier (search_mag_icon), an inset/indented query field,
-// and a RIGHT clear-X (search_close_btn) that appears only with text. The EditText stand-in reproduces
-// all three WITHOUT any SearchView by hanging framework drawables (android.R.drawable.ic_menu_search /
-// ic_menu_close_clear_cancel) on the EditText as compound drawables
-// (setCompoundDrawablesWithIntrinsicBounds) plus a setCompoundDrawablePadding inset. FRAMEWORK drawables
-// are the deliberate choice: they resolve theme-independently (via Context.getDrawable(int)) so they load
-// in the bare, Activity-less app_process testhost too — unlike the AppCompat abc_ic_* set the entry
-// partial documents as unavailable (no AAR), and unlike the framework android.widget.SearchView itself
-// (in android.jar since API 11 but inflating a fragile themed layout — its SearchAutoComplete needs
-// ?attr/autoCompleteTextViewStyle etc. — that is prone to crash in the theme-less host, so the real
-// SearchView is DEFERRED). This gives the SAME visual (loupe + inset + text-gated clear-X) in BOTH the
-// bare testhost and the real app host. Mirrored C#: MauiSearchView.Initialize's SetIconifiedByDefault
-// (false) → the always-shown magnifier; SearchViewExtensions.UpdateSearchIconColor / UpdateCancelButton
-// Color → the LEFT / RIGHT drawable tints (see map_search_icon_color / map_cancel_button_color); the
-// search_close_btn's text-gated visibility → the clear-X-shown-only-with-text rule (see map_text).
+// THE EDITTEXT STAND-IN (fallback): the SearchView ctor needs a THEME (LayoutInflater + the
+// ?attr/searchViewStyle chain), which the bare, Activity-less app_process widget testhost does not have —
+// there the ctor throws and create_platform_view falls back to the historical plain android.widget.EditText
+// stand-in, whose chrome is reproduced WITHOUT any SearchView by hanging FRAMEWORK drawables
+// (android.R.drawable.ic_menu_search / ic_menu_close_clear_cancel) on the EditText as compound drawables
+// plus a setCompoundDrawablePadding inset and a leading padding. Framework drawables are the deliberate
+// choice there: they resolve theme-independently (Context.getDrawable(int)) so they load in the bare host
+// too — unlike the AppCompat abc_ic_* set the entry partial documents as unavailable (no AAR). The
+// stand-in is a lower-fidelity but crash-free twin (thinner glyphs, a full-width rather than plate-inset
+// underline); it is never taken in the real app host. Both paths share every map: is_view_group() /
+// text_widget_of() are the single branch point.
 //
 // DOCUMENTED DEVIATIONS from the C# oracle (each is a library / infrastructure gap, not a behavior
 // guess):
-//   - The widget is a plain android.widget.EditText, not a SearchView's inner SearchAutoComplete: the
-//     AndroidX AppCompat library is a gradle/AAR dependency this backend does not carry (as above), and
-//     the framework android.widget.SearchView is DEFERRED (fragile themed inflation in the Activity-less
-//     host). The SearchView's magnifier + clear-X ARE rendered — as framework compound drawables on the
-//     EditText (see the SEARCHVIEW CHROME note above) — so cancel_button_color / search_icon_color are NO
-//     LONGER mirror-only: UpdateCancelButtonColor tints the RIGHT clear-X drawable and UpdateSearchIcon
-//     Color tints the LEFT magnifier drawable (map_cancel_button_color / map_search_icon_color). Still
-//     DEFERRED to mirror-only (no plain-EditText / framework-drawable analog):
+//   - The shell is the FRAMEWORK android.widget.SearchView, not AppCompat's (no AAR). Their layouts and
+//     ids are identical (search_mag_icon / search_plate / search_src_text / search_close_btn), but their
+//     ASSETS differ slightly: the framework clear-X renders ~14dp where AppCompat's abc_ic_clear_material
+//     renders ~16dp, and the framework DeviceDefault search_plate 9-patch is a dark accent (measured rgb
+//     64,72,77) where MAUI's Material plate is a faint gray (measured 215,215,215). The plate is tinted to
+//     MAUI's gray (apply_underline_tint, parity ruling 1 — MAUI's render is ground truth); the ~2dp
+//     clear-X glyph-size difference is the one measured residual left on the board.
+//   - Resource.Id.search_mag_icon / search_close_btn / search_plate are resolved by NAME through
+//     Resources.getIdentifier(name, "id", "android") — this backend links android.jar only and has no
+//     generated R class.
+//   - The queryEditor LayoutParams FillVertical tweak (MauiSearchView.Initialize) is skipped: the
+//     framework search_view.xml already gives search_src_text match_parent height inside a match_parent
+//     search_plate, which is what that tweak exists to achieve on AppCompat, and the board confirms the
+//     underline lands on MAUI's row (y 394/559/… exactly). Still DEFERRED to mirror-only:
 //       * return_type (UpdateReturnType — sets SearchView.ImeOptions + the inner EditText.ImeOptions and
-//                      RestartInput); the IME-options push has no observable surface on the bare testhost
-//                      (no soft keyboard) and there is no SearchView ImeOptions target.
+//                      RestartInput); the IME-options push has no observable surface on the parity board
+//                      (no soft keyboard is shown).
 //     map_return_type therefore records the cross-platform mirror only, like the apple/AppKit twin.
 //     // TODO: verify against src/Core/src/Platform/Android/SearchViewExtensions.cs (UpdateReturnType)
-//     when a soft-keyboard-aware app host lands, and re-point the icon tints at the real search_mag_icon /
-//     search_close_btn ImageViews if an AppCompat-equivalent SearchView shell ever lands.
-//   - MaxWidth = int.MaxValue / the queryEditor LayoutParams FillVertical tweaks / the search_close_btn
-//     min-width (MauiSearchView.Initialize) are SearchView-shell setup with no plain-EditText analog;
+//     when a soft-keyboard-aware app host lands.
+//   - _queryEditor.SaveEnabled = false (MauiSearchView.Initialize's cross-instance state-restore guard) is
+//     skipped: the port never saves/restores instance state (no Activity recreation in the app host).
+//   - On the EditText FALLBACK only: MaxWidth = int.MaxValue / the queryEditor LayoutParams FillVertical
+//     tweaks / the search_close_btn min-width are SearchView-shell setup with no plain-EditText analog;
 //     skipped. SetIconifiedByDefault(false) — the expand-to-show-the-magnifier call — is reproduced not
 //     by a SearchView method but by the always-installed LEFT magnifier compound drawable (above).
 //   - MapBackground rides the shared view_mapper (the C# MapBackground delegates straight to
@@ -174,6 +182,27 @@ namespace
     // so the View/TextView surface resolves through android/widget/EditText too).
     constexpr const char* k_edit_text_class = "android/widget/EditText";
     constexpr const char* k_style_class = "android/R$style";
+    // THE REAL SEARCHVIEW (preferred platform view — see create_platform_view). android.widget.SearchView
+    // is in android.jar, so it needs NO AppCompat AAR, and under a themed Activity it inflates the SAME
+    // Material chrome MauiSearchView (androidx.appcompat.widget.SearchView) renders: the search_mag_icon
+    // ImageView, the search_plate (the inset field underline), the inner SearchAutoComplete EditText and
+    // the search_close_btn ImageView. The plain-EditText stand-in below remains the fallback for the bare,
+    // Activity-less app_process host (no theme → the layout inflation throws).
+    constexpr const char* k_search_view_class = "android/widget/SearchView";
+    constexpr const char* k_view_class = "android/view/View";
+    constexpr const char* k_view_group_class = "android/view/ViewGroup";
+    constexpr const char* k_image_view_class = "android/widget/ImageView";
+    constexpr const char* k_resources_class = "android/content/res/Resources";
+    // The SearchView chrome ids MAUI's SearchViewExtensions reaches by Resource.Id.*; the port resolves
+    // them by NAME through Resources.getIdentifier(name, "id", "android") (no generated R class here).
+    constexpr const char* k_search_mag_icon_id = "search_mag_icon";
+    constexpr const char* k_search_close_btn_id = "search_close_btn";
+    // The inset query plate whose 9-patch background IS the field underline.
+    constexpr const char* k_search_plate_id = "search_plate";
+    // MauiSearchView.Initialize: search_close_btn.SetMinimumWidth(Context.ToPixels(44)).
+    constexpr double k_cancel_button_min_width_dp = 44.0;
+    // MauiSearchView.Initialize: MaxWidth = int.MaxValue (the shell must not cap the query field).
+    constexpr jint k_search_view_max_width = 0x7FFFFFFF;
     // The concrete platform style that carries the EditText's box/underline CHROME (the search field
     // stand-in for the SearchView's inner queryEditor), resolved theme-independently as a defStyleRes so
     // the bare app_process testhost (and the app host) construct a field that actually HAS its chrome. A
@@ -330,27 +359,34 @@ namespace
         return true;
     }
 
-    void call_void_int(JNIEnv* env, jobject widget, const char* name, jint value)
+    // `class_name` is the class the method id is resolved from. JNI requires it to be the target's class
+    // or one of its SUPERCLASSES, so the default (EditText) is right for every text push onto the query
+    // editor, while the generic View surface (visibility/alpha/enabled/…) — which now also lands on the
+    // SearchView SHELL, not an EditText — must resolve through k_view_class.
+    void call_void_int(JNIEnv* env, jobject widget, const char* name, jint value,
+                       const char* class_name = k_edit_text_class)
     {
-        if (jmethodID method = default_jni_cache().method(env, k_edit_text_class, name, "(I)V"))
+        if (jmethodID method = default_jni_cache().method(env, class_name, name, "(I)V"))
         {
             env->CallVoidMethod(widget, method, value);
             clear_pending(env);
         }
     }
 
-    void call_void_float(JNIEnv* env, jobject widget, const char* name, jfloat value)
+    void call_void_float(JNIEnv* env, jobject widget, const char* name, jfloat value,
+                         const char* class_name = k_edit_text_class)
     {
-        if (jmethodID method = default_jni_cache().method(env, k_edit_text_class, name, "(F)V"))
+        if (jmethodID method = default_jni_cache().method(env, class_name, name, "(F)V"))
         {
             env->CallVoidMethod(widget, method, value);
             clear_pending(env);
         }
     }
 
-    void call_void_bool(JNIEnv* env, jobject widget, const char* name, jboolean value)
+    void call_void_bool(JNIEnv* env, jobject widget, const char* name, jboolean value,
+                        const char* class_name = k_edit_text_class)
     {
-        if (jmethodID method = default_jni_cache().method(env, k_edit_text_class, name, "(Z)V"))
+        if (jmethodID method = default_jni_cache().method(env, class_name, name, "(Z)V"))
         {
             env->CallVoidMethod(widget, method, value);
             clear_pending(env);
@@ -375,7 +411,7 @@ namespace
             return cached;
         }
         auto& cache = default_jni_cache();
-        jmethodID get_context = cache.method(env, k_edit_text_class, "getContext", "()Landroid/content/Context;");
+        jmethodID get_context = cache.method(env, k_view_class, "getContext", "()Landroid/content/Context;");
         jmethodID get_resources =
             cache.method(env, "android/content/Context", "getResources", "()Landroid/content/res/Resources;");
         jmethodID get_display_metrics =
@@ -422,8 +458,8 @@ namespace
     [[nodiscard]] point_size view_point_size(JNIEnv* env, jobject widget, float density)
     {
         auto& cache = default_jni_cache();
-        jmethodID get_width = cache.method(env, k_edit_text_class, "getWidth", "()I");
-        jmethodID get_height = cache.method(env, k_edit_text_class, "getHeight", "()I");
+        jmethodID get_width = cache.method(env, k_view_class, "getWidth", "()I");
+        jmethodID get_height = cache.method(env, k_view_class, "getHeight", "()I");
         if (get_width == nullptr || get_height == nullptr || density == 0.0F)
         {
             return {.width = 0.0, .height = 0.0};
@@ -709,6 +745,198 @@ namespace
         call_void_int(env, widget, "setCompoundDrawablePadding", to_pixels(k_compound_drawable_padding_dp, density));
     }
 
+    // Wrap-content LayoutParams up front: a parentless TextView with null LayoutParams NPEs in
+    // checkForRelayout on any setText AFTER the first measure (TextView.java reads
+    // getLayoutParams().width). The android container fan-out has not arrived, so the partial stands
+    // in for the parent ViewGroup attach (identical to the editor partial's note).
+    void apply_wrap_content_layout_params(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        jclass layout_params_class = cache.find_class(env, "android/view/ViewGroup$LayoutParams");
+        jmethodID layout_params_ctor = cache.method(env, "android/view/ViewGroup$LayoutParams", "<init>", "(II)V");
+        jmethodID set_layout_params =
+            cache.method(env, k_view_class, "setLayoutParams", "(Landroid/view/ViewGroup$LayoutParams;)V");
+        if (layout_params_class == nullptr || layout_params_ctor == nullptr || set_layout_params == nullptr)
+        {
+            return;
+        }
+        constexpr jint k_wrap_content = -2; // ViewGroup.LayoutParams.WRAP_CONTENT
+        const local_ref<jobject> params{
+            env, env->NewObject(layout_params_class, layout_params_ctor, k_wrap_content, k_wrap_content)};
+        if (!clear_pending(env) && params)
+        {
+            env->CallVoidMethod(widget, set_layout_params, params.get());
+            clear_pending(env);
+        }
+    }
+
+    // Tint a field's 9-patch underline to MAUI's faint gray (k_underline_tint) via
+    // setBackgroundTintList(ColorStateList.valueOf(...)). BOTH platform views need it: the plain-EditText
+    // stand-in's DeviceDefault 9-patch is a dark accent, and the real SearchView's search_plate uses the
+    // framework DeviceDefault plate (measured rgb 64,72,77 unfocused) where MAUI's AppCompat/Material plate
+    // is a barely-visible gray (measured 215,215,215) — a per-row structural diff either way.
+    void apply_underline_tint(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        jclass csl_class = cache.find_class(env, "android/content/res/ColorStateList");
+        jmethodID value_of = cache.static_method(env, "android/content/res/ColorStateList", "valueOf",
+                                                 "(I)Landroid/content/res/ColorStateList;");
+        jmethodID set_bg_tint =
+            cache.method(env, k_view_class, "setBackgroundTintList", "(Landroid/content/res/ColorStateList;)V");
+        if (csl_class == nullptr || value_of == nullptr || set_bg_tint == nullptr)
+        {
+            return;
+        }
+        // LIGHT underline #D9D9D9 matches MAUI's faint plate; DARK's Material underline is #444444.
+        const jint underline_tint = maui::platform::android::detail::is_night_mode(env)
+                                        ? static_cast<jint>(0xFF444444U)
+                                        : k_underline_tint;
+        const local_ref<jobject> tint{env, env->CallStaticObjectMethod(csl_class, value_of, underline_tint)};
+        if (!clear_pending(env) && tint)
+        {
+            env->CallVoidMethod(widget, set_bg_tint, tint.get());
+            clear_pending(env);
+        }
+    }
+
+    // True when the platform view is the REAL android.widget.SearchView shell (a ViewGroup) rather than
+    // the plain-EditText stand-in — the one branch every SearchView-only step (chrome tints, inner-editor
+    // retarget) keys off. A ViewGroup test is enough: the stand-in is an EditText, never a ViewGroup.
+    [[nodiscard]] bool is_view_group(JNIEnv* env, jobject widget)
+    {
+        jclass view_group_class = default_jni_cache().find_class(env, k_view_group_class);
+        return view_group_class != nullptr && widget != nullptr &&
+               env->IsInstanceOf(widget, view_group_class) == JNI_TRUE;
+    }
+
+    // ViewExtensions.GetFirstChildOfType<EditText>() — the depth-first walk MauiSearchView.Initialize uses
+    // to find its `_queryEditor`. Returns a MOVED local ref (empty on miss).
+    [[nodiscard]] local_ref<jobject> first_edit_text_child(JNIEnv* env, jobject group)
+    {
+        auto& cache = default_jni_cache();
+        jclass edit_text_class = cache.find_class(env, k_edit_text_class);
+        jmethodID get_child_count = cache.method(env, k_view_group_class, "getChildCount", "()I");
+        jmethodID get_child_at = cache.method(env, k_view_group_class, "getChildAt", "(I)Landroid/view/View;");
+        if (edit_text_class == nullptr || get_child_count == nullptr || get_child_at == nullptr)
+        {
+            return {};
+        }
+        const jint count = env->CallIntMethod(group, get_child_count);
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        for (jint i = 0; i < count; ++i)
+        {
+            local_ref<jobject> child{env, env->CallObjectMethod(group, get_child_at, i)};
+            if (clear_pending(env) || !child)
+            {
+                continue;
+            }
+            if (env->IsInstanceOf(child.get(), edit_text_class) == JNI_TRUE)
+            {
+                return child;
+            }
+            if (is_view_group(env, child.get()))
+            {
+                if (local_ref<jobject> found = first_edit_text_child(env, child.get()))
+                {
+                    return found;
+                }
+            }
+        }
+        return {};
+    }
+
+    // The widget EVERY text map targets. MAUI's whole Android text surface (UpdateText/Placeholder/
+    // TextColor/Font/CharacterSpacing/alignment/IsReadOnly/InputType/selection) is delegated by
+    // SearchViewExtensions onto the SearchView's inner queryEditor, so with the real shell up this is
+    // GetFirstChildOfType<EditText>(); with the plain-EditText stand-in the root IS that editor. Returns a
+    // MOVED local ref either way, so every call site has one uniform lifetime.
+    [[nodiscard]] local_ref<jobject> text_widget_of(JNIEnv* env, const maui::core::search_bar_platform& platform)
+    {
+        jobject root = widget_of(platform);
+        if (root == nullptr)
+        {
+            return {};
+        }
+        if (is_view_group(env, root))
+        {
+            return first_edit_text_child(env, root);
+        }
+        return local_ref<jobject>{env, env->NewLocalRef(root)};
+    }
+
+    // One of the SearchView shell's chrome ImageViews (search_mag_icon / search_close_btn), resolved the
+    // way SearchViewExtensions does — FindViewById(Resource.Id.<name>) — except the id integer comes from
+    // Resources.getIdentifier(name, "id", "android") because this backend has no generated R class.
+    [[nodiscard]] local_ref<jobject> find_chrome_icon(JNIEnv* env, jobject root, const char* id_name)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_resources =
+            cache.method(env, k_view_group_class, "getResources", "()Landroid/content/res/Resources;");
+        jmethodID get_identifier = cache.method(env, k_resources_class, "getIdentifier",
+                                                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I");
+        jmethodID find_by_id = cache.method(env, k_view_group_class, "findViewById", "(I)Landroid/view/View;");
+        if (get_resources == nullptr || get_identifier == nullptr || find_by_id == nullptr)
+        {
+            return {};
+        }
+        const local_ref<jobject> resources{env, env->CallObjectMethod(root, get_resources)};
+        if (clear_pending(env) || !resources)
+        {
+            return {};
+        }
+        const local_ref<jstring> name = to_jstring(env, id_name);
+        const local_ref<jstring> type = to_jstring(env, "id");
+        const local_ref<jstring> package = to_jstring(env, "android");
+        const jint id = env->CallIntMethod(resources.get(), get_identifier, name.get(), type.get(), package.get());
+        if (clear_pending(env) || id <= 0)
+        {
+            return {};
+        }
+        local_ref<jobject> icon{env, env->CallObjectMethod(root, find_by_id, id)};
+        if (clear_pending(env))
+        {
+            return {};
+        }
+        return icon;
+    }
+
+    // SearchViewExtensions.SafeSetTint(ImageView, Color): drawable.Mutate() (so the shared constant state
+    // is not tinted process-wide), SetTint(argb), SetImageDrawable(safe).
+    void safe_set_tint(JNIEnv* env, jobject image_view, jint tint)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID get_drawable =
+            cache.method(env, k_image_view_class, "getDrawable", "()Landroid/graphics/drawable/Drawable;");
+        jmethodID set_image_drawable =
+            cache.method(env, k_image_view_class, "setImageDrawable", "(Landroid/graphics/drawable/Drawable;)V");
+        jmethodID mutate = cache.method(env, k_drawable_class, "mutate", "()Landroid/graphics/drawable/Drawable;");
+        jmethodID set_tint = cache.method(env, k_drawable_class, "setTint", "(I)V");
+        if (get_drawable == nullptr || set_image_drawable == nullptr || set_tint == nullptr)
+        {
+            return;
+        }
+        local_ref<jobject> drawable{env, env->CallObjectMethod(image_view, get_drawable)};
+        if (clear_pending(env) || !drawable)
+        {
+            return;
+        }
+        if (mutate != nullptr)
+        {
+            local_ref<jobject> mutated{env, env->CallObjectMethod(drawable.get(), mutate)};
+            if (!clear_pending(env) && mutated)
+            {
+                drawable = std::move(mutated);
+            }
+        }
+        env->CallVoidMethod(drawable.get(), set_tint, tint);
+        clear_pending(env);
+        env->CallVoidMethod(image_view, set_image_drawable, drawable.get());
+        clear_pending(env);
+    }
+
     // The single DRY entry point every icon-touching map/create calls: recompute the LEFT magnifier (always
     // on) + the RIGHT clear-X (text-gated) + their tints straight from the virtual view. The tints follow
     // SearchIconColor / CancelButtonColor, applied only when BindableObject.IsSet marks them explicit (an
@@ -723,6 +951,26 @@ namespace
         const auto left_tint = static_cast<jint>(view.search_icon_color().to_int());
         const auto right_tint = static_cast<jint>(view.cancel_button_color().to_int());
         const bool has_text = !view.text().empty();
+        // LIGHT: MAUI's SearchView renders both icons at the theme textColorPrimary (87% black); DARK: white.
+        // This is SearchViewExtensions' `TryGetDefaultStateColor(searchView, TextColorPrimary)` else-branch,
+        // asserted as the measured constant (see k_default_icon_tint).
+        const jint default_icon_tint =
+            maui::platform::android::detail::is_night_mode(env) ? static_cast<jint>(0xFFFFFFFFU) : k_default_icon_tint;
+        if (is_view_group(env, widget))
+        {
+            // REAL SHELL: tint the search_mag_icon / search_close_btn ImageViews, exactly as
+            // SearchViewExtensions.UpdateSearchIconColor / UpdateCancelButtonColor do. The shell owns the
+            // clear-X's text-gated visibility (SearchView.updateCloseButton), so has_text is not consulted.
+            if (const local_ref<jobject> mag = find_chrome_icon(env, widget, k_search_mag_icon_id))
+            {
+                safe_set_tint(env, mag.get(), left_is_set ? left_tint : default_icon_tint);
+            }
+            if (const local_ref<jobject> close = find_chrome_icon(env, widget, k_search_close_btn_id))
+            {
+                safe_set_tint(env, close.get(), right_is_set ? right_tint : default_icon_tint);
+            }
+            return;
+        }
         const float density = display_density(env, widget);
         set_search_compound_icons(env, widget, has_text, left_is_set, left_tint, right_is_set, right_tint, density);
     }
@@ -773,7 +1021,7 @@ namespace maui::core
         {
             state = k_view_gone;
         }
-        call_void_int(env.get(), widget_of(*this), "setVisibility", state);
+        call_void_int(env.get(), widget_of(*this), "setVisibility", state, k_view_class);
     }
 
     void search_bar_platform::update_opacity(double value)
@@ -787,7 +1035,7 @@ namespace maui::core
         if (env)
         {
             // ViewExtensions.UpdateOpacity: platformView.Alpha = (float)opacity.
-            call_void_float(env.get(), widget_of(*this), "setAlpha", static_cast<jfloat>(value));
+            call_void_float(env.get(), widget_of(*this), "setAlpha", static_cast<jfloat>(value), k_view_class);
         }
     }
 
@@ -801,10 +1049,13 @@ namespace maui::core
         const scoped_env env;
         if (env)
         {
-            // SearchBarHandler.MapIsEnabled → SearchViewExtensions.UpdateIsEnabled sets the inner
-            // EditText.Enabled = searchBar.IsEnabled. With the EditText stand-in that IS the platform
-            // view, so this is platformView.Enabled = value (the shared ViewExtensions.UpdateIsEnabled).
-            call_void_bool(env.get(), widget_of(*this), "setEnabled", static_cast<jboolean>(value));
+            // SearchBarHandler.MapIsEnabled → SearchViewExtensions.UpdateIsEnabled sets the INNER
+            // EditText.Enabled = searchBar.IsEnabled (NOT the SearchView shell's) — so this targets the
+            // queryEditor, which with the plain-EditText stand-in is the platform view itself.
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *this))
+            {
+                call_void_bool(env.get(), query.get(), "setEnabled", static_cast<jboolean>(value), k_view_class);
+            }
         }
     }
 
@@ -826,9 +1077,9 @@ namespace maui::core
         // PlatformInterop.setContentDescriptionForAutomationId: setting a ContentDescription flips
         // ImportantForAccessibility to YES; restore AUTO when that is what the view had, so the
         // automation id does not change the view's accessibility exposure.
-        jmethodID get_important = cache.method(env.get(), k_edit_text_class, "getImportantForAccessibility", "()I");
+        jmethodID get_important = cache.method(env.get(), k_view_class, "getImportantForAccessibility", "()I");
         jmethodID set_description =
-            cache.method(env.get(), k_edit_text_class, "setContentDescription", "(Ljava/lang/CharSequence;)V");
+            cache.method(env.get(), k_view_class, "setContentDescription", "(Ljava/lang/CharSequence;)V");
         if (get_important == nullptr || set_description == nullptr)
         {
             return;
@@ -846,7 +1097,8 @@ namespace maui::core
         }
         if (important_before == k_important_for_accessibility_auto)
         {
-            call_void_int(env.get(), widget, "setImportantForAccessibility", k_important_for_accessibility_auto);
+            call_void_int(env.get(), widget, "setImportantForAccessibility", k_important_for_accessibility_auto,
+                          k_view_class);
         }
     }
 
@@ -870,7 +1122,7 @@ namespace maui::core
             if (const scoped_env env; env)
             {
                 auto& cache = default_jni_cache();
-                if (jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
+                if (jmethodID set_bg_tint = cache.method(env.get(), k_view_class, "setBackgroundTintList",
                                                          "(Landroid/content/res/ColorStateList;)V"))
                 {
                     env->CallVoidMethod(widget_of(*this), set_bg_tint, static_cast<jobject>(nullptr));
@@ -941,9 +1193,50 @@ namespace maui::core
         {
             return platform;
         }
-        // SearchBarHandler.CreatePlatformView builds a MauiSearchView (a SearchView whose inner field is
-        // an EditText). The AppCompat SearchView is not carried here (header deviation), so the EditText
-        // stand-in IS the platform view. EditText(Context) chains to the (Context, AttributeSet, int)
+        // PREFERRED PATH — the REAL SearchView shell. SearchBarHandler.CreatePlatformView builds a
+        // MauiSearchView : androidx.appcompat.widget.SearchView. This backend carries no AppCompat AAR, but
+        // the FRAMEWORK android.widget.SearchView is in android.jar and inflates the SAME Material chrome
+        // (search_mag_icon + search_plate + the inner SearchAutoComplete EditText + search_close_btn) under
+        // the app host's themed Activity — so it reproduces MAUI's render structurally instead of faking it
+        // with compound drawables. It DOES need a theme (LayoutInflater + ?attr/searchViewStyle), so if the
+        // ctor throws — the bare, Activity-less app_process host — we fall through to the historical
+        // theme-independent plain-EditText stand-in below. Then MauiSearchView.Initialize verbatim:
+        // SetIconifiedByDefault(false) (expands the field, revealing search_mag_icon), MaxWidth =
+        // int.MaxValue, and search_close_btn.SetMinimumWidth(ToPixels(44)).
+        if (jclass search_view_class = cache.find_class(env.get(), k_search_view_class))
+        {
+            jmethodID search_ctor =
+                cache.method(env.get(), k_search_view_class, "<init>", "(Landroid/content/Context;)V");
+            local_ref<jobject> shell;
+            if (search_ctor != nullptr)
+            {
+                shell = local_ref<jobject>{env.get(), env->NewObject(search_view_class, search_ctor, context)};
+                if (clear_pending(env.get()))
+                {
+                    shell.reset();
+                }
+            }
+            if (shell)
+            {
+                call_void_bool(env.get(), shell.get(), "setIconifiedByDefault", JNI_FALSE, k_search_view_class);
+                call_void_int(env.get(), shell.get(), "setMaxWidth", k_search_view_max_width, k_search_view_class);
+                const float shell_density = display_density(env.get(), shell.get());
+                if (const local_ref<jobject> close = find_chrome_icon(env.get(), shell.get(), k_search_close_btn_id))
+                {
+                    call_void_int(env.get(), close.get(), "setMinimumWidth",
+                                  to_pixels(k_cancel_button_min_width_dp, shell_density), k_view_class);
+                }
+                if (const local_ref<jobject> plate = find_chrome_icon(env.get(), shell.get(), k_search_plate_id))
+                {
+                    apply_underline_tint(env.get(), plate.get());
+                }
+                apply_wrap_content_layout_params(env.get(), shell.get());
+                platform->native = env->NewGlobalRef(shell.get()); // released in ~search_bar_platform
+                return platform;
+            }
+        }
+        // FALLBACK — the plain-EditText stand-in (the bare, Activity-less app_process host, where the
+        // SearchView's themed layout inflation throws). EditText(Context) chains to the (Context, AttributeSet, int)
         // ctor with defStyleAttr = the theme attr editTextStyle, which it resolves against the Context's
         // THEME — the bare, Activity-less app_process testhost has no such theme, so that ctor throws
         // (the trap the editor partial documents). The defStyleAttr=0 3-arg ctor constructs fine BUT
@@ -1049,51 +1342,9 @@ namespace maui::core
             }
         }
 
-        // Tint the field's 9-patch underline to MAUI's faint gray (see k_underline_tint) via
-        // setBackgroundTintList(ColorStateList.valueOf(...)) — the framework default is a dark accent that
-        // reads as a per-row structural diff vs MAUI's barely-visible SearchView plate underline.
-        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
-        {
-            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
-                                                     "(I)Landroid/content/res/ColorStateList;");
-            jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
-                                                 "(Landroid/content/res/ColorStateList;)V");
-            if (value_of != nullptr && set_bg_tint != nullptr)
-            {
-                // LIGHT underline #D9D9D9 matches MAUI's faint plate; DARK's Material underline is #444444.
-                const jint underline_tint = maui::platform::android::detail::is_night_mode(env.get())
-                                                ? static_cast<jint>(0xFF444444U)
-                                                : k_underline_tint;
-                const local_ref<jobject> tint{env.get(),
-                                              env->CallStaticObjectMethod(csl_class, value_of, underline_tint)};
-                if (!clear_pending(env.get()) && tint)
-                {
-                    env->CallVoidMethod(widget.get(), set_bg_tint, tint.get());
-                    clear_pending(env.get());
-                }
-            }
-        }
+        apply_underline_tint(env.get(), widget.get());
 
-        // Wrap-content LayoutParams up front: a parentless TextView with null LayoutParams NPEs in
-        // checkForRelayout on any setText AFTER the first measure (TextView.java reads
-        // getLayoutParams().width). The android container fan-out has not arrived, so the partial stands
-        // in for the parent ViewGroup attach (identical to the editor partial's note).
-        jclass layout_params_class = cache.find_class(env.get(), "android/view/ViewGroup$LayoutParams");
-        jmethodID layout_params_ctor =
-            cache.method(env.get(), "android/view/ViewGroup$LayoutParams", "<init>", "(II)V");
-        jmethodID set_layout_params =
-            cache.method(env.get(), k_edit_text_class, "setLayoutParams", "(Landroid/view/ViewGroup$LayoutParams;)V");
-        if (layout_params_class != nullptr && layout_params_ctor != nullptr && set_layout_params != nullptr)
-        {
-            constexpr jint k_wrap_content = -2; // ViewGroup.LayoutParams.WRAP_CONTENT
-            const local_ref<jobject> params{
-                env.get(), env->NewObject(layout_params_class, layout_params_ctor, k_wrap_content, k_wrap_content)};
-            if (!clear_pending(env.get()) && params)
-            {
-                env->CallVoidMethod(widget.get(), set_layout_params, params.get());
-                clear_pending(env.get());
-            }
-        }
+        apply_wrap_content_layout_params(env.get(), widget.get());
 
         // Install the SearchView chrome up front: the LEFT magnifier (always shown, mirroring
         // MauiSearchView.Initialize's SetIconifiedByDefault(false)) + the icon-to-text inset, with the
@@ -1163,7 +1414,14 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
+        // Every text map targets the SearchView's inner queryEditor (SearchViewExtensions delegates onto
+        // it); with the plain-EditText stand-in that IS the root.
+        const local_ref<jobject> query = text_widget_of(env.get(), *platform);
+        if (!query)
+        {
+            return;
+        }
+        jobject widget = query.get();
         auto& cache = default_jni_cache();
         // SearchViewExtensions.UpdateText → SearchView.SetQuery(Text, false); the inner-EditText overload
         // (SearchViewExtensions.UpdateText(EditText)) is editText.Text = newText with an equality guard.
@@ -1186,7 +1444,7 @@ namespace maui::core
         // Re-evaluate the RIGHT clear-X: SearchViewExtensions shows search_close_btn only with text (an
         // empty field hides it). Recomputes both icons + their tints from the view so the magnifier and
         // any explicit tints survive the text change.
-        refresh_search_compound_icons(env.get(), widget, view);
+        refresh_search_compound_icons(env.get(), widget_of(*platform), view);
     }
 
     void search_bar_handler::map_text_color(search_bar_handler& handler, i_search_bar& view)
@@ -1215,7 +1473,10 @@ namespace maui::core
             const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
                                   ? static_cast<jint>(0xFFFFFFFFU)
                                   : static_cast<jint>(view.text_color().to_int());
-            call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+            {
+                call_void_int(env.get(), query.get(), "setTextColor", argb);
+            }
         }
     }
 
@@ -1243,8 +1504,11 @@ namespace maui::core
         if (set_hint != nullptr)
         {
             const local_ref<jstring> hint = to_jstring(env.get(), view.placeholder());
-            env->CallVoidMethod(widget_of(*platform), set_hint, hint.get());
-            clear_pending(env.get());
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+            {
+                env->CallVoidMethod(query.get(), set_hint, hint.get());
+                clear_pending(env.get());
+            }
         }
     }
 
@@ -1286,7 +1550,10 @@ namespace maui::core
             const bool color_is_set = bindable != nullptr && bindable->is_property_set("placeholder_color");
             const jint argb =
                 color_is_set ? static_cast<jint>(view.placeholder_color().to_int()) : k_native_default_hint_color;
-            call_void_int(env.get(), widget_of(*platform), "setHintTextColor", argb);
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+            {
+                call_void_int(env.get(), query.get(), "setHintTextColor", argb);
+            }
         }
     }
 
@@ -1307,7 +1574,14 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
+        // Every text map targets the SearchView's inner queryEditor (SearchViewExtensions delegates onto
+        // it); with the plain-EditText stand-in that IS the root.
+        const local_ref<jobject> query = text_widget_of(env.get(), *platform);
+        if (!query)
+        {
+            return;
+        }
+        jobject widget = query.get();
         // SearchViewExtensions.UpdateIsReadOnly(EditText): bool isReadOnly = !searchBar.IsReadOnly;
         // FocusableInTouchMode = isReadOnly; Focusable = isReadOnly; SetCursorVisible(isReadOnly). (NOTE:
         // the C# variable named `isReadOnly` is actually the EDITABLE flag = !IsReadOnly; the search
@@ -1349,7 +1623,14 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
+        // Every text map targets the SearchView's inner queryEditor (SearchViewExtensions delegates onto
+        // it); with the plain-EditText stand-in that IS the root.
+        const local_ref<jobject> query = text_widget_of(env.get(), *platform);
+        if (!query)
+        {
+            return;
+        }
+        jobject widget = query.get();
         auto& cache = default_jni_cache();
         const font value = view.font();
 
@@ -1441,8 +1722,11 @@ namespace maui::core
         {
             // SearchViewExtensions.MapCharacterSpacing → inner EditText.UpdateCharacterSpacing →
             // TextViewExtensions: LetterSpacing = CharacterSpacing.ToEm().
-            call_void_float(env.get(), widget_of(*platform), "setLetterSpacing",
-                            static_cast<jfloat>(view.character_spacing()) * k_em_coefficient);
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+            {
+                call_void_float(env.get(), query.get(), "setLetterSpacing",
+                                static_cast<jfloat>(view.character_spacing()) * k_em_coefficient);
+            }
         }
     }
 
@@ -1463,7 +1747,14 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
+        // Every text map targets the SearchView's inner queryEditor (SearchViewExtensions delegates onto
+        // it); with the plain-EditText stand-in that IS the root.
+        const local_ref<jobject> query = text_widget_of(env.get(), *platform);
+        if (!query)
+        {
+            return;
+        }
+        jobject widget = query.get();
         auto& cache = default_jni_cache();
         // SearchViewExtensions.MapHorizontalTextAlignment → inner EditText.UpdateHorizontalTextAlignment →
         // UpdateHorizontalAlignment (EditText): on RTL-capable Android (every device the port targets) it
@@ -1512,7 +1803,14 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
+        // Every text map targets the SearchView's inner queryEditor (SearchViewExtensions delegates onto
+        // it); with the plain-EditText stand-in that IS the root.
+        const local_ref<jobject> query = text_widget_of(env.get(), *platform);
+        if (!query)
+        {
+            return;
+        }
+        jobject widget = query.get();
         auto& cache = default_jni_cache();
         // SearchViewExtensions.UpdateVerticalTextAlignment → inner EditText.UpdateVerticalAlignment:
         // Gravity = (Gravity & ~VerticalMask) | ToVerticalGravityFlags(alignment). Read-modify-write the
@@ -1553,7 +1851,10 @@ namespace maui::core
             // TextFlagAutoCorrect. The port recomputes the FULL input type (keyboard base + prediction +
             // spellcheck) so the three intertwined properties stay consistent — SetInputType's shape
             // (header deviations). NO multi-line bit (single-line search bar).
-            apply_input_type(env.get(), widget_of(*platform), view);
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+            {
+                apply_input_type(env.get(), query.get(), view);
+            }
         }
     }
 
@@ -1574,7 +1875,10 @@ namespace maui::core
         {
             // SearchViewExtensions.UpdateIsSpellCheckEnabled toggles the inner EditText InputType's
             // TextFlagNoSuggestions; recompute the full type (see map_is_text_prediction_enabled).
-            apply_input_type(env.get(), widget_of(*platform), view);
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+            {
+                apply_input_type(env.get(), query.get(), view);
+            }
         }
     }
 
@@ -1597,7 +1901,10 @@ namespace maui::core
             // the caret after the input-type change) then UpdateKeyboard → SetInputType: keyboard base
             // type + prediction/spellcheck. The caret restore is the deferred SetSelection round-trip
             // (header deviations); map_text already lands the text. NO multi-line bit (single-line).
-            apply_input_type(env.get(), widget_of(*platform), view);
+            if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+            {
+                apply_input_type(env.get(), query.get(), view);
+            }
         }
     }
 
@@ -1625,7 +1932,10 @@ namespace maui::core
         // partial). // TODO: verify against EditTextExtensions.cs (UpdateCursorSelection).
         const auto length = static_cast<int>(view.text().size());
         const jint start = static_cast<jint>(std::max(0, std::min(view.cursor_position(), length)));
-        call_void_int(env.get(), widget_of(*platform), "setSelection", start);
+        if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
+        {
+            call_void_int(env.get(), query.get(), "setSelection", start);
+        }
     }
 
     void search_bar_handler::map_selection_length(search_bar_handler& handler, i_search_bar& view)
@@ -1645,7 +1955,14 @@ namespace maui::core
         {
             return;
         }
-        jobject widget = widget_of(*platform);
+        // Every text map targets the SearchView's inner queryEditor (SearchViewExtensions delegates onto
+        // it); with the plain-EditText stand-in that IS the root.
+        const local_ref<jobject> query = text_widget_of(env.get(), *platform);
+        if (!query)
+        {
+            return;
+        }
+        jobject widget = query.get();
         // EditTextExtensions.UpdateSelectionLength → SetSelection(start, end). start = clamp(cursor), end =
         // clamp(start + selectionLength). The native-RTL / looper-Post nuances are deferred (header
         // deviations); the two-arg SetSelection lands the clamped range synchronously (identical to the
@@ -1754,9 +2071,9 @@ namespace maui::core
         // specs in pixels, infinite become Unspecified; View.measure, then the measured pixels come back
         // as dp (Context.FromPixels). Identical to the editor partial.
         jmethodID make_measure_spec = cache.static_method(env.get(), k_measure_spec_class, "makeMeasureSpec", "(II)I");
-        jmethodID measure = cache.method(env.get(), k_edit_text_class, "measure", "(II)V");
-        jmethodID get_measured_width = cache.method(env.get(), k_edit_text_class, "getMeasuredWidth", "()I");
-        jmethodID get_measured_height = cache.method(env.get(), k_edit_text_class, "getMeasuredHeight", "()I");
+        jmethodID measure = cache.method(env.get(), k_view_class, "measure", "(II)V");
+        jmethodID get_measured_width = cache.method(env.get(), k_view_class, "getMeasuredWidth", "()I");
+        jmethodID get_measured_height = cache.method(env.get(), k_view_class, "getMeasuredHeight", "()I");
         jclass measure_spec_class = cache.find_class(env.get(), k_measure_spec_class);
         if (make_measure_spec == nullptr || measure == nullptr || get_measured_width == nullptr ||
             get_measured_height == nullptr || measure_spec_class == nullptr)
@@ -1810,8 +2127,8 @@ namespace maui::core
         // TODO: verify against src/Core/src/Platform/Android/.../PrepareForTextViewArrange when the
         // text-view arrange-prep seam lands.
         jmethodID make_measure_spec = cache.static_method(env.get(), k_measure_spec_class, "makeMeasureSpec", "(II)I");
-        jmethodID measure = cache.method(env.get(), k_edit_text_class, "measure", "(II)V");
-        jmethodID layout = cache.method(env.get(), k_edit_text_class, "layout", "(IIII)V");
+        jmethodID measure = cache.method(env.get(), k_view_class, "measure", "(II)V");
+        jmethodID layout = cache.method(env.get(), k_view_class, "layout", "(IIII)V");
         jclass measure_spec_class = cache.find_class(env.get(), k_measure_spec_class);
         if (make_measure_spec == nullptr || measure == nullptr || layout == nullptr || measure_spec_class == nullptr)
         {
