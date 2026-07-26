@@ -337,12 +337,29 @@ namespace
         ASSERT_NE(get_background, nullptr);
         ASSERT_NE(gradient_class, nullptr);
 
-        // The untouched button keeps its DEFAULT theme background (the lazy-install gate).
+        // GradientDrawable.getColor() (API 24+) returns the fill as a ColorStateList.
+        jmethodID get_color =
+            cache.method(env.get(), k_gradient_drawable_class, "getColor", "()Landroid/content/res/ColorStateList;");
+        jmethodID get_default_color =
+            cache.method(env.get(), "android/content/res/ColorStateList", "getDefaultColor", "()I");
+        ASSERT_NE(get_color, nullptr);
+        ASSERT_NE(get_default_color, nullptr);
+
+        // The untouched button ALREADY carries the flat Material fill: MauiMaterialButton IS a
+        // MaterialButton, whose shape background exists from construction — so create_platform_view
+        // installs the #E0E0E0 GradientDrawable stand-in up front (install_flat_material_background).
         {
             const local_ref<jobject> initial{env.get(), env->CallObjectMethod(seam.widget(), get_background)};
             ASSERT_FALSE(pending_exception_cleared(env.get(), "getBackground (initial)"));
-            EXPECT_TRUE(!initial || env->IsInstanceOf(initial.get(), gradient_class) == JNI_FALSE)
-                << "the maui GradientDrawable must not be installed before any visual property is set";
+            ASSERT_TRUE(initial);
+            ASSERT_EQ(env->IsInstanceOf(initial.get(), gradient_class), JNI_TRUE)
+                << "the flat Material fill must be installed at construction";
+            const local_ref<jobject> initial_fill{env.get(), env->CallObjectMethod(initial.get(), get_color)};
+            ASSERT_FALSE(pending_exception_cleared(env.get(), "getColor (initial)"));
+            ASSERT_TRUE(initial_fill);
+            EXPECT_EQ(env->CallIntMethod(initial_fill.get(), get_default_color), static_cast<jint>(0xFFE0E0E0U))
+                << "the default fill must be MauiMaterialButton's flat #E0E0E0";
+            EXPECT_FALSE(pending_exception_cleared(env.get(), "getDefaultColor (initial)"));
         }
 
         const maui::graphics::color blue(0.0F, 0.0F, 1.0F);
@@ -365,13 +382,6 @@ namespace
         ASSERT_FALSE(pending_exception_cleared(env.get(), "getCornerRadius"));
         EXPECT_NEAR(radius, static_cast<jfloat>(to_pixels(8, density)), 0.5F);
 
-        // GradientDrawable.getColor() (API 24+) returns the fill as a ColorStateList.
-        jmethodID get_color =
-            cache.method(env.get(), k_gradient_drawable_class, "getColor", "()Landroid/content/res/ColorStateList;");
-        jmethodID get_default_color =
-            cache.method(env.get(), "android/content/res/ColorStateList", "getDefaultColor", "()I");
-        ASSERT_NE(get_color, nullptr);
-        ASSERT_NE(get_default_color, nullptr);
         const local_ref<jobject> fill{env.get(), env->CallObjectMethod(drawable.get(), get_color)};
         ASSERT_FALSE(pending_exception_cleared(env.get(), "getColor"));
         ASSERT_TRUE(fill);

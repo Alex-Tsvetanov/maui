@@ -17,10 +17,10 @@
 //     skipped; SoundEffectsEnabled=false is ported (it is a plain View property).
 //   - Stroke + corner radius + background color land in ONE GradientDrawable installed as the
 //     button's background (the shape MauiRippleDrawableExtensions builds layers of), instead of
-//     MaterialButton.StrokeColor/StrokeWidth/CornerRadius over a RippleDrawable. The drawable is
-//     installed LAZILY — only once the view actually carries a visible stroke, a positive corner
-//     radius, or a background paint — so an untouched button keeps its default theme background.
-//     Installing it replaces that default background (no ripple recreation), like C#'s fallback path.
+//     MaterialButton.StrokeColor/StrokeWidth/CornerRadius over a RippleDrawable. Like MaterialButton
+//     — which carries its shape background from construction — create_platform_view installs it up
+//     front with MAUI's flat #E0E0E0 fill (install_flat_material_background), replacing the framework
+//     theme background (no ripple recreation), and every later property mutates that same drawable.
 //   - The port's colors are non-nullable value types, so C#'s null-color branches collapse exactly
 //     as they did in the apple/ios partials: MapTextColor's "restore the Material defaults" branch
 //     and GetStrokeProperties' DefaultStrokeColor/DefaultStrokeThicknessWithColor logic

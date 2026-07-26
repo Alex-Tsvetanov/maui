@@ -5265,11 +5265,11 @@ ports AlertsPage.xaml (+ AlertsPage.xaml.cs) The C# AlertsPage drives the three 
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0, 0.0% pixels differ · Dark: SSIM 1.0, 0.0% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0, 0.0% pixels differ · Dark: SSIM 1.0, 0.0% pixels differ
 
 ### 5. Alignment — 🟡/🟡
 <sub>alignment</sub>
@@ -5745,11 +5745,11 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9977, 0.11% pixels differ · Dark: SSIM 0.9969, 0.17% pixels differ
+Light: SSIM 0.998, 0.06% pixels differ · Dark: SSIM 0.9957, 0.23% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9977, 0.11% pixels differ · Dark: SSIM 0.9968, 0.17% pixels differ
+Light: SSIM 0.9978, 0.08% pixels differ · Dark: SSIM 0.9959, 0.22% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -6720,11 +6720,11 @@ ports LayoutIsEnabledPage.xaml (+ LayoutIsEnabledPage.xaml.cs) The C# page demon
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9718, 2.38% pixels differ · Dark: SSIM 0.9846, 1.39% pixels differ
+Light: SSIM 0.9762, 1.55% pixels differ · Dark: SSIM 0.9846, 1.39% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9718, 2.38% pixels differ · Dark: SSIM 0.9846, 1.39% pixels differ
+Light: SSIM 0.9762, 1.55% pixels differ · Dark: SSIM 0.9846, 1.39% pixels differ
 
 ### 102. Line Gallery — 🟢/🟢
 <sub>line_gallery</sub>
