@@ -11,6 +11,15 @@ cluster guidance below), delete the key's line from `known_diverging()`, and re-
 These are exactly the "unit tests catch what screenshots also show" first-line-defense findings: each
 cluster below is a class of visible render divergence between the C++-only and C++&XAML columns.
 
+> 2026-07-27 — **8 keys de-listed**, all closed by parity work landed elsewhere that nobody swept back
+> into `known_diverging()` (each was failing the bidirectional "divergence closed" assert, with the two
+> trees printing identically). `animation` (cluster A) — the twin became a loader-expressible `Grid`
+> in `8c8d162fb0`. `web_view` (cluster C) — the fix-both-sides welcome page in `df52e8f212` aligned the
+> builder's runtime state with the twin's snapshot. Cluster B's root Padding/Spacing reached the builder
+> side for `behaviors`, `gestures`, `input_controls`, `invalidate_brush`, `selection_command_param`,
+> `vertical_stack`; only `check_box` and `transform_playground` still diverge there. No page or twin
+> source changed in this sweep, so no render changed and no column was recaptured.
+
 > 2026-07-06 — the CollectionView **EmptyView family is CLOSED** (10 keys de-listed): the loader now
 > registers `EmptyView` (string attribute, property-element text, and element/view forms — see
 > `src/xaml/register_xaml_items.cpp`), the shared pages were re-authored to the real EmptyView the

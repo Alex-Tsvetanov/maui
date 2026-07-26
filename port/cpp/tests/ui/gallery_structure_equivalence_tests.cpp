@@ -239,7 +239,6 @@ namespace
     {
         static constexpr std::string_view keys[] = {
             // cluster A — twin uses StackLayout where the builder uses V/H StackLayout
-            "animation",
             "alerts",
             "basic_swipe",
             "composition_gallery",
@@ -257,17 +256,10 @@ namespace
             "shape_app_theme",
             "some_empty_groups",
             // cluster B — root Padding/Spacing set on one side only
-            "behaviors",
             "check_box",
-            "gestures",
-            "input_controls",
-            "invalidate_brush",
-            "selection_command_param",
             "transform_playground",
-            "vertical_stack",
             // cluster C — builder computes runtime state vs the twin's static snapshot
             "pickers",
-            "web_view",
             "pan_gesture_events",
             "swipe_threshold",
             "radio_button_group",
