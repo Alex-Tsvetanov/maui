@@ -58,6 +58,7 @@
 #include <string>
 #include <vector>
 
+#include "maui/controls/border.hpp"
 #include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/entry.hpp"
@@ -71,13 +72,16 @@
 #include "maui/controls/templates/data_template_selector.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/view.hpp"
+#include "maui/core/border_handler.hpp"
 #include "maui/core/grid_length.hpp"
+#include "maui/core/handler_registry.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
+#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -100,6 +104,41 @@ namespace maui::samples
             std::string name;
             std::vector<std::string> ingredients; // non-empty only for lattes
             friend bool operator==(const drink&, const drink&) = default;
+        };
+
+        // The at-rest ItemTemplate cell, structurally the twin's DataTemplate: a Wheat Border
+        // (HeightRequest 100, Padding 8) OWNING a vertically centered Label bound to the drink Name.
+        // It must be a real Border, not a Label carrying the Border's look: MAUI's MauiDrawable insets a
+        // Border's FILL by strokeThickness/2 (StrokeThickness defaults to 1), so consecutive cells show a
+        // ~4px gap that a plain Label cell — which fills its whole slot — cannot reproduce.
+        // Border content is a NON-OWNING reference (PROFILE §8), so a template cell that creates a child
+        // must OWN it: the same border-subclass-owns-its-child pattern as carousel_page's carousel_card and
+        // header_footer_template_page's photo_cell. Item data lands via on_binding_context_changed (photo_
+        // cell's approach) rather than a staged template binding, which can only target the cell ROOT.
+        class drink_cell final : public maui::controls::border
+        {
+        public:
+            drink_cell()
+            {
+                set_background(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::wheat));
+                set_height_request(100.0);
+                set_padding(maui::core::thickness(8));
+                label_.set_vertical_text_alignment(maui::core::text_alignment::center);
+                set_content(label_);
+            }
+
+        protected:
+            void on_binding_context_changed() override
+            {
+                maui::controls::border::on_binding_context_changed(); // propagate to the owned child first
+                if (const auto item = binding_context<drink>())
+                {
+                    label_.set_text(item->name);
+                }
+            }
+
+        private:
+            maui::controls::label label_;
         };
 
         // DrinkTemplateSelector.OnSelectTemplate: branch on the drink's kind (header note).
@@ -205,6 +244,15 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
+        }
+
+        // PRE-MOUNT hook (gallery_host.hpp gallery_pre_mount): register drink_cell's handler BEFORE the
+        // collection_view realize walk. drink_cell is a border subclass, so it shares border's handler;
+        // without this the native cell realize silently no-ops (no registered handler for its type_tag) and
+        // the list renders blank. Mirrors carousel_page::register_handlers.
+        void register_handlers(maui::hosting::maui_app& app)
+        {
+            maui::core::register_handler<drink_cell, maui::core::border_handler>(app.handlers());
         }
 
         // ---- the xaml.cs button handlers (IsValid(index) guard + the live-collection mutation) ----
@@ -360,13 +408,7 @@ namespace maui::samples
         // the single-root label cell, the same reduction stage_background documents).
         [[nodiscard]] static std::shared_ptr<maui::controls::data_template> build_uniform_twin_template()
         {
-            auto cell = maui::controls::data_template::of<maui::controls::label>();
-            cell->set_binding<std::string, drink>(maui::controls::label::text_property(),
-                                                  [](const drink& d) { return d.name; });
-            cell->set_value(maui::controls::height_request_property(), 100.0);
-            cell->set_value(maui::controls::label::padding_property(), maui::core::thickness(8));
-            stage_background(cell, maui::graphics::colors::wheat);
-            return cell;
+            return maui::controls::data_template::of<drink_cell>();
         }
 
         void build_templates()
