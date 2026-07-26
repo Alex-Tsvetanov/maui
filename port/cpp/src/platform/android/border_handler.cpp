@@ -749,6 +749,15 @@ namespace
         // GetStrokeProperties with the port's non-nullable color: thickness < 0 → width 0; the radius is
         // recovered from the shape geometry below. A border is "visible" once it strokes or rounds.
         const double thickness = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0;
+        // THE FILL INSET (MauiDrawable.UpdateClipPath): MAUI lays the border path into
+        // Rect(sw/2, sw/2, fw-sw, fh-sw) — i.e. it insets the FILL by strokeThickness/2 on every side —
+        // using StrokeThickness whether or not a Stroke BRUSH is set, and Border.StrokeThickness DEFAULTS
+        // to 1 (Border.cs). GradientDrawable applies exactly the same half-stroke inset to its draw rect
+        // whenever a stroke WIDTH is set, so the raw StrokeThickness is pushed as the width (with a
+        // TRANSPARENT color when there is no brush, `argb` below) to reproduce MAUI's geometry. Using the
+        // brush-gated `thickness` here instead left the fill covering the FULL bounds: varied_size_selector's
+        // Wheat cells painted their whole 100dp pitch where MAUI leaves a ~4px gap between consecutive cells.
+        const double geometry_thickness = spec.thickness > 0 ? spec.thickness : 0;
         // Recover the FULL per-corner radii (border_clip_playground carries TL=60/TR=0/BL=0/BR=12) — the
         // stroke drawable is told each corner explicitly (setCornerRadii) so the rounded rect matches the
         // per-corner CONTENT clip apply_outline_clip installs from the same shape (arrange_native).
@@ -763,7 +772,7 @@ namespace
         }
         auto& cache = default_jni_cache();
         const float density = display_density(env.get(), host);
-        const jint width_px = to_pixels(thickness, density);
+        const jint width_px = to_pixels(geometry_thickness, density);
         const jint argb = spec.has_stroke ? static_cast<jint>(spec.stroke_color.to_int()) : 0;
         // StrokeExtensions.UpdateStrokeColor/Thickness + MauiDrawable.SetBorderDash → the stroke outline.
         // When StrokeDashArray is set, MauiDrawable.SetBorderDash builds a DashPathEffect whose dash lengths
@@ -1185,6 +1194,14 @@ namespace maui::core
             return;
         }
         apply_border_fill(env.get(), drawable.get(), *value);
+        // Re-push the stroke geometry now that the drawable EXISTS. push_border_to_host only ever mutates an
+        // ALREADY-INSTALLED drawable when the border is not itself "visible" (no stroke brush, square corners),
+        // and the stroke map runs BEFORE this background map — so for a Border whose only drawable trigger is
+        // its Background (the common `<Border BackgroundColor=...>` with no Stroke), the stroke width never
+        // landed and the fill covered the FULL bounds. MAUI insets the fill by strokeThickness/2 even with no
+        // stroke brush (MauiDrawable.UpdateClipPath; Border.StrokeThickness defaults to 1), which is what
+        // leaves the ~4px gap between varied_size_selector's stacked Wheat cells. Idempotent.
+        push_border_to_host(*this);
     }
 
     void border_platform::update_semantics(const maui::core::semantics* value)
