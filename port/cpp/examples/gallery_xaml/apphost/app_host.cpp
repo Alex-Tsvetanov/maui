@@ -42,6 +42,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "jni/relayout.hpp" // set_relayout_hook — replay this host's layout pass on a late resize
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/content_page.hpp"
@@ -167,6 +168,13 @@ namespace
         // (4) One layout pass over the window's content bounds, sized to the device display.
         const auto [width, height] = display_size(env);
         maui::hosting::drive_layout(*window, width, height);
+
+        // (4b) Register that pass as the process' RELAYOUT hook (jni/relayout.hpp) — the twin of the
+        //      non-XAML host's step 4b. A view whose desired size changes AFTER this one-shot mount (the
+        //      image handler's async uri decode) replays it; `app` is leaked for the process lifetime, so
+        //      the captured window outlives every callback.
+        maui::platform::android::set_relayout_hook(
+            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
 
         // (5) Reach the native FrameLayout through the window's handler and return a fresh local ref.
         const auto handler = std::dynamic_pointer_cast<maui::core::window_handler>(window->handler());

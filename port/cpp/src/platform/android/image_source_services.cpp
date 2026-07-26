@@ -1,13 +1,19 @@
 // Per-source image services + decode_image_bytes — ANDROID (JNI) backend. The real-native twin of
-// src/platform/headless/image_source_services.cpp for the ONE source kind android decodes here: FONT.
-// One TU implements all four services + the shared decode primitive (the per-backend partial-class split,
-// PROFILE §5), exactly like the headless/apple twins.
+// src/platform/headless/image_source_services.cpp. One TU implements all four services + the shared
+// decode primitive (the per-backend partial-class split, PROFILE §5), exactly like the headless/apple
+// twins.
 //
-//   - file / uri / stream — MIRROR ONLY, copied VERBATIM from the headless bodies. They carry no native
-//     image handle on android: the FILE fast-path decodes into the ImageView in image_handler.cpp
-//     (load_file_source_sync + BitmapFactory), and uri/stream still await the deferred android image
-//     pipeline (no Glide AAR), so their result stays the headless kind/detail mirror the VM-less
-//     cross-platform suite observes. A slip here (e.g. dropping the mirror) regresses every image page.
+//   - decode_image_bytes — the REAL BitmapFactory decode (see its body): bytes from a uri download or an
+//     in-memory stream become an android.graphics.Bitmap handed back as a global ref, which
+//     image_handler.cpp's apply_loaded_result pushes into the ImageView. C# reaches the same place
+//     through Glide (UriImageSourceService.Android → PlatformInterop.LoadImageFromUri); the port has no
+//     Glide AAR, so the stock BitmapFactory stands in. VM-less / undecodable bytes fall back to the
+//     headless kind/detail MIRROR the pure-native cross-platform suite observes — dropping that mirror
+//     regresses every image page.
+//
+//   - file — MIRROR ONLY, copied VERBATIM from the headless body: the FILE fast-path decodes into the
+//     ImageView in image_handler.cpp (load_file_source_sync + BitmapFactory) before the service is ever
+//     consulted, so the service keeps only the kind/detail mirror.
 //
 //   - font — the one real rasterizer, porting FontModelResourceDecoder.decode() +
 //     FontImageSourceService.Android.cs over JNI (all stock android.graphics, ZERO AAR). Resolve the
@@ -47,6 +53,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "android_image_decode.hpp" // image_decode::decode_bitmap — the shared BitmapFactory primitive
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
@@ -352,16 +359,53 @@ namespace
 
 namespace maui::core
 {
-    // Android decode: no native image tree for uri/stream this cut — record the mirror (kind/detail),
-    // loaded iff the byte buffer is non-empty. Copied VERBATIM from the headless twin (uri/stream stay
-    // mirror-only on android until the deferred Glide pipeline lands).
+    // Android decode: BitmapFactory.decodeByteArray, the same primitive the FILE fast-path already uses
+    // (image_handler.cpp's load_file_source_sync) — so a uri download and an in-memory stream produce a
+    // real android.graphics.Bitmap, not just a mirror. This is what C# reaches through Glide
+    // (UriImageSourceService.Android → PlatformInterop.LoadImageFromUri → ImageView.SetImageDrawable);
+    // the port has no Glide AAR, so the stock BitmapFactory decode stands in.
+    //
+    // The Bitmap is handed back as a process-wide GLOBAL reference, exactly like the font rasterizer
+    // below: apply_loaded_result pushes it via setImageBitmap (the ImageView's drawable then holds its
+    // own Java reference), and the disposer DeleteGlobalRef's when the loader drops the result.
+    //
+    // VM-LESS / FAILED-DECODE DEGRADATION (unchanged from the previous mirror-only body): with no
+    // JavaVM, or when the bytes are not a decodable image, the result stays the headless kind/detail
+    // MIRROR — loaded, no native handle — which is what the pure-native cross-platform suite observes
+    // and what the app host degrades to. Empty bytes are still "nothing loaded".
     image_source_result decode_image_bytes(const image_bytes& bytes, std::string kind, std::string detail)
     {
         if (bytes.empty())
         {
             return {};
         }
-        return image_source_result{nullptr, nullptr, std::move(kind), std::move(detail)};
+        const auto mirror = [&kind, &detail] {
+            return image_source_result{nullptr, nullptr, std::move(kind), std::move(detail)};
+        };
+        const scoped_env env;
+        if (!env)
+        {
+            return mirror();
+        }
+        const local_ref<jobject> bitmap = maui::platform::android::image_decode::decode_bitmap(env.get(), bytes);
+        if (!bitmap)
+        {
+            return mirror();
+        }
+        jobject global_bitmap = env->NewGlobalRef(bitmap.get());
+        if (global_bitmap == nullptr)
+        {
+            return mirror();
+        }
+        return image_source_result{static_cast<void*>(global_bitmap),
+                                   [global_bitmap] {
+                                       const scoped_env teardown;
+                                       if (teardown)
+                                       {
+                                           teardown->DeleteGlobalRef(global_bitmap);
+                                       }
+                                   },
+                                   std::move(kind), std::move(detail)};
     }
 
     // file — MIRROR ONLY (verbatim from the headless twin): the FILE fast-path decodes into the ImageView
@@ -379,8 +423,11 @@ namespace maui::core
         on_result(image_source_result{nullptr, nullptr, "file", std::string(file_src->file())});
     }
 
-    // uri — MIRROR ONLY (verbatim from the headless twin): no Glide AAR yet, so a remote decode awaits the
-    // deferred android image-source pipeline; the result carries no native bitmap.
+    // uri — the STANDALONE (non-cached) load: local bytes via the cross-platform reader, then the real
+    // decode above. An http(s) uri reads empty here on purpose — the network fetch is the LOADER's
+    // fast-path (image_source_loader::update_uri_source → the uri_fetch seam the android image handler
+    // installs in configure_loader), which is what every handler actually routes through and which adds
+    // the CacheValidity layers C# gets from Glide's cache. This body stays the DI/resolution equivalent.
     void uri_image_source_service::load(i_image_source& source, const cancellation_token& /*token*/,
                                         completion on_result)
     {
@@ -394,7 +441,8 @@ namespace maui::core
         on_result(decode_image_bytes(read_uri_bytes(uri), "uri", uri));
     }
 
-    // stream — MIRROR ONLY (verbatim from the headless twin).
+    // stream — the source's in-memory bytes through the real decode above (verbatim routing from the
+    // headless twin; only decode_image_bytes differs).
     void stream_image_source_service::load(i_image_source& source, const cancellation_token& token,
                                            completion on_result)
     {

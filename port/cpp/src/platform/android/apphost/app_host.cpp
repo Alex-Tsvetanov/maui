@@ -54,6 +54,7 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "jni/relayout.hpp" // set_relayout_hook — replay this host's layout pass on a late resize
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
@@ -224,6 +225,15 @@ namespace
         //     phone-ish size if the metrics could not be read.
         const auto [width, height] = display_size(env);
         maui::hosting::drive_layout(*window, width, height);
+
+        // (4b) Register that same pass as the process' RELAYOUT hook (jni/relayout.hpp). A real run loop
+        //      re-lays-out whenever a view's desired size changes; this one-shot host cannot, so the few
+        //      places that legitimately resize a view AFTER the mount — today the image handler's async uri
+        //      decode, the port's stand-in for Glide's late SetImageDrawable — replay it explicitly. The
+        //      captured window is safe: `app` is deliberately leaked for the process lifetime (see the
+        //      header), so it outlives every callback.
+        maui::platform::android::set_relayout_hook(
+            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
 
         // (5) Reach the native FrameLayout through the window's now-attached handler and return it. This is
         //     the apple host's typed_platform_view()->native step, except the void* is the content-view

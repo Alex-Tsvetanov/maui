@@ -83,12 +83,14 @@
 #include <jni.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "android_image_decode.hpp" // shared byte-fetch + density-variant (@2x/@3x) resolve
@@ -97,13 +99,16 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
+#include "jni/relayout.hpp" // request_relayout — re-run the host's layout pass after a late uri decode
 #include "maui/core/aspect.hpp"
+#include "maui/core/cancellation_token.hpp"  // the uri fetch seam's token parameter
 #include "maui/core/i_font_image_source.hpp" // font-source band sizing in get_desired_size
 #include "maui/core/i_image.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp" // image_bytes
 #include "maui/core/image_source_loader.hpp"   // configure_loader parameter type
 #include "maui/core/image_source_result.hpp"
+#include "maui/core/uri_bytes.hpp" // read_uri_bytes — the non-http branch of the fetch seam
 #include "maui/graphics/color.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/paint.hpp"
@@ -605,6 +610,165 @@ namespace
         env->CallVoidMethod(widget, set_clip_bounds, rect.get());
         clear_pending(env);
     }
+
+    // Quantize a measured size to WHOLE DEVICE PIXELS — what the native ImageView measure the intrinsic
+    // fast-path replaced did implicitly, and the reason the port's auto-sized images ran up to 1px taller
+    // than MAUI's.
+    //
+    // ONLY for the AdjustViewBounds case (a free axis derived from a fixed one, the other UNCONSTRAINED).
+    // With both axes finite the image is fit into a bounded slot the parent already sized, and the
+    // unquantized value is exactly right — the call sites gate on that.
+    //
+    // MAUI measures an Image on Android by asking the platform view: ViewHandlerExtensions
+    // .GetDesiredSizeFromHandler → ImageView.onMeasure, which with AdjustViewBounds derives the free axis
+    // in PIXELS and ROUNDS ((int)(size / aspect + 0.5f), View.resolveAdjustedSize), then FromPixels() takes
+    // that whole-pixel value back to dp. The port's fast path computes the aspect fit in dp and never
+    // quantizes, so the fractional remainder survives to platform_arrange — whose to_pixels CEILS
+    // (ContextExtensions.ToPixels) and turns any fraction into a whole extra pixel.
+    //
+    // Measured on the image page at density 2.75 with a 368.727dp content width:
+    //   campus.jpg    788x399  → 1014*399/788 = 513.42px → MAUI round 513, port ceil 514
+    //   dotnet_bot.png 1200x694 → 1014*694/1200 = 586.43px → MAUI round 586, port ceil 587
+    // The extra pixel both mis-sized the image and pushed every row below it 1px down.
+    //
+    // Rounding here (before the dp value ever reaches to_pixels) reproduces MAUI's whole-pixel measure
+    // exactly: round(dp * density) / density lands on a dp value to_pixels maps back to the same pixel.
+    // Degrades to the identity when the density cannot be read (no VM / no widget → display_density's 1.0
+    // fallback would quantize to whole dp, which is NOT the native behaviour), so the VM-less cross-platform
+    // suite is untouched.
+    [[nodiscard]] maui::graphics::size snap_to_device_pixels(maui::graphics::size value,
+                                                             const maui::core::image_platform& platform)
+    {
+        if (platform.native == nullptr)
+        {
+            return value; // VM-less mirror: no display to quantize against
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            return value;
+        }
+        const float density = display_density(env.get(), widget_of(platform));
+        if (!(density > 0.0F))
+        {
+            return value;
+        }
+        const auto snap = [density](double dp) {
+            return std::round(dp * static_cast<double>(density)) / static_cast<double>(density);
+        };
+        return {snap(value.width), snap(value.height)};
+    }
+
+    // ---- the async uri fetch (the loader's uri_fetch seam; apple's fetch_uri_async twin) ----------------
+    // C# UriImageSourceService.Android hands the download to Glide (PlatformInterop.LoadImageFromUri), which
+    // fetches OFF the UI thread and delivers back ON it. With no Glide AAR the port does the same shape over
+    // dev.mauicpp.MauiUriFetch: HttpURLConnection on a worker thread, then a main-looper post into
+    // native_uri_fetched — so the loader's decode + setImageBitmap run on the UI thread and the NETWORK
+    // never touches it.
+    constexpr const char* k_uri_fetch_class = "dev/mauicpp/MauiUriFetch";
+
+    // The loader's byte sink plus its own copy of the cancellation token, heap-owned across the round trip
+    // to Java (the token is copied, not referenced — the loader's const& parameter does not outlive the
+    // call). Handed over as the opaque `peer` jlong; native_uri_fetched takes ownership back and frees it.
+    struct uri_fetch_state
+    {
+        maui::core::image_source_loader::uri_bytes_sink sink;
+        maui::core::cancellation_token token;
+    };
+
+    // The native half of dev.mauicpp.MauiUriFetch.nativeUriFetched(long, byte[]), running on the MAIN
+    // looper. Takes the state back (unique_ptr = delivered exactly once, freed however this returns) and
+    // reports the downloaded bytes to the loader's sink — empty on a failed download OR a superseded load
+    // (the token check mirrors the apple completion handler), which the loader reads as "nothing loaded".
+    void JNICALL native_uri_fetched(JNIEnv* env, jclass /*fetch_class*/, jlong peer, jbyteArray data)
+    {
+        // The canonical JNI peer pattern: the Java side stores the pointer the C++ side handed it.
+        const std::unique_ptr<uri_fetch_state> state{reinterpret_cast<uri_fetch_state*>(peer)};
+        if (!state || !state->sink)
+        {
+            return;
+        }
+        maui::core::image_bytes bytes;
+        if (data != nullptr && !state->token.is_cancelled())
+        {
+            const jsize len = env->GetArrayLength(data);
+            if (!clear_pending(env) && len > 0)
+            {
+                std::vector<jbyte> staging(static_cast<std::size_t>(len));
+                env->GetByteArrayRegion(data, 0, len, staging.data());
+                if (!clear_pending(env))
+                {
+                    bytes.resize(static_cast<std::size_t>(len));
+                    for (std::size_t i = 0; i < bytes.size(); ++i)
+                    {
+                        bytes[i] = static_cast<std::byte>(static_cast<unsigned char>(staging[i]));
+                    }
+                }
+            }
+        }
+        state->sink(std::move(bytes));
+    }
+
+    // Binds nativeUriFetched to MauiUriFetch (RegisterNatives — no Java_* export needed). Idempotent, so
+    // every fetch can call it without once-flag coordination (the NativeOnClickListener recipe).
+    [[nodiscard]] bool register_uri_fetch_natives(JNIEnv* env, jclass fetch_class)
+    {
+        // JNINativeMethod's name/signature members are non-const char* and fnPtr is a void* for historical
+        // JNI-spec reasons — the const_casts/reinterpret_cast are the API's own shape.
+        static const std::array<JNINativeMethod, 1> k_methods{
+            JNINativeMethod{.name = const_cast<char*>("nativeUriFetched"),
+                            .signature = const_cast<char*>("(J[B)V"),
+                            .fnPtr = reinterpret_cast<void*>(&native_uri_fetched)},
+        };
+        const jint status = env->RegisterNatives(fetch_class, k_methods.data(), static_cast<jint>(k_methods.size()));
+        if (status != JNI_OK)
+        {
+            clear_pending(env);
+            return false;
+        }
+        return true;
+    }
+
+    // The image_source_loader::uri_fetch seam installed in configure_loader. A non-http scheme (file:// or a
+    // bare path) reads synchronously — the loader's own default. An http(s) uri is dispatched to the Java
+    // worker; the sink then fires later, on the main looper. EVERY path delivers to the sink exactly once:
+    // when there is no VM / the Java class is missing (the widget test host dexes it, but a VM-less or
+    // Activity-less host may not reach it) the sink gets empty bytes immediately, so a load never hangs.
+    void fetch_uri_async(const std::string& uri, const maui::core::cancellation_token& token,
+                         maui::core::image_source_loader::uri_bytes_sink sink)
+    {
+        if (!uri.starts_with("http://") && !uri.starts_with("https://"))
+        {
+            sink(maui::core::read_uri_bytes(uri));
+            return;
+        }
+        const scoped_env env;
+        if (!env)
+        {
+            sink(maui::core::image_bytes{}); // VM-less: nothing to fetch with
+            return;
+        }
+        auto& cache = default_jni_cache();
+        jclass fetch_class = cache.find_class(env.get(), k_uri_fetch_class);
+        jmethodID fetch = cache.static_method(env.get(), k_uri_fetch_class, "fetch", "(JLjava/lang/String;)V");
+        const local_ref<jstring> jurl = maui::platform::android::to_jstring(env.get(), uri);
+        if (fetch_class == nullptr || fetch == nullptr || !jurl || !register_uri_fetch_natives(env.get(), fetch_class))
+        {
+            sink(maui::core::image_bytes{});
+            return;
+        }
+        auto state = std::make_unique<uri_fetch_state>(uri_fetch_state{.sink = std::move(sink), .token = token});
+        env->CallStaticVoidMethod(fetch_class, fetch, reinterpret_cast<jlong>(state.get()), jurl.get());
+        if (clear_pending(env.get()))
+        {
+            state->sink(maui::core::image_bytes{}); // the dispatch threw — deliver here, then free
+            return;
+        }
+        // Ownership crossed into Java: release the local owner so native_uri_fetched — which adopts the
+        // peer back into a unique_ptr — is the single deleter. The released pointer IS the peer Java holds;
+        // nothing more to do with it here.
+        [[maybe_unused]] const uri_fetch_state* const owned_by_java = state.release();
+    }
 } // namespace
 
 namespace maui::core
@@ -740,12 +904,15 @@ namespace maui::core
         return platform;
     }
 
-    // Headless/android: leave the loader on its defaults — the synchronous read_uri_bytes fetch (file:// +
-    // local paths) and the disk layer off (in-memory cache only). The real android loader wiring (Glide /
-    // the android image services + a disk cache directory) is part of the deferred android image pipeline
-    // (header deviations). Tests inject a dispatcher / disk dir / uri fetch via the loader's seams directly.
-    void image_handler::configure_loader(image_source_loader& /*loader*/)
+    // Install the async http(s) fetch seam (the android twin of apple's NSURLSession dataTask install).
+    // No i_dispatcher is set: fetch_uri_async already marshals its completion onto the MAIN looper, so the
+    // loader's apply runs inline on the UI thread where the ImageView lives — the main-looper hop IS the
+    // dispatcher hand-off, exactly as the apple partial documents. The on-disk cache layer stays OFF (the
+    // loader's in-memory CacheValidity layer is what C# gets from Glide's memory cache; a persistent
+    // FileSystem.CacheDirectory twin is separate work and would need a Context-derived path).
+    void image_handler::configure_loader(image_source_loader& loader)
     {
+        loader.set_uri_fetch(&fetch_uri_async);
     }
 
     void image_handler::map_aspect(image_handler& handler, i_image& view)
@@ -853,14 +1020,27 @@ namespace maui::core
     }
 
     // The async loader's apply: copy the result's kind + detail mirror, then — when the result carries a
-    // native image (the new android image_source_services FONT rasterizer hands back a global-ref
-    // android.graphics.Bitmap) — push it into the ImageView via setImageBitmap (the android twin of apple's
+    // native image (image_source_services' decode_image_bytes hands back a global-ref
+    // android.graphics.Bitmap for a uri download / an in-memory stream, and the FONT rasterizer one for a
+    // glyph) — push it into the ImageView via setImageBitmap (the android twin of apple's
     // imageView.image = result.image()). A !loaded() result clears the view, mirroring SetImageSource(null)
-    // / ImageViewExtensions.Clear. uri/stream still carry no bytes on android (result.image() == null), so
-    // this stays mirror-only for them (the deferred Glide pipeline). The loader runs INLINE on the UI thread
-    // (no dispatcher on android — configure_loader is a no-op), and setImageBitmap is UI-thread-safe.
-    // intrinsic_width/height stay {0,0} so the FONT branch of get_desired_size (returns {size,size}) remains
-    // authoritative and the ImageView AspectFit-centers the glyph at MAUI's measured band height.
+    // / ImageViewExtensions.Clear. The loader runs INLINE on the UI thread — the uri fetch marshals its
+    // completion through the main looper before this apply, so setImageBitmap is always UI-thread-safe.
+    //
+    // INTRINSIC SIZE: recorded exactly as the FILE fast-path does (get_desired_size then aspect-fits the
+    // real content size, the iOS SizeThatFitsImage analog) — a remote photo has no @Nx density variant, so
+    // its decoded pixels ARE the intrinsic. NOT for a FONT result: those keep {0,0} so the FONT branch of
+    // get_desired_size (returns {size,size}) stays authoritative and the ImageView AspectFit-centers the
+    // glyph at MAUI's measured band height. is_resolution_dependent() is the font marker (C#
+    // FontImageSourceService passes true; every other service false).
+    //
+    // RELAYOUT: an async result lands AFTER the host's one-shot layout pass, so growing the intrinsic from
+    // {0,0} changes this view's desired size with nothing to re-measure the tree — MAUI gets that for free
+    // because LayoutViewGroup.OnMeasure re-runs CrossPlatformMeasure on the traversal Glide's
+    // SetImageDrawable triggers. request_relayout() is the port's equivalent seam: it replays the host's
+    // own layout pass (see jni/relayout.hpp), and is a NO-OP when no host installed one (the widget test
+    // host, the VM-less cross-platform suite). Gated on the intrinsic actually CHANGING, so a synchronous
+    // cache-hit apply during the mount — and every font/mirror result — costs nothing.
     void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
     {
         if (!result.loaded())
@@ -873,13 +1053,27 @@ namespace maui::core
         platform.source_loaded = true;
         if (platform.native == nullptr || result.image() == nullptr)
         {
-            return; // VM-less / a mirror-only result (uri/stream, or the font fallback): nothing to push
+            return; // VM-less / a mirror-only result (an undecodable payload, or the font fallback)
         }
         const scoped_env env;
-        if (env)
+        if (!env)
         {
-            set_image_bitmap(env.get(), widget_of(platform), static_cast<jobject>(result.image()));
+            return;
         }
+        auto* const bitmap = static_cast<jobject>(result.image());
+        set_image_bitmap(env.get(), widget_of(platform), bitmap);
+        if (result.is_resolution_dependent())
+        {
+            return; // FONT: the glyph band is sized off the font Size, not the rasterized bitmap
+        }
+        const bitmap_size size = bitmap_intrinsic_size(env.get(), bitmap);
+        if (size.width == platform.intrinsic_width && size.height == platform.intrinsic_height)
+        {
+            return; // same content size — the existing layout already fits it
+        }
+        platform.intrinsic_width = size.width;
+        platform.intrinsic_height = size.height;
+        maui::platform::android::request_relayout();
     }
 
     // Clear the loaded image (ImageViewExtensions.Clear: stop the animation + drop the drawable). Clears the
@@ -956,11 +1150,11 @@ namespace maui::core
                     const double req_h = view->height(); // HeightRequest (NaN when unset)
                     if (!std::isnan(req_w) && std::isnan(req_h) && !std::isfinite(height_constraint))
                     {
-                        return {req_w, req_w * (h / w)};
+                        return snap_to_device_pixels({req_w, req_w * (h / w)}, *platform);
                     }
                     if (!std::isnan(req_h) && std::isnan(req_w) && !std::isfinite(width_constraint))
                     {
-                        return {req_h * (w / h), req_h};
+                        return snap_to_device_pixels({req_h * (w / h), req_h}, *platform);
                     }
                 }
             }
@@ -973,7 +1167,17 @@ namespace maui::core
             {
                 scale = std::min(scale, height_constraint / h);
             }
-            return {w * scale, h * scale};
+            // Whole-pixel quantization ONLY when an axis is UNCONSTRAINED — see snap_to_device_pixels. That
+            // is the case this fast path stands in for: ImageView.onMeasure deriving the free axis from the
+            // fixed one with AdjustViewBounds, in pixels, rounded. With BOTH axes finite the image sits in a
+            // bounded slot (a Grid cell) whose geometry — not the ImageView's own rounding — fixes the frame,
+            // and the unquantized fit already matches MAUI exactly; snapping there moved header_footer_
+            // template's photo cells off a pixel-perfect match (measured 0.00% -> 0.25%).
+            if (std::isfinite(width_constraint) && std::isfinite(height_constraint))
+            {
+                return {w * scale, h * scale};
+            }
+            return snap_to_device_pixels({w * scale, h * scale}, *platform);
         }
         if (platform->native == nullptr)
         {
