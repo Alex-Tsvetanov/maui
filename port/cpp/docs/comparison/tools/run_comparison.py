@@ -38,7 +38,14 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent          # …/docs/comparison/tools
 COMP = HERE.parent                              # …/docs/comparison  (== pixel_score.COMP)
 REPO = COMP.parents[3]                          # repo root (…/maui)
-AGENT_SRC = HERE / "vm_agent_macos.py"
+# The guest agent is chosen by the environment's `os` key — the per-OS seam vm_agent_macos.py's header
+# describes. Each agent exposes the SAME subcommands, so nothing below this line is OS-specific except
+# the small guest_ops indirection (mkdir/env-prefix/reboot/copy differ between a POSIX and a Windows
+# guest, and nothing else does).
+GUEST_AGENTS = {
+    "macos": "vm_agent_macos.py",
+    "windows": "vm_agent_windows.py",
+}
 MANIFEST = REPO / "port/maui-reference/pages/manifest.json"
 
 sys.path.insert(0, str(REPO / "port/cpp/tools/parity"))
@@ -113,6 +120,13 @@ class Env:
     def __init__(self, name: str, cfg: dict):
         self.name = name
         self.cfg = cfg
+        # `os` selects the guest agent AND the handful of guest shell primitives that genuinely differ
+        # (see _mkdir_tokens / _agent_tokens / reboot_and_wait). Unknown values fail here rather than
+        # deploying a macOS agent to a Windows box and failing much later with a confusing error.
+        self.os = cfg.get("os", "macos")
+        if self.os not in GUEST_AGENTS:
+            raise SystemExit(f"[{name}] unsupported os={self.os!r}; known: {sorted(GUEST_AGENTS)}")
+        self.is_windows = self.os == "windows"
         self.platform = cfg.get("platform", name)
         c = cfg["connection"]
         self.hostspec = f"{c['user']}@{c['host']}"
@@ -134,7 +148,12 @@ class Env:
         # always fix. Off by default (adds ~1min); needs passwordless `sudo reboot` on the VM.
         self.reboot_before_run = cap.get("reboot_before_run", False)
         self.columns = cfg["columns"]
-        self.agent_remote = posixpath.join(self.staging, "vm_agent_macos.py")
+        # Default python differs: a Windows guest has no /usr/bin/python3. `py -3` (the PEP 397 launcher
+        # shipped with python.org installs) is the most reliable invocation over a non-interactive SSH
+        # session, where PATH may not include the Python dir.
+        if self.is_windows and "python3" not in self.tools:
+            self.python3 = "py"
+        self.agent_remote = posixpath.join(self.staging, GUEST_AGENTS[self.os])
         self.apps_remote = posixpath.join(self.staging, "apps")
         self.scratch = posixpath.join(self.staging, "scratch")
 
@@ -147,36 +166,75 @@ class Env:
         return subprocess.run(self._ssh() + [shlex.join(tokens)],
                               capture_output=True, text=True, timeout=timeout)
 
+    @property
+    def probe_cmd(self) -> str:
+        """A no-op remote command that exits 0 on this guest's shell. `true` is a POSIX builtin that
+        PowerShell does not have (it errors), which would make every Windows reachability check report
+        the VM as down; `exit 0` is valid in both shells."""
+        return "exit 0" if self.is_windows else "true"
+
     def reachable(self) -> bool:
-        return subprocess.run(self._ssh() + ["true"], capture_output=True).returncode == 0
+        return subprocess.run(self._ssh() + [self.probe_cmd], capture_output=True).returncode == 0
 
     def reboot_and_wait(self) -> None:
         """Reboot the VM (passwordless `sudo reboot`) and block until SSH is back AND the Aqua session has
         settled (load average dropped), so app windows attach to a healthy WindowServer. Best-effort."""
         print(f"[{self.name}] rebooting VM for a clean session …")
-        subprocess.run(self._ssh() + ["/usr/bin/sudo -n /sbin/reboot"], capture_output=True, timeout=30)
+        # Windows needs no sudo (the SSH user is an Administrator on a test VM) and has no `uptime`; the
+        # post-boot settle below simply polls SSH, which on Windows is late enough that the shell and
+        # the interactive session are already up.
+        reboot_cmd = "shutdown /r /t 0 /f" if self.is_windows else "/usr/bin/sudo -n /sbin/reboot"
+        subprocess.run(self._ssh() + [reboot_cmd], capture_output=True, timeout=30)
         time.sleep(8)  # let it actually go down before we start polling for it to come back
         for _ in range(40):  # ~2min for SSH to return
-            if subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=4", self.hostspec, "true"],
-                              capture_output=True).returncode == 0:
+            if subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=4", self.hostspec,
+                               self.probe_cmd], capture_output=True).returncode == 0:
                 break
             time.sleep(3)
         else:
             print(f"  ! {self.name}: SSH did not return after reboot; continuing anyway")
             return
-        for _ in range(20):  # wait for post-boot load to settle (services starting)
-            out = subprocess.run(self._ssh() + ["/usr/bin/uptime"], capture_output=True, text=True).stdout
-            m = re.search(r"load averages?:\s*([0-9.]+)", out)
-            if m and float(m.group(1)) < 4.0:
-                break
-            time.sleep(5)
+        if self.is_windows:
+            # No load-average equivalent worth parsing. Windows accepts SSH only once Session Manager is
+            # up, which is late in boot, so a short fixed settle is enough — and a `uptime` poll here
+            # would just burn 100s failing on a command the guest does not have.
+            time.sleep(10)
+        else:
+            for _ in range(20):  # wait for post-boot load to settle (services starting)
+                out = subprocess.run(self._ssh() + ["/usr/bin/uptime"], capture_output=True, text=True).stdout
+                m = re.search(r"load averages?:\s*([0-9.]+)", out)
+                if m and float(m.group(1)) < 4.0:
+                    break
+                time.sleep(5)
         print(f"  {self.name}: back up")
 
     def mkdirs(self, remote: str) -> None:
-        self.ssh_run(["/bin/mkdir", "-p", remote])
+        if self.is_windows:
+            # PowerShell's New-Item -Force is the idempotent mkdir -p (cmd.exe's mkdir errors when the
+            # directory exists). Requires the guest's OpenSSH DefaultShell to be PowerShell — which the
+            # provisioning doc mandates anyway, because ssh_run() shell-quotes with shlex (POSIX single
+            # quotes) and cmd.exe does not understand single quotes at all.
+            self.ssh_run(["New-Item", "-ItemType", "Directory", "-Force", "-Path", remote])
+        else:
+            self.ssh_run(["/bin/mkdir", "-p", remote])
 
     def deploy(self, local: Path, remote: str) -> None:
         self.mkdirs(posixpath.dirname(remote))
+        if self.is_windows:
+            # A Windows guest has no rsync, so: clear the destination then scp -r. The explicit delete
+            # preserves rsync --delete's semantics — without it a stale DLL or an old page asset from a
+            # previous run lingers in the deployed folder and is silently picked up at launch.
+            self.ssh_run(["Remove-Item", "-Recurse", "-Force", "-ErrorAction", "SilentlyContinue", remote])
+            if local.is_dir():
+                self.mkdirs(remote)
+                # scp -r <dir>/. copies the CONTENTS into remote (not remote/<dir>), matching rsync's
+                # trailing-slash behaviour used on the macOS path.
+                src = str(local) + "/."
+            else:
+                src = str(local)
+            subprocess.run(["scp", "-r", "-o", "BatchMode=yes", src, f"{self.hostspec}:{remote}"],
+                           check=True)
+            return
         src = str(local) + ("/" if local.is_dir() else "")
         dst = f"{self.hostspec}:{remote}" + ("/" if local.is_dir() else "")
         subprocess.run(["rsync", "-a", "--delete", "-e", "ssh -o BatchMode=yes", src, dst], check=True)
@@ -188,13 +246,20 @@ class Env:
 
     # -- guest agent --------------------------------------------------------
     def agent(self, subcmd: str, *args, timeout: int = 120) -> dict:
-        env_prefix = [f"{k}={v}" for k, v in {
-            "MAUI_E2E_CLICLICK": self.tools.get("cliclick"),
-            "MAUI_E2E_DISPLAYPLACER": self.tools.get("displayplacer"),
-            "MAUI_E2E_SCREENCAPTURE": self.tools.get("screencapture"),
-            "MAUI_E2E_OPEN": self.tools.get("open"),
-        }.items() if v]
-        tokens = ["/usr/bin/env", *env_prefix, self.python3, self.agent_remote, subcmd, *map(str, args)]
+        if self.is_windows:
+            # No /usr/bin/env and no per-tool path overrides to inject: the Windows agent talks to
+            # user32/gdi32 through ctypes, so it has no external tools to locate (the whole reason it
+            # needs nothing provisioned but Python). Invoke the interpreter directly.
+            tokens = [self.python3, self.agent_remote, subcmd, *map(str, args)]
+        else:
+            env_prefix = [f"{k}={v}" for k, v in {
+                "MAUI_E2E_CLICLICK": self.tools.get("cliclick"),
+                "MAUI_E2E_DISPLAYPLACER": self.tools.get("displayplacer"),
+                "MAUI_E2E_SCREENCAPTURE": self.tools.get("screencapture"),
+                "MAUI_E2E_OPEN": self.tools.get("open"),
+            }.items() if v]
+            tokens = ["/usr/bin/env", *env_prefix, self.python3, self.agent_remote, subcmd,
+                      *map(str, args)]
         try:
             r = self.ssh_run(tokens, timeout=timeout)
         except subprocess.TimeoutExpired:

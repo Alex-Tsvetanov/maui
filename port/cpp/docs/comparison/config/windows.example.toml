@@ -1,0 +1,97 @@
+# E2E visual-comparison runner — WINDOWS VM config (copy to windows.toml and edit).
+#
+# Kept separate from local.example.toml (the macOS VM) so neither environment's run tries to reach the
+# other's host: run_comparison.py visits EVERY environment in the config it is given.
+#
+# Read docs/WINDOWS_TOOLCHAIN.md first — it covers guest provisioning (OpenSSH + PowerShell default
+# shell + Python), and the two build lanes:
+#   * LANE 1 `windows`       — WinUI 3 / C++/WinRT built with MSVC ON the guest. The PARITY lane: MAUI's
+#                              Windows backend is WinUI 3, so only this lane is visually comparable.
+#   * LANE 2 `windows-smoke` — the mingw-cross Win32 smoke app, cross-built from macOS. Validates this
+#                              pipeline end-to-end; NOT visually comparable to MAUI. Start here.
+#
+# Usage:
+#   python3 tools/run_comparison.py --config config/windows.toml --plan          # validate, no SSH
+#   python3 tools/run_comparison.py --config config/windows.toml --only button
+
+version = 1
+
+[output]
+root = "port/cpp/docs/comparison"
+timestamp_format = "%Y-%m-%d-%H_%M_%S"
+
+# --- the Windows VM -------------------------------------------------------------------------------
+[environments.windows-x64]
+os = "windows"                  # picks the vm_agent_windows.py guest agent
+platform = "windows"            # path segment: …/<tag>/windows/<column>/NNNN.png
+
+[environments.windows-x64.connection]
+# Windows 10/11 ships OpenSSH Server as an optional feature; enable it and ssh-copy-id your key (see
+# WINDOWS_TOOLCHAIN.md). The guest's DefaultShell MUST be PowerShell — the runner shell-quotes remote
+# commands POSIX-style and cmd.exe does not understand single quotes.
+host = "windows-test.local"
+user = "testinguser"
+connect_timeout_seconds = 10
+
+[environments.windows-x64.display]
+width = 1280
+height = 800
+
+[environments.windows-x64.capture]
+present = true                  # foreground + pin the window to an explicit rect before each shot
+# The Windows agent captures with PrintWindow(PW_RENDERFULLCONTENT) — the window's own backing store —
+# so a capture cannot be occluded by another window and does not need focus. That removes the whole
+# class of "photographed the wrong window" failures the macOS lane had to engineer around.
+reboot_before_run = false       # true → `shutdown /r /t 0 /f` then wait for SSH (needs an admin user)
+# geometry = { x = 128, y = 30, w = 1024, h = 800 }
+
+[environments.windows-x64.staging]
+root = "C:/Users/testinguser/maui-comparison"   # forward slashes are fine and avoid quoting pain
+
+[environments.windows-x64.tools]
+# `py` is the PEP 397 launcher from a python.org install — the most reliable invocation over a
+# non-interactive SSH session, where PATH often lacks the Python directory. Override with a full path
+# (e.g. "C:/Python312/python.exe") if the launcher is absent.
+python3 = "py"
+
+# --- columns --------------------------------------------------------------------------------------
+# LANE 2 (start here): the mingw-cross smoke app. Build with:
+#   tools/parity/windows/build_smoke.sh
+# It reads MAUI_SAMPLE_PAGE / MAUI_APPEARANCE like the real hosts, so the runner drives it unchanged.
+[environments.windows-x64.columns.cpp_smoke]
+artifact  = "port/cpp/build/windows-smoke"      # the dir is deployed; `process` is found inside it
+process   = "maui_smoke.exe"
+page_env  = "MAUI_SAMPLE_PAGE"
+theme_env = "MAUI_APPEARANCE"
+theme_light = "light"
+theme_dark  = "dark"
+driver = "coordinate"
+
+# LANE 1 (the parity lane — uncomment once the guest builds land; see WINDOWS_TOOLCHAIN.md §5).
+# MauiReference published for windows, plus the port's two WinUI 3 columns.
+#[environments.windows-x64.columns.maui_xaml]
+#artifact  = "port/maui-reference/app/bin/Debug/net10.0-windows10.0.19041.0/win10-x64"
+#process   = "MauiReference.exe"
+#page_env  = "MAUI_COMPARE_PAGE"
+#theme_env = "MAUI_THEME"
+#theme_light = "Light"
+#theme_dark  = "Dark"
+#driver = "coordinate"
+#
+#[environments.windows-x64.columns.cpp]
+#artifact  = "port/cpp/build-windows/examples/gallery"
+#process   = "gallery.exe"
+#page_env  = "MAUI_SAMPLE_PAGE"
+#theme_env = "MAUI_APPEARANCE"
+#theme_light = "light"
+#theme_dark  = "dark"
+#driver = "coordinate"
+#
+#[environments.windows-x64.columns.cpp_xaml]
+#artifact  = "port/cpp/build-windows/examples/gallery_xaml"
+#process   = "gallery_xaml.exe"
+#page_env  = "MAUI_SAMPLE_PAGE"
+#theme_env = "MAUI_APPEARANCE"
+#theme_light = "light"
+#theme_dark  = "dark"
+#driver = "coordinate"
