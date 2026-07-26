@@ -227,8 +227,22 @@ The pipeline is the deliverable here; the WinUI 3 **backend** is a full platform
 attempted in this branch. What this branch leaves ready for it:
 
 * `cmake/toolchains/windows-mingw.cmake` — the cross lane, with its non-parity scope stated in-file.
-* `MAUI_BACKEND` already accepts `windows` (`CMakeLists.txt:34`), and there is **no** `windows` branch
-  in the platform-source selection yet — so that is the first edit a backend needs.
+* **`MAUI_BACKEND=windows` already resolves sensibly.** It accepts `windows` (`CMakeLists.txt:34`), and
+  the platform-source selection's final `else()` branch — commented "headless AND android (M-android
+  scaffold)" — already hands any non-apple backend the pure-C++ **headless mirrors**. That is exactly how
+  both the iOS and Android backends were bootstrapped ("the JNI fan-out swaps them out control by
+  control"), so a `windows` branch is needed only when the first real WinUI source lands, and the WinUI
+  handlers then replace the mirrors one control at a time. This is the established pattern to follow, not
+  a gap to design around.
+* Two things a **CMake-driven** Windows build needs that `build_core_check.sh` sidesteps by compiling the
+  library sources directly (which is why there is no preset yet):
+  - `find_package(GTest CONFIG REQUIRED)` and `benchmark` are **unconditional** (`CMakeLists.txt:55-56`),
+    so any configure needs both built for the target triplet — i.e. vcpkg ports for `x64-mingw-*` or
+    `x64-windows`.
+  - `MAUI_PLATFORM_HEADLESS` — and with it the only linked `run_app` body — is defined **only** when
+    `MAUI_BACKEND STREQUAL "headless"`. A `windows` build therefore has no `run_app` until
+    `src/platform/windows/host_run.cpp` exists, which is why `core_probe.cpp` performs the
+    build → `mount_window` → `drive_layout` sequence itself instead of calling `run_app`.
 * `provision_guest.ps1 -WithBuildTools` installs the MSVC/SDK/CMake/Ninja chain on the guest.
 * `docs/comparison/config/windows.example.toml` already contains the (commented) `maui_xaml` / `cpp` /
   `cpp_xaml` columns for the parity lane.
