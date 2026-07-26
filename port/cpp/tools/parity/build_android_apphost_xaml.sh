@@ -299,8 +299,10 @@ capture_one() {
   wait_displayed || echo "[apphost-xaml] WARNING: never saw Displayed for ${key}; capturing anyway" >&2
   # Dismiss any transient ANR dialog via CLOSE_SYSTEM_DIALOGS (NOT keyevent BACK — BACK would close us).
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
-  # A short settle after the first-frame barrier (the maui tree's content draw can trail it a frame or two).
-  sleep 1
+  # A settle after the first-frame barrier (the maui tree's content draw can trail it a frame or two).
+  # 4s and IDENTICAL to the other two columns' settle so all three are photographed in the same state of
+  # Android's FADING SCROLLBARS — see the long note in build_android_apphost.sh.
+  sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   echo "[apphost-xaml] wrote ${out_dir}/${key}${suffix}.png" >&2
 }

@@ -309,9 +309,15 @@ capture_one() {
   # build/install/launch load burst. Use the CLOSE_SYSTEM_DIALOGS broadcast, NOT keyevent BACK — BACK would
   # be consumed by the ANR dialog the first time but close the Activity (-> launcher) when no dialog is up.
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
-  # A short settle AFTER the first-frame barrier: the system's Displayed fires on the window's first frame,
+  # A settle AFTER the first-frame barrier: the system's Displayed fires on the window's first frame,
   # but the maui tree's content draw (text/shapes via the Canvas bridge) can trail it by a frame or two.
-  sleep 1
+  # 4s (not 1s) and IDENTICAL to the MAUI column's settle (capture_all_csharp_android.sh) so both columns
+  # are photographed in the SAME state of Android's FADING SCROLLBARS. Android hides a fading scrollbar
+  # until awakenScrollBars(); MAUI's ScrollViewExtensions.HandleScrollBarVisibilityChange awakens it during
+  # layout, so at a short settle the MAUI shot caught a scrollbar mid-fade that the port's never showed —
+  # a pure capture race that was contributing 43-79% of the pixel diff on clip / hit_testing / the pickers.
+  # Measured on the emulator: the bar is still faintly present at 1.5s and completely gone by 4s.
+  sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   echo "[apphost] wrote ${out_dir}/${key}${suffix}.png" >&2
 }

@@ -102,7 +102,10 @@ capture_one() {
   # Dismiss a transient "isn't responding" ANR dialog if the load burst raised one.
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
   # Settle: the window's first frame can precede the maui tree's content draw by a frame or two.
-  sleep 1.5
+  # 4s and IDENTICAL to the C++/XAML columns' settle so all three are photographed in the same state of
+  # Android's FADING SCROLLBARS — see the long note in build_android_apphost.sh. (Measured here: MAUI's
+  # scrollbar is still faintly visible at this step's old 1.5s and completely gone by 4s.)
+  sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   echo "[csharp-android] wrote ${out_dir}/${key}${suffix}.png ($(stat -f%z "${out_dir}/${key}${suffix}.png" 2>/dev/null || echo 0)B)" >&2
 }
