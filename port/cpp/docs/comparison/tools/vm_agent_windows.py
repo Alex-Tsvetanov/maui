@@ -38,10 +38,13 @@ plausible-but-wrong captures (the failure mode the macOS agent's header warns ab
 from __future__ import annotations
 
 import argparse
+import contextlib
 import ctypes
+import io
 import json
 import os
 import shutil
+import socket
 import struct
 import subprocess
 import sys
@@ -613,6 +616,146 @@ def cmd_stop(a) -> int:
     return _emit(pid=a.pid)
 
 
+# ---------------------------------------------------------------- session-1 server
+
+
+def _dispatch(payload: dict) -> dict:
+    """Run one subcommand in-process and return its JSON object.
+
+    Deliberately reuses main()'s argparse dispatch by capturing stdout instead of re-implementing the
+    command table: every subcommand keeps exactly one definition, so `serve` can never drift from the
+    CLI form (which is still what vm_smoke uses for one-off calls and what a human debugs with)."""
+    cmd = str(payload.get("cmd") or "")
+    if not cmd:
+        return {"ok": False, "error": "no cmd"}
+    argv = [cmd] + [str(x) for x in (payload.get("args") or [])]
+    buf = io.StringIO()
+    err = io.StringIO()
+    bad_args = False
+    try:
+        # Capture stderr too: argparse writes its usage/error there and would otherwise spray the
+        # server's log for every mistyped call, while the caller got only a vague "no JSON".
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(err):
+            main(argv)
+    except SystemExit as e:
+        # argparse calls sys.exit(2) for an unknown subcommand or bad arguments. Distinguish that from a
+        # subcommand that ran and simply printed nothing, so a typo is obvious in the reply.
+        bad_args = (e.code or 0) != 0
+    except Exception as e:  # a subcommand must never kill the server
+        return {"ok": False, "error": f"{type(e).__name__}: {e}", "cmd": cmd}
+    for line in reversed(buf.getvalue().strip().splitlines()):
+        line = line.strip()
+        if line.startswith("{"):
+            try:
+                return json.loads(line)
+            except json.JSONDecodeError:
+                continue
+    if bad_args:
+        return {"ok": False, "error": "unknown subcommand or bad arguments", "cmd": cmd,
+                "argv": argv[1:], "detail": err.getvalue().strip()[-300:]}
+    return {"ok": False, "error": "subcommand produced no JSON", "cmd": cmd,
+            "raw": buf.getvalue()[-400:], "stderr": err.getvalue().strip()[-300:]}
+
+
+def cmd_serve(a) -> int:
+    """Serve subcommands over TCP so the caller can drive a session the SSH session cannot reach.
+
+    WHY THIS EXISTS -- Windows Session 0 isolation. sshd runs in session 0 (services, no desktop) while
+    the interactive console the VM displays is session 1. A GUI app launched over SSH therefore has no
+    window on any visible desktop, and EnumWindows / SendInput / PrintWindow are all PER-SESSION, so an
+    agent living in session 0 can neither see nor drive the real UI. macOS has no equivalent problem, so
+    this is the one place the Windows lane must differ from vm_agent_macos.py.
+
+    The fix is to run THIS process in session 1 (a scheduled task registered with /it -- see
+    tools/parity/windows/session1.py) and let the host talk to it. Everything the agent does then
+    happens where the desktop is, including `launch`, so apps it starts are session-1 children and are
+    visible and driveable.
+
+    SECURITY. This endpoint executes commands, so it binds 127.0.0.1 by DEFAULT and is reached through an
+    SSH tunnel (`ssh -L`) rather than being exposed on the network: no firewall hole, and access is
+    gated by the same SSH key that already administers the guest. A shared token is required on every
+    request as defence in depth, since any local account on the guest could otherwise reach the loopback
+    port. Do not bind this to a routable address on a machine you care about.
+
+    Protocol: one JSON object per connection, newline-terminated, one JSON object back.
+        -> {"token": "...", "cmd": "shot", "args": ["C:/x.png", "--window", "12345"]}
+        <- {"ok": true, ...}
+    The control command "__ping__" reports liveness; "__shutdown__" stops the server."""
+    token = ""
+    if a.token_file:
+        try:
+            with open(a.token_file, encoding="ascii") as fh:
+                token = fh.read().strip()
+        except OSError as e:
+            return _emit(ok=False, error=f"cannot read token file {a.token_file}: {e}")
+        if not token:
+            return _emit(ok=False, error=f"token file {a.token_file} is empty")
+
+    srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        srv.bind((a.host, a.port))
+    except OSError as e:
+        return _emit(ok=False, error=f"bind {a.host}:{a.port} failed: {e}")
+    srv.listen(8)
+
+    # The launcher greps this line out of the task's log to know the server is up, and reads back the
+    # session id so a mis-registered task (one that landed in session 0 again) is caught immediately
+    # rather than producing invisible windows later.
+    session_id = -1
+    if kernel32 is not None:
+        sid = wintypes.DWORD()
+        if kernel32.ProcessIdToSessionId(kernel32.GetCurrentProcessId(), ctypes.byref(sid)):
+            session_id = int(sid.value)
+    print(json.dumps({"ok": True, "serving": f"{a.host}:{a.port}", "session_id": session_id,
+                      "dpi_mode": DPI_MODE, "auth": bool(token)}), flush=True)
+
+    while True:
+        try:
+            conn, _peer = srv.accept()
+        except OSError:
+            break
+        try:
+            conn.settimeout(a.timeout)
+            chunks: list[bytes] = []
+            while b"\n" not in b"".join(chunks):
+                part = conn.recv(65536)
+                if not part:
+                    break
+                chunks.append(part)
+            raw = b"".join(chunks).split(b"\n", 1)[0].decode("utf-8", "replace").strip()
+            if not raw:
+                continue
+            try:
+                payload = json.loads(raw)
+            except json.JSONDecodeError as e:
+                conn.sendall((json.dumps({"ok": False, "error": f"bad JSON: {e}"}) + "\n").encode())
+                continue
+            if token and str(payload.get("token") or "") != token:
+                # Do not echo the expected value.
+                conn.sendall((json.dumps({"ok": False, "error": "unauthorized"}) + "\n").encode())
+                continue
+            cmd = str(payload.get("cmd") or "")
+            if cmd == "__ping__":
+                reply = {"ok": True, "pong": True, "session_id": session_id, "dpi_mode": DPI_MODE}
+            elif cmd == "__shutdown__":
+                conn.sendall((json.dumps({"ok": True, "shutdown": True}) + "\n").encode())
+                conn.close()
+                break
+            else:
+                reply = _dispatch(payload)
+            conn.sendall((json.dumps(reply) + "\n").encode())
+        except (OSError, socket.timeout):
+            pass
+        finally:
+            try:
+                conn.close()
+            except OSError:
+                pass
+    srv.close()
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description="Windows guest agent for the E2E comparison runner")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -652,6 +795,16 @@ def main(argv=None) -> int:
     s.set_defaults(fn=cmd_shot)
 
     s = sub.add_parser("stop"); s.add_argument("pid", type=int); s.set_defaults(fn=cmd_stop)
+
+    # The session-1 server (see cmd_serve). Not part of the macOS agent's surface: it exists purely to
+    # escape Windows Session 0 isolation, so the shared subcommands above stay identical across agents.
+    s = sub.add_parser("serve")
+    s.add_argument("--host", default="127.0.0.1",
+                   help="bind address; keep loopback and reach it via an SSH tunnel")
+    s.add_argument("--port", type=int, default=8770)
+    s.add_argument("--token-file", default="", help="file holding the shared token required per request")
+    s.add_argument("--timeout", type=float, default=120.0, help="per-connection recv timeout")
+    s.set_defaults(fn=cmd_serve)
 
     a = p.parse_args(argv)
     try:

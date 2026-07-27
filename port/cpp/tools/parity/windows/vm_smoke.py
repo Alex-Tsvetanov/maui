@@ -31,6 +31,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from session1 import Session1Agent  # noqa: E402  the session-1 transport (see its module docstring)
+
 HERE = Path(__file__).resolve().parent
 CPP_ROOT = HERE.parents[2]                                   # port/cpp
 AGENT = CPP_ROOT / "docs/comparison/tools/vm_agent_windows.py"
@@ -67,7 +70,13 @@ class Guest:
         return subprocess.run(self._ssh() + [shlex.join(tokens)], capture_output=True, text=True,
                               timeout=timeout)
 
+    # Set by main() when --transport session1: a live Session1Agent whose call() replaces the
+    # SSH-per-invocation path below.
+    session1: object | None = None
+
     def agent(self, subcmd: str, *args, timeout: int = 120) -> dict:
+        if self.session1 is not None:
+            return self.session1.call(subcmd, *args, timeout=float(timeout))
         tokens = [self.python, self.agent_remote, subcmd, *map(str, args)]
         try:
             r = self.sh(tokens, timeout=timeout)
@@ -154,6 +163,12 @@ def main() -> int:
     ap.add_argument("--x", type=int, default=0)
     ap.add_argument("--y", type=int, default=0)
     ap.add_argument("--keep", action="store_true", help="do not stop the app at the end")
+    # SSH-per-call CANNOT drive the UI: sshd lives in session 0 (no desktop) while the interactive
+    # console is session 1, and window enumeration / input / PrintWindow are per-session. So session1 is
+    # the default; --transport ssh remains for diagnosing the guest itself (clean, set-resolution) and to
+    # demonstrate the difference.
+    ap.add_argument("--transport", choices=("session1", "ssh"), default="session1",
+                    help="how agent subcommands reach the guest (default: session1)")
     a = ap.parse_args()
 
     staging = a.staging % {"user": a.user}
@@ -187,6 +202,26 @@ def main() -> int:
     if not step("agent source exists locally", AGENT.is_file(), str(AGENT)):
         return 1
     step("deploy vm_agent_windows.py", g.push(AGENT, g.agent_remote), g.agent_remote)
+
+    s1 = None
+    if a.transport == "session1":
+        # Everything after this point runs where the DESKTOP is. Without it the app launches into
+        # session 0, gets no window, and every subsequent step fails for a reason that looks like a
+        # capture bug rather than a session bug.
+        s1 = Session1Agent(a.host, a.user, staging=a.staging, python=a.python)
+        s1.deploy(AGENT)
+        started = s1.start(restart=True)
+        sid = started.get("session_id")
+        if not step("start agent in session 1 (schtasks /it + ssh tunnel)",
+                    bool(started.get("ok")) and sid not in (0, None),
+                    f"session_id={sid} serving={started.get('serving')}" if started.get("ok")
+                    else json.dumps(started)[:300]):
+            print(f"        {DIM}agent log: {s1.tail_log(12)}{RESET}")
+            print("\nCannot drive the UI without a session-1 agent. Is the guest user logged on at "
+                  "the console? (An RDP login moves the console session; log in on the UTM display.)")
+            s1.stop(quiet=True)
+            return 1
+        g.session1 = s1
 
     if not step("app exists locally", exe.is_file(),
                 f"{exe} — build it with tools/parity/windows/build_smoke.sh"):
@@ -295,6 +330,10 @@ def main() -> int:
     else:
         res = g.agent("stop", pid)
         step("stop app", res.get("ok"), json.dumps(res)[:120])
+
+    if s1 is not None:
+        s1.stop(quiet=True)
+        print(f"  {DIM}session-1 agent stopped{RESET}")
 
     print()
     if _failures:
