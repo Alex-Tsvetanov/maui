@@ -153,6 +153,49 @@ class DEVMODEW(ctypes.Structure):
                 ("dmPanningWidth", wintypes.DWORD), ("dmPanningHeight", wintypes.DWORD)]
 
 
+def _declare_prototypes() -> None:
+    """Declare argtypes/restypes for every Win32 call used here.
+
+    NOT optional hygiene -- required for correctness on x64. Without a restype, ctypes assumes the return
+    is a C **int**, so a 64-bit handle (HDC, HBITMAP) is TRUNCATED to 32 bits; and without argtypes, a
+    handle passed back in as a large Python int is marshalled as c_int and raises
+    "OverflowError: int too long to convert". Both are value-dependent, so they appear INTERMITTENTLY --
+    fine while the OS hands out small handles, failing once it does not. Observed exactly that way: a
+    multi-page run captured most frames and failed a few with `ArgumentError: argument 1: OverflowError`
+    from CreateDIBSection's handle flowing into SelectObject."""
+    if not _IS_WINDOWS:
+        return
+    hwnd, hdc, hgdi = wintypes.HWND, wintypes.HDC, ctypes.c_void_p
+    bo, ui, dw, ci, lo = wintypes.BOOL, wintypes.UINT, wintypes.DWORD, ctypes.c_int, wintypes.LONG
+
+    for fn, argtypes, restype in (
+        (user32.GetWindowDC, [hwnd], hdc),
+        (user32.GetDC, [hwnd], hdc),
+        (user32.ReleaseDC, [hwnd, hdc], ci),
+        (user32.PrintWindow, [hwnd, hdc, ui], bo),
+        (user32.GetWindowRect, [hwnd, ctypes.POINTER(wintypes.RECT)], bo),
+        (user32.IsWindowVisible, [hwnd], bo),
+        (user32.GetWindowLongW, [hwnd, ci], lo),
+        (user32.GetWindowThreadProcessId, [hwnd, ctypes.POINTER(dw)], dw),
+        (user32.SetWindowPos, [hwnd, hwnd, ci, ci, ci, ci, ui], bo),
+        (user32.ShowWindow, [hwnd, ci], bo),
+        (user32.SetForegroundWindow, [hwnd], bo),
+        (user32.SetCursorPos, [ci, ci], bo),
+        (user32.GetSystemMetrics, [ci], ci),
+        (gdi32.CreateCompatibleDC, [hdc], hdc),
+        (gdi32.CreateDIBSection, [hdc, ctypes.c_void_p, ui, ctypes.POINTER(ctypes.c_void_p),
+                                  ctypes.c_void_p, dw], hgdi),
+        (gdi32.SelectObject, [hdc, hgdi], hgdi),
+        (gdi32.DeleteObject, [hgdi], bo),
+        (gdi32.DeleteDC, [hdc], bo),
+        (gdi32.BitBlt, [hdc, ci, ci, ci, ci, hdc, ci, ci, dw], bo),
+        (kernel32.ProcessIdToSessionId, [dw, ctypes.POINTER(dw)], bo),
+        (kernel32.GetCurrentProcessId, [], dw),
+    ):
+        fn.argtypes = argtypes
+        fn.restype = restype
+
+
 def _set_dpi_aware() -> str:
     """Opt this process into PER_MONITOR_AWARE_V2 so every rect/coordinate is a PHYSICAL pixel.
 
@@ -176,6 +219,7 @@ def _set_dpi_aware() -> str:
         return "none"
 
 
+_declare_prototypes()
 DPI_MODE = _set_dpi_aware()
 
 
@@ -485,7 +529,13 @@ def cmd_present(a) -> int:
         if not ok:
             return _emit(ok=False, proc=a.proc, id=hwnd, bounds=rect, error=f"shot failed: {err}")
         shot_info = {"shot": a.shot, "shot_size": size}
-    return _emit(proc=a.proc, id=hwnd, bounds=rect, rect=",".join(map(str, rect)), **shot_info)
+    # `window` is REQUIRED by the shared host helper (run_comparison.shoot_presented checks
+    # rect+window+shot); the macOS agent emits it as the CGWindowID. Emitting only `id` made every
+    # present look like a failure: the host retried 3x per frame and recorded window_bounds=null, while
+    # the captures themselves were fine. Emit BOTH -- `window` for the shared contract, `id` to match
+    # this agent's own window-id subcommand.
+    return _emit(proc=a.proc, window=hwnd, id=hwnd, bounds=rect, rect=",".join(map(str, rect)),
+                 **shot_info)
 
 
 def _pids_for_image(image: str) -> list[int]:

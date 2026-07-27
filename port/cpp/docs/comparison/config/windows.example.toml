@@ -56,7 +56,12 @@ present = true                  # foreground + pin the window to an explicit rec
 # so a capture cannot be occluded by another window and does not need focus. That removes the whole
 # class of "photographed the wrong window" failures the macOS lane had to engineer around.
 reboot_before_run = false       # true → `shutdown /r /t 0 /f` then wait for SSH (needs an admin user)
-# geometry = { x = 128, y = 30, w = 1024, h = 800 }
+# Pinned rather than left to the runner's macOS-oriented default of y=30. On a 1280x800 guest
+# screen an 800-tall window at y=30 hangs 30px below the bottom edge: PrintWindow still captures
+# it in full (it reads the window's own backing store), but SendInput uses SCREEN coordinates, so
+# scenario taps in that strip would land off-screen and silently miss. x=128 is (1280-1024)/2,
+# i.e. exactly centred.
+geometry = { x = 128, y = 0, w = 1024, h = 800 }
 
 [environments.windows-x64.staging]
 root = "C:/Users/Testings-VM/maui-comparison"   # forward slashes are fine and avoid quoting pain
