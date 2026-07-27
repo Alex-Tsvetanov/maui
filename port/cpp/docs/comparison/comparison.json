@@ -115,8 +115,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/absolute_layout_light.png",
+      "dark": "captures/windows/maui/absolute_layout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -254,8 +254,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/activity_indicator_light.png",
+      "dark": "captures/windows/maui/activity_indicator_dark.png"
      },
      "cpp": {
       "light": null,
@@ -393,8 +393,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/adaptive_collection_light.png",
+      "dark": "captures/windows/maui/adaptive_collection_dark.png"
      },
      "cpp": {
       "light": null,
@@ -532,8 +532,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/alerts_light.png",
+      "dark": "captures/windows/maui/alerts_dark.png"
      },
      "cpp": {
       "light": null,
@@ -671,8 +671,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/alignment_light.png",
+      "dark": "captures/windows/maui/alignment_dark.png"
      },
      "cpp": {
       "light": null,
@@ -810,8 +810,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/animation_light.png",
+      "dark": "captures/windows/maui/animation_dark.png"
      },
      "cpp": {
       "light": null,
@@ -949,8 +949,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/app_theme_binding_light.png",
+      "dark": "captures/windows/maui/app_theme_binding_dark.png"
      },
      "cpp": {
       "light": null,
@@ -1088,8 +1088,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/application_control_light.png",
+      "dark": "captures/windows/maui/application_control_dark.png"
      },
      "cpp": {
       "light": null,
@@ -1227,8 +1227,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/auto_size_shapes_light.png",
+      "dark": "captures/windows/maui/auto_size_shapes_dark.png"
      },
      "cpp": {
       "light": null,
@@ -1366,8 +1366,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/basic_grouping_light.png",
+      "dark": "captures/windows/maui/basic_grouping_dark.png"
      },
      "cpp": {
       "light": null,
@@ -1505,8 +1505,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/basic_swipe_light.png",
+      "dark": "captures/windows/maui/basic_swipe_dark.png"
      },
      "cpp": {
       "light": null,
@@ -1644,8 +1644,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/behaviors_light.png",
+      "dark": "captures/windows/maui/behaviors_dark.png"
      },
      "cpp": {
       "light": null,
@@ -1783,8 +1783,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/border_light.png",
+      "dark": "captures/windows/maui/border_dark.png"
      },
      "cpp": {
       "light": null,
@@ -1922,8 +1922,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/border_clip_playground_light.png",
+      "dark": "captures/windows/maui/border_clip_playground_dark.png"
      },
      "cpp": {
       "light": null,
@@ -2061,8 +2061,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/border_layout_light.png",
+      "dark": "captures/windows/maui/border_layout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -2200,8 +2200,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/border_playground_light.png",
+      "dark": "captures/windows/maui/border_playground_dark.png"
      },
      "cpp": {
       "light": null,
@@ -2339,8 +2339,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/border_resize_content_light.png",
+      "dark": "captures/windows/maui/border_resize_content_dark.png"
      },
      "cpp": {
       "light": null,
@@ -2478,8 +2478,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/border_stroke_light.png",
+      "dark": "captures/windows/maui/border_stroke_dark.png"
      },
      "cpp": {
       "light": null,
@@ -2617,8 +2617,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/borderless_light.png",
+      "dark": "captures/windows/maui/borderless_dark.png"
      },
      "cpp": {
       "light": null,
@@ -2756,8 +2756,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/box_view_light.png",
+      "dark": "captures/windows/maui/box_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -2895,8 +2895,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/button_light.png",
+      "dark": "captures/windows/maui/button_dark.png"
      },
      "cpp": {
       "light": null,
@@ -3034,8 +3034,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/carousel_page_light.png",
+      "dark": "captures/windows/maui/carousel_page_dark.png"
      },
      "cpp": {
       "light": null,
@@ -3173,8 +3173,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/chat_example_light.png",
+      "dark": "captures/windows/maui/chat_example_dark.png"
      },
      "cpp": {
       "light": null,
@@ -3312,8 +3312,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/check_box_light.png",
+      "dark": "captures/windows/maui/check_box_dark.png"
      },
      "cpp": {
       "light": null,
@@ -3451,8 +3451,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/chrome_light.png",
+      "dark": "captures/windows/maui/chrome_dark.png"
      },
      "cpp": {
       "light": null,
@@ -3590,8 +3590,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/clip_light.png",
+      "dark": "captures/windows/maui/clip_dark.png"
      },
      "cpp": {
       "light": null,
@@ -3729,8 +3729,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/clip_corner_radius_light.png",
+      "dark": "captures/windows/maui/clip_corner_radius_dark.png"
      },
      "cpp": {
       "light": null,
@@ -3868,8 +3868,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/clip_gallery_light.png",
+      "dark": "captures/windows/maui/clip_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4007,8 +4007,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/clip_views_light.png",
+      "dark": "captures/windows/maui/clip_views_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4146,8 +4146,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/clipping_light.png",
+      "dark": "captures/windows/maui/clipping_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4285,8 +4285,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/collectionview_light.png",
+      "dark": "captures/windows/maui/collectionview_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4424,8 +4424,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/composition_gallery_light.png",
+      "dark": "captures/windows/maui/composition_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4563,8 +4563,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/containers_light.png",
+      "dark": "captures/windows/maui/containers_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4702,8 +4702,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/content_view_light.png",
+      "dark": "captures/windows/maui/content_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4841,8 +4841,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/context_flyout_light.png",
+      "dark": "captures/windows/maui/context_flyout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -4980,8 +4980,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/controls_stack_light.png",
+      "dark": "captures/windows/maui/controls_stack_dark.png"
      },
      "cpp": {
       "light": null,
@@ -5119,8 +5119,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/custom_layout_light.png",
+      "dark": "captures/windows/maui/custom_layout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -5258,8 +5258,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/custom_size_swipe_light.png",
+      "dark": "captures/windows/maui/custom_size_swipe_dark.png"
      },
      "cpp": {
       "light": null,
@@ -5397,8 +5397,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/custom_swipe_item_view_light.png",
+      "dark": "captures/windows/maui/custom_swipe_item_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -5536,8 +5536,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/cv_visual_states_light.png",
+      "dark": "captures/windows/maui/cv_visual_states_dark.png"
      },
      "cpp": {
       "light": null,
@@ -5675,8 +5675,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/data_template_selector_light.png",
+      "dark": "captures/windows/maui/data_template_selector_dark.png"
      },
      "cpp": {
       "light": null,
@@ -5814,8 +5814,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/date_picker_light.png",
+      "dark": "captures/windows/maui/date_picker_dark.png"
      },
      "cpp": {
       "light": null,
@@ -5953,8 +5953,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/device_light.png",
+      "dark": "captures/windows/maui/device_dark.png"
      },
      "cpp": {
       "light": null,
@@ -6092,8 +6092,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/dispatcher_light.png",
+      "dark": "captures/windows/maui/dispatcher_dark.png"
      },
      "cpp": {
       "light": null,
@@ -6231,8 +6231,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/drag_drop_light.png",
+      "dark": "captures/windows/maui/drag_drop_dark.png"
      },
      "cpp": {
       "light": null,
@@ -6370,8 +6370,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/editor_light.png",
+      "dark": "captures/windows/maui/editor_dark.png"
      },
      "cpp": {
       "light": null,
@@ -6509,8 +6509,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/effects_light.png",
+      "dark": "captures/windows/maui/effects_dark.png"
      },
      "cpp": {
       "light": null,
@@ -6648,8 +6648,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ellipse_gallery_light.png",
+      "dark": "captures/windows/maui/ellipse_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -6787,8 +6787,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_light.png",
+      "dark": "captures/windows/maui/empty_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -6926,8 +6926,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_load_simulate_light.png",
+      "dark": "captures/windows/maui/empty_view_load_simulate_dark.png"
      },
      "cpp": {
       "light": null,
@@ -7065,8 +7065,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_null_light.png",
+      "dark": "captures/windows/maui/empty_view_null_dark.png"
      },
      "cpp": {
       "light": null,
@@ -7204,8 +7204,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_rtl_light.png",
+      "dark": "captures/windows/maui/empty_view_rtl_dark.png"
      },
      "cpp": {
       "light": null,
@@ -7343,8 +7343,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_selector_light.png",
+      "dark": "captures/windows/maui/empty_view_selector_dark.png"
      },
      "cpp": {
       "light": null,
@@ -7482,8 +7482,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_swap_light.png",
+      "dark": "captures/windows/maui/empty_view_swap_dark.png"
      },
      "cpp": {
       "light": null,
@@ -7621,8 +7621,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_template_light.png",
+      "dark": "captures/windows/maui/empty_view_template_dark.png"
      },
      "cpp": {
       "light": null,
@@ -7760,8 +7760,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/empty_view_view_light.png",
+      "dark": "captures/windows/maui/empty_view_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -7899,8 +7899,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/entry_light.png",
+      "dark": "captures/windows/maui/entry_dark.png"
      },
      "cpp": {
       "light": null,
@@ -8038,8 +8038,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/filter_collection_light.png",
+      "dark": "captures/windows/maui/filter_collection_dark.png"
      },
      "cpp": {
       "light": null,
@@ -8177,8 +8177,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/filter_selection_light.png",
+      "dark": "captures/windows/maui/filter_selection_dark.png"
      },
      "cpp": {
       "light": null,
@@ -8316,8 +8316,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/flex_layout_light.png",
+      "dark": "captures/windows/maui/flex_layout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -8455,8 +8455,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/focus_light.png",
+      "dark": "captures/windows/maui/focus_dark.png"
      },
      "cpp": {
       "light": null,
@@ -8594,8 +8594,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/fonts_light.png",
+      "dark": "captures/windows/maui/fonts_dark.png"
      },
      "cpp": {
       "light": null,
@@ -8733,8 +8733,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/footer_only_string_light.png",
+      "dark": "captures/windows/maui/footer_only_string_dark.png"
      },
      "cpp": {
       "light": null,
@@ -8872,8 +8872,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/formatted_text_light.png",
+      "dark": "captures/windows/maui/formatted_text_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9011,8 +9011,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/gestures_light.png",
+      "dark": "captures/windows/maui/gestures_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9150,8 +9150,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/gradient_light.png",
+      "dark": "captures/windows/maui/gradient_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9289,8 +9289,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/grid_light.png",
+      "dark": "captures/windows/maui/grid_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9428,8 +9428,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/grid_grouping_light.png",
+      "dark": "captures/windows/maui/grid_grouping_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9567,8 +9567,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/grouping_no_templates_light.png",
+      "dark": "captures/windows/maui/grouping_no_templates_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9706,8 +9706,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/grouping_plus_selection_light.png",
+      "dark": "captures/windows/maui/grouping_plus_selection_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9845,8 +9845,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/header_footer_light.png",
+      "dark": "captures/windows/maui/header_footer_dark.png"
      },
      "cpp": {
       "light": null,
@@ -9984,8 +9984,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/header_footer_grid_light.png",
+      "dark": "captures/windows/maui/header_footer_grid_dark.png"
      },
      "cpp": {
       "light": null,
@@ -10123,8 +10123,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/header_footer_grid_horizontal_light.png",
+      "dark": "captures/windows/maui/header_footer_grid_horizontal_dark.png"
      },
      "cpp": {
       "light": null,
@@ -10262,8 +10262,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/header_footer_template_light.png",
+      "dark": "captures/windows/maui/header_footer_template_dark.png"
      },
      "cpp": {
       "light": null,
@@ -10401,8 +10401,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/header_footer_view_light.png",
+      "dark": "captures/windows/maui/header_footer_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -10540,8 +10540,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/hit_testing_light.png",
+      "dark": "captures/windows/maui/hit_testing_dark.png"
      },
      "cpp": {
       "light": null,
@@ -10679,8 +10679,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/horizontal_stack_light.png",
+      "dark": "captures/windows/maui/horizontal_stack_dark.png"
      },
      "cpp": {
       "light": null,
@@ -10818,8 +10818,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/hybrid_web_view_light.png",
+      "dark": "captures/windows/maui/hybrid_web_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -10957,8 +10957,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/image_light.png",
+      "dark": "captures/windows/maui/image_dark.png"
      },
      "cpp": {
       "light": null,
@@ -11096,8 +11096,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/image_button_light.png",
+      "dark": "captures/windows/maui/image_button_dark.png"
      },
      "cpp": {
       "light": null,
@@ -11235,8 +11235,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/indicator_light.png",
+      "dark": "captures/windows/maui/indicator_dark.png"
      },
      "cpp": {
       "light": null,
@@ -11374,8 +11374,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/input_controls_light.png",
+      "dark": "captures/windows/maui/input_controls_dark.png"
      },
      "cpp": {
       "light": null,
@@ -11513,8 +11513,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/input_transparent_light.png",
+      "dark": "captures/windows/maui/input_transparent_dark.png"
      },
      "cpp": {
       "light": null,
@@ -11652,8 +11652,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/invalidate_brush_light.png",
+      "dark": "captures/windows/maui/invalidate_brush_dark.png"
      },
      "cpp": {
       "light": null,
@@ -11791,8 +11791,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/invalidate_shadow_host_light.png",
+      "dark": "captures/windows/maui/invalidate_shadow_host_dark.png"
      },
      "cpp": {
       "light": null,
@@ -11930,8 +11930,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_blur_effect_light.png",
+      "dark": "captures/windows/maui/ios_blur_effect_dark.png"
      },
      "cpp": {
       "light": null,
@@ -12069,8 +12069,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_date_picker_light.png",
+      "dark": "captures/windows/maui/ios_date_picker_dark.png"
      },
      "cpp": {
       "light": null,
@@ -12208,8 +12208,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_entry_light.png",
+      "dark": "captures/windows/maui/ios_entry_dark.png"
      },
      "cpp": {
       "light": null,
@@ -12347,8 +12347,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_first_responder_light.png",
+      "dark": "captures/windows/maui/ios_first_responder_dark.png"
      },
      "cpp": {
       "light": null,
@@ -12486,8 +12486,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_pan_gesture_light.png",
+      "dark": "captures/windows/maui/ios_pan_gesture_dark.png"
      },
      "cpp": {
       "light": null,
@@ -12625,8 +12625,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_picker_light.png",
+      "dark": "captures/windows/maui/ios_picker_dark.png"
      },
      "cpp": {
       "light": null,
@@ -12764,8 +12764,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_safe_area_light.png",
+      "dark": "captures/windows/maui/ios_safe_area_dark.png"
      },
      "cpp": {
       "light": null,
@@ -12903,8 +12903,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_scroll_view_light.png",
+      "dark": "captures/windows/maui/ios_scroll_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -13042,8 +13042,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_search_bar_light.png",
+      "dark": "captures/windows/maui/ios_search_bar_dark.png"
      },
      "cpp": {
       "light": null,
@@ -13181,8 +13181,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_slider_update_on_tap_light.png",
+      "dark": "captures/windows/maui/ios_slider_update_on_tap_dark.png"
      },
      "cpp": {
       "light": null,
@@ -13320,8 +13320,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_swipe_transition_light.png",
+      "dark": "captures/windows/maui/ios_swipe_transition_dark.png"
      },
      "cpp": {
       "light": null,
@@ -13459,8 +13459,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/ios_time_picker_light.png",
+      "dark": "captures/windows/maui/ios_time_picker_dark.png"
      },
      "cpp": {
       "light": null,
@@ -13598,8 +13598,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/items_light.png",
+      "dark": "captures/windows/maui/items_dark.png"
      },
      "cpp": {
       "light": null,
@@ -13737,8 +13737,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/items_updating_scroll_mode_light.png",
+      "dark": "captures/windows/maui/items_updating_scroll_mode_dark.png"
      },
      "cpp": {
       "light": null,
@@ -13876,8 +13876,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/label_light.png",
+      "dark": "captures/windows/maui/label_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14015,8 +14015,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/layout_is_enabled_light.png",
+      "dark": "captures/windows/maui/layout_is_enabled_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14154,8 +14154,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/line_gallery_light.png",
+      "dark": "captures/windows/maui/line_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14293,8 +14293,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/line_join_gallery_light.png",
+      "dark": "captures/windows/maui/line_join_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14432,8 +14432,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/measure_first_strategy_light.png",
+      "dark": "captures/windows/maui/measure_first_strategy_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14571,8 +14571,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/menu_bar_light.png",
+      "dark": "captures/windows/maui/menu_bar_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14710,8 +14710,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/modal_light.png",
+      "dark": "captures/windows/maui/modal_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14849,8 +14849,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/multiple_bound_selection_light.png",
+      "dark": "captures/windows/maui/multiple_bound_selection_dark.png"
      },
      "cpp": {
       "light": null,
@@ -14988,8 +14988,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/navigation_gallery_light.png",
+      "dark": "captures/windows/maui/navigation_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -15127,8 +15127,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/nested_collection_light.png",
+      "dark": "captures/windows/maui/nested_collection_dark.png"
      },
      "cpp": {
       "light": null,
@@ -15266,8 +15266,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/pan_gesture_events_light.png",
+      "dark": "captures/windows/maui/pan_gesture_events_dark.png"
      },
      "cpp": {
       "light": null,
@@ -15405,8 +15405,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/path_aspect_gallery_light.png",
+      "dark": "captures/windows/maui/path_aspect_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -15544,8 +15544,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/path_gallery_light.png",
+      "dark": "captures/windows/maui/path_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -15683,8 +15683,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/path_transform_string_light.png",
+      "dark": "captures/windows/maui/path_transform_string_dark.png"
      },
      "cpp": {
       "light": null,
@@ -15822,8 +15822,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/picker_light.png",
+      "dark": "captures/windows/maui/picker_dark.png"
      },
      "cpp": {
       "light": null,
@@ -15961,8 +15961,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/pickers_light.png",
+      "dark": "captures/windows/maui/pickers_dark.png"
      },
      "cpp": {
       "light": null,
@@ -16100,8 +16100,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/pointer_gesture_light.png",
+      "dark": "captures/windows/maui/pointer_gesture_dark.png"
      },
      "cpp": {
       "light": null,
@@ -16239,8 +16239,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/polygon_gallery_light.png",
+      "dark": "captures/windows/maui/polygon_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -16378,8 +16378,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/polyline_gallery_light.png",
+      "dark": "captures/windows/maui/polyline_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -16517,8 +16517,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/preselected_item_light.png",
+      "dark": "captures/windows/maui/preselected_item_dark.png"
      },
      "cpp": {
       "light": null,
@@ -16656,8 +16656,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/preselected_items_light.png",
+      "dark": "captures/windows/maui/preselected_items_dark.png"
      },
      "cpp": {
       "light": null,
@@ -16795,8 +16795,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/progress_bar_light.png",
+      "dark": "captures/windows/maui/progress_bar_dark.png"
      },
      "cpp": {
       "light": null,
@@ -16934,8 +16934,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/radio_button_border_light.png",
+      "dark": "captures/windows/maui/radio_button_border_dark.png"
      },
      "cpp": {
       "light": null,
@@ -17073,8 +17073,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/radio_button_content_light.png",
+      "dark": "captures/windows/maui/radio_button_content_dark.png"
      },
      "cpp": {
       "light": null,
@@ -17212,8 +17212,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/radio_button_group_light.png",
+      "dark": "captures/windows/maui/radio_button_group_dark.png"
      },
      "cpp": {
       "light": null,
@@ -17351,8 +17351,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/radio_button_group_binding_light.png",
+      "dark": "captures/windows/maui/radio_button_group_binding_dark.png"
      },
      "cpp": {
       "light": null,
@@ -17490,8 +17490,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/radio_button_group_gallery_light.png",
+      "dark": "captures/windows/maui/radio_button_group_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -17629,8 +17629,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/radio_content_properties_light.png",
+      "dark": "captures/windows/maui/radio_content_properties_dark.png"
      },
      "cpp": {
       "light": null,
@@ -17768,8 +17768,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/radio_template_from_style_light.png",
+      "dark": "captures/windows/maui/radio_template_from_style_dark.png"
      },
      "cpp": {
       "light": null,
@@ -17907,8 +17907,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/rectangle_gallery_light.png",
+      "dark": "captures/windows/maui/rectangle_gallery_dark.png"
      },
      "cpp": {
       "light": null,
@@ -18046,8 +18046,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/refresh_view_light.png",
+      "dark": "captures/windows/maui/refresh_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -18185,8 +18185,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/relative_layout_light.png",
+      "dark": "captures/windows/maui/relative_layout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -18324,8 +18324,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/scattered_radio_button_light.png",
+      "dark": "captures/windows/maui/scattered_radio_button_dark.png"
      },
      "cpp": {
       "light": null,
@@ -18463,8 +18463,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/scroll_mode_test_light.png",
+      "dark": "captures/windows/maui/scroll_mode_test_dark.png"
      },
      "cpp": {
       "light": null,
@@ -18602,8 +18602,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/scroll_to_group_light.png",
+      "dark": "captures/windows/maui/scroll_to_group_dark.png"
      },
      "cpp": {
       "light": null,
@@ -18741,8 +18741,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/scroll_view_light.png",
+      "dark": "captures/windows/maui/scroll_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -18880,8 +18880,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/search_bar_light.png",
+      "dark": "captures/windows/maui/search_bar_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19019,8 +19019,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/selection_command_param_light.png",
+      "dark": "captures/windows/maui/selection_command_param_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19158,8 +19158,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/selection_synchronization_light.png",
+      "dark": "captures/windows/maui/selection_synchronization_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19297,8 +19297,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/semantics_light.png",
+      "dark": "captures/windows/maui/semantics_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19436,8 +19436,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/shadow_playground_light.png",
+      "dark": "captures/windows/maui/shadow_playground_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19575,8 +19575,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/shape_app_theme_light.png",
+      "dark": "captures/windows/maui/shape_app_theme_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19714,8 +19714,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/shapes_light.png",
+      "dark": "captures/windows/maui/shapes_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19853,8 +19853,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/single_bound_selection_light.png",
+      "dark": "captures/windows/maui/single_bound_selection_dark.png"
      },
      "cpp": {
       "light": null,
@@ -19992,8 +19992,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/slider_light.png",
+      "dark": "captures/windows/maui/slider_dark.png"
      },
      "cpp": {
       "light": null,
@@ -20131,8 +20131,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/some_empty_groups_light.png",
+      "dark": "captures/windows/maui/some_empty_groups_dark.png"
      },
      "cpp": {
       "light": null,
@@ -20270,8 +20270,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/stack_layout_light.png",
+      "dark": "captures/windows/maui/stack_layout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -20409,8 +20409,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/staggered_layout_light.png",
+      "dark": "captures/windows/maui/staggered_layout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -20548,8 +20548,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/stepper_light.png",
+      "dark": "captures/windows/maui/stepper_dark.png"
      },
      "cpp": {
       "light": null,
@@ -20687,8 +20687,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/styles_light.png",
+      "dark": "captures/windows/maui/styles_dark.png"
      },
      "cpp": {
       "light": null,
@@ -20826,8 +20826,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/swipe_gesture_light.png",
+      "dark": "captures/windows/maui/swipe_gesture_dark.png"
      },
      "cpp": {
       "light": null,
@@ -20965,8 +20965,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/swipe_item_position_light.png",
+      "dark": "captures/windows/maui/swipe_item_position_dark.png"
      },
      "cpp": {
       "light": null,
@@ -21104,8 +21104,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/swipe_item_size_light.png",
+      "dark": "captures/windows/maui/swipe_item_size_dark.png"
      },
      "cpp": {
       "light": null,
@@ -21243,8 +21243,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/swipe_refresh_light.png",
+      "dark": "captures/windows/maui/swipe_refresh_dark.png"
      },
      "cpp": {
       "light": null,
@@ -21382,8 +21382,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/swipe_threshold_light.png",
+      "dark": "captures/windows/maui/swipe_threshold_dark.png"
      },
      "cpp": {
       "light": null,
@@ -21521,8 +21521,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/swipe_view_margin_light.png",
+      "dark": "captures/windows/maui/swipe_view_margin_dark.png"
      },
      "cpp": {
       "light": null,
@@ -21660,8 +21660,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/swipe_view_shadow_light.png",
+      "dark": "captures/windows/maui/swipe_view_shadow_dark.png"
      },
      "cpp": {
       "light": null,
@@ -21799,8 +21799,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/switch_light.png",
+      "dark": "captures/windows/maui/switch_dark.png"
      },
      "cpp": {
       "light": null,
@@ -21938,8 +21938,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/switch_grouping_light.png",
+      "dark": "captures/windows/maui/switch_grouping_dark.png"
      },
      "cpp": {
       "light": null,
@@ -22077,8 +22077,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/tabbed_flyout_light.png",
+      "dark": "captures/windows/maui/tabbed_flyout_dark.png"
      },
      "cpp": {
       "light": null,
@@ -22216,8 +22216,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/templated_view_light.png",
+      "dark": "captures/windows/maui/templated_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -22355,8 +22355,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/time_picker_light.png",
+      "dark": "captures/windows/maui/time_picker_dark.png"
      },
      "cpp": {
       "light": null,
@@ -22494,8 +22494,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/title_bar_light.png",
+      "dark": "captures/windows/maui/title_bar_dark.png"
      },
      "cpp": {
       "light": null,
@@ -22633,8 +22633,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/toolbar_light.png",
+      "dark": "captures/windows/maui/toolbar_dark.png"
      },
      "cpp": {
       "light": null,
@@ -22772,8 +22772,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/transform_playground_light.png",
+      "dark": "captures/windows/maui/transform_playground_dark.png"
      },
      "cpp": {
       "light": null,
@@ -22911,8 +22911,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/transformations_light.png",
+      "dark": "captures/windows/maui/transformations_dark.png"
      },
      "cpp": {
       "light": null,
@@ -23050,8 +23050,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/triggers_light.png",
+      "dark": "captures/windows/maui/triggers_dark.png"
      },
      "cpp": {
       "light": null,
@@ -23189,8 +23189,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/update_path_data_light.png",
+      "dark": "captures/windows/maui/update_path_data_dark.png"
      },
      "cpp": {
       "light": null,
@@ -23328,8 +23328,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/varied_size_selector_light.png",
+      "dark": "captures/windows/maui/varied_size_selector_dark.png"
      },
      "cpp": {
       "light": null,
@@ -23467,8 +23467,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/vertical_stack_light.png",
+      "dark": "captures/windows/maui/vertical_stack_dark.png"
      },
      "cpp": {
       "light": null,
@@ -23606,8 +23606,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/visual_states_light.png",
+      "dark": "captures/windows/maui/visual_states_dark.png"
      },
      "cpp": {
       "light": null,
@@ -23745,8 +23745,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/web_view_light.png",
+      "dark": "captures/windows/maui/web_view_dark.png"
      },
      "cpp": {
       "light": null,
@@ -23884,8 +23884,8 @@
    "windows": {
     "screenshots": {
      "maui": {
-      "light": null,
-      "dark": null
+      "light": "captures/windows/maui/z_index_light.png",
+      "dark": "captures/windows/maui/z_index_dark.png"
      },
      "cpp": {
       "light": null,
