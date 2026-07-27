@@ -154,6 +154,12 @@ class Env:
         if self.is_windows and "python3" not in self.tools:
             self.python3 = "py"
         self.agent_remote = posixpath.join(self.staging, GUEST_AGENTS[self.os])
+        # The local file to deploy for THIS env's os (replaces the old module-level AGENT_SRC, which
+        # hardcoded the macOS agent).
+        self.agent_src = HERE / GUEST_AGENTS[self.os]
+        # Set by run_env for a Windows guest: the session-1 transport. See its module docstring -- SSH
+        # runs in session 0, which has no desktop, so agent calls must go through session 1.
+        self.session1 = None
         self.apps_remote = posixpath.join(self.staging, "apps")
         self.scratch = posixpath.join(self.staging, "scratch")
 
@@ -246,6 +252,10 @@ class Env:
 
     # -- guest agent --------------------------------------------------------
     def agent(self, subcmd: str, *args, timeout: int = 120) -> dict:
+        if self.session1 is not None:
+            # Session 1: the only place window enumeration, input injection and PrintWindow can see the
+            # real desktop. Same subcommand names/args as the SSH form.
+            return self.session1.call(subcmd, *args, timeout=float(timeout))
         if self.is_windows:
             # No /usr/bin/env and no per-tool path overrides to inject: the Windows agent talks to
             # user32/gdi32 through ctypes, so it has no external tools to locate (the whole reason it
@@ -396,7 +406,30 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
         raise SystemExit(f"[{env.name}] SSH not reachable: ssh -o BatchMode=yes {env.hostspec} true failed")
 
     print(f"[{env.name}] deploy agent + clean scratch + set resolution")
-    env.deploy(AGENT_SRC, env.agent_remote)
+    env.deploy(env.agent_src, env.agent_remote)
+
+    if env.is_windows:
+        # Windows Session 0 isolation: sshd has no desktop, and window enumeration / input / PrintWindow
+        # are per-session. Every agent call from here on goes through an agent running in session 1.
+        # Started ONCE per run rather than per call -- `schtasks /run` costs ~1-2s, which across a
+        # multi-page board would dominate the wall clock.
+        sys.path.insert(0, str(REPO / "port/cpp/tools/parity/windows"))
+        from session1 import Session1Agent  # noqa: PLC0415  optional, Windows-only dependency
+        s1 = Session1Agent(env.cfg["connection"]["host"], env.cfg["connection"]["user"],
+                           staging=env.cfg["staging"]["root"], python=env.python3)
+        s1.deploy(env.agent_src)
+        started = s1.start(restart=True)
+        sid = started.get("session_id")
+        if not started.get("ok") or sid in (0, None):
+            raise SystemExit(
+                f"[{env.name}] could not start the guest agent in session 1: "
+                f"{started.get('error') or started}\n"
+                f"  hint: {started.get('hint') or 'is the guest user logged on at the CONSOLE? '
+                                                  '/it needs an interactive session (an RDP login moves it)'}\n"
+                f"  guest log: {s1.tail_log(10)}")
+        print(f"  agent serving in session {sid} via {started.get('serving')}")
+        env.session1 = s1
+
     env.agent("clean", env.scratch)
     if env.display:
         r = env.agent("set-resolution", env.display["width"], env.display["height"])
@@ -504,6 +537,13 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
         for f in failed_frames:
             print(f"       {f}")
 
+    if env.session1 is not None:
+        # Always tear down: a leaked agent keeps the guest port AND its scheduled task, so the next run
+        # meets a stale agent holding a token it cannot authenticate against.
+        env.session1.stop(quiet=True)
+        env.session1 = None
+        print(f"[{env.name}] session-1 agent stopped")
+
     summary = score(env, tags, run_root, frames)
     summary["dropped_frames"] = failed_frames
     return summary
@@ -595,8 +635,17 @@ def main(argv=None) -> int:
 
     all_summaries = {}
     for name in env_names:
-        summary = run_env(Env(name, cfg["environments"][name]), tags, scenarios_dir, run_root,
-                          args.settle, twin_keys, commit, themes_override)
+        env = Env(name, cfg["environments"][name])
+        try:
+            summary = run_env(env, tags, scenarios_dir, run_root,
+                              args.settle, twin_keys, commit, themes_override)
+        finally:
+            # run_env stops the session-1 agent on its normal path; this covers the abort paths (a
+            # SystemExit from an unpresentable window, Ctrl-C, a scoring error). A leaked agent holds the
+            # guest port and its scheduled task, which breaks the NEXT run with a stale-token failure.
+            if getattr(env, "session1", None) is not None:
+                env.session1.stop(quiet=True)
+                env.session1 = None
         all_summaries[name] = summary
 
     (run_root / "summary.json").write_text(json.dumps(all_summaries, indent=2))
