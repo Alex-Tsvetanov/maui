@@ -7792,3 +7792,33 @@ Light: SSIM 1.0, 0.0% pixels differ · Dark: SSIM 1.0, 0.0% pixels differ
 Light: SSIM 1.0, 0.0% pixels differ · Dark: SSIM 1.0, 0.0% pixels differ
 
 </details>
+
+<details>
+<summary><h2>Windows — pipeline validation (NOT a parity result) — click to expand</h2></summary>
+
+> **This section is not a visual-parity result and must not be read as one.** The Windows column is the mingw-cross **Win32 smoke app**, which paints the same layout for every page (only the title and a page-hash-derived swatch row change) — it is not the gallery. There is also no MAUI Windows reference column, so **no scores are computed**. MAUI's Windows backend is WinUI 3 (`Microsoft.UI.Xaml`), so only a WinUI 3 render can ever be compared against MAUI — see `docs/WINDOWS_TOOLCHAIN.md`.
+
+What it *does* establish: the end-to-end Windows harness works at board scale — every page launched in the guest's interactive session, was pinned to an exact window rect, and produced a decodable, correctly-sized, page-distinct PNG that the host pulled back.
+
+Run `2026-07-28-00_25_41` at commit `db3bc539f0` (column `cpp_smoke`). Captures live in a gitignored dated run directory; this table is the committed record.
+
+| Metric | Value |
+| --- | --- |
+| Pages captured | 6 |
+| Frames captured | 14 |
+| Frames dropped (window never presented) | 0 |
+| Frames undecodable | 0 |
+| Distinct images | 12 of 14 |
+| Identical frames within a page | 2 |
+| Identical frames ACROSS pages | 0 |
+| Capture sizes | `1024x800` x14 |
+| Presented window bounds | `[128, 30, 1024, 800]` x14 |
+| Themes | dark x7, light x7 |
+
+Caveats recorded with the run:
+
+- The Windows column is the mingw-cross Win32 SMOKE app, not the gallery: it paints the same layout for every page, varying only the title and a page-hash-derived swatch row. These frames therefore say nothing about MAUI visual fidelity.
+- There is no MAUI Windows reference column yet, so no scores are computed -- the runner skips scoring when maui_xaml is absent.
+- MAUI's Windows backend is WinUI 3 (Microsoft.UI.Xaml), so only a WinUI 3 render can ever be compared against MAUI. See docs/WINDOWS_TOOLCHAIN.md.
+
+</details>

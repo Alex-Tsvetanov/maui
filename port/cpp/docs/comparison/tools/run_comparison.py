@@ -179,6 +179,11 @@ class Env:
         the VM as down; `exit 0` is valid in both shells."""
         return "exit 0" if self.is_windows else "true"
 
+    def sh(self, tokens: list[str], timeout: int = 60) -> subprocess.CompletedProcess:
+        """Run a shell command on the guest (alias of ssh_run; named for readability at call sites that
+        are PowerShell-specific)."""
+        return self.ssh_run(tokens, timeout=timeout)
+
     def reachable(self) -> bool:
         return subprocess.run(self._ssh() + [self.probe_cmd], capture_output=True).returncode == 0
 
@@ -436,8 +441,23 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
         if not r.get("ok"):
             print(f"  ! set-resolution: {r.get('error') or r.get('stderr')}")
 
-    # Deploy each column's artifact once.
+    # Deploy each column's artifact once. A column may instead declare `artifact_remote`: a path that
+    # ALREADY exists on the guest, which is then used as-is with no deploy. That is the case for a column
+    # built ON the guest -- MAUI's Windows target is WinUI 3 and cannot be cross-built from macOS, so the
+    # reference app is compiled there; copying its output down to the host only to push it back would move
+    # ~100MB twice for no reason.
     for col, ccfg in env.columns.items():
+        if ccfg.get("artifact_remote"):
+            remote = ccfg["artifact_remote"]
+            check = env.sh(["Test-Path", remote]) if env.is_windows else env.ssh_run(["test", "-e", remote])
+            present = ("True" in (check.stdout or "")) if env.is_windows else check.returncode == 0
+            if not present:
+                print(f"  ! {col}: artifact_remote missing on the guest: {remote} (skipping this column)")
+                ccfg["_missing"] = True
+                continue
+            print(f"  use {col}: {remote} (built on the guest; not deployed)")
+            ccfg["_remote"] = remote
+            continue
         local = REPO / ccfg["artifact"]
         if not local.exists():
             print(f"  ! {col}: artifact missing on host: {local} (skipping this column)")

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The WinUI 3 application shell for the Windows head of MauiReference.
+
+     MAUI's single project auto-includes Platforms/Windows/** for the windows TFM only, so this file is
+     invisible to the iOS / Mac Catalyst / Android lanes. Without it the Windows build fails with
+     CS5001 ("no static 'Main'"): the entry point is generated from this MauiWinUIApplication subclass
+     by the Windows App SDK targets. -->
+<maui:MauiWinUIApplication
+    x:Class="MauiReference.WinUI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:maui="using:Microsoft.Maui">
+</maui:MauiWinUIApplication>

@@ -2,6 +2,12 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-ios;net10.0-maccatalyst;net10.0-android</TargetFrameworks>
+		<!-- Windows is appended ONLY when building on Windows: a MAUI Windows (WinUI 3) target cannot be
+		     built from macOS, and adding it unconditionally would break the iOS/Catalyst/Android lanes on
+		     the dev machine. Built on the Windows guest to produce the MAUI reference column. MAUI's
+		     Windows backend is WinUI 3, so this app IS the ground truth for Windows parity.
+		     (Standard MAUI template idiom; see port/cpp/docs/WINDOWS_TOOLCHAIN.md.) -->
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
 		<RootNamespace>MauiReference</RootNamespace>
@@ -32,6 +38,17 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<!-- UNPACKAGED (no MSIX): the E2E runner deploys a FOLDER and launches an .exe, exactly as the
+		     macOS lane copies a .app. MSIX would add an install/uninstall step per run for no parity
+		     benefit, and an installed app cannot be swapped by copying files. -->
+		<WindowsPackageType Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">None</WindowsPackageType>
+		<!-- The app.manifest carries the PerMonitorV2 DPI declaration. It must be referenced explicitly:
+		     the single-project template wires it up for projects created WITH a Windows head, and this one
+		     gained Windows later. Without it the app is DPI-virtualised and every capture is the wrong
+		     scale relative to what the guest agent measures. -->
+		<ApplicationManifest Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">Platforms\Windows\app.manifest</ApplicationManifest>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
