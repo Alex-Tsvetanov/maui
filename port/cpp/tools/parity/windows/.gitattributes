@@ -1,0 +1,7 @@
+# PowerShell scripts are executed on a Windows guest: keep CRLF in the working tree so the file the
+# guest runs looks native, and keep them TEXT so they are diffable. The load-bearing property is that
+# these files stay ASCII-ONLY (see WINDOWS_TOOLCHAIN.md): PowerShell 5.1 reads a BOM-less file as ANSI,
+# so a UTF-8 em-dash decodes to bytes containing a double quote, which desyncs string parsing and yields
+# phantom "Missing closing '}'" errors. Line endings alone are not the hazard; encoding is.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
