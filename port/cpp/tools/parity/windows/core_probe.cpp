@@ -19,6 +19,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/content_page.hpp"
@@ -37,6 +38,10 @@ namespace ui = maui::ui;
 
 namespace
 {
+    // 26 chars; the headless label metric is ~7pt/char with a 16pt line, so a mounted label must
+    // measure ~182x16 plus padding. Kept as a constant so the expectation below can cite it.
+    constexpr const char* k_probe_text = "Hello, MAUI C++ on Windows";
+
     int g_failures = 0;
 
     void ok(const std::string& name, const std::string& detail)
@@ -78,33 +83,33 @@ namespace
               std::format("{{{},{},{},{}}}", r.x, r.y, r.width, r.height));
     }
 
-    // ---- 2. a control's text measurement (the headless font-metric path) ------------------------
-    void probe_label_measure()
-    {
-        maui::controls::label l;
-        l.set_text("Hello, MAUI C++ on Windows");
-        constexpr double inf = std::numeric_limits<double>::infinity();
-        const maui::graphics::size d = l.measure(inf, inf);
-        // A non-degenerate desired size is the real assertion: a zero here means the text-measurement
-        // path silently returned nothing, which would make every layout on Windows collapse.
-        check("label.measure", d.width > 0 && d.height > 0,
-              std::format("desired {:.1f}x{:.1f} for {} chars", d.width, d.height, l.text().size()));
-
-        maui::controls::label empty;
-        const maui::graphics::size de = empty.measure(inf, inf);
-        check("label.measure(empty)", de.width >= 0 && de.height >= 0,
-              std::format("desired {:.1f}x{:.1f}", de.width, de.height));
-    }
-
-    // ---- 3. the whole hosting path: builder -> app -> window -> mount -> layout ------------------
+    // ---- 2/3. the whole hosting path: builder -> app -> window -> mount -> layout ----------------
+    // The app keeps its page + label as members so the label can be measured AFTER mounting. That
+    // ordering is the whole point: a control's desired size comes from its HANDLER, so an unmounted
+    // control correctly measures 0x0 (headless label_handler::get_desired_size returns {0,0} when
+    // typed_platform_view() is null). An earlier version of this probe measured a bare stack-allocated
+    // label and reported the resulting 0x0 as a port bug -- it was the test that was wrong.
     class probe_app : public ui::app
     {
     public:
         probe_app()
         {
-            set_content(ui::page(ui::label("core probe")));
+            page_ = std::make_shared<maui::controls::content_page>();
+            label_ = std::make_shared<maui::controls::label>();
+            label_->set_text(k_probe_text);
+            page_->set_content(*label_);
+            set_content(ui::view_ref<maui::controls::content_page>{page_});
             set_title("maui core probe");
         }
+
+        [[nodiscard]] const std::shared_ptr<maui::controls::label>& probe_label() const
+        {
+            return label_;
+        }
+
+    private:
+        std::shared_ptr<maui::controls::content_page> page_;
+        std::shared_ptr<maui::controls::label> label_;
     };
 
     void probe_hosting()
@@ -138,6 +143,22 @@ namespace
         maui::hosting::mount_window(*app, *window);
         ok("hosting.mount", "mount_window completed (handlers attached across the tree)");
 
+        // Text measurement, now that a handler exists. A zero here WOULD be a real defect: every layout
+        // that sizes to text would collapse. (Unmounted, 0x0 is correct -- see probe_app.)
+        const auto probe = std::dynamic_pointer_cast<probe_app>(application);
+        if (probe == nullptr || probe->probe_label() == nullptr)
+        {
+            fail("label.measure(mounted)", "could not reach the probe label through the application");
+        }
+        else
+        {
+            constexpr double inf = std::numeric_limits<double>::infinity();
+            const maui::graphics::size d = probe->probe_label()->measure(inf, inf);
+            const auto chars = static_cast<double>(std::string_view{k_probe_text}.size());
+            check("label.measure(mounted)", d.width > 0 && d.height > 0,
+                  std::format("desired {:.1f}x{:.1f} for {:.0f} chars", d.width, d.height, chars));
+        }
+
         constexpr double w = 1024;
         constexpr double h = 800;
         const maui::graphics::size settled = maui::hosting::drive_layout(*window, w, h);
@@ -160,7 +181,6 @@ int main()
 {
     std::fputs("maui core probe (windows, mingw cross-build, headless mirrors)\n", stdout);
     probe_graphics();
-    probe_label_measure();
     probe_hosting();
     if (g_failures != 0)
     {

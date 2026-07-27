@@ -54,6 +54,7 @@ import shlex
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 
 DEFAULT_GUEST_PORT = 8770
@@ -77,6 +78,10 @@ class Session1Agent:
         self.verbose = verbose
         self.token = secrets.token_hex(16)
         self._tunnel: subprocess.Popen | None = None
+        self._tunnel_err_file = None
+        self._tunnel_deaths = 0
+        self._tunnel_error = ""
+        self._last_ping_error = ""
         self.agent_remote = posixpath.join(self.staging, "vm_agent_windows.py")
         self.token_remote = posixpath.join(self.staging, "agent_token.txt")
         self.cmd_remote = posixpath.join(self.staging, "serve_session1.cmd")
@@ -131,6 +136,11 @@ class Session1Agent:
                 return probe
 
         self.stop(quiet=True)
+        # Write the token HERE, not only in deploy(): this instance generated a fresh one, and a token
+        # file left by a previous run makes a perfectly healthy server reject us. That surfaced as
+        # "agent did not answer after start" after 35s of looping -- a live server was replying
+        # `unauthorized` the whole time. Writing it unconditionally makes the mismatch impossible.
+        self.sh(["Set-Content", "-Path", self.token_remote, "-Value", self.token, "-Encoding", "ascii"])
         self._write_cmd_wrapper()
         self.sh(["Remove-Item", self.log_remote, "-ErrorAction", "SilentlyContinue"])
         # /it = run in the INTERACTIVE session (requires the user to be logged on at the console). This
@@ -149,6 +159,17 @@ class Session1Agent:
         self._open_tunnel()
         for _ in range(40):  # ~10s for python to start and bind
             probe = self._try_connect_existing()
+            if self._last_ping_error == "unauthorized":
+                # A stale agent is holding the port with an older token. stop() cannot talk it down for
+                # the same reason, so say so plainly with the fix rather than looping.
+                return {"ok": False, "error": "a stale agent is already serving with a different token",
+                        "hint": f"run `session1.py --host <h> --user <u> stop` (or kill the "
+                                f"{TASK_NAME} task on the guest) and retry"}
+            why = self.unreachable()
+            if why:
+                # Report the transport's own failure rather than blaming the agent for never answering.
+                return {"ok": False, "error": f"guest unreachable: {why}",
+                        "hint": "is the VM running and on the network?"}
             if probe is not None:
                 self.session_id = probe.get("session_id")
                 if self.session_id == 0:
@@ -161,21 +182,60 @@ class Session1Agent:
         return {"ok": False, "error": "agent did not answer after start", "log": self.tail_log()}
 
     def _open_tunnel(self) -> None:
+        """(Re)open the forward. Keeps ssh's stderr so a dead tunnel can say WHY.
+
+        The first version sent stderr to DEVNULL, and when the guest was powered off mid-run the caller
+        reported only "agent did not answer after start" -- burying the actual cause ("Network is
+        unreachable") that ssh had printed. A transport must name its own failure."""
         if self._tunnel is not None and self._tunnel.poll() is None:
             return
+        if self._tunnel is not None:  # the previous one died
+            self._tunnel_deaths += 1
+            self._tunnel_error = self._read_tunnel_error()
+        self._tunnel_err_file = tempfile.NamedTemporaryFile(  # noqa: SIM115  closed in _read/stop
+            prefix="maui-session1-tunnel-", suffix=".err", delete=False)
         self._tunnel = subprocess.Popen(
             self._ssh(["-N", "-L", f"{self.local_port}:127.0.0.1:{self.guest_port}"]),
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            stdout=subprocess.DEVNULL, stderr=self._tunnel_err_file)
         self._log(f"tunnel 127.0.0.1:{self.local_port} -> guest 127.0.0.1:{self.guest_port}")
         time.sleep(0.6)  # let ssh establish the forward before the first connect
 
+    def _read_tunnel_error(self) -> str:
+        if self._tunnel_err_file is None:
+            return ""
+        try:
+            self._tunnel_err_file.flush()
+            with open(self._tunnel_err_file.name, encoding="utf-8", errors="replace") as fh:
+                return fh.read().strip()[-300:]
+        except OSError:
+            return ""
+
+    def unreachable(self) -> str:
+        """Non-empty when the tunnel keeps dying — i.e. the guest is down, not merely slow to start.
+
+        Without this the start() wait loop respawns ssh on every iteration (up to 40 processes over 10s)
+        and then blames the agent for a network failure."""
+        if self._tunnel_deaths >= 3:
+            return self._tunnel_error or "ssh tunnel keeps dying"
+        return ""
+
     def _try_connect_existing(self) -> dict | None:
+        """The live agent's ping reply, or None if nothing usable is listening.
+
+        Records an `unauthorized` reply separately: that means a server IS running with a different
+        token (a stale agent from an earlier run), which is a completely different situation from
+        "not started yet" and must not be retried silently."""
         self._open_tunnel()
+        self._last_ping_error = ""
         try:
             reply = self._raw_call({"token": self.token, "cmd": "__ping__"}, timeout=3)
-        except OSError:
+        except OSError as e:
+            self._last_ping_error = f"{type(e).__name__}: {e}"
             return None
-        return reply if reply.get("ok") else None
+        if reply.get("ok"):
+            return reply
+        self._last_ping_error = str(reply.get("error") or "")[:120]
+        return None
 
     def stop(self, quiet: bool = False) -> None:
         """Ask the agent to exit, then remove the task and close the tunnel."""
@@ -185,6 +245,11 @@ class Session1Agent:
             pass
         self.sh(["schtasks", "/end", "/tn", TASK_NAME])
         self.sh(["schtasks", "/delete", "/tn", TASK_NAME, "/f"])
+        if self._tunnel_err_file is not None:
+            try:
+                self._tunnel_err_file.close()
+            except OSError:
+                pass
         if self._tunnel is not None:
             self._tunnel.terminate()
             try:
@@ -196,8 +261,14 @@ class Session1Agent:
             self._log("stopped")
 
     def tail_log(self, lines: int = 20) -> str:
-        r = self.sh(["Get-Content", self.log_remote, "-Tail", str(lines)])
-        return (r.stdout or r.stderr or "").strip()[-800:]
+        """The guest-side serve log, or a plain note. A missing file means the task never ran, which is
+        a useful fact -- not a reason to hand back a PowerShell ItemNotFoundException stack trace."""
+        r = self.sh(["Get-Content", self.log_remote, "-Tail", str(lines), "-ErrorAction",
+                     "SilentlyContinue"])
+        out = (r.stdout or "").strip()
+        if out:
+            return out[-800:]
+        return f"(no {posixpath.basename(self.log_remote)} on the guest - the task never started)"
 
     # -- calls -------------------------------------------------------------
     def _raw_call(self, payload: dict, timeout: float = 120.0) -> dict:
