@@ -169,6 +169,58 @@ Host-side changes in `run_comparison.py` (macOS behaviour byte-identical — ver
 
 ---
 
+## 4b. Session 1 — the one place this lane must differ from macOS
+
+`sshd` on Windows runs in **session 0** (services, no desktop). The interactive console the VM displays
+is **session 1**. `EnumWindows`, `SendInput` and `PrintWindow` are all **per-session**. Therefore:
+
+* an app launched over SSH runs in session 0 and has **no window on any visible desktop** — verified on
+  the UTM guest: the process reported `Responding=True` with `MainWindowHandle=0`;
+* an agent living in the SSH session can neither see nor drive session 1's UI;
+* reading `MainWindowHandle` *from* session 0 returns 0 **even when the window exists**, so that is not
+  evidence of failure — check from inside session 1.
+
+macOS has no equivalent (`open -g` reaches the user's Aqua session), which is why `vm_agent_macos.py`
+needs nothing like this.
+
+**The fix** (`tools/parity/windows/session1.py` + the agent's `serve` subcommand):
+
+```
+host                                    guest
+ssh (session 0) ------ schtasks /it --> agent `serve` in SESSION 1, bound to 127.0.0.1:<gport>
+ssh -N -L <lport>:127.0.0.1:<gport> --> (tunnel)
+TCP to 127.0.0.1:<lport> -------------> one JSON request/response per connection
+```
+
+Because the agent itself lives in session 1, apps it `launch`es are session-1 children — visible and
+driveable — so this fixes the app-launch problem for free.
+
+Four decisions worth knowing:
+
+1. **Loopback + SSH tunnel, not a network port.** This endpoint executes commands. Binding it to
+   loopback and tunnelling keeps access behind the same SSH key that already administers the guest and
+   adds no firewall hole. A **shared token** is required on every request as defence in depth (any local
+   guest account could otherwise reach the loopback port), and the server **refuses to start** if the
+   token file is unreadable rather than serving unauthenticated.
+2. **A persistent server, not one task per call.** `schtasks /run` costs ~1–2 s. Fine for a smoke test;
+   across a 182-page board (~2200 agent calls) it would burn most of an hour on task startup. The
+   project already uses a long-lived TCP agent for this reason (`devflow_port = 8765` on macOS).
+3. **`serve` reuses `main()`'s argparse dispatch** by capturing stdout, so each subcommand has exactly
+   one definition and the served form cannot drift from the CLI form a human debugs with.
+4. **Args/results cross via a generated `.cmd` + files**, never through nested
+   `schtasks → cmd → PowerShell` quoting, which is a reliable source of silent breakage.
+
+**Requirement this imposes:** the guest user must be **logged on at the console** (the UTM display) —
+`/it` means "run in the interactive session", and there must be one. An RDP login moves the console
+session, so log in on the UTM display. `vm_smoke.py` checks the agent's reported `session_id` and fails
+fast with that remedy if it is 0.
+
+Transport is exercised off-guest by `tests/test_agent_serve_protocol.py` (framing, token auth,
+dispatch, malformed input, repeated connections, shutdown) — those are pure Python, and a bug there
+otherwise presents as "the guest is broken".
+
+---
+
 ## 5. Tomorrow's runbook (when the VM is up)
 
 ```bash

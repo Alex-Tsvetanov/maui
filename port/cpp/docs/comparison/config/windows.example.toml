@@ -29,10 +29,20 @@ os = "windows"                  # picks the vm_agent_windows.py guest agent
 platform = "windows"            # path segment: …/<tag>/windows/<column>/NNNN.png
 
 [environments.windows-x64.connection]
-# Windows 10/11 ships OpenSSH Server as an optional feature; enable it and ssh-copy-id your key (see
-# WINDOWS_TOOLCHAIN.md). The guest's DefaultShell MUST be PowerShell — the runner shell-quotes remote
-# commands POSIX-style and cmd.exe does not understand single quotes.
-host = "192.168.65.2"       # UTM "Windows app testing" (vmnet-shared); re-check after a VM reboot
+# Windows 10/11 ships OpenSSH Server as an optional feature; enable it and install your key (see
+# WINDOWS_TOOLCHAIN.md section 3). Two hard requirements:
+#   * the guest's DefaultShell MUST be PowerShell - the runner shell-quotes remote commands POSIX-style
+#     and cmd.exe does not understand single quotes;
+#   * the guest user MUST be logged on at the CONSOLE (the UTM display), because the agent runs in that
+#     interactive session - see the session-1 note below.
+#
+# SESSION 1: sshd runs in session 0, which has no desktop. Window enumeration, input injection and
+# PrintWindow are all per-session, so the agent is started IN session 1 (schtasks /it) and reached over
+# an SSH tunnel - tools/parity/windows/session1.py. Nothing here needs to change for that; it is how the
+# agent is transported, not what it is asked to do.
+host = "WINDOWS-VM.local"   # Windows 11 answers mDNS for its own hostname, so this survives a
+                            # DHCP change (the vmnet lease was 192.168.65.2). Falls back to the
+                            # raw IP if mDNS is ever unreliable on your network.
 user = "Testings-VM"
 connect_timeout_seconds = 10
 
