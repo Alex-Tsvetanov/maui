@@ -347,8 +347,29 @@ def cmd_set_resolution(a) -> int:
         new.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL
         rc = user32.ChangeDisplaySettingsExW(None, ctypes.byref(new), None, CDS_UPDATEREGISTRY, None)
         if rc != DISP_CHANGE_SUCCESSFUL:
-            return _emit(ok=False, error=f"ChangeDisplaySettingsExW returned {rc}",
-                         requested=[a.width, a.height], set=list(target))
+            # A DISPLAY-ONLY (DOD) guest driver — virtio-gpu-dod under UTM/QEMU is the case in hand —
+            # ENUMERATES modes but refuses to switch: the host dictates the mode (the VM window size,
+            # applied by the SPICE agent). Verified on Windows 11 ARM64/UTM: 1280x800 is in the driver's
+            # 18-mode list, yet ChangeDisplaySettingsExW returns DISP_CHANGE_FAILED (-1) whether or not
+            # the SPICE agent is running.
+            #
+            # This is reported as ok=True with driver_refused=True, deliberately. Failing here would abort
+            # every run on such a guest at the very first step, and it does NOT need to: this agent
+            # captures each window with PrintWindow (the window's OWN backing store), so the screen mode
+            # only has to be LARGE ENOUGH to contain the presented window — it does not have to equal the
+            # requested size. The caller gets `actual` to size its geometry against, plus `fits_request`
+            # so a genuinely-too-small screen is still visible. A real mode-list miss (the branch above)
+            # remains a hard error.
+            back_fail = DEVMODEW()
+            back_fail.dmSize = ctypes.sizeof(DEVMODEW)
+            user32.EnumDisplaySettingsW(None, ENUM_CURRENT_SETTINGS, ctypes.byref(back_fail))
+            actual_fail = [int(back_fail.dmPelsWidth), int(back_fail.dmPelsHeight)]
+            return _emit(ok=True, driver_refused=True, change_result=rc,
+                         error=f"ChangeDisplaySettingsExW returned {rc} (display-only guest driver; "
+                               f"set the mode host-side by resizing the VM window)",
+                         requested=[a.width, a.height], set=list(target), actual=actual_fail,
+                         fits_request=actual_fail[0] >= a.width and actual_fail[1] >= a.height,
+                         dpi_mode=DPI_MODE)
         time.sleep(1.0)  # let the mode change settle before anything reads geometry
 
     back = DEVMODEW()

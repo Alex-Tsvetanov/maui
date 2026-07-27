@@ -146,6 +146,13 @@ def main() -> int:
     ap.add_argument("--height", type=int, default=800)
     ap.add_argument("--win-w", type=int, default=1024)
     ap.add_argument("--win-h", type=int, default=800)
+    # Window ORIGIN. Default 0,0 rather than the macOS lane's 128,30: a UTM/QEMU guest's screen is only
+    # as large as the VM window (its display-only driver refuses guest-side mode changes), so an inset
+    # origin easily pushes a 1024-wide window off a 1024-wide screen. At 0,0 the window is fully on
+    # screen at any size that can hold it, and window coordinates equal screen coordinates, which makes
+    # scenario taps trivial to reason about.
+    ap.add_argument("--x", type=int, default=0)
+    ap.add_argument("--y", type=int, default=0)
     ap.add_argument("--keep", action="store_true", help="do not stop the app at the end")
     a = ap.parse_args()
 
@@ -162,11 +169,15 @@ def main() -> int:
         print("\nCannot continue without SSH. See docs/WINDOWS_TOOLCHAIN.md §3.")
         return 1
 
-    shell = g.sh(["Write-Output", "$PSVersionTable.PSVersion.Major"])
-    ps_major = (shell.stdout or "").strip().splitlines()[-1:] or [""]
-    step("guest DefaultShell is PowerShell", ps_major[0].isdigit(),
-         f"PSVersion major={ps_major[0]!r}" if ps_major[0] else
-         "not PowerShell — POSIX-quoted commands will break (see §3)")
+    # Read the registry value rather than evaluating $PSVersionTable: ssh_run quotes every token with
+    # shlex (POSIX single quotes), and PowerShell treats a single-quoted string as LITERAL, so any probe
+    # containing `$` comes back as its own source text and the check silently "fails". Keep remote
+    # probes $-free.
+    shell = g.sh(["Get-ItemPropertyValue", "-Path", "HKLM:\\SOFTWARE\\OpenSSH",
+                  "-Name", "DefaultShell"])
+    shell_path = (shell.stdout or "").strip().splitlines()[-1:] or [""]
+    step("guest DefaultShell is PowerShell", "powershell" in shell_path[0].lower(),
+         shell_path[0] or "DefaultShell unset - POSIX-quoted commands will break (see docs section 3)")
 
     ver = g.sh([a.python, "--version"])
     step("guest python present", ver.returncode == 0,
@@ -188,9 +199,19 @@ def main() -> int:
 
     # -- display ------------------------------------------------------------------------------------
     res = g.agent("set-resolution", a.width, a.height)
-    step(f"set-resolution {a.width}x{a.height}", res.get("ok"),
-         f"actual={res.get('actual')} dpi_mode={res.get('dpi_mode')}"
-         if res.get("ok") else json.dumps(res)[:200])
+    if res.get("driver_refused"):
+        # Display-only guest driver: the mode is host-controlled. Not a failure (see the agent), but the
+        # screen must still be big enough for the window we are about to present, so check that here.
+        fits = bool(res.get("fits_request")) or (
+            (res.get("actual") or [0, 0])[0] >= a.win_w and (res.get("actual") or [0, 0])[1] >= a.win_h)
+        step(f"set-resolution {a.width}x{a.height} (driver-controlled)", fits,
+             f"actual={res.get('actual')} - host-controlled mode; "
+             + ("large enough for the window" if fits
+                else f"TOO SMALL for a {a.win_w}x{a.win_h} window - enlarge the VM window"))
+    else:
+        step(f"set-resolution {a.width}x{a.height}", res.get("ok"),
+             f"actual={res.get('actual')} dpi_mode={res.get('dpi_mode')}"
+             if res.get("ok") else json.dumps(res)[:200])
 
     # -- launch -------------------------------------------------------------------------------------
     res = g.agent("launch", "--bundle", remote_exe, "--proc", exe.name,
@@ -208,7 +229,7 @@ def main() -> int:
     # -- present + capture atomically ---------------------------------------------------------------
     remote_shot = posixpath.join(g.scratch, "smoke.png")
     res = g.agent("present", "--proc", exe.name, "--pid", pid,
-                  "--x", 128, "--y", 30, "--w", a.win_w, "--h", a.win_h, "--shot", remote_shot,
+                  "--x", a.x, "--y", a.y, "--w", a.win_w, "--h", a.win_h, "--shot", remote_shot,
                   timeout=90)
     presented = step(f"present to {a.win_w}x{a.win_h} + shot", res.get("ok"),
                      f"bounds={res.get('bounds')} shot_size={res.get('shot_size')}"
