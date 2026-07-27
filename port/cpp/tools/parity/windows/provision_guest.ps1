@@ -60,11 +60,37 @@ if ($ssh -and $ssh.State -ne "Installed") {
 }
 Set-Service -Name sshd -StartupType Automatic
 Start-Service sshd
-# The firewall rule the capability ships is sometimes absent on upgraded images.
+# TCP/22 inbound. Three distinct failure modes seen in practice, all of which look identical from the
+# host (a bare connection timeout on port 22 while RDP still answers, so the network path is clearly
+# fine), hence all three are handled:
+#   (a) the capability's own rule is absent on some images;
+#   (b) it exists but is DISABLED;
+#   (c) it exists and is enabled but scoped to Private/Domain only, while a VM's NAT adapter is
+#       classified Public — so it never applies. `-Profile Any` is what covers that, and it is stated
+#       explicitly rather than relying on New-NetFirewallRule's default.
 if (-not (Get-NetFirewallRule -Name "sshd-maui" -ErrorAction SilentlyContinue)) {
     New-NetFirewallRule -Name "sshd-maui" -DisplayName "OpenSSH Server (maui E2E)" `
-        -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 | Out-Null
-    Ok "opened TCP/22"
+        -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 `
+        -Profile Any | Out-Null
+    Ok "opened TCP/22 (all profiles)"
+} else {
+    Enable-NetFirewallRule -Name "sshd-maui" -ErrorAction SilentlyContinue
+    Ok "TCP/22 rule already present (re-enabled)"
+}
+# Re-enable any shipped OpenSSH rules that are present but off, so `Get-NetFirewallRule *OpenSSH*`
+# does not show a confusing mix of enabled/disabled entries later.
+Get-NetFirewallRule -Name "*OpenSSH*" -ErrorAction SilentlyContinue |
+    Where-Object { -not $_.Enabled } |
+    ForEach-Object { Enable-NetFirewallRule -Name $_.Name -ErrorAction SilentlyContinue }
+
+# Verify sshd is actually LISTENING, not merely "Running": a started service that failed to bind (e.g.
+# a stale host-key permission problem) reports Running while port 22 answers nothing, which is
+# otherwise indistinguishable from a firewall block.
+$listening = Get-NetTCPConnection -LocalPort 22 -State Listen -ErrorAction SilentlyContinue
+if ($listening) {
+    Ok "sshd is listening on TCP/22"
+} else {
+    Warn "sshd is NOT listening on TCP/22 — check: Get-Service sshd; Get-EventLog -LogName Application -Source sshd -Newest 20"
 }
 
 # ---------------------------------------------------------------- 2. PowerShell as DefaultShell

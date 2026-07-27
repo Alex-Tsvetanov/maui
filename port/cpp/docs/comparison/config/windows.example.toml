@@ -21,6 +21,9 @@ root = "port/cpp/docs/comparison"
 timestamp_format = "%Y-%m-%d-%H_%M_%S"
 
 # --- the Windows VM -------------------------------------------------------------------------------
+# NOTE: this guest is ARM64 (Windows 11 24H2, aarch64 under UTM/QEMU). The mingw-cross smoke exe
+# and core probe are x86-64 PE and run under the OS's x64 emulation (Prism) — fine for validating
+# the pipeline. The WinUI 3 parity lane should build NATIVE ARM64 with MSVC on the guest.
 [environments.windows-x64]
 os = "windows"                  # picks the vm_agent_windows.py guest agent
 platform = "windows"            # path segment: …/<tag>/windows/<column>/NNNN.png
@@ -29,8 +32,8 @@ platform = "windows"            # path segment: …/<tag>/windows/<column>/NNNN.
 # Windows 10/11 ships OpenSSH Server as an optional feature; enable it and ssh-copy-id your key (see
 # WINDOWS_TOOLCHAIN.md). The guest's DefaultShell MUST be PowerShell — the runner shell-quotes remote
 # commands POSIX-style and cmd.exe does not understand single quotes.
-host = "windows-test.local"
-user = "testinguser"
+host = "192.168.65.2"       # UTM "Windows app testing" (vmnet-shared); re-check after a VM reboot
+user = "Testings-VM"
 connect_timeout_seconds = 10
 
 [environments.windows-x64.display]
@@ -46,7 +49,7 @@ reboot_before_run = false       # true → `shutdown /r /t 0 /f` then wait for S
 # geometry = { x = 128, y = 30, w = 1024, h = 800 }
 
 [environments.windows-x64.staging]
-root = "C:/Users/testinguser/maui-comparison"   # forward slashes are fine and avoid quoting pain
+root = "C:/Users/Testings-VM/maui-comparison"   # forward slashes are fine and avoid quoting pain
 
 [environments.windows-x64.tools]
 # `py` is the PEP 397 launcher from a python.org install — the most reliable invocation over a
