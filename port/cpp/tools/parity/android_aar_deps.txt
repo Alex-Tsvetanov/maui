@@ -1,0 +1,69 @@
+# AndroidX + Google Material dependency closure for the Android app hosts, resolved out of the LOCAL
+# NuGet cache (~/.nuget/packages) that MauiReference itself restores against — nothing is downloaded.
+#
+# WHY: MAUI's Android app is a MauiAppCompatActivity under Maui.MainTheme, whose base parent is
+# Theme.MaterialComponents.DayNight (see src/Core/src/Platform/Android/Resources/values/styles.xml).
+# That theme is what gives MAUI's EditText/DatePicker/TimePicker/Picker their Material field chrome and
+# its ProgressBar/Switch their Material metrics. The app hosts used to link android.jar only, so they
+# inherited Theme.DeviceDefault and rendered framework chrome a few px off MAUI's on every field-bearing
+# page. Linking these AARs lets src/platform/android/apphost/res/values/styles.xml parent on the REAL
+# Theme.MaterialComponents.DayNight and reproduce Maui.MainTheme item-for-item.
+#
+# FORMAT: <nuget-package-id>/<path-within-the-versioned-package-dir>. ORDER IS DEPENDENCY ORDER — it is
+# the aapt2 resource-overlay precedence (later entries win) and must stay lowest-level-first, because
+# material and appcompat both define styleable/SearchView and material and constraintlayout both define
+# styleable/Carousel; as overlays they merge, as co-equal inputs they are a hard link error.
+#
+# The androidx multiplatform FACADE artifacts (xamarin.androidx.lifecycle.runtime,
+# .lifecycle.viewmodel, .savedstate, ...) are deliberately absent: they ship an empty classes.jar and
+# only redirect to the `.android` variant listed here. android_aar_stage.py drops them anyway.
+xamarin.androidx.annotation.jvm/jar/androidx.annotation.annotation-jvm.jar
+xamarin.androidx.annotation.experimental/aar/androidx.annotation.annotation-experimental.aar
+xamarin.androidx.collection.jvm/jar/androidx.collection.collection-jvm.jar
+xamarin.androidx.concurrent.futures/jar/androidx.concurrent.concurrent-futures.jar
+xamarin.androidx.arch.core.common/jar/androidx.arch.core.core-common.jar
+xamarin.androidx.arch.core.runtime/aar/androidx.arch.core.core-runtime.aar
+xamarin.androidx.resourceinspection.annotation/jar/androidx.resourceinspection.resourceinspection-annotation.jar
+xamarin.kotlin.stdlib/lib/net8.0-android34.0/Xamarin.Kotlin.StdLib.aar
+xamarin.jetbrains.annotations/lib/net8.0-android34.0/Xamarin.Jetbrains.Annotations.aar
+xamarin.androidx.tracing.tracing.android/aar/androidx.tracing.tracing-android.aar
+xamarin.androidx.versionedparcelable/aar/androidx.versionedparcelable.versionedparcelable.aar
+xamarin.androidx.core/aar/androidx.core.core.aar
+xamarin.androidx.core.viewtree/aar/androidx.core.core-viewtree.aar
+xamarin.androidx.lifecycle.common.jvm/jar/androidx.lifecycle.lifecycle-common-jvm.jar
+xamarin.androidx.lifecycle.runtime.android/aar/androidx.lifecycle.lifecycle-runtime-android.aar
+xamarin.androidx.lifecycle.viewmodel.android/aar/androidx.lifecycle.lifecycle-viewmodel-android.aar
+xamarin.androidx.lifecycle.viewmodelsavedstate.android/aar/androidx.lifecycle.lifecycle-viewmodel-savedstate-android.aar
+xamarin.androidx.lifecycle.livedata.core/aar/androidx.lifecycle.lifecycle-livedata-core.aar
+xamarin.androidx.lifecycle.livedata/aar/androidx.lifecycle.lifecycle-livedata.aar
+xamarin.androidx.lifecycle.process/aar/androidx.lifecycle.lifecycle-process.aar
+xamarin.androidx.savedstate.savedstate.android/aar/androidx.savedstate.savedstate-android.aar
+xamarin.androidx.startup.startupruntime/aar/androidx.startup.startup-runtime.aar
+xamarin.androidx.profileinstaller.profileinstaller/aar/androidx.profileinstaller.profileinstaller.aar
+xamarin.androidx.emoji2/aar/androidx.emoji2.emoji2.aar
+xamarin.androidx.emoji2.viewshelper/aar/androidx.emoji2.emoji2-views-helper.aar
+xamarin.androidx.interpolator/aar/androidx.interpolator.interpolator.aar
+xamarin.androidx.cursoradapter/aar/androidx.cursoradapter.cursoradapter.aar
+xamarin.androidx.customview/aar/androidx.customview.customview.aar
+xamarin.androidx.customview.poolingcontainer/aar/androidx.customview.customview-poolingcontainer.aar
+xamarin.androidx.viewpager/aar/androidx.viewpager.viewpager.aar
+xamarin.androidx.viewpager2/aar/androidx.viewpager2.viewpager2.aar
+xamarin.androidx.loader/aar/androidx.loader.loader.aar
+xamarin.androidx.activity/aar/androidx.activity.activity.aar
+xamarin.androidx.fragment/aar/androidx.fragment.fragment.aar
+xamarin.androidx.drawerlayout/aar/androidx.drawerlayout.drawerlayout.aar
+xamarin.androidx.slidingpanelayout/aar/androidx.slidingpanelayout.slidingpanelayout.aar
+xamarin.androidx.vectordrawable/aar/androidx.vectordrawable.vectordrawable.aar
+xamarin.androidx.vectordrawable.animated/aar/androidx.vectordrawable.vectordrawable-animated.aar
+xamarin.androidx.appcompat.appcompatresources/aar/androidx.appcompat.appcompat-resources.aar
+xamarin.androidx.appcompat/aar/androidx.appcompat.appcompat.aar
+xamarin.androidx.coordinatorlayout/aar/androidx.coordinatorlayout.coordinatorlayout.aar
+xamarin.androidx.constraintlayout.core/jar/androidx.constraintlayout.constraintlayout-core.jar
+xamarin.androidx.constraintlayout/aar/androidx.constraintlayout.constraintlayout.aar
+xamarin.androidx.recyclerview/aar/androidx.recyclerview.recyclerview.aar
+xamarin.androidx.transition/aar/androidx.transition.transition.aar
+xamarin.androidx.dynamicanimation/aar/androidx.dynamicanimation.dynamicanimation.aar
+xamarin.androidx.cardview/aar/androidx.cardview.cardview.aar
+xamarin.androidx.window.windowcore.jvm/jar/androidx.window.window-core-jvm.jar
+xamarin.androidx.window/aar/androidx.window.window.aar
+xamarin.google.android.material/aar/com.google.android.material.material.aar

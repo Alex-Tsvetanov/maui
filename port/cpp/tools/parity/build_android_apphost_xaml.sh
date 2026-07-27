@@ -30,6 +30,9 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cpp_root="$(cd "${script_dir}/../.." && pwd)" # port/cpp
 # shellcheck source=../android-emu-lib.sh
 source "${cpp_root}/tools/android-emu-lib.sh"
+# AndroidX AppCompat + Google Material linking, shared with build_android_apphost.sh.
+# shellcheck source=android-aar-lib.sh
+source "${script_dir}/android-aar-lib.sh"
 
 # ---- args ----
 do_capture=1
@@ -121,7 +124,9 @@ if [[ -n "${strip_bin}" ]]; then
   echo "[apphost-xaml]   stripped .so: $(du -h "${app_so}" | cut -f1)" >&2
 fi
 
-# ---- 2. javac + d8: dex the XAML Activity + the runtime java support classes ----
+# ---- 2. stage the AndroidX/Material AARs, then aapt2 compile + link -> base APK + the R classes ----
+# ORDER MATTERS: aapt2 link EMITS the R.java per library package and javac must compile them, so linking
+# runs BEFORE javac. Mirrors build_android_apphost.sh exactly; see tools/parity/android-aar-lib.sh.
 apphost_dir="${cpp_root}/examples/gallery_xaml/apphost"
 manifest="${apphost_dir}/AndroidManifest.xml"
 activity_java="${apphost_dir}/MauiHostActivity.java"
@@ -130,56 +135,55 @@ runtime_java_dir="${cpp_root}/src/platform/android/java" # NativeOnClickListener
 
 work="${build_dir}/apphost-xaml-apk"
 rm -rf "${work}"
-mkdir -p "${work}/classes" "${work}/lib/${abi}"
+mkdir -p "${work}/classes" "${work}/gen" "${work}/lib/${abi}" "${work}/res/values"
 
-java_sources=("${activity_java}")
-if [[ -d "${runtime_java_dir}" ]]; then
-  for j in "${runtime_java_dir}"/*.java; do
-    [[ -f "${j}" ]] && java_sources+=("${j}")
-  done
-fi
-echo "[apphost-xaml] javac (${#java_sources[@]} sources) + d8..." >&2
-"${javac_bin}" --release 17 -classpath "${android_jar}" -d "${work}/classes" "${java_sources[@]}" >&2
-class_files=()
-while IFS= read -r -d '' f; do class_files+=("${f}"); done \
-  < <(find "${work}/classes" -name '*.class' -print0)
-[[ "${#class_files[@]}" -gt 0 ]] || maui_die "javac emitted no .class files"
-"${d8}" --release --lib "${android_jar}" --min-api 24 --output "${work}" "${class_files[@]}" >&2
-[[ -f "${work}/classes.dex" ]] || maui_die "d8 produced no classes.dex"
+maui_android_aar_prepare "${build_dir}/aardeps"
 
-# ---- 3. aapt2 compile (minimal res) + link the manifest -> a base APK ----
 base_apk="${work}/base.apk"
-echo "[apphost-xaml] aapt2 compile (minimal res) + link..." >&2
-mkdir -p "${work}/res/values"
+echo "[apphost-xaml] aapt2 compile + link (${#maui_aar_jars[@]} AAR jars)..." >&2
 cat > "${work}/res/values/strings.xml" <<'XML'
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MAUI C++ Gallery (XAML)</string>
 </resources>
 XML
-# MauiAppHost.Theme — identical to the non-xaml host's src/platform/android/apphost/res/values/styles.xml
-# (NoActionBar + pure-white window/colorBackground). The XAML manifest references @style/MauiAppHost.Theme,
-# so this MUST be present for aapt2 link to resolve it. Kept inline (not linked from the shared res dir) so
-# the XAML pipeline stays self-contained, but the CONTENTS must mirror the checked-in host theme: NoActionBar
-# removes the top app-title bar (parity with MAUI's Android gallery — MAUI's render is the ground truth),
-# white bg matches MAUI's native-default light-mode ContentPage background.
-cat > "${work}/res/values/styles.xml" <<'XML'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="MauiAppHost.Theme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
-        <item name="android:windowBackground">@android:color/white</item>
-        <item name="android:colorBackground">@android:color/white</item>
-    </style>
-</resources>
-XML
+# The THEME is the shared, checked-in one — src/platform/android/apphost/res/values/styles.xml (MAUI's own
+# Maui.MainTheme reproduced on the real Theme.MaterialComponents.DayNight). It is COPIED rather than
+# re-declared inline so the two hosts can never drift apart: the XAML manifest references
+# @style/MauiAppHost.Theme and both columns must resolve the SAME widget defaults, or every field-bearing
+# page shifts between them.
+cp "${cpp_root}/src/platform/android/apphost/res/values/styles.xml" "${work}/res/values/styles.xml"
 "${aapt2}" compile --dir "${work}/res" -o "${work}/res-compiled.zip" >&2 || maui_die "aapt2 compile failed"
 "${aapt2}" link \
   -o "${base_apk}" \
   -I "${android_jar}" \
   --manifest "${manifest}" \
   --min-sdk-version 24 --target-sdk-version 34 \
-  "${work}/res-compiled.zip" >&2 || maui_die "aapt2 link failed"
+  --auto-add-overlay \
+  --java "${work}/gen" \
+  "${maui_aar_link[@]}" \
+  -R "${work}/res-compiled.zip" >&2 || maui_die "aapt2 link failed"
 [[ -f "${base_apk}" ]] || maui_die "aapt2 link produced no base APK"
+
+# ---- 3. javac + d8: the Activity + runtime java + the generated R classes + every library jar ----
+java_sources=("${activity_java}")
+if [[ -d "${runtime_java_dir}" ]]; then
+  for j in "${runtime_java_dir}"/*.java; do
+    [[ -f "${j}" ]] && java_sources+=("${j}")
+  done
+fi
+while IFS= read -r -d '' f; do java_sources+=("${f}"); done \
+  < <(find "${work}/gen" -name 'R.java' -print0)
+aar_cp="$(IFS=:; echo "${maui_aar_jars[*]}")"
+echo "[apphost-xaml] javac (${#java_sources[@]} sources) + d8..." >&2
+"${javac_bin}" --release 17 -classpath "${android_jar}:${aar_cp}" -d "${work}/classes" "${java_sources[@]}" >&2
+class_files=()
+while IFS= read -r -d '' f; do class_files+=("${f}"); done \
+  < <(find "${work}/classes" -name '*.class' -print0)
+[[ "${#class_files[@]}" -gt 0 ]] || maui_die "javac emitted no .class files"
+"${d8}" --release --lib "${android_jar}" --min-api 24 --output "${work}" \
+  "${class_files[@]}" "${maui_aar_jars[@]}" >&2
+[[ -f "${work}/classes.dex" ]] || maui_die "d8 produced no classes.dex"
 
 # ---- 4. assemble: add classes.dex (root) + lib/<abi>/<so> + assets/* into the APK ----
 cp "${app_so}" "${work}/lib/${abi}/libmaui_android_apphost_xaml.so"
@@ -216,7 +220,7 @@ fi
 echo "[apphost-xaml] adding classes.dex + lib/${abi}/*.so + assets/*..." >&2
 unaligned_apk="${work}/app-unaligned.apk"
 cp "${base_apk}" "${unaligned_apk}"
-( cd "${work}" && zip -X "${unaligned_apk}" classes.dex >&2 \
+( cd "${work}" && zip -X "${unaligned_apk}" classes*.dex >&2 \
     && zip -X -0 "${unaligned_apk}" "lib/${abi}/libmaui_android_apphost_xaml.so" >&2 \
     && { [[ "${asset_count}" -eq 0 ]] || zip -X -r "${unaligned_apk}" assets >&2 ; } ) \
   || maui_die "zip-assembling the APK failed"

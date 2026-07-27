@@ -1,38 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- App-host Activity theme for the C++ MAUI gallery on Android.
+<!-- App-host Activity theme for the C++ MAUI gallery on Android. Shared by BOTH hosts: the C++ builder
+     host (AndroidManifest.xml beside this file) and the C++&XAML host
+     (examples/gallery_xaml/apphost/AndroidManifest.xml), whose build script compiles this same res dir.
 
      WHY THIS EXISTS (parity):
-     The Activity previously declared NO android:theme. With targetSdkVersion 34 that makes the framework
-     apply Theme.DeviceDefault (Material You / Material3) on API-34 devices, whose ?android:colorBackground
-     resolves to the Material3 *tonal surface* — a very slightly purple-tinted white (measured #F1F0F7 on
-     the maui-test emulator). Real .NET MAUI (MauiAppCompatActivity + Maui.MainTheme, whose base parent is
-     Theme.MaterialComponents.DayNight) renders these native-default ContentPages on a PURE WHITE window
-     background (#FFFFFF) in light mode. That mismatch is what the parity review flagged as "port page
-     background is light lavender-gray vs MAUI's white" (content_view, menu_bar, and every sparse page).
+     The Activity's theme is not decoration — it is where Android resolves the default style of every
+     widget the port constructs (editTextStyle, progressBarStyle, switchStyle, buttonStyle, ...), and so
+     the field chrome, metrics and tints the port renders with. Getting it wrong shifts every
+     field-bearing page by a few pixels. With NO android:theme at all, targetSdk 34 applies
+     Theme.DeviceDefault (Material You), whose ?android:colorBackground is the Material3 tonal surface —
+     a purple-tinted white (measured #F1F0F7 on the maui-test emulator) that the parity review flagged as
+     "port page background is light lavender-gray vs MAUI's white".
 
-     TWO FIXES PINNED HERE:
+     WHAT THIS IS: a REPRODUCTION OF MAUI'S OWN THEME, item for item, from the oracle at
+     src/Core/src/Platform/Android/Resources/values/styles.xml (Maui.MainTheme.Base +
+     Maui.MainTheme.NoActionBar + MauiMaterialButton + MauiCheckBox), with the brand colours replaced by
+     the neutral native-default greys MauiReference pins in
+     port/maui-reference/app/Platforms/Android/Resources/values/colors.xml (parity policy item 4 — the
+     reference renders native-default controls, not the #512BD4 template brand).
 
-     (1) NO ACTION BAR (2026-07-01). We previously parented on DeviceDefault.Light.DarkActionBar and KEPT
-     the action bar — it painted a top app-title bar showing android:label ("MAUI C++ Gallery"). Real
-     .NET MAUI's Android gallery renders these ContentPages with NO such top bar (its shell/toolbar is
-     empty on these native-default pages), so the port's title bar was a parity DIFF. Per the parity
-     policy (MAUI's render is the ground truth), we now parent on the NoActionBar framework theme, so the
-     content starts directly below the status bar — exactly where a native-default MAUI ContentPage's
-     content starts. app_host.cpp's content_chrome_height_px NO LONGER reserves action-bar height; it
-     subtracts only the status bar (top) + navigation bar (bottom), so the page layout still positions
-     correctly under this theme.
+     HISTORY (2026-07-26). This theme previously parented on
+     @android:style/Theme.DeviceDefault.Light.NoActionBar and hard-pinned android:windowBackground /
+     android:colorBackground to white, because the app hosts linked android.jar ONLY: there was no
+     AppCompat/Material AAR on the classpath (no gradle), so the NoActionBar framework theme plus a white
+     pin was the closest reachable approximation of MAUI's Theme.MaterialComponents.DayNight.
+     tools/parity/android-aar-lib.sh now links the real AndroidX + Material AARs out of the local NuGet
+     cache, so the theme parents on the REAL Theme.MaterialComponents.DayNight — exactly what
+     Maui.MainTheme.Base parents on. Measured effect of the theme switch ALONE (no handler change) over a
+     32-page regression sweep in both themes: 8 scores closer to MAUI (activity_indicator 1.32%->0.55%
+     light and 1.47%->0.94% dark, date_picker 0.78%->0.57%, time_picker 0.71%->0.53%, picker
+     0.79%->0.29%, switch dark 0.74%->0.51%, stepper 0.03%->0.00%, plus clip_views/pickers/progress_bar
+     marginally), ZERO worse, the rest byte-identical.
 
-     (2) WHITE BACKGROUND. Pin the window / colorBackground to pure white so it matches MAUI's rendered
-     background exactly, instead of inheriting the DeviceDefault/Material3 tonal surface (#F1F0F7
-     lavender). We parent on the framework DeviceDefault.Light.NoActionBar (no Material Components AAR on
-     the app-host classpath — the app-host links android.jar only, no gradle). -->
+     TWO THINGS THIS THEME MUST NOT DISTURB, both asserted programmatically by
+     MauiHostActivity.onCreate: the #BDBDBD status bar (matching Maui.MainTheme's colorPrimaryDark) and
+     the page surface (white light / #121212 dark). The old explicit white background pins are therefore
+     gone — DayNight already resolves colorBackground the way MAUI does, and the Activity paints the
+     window + content root authoritatively on top of it. -->
 <resources>
-    <style name="MauiAppHost.Theme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
-        <!-- Match MAUI's white light-mode page background (Theme.MaterialComponents.DayNight resolves to
-             white), instead of the DeviceDefault/Material3 tonal surface (#F1F0F7 lavender). Both the
-             window drawable and the colorBackground attribute are pinned so surfaces that read either one
-             land on pure white. -->
-        <item name="android:windowBackground">@android:color/white</item>
-        <item name="android:colorBackground">@android:color/white</item>
+    <!-- MauiReference's neutralized native-default palette (Platforms/Android/Resources/values/colors.xml):
+         the dotnet-new-maui template's #512BD4 brand purple neutralized to platform grey, so accent-tinted
+         DEFAULTS fall back to the native look. Explicitly-colored demo controls are unaffected. -->
+    <color name="mauiColorPrimary">#E0E0E0</color>
+    <color name="mauiColorPrimaryDark">#BDBDBD</color>
+    <color name="mauiColorAccent">#E0E0E0</color>
+
+    <style name="MauiAppHost.Theme" parent="Theme.MaterialComponents.DayNight">
+        <item name="colorPrimary">@color/mauiColorPrimary</item>
+        <item name="colorPrimaryDark">@color/mauiColorPrimaryDark</item>
+        <item name="colorAccent">@color/mauiColorAccent</item>
+        <item name="materialButtonStyle">@style/MauiMaterialButton</item>
+        <item name="checkboxStyle">@style/MauiCheckBox</item>
+        <item name="android:textAllCaps">false</item>
+        <!-- Maui.MainTheme.NoActionBar. MAUI's Android gallery renders these native-default ContentPages
+             with NO top app-title bar, and app_host.cpp's content_chrome_height_px reserves no action-bar
+             height — it subtracts only the status bar (top) and navigation bar (bottom). -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="MauiMaterialButton" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+        <!-- MAUI manages min size, padding and insets itself; zero all of them, as Maui.MainTheme does. -->
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+    </style>
+
+    <style name="MauiCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="buttonTint">?attr/colorPrimary</item>
     </style>
 </resources>

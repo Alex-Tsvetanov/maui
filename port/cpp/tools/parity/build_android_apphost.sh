@@ -8,10 +8,13 @@
 # Pipeline (mirrors src/platform/android/apphost + the proven testhost javac→d8 lane in
 # tools/android-testhost-run.sh, which this reuses android-emu-lib.sh from):
 #   1. cmake-build libmaui_android_apphost.so (the SHARED app-host target) for the android preset.
-#   2. javac + d8: dex MauiHostActivity.java + the runtime java support classes (src/platform/android/java —
-#      NativeOnClickListener etc., the same set the testhost dexes) into classes.dex.
-#   3. aapt2 link the manifest against android.jar → a base APK with the compiled manifest + resource table.
-#   4. Assemble: add classes.dex (root) + lib/<abi>/libmaui_android_apphost.so into the APK (aapt2 add / zip).
+#   2. aapt2 compile + link: the app manifest/res PLUS every AndroidX AppCompat + Google Material AAR
+#      resource tree (tools/parity/android-aar-lib.sh, staged from the local NuGet cache) into one merged
+#      table, emitting an R.java per library package. Runs BEFORE javac, which must compile those R classes.
+#   3. javac + d8: dex MauiHostActivity.java + the runtime java support classes (src/platform/android/java —
+#      NativeOnClickListener etc., the same set the testhost dexes) + the generated R classes + every
+#      library jar into classes*.dex (native multidex — AppCompat+Material exceed the 64K method limit).
+#   4. Assemble: add classes*.dex (root) + lib/<abi>/libmaui_android_apphost.so into the APK (zip).
 #   5. zipalign 4-byte, then apksigner sign with a throwaway debug keystore (created on demand).
 #   6. adb install -r, am start the launcher Activity with the MAUI_SAMPLE_PAGE extra, screencap to a PNG.
 #
@@ -39,6 +42,10 @@ cpp_root="$(cd "${script_dir}/../.." && pwd)" # port/cpp
 # Reuse the SDK-resolve / AVD-boot / keyed-staging machinery the testhost lane already proved.
 # shellcheck source=../android-emu-lib.sh
 source "${cpp_root}/tools/android-emu-lib.sh"
+# AndroidX AppCompat + Google Material linking (the AARs MAUI itself builds against, staged out of the
+# local NuGet cache) — supplies maui_android_aar_prepare / maui_aar_jars / maui_aar_link.
+# shellcheck source=android-aar-lib.sh
+source "${script_dir}/android-aar-lib.sh"
 
 # ---- args ----
 do_capture=1
@@ -123,7 +130,11 @@ done
 [[ -n "${app_so}" ]] || maui_die "could not find libmaui_android_apphost.so under ${build_dir} (check the preset's output dir)"
 echo "[apphost] .so: ${app_so}" >&2
 
-# ---- 2. javac + d8: dex the Activity + the runtime java support classes ----
+# ---- 2. stage the AndroidX/Material AARs, then aapt2 compile + link -> base APK + the R classes ----
+# ORDER MATTERS: aapt2 link is what EMITS the R.java files (one per resource-owning library package),
+# and javac must compile those, so linking happens BEFORE javac now. See tools/parity/android-aar-lib.sh
+# for what the AAR staging replaces from AGP (classes.jar onto the classpath + into d8, res/ compiled and
+# merged, an R.java per --extra-packages, all cached under build/android/aardeps).
 apphost_dir="${cpp_root}/src/platform/android/apphost"
 manifest="${apphost_dir}/AndroidManifest.xml"
 activity_java="${apphost_dir}/MauiHostActivity.java"
@@ -132,41 +143,52 @@ runtime_java_dir="${cpp_root}/src/platform/android/java" # NativeOnClickListener
 
 work="${build_dir}/apphost-apk"
 rm -rf "${work}"
-mkdir -p "${work}/classes" "${work}/lib/${abi}"
+mkdir -p "${work}/classes" "${work}/gen" "${work}/lib/${abi}"
 
+# Staged + resource-compiled once into a shared cache; re-staged only when the dep list, the stager or
+# the build-tools version change, so routine per-page capture iteration does not re-pay for it.
+maui_android_aar_prepare "${build_dir}/aardeps"
+
+base_apk="${work}/base.apk"
+echo "[apphost] aapt2 compile (apphost res: strings + theme) + link (${#maui_aar_jars[@]} AAR jars)..." >&2
+apphost_res_dir="${apphost_dir}/res"
+[[ -d "${apphost_res_dir}/values" ]] || maui_die "missing apphost res dir ${apphost_res_dir}/values"
+"${aapt2}" compile --dir "${apphost_res_dir}" -o "${work}/res-compiled.zip" >&2 || maui_die "aapt2 compile failed"
+# The library units go first (maui_aar_link: the first as the positional unit, the rest as -R overlays,
+# plus one --extra-packages per resource-owning library); the APP's own compiled res is the LAST -R so it
+# wins any collision. --auto-add-overlay is required for overlays to introduce new resources.
+"${aapt2}" link \
+  -o "${base_apk}" \
+  -I "${android_jar}" \
+  --manifest "${manifest}" \
+  --min-sdk-version 24 --target-sdk-version 34 \
+  --auto-add-overlay \
+  --java "${work}/gen" \
+  "${maui_aar_link[@]}" \
+  -R "${work}/res-compiled.zip" >&2 || maui_die "aapt2 link failed"
+[[ -f "${base_apk}" ]] || maui_die "aapt2 link produced no base APK"
+
+# ---- 3. javac + d8: the Activity + runtime java + the generated R classes + every library jar ----
 java_sources=("${activity_java}")
 if [[ -d "${runtime_java_dir}" ]]; then
   for j in "${runtime_java_dir}"/*.java; do
     [[ -f "${j}" ]] && java_sources+=("${j}")
   done
 fi
+while IFS= read -r -d '' f; do java_sources+=("${f}"); done \
+  < <(find "${work}/gen" -name 'R.java' -print0)
+aar_cp="$(IFS=:; echo "${maui_aar_jars[*]}")"
 echo "[apphost] javac (${#java_sources[@]} sources) + d8..." >&2
-"${javac_bin}" --release 17 -classpath "${android_jar}" -d "${work}/classes" "${java_sources[@]}" >&2
+"${javac_bin}" --release 17 -classpath "${android_jar}:${aar_cp}" -d "${work}/classes" "${java_sources[@]}" >&2
 class_files=()
 while IFS= read -r -d '' f; do class_files+=("${f}"); done \
   < <(find "${work}/classes" -name '*.class' -print0)
 [[ "${#class_files[@]}" -gt 0 ]] || maui_die "javac emitted no .class files"
-"${d8}" --release --lib "${android_jar}" --min-api 24 --output "${work}" "${class_files[@]}" >&2
+# AppCompat + Material blow past the 64K method limit, so dex them as native MULTIDEX (classes.dex,
+# classes2.dex, ...) — min-api 24 makes that a plain multi-file output the platform loads directly.
+"${d8}" --release --lib "${android_jar}" --min-api 24 --output "${work}" \
+  "${class_files[@]}" "${maui_aar_jars[@]}" >&2
 [[ -f "${work}/classes.dex" ]] || maui_die "d8 produced no classes.dex"
-
-# ---- 3. aapt2 link the manifest -> a base APK (compiled manifest + resource table) ----
-# The manifest references app resources (android:label string + android:theme style), so link them in.
-# The resource set is the checked-in tree under src/platform/android/apphost/res/ (values/strings.xml +
-# values/styles.xml: the app_name string and MauiAppHost.Theme — the white-background parity theme that
-# matches MAUI's light-mode window background, replacing the DeviceDefault/Material3 tonal-surface lavender
-# an unthemed Activity would inherit on API-34). Linking the theme is what forces the pure-white page bg.
-base_apk="${work}/base.apk"
-echo "[apphost] aapt2 compile (apphost res: strings + theme) + link..." >&2
-apphost_res_dir="${apphost_dir}/res"
-[[ -d "${apphost_res_dir}/values" ]] || maui_die "missing apphost res dir ${apphost_res_dir}/values"
-"${aapt2}" compile --dir "${apphost_res_dir}" -o "${work}/res-compiled.zip" >&2 || maui_die "aapt2 compile failed"
-"${aapt2}" link \
-  -o "${base_apk}" \
-  -I "${android_jar}" \
-  --manifest "${manifest}" \
-  --min-sdk-version 24 --target-sdk-version 34 \
-  "${work}/res-compiled.zip" >&2 || maui_die "aapt2 link failed"
-[[ -f "${base_apk}" ]] || maui_die "aapt2 link produced no base APK"
 # VERIFY: some aapt2 versions require at least one resource or an explicit --no-resource-deduping / a
 # generated R.java target; if link errors on "no resources", add a minimal res/values/strings.xml (app
 # label) under ${work}/res, aapt2 compile it, and pass the compiled .flat via -R.
@@ -201,7 +223,7 @@ echo "[apphost] adding classes.dex + lib/${abi}/*.so + assets/*..." >&2
 # needed). Assets are stored compressed (default) — AssetManager.open() inflates them transparently.
 unaligned_apk="${work}/app-unaligned.apk"
 cp "${base_apk}" "${unaligned_apk}"
-( cd "${work}" && zip -X "${unaligned_apk}" classes.dex >&2 \
+( cd "${work}" && zip -X "${unaligned_apk}" classes*.dex >&2 \
     && zip -X -0 "${unaligned_apk}" "lib/${abi}/libmaui_android_apphost.so" >&2 \
     && { [[ "${asset_count}" -eq 0 ]] || zip -X -r "${unaligned_apk}" assets >&2 ; } ) \
   || maui_die "zip-assembling the APK failed"
