@@ -177,7 +177,10 @@ class Session1Agent:
                                                   "interactively. Is the guest user logged on at the "
                                                   "console?", **probe}
                 self._log(f"agent up in session {self.session_id}")
-                return probe
+                # The ping reply has no 'serving' key (only the readiness line does), so add what we
+                # know -- otherwise callers report a confusing "serving=None" for a healthy agent.
+                return {**probe, "serving": f"127.0.0.1:{self.guest_port}",
+                        "local_port": self.local_port}
             time.sleep(0.25)
         return {"ok": False, "error": "agent did not answer after start", "log": self.tail_log()}
 
