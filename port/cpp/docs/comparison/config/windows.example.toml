@@ -107,10 +107,20 @@ theme_light = "light"
 theme_dark  = "dark"
 driver = "coordinate"
 
-# The "C++ & XAML" column is not enabled YET. Its committed .xaml.cpp TUs use #embed, which MSVC does not
-# implement; examples/gallery_xaml now falls back to the bytes-mode codegen the android lane uses (same
-# generator, same build_page path), but nothing has built maui_xaml under MSVC yet. Enable this once
-# build_gallery_windows.ps1 -Targets gallery_xaml succeeds - see docs/WINDOWS_TOOLCHAIN.md section 6d.
-#
+# --- the "C++ & XAML" column ------------------------------------------------------------------------
+# The SAME shared pages as the cpp column, hydrated from markup instead of built by hand -- ruling #5's
+# comparisons 2 and 4. Built on the guest through BYTES-MODE codegen: MSVC has no #embed, so
+# examples/gallery_xaml/CMakeLists.txt regenerates each page TU as a byte-array literal fed through the
+# same fixed_string/build_page path the android lane uses.
+[environments.windows-x64.columns.cpp_xaml]
+artifact_remote = "C:/maui-src/cpp/examples/build-win/gallery_xaml"
+artifact  = "port/cpp/examples/gallery_xaml"   # host path, unused while artifact_remote is set
+process   = "gallery_xaml.exe"
+page_env  = "MAUI_SAMPLE_PAGE"
+theme_env = "MAUI_APPEARANCE"
+theme_light = "light"
+theme_dark  = "dark"
+driver = "coordinate"
+
 # The mingw Win32 smoke app that used to sit here was TRANSPORT scaffolding and is deliberately not a
 # board column -- it paints the same layout for every page and can never match MAUI.

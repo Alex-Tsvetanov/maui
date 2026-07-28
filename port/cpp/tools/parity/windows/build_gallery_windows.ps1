@@ -24,6 +24,15 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
+# Re-split on commas. Invoked as `powershell -File this.ps1 -Targets gallery,gallery_xaml`, PowerShell
+# hands the parameter the LITERAL STRING "gallery,gallery_xaml" -- the comma is array syntax only when
+# the script is dot-sourced or called in-language, which the SSH lane never does. cmake then looks for
+# one target named "gallery,gallery_xaml" and fails. Space-separating is worse: only the first token
+# binds to -Targets and the second lands on the next positional parameter ($SourceDir), which surfaces
+# much later as "the source directory C:/.../gallery_xaml does not exist". Splitting here makes every
+# invocation form work.
+$Targets = @($Targets | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
+
 function Info($m) { Write-Host "[gallery] $m" -ForegroundColor Cyan }
 function Warn($m) { Write-Host "[gallery] !   $m" -ForegroundColor Yellow }
 

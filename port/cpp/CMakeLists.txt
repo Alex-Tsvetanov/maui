@@ -211,11 +211,25 @@ target_link_libraries(maui_graphics PRIVATE maui_sanitizers)
 # The root add_compile_options() above covers the framework's own translation units, but it is
 # DIRECTORY-scoped and does not propagate to an out-of-tree project that add_subdirectory()s this one --
 # examples/gallery hit exactly that and died with C1128 (section limit) on the first build.
-#   /bigobj -- the bindable-property + handler templates blow past the 64k-section limit.
-#   /utf-8  -- every public header here has em-dashes in its comments; without it cl.exe reads them as the
-#              ANSI codepage and warns per file (C4819), and a consumer building /WX would hard-fail.
+#   /bigobj          -- the bindable-property + handler templates blow past the 64k-section limit.
+#   /utf-8           -- every public header here has em-dashes in its comments; without it cl.exe reads
+#                       them as the ANSI codepage and warns per file (C4819), and a consumer building /WX
+#                       would hard-fail.
+#   /Zc:__cplusplus  -- NOT optional and not cosmetic. MSVC reports __cplusplus as 199711L unless this is
+#                       passed, and include/maui/xaml/feature.hpp gates MAUI_HAS_CLASS_NTTP on
+#                       `__cplusplus >= 202002L`. A consumer without it silently gets
+#                       MAUI_HAS_BUILD_PAGE=0 and every compile-time-XAML page fails on the
+#                       "this toolchain lacks class-type NTTPs" static_assert -- a diagnosis that is
+#                       flatly untrue of MSVC 19.44, and that sends you looking at NTTP support rather
+#                       than at a missing flag. That is exactly how examples/gallery_xaml first failed.
+#   /permissive- + /Zc:preprocessor
+#                    -- the framework compiles ITSELF with both, so its headers are written for a
+#                       conforming front end and a conforming preprocessor. Letting a consumer compile
+#                       the same headers under the legacy rules is asking for divergence that surfaces
+#                       as an inscrutable template error rather than as "you are missing a flag".
 if(MSVC)
-  target_compile_options(maui_graphics INTERFACE /bigobj /utf-8)
+  target_compile_options(maui_graphics INTERFACE
+    /bigobj /utf-8 /Zc:__cplusplus /permissive- /Zc:preprocessor)
 endif()
 # ---- BEGIN apple_shared link/include: the CoreGraphics canvas needs CoreGraphics + CoreText +
 # Foundation (PUBLIC: the .mm tests and any backend consumer reach CGContext/CTLine through it);
@@ -2249,6 +2263,15 @@ else()
   if(MAUI_BACKEND STREQUAL "android")
     list(REMOVE_ITEM MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/headless/essentials_device_info.cpp)
     list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/android/essentials_device_info.cpp)
+  endif()
+  # Windows partial (control-by-control, twin of the android/apple swaps above): the unconfigured
+  # headless fake's version_string()/model() THROW feature_not_supported, which took down the gallery's
+  # device_page at construction (a stowed exception, WinRT's fail-fast for an exception escaping
+  # Application::Start). The windows partial reads EasClientDeviceInformation/AnalyticsInfo via
+  # C++/WinRT and degrades to defaults on failure instead of throwing, so the page renders.
+  if(MAUI_BACKEND STREQUAL "windows")
+    list(REMOVE_ITEM MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/headless/essentials_device_info.cpp)
+    list(APPEND MAUI_ESSENTIALS_PLATFORM_SOURCES src/platform/windows/essentials_device_info.cpp)
   endif()
 endif()
 

@@ -34,7 +34,10 @@
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 
+#include <cstdio>
+#include <cstdlib>
 #include <memory>
+#include <string_view>
 #include <utility>
 
 #include "maui/controls/application.hpp"
@@ -63,6 +66,33 @@ namespace
     // The Windows App SDK major/minor the app is built against (1.7). It must match the package restored
     // by tools/parity/windows/build_winui_probe.ps1; a mismatch fails the bootstrap at startup.
     constexpr UINT32 k_wasdk_major_minor = 0x00010007;
+
+    // Per-step boot logging, OFF unless MAUI_WINUI_LOG names a file. This exists because a WinUI
+    // failure gives you nothing: a stowed exception (0xC000027B) unwinds through combase with no
+    // message, no stack and no console -- the process is simply gone, and WER names a system DLL
+    // rather than the call that provoked it. The winui_probe carried the same logging for the same
+    // reason; without it you are reduced to guessing, and two guesses have already been wrong on the
+    // `device` page. Env-gated so a normal run pays one getenv and writes nothing.
+    //
+    // Opened and closed per line, deliberately: the whole point is to survive a process that dies
+    // mid-call, and a buffered stream would lose exactly the last line -- the one naming the step
+    // that killed it.
+    void boot_log(std::string_view step)
+    {
+        const char* const path = std::getenv("MAUI_WINUI_LOG");
+        if (path == nullptr)
+        {
+            return;
+        }
+        std::FILE* file = nullptr;
+        if (fopen_s(&file, path, "a") != 0 || file == nullptr)
+        {
+            return;
+        }
+        std::fwrite(step.data(), 1, step.size(), file);
+        std::fputc('\n', file);
+        std::fclose(file);
+    }
 
     // The native Window behind a mounted maui window, or a null projected object if it is not attached.
     winui::Window native_window_of(maui::controls::window& window)
@@ -93,10 +123,14 @@ namespace
         {
             // Merge the WinUI control styles. Without them the controls still activate but render
             // unstyled, which looks like a broken layout rather than a missing resource dictionary.
+            boot_log("OnLaunched: entered");
             Resources().MergedDictionaries().Append(winui::Controls::XamlControlsResources{});
+            boot_log("OnLaunched: XamlControlsResources merged");
 
             // (1) Build the app from a FRESH builder the user's configurator populates.
+            boot_log("build: configure_ + build");
             app_ = configure_(maui::hosting::maui_app::create_builder()).build();
+            boot_log("build: maui_app built");
             const std::shared_ptr<maui::controls::application>& application = app_->application();
             if (application == nullptr)
             {
@@ -107,7 +141,9 @@ namespace
                 Exit();
                 return;
             }
+            boot_log("window: create_window");
             window_ = dynamic_cast<maui::controls::window*>(application->create_window());
+            boot_log("window: created");
             if (window_ == nullptr)
             {
                 Exit();
@@ -116,7 +152,9 @@ namespace
 
             // (2) Generic mount: handlers across the tree (children before parents), the window handler
             //     last - which creates the native Window and hosts the page as its Content.
+            boot_log("mount: mount_window");
             maui::hosting::mount_window(*app_, *window_);
+            boot_log("mount: mounted");
 
             const winui::Window native = native_window_of(*window_);
             if (native == nullptr)
@@ -192,7 +230,9 @@ namespace
             // (4) Show it, then lay out at the size it actually got. Activate first because a WinUI
             //     window has no client size until it is shown - laying out before would use the fallback
             //     and then immediately be corrected by the SizeChanged above.
+            boot_log("activate: before");
             native.Activate();
+            boot_log("activate: after");
             // Force a XAML layout pass BEFORE the port measures anything. Until one runs, a templated
             // control (a Button) has no template applied, so UIElement::Measure reports only its bare
             // content size - the port then arranges every button ~19px tall with no chrome, which is
@@ -201,7 +241,9 @@ namespace
             // themed one.
             if (const auto root = native.Content().try_as<winui::FrameworkElement>())
             {
+                boot_log("layout: UpdateLayout");
                 root.UpdateLayout();
+                boot_log("layout: UpdateLayout done");
             }
             // Window.Bounds, NOT AppWindow.ClientSize: Bounds is in DIPs, which is the space XAML lays
             // out in and therefore the space the port's own measure/arrange works in. ClientSize is in
@@ -216,7 +258,9 @@ namespace
                 width = bounds.Width;
                 height = bounds.Height;
             }
+            boot_log("layout: drive_layout");
             maui::hosting::drive_layout(*window_, width, height);
+            boot_log("layout: drive_layout done -- boot complete");
         }
 
         // ---- IXamlMetadataProvider: delegate to the WinUI controls' own provider ---------------------
@@ -261,7 +305,9 @@ namespace maui::hosting
         int exit_code = 0;
         try
         {
+            boot_log("main: bootstrap ok");
             winrt::init_apartment(winrt::apartment_type::single_threaded);
+            boot_log("main: apartment initialised");
             // Application::Start owns the message loop and returns only when the app exits, so this call
             // IS the run loop - the Windows analogue of UIApplicationMain.
             winui::Application::Start([configure = std::move(configure)](auto&&) mutable {

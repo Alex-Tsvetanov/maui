@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <string_view>
+#include <type_traits>
 
 #include "maui/xaml/feature.hpp"
 
@@ -47,7 +48,7 @@ namespace maui
         // From a raw byte array of exactly N bytes (the #embed-into-array form; no trailing NUL assumed).
         // Constrained to a 1-byte non-char element so it never competes with the string-literal ctor.
         template <class Byte, std::size_t M>
-            requires(M == N) && (sizeof(Byte) == 1) && (!__is_same(Byte, char))
+            requires(M == N) && (sizeof(Byte) == 1) && (!std::is_same_v<Byte, char>)
         consteval fixed_string(const Byte (&s)[M]) // NOLINT(google-explicit-constructor) — NTTP ergonomics
         {
             for (std::size_t i = 0; i < N; ++i)

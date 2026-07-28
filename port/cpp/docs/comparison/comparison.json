@@ -6293,12 +6293,12 @@
             "dark": "captures/windows/maui/device_dark.png"
           },
           "cpp": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/cpp/device_light.png",
+            "dark": "captures/windows/cpp/device_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/device_light.png",
+            "dark": "captures/windows/xaml/device_dark.png"
           }
         },
         "sonnet": {
@@ -6310,12 +6310,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9813, 0.41% pixels differ \u00b7 Dark: SSIM 0.3065, 97.46% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9839, 0.34% pixels differ \u00b7 Dark: SSIM 0.3065, 97.46% pixels differ"
         }
       }
     }

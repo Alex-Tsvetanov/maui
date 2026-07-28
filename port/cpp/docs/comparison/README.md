@@ -7804,8 +7804,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 | --- | --- | --- |
 | 🟢 Match | 10 | 0 |
 | 🟡 Minor | 86 | 0 |
-| 🔴 Major | 75 | 0 |
-| ⬛ Blank | 1 | 172 |
+| 🔴 Major | 76 | 1 |
+| ⬛ Blank | 0 | 171 |
 | ⏳ Unreviewed | 0 | 0 |
 
 ### 1. Absolute Layout — 🟡/⬛
@@ -8438,20 +8438,20 @@ Light: SSIM 0.8898, 3.11% pixels differ · Dark: no comparable pair
 
 No comparable MAUI/C++ screenshot pair exists for this page on this platform.
 
-### 43. Device — ⬛/⬛
+### 43. Device — 🔴/🔴
 <sub>device</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/device_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/device_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/device_light.png" /></td><td><img width="300px" src="captures/windows/cpp/device_light.png" /></td><td><img width="300px" src="captures/windows/xaml/device_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/device_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/device_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/device_dark.png" /></td></tr></table>
 
 ports DevicePage.xaml
 
-#### ⬛ C++ Pixel-Perfect Score — C++ (C1/C3)
+#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-No comparable MAUI/C++ screenshot pair exists for this page on this platform.
+Light: SSIM 0.9813, 0.41% pixels differ · Dark: SSIM 0.3065, 97.46% pixels differ
 
-#### ⬛ C++ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-No comparable MAUI/C++ screenshot pair exists for this page on this platform.
+Light: SSIM 0.9839, 0.34% pixels differ · Dark: SSIM 0.3065, 97.46% pixels differ
 
 ### 44. Dispatcher — 🔴/⬛
 <sub>dispatcher</sub>
