@@ -282,7 +282,12 @@ class Session1Agent:
             self._raw_call({"token": self.token, "cmd": "__shutdown__"}, timeout=3)
         except OSError:
             pass
-        self.sh(["schtasks", "/end", "/tn", TASK_NAME])
+        # ...and then the unconditional SSH-side kill. The shutdown above is AUTHENTICATED, so it is
+        # exactly powerless in the one case that matters: an agent left behind by a previous run, which
+        # holds the port with a DIFFERENT token. Leaving it alive makes the next start() fail with
+        # "agent did not answer" (the new task cannot bind 8770 and exits), which reads as a guest
+        # problem rather than a leftover process.
+        self._kill_listener()
         self.sh(["schtasks", "/delete", "/tn", TASK_NAME, "/f"])
         if self._tunnel_err_file is not None:
             try:
