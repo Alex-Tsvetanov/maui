@@ -67,6 +67,19 @@ namespace maui::core
         // tests replay into a recording_canvas — the native drawRect twin).
         void replay(maui::graphics::i_canvas& canvas, const maui::graphics::rect_f& dirty_rect);
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend (src/platform/windows/shape_view_handler.cpp): push the generic IView
+        // properties to the native Border host via the shared winui_visual_ops helpers, exactly like
+        // label_platform's Windows block. Selected by MAUI_PLATFORM_WINDOWS, which is PUBLIC on
+        // maui_core for that backend only, so every TU of a given build sees exactly one backend's
+        // overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
+
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend (src/platform/apple/shape_view_handler.mm): the NSView drawing host (the
         // graphics_view partial's scope — a plain NSView host, is_enabled keeps the base mirror).

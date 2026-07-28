@@ -47,4 +47,10 @@ namespace maui::platform::windows
     // returns (C# does the same, and setting Transparent instead would suppress a themed control's own
     // chrome - which is exactly the bug the first Windows capture showed on buttons).
     void apply_background(void* slot, const maui::graphics::paint* value);
+
+    // The paint -> Brush translation apply_background uses (solid / linear-gradient / radial-gradient),
+    // exported so a control whose oracle REMAPS Background away from the generic push (Slider - see
+    // SliderHandler.cs's `#if WINDOWS [nameof(ISlider.Background)] = MapBackgroundColor`) can still reuse
+    // the same brush logic instead of duplicating it.
+    [[nodiscard]] winrt::Microsoft::UI::Xaml::Media::Brush brush_for(const maui::graphics::paint& paint);
 } // namespace maui::platform::windows

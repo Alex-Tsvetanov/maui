@@ -25,6 +25,7 @@
 // src/platform/<backend>/scroll_view_handler.{cpp,mm}.
 
 #include <any>
+#include <cstdint>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -68,6 +69,32 @@ namespace maui::core
         // Every executed RequestScrollTo, in order (the headless record the task spec asks for; the
         // native partials append too, so on-device tests can assert the same trail).
         std::vector<scroll_to_request> scroll_requests;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend (src/platform/windows/scroll_view_handler.cpp): the ScrollViewer.ViewChanged
+        // event-registration token, so on_disconnect_handler can revoke exactly what it registered — the
+        // button_platform discipline (see button_handler.hpp's click_token). scrolled_view is a
+        // NON-owning back-reference to the scrolled virtual view, set in on_connect_handler: the native
+        // ViewChanged lambda captures ONLY this platform struct (never the handler), so if the platform is
+        // torn down without a disconnect (the element tree does this on shutdown), ~scroll_view_platform
+        // can still revoke the subscription itself — a lambda capturing the handler instead would risk
+        // firing into freed memory once the handler is gone.
+        std::int64_t view_changed_token = 0;
+        i_scroll_view* scrolled_view = nullptr;
+
+        // Push the generic IView properties to the native element via the shared winui_visual_ops
+        // helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is PUBLIC on
+        // maui_core for that backend only - so every TU of a given build sees exactly one backend's
+        // overrides and the class layout stays ODR-consistent. All five, matching every other Windows
+        // control (button/label/layout/content_page) rather than the per-axis variance the Apple/iOS/
+        // Android twins have — the oracle's ScrollViewHandler.Windows.cs has no MapIsEnabled override, so
+        // the base ViewHandler's generic IsEnabled map applies directly (ScrollViewer IS a Control).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend (src/platform/apple/scroll_view_handler.mm): the generic IView pushes onto the

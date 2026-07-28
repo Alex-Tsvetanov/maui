@@ -14,6 +14,7 @@
 // flows through the handler-owned image_source_loader (the same seam as image_handler), and UpdateOnTap
 // rides the i_ios_slider_specifics side contract (the W2-24 platform-configuration pattern).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -63,6 +64,34 @@ namespace maui::core
         // (whether the tap-to-set gesture is installed; the native builds attach/remove a real recognizer).
         bool thumb_image_set = false;
         bool update_on_tap = false;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the event registration tokens on_connect_handler produced, so
+        // on_disconnect_handler can revoke EXACTLY what it registered (the button_platform pattern).
+        // loaded_token / value_changed_token: RangeBase.ValueChanged is deliberately NOT subscribed until
+        // the native Slider's Loaded event fires (SliderHandler.Windows.cs OnPlatformViewLoaded) - the
+        // initial Minimum/Maximum/Value mapper pushes at construction can themselves trigger the
+        // framework's own clamp-driven ValueChanged, and subscribing eagerly would echo that unintended
+        // value back to the virtual view before the control has settled.
+        std::int64_t loaded_token = 0;
+        std::int64_t value_changed_token = 0;
+        // The pointer Pressed/Released(+Canceled) events, boxed like button_platform's pointer_events:
+        // RangeBase's control template marks them handled, so a plain subscription never fires and
+        // RemoveHandler needs the delegate OBJECT back, not a token.
+        void* pointer_events = nullptr;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSSlider (defined in

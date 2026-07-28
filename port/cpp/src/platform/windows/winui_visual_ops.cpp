@@ -60,8 +60,14 @@ namespace
         }
     }
 
+} // namespace
+
+namespace maui::platform::windows
+{
     // A Brush for the paint, or a null projected object when the paint kind is not translated yet
-    // (image and pattern paints - they need an ImageBrush fed by the image-source services).
+    // (image and pattern paints - they need an ImageBrush fed by the image-source services). Exported
+    // (see the header) so a control whose oracle remaps Background away from apply_background below
+    // (Slider, on Windows) can reuse the same translation instead of duplicating it.
     winui::Media::Brush brush_for(const maui::graphics::paint& paint)
     {
         if (const auto* linear = dynamic_cast<const maui::graphics::linear_gradient_paint*>(&paint))
@@ -91,10 +97,7 @@ namespace
         // pattern_paint and the system paint all implement. That is C#'s fallback too.
         return winui::Media::SolidColorBrush{maui::platform::windows::to_ui_color(paint.background_color())};
     }
-} // namespace
 
-namespace maui::platform::windows
-{
     void apply_visibility(void* slot, maui::core::visibility value)
     {
         const winui::UIElement element = element_of(slot);

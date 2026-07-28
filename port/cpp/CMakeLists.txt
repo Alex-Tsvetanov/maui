@@ -662,7 +662,8 @@ else()
   # staged state the ios and android backends passed through, not a silent gap.
   if(MAUI_BACKEND STREQUAL "windows")
     set(MAUI_WINDOWS_SWAPS
-      window_handler content_page_handler layout_handler label_handler button_handler)
+      window_handler content_page_handler layout_handler label_handler button_handler slider_handler
+      scroll_view_handler shape_view_handler entry_handler)
     foreach(unit IN LISTS MAUI_WINDOWS_SWAPS)
       list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/${unit}.cpp)
       list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/${unit}.cpp)
