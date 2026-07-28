@@ -191,7 +191,13 @@ class Session1Agent:
 
         self._open_tunnel()
         killed_stale = False
-        for _ in range(40):  # ~10s for python to start and bind
+        # ~60s, not the ~10s this used to allow. A COLD start on this guest is: schtasks hands the task
+        # to the interactive session, Windows spawns python, python imports and binds. On the ARM64 VM
+        # under load that regularly exceeds 10s -- and the failure then reads "agent did not answer"
+        # while the guest's own serve log shows it came up healthy seconds later, which sends you
+        # hunting for a transport bug that is not there. The loop still exits the moment it connects,
+        # so a warm agent costs nothing.
+        for _ in range(240):
             probe = self._try_connect_existing()
             if self._last_ping_error == "unauthorized":
                 # A stale agent is holding the port with an OLDER token. The polite shutdown in stop() is
