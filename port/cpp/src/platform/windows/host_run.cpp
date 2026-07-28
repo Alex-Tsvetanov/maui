@@ -150,6 +150,29 @@ namespace
                 return;
             }
 
+            // (1b) The APPLICATION theme, set here and nowhere else: Application.RequestedTheme may only
+            //      be assigned before the first window exists, and mount_window below is what creates it.
+            //      This slot is the only point where both are true - the app has been built (so
+            //      requested_theme() is known) and no Window has been made yet.
+            //
+            //      Why this and not just the content root's FrameworkElement.RequestedTheme (which the
+            //      first attempt used): a per-element theme correctly restyles the CONTROLS, but every
+            //      manual `Application.Resources.Lookup` still resolves against the APP theme. The dark
+            //      capture proved it - white text on a light page, 97% differing. Setting the app theme
+            //      makes every theme-resource resolution, mine and the framework's, agree.
+            switch (application->requested_theme())
+            {
+                case maui::core::app_theme::dark:
+                    winui::Application::Current().RequestedTheme(winui::ApplicationTheme::Dark);
+                    break;
+                case maui::core::app_theme::light:
+                    winui::Application::Current().RequestedTheme(winui::ApplicationTheme::Light);
+                    break;
+                case maui::core::app_theme::unspecified:
+                    break; // leave the system default
+            }
+            boot_log("theme: application theme set");
+
             // (2) Generic mount: handlers across the tree (children before parents), the window handler
             //     last - which creates the native Window and hosts the page as its Content.
             boot_log("mount: mount_window");
@@ -181,11 +204,10 @@ namespace
             //      rendering in the system theme and a "dark" capture would come back LIGHT - a
             //      plausible-looking but entirely wrong board row.
             //
-            //      FrameworkElement.RequestedTheme on the CONTENT ROOT, not Application.RequestedTheme:
-            //      the latter is settable only before the first window exists and would have to happen in
-            //      the constructor, which is where activating XAML types is fatal (note 3). The
-            //      per-element property propagates to the whole visual tree, which is what the theme
-            //      resources every control template binds to actually resolve against.
+            //      Belt-and-braces on top of the APPLICATION theme set at (1b), which is the actual
+            //      mechanism. Kept because it makes the root's theme explicit in the visual tree and
+            //      costs one property set; if (1b) ever cannot run (an already-initialised Application),
+            //      this still restyles the controls even though resource lookups would go light.
             if (const auto themed = native.Content().try_as<winui::FrameworkElement>())
             {
                 switch (application->requested_theme())

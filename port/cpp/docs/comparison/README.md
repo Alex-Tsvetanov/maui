@@ -7803,9 +7803,9 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
 | 🟢 Match | 10 | 0 |
-| 🟡 Minor | 86 | 0 |
-| 🔴 Major | 76 | 1 |
-| ⬛ Blank | 0 | 171 |
+| 🟡 Minor | 87 | 1 |
+| 🔴 Major | 75 | 2 |
+| ⬛ Blank | 0 | 169 |
 | ⏳ Unreviewed | 0 | 0 |
 
 ### 1. Absolute Layout — 🟡/⬛
@@ -8108,20 +8108,20 @@ Light: SSIM 0.9302, 12.60% pixels differ · Dark: no comparable pair
 
 No comparable MAUI/C++ screenshot pair exists for this page on this platform.
 
-### 21. Button — 🔴/⬛
+### 21. Button — 🔴/🔴
 <sub>button</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/button_light.png" /></td><td><img width="300px" src="captures/windows/cpp/button_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/button_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/button_light.png" /></td><td><img width="300px" src="captures/windows/cpp/button_light.png" /></td><td><img width="300px" src="captures/windows/xaml/button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/button_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/button_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/button_dark.png" /></td></tr></table>
 
 ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.4768, 32.26% pixels differ · Dark: no comparable pair
+Light: SSIM 0.4757, 31.26% pixels differ · Dark: SSIM 0.4913, 33.86% pixels differ
 
-#### ⬛ C++ & XAML Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-No comparable MAUI/C++ screenshot pair exists for this page on this platform.
+Light: SSIM 0.4747, 31.28% pixels differ · Dark: SSIM 0.4911, 33.86% pixels differ
 
 ### 22. Carousel Page — 🟡/⬛
 <sub>carousel_page</sub>
@@ -8438,20 +8438,20 @@ Light: SSIM 0.8898, 3.11% pixels differ · Dark: no comparable pair
 
 No comparable MAUI/C++ screenshot pair exists for this page on this platform.
 
-### 43. Device — 🔴/🔴
+### 43. Device — 🟡/🟡
 <sub>device</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/device_light.png" /></td><td><img width="300px" src="captures/windows/cpp/device_light.png" /></td><td><img width="300px" src="captures/windows/xaml/device_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/device_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/device_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/device_dark.png" /></td></tr></table>
 
 ports DevicePage.xaml
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9813, 0.41% pixels differ · Dark: SSIM 0.3065, 97.46% pixels differ
+Light: SSIM 0.9813, 0.41% pixels differ · Dark: SSIM 0.9332, 4.15% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9839, 0.34% pixels differ · Dark: SSIM 0.3065, 97.46% pixels differ
+Light: SSIM 0.9839, 0.34% pixels differ · Dark: SSIM 0.9364, 4.06% pixels differ
 
 ### 44. Dispatcher — 🔴/⬛
 <sub>dispatcher</sub>
@@ -9293,20 +9293,20 @@ Light: SSIM 0.8593, 3.17% pixels differ · Dark: no comparable pair
 
 No comparable MAUI/C++ screenshot pair exists for this page on this platform.
 
-### 100. Label — 🔴/⬛
+### 100. Label — 🔴/🔴
 <sub>label</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/label_light.png" /></td><td><img width="300px" src="captures/windows/cpp/label_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/label_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/label_light.png" /></td><td><img width="300px" src="captures/windows/cpp/label_light.png" /></td><td><img width="300px" src="captures/windows/xaml/label_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/label_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/label_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/label_dark.png" /></td></tr></table>
 
 ports LabelPage.xaml (+ LabelPage.xaml.cs)
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.4628, 21.53% pixels differ · Dark: no comparable pair
+Light: SSIM 0.4743, 20.87% pixels differ · Dark: SSIM 0.4120, 24.19% pixels differ
 
-#### ⬛ C++ & XAML Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-No comparable MAUI/C++ screenshot pair exists for this page on this platform.
+Light: SSIM 0.4733, 20.89% pixels differ · Dark: SSIM 0.4117, 24.18% pixels differ
 
 ### 101. Layout Is Enabled — 🔴/⬛
 <sub>layout_is_enabled</sub>
