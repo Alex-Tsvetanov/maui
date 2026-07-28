@@ -63,9 +63,9 @@ NOTES = {
                "`layout`, `label` and `button` have real WinUI handlers so far; every other control "
                "still uses its headless mirror and renders nothing, so a page built from one of those "
                "is expected to be blank or partial. That is the fan-out being incomplete, not a "
-               "regression — see `docs/WINDOWS_TOOLCHAIN.md` §6. The **C++ &amp; XAML** column is absent "
-               "entirely: its `.xaml.cpp` translation units use `#embed`, which MSVC does not "
-               "implement.",
+               "regression — see `docs/WINDOWS_TOOLCHAIN.md` §6. The **C++ &amp; XAML** column is not "
+               "captured yet: its committed translation units use `#embed`, which MSVC does not "
+               "implement, so it builds through the bytes-mode codegen the android lane already uses.",
 }
 
 

@@ -355,8 +355,12 @@ types and cppwinrt resolves the whole type graph.
   clipping, shadows and vertical text alignment; the port has no container seam on this backend.
 * Window lifecycle events (`Activated` / `Closed` → `send_activated` / `send_destroying`) and the
   toolbar / menu-bar / title-bar chrome, which C# DOES materialize on Windows (unlike iOS).
-* `gallery_xaml` (the "C++ & XAML" column): its `.xaml.cpp` TUs use `#embed`, which MSVC does not
-  implement — that column needs the bytes-mode codegen path, not the committed `#embed` TUs.
+* `gallery_xaml` (the "C++ & XAML" column). Its committed `.xaml.cpp` TUs use `#embed`, which MSVC does
+  not implement — but that is NOT a dead end: the android lane hit the identical wall (NDK Clang 18) and
+  solved it with `e2e.py gen --embed-mode=bytes`, which emits the same markup as an `unsigned char[]`
+  literal through the same `build_page` path. `examples/gallery_xaml/CMakeLists.txt` now selects that
+  lane automatically under MSVC. What remains UNVERIFIED is whether the rest of the XAML layer
+  (`maui_xaml` + pugixml) compiles under MSVC — nothing has built it yet.
 
 ### 6e. Decisions taken (previously open)
 
