@@ -38,6 +38,7 @@
 
 #include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
+#include "maui/core/app_theme.hpp"
 #include "maui/core/i_window.hpp"
 #include "maui/core/window_handler.hpp"
 #include "maui/hosting/app_host.hpp"
@@ -133,6 +134,34 @@ namespace
                         maui::hosting::drive_layout(*window_, args.Size().Width, args.Size().Height);
                     }
                 });
+
+            // (3b) Native theme from the app's REQUESTED theme - the parity-capture dark/light path, and
+            //      the twin of what the iOS host does with overrideUserInterfaceStyle. The gallery sets
+            //      the cross-platform theme in pure C++ (application::set_platform_app_theme, seeded from
+            //      MAUI_APPEARANCE); without pushing it to XAML here, every native control would keep
+            //      rendering in the system theme and a "dark" capture would come back LIGHT - a
+            //      plausible-looking but entirely wrong board row.
+            //
+            //      FrameworkElement.RequestedTheme on the CONTENT ROOT, not Application.RequestedTheme:
+            //      the latter is settable only before the first window exists and would have to happen in
+            //      the constructor, which is where activating XAML types is fatal (note 3). The
+            //      per-element property propagates to the whole visual tree, which is what the theme
+            //      resources every control template binds to actually resolve against.
+            if (const auto themed = native.Content().try_as<winui::FrameworkElement>())
+            {
+                switch (application->requested_theme())
+                {
+                    case maui::core::app_theme::dark:
+                        themed.RequestedTheme(winui::ElementTheme::Dark);
+                        break;
+                    case maui::core::app_theme::light:
+                        themed.RequestedTheme(winui::ElementTheme::Light);
+                        break;
+                    case maui::core::app_theme::unspecified:
+                        themed.RequestedTheme(winui::ElementTheme::Default);
+                        break;
+                }
+            }
 
             // (4) Show it, then lay out at the size it actually got. Activate first because a WinUI
             //     window has no client size until it is shown - laying out before would use the fallback
