@@ -1,0 +1,99 @@
+<#
+.SYNOPSIS
+  Configure the C++ port for MAUI_BACKEND=windows on the guest (MSVC + vcpkg + Ninja).
+
+.DESCRIPTION
+  Answers the question that gates all Windows backend work: do the port's existing ~400 cross-platform
+  sources compile under MSVC? That is independent of any handler code and of the ABI question, so it is
+  worth proving before writing a line of the backend.
+
+  Three things here are load-bearing and each failed once already:
+
+  1. NINJA BY FULL PATH. vcvarsall rebuilds PATH from scratch, and winget's shim directory
+     (AppData\Local\Microsoft\WinGet\Links) does not survive it - so CMake reports "unable to find a
+     build program corresponding to Ninja" even though `ninja` resolves fine in a normal shell.
+
+  2. VCPKG_HOST_TRIPLET, not just the target one. vcpkg builds its HOST tools with the host triplet,
+     which on an ARM64 machine defaults to arm64-windows; without an arm64 toolchain installed it dies
+     with "Unable to find a valid toolchain for requested target architecture arm64" long before it
+     reaches the target triplet.
+
+  3. ABI AUTO-DETECTION. Prefer a native arm64 toolchain when present, else arm64_x64 (native host, x64
+     target). The MAUI reference board was captured NATIVE arm64, so a non-native build must warn: a
+     score across two ABIs compares two rendering paths, not parity.
+#>
+[CmdletBinding()]
+param(
+    [string]$SourceDir = "C:\maui-src\cpp",
+    [string]$BuildDir  = "C:\maui-src\cpp\build-win",
+    [string]$BuildType = "Debug"
+)
+
+$ErrorActionPreference = "Continue"
+function Info($m) { Write-Host "[port] $m" -ForegroundColor Cyan }
+function Warn($m) { Write-Host "[port] !   $m" -ForegroundColor Yellow }
+
+$ninja = (Get-Command ninja -ErrorAction SilentlyContinue).Source
+if (-not $ninja) { $ninja = "C:\Users\Testings-VM\AppData\Local\Microsoft\WinGet\Links\ninja.exe" }
+if (-not (Test-Path $ninja)) { throw "ninja not found (looked on PATH and at $ninja)" }
+Info "ninja: $ninja"
+
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$vsRoot = (& $vswhere -latest -products * -property installationPath 2>&1 | Select-Object -First 1)
+if (-not $vsRoot) { throw "vswhere found no Visual Studio installation" }
+$vcvars = Join-Path $vsRoot "VC\Auxiliary\Build\vcvarsall.bat"
+
+$msvcRoot = Join-Path $vsRoot "VC\Tools\MSVC"
+$targets = Get-ChildItem $msvcRoot -Recurse -Filter cl.exe -ErrorAction SilentlyContinue |
+           ForEach-Object { $_.Directory.Parent.Name + "\" + $_.Directory.Name } | Sort-Object -Unique
+Info ("cl targets: " + ($targets -join ", "))
+
+if ($targets -contains "Hostarm64\arm64") {
+    $arch = "arm64"; $abi = "arm64"; $triplet = "arm64-windows"
+} elseif ($targets -contains "Hostarm64\x64") {
+    $arch = "arm64_x64"; $abi = "x64"; $triplet = "x64-windows"
+} else {
+    throw "no usable cl.exe target under $msvcRoot"
+}
+Info "toolchain: vcvarsall $arch  (ABI $abi, vcpkg triplet $triplet)"
+if ($abi -ne "arm64") {
+    Warn "NOT native arm64. The MAUI reference board is arm64 - do not publish a score across ABIs."
+    Warn "Install 'MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools' to build natively."
+}
+
+Info "importing the MSVC environment"
+cmd /c "`"$vcvars`" $arch >nul 2>&1 && set" | ForEach-Object {
+    if ($_ -match "^([^=]+)=(.*)$") {
+        Set-Item -Path ("Env:" + $matches[1]) -Value $matches[2] -Force -ErrorAction SilentlyContinue
+    }
+}
+$cl = (Get-Command cl.exe -ErrorAction SilentlyContinue).Source
+if (-not $cl) { throw "cl.exe not on PATH after importing vcvarsall $arch" }
+Info "cl: $cl"
+
+$env:VCPKG_ROOT = "C:\vcpkg"
+Info "configuring (vcpkg builds gtest/benchmark/pugixml first; this is the slow part)"
+# Arguments as an ARRAY, then splatted. Backtick-continued bareword arguments to a native command are
+# not reliably variable-expanded: the previous form passed the LITERAL text "$triplet" to vcpkg, which
+# rejected it with "Invalid triplet name ... on expression: $triplet". Quoting each element and splatting
+# removes the ambiguity entirely.
+$cmakeArgs = @(
+    "-S", $SourceDir,
+    "-B", $BuildDir,
+    "-G", "Ninja",
+    "-DCMAKE_MAKE_PROGRAM=$ninja",
+    "-DCMAKE_BUILD_TYPE=$BuildType",
+    "-DMAUI_BACKEND=windows",
+    "-DVCPKG_TARGET_TRIPLET=$triplet",
+    "-DVCPKG_HOST_TRIPLET=$triplet",
+    "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
+)
+Info ("cmake " + ($cmakeArgs -join " "))
+& cmake @cmakeArgs 2>&1 | Select-Object -Last 40
+$code = $LASTEXITCODE
+Info "configure exit: $code"
+if ($code -ne 0) {
+    $log = Join-Path $BuildDir "vcpkg-manifest-install.log"
+    if (Test-Path $log) { Info "vcpkg manifest log (tail):"; Get-Content $log -Tail 15 }
+}
+exit $code
