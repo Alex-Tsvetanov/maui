@@ -25,6 +25,7 @@
 
 #include <MddBootstrap.h>
 
+#include <winrt/Microsoft.UI.Composition.SystemBackdrops.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
@@ -224,15 +225,18 @@ namespace
                 }
             }
 
-            // (3c) The themed PAGE BACKGROUND. MAUI hosts the page inside a WindowRootView/RootPanel
-            //      whose Background is ApplicationPageBackgroundThemeBrush; the port hosts the page
-            //      element directly as Window.Content, so without this the window keeps its default
-            //      white and a dark capture is white text on white -- confirmed by capture, which is
-            //      why this is here and not guessed at earlier.
+            // (3c) The themed PAGE BACKGROUND, painted opaquely on the content root.
+            //
+            //      MauiWinUIWindow.cs:52-54 DOES set a Mica BaseAlt SystemBackdrop, and I once read
+            //      that as the mechanism and switched to it. MEASURED RESULT: greens 10 -> 0, and the
+            //      light page went grey (~#E9E9E9) where MAUI is near-white. The oracle line is real;
+            //      the conclusion was not. MAUI's WindowRootView paints an OPAQUE themed background
+            //      over the backdrop, so the Mica never shows through - setting it without that
+            //      overpaint exposes a tint MAUI never displays. Reverted, deliberately.
             //
             //      Applied ONLY when the page set no Background of its own: ReadLocalValue returns
             //      UnsetValue exactly when the mapper did not push one, so an explicit page colour
-            //      still wins. Looked up AFTER RequestedTheme above, so the brush is the right theme's.
+            //      still wins. Looked up AFTER RequestedTheme, so it is the right theme's brush.
             if (const auto panel = native.Content().try_as<winui::Controls::Panel>())
             {
                 const bool has_own_background =

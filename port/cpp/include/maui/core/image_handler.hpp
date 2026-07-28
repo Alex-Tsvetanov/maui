@@ -81,6 +81,24 @@ namespace maui::core
         // store_clip_shape stash. Unused on headless/Apple (Apple stashes via an associated object instead).
         const maui::graphics::i_shape* clip_shape = nullptr;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native Image element via the shared
+        // winui_visual_ops helpers (src/platform/windows/image_handler.cpp). Selected by
+        // MAUI_PLATFORM_WINDOWS, which is PUBLIC on maui_core for that backend only - so every TU of a
+        // given build sees exactly one backend's overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        // A no-op in practice: Microsoft.UI.Xaml.Controls.Image is a FrameworkElement, not a Panel/
+        // Control/Border, so apply_background's three-way try_as finds nothing to paint - exactly the
+        // gap C#'s NeedsContainer/SetupContainer (Background -> a wrapping Border, like LabelHandler.
+        // Windows) exists to close. That container is NOT ported this slice (out of scope; not part of
+        // this header's pre-existing cross-platform surface for ANY backend), so an Image.Background is
+        // faithfully wired here but has nowhere to land yet - a documented gap, not a wrong push.
+        void update_background(const maui::graphics::paint* value) override;
+#endif
+
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSImageView (defined in
         // src/platform/apple/image_handler.mm). Omitted on headless, which keeps the base mirrors.

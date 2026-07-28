@@ -19,6 +19,7 @@
 // `on_done` is the inbound channel: the headless stand-in for the Done-accessory tap that commits the
 // native wheel row (FinishSelectItem); tests invoke it directly with the picked row.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -65,6 +66,34 @@ namespace maui::core
         // the native wheel's pending row — the Done-tap / popup-action analog (FinishSelectItem).
         move_only_function<void(int row)> on_done;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the three event registration tokens on_connect_handler produces
+        // (SelectionChanged / DropDownOpened / DropDownClosed — PickerHandler.Windows.cs's
+        // ConnectHandler), so on_disconnect_handler can revoke EXACTLY what it registered. Stored as
+        // int64 (winrt::event_token's underlying type) rather than the WinRT type itself, like
+        // button_platform's click_token — this cross-platform header must not see the C++/WinRT
+        // projection.
+        std::int64_t selection_changed_token = 0;
+        std::int64_t drop_down_opened_token = 0;
+        std::int64_t drop_down_closed_token = 0;
+        // PickerHandler.Windows's UpdatingItemSource: true while map_items rebuilds the native item
+        // list, so the SelectionChanged that rebuild triggers is NOT written back into the virtual
+        // view's SelectedIndex (which would stomp the value the reload is about to re-push via
+        // SetUpdatingItemSource(false)'s UpdateValue(SelectedIndex)).
+        bool updating_item_source = false;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 #ifdef MAUI_PLATFORM_APPLE
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;

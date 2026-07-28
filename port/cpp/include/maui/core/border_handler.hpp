@@ -89,6 +89,20 @@ namespace maui::core
         // stroke ring. A non-null fill → filled silhouette; null → stroke-ring silhouette (ios_border_ops).
         const maui::graphics::paint* background = nullptr;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend (src/platform/windows/border_handler.cpp): the generic IView pushes onto the
+        // Canvas host via the shared winui_visual_ops helpers, EXCEPT update_background: BorderExtensions
+        // / StrokeExtensions.UpdateBorderBackground routes Background onto the STROKE PATH's Fill (not the
+        // host), so the fill follows the border SHAPE (rounded corners etc.) instead of painting the
+        // host's full rectangular bounds. is_enabled keeps the generic push too (a no-op on a Canvas,
+        // which is not a Control - the same degrade-to-no-op the label/content_page Windows partials hit).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
+
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend (src/platform/apple/border_handler.mm): the generic IView pushes onto the
         // NSView host. is_enabled keeps the base mirror (a plain NSView has no enabled state).

@@ -267,11 +267,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/activity_indicator_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/activity_indicator_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/activity_indicator_light.png",
+            "dark": "captures/windows/xaml/activity_indicator_dark.png"
           }
         },
         "sonnet": {
@@ -283,12 +283,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9466, 5.08% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9474, 4.99% pixels differ \u00b7 Dark: SSIM 0.8700, 8.75% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9464, 5.01% pixels differ \u00b7 Dark: SSIM 0.8697, 8.75% pixels differ"
         }
       }
     }
@@ -414,11 +414,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/adaptive_collection_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/adaptive_collection_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/adaptive_collection_light.png",
+            "dark": "captures/windows/xaml/adaptive_collection_dark.png"
           }
         },
         "sonnet": {
@@ -430,12 +430,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9843, 0.28% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9832, 0.28% pixels differ \u00b7 Dark: SSIM 0.9345, 4.02% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9822, 0.30% pixels differ \u00b7 Dark: SSIM 0.9343, 4.02% pixels differ"
         }
       }
     }
@@ -561,11 +561,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/alerts_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/alerts_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/alerts_light.png",
+            "dark": "captures/windows/xaml/alerts_dark.png"
           }
         },
         "sonnet": {
@@ -578,11 +578,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8286, 3.68% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8206, 2.96% pixels differ \u00b7 Dark: SSIM 0.8379, 5.29% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8196, 2.98% pixels differ \u00b7 Dark: SSIM 0.8377, 5.28% pixels differ"
         }
       }
     }
@@ -708,11 +708,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/alignment_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/alignment_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/alignment_light.png",
+            "dark": "captures/windows/xaml/alignment_dark.png"
           }
         },
         "sonnet": {
@@ -724,12 +724,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9465, 3.52% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9470, 2.68% pixels differ \u00b7 Dark: SSIM 0.8989, 6.42% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9460, 2.70% pixels differ \u00b7 Dark: SSIM 0.8986, 6.42% pixels differ"
         }
       }
     }
@@ -855,11 +855,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/animation_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/animation_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/animation_light.png",
+            "dark": "captures/windows/xaml/animation_dark.png"
           }
         },
         "sonnet": {
@@ -871,12 +871,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9834, 0.57% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9914, 0.15% pixels differ \u00b7 Dark: SSIM 0.9439, 3.88% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9904, 0.17% pixels differ \u00b7 Dark: SSIM 0.9437, 3.87% pixels differ"
         }
       }
     }
@@ -1002,11 +1002,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/app_theme_binding_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/app_theme_binding_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/app_theme_binding_light.png",
+            "dark": "captures/windows/xaml/app_theme_binding_dark.png"
           }
         },
         "sonnet": {
@@ -1018,12 +1018,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9406, 2.27% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9396, 2.29% pixels differ \u00b7 Dark: SSIM 0.8944, 5.97% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9386, 2.31% pixels differ \u00b7 Dark: SSIM 0.8941, 5.97% pixels differ"
         }
       }
     }
@@ -1149,11 +1149,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/application_control_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/application_control_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/application_control_light.png",
+            "dark": "captures/windows/xaml/application_control_dark.png"
           }
         },
         "sonnet": {
@@ -1165,12 +1165,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9151, 1.67% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9130, 1.30% pixels differ \u00b7 Dark: SSIM 0.8962, 4.31% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9120, 1.32% pixels differ \u00b7 Dark: SSIM 0.8959, 4.31% pixels differ"
         }
       }
     }
@@ -1443,11 +1443,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/basic_grouping_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/basic_grouping_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/basic_grouping_light.png",
+            "dark": "captures/windows/xaml/basic_grouping_dark.png"
           }
         },
         "sonnet": {
@@ -1460,11 +1460,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7908, 18.61% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.7906, 18.57% pixels differ \u00b7 Dark: SSIM 0.6748, 22.35% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.7896, 18.59% pixels differ \u00b7 Dark: SSIM 0.6746, 22.35% pixels differ"
         }
       }
     }
@@ -1590,11 +1590,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/basic_swipe_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/basic_swipe_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/basic_swipe_light.png",
+            "dark": "captures/windows/xaml/basic_swipe_dark.png"
           }
         },
         "sonnet": {
@@ -1607,11 +1607,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9432, 11.12% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9425, 11.12% pixels differ \u00b7 Dark: SSIM 0.8363, 14.86% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9415, 11.14% pixels differ \u00b7 Dark: SSIM 0.8360, 14.85% pixels differ"
         }
       }
     }
@@ -1884,11 +1884,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/border_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/border_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/border_light.png",
+            "dark": "captures/windows/xaml/border_dark.png"
           }
         },
         "sonnet": {
@@ -1901,11 +1901,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9742, 5.55% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9803, 0.78% pixels differ \u00b7 Dark: SSIM 0.9376, 4.47% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9793, 0.80% pixels differ \u00b7 Dark: SSIM 0.9374, 4.46% pixels differ"
         }
       }
     }
@@ -2048,11 +2048,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7800, 7.10% pixels differ \u00b7 Dark: SSIM 0.7362, 11.04% pixels differ"
+          "review": "Light: SSIM 0.7719, 6.88% pixels differ \u00b7 Dark: SSIM 0.7358, 10.54% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7790, 7.12% pixels differ \u00b7 Dark: SSIM 0.7360, 11.04% pixels differ"
+          "review": "Light: SSIM 0.7743, 6.67% pixels differ \u00b7 Dark: SSIM 0.7393, 10.31% pixels differ"
         }
       }
     }
@@ -2195,11 +2195,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9226, 5.65% pixels differ \u00b7 Dark: SSIM 0.8762, 9.41% pixels differ"
+          "review": "Light: SSIM 0.9406, 2.45% pixels differ \u00b7 Dark: SSIM 0.8812, 6.38% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9215, 5.67% pixels differ \u00b7 Dark: SSIM 0.8760, 9.41% pixels differ"
+          "review": "Light: SSIM 0.9396, 2.47% pixels differ \u00b7 Dark: SSIM 0.8809, 6.37% pixels differ"
         }
       }
     }
@@ -2342,11 +2342,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.6468, 27.90% pixels differ \u00b7 Dark: SSIM 0.5601, 31.58% pixels differ"
+          "review": "Light: SSIM 0.7218, 5.81% pixels differ \u00b7 Dark: SSIM 0.6912, 9.13% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.6458, 27.92% pixels differ \u00b7 Dark: SSIM 0.5599, 31.58% pixels differ"
+          "review": "Light: SSIM 0.7212, 5.68% pixels differ \u00b7 Dark: SSIM 0.6925, 8.94% pixels differ"
         }
       }
     }
@@ -2489,11 +2489,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8574, 7.62% pixels differ \u00b7 Dark: SSIM 0.7992, 11.38% pixels differ"
+          "review": "Light: SSIM 0.8728, 4.98% pixels differ \u00b7 Dark: SSIM 0.8256, 8.79% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8564, 7.64% pixels differ \u00b7 Dark: SSIM 0.7990, 11.37% pixels differ"
+          "review": "Light: SSIM 0.8722, 4.96% pixels differ \u00b7 Dark: SSIM 0.8261, 8.75% pixels differ"
         }
       }
     }
@@ -2636,11 +2636,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7646, 37.98% pixels differ \u00b7 Dark: SSIM 0.6056, 41.75% pixels differ"
+          "review": "Light: SSIM 0.7419, 11.51% pixels differ \u00b7 Dark: SSIM 0.7192, 15.29% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7636, 38.00% pixels differ \u00b7 Dark: SSIM 0.6054, 41.74% pixels differ"
+          "review": "Light: SSIM 0.7409, 11.53% pixels differ \u00b7 Dark: SSIM 0.7190, 15.28% pixels differ"
         }
       }
     }
@@ -2766,11 +2766,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/borderless_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/borderless_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/borderless_light.png",
+            "dark": "captures/windows/xaml/borderless_dark.png"
           }
         },
         "sonnet": {
@@ -2782,12 +2782,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.7886, 93.77% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9851, 0.50% pixels differ \u00b7 Dark: SSIM 0.9524, 4.24% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9841, 0.52% pixels differ \u00b7 Dark: SSIM 0.9521, 4.24% pixels differ"
         }
       }
     }
@@ -3207,11 +3207,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/carousel_page_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/carousel_page_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/carousel_page_light.png",
+            "dark": "captures/windows/xaml/carousel_page_dark.png"
           }
         },
         "sonnet": {
@@ -3224,11 +3224,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9590, 1.44% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9618, 1.44% pixels differ \u00b7 Dark: SSIM 0.9368, 5.18% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9608, 1.46% pixels differ \u00b7 Dark: SSIM 0.9365, 5.17% pixels differ"
         }
       }
     }
@@ -3354,11 +3354,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/chat_example_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/chat_example_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/chat_example_light.png",
+            "dark": "captures/windows/xaml/chat_example_dark.png"
           }
         },
         "sonnet": {
@@ -3370,12 +3370,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9814, 0.44% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9812, 0.39% pixels differ \u00b7 Dark: SSIM 0.9374, 4.04% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9802, 0.41% pixels differ \u00b7 Dark: SSIM 0.9371, 4.04% pixels differ"
         }
       }
     }
@@ -3501,11 +3501,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/check_box_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/check_box_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/check_box_light.png",
+            "dark": "captures/windows/xaml/check_box_dark.png"
           }
         },
         "sonnet": {
@@ -3518,11 +3518,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9605, 1.16% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9591, 1.13% pixels differ \u00b7 Dark: SSIM 0.9136, 4.87% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9581, 1.15% pixels differ \u00b7 Dark: SSIM 0.9133, 4.87% pixels differ"
         }
       }
     }
@@ -3648,11 +3648,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/chrome_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/chrome_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/chrome_light.png",
+            "dark": "captures/windows/xaml/chrome_dark.png"
           }
         },
         "sonnet": {
@@ -3665,11 +3665,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9744, 0.59% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9756, 0.47% pixels differ \u00b7 Dark: SSIM 0.9362, 3.96% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9746, 0.49% pixels differ \u00b7 Dark: SSIM 0.9360, 3.96% pixels differ"
         }
       }
     }
@@ -3812,11 +3812,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8832, 16.57% pixels differ \u00b7 Dark: SSIM 0.8088, 20.20% pixels differ"
+          "review": "Light: SSIM 0.9086, 10.35% pixels differ \u00b7 Dark: SSIM 0.8155, 14.72% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8858, 16.48% pixels differ \u00b7 Dark: SSIM 0.8085, 20.20% pixels differ"
+          "review": "Light: SSIM 0.9037, 10.49% pixels differ \u00b7 Dark: SSIM 0.8152, 14.72% pixels differ"
         }
       }
     }
@@ -3959,11 +3959,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8286, 7.45% pixels differ \u00b7 Dark: SSIM 0.7826, 11.31% pixels differ"
+          "review": "Light: SSIM 0.8232, 7.29% pixels differ \u00b7 Dark: SSIM 0.7779, 11.15% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8275, 7.47% pixels differ \u00b7 Dark: SSIM 0.7823, 11.30% pixels differ"
+          "review": "Light: SSIM 0.8222, 7.31% pixels differ \u00b7 Dark: SSIM 0.7776, 11.14% pixels differ"
         }
       }
     }
@@ -4106,11 +4106,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8506, 16.36% pixels differ \u00b7 Dark: SSIM 0.7781, 19.42% pixels differ"
+          "review": "Light: SSIM 0.8548, 8.69% pixels differ \u00b7 Dark: SSIM 0.8103, 12.45% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8527, 16.28% pixels differ \u00b7 Dark: SSIM 0.7778, 19.42% pixels differ"
+          "review": "Light: SSIM 0.8507, 8.81% pixels differ \u00b7 Dark: SSIM 0.8100, 12.44% pixels differ"
         }
       }
     }
@@ -4400,11 +4400,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9365, 2.40% pixels differ \u00b7 Dark: SSIM 0.9118, 5.69% pixels differ"
+          "review": "Light: SSIM 0.9386, 2.26% pixels differ \u00b7 Dark: SSIM 0.9140, 5.56% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9355, 2.42% pixels differ \u00b7 Dark: SSIM 0.9115, 5.69% pixels differ"
+          "review": "Light: SSIM 0.9377, 2.28% pixels differ \u00b7 Dark: SSIM 0.9137, 5.55% pixels differ"
         }
       }
     }
@@ -4530,11 +4530,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/collectionview_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/collectionview_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/collectionview_light.png",
+            "dark": "captures/windows/xaml/collectionview_dark.png"
           }
         },
         "sonnet": {
@@ -4546,12 +4546,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9360, 1.35% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9349, 1.27% pixels differ \u00b7 Dark: SSIM 0.8865, 5.09% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9339, 1.29% pixels differ \u00b7 Dark: SSIM 0.8863, 5.08% pixels differ"
         }
       }
     }
@@ -4841,11 +4841,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9246, 1.17% pixels differ \u00b7 Dark: SSIM 0.8377, 12.14% pixels differ"
+          "review": "Light: SSIM 0.8994, 1.89% pixels differ \u00b7 Dark: SSIM 0.8616, 6.74% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9236, 1.19% pixels differ \u00b7 Dark: SSIM 0.8374, 12.14% pixels differ"
+          "review": "Light: SSIM 0.8984, 1.91% pixels differ \u00b7 Dark: SSIM 0.8614, 6.74% pixels differ"
         }
       }
     }
@@ -5135,11 +5135,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9150, 1.71% pixels differ \u00b7 Dark: SSIM 0.4654, 52.92% pixels differ"
+          "review": "Light: SSIM 0.8936, 50.93% pixels differ \u00b7 Dark: SSIM 0.5232, 51.70% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9140, 1.73% pixels differ \u00b7 Dark: SSIM 0.4651, 52.92% pixels differ"
+          "review": "Light: SSIM 0.8926, 50.95% pixels differ \u00b7 Dark: SSIM 0.5230, 51.70% pixels differ"
         }
       }
     }
@@ -5282,11 +5282,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8651, 1.99% pixels differ \u00b7 Dark: SSIM 0.8240, 5.52% pixels differ"
+          "review": "Light: SSIM 0.8650, 1.99% pixels differ \u00b7 Dark: SSIM 0.8243, 5.51% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8641, 2.01% pixels differ \u00b7 Dark: SSIM 0.8238, 5.52% pixels differ"
+          "review": "Light: SSIM 0.8640, 2.01% pixels differ \u00b7 Dark: SSIM 0.8240, 5.51% pixels differ"
         }
       }
     }
@@ -5412,11 +5412,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/custom_layout_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/custom_layout_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/custom_layout_light.png",
+            "dark": "captures/windows/xaml/custom_layout_dark.png"
           }
         },
         "sonnet": {
@@ -5429,11 +5429,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9742, 0.54% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9785, 0.35% pixels differ \u00b7 Dark: SSIM 0.9419, 3.88% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9775, 0.37% pixels differ \u00b7 Dark: SSIM 0.9417, 3.88% pixels differ"
         }
       }
     }
@@ -5559,11 +5559,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/custom_size_swipe_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/custom_size_swipe_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/custom_size_swipe_light.png",
+            "dark": "captures/windows/xaml/custom_size_swipe_dark.png"
           }
         },
         "sonnet": {
@@ -5575,12 +5575,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9417, 6.68% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9474, 3.10% pixels differ \u00b7 Dark: SSIM 0.8774, 10.42% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9464, 3.12% pixels differ \u00b7 Dark: SSIM 0.8772, 10.42% pixels differ"
         }
       }
     }
@@ -5706,11 +5706,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/custom_swipe_item_view_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/custom_swipe_item_view_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/custom_swipe_item_view_light.png",
+            "dark": "captures/windows/xaml/custom_swipe_item_view_dark.png"
           }
         },
         "sonnet": {
@@ -5723,11 +5723,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9094, 9.88% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9095, 9.87% pixels differ \u00b7 Dark: SSIM 0.9150, 13.65% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9085, 9.89% pixels differ \u00b7 Dark: SSIM 0.9148, 13.64% pixels differ"
         }
       }
     }
@@ -5853,11 +5853,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/cv_visual_states_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/cv_visual_states_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/cv_visual_states_light.png",
+            "dark": "captures/windows/xaml/cv_visual_states_dark.png"
           }
         },
         "sonnet": {
@@ -5869,12 +5869,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9531, 0.89% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9513, 0.87% pixels differ \u00b7 Dark: SSIM 0.6360, 40.46% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9503, 0.89% pixels differ \u00b7 Dark: SSIM 0.6357, 40.46% pixels differ"
         }
       }
     }
@@ -6000,11 +6000,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/data_template_selector_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/data_template_selector_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/data_template_selector_light.png",
+            "dark": "captures/windows/xaml/data_template_selector_dark.png"
           }
         },
         "sonnet": {
@@ -6017,11 +6017,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9499, 0.97% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9487, 0.81% pixels differ \u00b7 Dark: SSIM 0.9022, 4.59% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9477, 0.83% pixels differ \u00b7 Dark: SSIM 0.9019, 4.59% pixels differ"
         }
       }
     }
@@ -6168,7 +6168,7 @@
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8177, 3.57% pixels differ \u00b7 Dark: SSIM 0.8069, 6.76% pixels differ"
+          "review": "Light: SSIM 0.8224, 3.42% pixels differ \u00b7 Dark: SSIM 0.8069, 6.75% pixels differ"
         }
       }
     }
@@ -6735,11 +6735,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/editor_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/editor_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/editor_light.png",
+            "dark": "captures/windows/xaml/editor_dark.png"
           }
         },
         "sonnet": {
@@ -6752,11 +6752,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8172, 2.86% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8156, 1.81% pixels differ \u00b7 Dark: SSIM 0.7602, 5.60% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8146, 1.83% pixels differ \u00b7 Dark: SSIM 0.7599, 5.60% pixels differ"
         }
       }
     }
@@ -7176,11 +7176,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_light.png",
+            "dark": "captures/windows/xaml/empty_view_dark.png"
           }
         },
         "sonnet": {
@@ -7192,12 +7192,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9331, 1.38% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9319, 1.19% pixels differ \u00b7 Dark: SSIM 0.8871, 4.99% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9309, 1.21% pixels differ \u00b7 Dark: SSIM 0.8868, 4.99% pixels differ"
         }
       }
     }
@@ -7323,11 +7323,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_load_simulate_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_load_simulate_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_load_simulate_light.png",
+            "dark": "captures/windows/xaml/empty_view_load_simulate_dark.png"
           }
         },
         "sonnet": {
@@ -7339,12 +7339,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9890, 0.21% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9879, 0.21% pixels differ \u00b7 Dark: SSIM 0.9392, 3.95% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9869, 0.23% pixels differ \u00b7 Dark: SSIM 0.9389, 3.95% pixels differ"
         }
       }
     }
@@ -7470,11 +7470,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_null_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_null_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_null_light.png",
+            "dark": "captures/windows/xaml/empty_view_null_dark.png"
           }
         },
         "sonnet": {
@@ -7486,12 +7486,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9898, 0.19% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9887, 0.19% pixels differ \u00b7 Dark: SSIM 0.9400, 3.93% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9876, 0.21% pixels differ \u00b7 Dark: SSIM 0.9397, 3.93% pixels differ"
         }
       }
     }
@@ -7617,11 +7617,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_rtl_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_rtl_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_rtl_light.png",
+            "dark": "captures/windows/xaml/empty_view_rtl_dark.png"
           }
         },
         "sonnet": {
@@ -7633,12 +7633,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9236, 1.40% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9138, 1.27% pixels differ \u00b7 Dark: SSIM 0.8742, 4.81% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9146, 1.26% pixels differ \u00b7 Dark: SSIM 0.8759, 4.77% pixels differ"
         }
       }
     }
@@ -7764,11 +7764,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_selector_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_selector_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_selector_light.png",
+            "dark": "captures/windows/xaml/empty_view_selector_dark.png"
           }
         },
         "sonnet": {
@@ -7780,12 +7780,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9363, 1.51% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9350, 1.37% pixels differ \u00b7 Dark: SSIM 0.8891, 5.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9340, 1.39% pixels differ \u00b7 Dark: SSIM 0.8888, 5.13% pixels differ"
         }
       }
     }
@@ -7911,11 +7911,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_swap_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_swap_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_swap_light.png",
+            "dark": "captures/windows/xaml/empty_view_swap_dark.png"
           }
         },
         "sonnet": {
@@ -7927,12 +7927,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9328, 1.36% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9314, 1.18% pixels differ \u00b7 Dark: SSIM 0.8858, 4.95% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9304, 1.20% pixels differ \u00b7 Dark: SSIM 0.8855, 4.94% pixels differ"
         }
       }
     }
@@ -8058,11 +8058,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_template_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_template_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_template_light.png",
+            "dark": "captures/windows/xaml/empty_view_template_dark.png"
           }
         },
         "sonnet": {
@@ -8074,12 +8074,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9451, 1.06% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9438, 0.90% pixels differ \u00b7 Dark: SSIM 0.8974, 4.68% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9428, 0.92% pixels differ \u00b7 Dark: SSIM 0.8971, 4.68% pixels differ"
         }
       }
     }
@@ -8205,11 +8205,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/empty_view_view_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/empty_view_view_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/empty_view_view_light.png",
+            "dark": "captures/windows/xaml/empty_view_view_dark.png"
           }
         },
         "sonnet": {
@@ -8221,12 +8221,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9451, 1.06% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9438, 0.90% pixels differ \u00b7 Dark: SSIM 0.8974, 4.68% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9428, 0.92% pixels differ \u00b7 Dark: SSIM 0.8971, 4.68% pixels differ"
         }
       }
     }
@@ -8499,11 +8499,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/filter_collection_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/filter_collection_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/filter_collection_light.png",
+            "dark": "captures/windows/xaml/filter_collection_dark.png"
           }
         },
         "sonnet": {
@@ -8515,12 +8515,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9404, 1.16% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9392, 0.99% pixels differ \u00b7 Dark: SSIM 0.8893, 4.79% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9389, 1.01% pixels differ \u00b7 Dark: SSIM 0.8898, 4.78% pixels differ"
         }
       }
     }
@@ -8646,11 +8646,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/filter_selection_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/filter_selection_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/filter_selection_light.png",
+            "dark": "captures/windows/xaml/filter_selection_dark.png"
           }
         },
         "sonnet": {
@@ -8663,11 +8663,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8957, 2.30% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8948, 2.01% pixels differ \u00b7 Dark: SSIM 0.8572, 5.57% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8938, 2.03% pixels differ \u00b7 Dark: SSIM 0.8569, 5.56% pixels differ"
         }
       }
     }
@@ -9234,11 +9234,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/footer_only_string_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/footer_only_string_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/footer_only_string_light.png",
+            "dark": "captures/windows/xaml/footer_only_string_dark.png"
           }
         },
         "sonnet": {
@@ -9250,12 +9250,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9186, 1.63% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9201, 1.57% pixels differ \u00b7 Dark: SSIM 0.8737, 5.37% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9191, 1.59% pixels differ \u00b7 Dark: SSIM 0.8734, 5.37% pixels differ"
         }
       }
     }
@@ -9381,11 +9381,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/formatted_text_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/formatted_text_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/formatted_text_light.png",
+            "dark": "captures/windows/xaml/formatted_text_dark.png"
           }
         },
         "sonnet": {
@@ -9397,12 +9397,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9839, 0.35% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9830, 0.34% pixels differ \u00b7 Dark: SSIM 0.9350, 4.09% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9820, 0.36% pixels differ \u00b7 Dark: SSIM 0.9347, 4.08% pixels differ"
         }
       }
     }
@@ -9969,11 +9969,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/grid_grouping_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/grid_grouping_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/grid_grouping_light.png",
+            "dark": "captures/windows/xaml/grid_grouping_dark.png"
           }
         },
         "sonnet": {
@@ -9986,11 +9986,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8224, 12.96% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8218, 12.92% pixels differ \u00b7 Dark: SSIM 0.7279, 16.70% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8208, 12.94% pixels differ \u00b7 Dark: SSIM 0.7276, 16.70% pixels differ"
         }
       }
     }
@@ -10116,11 +10116,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/grouping_no_templates_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/grouping_no_templates_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/grouping_no_templates_light.png",
+            "dark": "captures/windows/xaml/grouping_no_templates_dark.png"
           }
         },
         "sonnet": {
@@ -10133,11 +10133,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7835, 5.23% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.7562, 5.52% pixels differ \u00b7 Dark: SSIM 0.7087, 9.48% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.7552, 5.54% pixels differ \u00b7 Dark: SSIM 0.7084, 9.47% pixels differ"
         }
       }
     }
@@ -10263,11 +10263,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/grouping_plus_selection_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/grouping_plus_selection_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/grouping_plus_selection_light.png",
+            "dark": "captures/windows/xaml/grouping_plus_selection_dark.png"
           }
         },
         "sonnet": {
@@ -10280,11 +10280,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7665, 19.11% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.7691, 19.07% pixels differ \u00b7 Dark: SSIM 0.6573, 22.85% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.7681, 19.09% pixels differ \u00b7 Dark: SSIM 0.6570, 22.85% pixels differ"
         }
       }
     }
@@ -10410,11 +10410,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/header_footer_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/header_footer_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/header_footer_light.png",
+            "dark": "captures/windows/xaml/header_footer_dark.png"
           }
         },
         "sonnet": {
@@ -10427,11 +10427,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9538, 0.90% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9527, 0.89% pixels differ \u00b7 Dark: SSIM 0.9024, 4.64% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9517, 0.91% pixels differ \u00b7 Dark: SSIM 0.9021, 4.64% pixels differ"
         }
       }
     }
@@ -10557,11 +10557,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/header_footer_grid_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/header_footer_grid_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/header_footer_grid_light.png",
+            "dark": "captures/windows/xaml/header_footer_grid_dark.png"
           }
         },
         "sonnet": {
@@ -10574,11 +10574,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7747, 19.00% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.7730, 18.62% pixels differ \u00b7 Dark: SSIM 0.7201, 21.09% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.7123, 21.75% pixels differ \u00b7 Dark: SSIM 0.6725, 24.02% pixels differ"
         }
       }
     }
@@ -10704,11 +10704,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/header_footer_grid_horizontal_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/header_footer_grid_horizontal_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/header_footer_grid_horizontal_light.png",
+            "dark": "captures/windows/xaml/header_footer_grid_horizontal_dark.png"
           }
         },
         "sonnet": {
@@ -10721,11 +10721,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8368, 18.69% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8527, 21.27% pixels differ \u00b7 Dark: SSIM 0.7213, 24.76% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8517, 21.29% pixels differ \u00b7 Dark: SSIM 0.7210, 24.76% pixels differ"
         }
       }
     }
@@ -10851,11 +10851,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/header_footer_template_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/header_footer_template_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/header_footer_template_light.png",
+            "dark": "captures/windows/xaml/header_footer_template_dark.png"
           }
         },
         "sonnet": {
@@ -10868,11 +10868,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8094, 19.22% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8134, 19.22% pixels differ \u00b7 Dark: SSIM 0.7673, 22.32% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8124, 19.24% pixels differ \u00b7 Dark: SSIM 0.7670, 22.32% pixels differ"
         }
       }
     }
@@ -10998,11 +10998,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/header_footer_view_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/header_footer_view_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/header_footer_view_light.png",
+            "dark": "captures/windows/xaml/header_footer_view_dark.png"
           }
         },
         "sonnet": {
@@ -11014,12 +11014,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8453, 22.27% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9523, 1.34% pixels differ \u00b7 Dark: SSIM 0.9056, 5.02% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9513, 1.36% pixels differ \u00b7 Dark: SSIM 0.9054, 5.02% pixels differ"
         }
       }
     }
@@ -11162,11 +11162,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9218, 2.57% pixels differ \u00b7 Dark: SSIM 0.8853, 6.06% pixels differ"
+          "review": "Light: SSIM 0.9267, 2.41% pixels differ \u00b7 Dark: SSIM 0.8856, 6.06% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9257, 2.43% pixels differ \u00b7 Dark: SSIM 0.8851, 6.06% pixels differ"
+          "review": "Light: SSIM 0.9209, 2.59% pixels differ \u00b7 Dark: SSIM 0.8853, 6.05% pixels differ"
         }
       }
     }
@@ -11292,11 +11292,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/horizontal_stack_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/horizontal_stack_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/horizontal_stack_light.png",
+            "dark": "captures/windows/xaml/horizontal_stack_dark.png"
           }
         },
         "sonnet": {
@@ -11309,11 +11309,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9806, 1.30% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9907, 0.19% pixels differ \u00b7 Dark: SSIM 0.9424, 3.93% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9897, 0.21% pixels differ \u00b7 Dark: SSIM 0.9421, 3.92% pixels differ"
         }
       }
     }
@@ -11439,11 +11439,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/hybrid_web_view_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/hybrid_web_view_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/hybrid_web_view_light.png",
+            "dark": "captures/windows/xaml/hybrid_web_view_dark.png"
           }
         },
         "sonnet": {
@@ -11456,11 +11456,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8943, 3.44% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9350, 1.07% pixels differ \u00b7 Dark: SSIM 0.4201, 67.45% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9340, 1.09% pixels differ \u00b7 Dark: SSIM 0.4199, 67.45% pixels differ"
         }
       }
     }
@@ -11880,11 +11880,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/indicator_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/indicator_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/indicator_light.png",
+            "dark": "captures/windows/xaml/indicator_dark.png"
           }
         },
         "sonnet": {
@@ -11897,11 +11897,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9650, 1.10% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9639, 1.08% pixels differ \u00b7 Dark: SSIM 0.9143, 4.82% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9629, 1.10% pixels differ \u00b7 Dark: SSIM 0.9141, 4.82% pixels differ"
         }
       }
     }
@@ -12027,11 +12027,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/input_controls_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/input_controls_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/input_controls_light.png",
+            "dark": "captures/windows/xaml/input_controls_dark.png"
           }
         },
         "sonnet": {
@@ -12043,12 +12043,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9341, 1.18% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9329, 0.92% pixels differ \u00b7 Dark: SSIM 0.8891, 4.68% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9318, 0.94% pixels differ \u00b7 Dark: SSIM 0.8888, 4.68% pixels differ"
         }
       }
     }
@@ -12174,11 +12174,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/input_transparent_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/input_transparent_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/input_transparent_light.png",
+            "dark": "captures/windows/xaml/input_transparent_dark.png"
           }
         },
         "sonnet": {
@@ -12191,11 +12191,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7032, 6.07% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.6986, 5.56% pixels differ \u00b7 Dark: SSIM 0.7011, 9.28% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.6976, 5.58% pixels differ \u00b7 Dark: SSIM 0.7008, 9.27% pixels differ"
         }
       }
     }
@@ -12321,11 +12321,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/invalidate_brush_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/invalidate_brush_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/invalidate_brush_light.png",
+            "dark": "captures/windows/xaml/invalidate_brush_dark.png"
           }
         },
         "sonnet": {
@@ -12337,12 +12337,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9830, 0.42% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9833, 0.38% pixels differ \u00b7 Dark: SSIM 0.9339, 4.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9823, 0.40% pixels differ \u00b7 Dark: SSIM 0.9337, 4.13% pixels differ"
         }
       }
     }
@@ -12485,11 +12485,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7788, 6.82% pixels differ \u00b7 Dark: SSIM 0.4882, 45.91% pixels differ"
+          "review": "Light: SSIM 0.7536, 7.60% pixels differ \u00b7 Dark: SSIM 0.7200, 13.43% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7778, 6.84% pixels differ \u00b7 Dark: SSIM 0.4880, 45.91% pixels differ"
+          "review": "Light: SSIM 0.7526, 7.62% pixels differ \u00b7 Dark: SSIM 0.7197, 13.43% pixels differ"
         }
       }
     }
@@ -12615,11 +12615,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_blur_effect_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_blur_effect_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_blur_effect_light.png",
+            "dark": "captures/windows/xaml/ios_blur_effect_dark.png"
           }
         },
         "sonnet": {
@@ -12632,11 +12632,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.3199, 86.27% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.3198, 86.14% pixels differ \u00b7 Dark: SSIM 0.2523, 87.34% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.3187, 86.16% pixels differ \u00b7 Dark: SSIM 0.2521, 87.33% pixels differ"
         }
       }
     }
@@ -12762,11 +12762,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_date_picker_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_date_picker_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_date_picker_light.png",
+            "dark": "captures/windows/xaml/ios_date_picker_dark.png"
           }
         },
         "sonnet": {
@@ -12779,11 +12779,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9548, 0.84% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9518, 0.70% pixels differ \u00b7 Dark: SSIM 0.9143, 4.17% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9508, 0.72% pixels differ \u00b7 Dark: SSIM 0.9141, 4.17% pixels differ"
         }
       }
     }
@@ -13203,11 +13203,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_pan_gesture_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_pan_gesture_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_pan_gesture_light.png",
+            "dark": "captures/windows/xaml/ios_pan_gesture_dark.png"
           }
         },
         "sonnet": {
@@ -13219,12 +13219,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9391, 1.64% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9381, 1.52% pixels differ \u00b7 Dark: SSIM 0.8929, 5.14% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9371, 1.54% pixels differ \u00b7 Dark: SSIM 0.8926, 5.14% pixels differ"
         }
       }
     }
@@ -13350,11 +13350,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_picker_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_picker_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_picker_light.png",
+            "dark": "captures/windows/xaml/ios_picker_dark.png"
           }
         },
         "sonnet": {
@@ -13366,12 +13366,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9324, 1.36% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9324, 1.31% pixels differ \u00b7 Dark: SSIM 0.8956, 5.03% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9314, 1.33% pixels differ \u00b7 Dark: SSIM 0.8953, 5.03% pixels differ"
         }
       }
     }
@@ -13497,11 +13497,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_safe_area_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_safe_area_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_safe_area_light.png",
+            "dark": "captures/windows/xaml/ios_safe_area_dark.png"
           }
         },
         "sonnet": {
@@ -13513,12 +13513,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9096, 2.59% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9090, 2.46% pixels differ \u00b7 Dark: SSIM 0.8689, 6.09% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9080, 2.48% pixels differ \u00b7 Dark: SSIM 0.8687, 6.09% pixels differ"
         }
       }
     }
@@ -13791,11 +13791,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_search_bar_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_search_bar_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_search_bar_light.png",
+            "dark": "captures/windows/xaml/ios_search_bar_dark.png"
           }
         },
         "sonnet": {
@@ -13807,12 +13807,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9242, 1.47% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9222, 1.09% pixels differ \u00b7 Dark: SSIM 0.8982, 4.36% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9212, 1.11% pixels differ \u00b7 Dark: SSIM 0.8979, 4.35% pixels differ"
         }
       }
     }
@@ -14085,11 +14085,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_swipe_transition_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_swipe_transition_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_swipe_transition_light.png",
+            "dark": "captures/windows/xaml/ios_swipe_transition_dark.png"
           }
         },
         "sonnet": {
@@ -14102,11 +14102,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9627, 2.97% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9619, 2.95% pixels differ \u00b7 Dark: SSIM 0.9014, 6.68% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9609, 2.98% pixels differ \u00b7 Dark: SSIM 0.9011, 6.68% pixels differ"
         }
       }
     }
@@ -14232,11 +14232,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/ios_time_picker_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/ios_time_picker_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/ios_time_picker_light.png",
+            "dark": "captures/windows/xaml/ios_time_picker_dark.png"
           }
         },
         "sonnet": {
@@ -14249,11 +14249,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9457, 1.11% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9431, 0.95% pixels differ \u00b7 Dark: SSIM 0.9033, 4.47% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9421, 0.97% pixels differ \u00b7 Dark: SSIM 0.9031, 4.47% pixels differ"
         }
       }
     }
@@ -14379,11 +14379,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/items_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/items_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/items_light.png",
+            "dark": "captures/windows/xaml/items_dark.png"
           }
         },
         "sonnet": {
@@ -14396,11 +14396,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9561, 0.85% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9549, 0.84% pixels differ \u00b7 Dark: SSIM 0.9050, 4.59% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9539, 0.86% pixels differ \u00b7 Dark: SSIM 0.9048, 4.59% pixels differ"
         }
       }
     }
@@ -14526,11 +14526,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/items_updating_scroll_mode_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/items_updating_scroll_mode_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/items_updating_scroll_mode_light.png",
+            "dark": "captures/windows/xaml/items_updating_scroll_mode_dark.png"
           }
         },
         "sonnet": {
@@ -14543,11 +14543,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8593, 3.17% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8601, 2.89% pixels differ \u00b7 Dark: SSIM 0.8253, 6.35% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8592, 2.92% pixels differ \u00b7 Dark: SSIM 0.8251, 6.35% pixels differ"
         }
       }
     }
@@ -14690,11 +14690,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.4743, 20.87% pixels differ \u00b7 Dark: SSIM 0.4120, 24.19% pixels differ"
+          "review": "Light: SSIM 0.4661, 21.37% pixels differ \u00b7 Dark: SSIM 0.4006, 24.80% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.4733, 20.89% pixels differ \u00b7 Dark: SSIM 0.4117, 24.18% pixels differ"
+          "review": "Light: SSIM 0.4651, 21.39% pixels differ \u00b7 Dark: SSIM 0.4003, 24.80% pixels differ"
         }
       }
     }
@@ -15261,11 +15261,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/measure_first_strategy_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/measure_first_strategy_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/measure_first_strategy_light.png",
+            "dark": "captures/windows/xaml/measure_first_strategy_dark.png"
           }
         },
         "sonnet": {
@@ -15278,11 +15278,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8902, 2.94% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8901, 2.76% pixels differ \u00b7 Dark: SSIM 0.8421, 6.45% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8891, 2.79% pixels differ \u00b7 Dark: SSIM 0.8418, 6.45% pixels differ"
         }
       }
     }
@@ -15408,11 +15408,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/menu_bar_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/menu_bar_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/menu_bar_light.png",
+            "dark": "captures/windows/xaml/menu_bar_dark.png"
           }
         },
         "sonnet": {
@@ -15425,11 +15425,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9537, 1.18% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9528, 1.06% pixels differ \u00b7 Dark: SSIM 0.9077, 4.68% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9518, 1.08% pixels differ \u00b7 Dark: SSIM 0.9074, 4.67% pixels differ"
         }
       }
     }
@@ -15555,11 +15555,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/modal_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/modal_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/modal_light.png",
+            "dark": "captures/windows/xaml/modal_dark.png"
           }
         },
         "sonnet": {
@@ -15572,11 +15572,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8713, 2.85% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8714, 2.23% pixels differ \u00b7 Dark: SSIM 0.8545, 5.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8704, 2.25% pixels differ \u00b7 Dark: SSIM 0.8542, 5.13% pixels differ"
         }
       }
     }
@@ -15702,11 +15702,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/multiple_bound_selection_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/multiple_bound_selection_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/multiple_bound_selection_light.png",
+            "dark": "captures/windows/xaml/multiple_bound_selection_dark.png"
           }
         },
         "sonnet": {
@@ -15719,11 +15719,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8514, 2.75% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8461, 2.35% pixels differ \u00b7 Dark: SSIM 0.8245, 5.75% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8451, 2.37% pixels differ \u00b7 Dark: SSIM 0.8243, 5.75% pixels differ"
         }
       }
     }
@@ -15849,11 +15849,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/navigation_gallery_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/navigation_gallery_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/navigation_gallery_light.png",
+            "dark": "captures/windows/xaml/navigation_gallery_dark.png"
           }
         },
         "sonnet": {
@@ -15866,11 +15866,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8394, 3.57% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8407, 2.83% pixels differ \u00b7 Dark: SSIM 0.8414, 5.23% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8397, 2.85% pixels differ \u00b7 Dark: SSIM 0.8412, 5.23% pixels differ"
         }
       }
     }
@@ -15996,11 +15996,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/nested_collection_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/nested_collection_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/nested_collection_light.png",
+            "dark": "captures/windows/xaml/nested_collection_dark.png"
           }
         },
         "sonnet": {
@@ -16013,11 +16013,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8551, 3.32% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8542, 3.32% pixels differ \u00b7 Dark: SSIM 0.8921, 7.06% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8532, 3.34% pixels differ \u00b7 Dark: SSIM 0.8919, 7.06% pixels differ"
         }
       }
     }
@@ -16143,11 +16143,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/pan_gesture_events_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/pan_gesture_events_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/pan_gesture_events_light.png",
+            "dark": "captures/windows/xaml/pan_gesture_events_dark.png"
           }
         },
         "sonnet": {
@@ -16159,12 +16159,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9857, 0.57% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9857, 0.57% pixels differ \u00b7 Dark: SSIM 0.9545, 4.31% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9850, 0.58% pixels differ \u00b7 Dark: SSIM 0.9545, 4.30% pixels differ"
         }
       }
     }
@@ -16748,11 +16748,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7306, 7.32% pixels differ \u00b7 Dark: SSIM 0.6862, 14.19% pixels differ"
+          "review": "Light: SSIM 0.6801, 10.72% pixels differ \u00b7 Dark: SSIM 0.6352, 13.25% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7296, 7.34% pixels differ \u00b7 Dark: SSIM 0.6859, 14.19% pixels differ"
+          "review": "Light: SSIM 0.6836, 10.58% pixels differ \u00b7 Dark: SSIM 0.6349, 13.25% pixels differ"
         }
       }
     }
@@ -16878,11 +16878,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/pickers_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/pickers_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/pickers_light.png",
+            "dark": "captures/windows/xaml/pickers_dark.png"
           }
         },
         "sonnet": {
@@ -16894,12 +16894,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9421, 1.14% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9397, 1.20% pixels differ \u00b7 Dark: SSIM 0.8929, 5.21% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9386, 1.22% pixels differ \u00b7 Dark: SSIM 0.8924, 5.21% pixels differ"
         }
       }
     }
@@ -17025,11 +17025,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/pointer_gesture_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/pointer_gesture_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/pointer_gesture_light.png",
+            "dark": "captures/windows/xaml/pointer_gesture_dark.png"
           }
         },
         "sonnet": {
@@ -17041,12 +17041,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9438, 1.51% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9427, 1.51% pixels differ \u00b7 Dark: SSIM 0.8936, 5.27% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9417, 1.53% pixels differ \u00b7 Dark: SSIM 0.8934, 5.26% pixels differ"
         }
       }
     }
@@ -17466,11 +17466,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/preselected_item_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/preselected_item_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/preselected_item_light.png",
+            "dark": "captures/windows/xaml/preselected_item_dark.png"
           }
         },
         "sonnet": {
@@ -17482,12 +17482,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9054, 1.85% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9045, 1.78% pixels differ \u00b7 Dark: SSIM 0.8498, 5.59% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9035, 1.80% pixels differ \u00b7 Dark: SSIM 0.8496, 5.59% pixels differ"
         }
       }
     }
@@ -17613,11 +17613,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/preselected_items_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/preselected_items_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/preselected_items_light.png",
+            "dark": "captures/windows/xaml/preselected_items_dark.png"
           }
         },
         "sonnet": {
@@ -17630,11 +17630,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7850, 4.36% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.7837, 4.10% pixels differ \u00b7 Dark: SSIM 0.7356, 8.24% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.7827, 4.12% pixels differ \u00b7 Dark: SSIM 0.7354, 8.24% pixels differ"
         }
       }
     }
@@ -17760,11 +17760,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/progress_bar_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/progress_bar_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/progress_bar_light.png",
+            "dark": "captures/windows/xaml/progress_bar_dark.png"
           }
         },
         "sonnet": {
@@ -17777,11 +17777,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8801, 2.61% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8785, 2.49% pixels differ \u00b7 Dark: SSIM 0.8349, 6.11% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8775, 2.51% pixels differ \u00b7 Dark: SSIM 0.8346, 6.11% pixels differ"
         }
       }
     }
@@ -17907,11 +17907,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/radio_button_border_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/radio_button_border_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/radio_button_border_light.png",
+            "dark": "captures/windows/xaml/radio_button_border_dark.png"
           }
         },
         "sonnet": {
@@ -17924,11 +17924,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9641, 1.79% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9629, 1.78% pixels differ \u00b7 Dark: SSIM 0.9135, 5.53% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9619, 1.80% pixels differ \u00b7 Dark: SSIM 0.9132, 5.53% pixels differ"
         }
       }
     }
@@ -18071,11 +18071,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8571, 3.37% pixels differ \u00b7 Dark: SSIM 0.7619, 14.96% pixels differ"
+          "review": "Light: SSIM 0.8503, 3.38% pixels differ \u00b7 Dark: SSIM 0.7166, 19.68% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8561, 3.39% pixels differ \u00b7 Dark: SSIM 0.7617, 14.96% pixels differ"
+          "review": "Light: SSIM 0.8493, 3.40% pixels differ \u00b7 Dark: SSIM 0.7163, 19.68% pixels differ"
         }
       }
     }
@@ -18201,11 +18201,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/radio_button_group_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/radio_button_group_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/radio_button_group_light.png",
+            "dark": "captures/windows/xaml/radio_button_group_dark.png"
           }
         },
         "sonnet": {
@@ -18218,11 +18218,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9569, 1.02% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9558, 1.00% pixels differ \u00b7 Dark: SSIM 0.9073, 4.76% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9548, 1.02% pixels differ \u00b7 Dark: SSIM 0.9071, 4.76% pixels differ"
         }
       }
     }
@@ -18348,11 +18348,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/radio_button_group_binding_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/radio_button_group_binding_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/radio_button_group_binding_light.png",
+            "dark": "captures/windows/xaml/radio_button_group_binding_dark.png"
           }
         },
         "sonnet": {
@@ -18364,12 +18364,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9031, 2.05% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.8997, 1.77% pixels differ \u00b7 Dark: SSIM 0.8743, 5.34% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8987, 1.79% pixels differ \u00b7 Dark: SSIM 0.8740, 5.33% pixels differ"
         }
       }
     }
@@ -18642,11 +18642,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/radio_content_properties_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/radio_content_properties_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/radio_content_properties_light.png",
+            "dark": "captures/windows/xaml/radio_content_properties_dark.png"
           }
         },
         "sonnet": {
@@ -18659,11 +18659,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7864, 5.26% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.7858, 5.19% pixels differ \u00b7 Dark: SSIM 0.7449, 9.03% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.7848, 5.21% pixels differ \u00b7 Dark: SSIM 0.7447, 9.03% pixels differ"
         }
       }
     }
@@ -18789,11 +18789,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/radio_template_from_style_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/radio_template_from_style_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/radio_template_from_style_light.png",
+            "dark": "captures/windows/xaml/radio_template_from_style_dark.png"
           }
         },
         "sonnet": {
@@ -18805,12 +18805,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9895, 0.16% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9870, 0.19% pixels differ \u00b7 Dark: SSIM 0.9388, 4.05% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9865, 0.21% pixels differ \u00b7 Dark: SSIM 0.9385, 4.05% pixels differ"
         }
       }
     }
@@ -19377,11 +19377,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/scattered_radio_button_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/scattered_radio_button_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/scattered_radio_button_light.png",
+            "dark": "captures/windows/xaml/scattered_radio_button_dark.png"
           }
         },
         "sonnet": {
@@ -19393,12 +19393,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9450, 1.33% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9439, 1.32% pixels differ \u00b7 Dark: SSIM 0.8648, 8.58% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9429, 1.34% pixels differ \u00b7 Dark: SSIM 0.8645, 8.58% pixels differ"
         }
       }
     }
@@ -19524,11 +19524,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/scroll_mode_test_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/scroll_mode_test_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/scroll_mode_test_light.png",
+            "dark": "captures/windows/xaml/scroll_mode_test_dark.png"
           }
         },
         "sonnet": {
@@ -19541,11 +19541,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8266, 3.24% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8598, 2.52% pixels differ \u00b7 Dark: SSIM 0.8633, 5.24% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8614, 2.49% pixels differ \u00b7 Dark: SSIM 0.8654, 5.18% pixels differ"
         }
       }
     }
@@ -19965,11 +19965,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/search_bar_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/search_bar_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/search_bar_light.png",
+            "dark": "captures/windows/xaml/search_bar_dark.png"
           }
         },
         "sonnet": {
@@ -19982,11 +19982,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8441, 2.41% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8425, 1.51% pixels differ \u00b7 Dark: SSIM 0.7900, 5.18% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8415, 1.53% pixels differ \u00b7 Dark: SSIM 0.7898, 5.18% pixels differ"
         }
       }
     }
@@ -20112,11 +20112,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/selection_command_param_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/selection_command_param_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/selection_command_param_light.png",
+            "dark": "captures/windows/xaml/selection_command_param_dark.png"
           }
         },
         "sonnet": {
@@ -20129,11 +20129,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9562, 0.82% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9550, 0.79% pixels differ \u00b7 Dark: SSIM 0.9065, 4.56% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9540, 0.81% pixels differ \u00b7 Dark: SSIM 0.9062, 4.55% pixels differ"
         }
       }
     }
@@ -20994,11 +20994,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/single_bound_selection_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/single_bound_selection_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/single_bound_selection_light.png",
+            "dark": "captures/windows/xaml/single_bound_selection_dark.png"
           }
         },
         "sonnet": {
@@ -21010,12 +21010,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9268, 1.58% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9258, 1.32% pixels differ \u00b7 Dark: SSIM 0.8918, 4.58% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9248, 1.34% pixels differ \u00b7 Dark: SSIM 0.8915, 4.58% pixels differ"
         }
       }
     }
@@ -21288,11 +21288,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/some_empty_groups_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/some_empty_groups_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/some_empty_groups_light.png",
+            "dark": "captures/windows/xaml/some_empty_groups_dark.png"
           }
         },
         "sonnet": {
@@ -21304,12 +21304,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9473, 1.45% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9471, 1.42% pixels differ \u00b7 Dark: SSIM 0.8971, 5.19% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9461, 1.44% pixels differ \u00b7 Dark: SSIM 0.8968, 5.19% pixels differ"
         }
       }
     }
@@ -21582,11 +21582,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/staggered_layout_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/staggered_layout_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/staggered_layout_light.png",
+            "dark": "captures/windows/xaml/staggered_layout_dark.png"
           }
         },
         "sonnet": {
@@ -21599,11 +21599,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9671, 0.64% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9660, 0.62% pixels differ \u00b7 Dark: SSIM 0.9165, 4.38% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9650, 0.64% pixels differ \u00b7 Dark: SSIM 0.9162, 4.38% pixels differ"
         }
       }
     }
@@ -21729,11 +21729,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/stepper_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/stepper_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/stepper_light.png",
+            "dark": "captures/windows/xaml/stepper_dark.png"
           }
         },
         "sonnet": {
@@ -21745,12 +21745,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9221, 2.28% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9199, 2.00% pixels differ \u00b7 Dark: SSIM 0.8805, 5.52% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9188, 2.02% pixels differ \u00b7 Dark: SSIM 0.8802, 5.52% pixels differ"
         }
       }
     }
@@ -21876,11 +21876,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/styles_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/styles_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/styles_light.png",
+            "dark": "captures/windows/xaml/styles_dark.png"
           }
         },
         "sonnet": {
@@ -21892,12 +21892,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9277, 3.02% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9278, 2.98% pixels differ \u00b7 Dark: SSIM 0.8770, 6.78% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9268, 3.00% pixels differ \u00b7 Dark: SSIM 0.8767, 6.78% pixels differ"
         }
       }
     }
@@ -22023,11 +22023,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/swipe_gesture_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/swipe_gesture_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/swipe_gesture_light.png",
+            "dark": "captures/windows/xaml/swipe_gesture_dark.png"
           }
         },
         "sonnet": {
@@ -22039,12 +22039,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9430, 1.63% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9438, 1.59% pixels differ \u00b7 Dark: SSIM 0.8502, 12.08% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9428, 1.61% pixels differ \u00b7 Dark: SSIM 0.8500, 12.08% pixels differ"
         }
       }
     }
@@ -22170,11 +22170,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/swipe_item_position_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/swipe_item_position_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/swipe_item_position_light.png",
+            "dark": "captures/windows/xaml/swipe_item_position_dark.png"
           }
         },
         "sonnet": {
@@ -22186,12 +22186,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9733, 0.50% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9645, 0.50% pixels differ \u00b7 Dark: SSIM 0.3309, 90.18% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9635, 0.52% pixels differ \u00b7 Dark: SSIM 0.3307, 90.17% pixels differ"
         }
       }
     }
@@ -22464,11 +22464,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/swipe_refresh_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/swipe_refresh_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/swipe_refresh_light.png",
+            "dark": "captures/windows/xaml/swipe_refresh_dark.png"
           }
         },
         "sonnet": {
@@ -22480,12 +22480,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9863, 0.28% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9853, 0.27% pixels differ \u00b7 Dark: SSIM 0.9375, 4.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9843, 0.29% pixels differ \u00b7 Dark: SSIM 0.9372, 4.00% pixels differ"
         }
       }
     }
@@ -22905,11 +22905,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/swipe_view_shadow_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/swipe_view_shadow_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/swipe_view_shadow_light.png",
+            "dark": "captures/windows/xaml/swipe_view_shadow_dark.png"
           }
         },
         "sonnet": {
@@ -22921,12 +22921,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9133, 2.49% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9121, 2.48% pixels differ \u00b7 Dark: SSIM 0.8830, 5.22% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9111, 2.50% pixels differ \u00b7 Dark: SSIM 0.8827, 5.22% pixels differ"
         }
       }
     }
@@ -23052,11 +23052,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/switch_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/switch_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/switch_light.png",
+            "dark": "captures/windows/xaml/switch_dark.png"
           }
         },
         "sonnet": {
@@ -23069,11 +23069,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9566, 1.49% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9555, 1.48% pixels differ \u00b7 Dark: SSIM 0.9063, 5.23% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9545, 1.50% pixels differ \u00b7 Dark: SSIM 0.9060, 5.23% pixels differ"
         }
       }
     }
@@ -23199,11 +23199,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/switch_grouping_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/switch_grouping_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/switch_grouping_light.png",
+            "dark": "captures/windows/xaml/switch_grouping_dark.png"
           }
         },
         "sonnet": {
@@ -23215,12 +23215,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9409, 1.53% pixels differ \u00b7 Dark: no comparable pair"
+          "status": "red",
+          "review": "Light: SSIM 0.9398, 1.48% pixels differ \u00b7 Dark: SSIM 0.8854, 5.29% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.9388, 1.50% pixels differ \u00b7 Dark: SSIM 0.8851, 5.29% pixels differ"
         }
       }
     }
@@ -23346,11 +23346,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/tabbed_flyout_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/tabbed_flyout_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/tabbed_flyout_light.png",
+            "dark": "captures/windows/xaml/tabbed_flyout_dark.png"
           }
         },
         "sonnet": {
@@ -23363,11 +23363,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9308, 1.50% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9341, 1.13% pixels differ \u00b7 Dark: SSIM 0.9183, 4.14% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9331, 1.15% pixels differ \u00b7 Dark: SSIM 0.9181, 4.13% pixels differ"
         }
       }
     }
@@ -23934,11 +23934,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/toolbar_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/toolbar_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/toolbar_light.png",
+            "dark": "captures/windows/xaml/toolbar_dark.png"
           }
         },
         "sonnet": {
@@ -23951,11 +23951,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8447, 3.30% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8448, 2.57% pixels differ \u00b7 Dark: SSIM 0.8505, 4.85% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8438, 2.59% pixels differ \u00b7 Dark: SSIM 0.8502, 4.84% pixels differ"
         }
       }
     }
@@ -24686,11 +24686,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8813, 72.54% pixels differ \u00b7 Dark: SSIM 0.3271, 77.51% pixels differ"
+          "review": "Light: SSIM 0.9061, 72.32% pixels differ \u00b7 Dark: SSIM 0.3555, 77.48% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.8803, 72.56% pixels differ \u00b7 Dark: SSIM 0.3268, 77.51% pixels differ"
+          "review": "Light: SSIM 0.9051, 72.34% pixels differ \u00b7 Dark: SSIM 0.3552, 77.48% pixels differ"
         }
       }
     }
@@ -24816,11 +24816,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/vertical_stack_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/vertical_stack_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/vertical_stack_light.png",
+            "dark": "captures/windows/xaml/vertical_stack_dark.png"
           }
         },
         "sonnet": {
@@ -24833,11 +24833,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9778, 1.39% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9843, 0.39% pixels differ \u00b7 Dark: SSIM 0.9366, 4.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9833, 0.41% pixels differ \u00b7 Dark: SSIM 0.9363, 4.13% pixels differ"
         }
       }
     }
@@ -25110,11 +25110,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/web_view_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/web_view_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/web_view_light.png",
+            "dark": "captures/windows/xaml/web_view_dark.png"
           }
         },
         "sonnet": {
@@ -25127,11 +25127,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.8450, 2.77% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.8396, 2.04% pixels differ \u00b7 Dark: SSIM 0.6091, 33.85% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8420, 1.98% pixels differ \u00b7 Dark: SSIM 0.6122, 33.76% pixels differ"
         }
       }
     }
@@ -25257,11 +25257,11 @@
           },
           "cpp": {
             "light": "captures/windows/cpp/z_index_light.png",
-            "dark": null
+            "dark": "captures/windows/cpp/z_index_dark.png"
           },
           "xaml": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/xaml/z_index_light.png",
+            "dark": "captures/windows/xaml/z_index_dark.png"
           }
         },
         "sonnet": {
@@ -25274,11 +25274,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9672, 1.27% pixels differ \u00b7 Dark: no comparable pair"
+          "review": "Light: SSIM 0.9664, 1.25% pixels differ \u00b7 Dark: SSIM 0.9189, 5.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "yellow",
+          "review": "Light: SSIM 0.9654, 1.27% pixels differ \u00b7 Dark: SSIM 0.9187, 5.00% pixels differ"
         }
       }
     }
