@@ -18,8 +18,14 @@ if(NOT MAUI_WINAPPSDK)
   message(FATAL_ERROR "MAUI_WINAPPSDK not set (path to the restored Microsoft.WindowsAppSDK package).")
 endif()
 
-# The Windows App SDK ships per-RID import libs; pick the one matching this build.
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|arm64|aarch64")
+# The Windows App SDK ships per-RID import libs; pick the one matching THIS BUILD's ABI. Driven by
+# MAUI_TARGET_ABI from build_winui_probe.ps1 rather than CMAKE_SYSTEM_PROCESSOR: on an ARM64 host
+# compiling for x64 (Hostarm64\x64, which is what VC.Tools.x86.x64 gives you) CMAKE_SYSTEM_PROCESSOR
+# still reports ARM64, so keying off it would link the wrong import library.
+if(NOT MAUI_TARGET_ABI)
+  set(MAUI_TARGET_ABI "arm64")
+endif()
+if(MAUI_TARGET_ABI STREQUAL "arm64")
   set(_wasdk_rid "win-arm64")
   set(_wasdk_rid_legacy "win10-arm64")
 else()
@@ -59,3 +65,20 @@ if(MSVC)
   # Subsystem WINDOWS with the wide entry point (wWinMain).
   target_link_options(maui_winui_probe PRIVATE /SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup)
 endif()
+
+# The .lib above is only an IMPORT library. The actual Microsoft.WindowsAppRuntime.Bootstrap.dll must sit
+# beside the exe or the process dies at load with 0xC0000135 STATUS_DLL_NOT_FOUND -- and because that
+# happens before main(), there is no error dialog and no log line: the E2E runner sees only
+# "process exited early". The runtimes/<rid>/native path carries one DLL per RID, so it is selected by
+# the ABI we actually built (see MAUI_TARGET_ABI above), not by the host architecture.
+set(_wasdk_boot_dll "${MAUI_WINAPPSDK}/runtimes/${_wasdk_rid}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll")
+if(NOT EXISTS "${_wasdk_boot_dll}")
+  set(_wasdk_boot_dll "${MAUI_WINAPPSDK}/runtimes/${_wasdk_rid_legacy}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll")
+endif()
+if(NOT EXISTS "${_wasdk_boot_dll}")
+  message(FATAL_ERROR "Microsoft.WindowsAppRuntime.Bootstrap.dll not found for ABI ${MAUI_TARGET_ABI} "
+                      "(looked under ${MAUI_WINAPPSDK}/runtimes/{${_wasdk_rid},${_wasdk_rid_legacy}}/native)")
+endif()
+add_custom_command(TARGET maui_winui_probe POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_wasdk_boot_dll}" "$<TARGET_FILE_DIR:maui_winui_probe>"
+  COMMENT "copying Microsoft.WindowsAppRuntime.Bootstrap.dll next to the exe")

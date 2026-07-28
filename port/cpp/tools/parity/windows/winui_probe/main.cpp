@@ -20,21 +20,60 @@
 // If this renders a real WinUI Button + TextBlock, the backend is a matter of writing handlers. If it
 // does not, the fallback is a thin MSBuild .vcxproj shell linking the port's CMake-built core.
 
+// C++/WinRT include rule, worth stating because every handler file will hit it: you must include the
+// FULL header for every namespace whose members you call, not merely the one declaring the type. The
+// impl/*.0.h headers that come in transitively only forward-declare, so calling e.g. Slider::Value()
+// (IRangeBase, in ...Controls.Primitives) or IVector::Append (Windows.Foundation.Collections) without
+// their headers fails with "error C3779: a function that returns 'auto' cannot be used before it is
+// defined" -- which does not obviously mean "add an include".
 #include <windows.h>
 
 #include <MddBootstrap.h>
 
+#include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Markup.h>
 #include <winrt/Microsoft.UI.Xaml.XamlTypeInfo.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 
+#include <cstdint>
 #include <cstdio>
+#include <format>
 #include <string>
+#include <string_view>
 
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
+
+namespace
+{
+    // Step logging to a file. A WIN32-subsystem app has no console, and a stowed exception
+    // (0xC000027B) in combase leaves only "APPCRASH" in the event log -- no HRESULT, no message. Logging
+    // each step is the only way to see WHERE activation dies rather than guessing between the
+    // bootstrapper, the metadata provider and the resources.
+    void probe_log(std::string_view msg)
+    {
+        if (FILE* f = nullptr; fopen_s(&f, "C:\\maui-winui\\probe.log", "a") == 0 && f != nullptr)
+        {
+            std::fwrite(msg.data(), 1, msg.size(), f);
+            std::fputc('\n', f);
+            std::fclose(f);
+        }
+    }
+
+    std::string hr_text(winrt::hresult_error const& e)
+    {
+        const std::wstring w{e.message()};
+        std::string out(w.size(), '?');
+        for (size_t i = 0; i < w.size(); ++i)
+        {
+            out[i] = w[i] < 128 ? static_cast<char>(w[i]) : '?';
+        }
+        return std::format("hr=0x{:08X} {}", static_cast<uint32_t>(e.code()), out);
+    }
+} // namespace
 
 namespace
 {
@@ -44,13 +83,23 @@ namespace
     {
         App()
         {
-            // Merge the WinUI control styles. Skip this and Button/TextBlock still ACTIVATE but draw
-            // nothing recognisable -- a window that looks broken rather than an error that says why.
-            Resources().MergedDictionaries().Append(Controls::XamlControlsResources{});
+            // NOTHING but logging here. The resource merge used to live in this constructor and crashed
+            // with a stowed exception in combase before the next log line -- the App object is not yet
+            // fully constructed as far as the XAML framework is concerned, so activating a XAML type
+            // (XamlControlsResources) from here is too early. It is done in OnLaunched instead.
+            probe_log("App ctor: entered (no XAML work here on purpose)");
         }
 
         void OnLaunched(LaunchActivatedEventArgs const&)
         {
+            probe_log("OnLaunched: entered");
+            // Merge the WinUI control styles. Without them Button/TextBlock still ACTIVATE but render
+            // unstyled -- a window that looks broken rather than an error saying why.
+            probe_log("OnLaunched: activating XamlControlsResources");
+            Controls::XamlControlsResources res;
+            probe_log("OnLaunched: XamlControlsResources activated");
+            Resources().MergedDictionaries().Append(res);
+            probe_log("OnLaunched: resources merged");
             window_ = Window{};
             window_.Title(L"maui winui probe");
 
@@ -90,8 +139,10 @@ namespace
             slider.Value(40);
             root.Children().Append(slider);
 
+            probe_log("OnLaunched: tree built");
             window_.Content(root);
             window_.Activate();
+            probe_log("OnLaunched: window activated");
         }
 
         // ---- IXamlMetadataProvider: delegate to the WinUI controls' provider ----------------------
@@ -131,8 +182,26 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
         return 1;
     }
 
-    init_apartment(apartment_type::single_threaded);
-    Application::Start([](auto&&) { make<App>(); });
+    probe_log("main: bootstrap ok");
+    try
+    {
+        init_apartment(apartment_type::single_threaded);
+        probe_log("main: apartment initialised");
+        Application::Start([](auto&&) { make<App>(); });
+        probe_log("main: Application::Start returned");
+    }
+    catch (winrt::hresult_error const& e)
+    {
+        probe_log("main: hresult_error " + hr_text(e));
+        MddBootstrapShutdown();
+        return 2;
+    }
+    catch (std::exception const& e)
+    {
+        probe_log(std::string{"main: std::exception "} + e.what());
+        MddBootstrapShutdown();
+        return 3;
+    }
     MddBootstrapShutdown();
     return 0;
 }

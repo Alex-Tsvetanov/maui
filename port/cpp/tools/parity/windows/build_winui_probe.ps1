@@ -28,7 +28,8 @@ param(
     [string]$ProbeDir = "C:\maui-src\cpp\tools\parity\windows\winui_probe",
     [string]$WorkDir = "C:\maui-winui",
     [string]$WinAppSdkVersion = "1.7.250606001",
-    [string]$CppWinRtVersion = "2.0.240405.15"
+    [string]$CppWinRtVersion = "2.0.240405.15",
+    [string]$WebView2Version = "1.0.2903.40"
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,7 +52,33 @@ $ErrorActionPreference = "Stop"
 if (-not $vsRoot) { throw "no VS install with the C++ toolset found (vswhere returned nothing)" }
 Ok "VS: $vsRoot"
 
-$hostArch = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "arm64" } else { "x64" }
+# Pick the vcvarsall arch from what is ACTUALLY installed rather than from the host architecture.
+# VC.Tools.x86.x64 provides only x86/x64 TARGETS, so an ARM64 guest can easily have Hostarm64\x64 (a
+# native-host compiler targeting x64) but no arm64 target at all -- in which case `vcvarsall arm64`
+# finds no cl.exe and the failure reads as a broken vcvars rather than a missing component.
+# Preference order on an ARM64 host: native arm64, then arm64_x64 (native host, x64 target, runs under
+# the OS's x64 emulation). The chosen target is REPORTED, because it must match the architecture the
+# MAUI reference was built for or the parity comparison is measuring two different rendering paths.
+$msvcRoot = Join-Path $vsRoot "VC\Tools\MSVC"
+$targets = @()
+if (Test-Path $msvcRoot) {
+    $targets = Get-ChildItem $msvcRoot -Recurse -Filter cl.exe -EA SilentlyContinue |
+               ForEach-Object { $_.Directory.Parent.Name + "\" + $_.Directory.Name } |
+               Sort-Object -Unique
+}
+Info ("installed cl.exe targets: " + ($targets -join ", "))
+if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+    if ($targets -contains "Hostarm64\arm64") { $hostArch = "arm64";     $abi = "arm64" }
+    elseif ($targets -contains "Hostarm64\x64") { $hostArch = "arm64_x64"; $abi = "x64" }
+    else { throw "no usable cl.exe target found under $msvcRoot" }
+} else {
+    $hostArch = "x64"; $abi = "x64"
+}
+Info "vcvarsall arch: $hostArch  (target ABI: $abi)"
+if ($abi -ne "arm64") {
+    Warn "building $abi, NOT native arm64. The MAUI reference must be built for the SAME ABI or the"
+    Warn "comparison spans two rendering paths - rebuild it with build_maui_reference.ps1 -Rid win-$abi."
+}
 $vcvars = Join-Path $vsRoot "VC\Auxiliary\Build\vcvarsall.bat"
 if (-not (Test-Path $vcvars)) { throw "vcvarsall.bat not found at $vcvars" }
 
@@ -77,7 +104,14 @@ if (-not (Test-Path $nuget)) {
         -OutFile $nuget
 }
 $packages = Join-Path $WorkDir "packages"
+# Microsoft.Web.WebView2 is REQUIRED even though nothing here uses a WebView: Microsoft.UI.Xaml.winmd
+# declares Microsoft.UI.Xaml.Controls.IWebView2, whose CoreWebView2 property type lives in the WebView2
+# winmd. cppwinrt resolves the whole type graph, so without it generation fails with
+# "Type 'Microsoft.Web.WebView2.Core.CoreWebView2' could not be found" -- which reads as a cppwinrt bug
+# rather than a missing package. It is not pulled in automatically: the App SDK does not declare it as a
+# NuGet dependency.
 foreach ($pkg in @(@{n="Microsoft.WindowsAppSDK"; v=$WinAppSdkVersion},
+                   @{n="Microsoft.Web.WebView2"; v=$WebView2Version},
                    @{n="Microsoft.Windows.CppWinRT"; v=$CppWinRtVersion})) {
     $dest = Join-Path $packages ($pkg.n + "." + $pkg.v)
     if (Test-Path $dest) { Ok "$($pkg.n) $($pkg.v) already restored"; continue }
@@ -102,8 +136,15 @@ $generated = Join-Path $WorkDir "generated"
 # The App SDK's winmds. Their folder has moved between versions (lib/uap10.0 vs lib/uap10.0.18362), so
 # search instead of assuming, and fail loudly if none are found -- an empty -in would silently produce a
 # projection missing every Microsoft.UI type, and the first error would be a confusing "no such header".
-$winmds = Get-ChildItem -Path $wasdk -Filter *.winmd -Recurse | Select-Object -ExpandProperty FullName
-if (-not $winmds) { throw "no .winmd files found under $wasdk" }
+$webview2 = Join-Path $packages ("Microsoft.Web.WebView2." + $WebView2Version)
+# Scan BOTH packages: the App SDK's own winmds plus WebView2's, since the former references the latter.
+$winmds = @()
+foreach ($root in @($wasdk, $webview2)) {
+    $winmds += Get-ChildItem -Path $root -Filter *.winmd -Recurse -EA SilentlyContinue |
+               Select-Object -ExpandProperty FullName
+}
+$winmds = $winmds | Sort-Object -Unique
+if (-not $winmds) { throw "no .winmd files found under $wasdk or $webview2" }
 Info "cppwinrt: $($winmds.Count) App SDK winmd(s) + the platform SDK"
 
 if (Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h")) {
@@ -131,7 +172,8 @@ $ErrorActionPreference = $nativeEAP
 & cmake -S $ProbeDir -B $build -G Ninja `
     -DCMAKE_BUILD_TYPE=Debug `
     "-DMAUI_WINUI_GENERATED=$($generated -replace '\\','/')" `
-    "-DMAUI_WINAPPSDK=$($wasdk -replace '\\','/')" 2>&1 | Select-Object -Last 12
+    "-DMAUI_WINAPPSDK=$($wasdk -replace '\\','/')" `
+    "-DMAUI_TARGET_ABI=$abi" 2>&1 | Select-Object -Last 12
 $code = $LASTEXITCODE
 if ($code -ne 0) { $ErrorActionPreference = "Stop"; throw "cmake configure failed (exit $code)" }
 
