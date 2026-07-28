@@ -50,6 +50,7 @@ import argparse
 import json
 import posixpath
 import secrets
+import re
 import shlex
 import socket
 import subprocess
@@ -90,7 +91,30 @@ class Session1Agent:
 
     # -- ssh plumbing ------------------------------------------------------
     def _ssh(self, extra: list[str] | None = None) -> list[str]:
-        return ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", *(extra or []), self.hostspec]
+        # ServerAliveInterval/CountMax matter most for the long-lived TUNNEL: without them an ssh whose
+        # peer stops answering (VM suspended, network dropped) blocks FOREVER, and each one holds a slot
+        # in Windows sshd's small session budget. Once those are exhausted every new ssh - including the
+        # runner's per-page commands - hangs on connect, which looks like the guest agent wedging.
+        return ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+                "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=3",
+                *(extra or []), self.hostspec]
+
+    def _reap_stale_tunnels(self) -> None:
+        """Kill any ssh forwarding THIS guest port that an earlier run left behind, on the HOST side.
+
+        The guest-side twin of this is _kill_listener. A tunnel is only closed in stop(), so anything
+        that skips stop() - a killed run, the CLI form (which mints a fresh token per invocation), an
+        exception before the finally - leaks one. They accumulate silently and are indistinguishable
+        from a healthy run until sshd runs out of session slots.
+
+        Matched on the exact forward spec (`:127.0.0.1:<guest_port> <user>@<host>`) rather than on
+        "ssh to this host", so an unrelated interactive session to the same guest is left alone.
+        """
+        pattern = f"ssh .*-N -L [0-9]+:127\\.0\\.0\\.1:{self.guest_port} {re.escape(self.hostspec)}"
+        try:
+            subprocess.run(["pkill", "-f", pattern], capture_output=True, check=False, timeout=10)
+        except (OSError, subprocess.TimeoutExpired):
+            pass  # best-effort: a failure here only costs us the leak we were trying to avoid
 
     def sh(self, tokens: list[str], timeout: int = 60) -> subprocess.CompletedProcess:
         # shlex.join yields POSIX single quotes, which PowerShell also treats as literal strings -- hence
@@ -231,6 +255,7 @@ class Session1Agent:
         if self._tunnel is not None:  # the previous one died
             self._tunnel_deaths += 1
             self._tunnel_error = self._read_tunnel_error()
+        self._reap_stale_tunnels()
         self._tunnel_err_file = tempfile.NamedTemporaryFile(  # noqa: SIM115  closed in _read/stop
             prefix="maui-session1-tunnel-", suffix=".err", delete=False)
         self._tunnel = subprocess.Popen(
@@ -301,6 +326,10 @@ class Session1Agent:
             except subprocess.TimeoutExpired:
                 self._tunnel.kill()
             self._tunnel = None
+        # ...and reap any tunnel this instance did NOT create. `session1.py stop` builds a fresh agent
+        # object whose self._tunnel is None, so without this it terminates nothing and the tunnel from
+        # the earlier `start` survives the very command meant to clean up after it.
+        self._reap_stale_tunnels()
         if not quiet:
             self._log("stopped")
 
