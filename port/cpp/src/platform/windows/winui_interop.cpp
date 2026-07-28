@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -27,6 +28,15 @@ namespace maui::platform::windows
             return static_cast<std::uint8_t>(std::clamp(component, 0.0F, 1.0F) * 255.0F);
         }
     } // namespace
+
+    float measure_constraint(double value)
+    {
+        if (std::isnan(value))
+        {
+            return std::numeric_limits<float>::infinity();
+        }
+        return static_cast<float>(value);
+    }
 
     winrt::hstring to_hstring(std::string_view utf8)
     {

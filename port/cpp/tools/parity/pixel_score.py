@@ -25,7 +25,7 @@ shift (exempt per parity policy) can still show up as a nonzero diff_pct/SSIM<1.
 (either side null, or file absent) produce no score for that theme; a page with NO computable theme for
 a given framework gets status "blank" on that framework's slot (mirrors the sonnet/gemini convention).
 
-Usage: python3 tools/parity/pixel_score.py [--only key1,key2] [--platform ios,maccatalyst,android]
+Usage: python3 tools/parity/pixel_score.py [--only key1,key2] [--platform ios,maccatalyst,android,windows]
 Writes results directly into docs/comparison/comparison.json (preserves everything else). Run
 docs/comparison/tools/gen_readme.py afterward to render the scores.
 """
@@ -41,7 +41,7 @@ CPP_ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 COMP = os.path.join(CPP_ROOT, "docs", "comparison")
 JSON = os.path.join(COMP, "comparison.json")
 
-PLATFORMS = ("ios", "maccatalyst", "android")
+PLATFORMS = ("ios", "maccatalyst", "android", "windows")
 THEMES = ("light", "dark")
 DIFF_THRESHOLD = 25  # per-channel 0-255 abs-diff above this counts as a "visibly different" pixel
 WINDOW = 11  # the standard SSIM window size (Wang et al. 2004)

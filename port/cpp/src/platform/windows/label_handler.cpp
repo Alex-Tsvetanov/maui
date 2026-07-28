@@ -422,8 +422,9 @@ namespace maui::core
         const auto auto_size = std::numeric_limits<double>::quiet_NaN();
         host.Width(auto_size);
         host.Height(auto_size);
-        host.Measure(winrt::Windows::Foundation::Size{static_cast<float>(width_constraint),
-                                                      static_cast<float>(height_constraint)});
+        host.Measure(winrt::Windows::Foundation::Size{
+            maui::platform::windows::measure_constraint(width_constraint),
+            maui::platform::windows::measure_constraint(height_constraint)});
         const auto desired = host.DesiredSize();
         return {desired.Width, desired.Height};
     }
@@ -439,9 +440,15 @@ namespace maui::core
         // is Canvas.Left/Top and the size is Width/Height. The frame is parent-relative, like a UIView
         // frame. It is applied to the HOST Border - the TextBlock inside it stretches, which is what
         // gives VerticalTextAlignment a box to align within.
-        if (frame.width < 0 || frame.height < 0)
+        // PlatformArrangeHandler's guard, WIDENED to non-finite. C# only tests `< 0` because its
+        // cross-platform arrange never yields NaN; if one ever reaches XAML here it is an unrecoverable
+        // stowed exception with no message and no stack (0xC000027B), so a skipped arrange is strictly
+        // better than a dead process. A NaN arriving here is an upstream layout bug worth chasing, not
+        // a value with a meaning.
+        if (!std::isfinite(frame.x) || !std::isfinite(frame.y) || !std::isfinite(frame.width) ||
+            !std::isfinite(frame.height) || frame.width < 0 || frame.height < 0)
         {
-            return; // PlatformArrangeHandler's guard
+            return;
         }
         const border host = as_host(platform->native);
         winui::Controls::Canvas::SetLeft(host, frame.x);

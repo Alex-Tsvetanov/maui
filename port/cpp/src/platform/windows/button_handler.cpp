@@ -468,8 +468,9 @@ namespace maui::core
         const auto auto_size = std::numeric_limits<double>::quiet_NaN();
         button.Width(auto_size);
         button.Height(auto_size);
-        button.Measure(winrt::Windows::Foundation::Size{static_cast<float>(width_constraint),
-                                                        static_cast<float>(height_constraint)});
+        button.Measure(winrt::Windows::Foundation::Size{
+            maui::platform::windows::measure_constraint(width_constraint),
+            maui::platform::windows::measure_constraint(height_constraint)});
         const auto desired = button.DesiredSize();
         return {desired.Width, desired.Height};
     }
@@ -493,9 +494,15 @@ namespace maui::core
         {
             return;
         }
-        if (frame.width < 0 || frame.height < 0)
+        // PlatformArrangeHandler's guard, WIDENED to non-finite. C# only tests `< 0` because its
+        // cross-platform arrange never yields NaN; if one ever reaches XAML here it is an unrecoverable
+        // stowed exception with no message and no stack (0xC000027B), so a skipped arrange is strictly
+        // better than a dead process. A NaN arriving here is an upstream layout bug worth chasing, not
+        // a value with a meaning.
+        if (!std::isfinite(frame.x) || !std::isfinite(frame.y) || !std::isfinite(frame.width) ||
+            !std::isfinite(frame.height) || frame.width < 0 || frame.height < 0)
         {
-            return; // PlatformArrangeHandler's guard
+            return;
         }
         const button_control button = as_button(platform->native);
         winui::Controls::Canvas::SetLeft(button, frame.x);

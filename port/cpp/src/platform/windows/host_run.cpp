@@ -27,6 +27,7 @@
 
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.Markup.h>
 #include <winrt/Microsoft.UI.Xaml.XamlTypeInfo.h>
 #include <winrt/Microsoft.UI.Xaml.h>
@@ -160,6 +161,31 @@ namespace
                     case maui::core::app_theme::unspecified:
                         themed.RequestedTheme(winui::ElementTheme::Default);
                         break;
+                }
+            }
+
+            // (3c) The themed PAGE BACKGROUND. MAUI hosts the page inside a WindowRootView/RootPanel
+            //      whose Background is ApplicationPageBackgroundThemeBrush; the port hosts the page
+            //      element directly as Window.Content, so without this the window keeps its default
+            //      white and a dark capture is white text on white -- confirmed by capture, which is
+            //      why this is here and not guessed at earlier.
+            //
+            //      Applied ONLY when the page set no Background of its own: ReadLocalValue returns
+            //      UnsetValue exactly when the mapper did not push one, so an explicit page colour
+            //      still wins. Looked up AFTER RequestedTheme above, so the brush is the right theme's.
+            if (const auto panel = native.Content().try_as<winui::Controls::Panel>())
+            {
+                const bool has_own_background =
+                    panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
+                    winui::DependencyProperty::UnsetValue();
+                if (!has_own_background)
+                {
+                    const auto resources = Resources();
+                    const auto key = winrt::box_value(winrt::hstring{L"ApplicationPageBackgroundThemeBrush"});
+                    if (resources.HasKey(key))
+                    {
+                        panel.Background(resources.Lookup(key).as<winui::Media::Brush>());
+                    }
                 }
             }
 

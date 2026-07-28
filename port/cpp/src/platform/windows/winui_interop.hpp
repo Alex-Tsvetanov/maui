@@ -56,6 +56,18 @@ namespace maui::platform::windows
         slot = nullptr;
     }
 
+    // ---- measure/arrange sanitizing --------------------------------------------------------------
+    // UIElement::Measure THROWS on a NaN (or negative) Size, and the throw surfaces as a stowed
+    // exception inside Microsoft.UI.Xaml.dll -- exit code 0xC000027B, no message, no stack. The C#
+    // oracle never hits this because GetDesiredSizeFromHandler runs every constraint through
+    // AdjustForExplicitSize first, which maps NaN to the external constraint; the port's cross-platform
+    // layer owns explicit sizes instead, so the NaN has to be absorbed here.
+    //
+    // NaN means "unconstrained", which in XAML is INFINITY, not zero: mapping it to 0 would measure
+    // every affected element to nothing. A negative constraint is the oracle's return-Size.Zero case and
+    // is left to the caller's own `< 0` guard.
+    [[nodiscard]] float measure_constraint(double value);
+
     // ---- conversions ----------------------------------------------------------------------------
     // The port speaks UTF-8 std::string; WinRT speaks UTF-16 hstring.
     winrt::hstring to_hstring(std::string_view utf8);

@@ -21,6 +21,7 @@
 #include <winrt/Windows.Foundation.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <memory>
 #include <string_view>
@@ -260,9 +261,15 @@ namespace maui::core
         {
             return;
         }
-        if (frame.width < 0 || frame.height < 0)
+        // PlatformArrangeHandler's guard, WIDENED to non-finite. C# only tests `< 0` because its
+        // cross-platform arrange never yields NaN; if one ever reaches XAML here it is an unrecoverable
+        // stowed exception with no message and no stack (0xC000027B), so a skipped arrange is strictly
+        // better than a dead process. A NaN arriving here is an upstream layout bug worth chasing, not
+        // a value with a meaning.
+        if (!std::isfinite(frame.x) || !std::isfinite(frame.y) || !std::isfinite(frame.width) ||
+            !std::isfinite(frame.height) || frame.width < 0 || frame.height < 0)
         {
-            return; // PlatformArrangeHandler's guard (ViewHandlerExtensions.Windows.cs)
+            return;
         }
         const canvas panel = as_panel(platform->native);
         canvas::SetLeft(panel, frame.x);
