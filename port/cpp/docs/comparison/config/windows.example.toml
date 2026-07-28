@@ -89,37 +89,27 @@ theme_light = "Light"
 theme_dark  = "Dark"
 driver = "coordinate"
 
-# The C++ columns are NOT enabled: the port has no Windows backend yet. `MAUI_BACKEND=windows` falls
-# through to the headless mirrors, which create no widgets, and host_run.cpp is gated to the headless
-# backend so examples/gallery does not even link for Windows. Both need the WinUI 3 handler fan-out
-# (docs/WINDOWS_TOOLCHAIN.md section 6) before a C++ column can be compared against the reference above.
+# --- the C++ column -------------------------------------------------------------------------------
+# The port's WinUI 3 backend (src/platform/windows/, docs/WINDOWS_TOOLCHAIN.md section 6). Built ON THE
+# GUEST like the reference above - the Windows App SDK and the C++/WinRT projection only exist there -
+# so this is also `artifact_remote`. Build it with tools/parity/windows/build_gallery_windows.ps1.
+#
+# COVERAGE: only window / content_page / layout / label / button are real WinUI handlers so far; every
+# other control still has its headless mirror and renders NOTHING. Pages built from other controls are
+# therefore expected to be blank or partial - that is the fan-out being incomplete, not a regression.
+[environments.windows-x64.columns.cpp]
+artifact_remote = "C:/maui-src/cpp/examples/build-win/gallery"
+artifact  = "port/cpp/examples/gallery"   # host path, unused while artifact_remote is set
+process   = "gallery.exe"
+page_env  = "MAUI_SAMPLE_PAGE"
+theme_env = "MAUI_APPEARANCE"
+theme_light = "light"
+theme_dark  = "dark"
+driver = "coordinate"
+
+# The "C++ & XAML" column is NOT enabled: examples/gallery_xaml's .xaml.cpp TUs use #embed, which MSVC
+# does not implement. That column needs the bytes-mode codegen path rather than the committed #embed
+# TUs - see docs/WINDOWS_TOOLCHAIN.md section 6d.
+#
 # The mingw Win32 smoke app that used to sit here was TRANSPORT scaffolding and is deliberately not a
 # board column -- it paints the same layout for every page and can never match MAUI.
-# LANE 1 (the parity lane — uncomment once the guest builds land; see WINDOWS_TOOLCHAIN.md §5).
-# MauiReference published for windows, plus the port's two WinUI 3 columns.
-#[environments.windows-x64.columns.maui_xaml]
-#artifact  = "port/maui-reference/app/bin/Debug/net10.0-windows10.0.19041.0/win10-x64"
-#process   = "MauiReference.exe"
-#page_env  = "MAUI_COMPARE_PAGE"
-#theme_env = "MAUI_THEME"
-#theme_light = "Light"
-#theme_dark  = "Dark"
-#driver = "coordinate"
-#
-#[environments.windows-x64.columns.cpp]
-#artifact  = "port/cpp/build-windows/examples/gallery"
-#process   = "gallery.exe"
-#page_env  = "MAUI_SAMPLE_PAGE"
-#theme_env = "MAUI_APPEARANCE"
-#theme_light = "light"
-#theme_dark  = "dark"
-#driver = "coordinate"
-#
-#[environments.windows-x64.columns.cpp_xaml]
-#artifact  = "port/cpp/build-windows/examples/gallery_xaml"
-#process   = "gallery_xaml.exe"
-#page_env  = "MAUI_SAMPLE_PAGE"
-#theme_env = "MAUI_APPEARANCE"
-#theme_light = "light"
-#theme_dark  = "dark"
-#driver = "coordinate"

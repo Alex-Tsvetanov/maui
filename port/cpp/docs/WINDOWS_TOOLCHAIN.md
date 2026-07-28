@@ -272,40 +272,100 @@ click/type/scroll, and the PowerShell-quoting assumption end to end.
 
 ---
 
-## 6. Lane 1 (WinUI 3) — what remains
+## 6. Lane 1 (WinUI 3) — the backend
 
-The pipeline is the deliverable here; the WinUI 3 **backend** is a full platform port (a
-`src/platform/windows/` handler fan-out mirroring the existing apple/android partials) and is not
-attempted in this branch. What this branch leaves ready for it:
+**Status: the first vertical slice EXISTS and builds natively.** `MAUI_BACKEND=windows` now compiles the
+port's ~400 cross-platform sources under MSVC and links five real WinUI 3 handlers. What that took, and
+what is still mirror-only, is below.
 
-* `cmake/toolchains/windows-mingw.cmake` — the cross lane, with its non-parity scope stated in-file.
-* **`MAUI_BACKEND=windows` already resolves sensibly.** It accepts `windows` (`CMakeLists.txt:34`), and
-  the platform-source selection's final `else()` branch — commented "headless AND android (M-android
-  scaffold)" — already hands any non-apple backend the pure-C++ **headless mirrors**. That is exactly how
-  both the iOS and Android backends were bootstrapped ("the JNI fan-out swaps them out control by
-  control"), so a `windows` branch is needed only when the first real WinUI source lands, and the WinUI
-  handlers then replace the mirrors one control at a time. This is the established pattern to follow, not
-  a gap to design around.
-* Two things a **CMake-driven** Windows build needs that `build_core_check.sh` sidesteps by compiling the
-  library sources directly (which is why there is no preset yet):
-  - `find_package(GTest CONFIG REQUIRED)` and `benchmark` are **unconditional** (`CMakeLists.txt:55-56`),
-    so any configure needs both built for the target triplet — i.e. vcpkg ports for `x64-mingw-*` or
-    `x64-windows`.
-  - `MAUI_PLATFORM_HEADLESS` — and with it the only linked `run_app` body — is defined **only** when
-    `MAUI_BACKEND STREQUAL "headless"`. A `windows` build therefore has no `run_app` until
-    `src/platform/windows/host_run.cpp` exists, which is why `core_probe.cpp` performs the
-    build → `mount_window` → `drive_layout` sequence itself instead of calling `run_app`.
-* `provision_guest.ps1 -WithBuildTools` installs the MSVC/SDK/CMake/Ninja chain on the guest.
-* `docs/comparison/config/windows.example.toml` already contains the (commented) `maui_xaml` / `cpp` /
-  `cpp_xaml` columns for the parity lane.
+### 6a. The toolchain facts that cost time
 
-Decisions worth making before that work starts:
+* **Native arm64 needs a component the installer does not tick for you.** The guest is ARM64 Windows 11,
+  but VS Build Tools shipped only the cross compilers `Hostarm64\x64`, `Hostarm64\x86` and
+  `Hostarm64\arm` — the last being **ARM32** (`VC.Tools.ARM`), which is the one people select by mistake.
+  The native toolset is `Microsoft.VisualStudio.Component.VC.Tools.ARM64` (+ `...ARM64EC`);
+  `tools/parity/windows/install_arm64_toolset.ps1` adds it non-interactively and is idempotent. This
+  matters because the MAUI reference board on this machine is native arm64: a score across two ABIs
+  compares two rendering paths, not parity.
+* **`setup.exe modify` rejects `--wait`** (that flag belongs to `vs_installer.exe`) and answers 87
+  ERROR_INVALID_PARAMETER having parsed nothing — its own log then reads `vs.willow.quiet : False`,
+  which looks like the flags were ignored rather than rejected. The installer's newest
+  `%TEMP%\dd_installer_*.log` names the offending option; read it before theorising.
+* **PowerShell script execution is disabled by default.** Every `powershell -File` invocation over SSH
+  needs `-ExecutionPolicy Bypass`, or it fails with a SecurityError that says nothing about SSH.
+* **Three MSVC portability fixes in the port's own build**, each real and each committed:
+  - `add_compile_options(-Wall -Wextra -Wpedantic)` was unconditional; MSVC answers
+    `D8021 invalid numeric argument '/Wextra'`. Now `/W4 /utf-8 /bigobj /permissive- /Zc:__cplusplus
+    /Zc:preprocessor` on MSVC. `/utf-8` is NOT optional — every header here has em-dashes in its comments.
+  - The `maui_sanitizers` interface applied `-g -fno-omit-frame-pointer` unconditionally.
+  - `MAUI_DEVFLOW` (the in-app automation agent) is a POSIX BSD-socket server that also demangles through
+    `<cxxabi.h>`; it now defaults OFF under MSVC. Nothing depends on it — consumers gate on the macro, and
+    the parity runner drives the UI from OUTSIDE the process.
 
-1. **Packaged vs unpackaged.** Prefer **unpackaged** with the Windows App SDK bootstrapper: the runner
-   deploys a folder and launches an `.exe`, exactly like the macOS lane copies a `.app`. MSIX packaging
-   would add an install/uninstall step per run for no parity benefit.
-2. **`cl.exe` on the guest vs `clang-cl` cross from macOS.** Cross-compiling WinUI needs the Windows
-   SDK + App SDK headers on the Mac (licence-encumbered, fragile). Building on the guest is the honest
-   path and the runner already reaches the guest over SSH.
-3. **C++/WinRT projection.** `cppwinrt.exe` from the `Microsoft.Windows.CppWinRT` NuGet package
-   generates the headers; wire it as a CMake custom command so no NuGet/MSBuild project is needed.
+### 6b. What the backend contains
+
+`src/platform/windows/`, wired by the `MAUI_BACKEND STREQUAL "windows"` swap block inside the platform-
+source `else()` branch — the same swap-one-control-at-a-time bring-up the android lane uses:
+
+| unit | native type | oracle |
+| --- | --- | --- |
+| `window_handler.cpp` | `Microsoft.UI.Xaml.Window` | `WindowHandler.cs` + `MauiWinUIWindow.cs` |
+| `content_page_handler.cpp` | `Controls.Canvas` (single-content host) | — |
+| `layout_handler.cpp` | `Controls.Canvas` (child list + z-order) | `LayoutHandler.Windows.cs` |
+| `label_handler.cpp` | `Controls.TextBlock` | `LabelHandler.Windows.cs` + `TextBlockExtensions.cs` |
+| `button_handler.cpp` | `Controls.Button` | `ButtonHandler.Windows.cs` + `ButtonExtensions.cs` |
+| `host_run.cpp` | the `Application::Start` run loop | the winui_probe |
+| `winui_interop.{hpp,cpp}` | the `void*`-slot box + string/color conversions | — |
+
+Every control NOT in that list keeps its headless mirror and renders nothing yet — the same staged state
+the iOS and Android backends passed through.
+
+Three things about the seam that are easy to get wrong:
+
+1. **The `void* native` slot boxes a `winrt::Microsoft::UI::Xaml::UIElement`, not the derived type.**
+   Projected derived types are distinct C++ classes, so storing a `TextBlock` would make the layout
+   panel's generic upcast a `reinterpret_cast`; each handler does a checked `.as<T>()` instead. And the
+   box is an aggregate wrapper, because every projected type deletes `operator new`.
+2. **A Canvas, not a `LayoutPanel`.** MAUI's Windows panel calls back into CrossPlatformMeasure/Arrange;
+   the port already runs its own layout and hands each child an absolute-in-parent frame, so the host
+   must not impose XAML layout. Each child's `platform_arrange` writes its own `Canvas.Left/Top` +
+   `Width`/`Height`.
+3. **`XamlControlsResources` must be merged in `OnLaunched`, never in the Application constructor** —
+   the latter dies with a stowed exception (`0xC000027B`) inside combase.
+
+### 6c. Building it
+
+```powershell
+tools\parity\windows\install_arm64_toolset.ps1   # once: the native arm64 toolset
+tools\parity\windows\configure_port_windows.ps1  # provisions the App SDK + cppwinrt projection, then cmake
+tools\parity\windows\build_port_windows.ps1      # the five framework libraries
+tools\parity\windows\build_gallery_windows.ps1   # the parity C++ column (examples/gallery)
+```
+
+`provision_winui_sdk.ps1` (called by the two configure scripts, idempotent) restores
+Microsoft.WindowsAppSDK + Microsoft.Web.WebView2 + Microsoft.Windows.CppWinRT and runs `cppwinrt.exe`,
+then prints the two paths CMake cannot discover on its own (`MAUI_WINAPPSDK`, `MAUI_WINUI_GENERATED`).
+WebView2 is required even though nothing here uses a WebView: `Microsoft.UI.Xaml.winmd` references its
+types and cppwinrt resolves the whole type graph.
+
+### 6d. Still to do
+
+* The handler fan-out for every remaining control (entry, switch, checkbox, slider, image, …).
+* `NeedsContainer` / `WrapperView` — MAUI's Windows backend wraps a view in a container for Background,
+  clipping, shadows and vertical text alignment; the port has no container seam on this backend.
+* Window lifecycle events (`Activated` / `Closed` → `send_activated` / `send_destroying`) and the
+  toolbar / menu-bar / title-bar chrome, which C# DOES materialize on Windows (unlike iOS).
+* `gallery_xaml` (the "C++ & XAML" column): its `.xaml.cpp` TUs use `#embed`, which MSVC does not
+  implement — that column needs the bytes-mode codegen path, not the committed `#embed` TUs.
+
+### 6e. Decisions taken (previously open)
+
+1. **Unpackaged**, with the Windows App SDK bootstrapper: the runner deploys a folder and launches an
+   `.exe`, exactly like the macOS lane copies a `.app`. The bootstrap DLL is copied next to the exe by
+   `maui_add_app` — without it the process dies at load with `0xC0000135` before `main()`, and the runner
+   sees only "the process exited early".
+2. **`cl.exe` on the guest**, not `clang-cl` cross from macOS: cross-compiling WinUI needs the Windows SDK
+   + App SDK headers on the Mac.
+3. **C++/WinRT projection generated by a script, not a CMake custom command.** `cppwinrt.exe` needs the
+   NuGet packages restored first, and teaching CMake about NuGet adds a moving part for no benefit; the
+   script prints the paths and the configure passes them in.

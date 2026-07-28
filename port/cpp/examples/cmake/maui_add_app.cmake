@@ -104,6 +104,30 @@ function(maui_add_app name)
                 "$<TARGET_BUNDLE_CONTENT_DIR:${name}>"
         COMMENT "Bundling resources into ${name}.app")
     endif()
+  elseif(MAUI_BACKEND STREQUAL "windows")
+    # Windows (WinUI 3): a WINDOWED executable, so no console window flashes into every parity capture.
+    # /ENTRY:mainCRTStartup is what makes that free: the WINDOWS subsystem normally implies a WinMain
+    # entry point, and this keeps the plain main() that maui/maui_main.hpp defines — so an example's
+    # source stays byte-identical across backends, which is the whole contract of this helper.
+    # (WIN32_EXECUTABLE TRUE alone would set the subsystem AND the entry point, and the link would then
+    # fail looking for WinMain.)
+    target_link_options(${name} PRIVATE /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
+    # The Windows App Runtime bootstrap DLL MUST sit beside the exe. Without it the process dies at load
+    # with 0xC0000135 BEFORE main() runs: no dialog, no log line, and the E2E runner sees only "the
+    # process exited early" — which reads as an app bug rather than a missing file.
+    if(NOT MAUI_WASDK_BOOTSTRAP_DLL)
+      message(FATAL_ERROR "MAUI_WASDK_BOOTSTRAP_DLL is not set; configure the framework for "
+                          "MAUI_BACKEND=windows through tools/parity/windows/configure_port_windows.ps1")
+    endif()
+    add_custom_command(TARGET ${name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MAUI_WASDK_BOOTSTRAP_DLL}" "$<TARGET_FILE_DIR:${name}>"
+      COMMENT "Copying Microsoft.WindowsAppRuntime.Bootstrap.dll next to ${name}")
+    if(ARG_RESOURCES)
+      add_custom_command(TARGET ${name} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARG_RESOURCES}
+                "$<TARGET_FILE_DIR:${name}>"
+        COMMENT "Copying resources next to ${name}")
+    endif()
   else()
     # headless / apple: a plain executable. Copy any resources next to the binary (the loader resolves
     # from_file() paths against the CWD — same convention as the framework's plain macOS gallery).

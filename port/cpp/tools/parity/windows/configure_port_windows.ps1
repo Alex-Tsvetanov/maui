@@ -71,6 +71,18 @@ $cl = (Get-Command cl.exe -ErrorAction SilentlyContinue).Source
 if (-not $cl) { throw "cl.exe not on PATH after importing vcvarsall $arch" }
 Info "cl: $cl"
 
+# The WinUI 3 dependencies. MAUI_BACKEND=windows compiles against the C++/WinRT projection, which is
+# GENERATED (cppwinrt.exe over the App SDK winmds) rather than shipped, so it has to exist before cmake
+# runs. provision_winui_sdk.ps1 is idempotent and prints the two paths cmake needs.
+Info "provisioning the Windows App SDK + C++/WinRT projection"
+$sdkOut = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "provision_winui_sdk.ps1") 2>&1
+$sdkOut | ForEach-Object { Write-Host "   $_" }
+$wasdk = ($sdkOut | Select-String '^WINAPPSDK=(.+)$').Matches.Groups[1].Value
+$generated = ($sdkOut | Select-String '^WINUI_GENERATED=(.+)$').Matches.Groups[1].Value
+if (-not $wasdk -or -not $generated) { throw "provision_winui_sdk.ps1 did not report both paths" }
+Info "WindowsAppSDK: $wasdk"
+Info "projection   : $generated"
+
 $env:VCPKG_ROOT = "C:\vcpkg"
 Info "configuring (vcpkg builds gtest/benchmark/pugixml first; this is the slow part)"
 # Arguments as an ARRAY, then splatted. Backtick-continued bareword arguments to a native command are
@@ -86,6 +98,9 @@ $cmakeArgs = @(
     "-DMAUI_BACKEND=windows",
     "-DVCPKG_TARGET_TRIPLET=$triplet",
     "-DVCPKG_HOST_TRIPLET=$triplet",
+    "-DMAUI_TARGET_ABI=$abi",
+    "-DMAUI_WINAPPSDK=$wasdk",
+    "-DMAUI_WINUI_GENERATED=$generated",
     "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 )
 Info ("cmake " + ($cmakeArgs -join " "))

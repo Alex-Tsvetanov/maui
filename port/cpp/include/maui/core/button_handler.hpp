@@ -17,6 +17,7 @@
 // headless), `title` is the headless text mirror, and the callbacks are the inbound event hooks the
 // platform partial wires up.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -80,6 +81,17 @@ namespace maui::core
         move_only_function<void()> on_click;
         move_only_function<void()> on_press;
         move_only_function<void()> on_release;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the event registration tokens on_connect_handler produced, so
+        // on_disconnect_handler can revoke EXACTLY what it registered. Without them the Click/pointer
+        // lambdas — which capture the handler — would outlive it and fire into freed memory.
+        // Stored as int64 (winrt::event_token's underlying type) rather than as the WinRT type so this
+        // cross-platform header never has to see the C++/WinRT projection.
+        std::int64_t click_token = 0;
+        std::int64_t pointer_pressed_token = 0;
+        std::int64_t pointer_released_token = 0;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSButton (defined in

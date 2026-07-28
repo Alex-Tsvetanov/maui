@@ -47,7 +47,14 @@ if(MAUI_BACKEND STREQUAL "maccatalyst")
 endif()
 
 # ---- Warnings (PROFILE.md §1: treat as errors in CI once green) ----
-add_compile_options(-Wall -Wextra -Wpedantic)
+if(MSVC)
+  # /utf-8 is NOT optional here: every header in this tree carries em-dashes in its comments, and
+  # without it cl.exe reads them as the ANSI codepage and emits C4819 per file. /bigobj because the
+  # bindable-property + handler templates blow past the 64k-section limit in several TUs.
+  add_compile_options(/W4 /utf-8 /bigobj /permissive- /Zc:__cplusplus /Zc:preprocessor)
+else()
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 enable_testing()
 
@@ -83,10 +90,15 @@ option(ENABLE_TSAN "Build with ThreadSanitizer" OFF)
 option(ENABLE_MSAN "Build with MemorySanitizer (Clang/Linux only; unsupported on AppleClang)" OFF)
 
 add_library(maui_sanitizers INTERFACE)
-target_compile_options(maui_sanitizers INTERFACE
-  $<$<COMPILE_LANGUAGE:CXX>:-g>
-  $<$<COMPILE_LANGUAGE:CXX>:-fno-omit-frame-pointer>
-)
+# The frame-pointer/debug pair is unconditional on the clang/gcc lanes (cheap, and every sanitizer
+# personality below wants it). MSVC spells neither, and none of the personalities are offered on that
+# lane, so the interface stays empty there rather than gaining a /Oy- translation nothing consumes.
+if(NOT MSVC)
+  target_compile_options(maui_sanitizers INTERFACE
+    $<$<COMPILE_LANGUAGE:CXX>:-g>
+    $<$<COMPILE_LANGUAGE:CXX>:-fno-omit-frame-pointer>
+  )
+endif()
 if(ENABLE_ASAN_UBSAN)
   target_compile_options(maui_sanitizers INTERFACE
     $<$<COMPILE_LANGUAGE:CXX>:-O1>
@@ -127,7 +139,15 @@ endif()
 # The debug-gated in-app test/automation agent (maui::devflow, modeled on .NET MAUI DevFlow). ON for
 # dev/test builds (mirrors MAUI's `#if DEBUG`); set -DMAUI_DEVFLOW=OFF for release so the module — the
 # localhost socket server + tree/tap introspection — is entirely absent. Wires into maui_hosting below.
-option(MAUI_DEVFLOW "Compile the debug-gated in-app DevFlow test/automation agent" ON)
+# Defaults OFF under MSVC: the agent is a POSIX BSD-socket server (arpa/inet.h, poll.h, unistd.h) that
+# also demangles through <cxxabi.h>, none of which MSVC has. Nothing depends on it -- consumers gate on
+# the MAUI_DEVFLOW macro, which simply stays undefined. Port it to Winsock only if a Windows E2E lane
+# ever needs in-app tree introspection; the parity runner drives the UI from OUTSIDE the process.
+set(MAUI_DEVFLOW_DEFAULT ON)
+if(MSVC)
+  set(MAUI_DEVFLOW_DEFAULT OFF)
+endif()
+option(MAUI_DEVFLOW "Compile the debug-gated in-app DevFlow test/automation agent" ${MAUI_DEVFLOW_DEFAULT})
 
 # ======================================================================
 # Layer 0 - Graphics  (maui::graphics  <=  Microsoft.Maui.Graphics)
@@ -608,6 +628,23 @@ else()
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/tabbed_page_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/tabbed_page_handler.cpp)
   endif()
+
+  # ---- windows (WinUI 3): the same swap-one-control-at-a-time bring-up the android lane above uses ----
+  # MAUI's Windows backend is WinUI 3 (Microsoft.UI.Xaml), verified in src/Core/src/Handlers/*.Windows.cs:
+  # ButtonHandler creates a Microsoft.UI.Xaml.Controls.Button, LabelHandler a TextBlock. Only a WinUI 3
+  # render is comparable against the MAUI reference board, so these partials create those exact types.
+  # Every control NOT listed here keeps its headless mirror and therefore renders nothing yet - the same
+  # staged state the ios and android backends passed through, not a silent gap.
+  if(MAUI_BACKEND STREQUAL "windows")
+    set(MAUI_WINDOWS_SWAPS
+      window_handler content_page_handler layout_handler label_handler button_handler)
+    foreach(unit IN LISTS MAUI_WINDOWS_SWAPS)
+      list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/${unit}.cpp)
+      list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/${unit}.cpp)
+    endforeach()
+    # The shared string/color conversions the partials above call (winui_interop.hpp).
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/winui_interop.cpp)
+  endif()
 endif()
 
 add_library(maui_core STATIC
@@ -737,6 +774,64 @@ endif()
 if(MAUI_BACKEND STREQUAL "android")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_ANDROID)
   target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
+endif()
+# The windows twin: MAUI_PLATFORM_WINDOWS (PUBLIC, the same ODR rule as the blocks above) selects the
+# windows-only slots in the shared platform structs for every TU of the build.
+#
+# The two paths below cannot be discovered by CMake, because neither is a CMake concept: MAUI_WINAPPSDK is
+# a restored NuGet package and MAUI_WINUI_GENERATED is the output of cppwinrt.exe run over its winmds.
+# tools/parity/windows/configure_port_windows.ps1 produces both and passes them in. They are PUBLIC (not
+# PRIVATE) because maui_hosting's host_run.cpp and any app host also include the projection.
+if(MAUI_BACKEND STREQUAL "windows")
+  if(NOT MAUI_WINUI_GENERATED OR NOT MAUI_WINAPPSDK)
+    message(FATAL_ERROR
+      "MAUI_BACKEND=windows needs MAUI_WINUI_GENERATED (the cppwinrt projection headers) and "
+      "MAUI_WINAPPSDK (the restored Microsoft.WindowsAppSDK package). Configure through "
+      "tools/parity/windows/configure_port_windows.ps1, which restores and generates both.")
+  endif()
+  target_compile_definitions(maui_core PUBLIC
+    MAUI_PLATFORM_WINDOWS WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE WINRT_LEAN_AND_MEAN)
+  target_include_directories(maui_core
+    PUBLIC "${MAUI_WINUI_GENERATED}" "${MAUI_WINAPPSDK}/include"
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
+  # The Windows App SDK ships per-RID import libs and the RID folder name changed across versions, so
+  # probe both spellings rather than hardcode one. Keyed on the ABI actually being COMPILED (passed in
+  # as MAUI_TARGET_ABI): on an ARM64 host targeting x64, CMAKE_SYSTEM_PROCESSOR still says ARM64, so
+  # keying off it would link the wrong import library.
+  if(NOT MAUI_TARGET_ABI)
+    set(MAUI_TARGET_ABI "arm64")
+  endif()
+  if(MAUI_TARGET_ABI STREQUAL "arm64")
+    set(_maui_wasdk_rids win-arm64 win10-arm64)
+  else()
+    set(_maui_wasdk_rids win-x64 win10-x64)
+  endif()
+  set(_maui_wasdk_lib_hints)
+  foreach(rid IN LISTS _maui_wasdk_rids)
+    list(APPEND _maui_wasdk_lib_hints "${MAUI_WINAPPSDK}/lib/${rid}")
+  endforeach()
+  find_library(MAUI_WASDK_BOOTSTRAP
+    NAMES Microsoft.WindowsAppRuntime.Bootstrap
+    HINTS ${_maui_wasdk_lib_hints} NO_DEFAULT_PATH)
+  if(NOT MAUI_WASDK_BOOTSTRAP)
+    message(FATAL_ERROR "Microsoft.WindowsAppRuntime.Bootstrap.lib not found for ABI ${MAUI_TARGET_ABI} "
+                        "(looked under ${_maui_wasdk_lib_hints})")
+  endif()
+  # The matching bootstrap DLL must sit BESIDE the exe or the process dies at load with 0xC0000135
+  # before main() runs - no dialog, no log line, just "the process exited early" in the E2E runner.
+  # Published as a cache variable so an app host (examples/) can copy it next to its own executable.
+  foreach(rid IN LISTS _maui_wasdk_rids)
+    if(EXISTS "${MAUI_WINAPPSDK}/runtimes/${rid}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll")
+      set(MAUI_WASDK_BOOTSTRAP_DLL "${MAUI_WINAPPSDK}/runtimes/${rid}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll"
+          CACHE FILEPATH "Windows App Runtime bootstrap DLL to deploy beside a maui executable" FORCE)
+      break()
+    endif()
+  endforeach()
+  if(NOT MAUI_WASDK_BOOTSTRAP_DLL)
+    message(FATAL_ERROR "Microsoft.WindowsAppRuntime.Bootstrap.dll not found for ABI ${MAUI_TARGET_ABI}")
+  endif()
+  # WindowsApp.lib is the WinRT API surface; the bootstrap lib is the unpackaged-activation shim.
+  target_link_libraries(maui_core PUBLIC "${MAUI_WASDK_BOOTSTRAP}" WindowsApp.lib)
 endif()
 # The headless twin of the platform blocks above: MAUI_PLATFORM_HEADLESS (PUBLIC, the same ODR rule) marks
 # the in-memory backend. It also gates the headless-only run_app entry (host_run.hpp / src/platform/headless/
@@ -1835,6 +1930,7 @@ add_library(maui_hosting STATIC
   $<$<STREQUAL:${MAUI_BACKEND},headless>:src/platform/headless/host_run.cpp>
   $<$<STREQUAL:${MAUI_BACKEND},apple>:src/platform/apple/host_run.mm>
   $<$<STREQUAL:${MAUI_BACKEND},ios>:src/platform/ios/host_run.mm>
+  $<$<STREQUAL:${MAUI_BACKEND},windows>:src/platform/windows/host_run.cpp>
 )
 # The apple/ios run_app lanes are Objective-C++ (AppKit/UIKit) and must compile under ARC like every other
 # .mm partial. AppKit (apple) / UIKit (ios) are already linked PUBLIC through maui_core (the window_handler
