@@ -68,6 +68,17 @@ namespace maui::core
         // Apple override pushes to the layer. Defined in the per-backend layout_handler.{cpp,mm}.
         virtual void update_clips_to_bounds(bool value);
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSView panel (defined in
         // src/platform/apple/layout_handler.mm). is_enabled is intentionally NOT overridden — a plain

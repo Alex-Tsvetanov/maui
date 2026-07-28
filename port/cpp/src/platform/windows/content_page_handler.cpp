@@ -13,6 +13,7 @@
 #include <winrt/Windows.Foundation.Collections.h>
 
 #include <memory>
+#include <string_view>
 
 #include "maui/core/i_content_view.hpp"
 #include "maui/core/i_view.hpp"
@@ -20,6 +21,7 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
+#include "winui_visual_ops.hpp"
 
 namespace
 {
@@ -102,6 +104,10 @@ namespace maui::core
         {
             return;
         }
+        if (frame.width < 0 || frame.height < 0)
+        {
+            return; // PlatformArrangeHandler's guard (ViewHandlerExtensions.Windows.cs)
+        }
         const canvas host = as_host(platform->native);
         canvas::SetLeft(host, frame.x);
         canvas::SetTop(host, frame.y);
@@ -133,5 +139,33 @@ namespace maui::core
 
     void content_page_handler::on_disconnect_handler(content_page_platform& /*platform*/)
     {
+    }
+
+    // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------
+    // Delegated to the shared winui_visual_ops free functions so all five controls behave identically;
+    // see that header for why they are free functions taking the void* slot.
+    void content_page_platform::update_visibility(maui::core::visibility value)
+    {
+        maui::platform::windows::apply_visibility(native, value);
+    }
+
+    void content_page_platform::update_opacity(double value)
+    {
+        maui::platform::windows::apply_opacity(native, value);
+    }
+
+    void content_page_platform::update_is_enabled(bool value)
+    {
+        maui::platform::windows::apply_is_enabled(native, value);
+    }
+
+    void content_page_platform::update_automation_id(std::string_view value)
+    {
+        maui::platform::windows::apply_automation_id(native, value);
+    }
+
+    void content_page_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::windows::apply_background(native, value);
     }
 } // namespace maui::core

@@ -99,6 +99,15 @@ class Session1Agent:
         return subprocess.run(self._ssh() + [shlex.join(tokens)], capture_output=True, text=True,
                               timeout=timeout)
 
+    def sh_raw(self, command: str, timeout: int = 60) -> subprocess.CompletedProcess:
+        """Send a PowerShell command LINE, unquoted.
+
+        sh() shlex-joins its tokens, which single-quotes anything containing a space, `$` or a paren --
+        correct for passing literal arguments, fatal for a command that must be EVALUATED. Use this only
+        for commands written here in this file; never interpolate anything that came off the network.
+        """
+        return subprocess.run(self._ssh() + [command], capture_output=True, text=True, timeout=timeout)
+
     def _log(self, msg: str) -> None:
         if self.verbose:
             print(f"[session1] {msg}", file=sys.stderr)
@@ -157,14 +166,26 @@ class Session1Agent:
                     "stderr": (run.stderr or run.stdout or "")[-300:]}
 
         self._open_tunnel()
+        killed_stale = False
         for _ in range(40):  # ~10s for python to start and bind
             probe = self._try_connect_existing()
             if self._last_ping_error == "unauthorized":
-                # A stale agent is holding the port with an older token. stop() cannot talk it down for
-                # the same reason, so say so plainly with the fix rather than looping.
-                return {"ok": False, "error": "a stale agent is already serving with a different token",
-                        "hint": f"run `session1.py --host <h> --user <u> stop` (or kill the "
-                                f"{TASK_NAME} task on the guest) and retry"}
+                # A stale agent is holding the port with an OLDER token. The polite shutdown in stop() is
+                # itself an authenticated call, so it cannot talk this one down -- which is why the run
+                # used to dead-end here with a hint telling a human to go kill it. Kill it from the SSH
+                # side instead (the only channel that does not need the token) and let the loop continue:
+                # the task we already launched will bind the freed port on its own retry.
+                if not killed_stale:
+                    killed_stale = True
+                    self._log("a stale agent holds the port with an older token -- killing it over SSH")
+                    self._kill_listener()
+                    self.sh(["schtasks", "/run", "/tn", TASK_NAME])
+                    self._open_tunnel()
+                    time.sleep(1.0)
+                    continue
+                return {"ok": False, "error": "a stale agent is still serving with a different token "
+                                              "after being killed",
+                        "hint": f"kill the {TASK_NAME} task on the guest by hand and retry"}
             why = self.unreachable()
             if why:
                 # Report the transport's own failure rather than blaming the agent for never answering.
@@ -183,6 +204,21 @@ class Session1Agent:
                         "local_port": self.local_port}
             time.sleep(0.25)
         return {"ok": False, "error": "agent did not answer after start", "log": self.tail_log()}
+
+    def _kill_listener(self) -> None:
+        """Force the process holding the guest port to exit, over SSH.
+
+        Deliberately keyed on the LISTENING SOCKET, not on the image name: `taskkill /IM python.exe`
+        would also take out an unrelated Python the guest happens to be running (the .NET/MAUI build
+        lane starts a few), and the only thing that actually conflicts with us is whoever owns 8770.
+        `schtasks /end` first, because that is the clean path when the stale agent IS our own task.
+        """
+        self.sh(["schtasks", "/end", "/tn", TASK_NAME])
+        self.sh_raw(
+            f"$c = Get-NetTCPConnection -LocalPort {self.guest_port} -State Listen "
+            f"-ErrorAction SilentlyContinue; "
+            f"if ($c) {{ $c | ForEach-Object {{ Stop-Process -Id $_.OwningProcess -Force "
+            f"-ErrorAction SilentlyContinue }} }}")
 
     def _open_tunnel(self) -> None:
         """(Re)open the forward. Keeps ssh's stderr so a dead tunnel can say WHY.

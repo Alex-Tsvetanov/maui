@@ -13,6 +13,7 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Graphics.h>
 
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -125,9 +126,22 @@ namespace maui::core
         {
             return;
         }
+        // UNSET geometry is NaN, not zero (IWindow's X/Y/Width/Height are unset until the developer or a
+        // platform sets them). Casting NaN to int32 is undefined and in practice yields INT_MIN, so an
+        // unguarded MoveAndResize would fling the window off-screen or collapse it to 0x0 -- and the
+        // MAPPER RUNS ON MOUNT, i.e. on every app that never sets a window size, which is most of them.
+        const double x = window_view_->x();
+        const double y = window_view_->y();
+        const double w = window_view_->width();
+        const double h = window_view_->height();
+        if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(w) || !std::isfinite(h) || w <= 0 ||
+            h <= 0)
+        {
+            return; // leave the window where the shell put it
+        }
         app_window.MoveAndResize(winrt::Windows::Graphics::RectInt32{
-            static_cast<std::int32_t>(window_view_->x()), static_cast<std::int32_t>(window_view_->y()),
-            static_cast<std::int32_t>(window_view_->width()), static_cast<std::int32_t>(window_view_->height())});
+            static_cast<std::int32_t>(x), static_cast<std::int32_t>(y), static_cast<std::int32_t>(w),
+            static_cast<std::int32_t>(h)});
     }
 
     // --- chrome (W1-11): mirror-only on this backend for now. C# DOES materialize a real toolbar and

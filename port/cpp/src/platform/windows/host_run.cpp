@@ -98,11 +98,17 @@ namespace
             const std::shared_ptr<maui::controls::application>& application = app_->application();
             if (application == nullptr)
             {
+                // EXIT, do not just return: Application::Start owns the message loop and keeps pumping
+                // after OnLaunched returns, so a bare return leaves a windowless process running forever
+                // - invisible in the E2E runner, which then reports a capture timeout rather than a
+                // startup failure. The headless lane can `return 0` here because it has no loop to leave.
+                Exit();
                 return;
             }
             window_ = dynamic_cast<maui::controls::window*>(application->create_window());
             if (window_ == nullptr)
             {
+                Exit();
                 return;
             }
 
@@ -113,6 +119,7 @@ namespace
             const winui::Window native = native_window_of(*window_);
             if (native == nullptr)
             {
+                Exit(); // see the note above: never leave the loop pumping with nothing on screen
                 return;
             }
 
@@ -131,16 +138,28 @@ namespace
             //     window has no client size until it is shown - laying out before would use the fallback
             //     and then immediately be corrected by the SizeChanged above.
             native.Activate();
+            // Force a XAML layout pass BEFORE the port measures anything. Until one runs, a templated
+            // control (a Button) has no template applied, so UIElement::Measure reports only its bare
+            // content size - the port then arranges every button ~19px tall with no chrome, which is
+            // exactly what the first Windows capture showed. UpdateLayout() applies templates and
+            // settles the tree synchronously, so the DesiredSize the port reads afterwards is the real
+            // themed one.
+            if (const auto root = native.Content().try_as<winui::FrameworkElement>())
+            {
+                root.UpdateLayout();
+            }
+            // Window.Bounds, NOT AppWindow.ClientSize: Bounds is in DIPs, which is the space XAML lays
+            // out in and therefore the space the port's own measure/arrange works in. ClientSize is in
+            // PHYSICAL PIXELS, so on any display above 100% scale it would hand the layout a viewport
+            // 1.25x/1.5x too large -- correct-looking on the 100% parity guest and quietly wrong
+            // everywhere else.
             double width = k_default_width;
             double height = k_default_height;
-            if (const auto app_window = native.AppWindow())
+            const auto bounds = native.Bounds();
+            if (bounds.Width > 0 && bounds.Height > 0)
             {
-                const auto client = app_window.ClientSize();
-                if (client.Width > 0 && client.Height > 0)
-                {
-                    width = client.Width;
-                    height = client.Height;
-                }
+                width = bounds.Width;
+                height = bounds.Height;
             }
             maui::hosting::drive_layout(*window_, width, height);
         }

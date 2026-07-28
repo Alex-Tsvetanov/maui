@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -31,6 +32,7 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
+#include "winui_visual_ops.hpp"
 
 namespace
 {
@@ -40,13 +42,39 @@ namespace
     namespace winui = winrt::Microsoft::UI::Xaml;
     using text_block = winui::Controls::TextBlock;
 
-    // The void* slot boxes the BASE UIElement, not the TextBlock — see winui_interop.hpp's note on
-    // native_view(): the layout panel has to host any child generically, and a projected derived type is
-    // a distinct C++ class, so storing TextBlock would make the generic upcast a reinterpret_cast. The
-    // QueryInterface below is what makes it a real (checked) downcast; it is trivial next to XAML layout.
+    using border = winui::Controls::Border;
+
+    // MAUI's Windows FontManager defaults, which C#'s UpdateFont resolves through
+    // fontManager.GetFontSize / GetFontFamily when the Font carries no size or family. Hard-coded here
+    // rather than routed through the port's i_font_manager, whose Windows implementation does not exist
+    // yet - the values are the ones the WinUI theme resources carry (ContentControlThemeFontFamily is
+    // "Segoe UI Variable Text" on Windows 11, and 14 is ControlContentThemeFontSize).
+    constexpr double k_default_font_size = 14.0;
+    constexpr std::wstring_view k_default_font_family = L"Segoe UI Variable Text";
+
+    // The native element is a BORDER WRAPPING THE TEXTBLOCK, not a bare TextBlock. Two things force
+    // that, both visible in the first Windows capture:
+    //   * a TextBlock is a FrameworkElement, not a Control, so it has NO Background - the page's cyan
+    //     and grey label backgrounds rendered as nothing at all;
+    //   * VerticalTextAlignment needs a host with a known height to align WITHIN; on a bare TextBlock
+    //     the "center"/"bottom" labels all sat at the top.
+    // C# solves both the same way: LabelHandler.Windows.NeedsContainer returns true when Background is
+    // set or VerticalTextAlignment != Start, and SetupContainer puts the TextBlock in a WrapperView with
+    // its own Height set to Auto. This wraps unconditionally instead of conditionally - one extra
+    // element per label, no measurement difference (a Border with no padding or border measures to its
+    // child), and no container attach/detach churn when Background changes.
+    //
+    // The void* slot boxes the BASE UIElement - see winui_interop.hpp's note on native_view(): the
+    // layout panel has to host any child generically, and a projected derived type is a distinct C++
+    // class, so storing the derived type would make the generic upcast a reinterpret_cast.
+    border as_host(void* native)
+    {
+        return maui::platform::windows::ref<winui::UIElement>(native).as<border>();
+    }
+
     text_block as_text_block(void* native)
     {
-        return maui::platform::windows::ref<winui::UIElement>(native).as<text_block>();
+        return as_host(native).Child().as<text_block>();
     }
 
     // "Was this property explicitly set?" — see the twin in button_handler.cpp for why this must not be a
@@ -113,41 +141,53 @@ namespace
         }
     }
 
-    // LineBreakMode has no single WinUI property: it resolves into TextWrapping + TextTrimming, the same
-    // split ScrollViewerExtensions/LabelHandler do on the other desktop backends.
+    // LineBreakMode resolves into TextWrapping + TextTrimming + MaxLines TOGETHER. Ported 1:1 from
+    // TextBlockExtensions.SetLineBreakMode (src/Controls/src/Core/Platform/Windows/Extensions/) - note
+    // that is the CONTROLS-level extension, not the Core one, which has no LineBreakMode at all.
+    // MaxLines is assigned FIRST because the three truncation modes then read it back to decide their
+    // wrapping (C#'s DetermineTruncatedTextWrapping); reordering silently forces every truncating label
+    // to a single line, and since get_desired_size measures the live TextBlock that changes its measured
+    // HEIGHT, not merely how it paints.
     void apply_line_break_mode(const text_block& block, maui::core::line_break_mode mode, int max_lines)
     {
         using maui::core::line_break_mode;
+        // C#: `maxLines.HasValue && maxLines >= 0 ? maxLines.Value : 0`. The port's unset sentinel is -1,
+        // which lands on the same 0 ("unbounded" in XAML).
+        block.MaxLines(max_lines >= 0 ? max_lines : 0);
+        // C#'s DetermineTruncatedTextWrapping, read back off the TextBlock exactly as C# does.
+        const auto truncated_wrapping = [&block] {
+            return block.MaxLines() > 1 ? winui::TextWrapping::Wrap : winui::TextWrapping::NoWrap;
+        };
         switch (mode)
         {
             case line_break_mode::no_wrap:
+                block.TextTrimming(winui::TextTrimming::Clip);
                 block.TextWrapping(winui::TextWrapping::NoWrap);
-                block.TextTrimming(winui::TextTrimming::None);
-                break;
-            case line_break_mode::character_wrap:
-                block.TextWrapping(winui::TextWrapping::Wrap);
-                block.TextTrimming(winui::TextTrimming::None);
-                break;
-            case line_break_mode::head_truncation:
-            case line_break_mode::middle_truncation:
-                // WinUI can only trim at the END (TextTrimming has no head/middle member), so both of these
-                // degrade to a tail ellipsis. Documented deviation, not an oversight: the alternative would be
-                // measuring and rewriting the string ourselves, which would diverge from MAUI's own render.
-                block.TextWrapping(winui::TextWrapping::NoWrap);
-                block.TextTrimming(winui::TextTrimming::CharacterEllipsis);
-                break;
-            case line_break_mode::tail_truncation:
-                block.TextWrapping(winui::TextWrapping::NoWrap);
-                block.TextTrimming(winui::TextTrimming::CharacterEllipsis);
                 break;
             case line_break_mode::word_wrap:
-            default:
-                block.TextWrapping(winui::TextWrapping::Wrap);
                 block.TextTrimming(winui::TextTrimming::None);
+                block.TextWrapping(winui::TextWrapping::Wrap);
+                break;
+            case line_break_mode::character_wrap:
+                block.TextTrimming(winui::TextTrimming::WordEllipsis);
+                block.TextWrapping(winui::TextWrapping::Wrap);
+                break;
+            case line_break_mode::head_truncation:
+                // C# carries its own "TODO: This truncates at the end" here: WinUI's TextTrimming has no
+                // head or middle member, so MAUI degrades both to a trailing ellipsis. The port copies
+                // the degradation rather than inventing a better one - matching the render is the point.
+                block.TextTrimming(winui::TextTrimming::WordEllipsis);
+                block.TextWrapping(truncated_wrapping());
+                break;
+            case line_break_mode::tail_truncation:
+                block.TextTrimming(winui::TextTrimming::CharacterEllipsis);
+                block.TextWrapping(truncated_wrapping());
+                break;
+            case line_break_mode::middle_truncation:
+                block.TextTrimming(winui::TextTrimming::WordEllipsis);
+                block.TextWrapping(truncated_wrapping());
                 break;
         }
-        // MaxLines 0 is WinUI's "unbounded"; the port's unset sentinel is -1.
-        block.MaxLines(max_lines > 0 ? max_lines : 0);
     }
 } // namespace
 
@@ -164,7 +204,13 @@ namespace maui::core
     std::unique_ptr<label_platform> label_handler::create_platform_view()
     {
         auto platform = std::make_unique<label_platform>();
-        platform->native = maui::platform::windows::take<winui::UIElement>(text_block{});
+        border host;
+        // The TextBlock stretches horizontally so TextAlignment has the full width to work in; its
+        // VERTICAL alignment is left to map_vertical_text_alignment (default Top, C#'s Start).
+        text_block content;
+        content.HorizontalAlignment(winui::HorizontalAlignment::Stretch);
+        host.Child(content);
+        platform->native = maui::platform::windows::take<winui::UIElement>(host);
         return platform;
     }
 
@@ -210,14 +256,15 @@ namespace maui::core
         platform->text_font = view.font();
         const text_block block = as_text_block(platform->native);
         const font& f = platform->text_font;
-        if (f.size() > 0)
-        {
-            block.FontSize(f.size());
-        }
-        if (!f.family().empty())
-        {
-            block.FontFamily(winui::Media::FontFamily{maui::platform::windows::to_hstring(f.family())});
-        }
+        // ALWAYS assign, never skip: C#'s UpdateFont assigns fontManager.GetFontSize(font) and
+        // GetFontFamily(font) unconditionally, and those resolve the FRAMEWORK default when the font is
+        // unset. Skipping instead leaves whatever the previous font pushed - or, on a fresh element,
+        // XAML's own 14pt Segoe default rather than MAUI's - and a label that switches from an explicit
+        // font back to the default silently keeps the old one.
+        block.FontSize(f.size() > 0 ? f.size() : k_default_font_size);
+        block.FontFamily(f.family().empty()
+                             ? winui::Media::FontFamily{k_default_font_family}
+                             : winui::Media::FontFamily{maui::platform::windows::to_hstring(f.family())});
         block.FontStyle(to_font_style(f.slant()));
         block.FontWeight(to_font_weight(f.weight()));
         block.IsTextScaleFactorEnabled(f.auto_scaling_enabled());
@@ -356,14 +403,28 @@ namespace maui::core
         {
             return {0, 0};
         }
+        // GetDesiredSizeFromHandler's first guard: a negative constraint measures to nothing. XAML's
+        // Measure THROWS on a negative Size, so this is a crash guard, not a formality.
+        if (width_constraint < 0 || height_constraint < 0)
+        {
+            return {0, 0};
+        }
         // The REAL native measure, which is the whole point of having a native backend: WinUI lays the
         // text out with the actual font and returns DesiredSize. Infinite constraints pass straight
         // through — UIElement.Measure accepts infinity and treats it as unconstrained, exactly like the
         // cross-platform measure contract.
-        const text_block block = as_text_block(platform->native);
-        block.Measure(winrt::Windows::Foundation::Size{static_cast<float>(width_constraint),
-                                                       static_cast<float>(height_constraint)});
-        const auto desired = block.DesiredSize();
+        const border host = as_host(platform->native);
+        // Clear the pinned size FIRST. platform_arrange stamps Width/Height on this element (a Canvas
+        // child has no other way to be sized), and a FrameworkElement with an explicit Width/Height
+        // measures to exactly that -- so the second and later layout passes would just read back the
+        // PREVIOUS frame instead of re-measuring. NaN is XAML's "Auto". C# does the same thing for the
+        // same reason: LabelHandler.Windows.SetupContainer sets `PlatformView.Height = double.NaN`.
+        const auto auto_size = std::numeric_limits<double>::quiet_NaN();
+        host.Width(auto_size);
+        host.Height(auto_size);
+        host.Measure(winrt::Windows::Foundation::Size{static_cast<float>(width_constraint),
+                                                      static_cast<float>(height_constraint)});
+        const auto desired = host.DesiredSize();
         return {desired.Width, desired.Height};
     }
 
@@ -375,12 +436,45 @@ namespace maui::core
             return;
         }
         // A WinUI child is positioned by its PARENT panel; the port's panel is a Canvas, so the position
-        // is Canvas.Left/Top and the size is Width/Height. See layout_handler.cpp's arrange_child, which
-        // this delegates to via the same convention (frame is parent-relative, like a UIView frame).
-        const text_block block = as_text_block(platform->native);
-        winui::Controls::Canvas::SetLeft(block, frame.x);
-        winui::Controls::Canvas::SetTop(block, frame.y);
-        block.Width(frame.width);
-        block.Height(frame.height);
+        // is Canvas.Left/Top and the size is Width/Height. The frame is parent-relative, like a UIView
+        // frame. It is applied to the HOST Border - the TextBlock inside it stretches, which is what
+        // gives VerticalTextAlignment a box to align within.
+        if (frame.width < 0 || frame.height < 0)
+        {
+            return; // PlatformArrangeHandler's guard
+        }
+        const border host = as_host(platform->native);
+        winui::Controls::Canvas::SetLeft(host, frame.x);
+        winui::Controls::Canvas::SetTop(host, frame.y);
+        host.Width(frame.width);
+        host.Height(frame.height);
+    }
+
+    // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------
+    // Delegated to the shared winui_visual_ops free functions so all five controls behave identically;
+    // see that header for why they are free functions taking the void* slot.
+    void label_platform::update_visibility(maui::core::visibility value)
+    {
+        maui::platform::windows::apply_visibility(native, value);
+    }
+
+    void label_platform::update_opacity(double value)
+    {
+        maui::platform::windows::apply_opacity(native, value);
+    }
+
+    void label_platform::update_is_enabled(bool value)
+    {
+        maui::platform::windows::apply_is_enabled(native, value);
+    }
+
+    void label_platform::update_automation_id(std::string_view value)
+    {
+        maui::platform::windows::apply_automation_id(native, value);
+    }
+
+    void label_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::windows::apply_background(native, value);
     }
 } // namespace maui::core

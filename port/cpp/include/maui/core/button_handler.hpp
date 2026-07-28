@@ -89,10 +89,25 @@ namespace maui::core
         // Stored as int64 (winrt::event_token's underlying type) rather than as the WinRT type so this
         // cross-platform header never has to see the C++/WinRT projection.
         std::int64_t click_token = 0;
-        std::int64_t pointer_pressed_token = 0;
-        std::int64_t pointer_released_token = 0;
+        // The two POINTER events cannot use a token: ButtonBase marks PointerPressed/PointerReleased
+        // HANDLED in its own control template, so a plain subscription never fires (C# uses
+        // AddHandler(..., handledEventsToo: true), and RemoveHandler needs the delegate OBJECT back, not
+        // a token). That delegate is WinRT-typed and cannot live in this cross-platform header, so it is
+        // heap-boxed and owned by this void* -- freed by ~button_platform even if disconnect never runs.
+        void* pointer_events = nullptr;
 #endif
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSButton (defined in
         // src/platform/apple/button_handler.mm). The headless build omits these and keeps the

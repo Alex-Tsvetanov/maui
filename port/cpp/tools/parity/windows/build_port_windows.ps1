@@ -44,7 +44,13 @@ cmd /c "`"$(Join-Path $vsRoot 'VC\Auxiliary\Build\vcvarsall.bat')`" $arch >nul 2
 # $args is an AUTOMATIC variable in PowerShell; using it for our own list is asking for trouble.
 $cmakeArgs = @("--build", $BuildDir, "-j", "$Jobs", "--target") + $Targets
 Info ("cmake " + ($cmakeArgs -join " "))
-& cmake @cmakeArgs 2>&1 | Select-Object -Last 60
+# Tee, then print DIAGNOSTICS (see the gallery script for why a trailing window hides the real error).
+$buildLog = Join-Path $BuildDir "last-build.log"
+& cmake @cmakeArgs 2>&1 | Tee-Object -FilePath $buildLog | Out-Null
 $code = $LASTEXITCODE
+if ($code -ne 0) {
+    Select-String -Path $buildLog -Pattern "FAILED:|error [A-Z]+[0-9]+|fatal error" |
+        Select-Object -First 40 | ForEach-Object { $_.Line }
+}
 Info "build exit: $code"
 exit $code

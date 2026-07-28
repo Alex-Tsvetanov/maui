@@ -73,8 +73,8 @@ namespace
         EXPECT_FALSE(control.is_loading());
         EXPECT_FALSE(control.is_pressed());
         EXPECT_FALSE(control.is_animation_playing()); // pinned false (IImageSourcePart explicit impl)
-        EXPECT_EQ(control.stroke_thickness(), 0.0);
-        EXPECT_EQ(control.corner_radius(), 0);
+        EXPECT_EQ(control.stroke_thickness(), -1.0); // BorderElement.BorderWidthProperty's -1d sentinel
+        EXPECT_EQ(control.corner_radius(), -1); // BorderElement.DefaultCornerRadius
     }
 
     // ImageButtonUnitTest.TestSource + TestSourceDoubleSet.

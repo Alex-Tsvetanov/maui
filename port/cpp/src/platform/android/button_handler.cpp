@@ -888,8 +888,12 @@ namespace maui::core
             // (DefaultStrokeThicknessNoColor). CornerRadius: a positive value wins; the port's default/unset 0
             // (MAUI's -1 collapsed to 0 in button.cpp) keeps the flat Material default ~4dp shape that
             // create_platform_view installs, so this connect-time sweep re-applies 4dp instead of squaring the
-            // corners to 0. ponytail: default 0 is indistinguishable from an explicit CornerRadius=0, so an
-            // explicit 0 also renders 4dp — restore the -1 sentinel in button.cpp if a square button matters.
+            // corners to 0. The -1 sentinel HAS since been restored in button.cpp (the 0 default was
+            // erasing the themed border on the WinUI backend), so `corner_radius() < 0` now genuinely
+            // means "unset". This guard is still `> 0`, which keeps an explicit CornerRadius=0 rendering
+            // 4dp; tightening it to `>= 0` would make explicit-0 square, but only the Android board can
+            // say whether that matches MAUI's own Material render — do it with a capture, not by
+            // reasoning.
             const double thickness = view.stroke_thickness() >= 0 ? view.stroke_thickness() : 0;
             const double radius =
                 view.corner_radius() > 0 ? static_cast<double>(view.corner_radius()) : k_material_button_corner_radius;

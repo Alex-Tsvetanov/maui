@@ -80,8 +80,16 @@ if ($LASTEXITCODE -ne 0) { Info "configure exit: $LASTEXITCODE"; exit $LASTEXITC
 
 $buildArgs = @("--build", $BuildDir, "-j", "$Jobs", "--target") + $Targets
 Info ("cmake " + ($buildArgs -join " "))
-& cmake @buildArgs 2>&1 | Select-Object -Last 60
+# Tee to a file, then print the DIAGNOSTIC lines rather than the last N lines of the stream. MSVC emits
+# hundreds of lines of template-instantiation notes after a warning, so a trailing window routinely
+# scrolls the actual "FAILED:" block off the top and the failure reads as if there were no error at all.
+$buildLog = Join-Path $BuildDir "last-build.log"
+& cmake @buildArgs 2>&1 | Tee-Object -FilePath $buildLog | Out-Null
 $code = $LASTEXITCODE
+if ($code -ne 0) {
+    Select-String -Path $buildLog -Pattern "FAILED:|error [A-Z]+[0-9]+|fatal error" |
+        Select-Object -First 40 | ForEach-Object { $_.Line }
+}
 Info "build exit: $code"
 if ($code -eq 0) {
     foreach ($t in $Targets) {

@@ -63,13 +63,22 @@ namespace maui::controls
 
     const maui::core::bindable_property<double>& image_button::stroke_thickness_property()
     {
-        static const maui::core::bindable_property<double> descriptor{"stroke_thickness", 0.0};
+        // -1, NOT 0: C#'s BorderElement.BorderWidthProperty defaults to -1d (a "not set" SENTINEL), and
+        // every handler's UpdateStrokeThickness keys off `>= 0` to decide whether to override the native
+        // default at all. With 0 here the port pushed an EXPLICIT zero border on every button - invisible
+        // on iOS/Android (their native default is already 0) but on WinUI it erased the theme's button
+        // border outright. An explicit BorderWidth=0 must still mean "no border"; that is exactly why the
+        // unset value has to be a distinct sentinel.
+        static const maui::core::bindable_property<double> descriptor{"stroke_thickness", -1.0};
         return descriptor;
     }
 
     const maui::core::bindable_property<int>& image_button::corner_radius_property()
     {
-        static const maui::core::bindable_property<int> descriptor{"corner_radius", 0};
+        // -1 (BorderElement.DefaultCornerRadius), NOT 0 - same sentinel argument as stroke_thickness
+        // above: 0 is a legitimate explicit "square corners" request and must be distinguishable from
+        // "unset". On WinUI the 0 default squared off every themed button.
+        static const maui::core::bindable_property<int> descriptor{"corner_radius", -1};
         return descriptor;
     }
 } // namespace maui::controls

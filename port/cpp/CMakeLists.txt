@@ -206,6 +206,17 @@ target_include_directories(maui_graphics PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(maui_graphics PRIVATE maui_sanitizers)
+# MSVC flags a CONSUMER of this framework needs, carried on the bottom-of-DAG target so they reach every
+# target that links any maui:: library, in BOTH consume modes (add_subdirectory and the exported package).
+# The root add_compile_options() above covers the framework's own translation units, but it is
+# DIRECTORY-scoped and does not propagate to an out-of-tree project that add_subdirectory()s this one --
+# examples/gallery hit exactly that and died with C1128 (section limit) on the first build.
+#   /bigobj -- the bindable-property + handler templates blow past the 64k-section limit.
+#   /utf-8  -- every public header here has em-dashes in its comments; without it cl.exe reads them as the
+#              ANSI codepage and warns per file (C4819), and a consumer building /WX would hard-fail.
+if(MSVC)
+  target_compile_options(maui_graphics INTERFACE /bigobj /utf-8)
+endif()
 # ---- BEGIN apple_shared link/include: the CoreGraphics canvas needs CoreGraphics + CoreText +
 # Foundation (PUBLIC: the .mm tests and any backend consumer reach CGContext/CTLine through it);
 # its header lives beside the .mm, so consumers inside this build use the source-dir include. ----
@@ -642,8 +653,11 @@ else()
       list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/${unit}.cpp)
       list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/${unit}.cpp)
     endforeach()
-    # The shared string/color conversions the partials above call (winui_interop.hpp).
-    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/winui_interop.cpp)
+    # The shared string/color conversions the partials above call (winui_interop.hpp) and the
+    # generic-IView property pushes they delegate to (winui_visual_ops.hpp).
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES
+      src/platform/windows/winui_interop.cpp
+      src/platform/windows/winui_visual_ops.cpp)
   endif()
 endif()
 
@@ -791,8 +805,11 @@ if(MAUI_BACKEND STREQUAL "windows")
   endif()
   target_compile_definitions(maui_core PUBLIC
     MAUI_PLATFORM_WINDOWS WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE WINRT_LEAN_AND_MEAN)
+  # BUILD_INTERFACE only: both paths are machine-local (a NuGet restore directory and a cppwinrt output
+  # directory on the build guest). Exported unguarded they would be baked verbatim into mauiTargets.cmake
+  # and a consumer on another machine would configure fine and then fail to find winrt/*.h.
   target_include_directories(maui_core
-    PUBLIC "${MAUI_WINUI_GENERATED}" "${MAUI_WINAPPSDK}/include"
+    PUBLIC $<BUILD_INTERFACE:${MAUI_WINUI_GENERATED}> $<BUILD_INTERFACE:${MAUI_WINAPPSDK}/include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
   # The Windows App SDK ships per-RID import libs and the RID folder name changed across versions, so
   # probe both spellings rather than hardcode one. Keyed on the ABI actually being COMPILED (passed in
@@ -810,9 +827,13 @@ if(MAUI_BACKEND STREQUAL "windows")
   foreach(rid IN LISTS _maui_wasdk_rids)
     list(APPEND _maui_wasdk_lib_hints "${MAUI_WINAPPSDK}/lib/${rid}")
   endforeach()
-  find_library(MAUI_WASDK_BOOTSTRAP
+  # The cache variable is keyed on the ABI. find_library caches its hit, and an unkeyed name would keep
+  # a previously-found x64 import library across a reconfigure to arm64 -- while the bootstrap DLL below
+  # is re-resolved with FORCE. The two would then disagree, which links cleanly and fails at load.
+  find_library(MAUI_WASDK_BOOTSTRAP_${MAUI_TARGET_ABI}
     NAMES Microsoft.WindowsAppRuntime.Bootstrap
     HINTS ${_maui_wasdk_lib_hints} NO_DEFAULT_PATH)
+  set(MAUI_WASDK_BOOTSTRAP "${MAUI_WASDK_BOOTSTRAP_${MAUI_TARGET_ABI}}")
   if(NOT MAUI_WASDK_BOOTSTRAP)
     message(FATAL_ERROR "Microsoft.WindowsAppRuntime.Bootstrap.lib not found for ABI ${MAUI_TARGET_ABI} "
                         "(looked under ${_maui_wasdk_lib_hints})")

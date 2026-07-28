@@ -21,10 +21,14 @@
 #include <winrt/Microsoft.UI.Xaml.Input.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 
 #include <algorithm>
+#include <array>
+#include <span>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -38,6 +42,7 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
+#include "winui_visual_ops.hpp"
 
 namespace
 {
@@ -60,6 +65,42 @@ namespace
         return button.Content().try_as<text_block>();
     }
 
+    // ButtonExtensions' resource-key sets. A WinUI control template binds its per-visual-state brushes
+    // to THEME RESOURCES, not to the control's own properties, so a local Foreground/Background is
+    // dropped again the moment the control changes visual state. MAUI overrides the resources instead
+    // (and then the direct property too, for API contract >= 5).
+    constexpr std::array<std::wstring_view, 4> k_text_color_keys{
+        L"ButtonForeground", L"ButtonForegroundPointerOver", L"ButtonForegroundPressed",
+        L"ButtonForegroundDisabled"};
+
+    void set_resources(const button_control& button, std::span<const std::wstring_view> keys,
+                       const winui::Media::Brush& brush)
+    {
+        for (const auto& key : keys)
+        {
+            button.Resources().Insert(winrt::box_value(winrt::hstring{key}), brush);
+        }
+    }
+
+    void remove_resources(const button_control& button, std::span<const std::wstring_view> keys)
+    {
+        for (const auto& key : keys)
+        {
+            button.Resources().Remove(winrt::box_value(winrt::hstring{key}));
+        }
+    }
+
+    // FrameworkElementExtensions.RefreshThemeResources: flip RequestedTheme away and back so the control
+    // template re-resolves the resources just overridden. Without it the override does not take effect
+    // until something else invalidates the template.
+    void refresh_theme_resources(const winui::FrameworkElement& element)
+    {
+        const auto previous = element.RequestedTheme();
+        element.RequestedTheme(element.ActualTheme() == winui::ElementTheme::Dark ? winui::ElementTheme::Light
+                                                                                 : winui::ElementTheme::Dark);
+        element.RequestedTheme(previous);
+    }
+
     // "Was this property explicitly set?" — the port's equivalent of C#'s `Color?` being non-null. It has
     // to go through bindable_object: the i_* view CONTRACTS carry values, not set-ness. Comparing the
     // value against a default instead is the bug in [[cpp-unset-color-sentinel-collision]] — it misreads
@@ -69,6 +110,16 @@ namespace
         const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         return bindable != nullptr && bindable->is_property_set(property);
     }
+
+    // The two pointer delegates, kept alive for as long as they are subscribed. RemoveHandler matches on
+    // the delegate OBJECT (unlike the token-based Click revoke), so they have to be stored, and they are
+    // WinRT types that the cross-platform button_handler.hpp must not see -- hence a heap box behind the
+    // struct's void* pointer_events slot.
+    struct pointer_sink
+    {
+        winui::Input::PointerEventHandler pressed{nullptr};
+        winui::Input::PointerEventHandler released{nullptr};
+    };
 
     winrt::Windows::UI::Text::FontWeight to_font_weight(maui::core::font_weight weight)
     {
@@ -92,8 +143,34 @@ namespace
 
 namespace maui::core
 {
+    namespace
+    {
+        // Unhook everything on_connect_handler registered. Called from on_disconnect_handler AND from
+        // ~button_platform: the handlers capture a button_platform*, so if the struct is destroyed while
+        // still subscribed (a handler torn down without a disconnect, which the element tree does on
+        // shutdown) the next pointer event fires into freed memory.
+        void detach_native_events(maui::core::button_platform& platform)
+        {
+            if (platform.native != nullptr)
+            {
+                const button_control button = as_button(platform.native);
+                button.Click(winrt::event_token{platform.click_token});
+                if (platform.pointer_events != nullptr)
+                {
+                    auto* sink = static_cast<pointer_sink*>(platform.pointer_events);
+                    button.RemoveHandler(winui::UIElement::PointerPressedEvent(), winrt::box_value(sink->pressed));
+                    button.RemoveHandler(winui::UIElement::PointerReleasedEvent(), winrt::box_value(sink->released));
+                }
+            }
+            platform.click_token = 0;
+            delete static_cast<pointer_sink*>(platform.pointer_events);
+            platform.pointer_events = nullptr;
+        }
+    } // namespace
+
     button_platform::~button_platform()
     {
+        detach_native_events(*this);
         if (native != nullptr)
         {
             maui::platform::windows::drop<winui::UIElement>(native);
@@ -131,10 +208,13 @@ namespace maui::core
                 view->send_released();
             }
         };
+        // CLICKED ONLY - NOT released+clicked. The iOS/headless contract folds Released into the click
+        // (UIControlEventTouchUpInside implies a release), but ButtonHandler.Windows.cs's OnClick raises
+        // ONLY Clicked(); Released() comes solely from OnPointerReleased below. Raising both here would
+        // report two Released events per click on this backend.
         platform.on_click = [this] {
             if (auto* view = virtual_view())
             {
-                view->send_released();
                 view->send_clicked();
             }
         };
@@ -142,8 +222,12 @@ namespace maui::core
         {
             return;
         }
-        // Then the native half: Click + the two pointer events, exactly ButtonHandler.Windows.ConnectHandler.
-        // The tokens are kept so disconnect can revoke them — these lambdas capture `this`.
+        // Then the native half. Click is a normal subscription; the POINTER events are not, and that
+        // difference is load-bearing: ButtonBase's control template marks PointerPressed and
+        // PointerReleased handled, so a plain `.PointerPressed(...)` subscription is never invoked and
+        // send_pressed/send_released would silently never fire. C#'s ConnectHandler uses
+        // AddHandler(UIElement.PointerPressedEvent, handler, handledEventsToo: true) for exactly this
+        // reason, and so does this.
         auto* self = &platform;
         const button_control button = as_button(platform.native);
         platform.click_token =
@@ -155,41 +239,33 @@ namespace maui::core
                     }
                 })
                 .value;
-        platform.pointer_pressed_token = button
-                                             .PointerPressed([self](const winrt::Windows::Foundation::IInspectable&,
-                                                                    const winui::Input::PointerRoutedEventArgs&) {
-                                                 if (self->on_press)
-                                                 {
-                                                     self->on_press();
-                                                 }
-                                             })
-                                             .value;
-        // NOTE: on_click already sends Released before Clicked (the shared contract above), so the
-        // pointer-released hook must NOT also call on_release or a plain click would report two releases.
-        // It exists for the release-outside-the-button case, which raises no Click.
-        platform.pointer_released_token = button
-                                              .PointerReleased([self](const winrt::Windows::Foundation::IInspectable&,
-                                                                      const winui::Input::PointerRoutedEventArgs&) {
-                                                  if (self->on_release)
-                                                  {
-                                                      self->on_release();
-                                                  }
-                                              })
-                                              .value;
+
+        auto sink = std::make_unique<pointer_sink>();
+        sink->pressed = winui::Input::PointerEventHandler(
+            [self](const winrt::Windows::Foundation::IInspectable&, const winui::Input::PointerRoutedEventArgs&) {
+                if (self->on_press)
+                {
+                    self->on_press();
+                }
+            });
+        // The ONLY source of Released on this backend (see the on_click note above): C#'s
+        // OnPointerReleased -> VirtualView.Released(). It therefore fires for a release outside the
+        // button too, which is what MAUI does.
+        sink->released = winui::Input::PointerEventHandler(
+            [self](const winrt::Windows::Foundation::IInspectable&, const winui::Input::PointerRoutedEventArgs&) {
+                if (self->on_release)
+                {
+                    self->on_release();
+                }
+            });
+        button.AddHandler(winui::UIElement::PointerPressedEvent(), winrt::box_value(sink->pressed), true);
+        button.AddHandler(winui::UIElement::PointerReleasedEvent(), winrt::box_value(sink->released), true);
+        platform.pointer_events = sink.release();
     }
 
     void button_handler::on_disconnect_handler(button_platform& platform)
     {
-        if (platform.native != nullptr)
-        {
-            const button_control button = as_button(platform.native);
-            button.Click(winrt::event_token{platform.click_token});
-            button.PointerPressed(winrt::event_token{platform.pointer_pressed_token});
-            button.PointerReleased(winrt::event_token{platform.pointer_released_token});
-        }
-        platform.click_token = 0;
-        platform.pointer_pressed_token = 0;
-        platform.pointer_released_token = 0;
+        detach_native_events(platform);
         platform.on_press = nullptr;
         platform.on_release = nullptr;
         platform.on_click = nullptr;
@@ -206,6 +282,11 @@ namespace maui::core
         if (const text_block content = content_text(as_button(platform->native)))
         {
             content.Text(maui::platform::windows::to_hstring(platform->title));
+            // COLLAPSE on empty, do not merely blank it: ButtonExtensions.UpdateText does this so an
+            // image-only button reserves no text slot. A Visible-but-empty TextBlock still contributes a
+            // line's height to the button's measure.
+            content.Visibility(platform->title.empty() ? winui::Visibility::Collapsed
+                                                       : winui::Visibility::Visible);
         }
     }
 
@@ -222,10 +303,19 @@ namespace maui::core
         // transparent black — see [[cpp-unset-color-sentinel-collision]].
         if (!is_set(view, "text_color"))
         {
+            remove_resources(button, k_text_color_keys);
             button.ClearValue(winui::Controls::Control::ForegroundProperty());
+            refresh_theme_resources(button);
             return;
         }
-        button.Foreground(winui::Media::SolidColorBrush{maui::platform::windows::to_ui_color(platform->text_color)});
+        const winui::Media::SolidColorBrush brush{maui::platform::windows::to_ui_color(platform->text_color)};
+        // BOTH the theme-resource overrides AND the direct Foreground, exactly as
+        // ButtonExtensions.UpdateTextColor does. Foreground alone is reverted by the control template the
+        // moment the pointer enters the button (the template rebinds Foreground to
+        // ButtonForegroundPointerOver), so hover/pressed/disabled would silently drop the color.
+        set_resources(button, k_text_color_keys, brush);
+        button.Foreground(brush);
+        refresh_theme_resources(button);
     }
 
     void button_handler::map_font(button_handler& handler, i_text_button& view)
@@ -248,6 +338,12 @@ namespace maui::core
         }
         button.FontStyle(to_font_style(f.slant()));
         button.FontWeight(to_font_weight(f.weight()));
+        // FontAutoScalingEnabled -> IsTextScaleFactorEnabled, which exists on TextBlock, not on Control -
+        // so it goes on the content, matching what UpdateFont(TextBlock, ...) does for a label.
+        if (const text_block content = content_text(button))
+        {
+            content.IsTextScaleFactorEnabled(f.auto_scaling_enabled());
+        }
     }
 
     void button_handler::map_character_spacing(button_handler& handler, i_text_button& view)
@@ -260,7 +356,15 @@ namespace maui::core
         platform->character_spacing = view.character_spacing();
         // CharacterSpacingExtensions.ToEm: pt * 0.0624 * 1000, in 1/1000 em units.
         const auto em = static_cast<std::int32_t>(std::lround(platform->character_spacing * 0.0624 * 1000.0));
-        as_button(platform->native).CharacterSpacing(em);
+        const button_control button = as_button(platform->native);
+        button.CharacterSpacing(em);
+        // BOTH, exactly as ButtonExtensions.UpdateCharacterSpacing does. Control.CharacterSpacing is not
+        // inherited by an explicitly-constructed content TextBlock, so setting only the Button leaves the
+        // label text at default spacing - the property has no visible effect at all.
+        if (const text_block content = content_text(button))
+        {
+            content.CharacterSpacing(em);
+        }
     }
 
     void button_handler::map_padding(button_handler& handler, i_button& view)
@@ -349,7 +453,21 @@ namespace maui::core
         {
             return {0, 0};
         }
+        // GetDesiredSizeFromHandler's first guard: a negative constraint measures to nothing. XAML's
+        // Measure THROWS on a negative Size, so this is a crash guard, not a formality.
+        if (width_constraint < 0 || height_constraint < 0)
+        {
+            return {0, 0};
+        }
         const button_control button = as_button(platform->native);
+        // Clear the pinned size FIRST. platform_arrange stamps Width/Height on this element (a Canvas
+        // child has no other way to be sized), and a FrameworkElement with an explicit Width/Height
+        // measures to exactly that -- so the second and later layout passes would just read back the
+        // PREVIOUS frame instead of re-measuring. NaN is XAML's "Auto". C# does the same thing for the
+        // same reason: LabelHandler.Windows.SetupContainer sets `PlatformView.Height = double.NaN`.
+        const auto auto_size = std::numeric_limits<double>::quiet_NaN();
+        button.Width(auto_size);
+        button.Height(auto_size);
         button.Measure(winrt::Windows::Foundation::Size{static_cast<float>(width_constraint),
                                                         static_cast<float>(height_constraint)});
         const auto desired = button.DesiredSize();
@@ -358,10 +476,14 @@ namespace maui::core
 
     bool button_handler::content_is_minimum_size() const
     {
-        // TRUE, unlike headless: a WinUI Button has a real intrinsic minimum (its content plus the theme's
-        // ButtonPadding), and MAUI's Windows render shows the same floor the iOS one does — a WidthRequest
-        // smaller than the natural width does not shrink the chrome. See [[cpp-clipping-button-natural-floor]].
-        return true;
+        // FALSE, like headless and unlike iOS. The iOS opt-in exists because UIButton's WrapperView
+        // imposes an intrinsic floor MAUI's iOS render demonstrably shows
+        // ([[cpp-clipping-button-natural-floor]]). Windows has NO equivalent: ViewHandlerExtensions.
+        // Windows.GetDesiredSizeFromHandler just measures and returns DesiredSize, and the explicit
+        // WidthRequest flows through the cross-platform ResolveConstraints clamp like every other
+        // backend. Returning true here would be asserting a floor no oracle describes; if the board
+        // shows MAUI refusing to shrink a Windows button, revisit with the capture as evidence.
+        return false;
     }
 
     void button_handler::platform_arrange(const maui::graphics::rect& frame)
@@ -370,6 +492,10 @@ namespace maui::core
         if (platform == nullptr || platform->native == nullptr)
         {
             return;
+        }
+        if (frame.width < 0 || frame.height < 0)
+        {
+            return; // PlatformArrangeHandler's guard
         }
         const button_control button = as_button(platform->native);
         winui::Controls::Canvas::SetLeft(button, frame.x);
@@ -411,5 +537,33 @@ namespace maui::core
         platform.source_kind.clear();
         platform.source_file.clear();
         platform.source_loaded = false;
+    }
+
+    // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------
+    // Delegated to the shared winui_visual_ops free functions so all five controls behave identically;
+    // see that header for why they are free functions taking the void* slot.
+    void button_platform::update_visibility(maui::core::visibility value)
+    {
+        maui::platform::windows::apply_visibility(native, value);
+    }
+
+    void button_platform::update_opacity(double value)
+    {
+        maui::platform::windows::apply_opacity(native, value);
+    }
+
+    void button_platform::update_is_enabled(bool value)
+    {
+        maui::platform::windows::apply_is_enabled(native, value);
+    }
+
+    void button_platform::update_automation_id(std::string_view value)
+    {
+        maui::platform::windows::apply_automation_id(native, value);
+    }
+
+    void button_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::windows::apply_background(native, value);
     }
 } // namespace maui::core

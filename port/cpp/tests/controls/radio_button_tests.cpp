@@ -43,8 +43,8 @@ namespace
         EXPECT_TRUE(control.group_name().empty());
         EXPECT_FALSE(control.value().has_value()); // ValueProperty default null
         EXPECT_TRUE(control.content().empty());
-        EXPECT_EQ(control.stroke_thickness(), 0.0);
-        EXPECT_EQ(control.corner_radius(), 0);
+        EXPECT_EQ(control.stroke_thickness(), -1.0); // BorderElement.BorderWidthProperty's -1d sentinel
+        EXPECT_EQ(control.corner_radius(), -1); // BorderElement.DefaultCornerRadius
     }
 
     // RadioButtonTests.ValuePropertyCanBeSetToNull.

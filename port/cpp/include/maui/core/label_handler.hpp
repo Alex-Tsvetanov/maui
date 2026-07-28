@@ -68,6 +68,17 @@ namespace maui::core
         // run list so tests can assert per-span attributes flowed to the platform mirror.
         std::vector<maui::core::label_run> formatted_text_runs;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSTextField (defined in
         // src/platform/apple/label_handler.mm). Omitted on headless, which keeps the base mirrors; the

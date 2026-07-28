@@ -16,13 +16,15 @@ namespace maui::platform::windows
 {
     namespace
     {
-        // Round a normalized [0,1] float component to a byte the way both MAUI and WinRT do: scale by 255
-        // and round-half-up, then clamp. Truncating instead (the tempting static_cast) turns 1.0f into 255
-        // but 0.5f into 127 rather than 128, which is a visible off-by-one on mid greys.
+        // TRUNCATE, do not round. ColorExtensions.ToWindowsColor is
+        //     Color.FromArgb((byte)(color.Alpha * 255), (byte)(color.Red * 255), ...)
+        // and a C# (byte) cast on a float truncates toward zero. Rounding is the more "correct" quantizer
+        // and produces a DIFFERENT byte for most non-terminal values (0.5f -> 128 rounded, 127
+        // truncated), which would put the port one level off MAUI on every mid-tone the board compares.
+        // Parity ruling 1: MAUI's actual render is the ground truth, including where it is imprecise.
         std::uint8_t to_byte(float component)
         {
-            const float scaled = std::round(std::clamp(component, 0.0F, 1.0F) * 255.0F);
-            return static_cast<std::uint8_t>(scaled);
+            return static_cast<std::uint8_t>(std::clamp(component, 0.0F, 1.0F) * 255.0F);
         }
     } // namespace
 

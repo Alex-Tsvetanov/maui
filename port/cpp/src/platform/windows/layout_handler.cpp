@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 #include "maui/core/i_layout.hpp"
@@ -33,6 +34,7 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
+#include "winui_visual_ops.hpp"
 
 namespace
 {
@@ -184,12 +186,14 @@ namespace maui::core
         // Replace in place: the child COUNT is unchanged, so the old element is swapped for the new one at
         // the same slot rather than removed and appended (which would silently reorder the panel).
         const canvas panel = as_panel(platform->native);
+        const winui::UIElement incoming = native_child(child);
+        std::uint32_t slot = 0;
+        bool replaced = false;
         if (const winui::UIElement outgoing = native_child(*children[static_cast<std::size_t>(index)]))
         {
-            std::uint32_t slot = 0;
             if (panel.Children().IndexOf(outgoing, slot))
             {
-                if (const winui::UIElement incoming = native_child(child))
+                if (incoming)
                 {
                     panel.Children().SetAt(slot, incoming);
                 }
@@ -197,7 +201,17 @@ namespace maui::core
                 {
                     panel.Children().RemoveAt(slot);
                 }
+                replaced = true;
             }
+        }
+        // The OUTGOING child may have had no native view at all -- the common case while the backend
+        // fan-out is incomplete, since most controls are still on the headless mirror. Replacing nothing
+        // must still HOST the incoming child, or a swap from an unported control to a ported one would
+        // silently render nothing. Its z-ordered slot is recomputed, exactly as add() does.
+        if (!replaced && incoming)
+        {
+            const int target = virtual_view() != nullptr ? get_layout_handler_index(*virtual_view(), child) : -1;
+            insert_child_at(panel, incoming, target);
         }
         children[static_cast<std::size_t>(index)] = &child;
     }
@@ -246,6 +260,10 @@ namespace maui::core
         {
             return;
         }
+        if (frame.width < 0 || frame.height < 0)
+        {
+            return; // PlatformArrangeHandler's guard (ViewHandlerExtensions.Windows.cs)
+        }
         const canvas panel = as_panel(platform->native);
         canvas::SetLeft(panel, frame.x);
         canvas::SetTop(panel, frame.y);
@@ -265,5 +283,33 @@ namespace maui::core
         {
             panel.Clip(nullptr);
         }
+    }
+
+    // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------
+    // Delegated to the shared winui_visual_ops free functions so all five controls behave identically;
+    // see that header for why they are free functions taking the void* slot.
+    void layout_platform::update_visibility(maui::core::visibility value)
+    {
+        maui::platform::windows::apply_visibility(native, value);
+    }
+
+    void layout_platform::update_opacity(double value)
+    {
+        maui::platform::windows::apply_opacity(native, value);
+    }
+
+    void layout_platform::update_is_enabled(bool value)
+    {
+        maui::platform::windows::apply_is_enabled(native, value);
+    }
+
+    void layout_platform::update_automation_id(std::string_view value)
+    {
+        maui::platform::windows::apply_automation_id(native, value);
+    }
+
+    void layout_platform::update_background(const maui::graphics::paint* value)
+    {
+        maui::platform::windows::apply_background(native, value);
     }
 } // namespace maui::core
