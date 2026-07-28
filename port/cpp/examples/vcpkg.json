@@ -1,8 +1,10 @@
 {
   "name": "maui-examples",
   "version-string": "0.1.0",
-  "description": "Standalone examples consuming the C++23 .NET MAUI port. Declares the framework's one transitive link dependency (pugixml) so the vcpkg toolchain resolves it for find_package(maui).",
+  "description": "Standalone examples consuming the C++23 .NET MAUI port. Declares the framework's one transitive link dependency (pugixml) so the vcpkg toolchain resolves it for find_package(maui). gtest + benchmark are here only for consume mode (B), -DMAUI_EXAMPLES_FRAMEWORK_DIR=..: that add_subdirectory()s the framework, whose own CMakeLists find_package()es both unconditionally for its test and benchmark targets. Mode (A) (find_package against an installed prefix) never parses that file and does not need them; they are listed because manifest mode reads THIS manifest, not the framework's.",
   "dependencies": [
-    "pugixml"
+    "pugixml",
+    "gtest",
+    "benchmark"
   ]
 }
