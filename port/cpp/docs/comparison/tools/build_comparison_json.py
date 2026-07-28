@@ -43,9 +43,10 @@ PLATFORM_FW = {
     "ios": ("maui", "cpp", "xaml"),
     "maccatalyst": ("maui", "cpp", "xaml", "appkit_cpp", "appkit_xaml"),
     "android": ("maui", "cpp", "xaml"),
-    # Windows: the maui column is the real WinUI 3 MauiReference built on the guest. cpp/xaml are
-    # listed so their ABSENCE is rendered as a visible placeholder rather than silently omitted --
-    # the port has no Windows backend yet (docs/WINDOWS_TOOLCHAIN.md section 6).
+    # Windows: maui is the real WinUI 3 MauiReference and cpp is the port's own WinUI 3 gallery, both
+    # built ON the guest (native arm64). xaml is listed so its ABSENCE renders as a visible placeholder
+    # rather than being silently omitted -- that column cannot build at all, because its .xaml.cpp TUs
+    # use #embed and MSVC does not implement it (docs/WINDOWS_TOOLCHAIN.md section 6d).
     "windows": ("maui", "cpp", "xaml"),
 }
 EMPTY_REVIEW = {"status": None, "review": ""}

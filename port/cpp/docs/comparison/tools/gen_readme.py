@@ -58,11 +58,14 @@ NOTES = {
     "android": "Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the same "
                "Android emulator in light and dark. MAUI is the content ground truth.",
     "windows": "Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows backend — "
-               "captured on a Windows 11 ARM64 VM in light and dark. **The C++ columns are empty on "
-               "purpose:** the port has no Windows backend yet, so `MAUI_BACKEND=windows` falls through "
-               "to the headless mirrors (which create no widgets) and `examples/gallery` does not even "
-               "link for Windows. This section therefore publishes the MAUI **reference** and shows the "
-               "C++ gap honestly rather than hiding it; see `docs/WINDOWS_TOOLCHAIN.md`.",
+               "vs the C++ port's own WinUI 3 backend, both built and captured NATIVE arm64 on a "
+               "Windows 11 ARM64 VM. **Partial coverage by design:** only `window`, `content_page`, "
+               "`layout`, `label` and `button` have real WinUI handlers so far; every other control "
+               "still uses its headless mirror and renders nothing, so a page built from one of those "
+               "is expected to be blank or partial. That is the fan-out being incomplete, not a "
+               "regression — see `docs/WINDOWS_TOOLCHAIN.md` §6. The **C++ &amp; XAML** column is absent "
+               "entirely: its `.xaml.cpp` translation units use `#embed`, which MSVC does not "
+               "implement.",
 }
 
 
