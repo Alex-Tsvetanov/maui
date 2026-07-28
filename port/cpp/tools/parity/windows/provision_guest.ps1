@@ -185,6 +185,12 @@ if ($WithBuildTools) {
     $vsArgs = @(
         "--add", "Microsoft.VisualStudio.Workload.VCTools",
         "--add", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        # The ARM64 TARGET toolset. VC.Tools.x86.x64 ships only x86/x64 targets, so on an ARM64 guest
+        # you get Hostarm64\x64 and Hostarm64\x86 but NO arm64 target -- `vcvarsall arm64` then finds no
+        # cl.exe, which reads as a broken vcvars rather than a missing component. Needed because the MAUI
+        # reference is built native win-arm64 and the port must match it: an emulated x64 build can differ
+        # in font rasterisation and DPI handling, which is precisely what the parity board measures.
+        "--add", "Microsoft.VisualStudio.Component.VC.Tools.ARM64",
         "--add", "Microsoft.VisualStudio.Component.Windows11SDK.22621",
         "--includeRecommended", "--quiet", "--wait", "--norestart"
     ) -join " "
