@@ -22,6 +22,7 @@
 // and the move_only_function hooks are the inbound channel the platform partial wires up (headless
 // tests invoke them directly to simulate a native edit / search press).
 
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <string>
@@ -83,6 +84,31 @@ namespace maui::core
         // Inbound channel hooks (wired by the platform partial; headless tests invoke them directly).
         move_only_function<void(const std::string& old_value, const std::string& new_value)> on_text_changed;
         move_only_function<void()> on_search_button_pressed;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: event-registration tokens on_connect_handler produced (TextChanged,
+        // QuerySubmitted, GotFocus, LostFocus — see search_bar_handler.cpp), so on_disconnect_handler (and
+        // ~search_bar_platform, which calls it directly so a torn-down-without-disconnect struct still
+        // revokes) can unhook EXACTLY what was registered, matching entry_platform's token fields. Stored
+        // as int64 (winrt::event_token's underlying type) so this cross-platform header never has to see
+        // the C++/WinRT projection.
+        std::int64_t text_changed_token = 0;
+        std::int64_t query_submitted_token = 0;
+        std::int64_t got_focus_token = 0;
+        std::int64_t lost_focus_token = 0;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native AutoSuggestBox via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSSearchField (defined in

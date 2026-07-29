@@ -29,13 +29,13 @@
 //     relayout would mean adding a new cross-cutting relayout hook to host_run.cpp (the android partial's
 //     jni/relayout.hpp analog) — out of this file's scope; get_desired_size instead does the plain real
 //     Measure(), matching the label/button shape exactly.
-//  3. URI/STREAM/FONT SOURCES STAY MIRROR-ONLY. src/platform/windows/image_source_services.cpp does not
-//     exist yet — MAUI_WINDOWS_SWAPS (CMakeLists.txt) does not swap image_source_services.cpp, so this
-//     backend still resolves those source kinds through the (headless) mirror registry, whose results
-//     never carry a real image() handle. Only the FILE fast path below decodes a real BitmapImage; see
-//     apply_loaded_result. // TODO: a windows image_source_services.cpp (BitmapImage-from-uri/stream, a
-//     FontIconSource-style glyph rasterization for font sources) would let that path push a real image,
-//     matching the apple/android per-source-kind recipes.
+//  3. FONT SOURCES STAY MIRROR-ONLY (URI/STREAM ARE NOW REAL). image_source_services.cpp (swapped in via
+//     MAUI_WINDOWS_SWAPS) decodes a uri/stream source into a genuine BitmapImage the same way the FILE fast
+//     path below does (spool-to-temp-file + the Uri ctor — see that file's header for why not
+//     SetSourceAsync().get()); apply_loaded_result pushes result.image() onto the control's Source exactly
+//     like the apple twin. FONT stays mirror-only: FontImageSourceService.Windows.cs rasterizes the glyph
+//     via Win2D (Microsoft.Graphics.Canvas), a native dependency this port does not link on any backend —
+//     see image_source_services.cpp's header for the full citation.
 //  4. IsOpaque stays a mirror (no WinUI analog — Image is a FrameworkElement with nothing resembling
 //     C#'s opaque hint, matching the android partial's identical gap).
 //
@@ -314,9 +314,9 @@ namespace maui::core
     }
 
     // The async loader's apply: see this file's header note 3. A !loaded() result clears the view (the
-    // SetImageSource(null) analog); a loaded uri/stream/font result updates the string mirrors only —
-    // result.image() is always null on this backend (no windows image_source_services.cpp yet), so there
-    // is no real bitmap to push and the Image control keeps whatever it last displayed.
+    // SetImageSource(null) analog); a loaded result always updates the string mirrors, and — when it
+    // carries a real native handle (uri/stream; not font, see note 3) — pushes it onto the control's
+    // Source, mirroring the apple twin's `as_image_view(...).image = ...`.
     void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
     {
         if (!result.loaded())
@@ -327,6 +327,10 @@ namespace maui::core
         platform.source_kind = result.kind();
         platform.source_file = result.detail();
         platform.source_loaded = true;
+        if (platform.native != nullptr && result.image() != nullptr)
+        {
+            as_image(platform.native).Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+        }
     }
 
     // Clear the loaded image (both the mirror and, when a native view exists, the real Source).
