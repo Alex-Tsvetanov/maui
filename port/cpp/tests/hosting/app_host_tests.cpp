@@ -311,3 +311,64 @@ TEST(app_host, invalidate_arrange_is_still_a_documented_no_op)
 
     EXPECT_EQ(relayouts, 0);
 }
+
+// LAYOUT MUST BE IDEMPOTENT: a second drive_layout over an UNCHANGED tree has to reproduce the first
+// pass exactly. This is not a theoretical property -- it was violated in practice. Making
+// invalidate_measure real (commit 0d8e44adb6) caused exactly one observable change, extra layout
+// passes, and eight Windows parity pages then shifted ~0.5pp and stayed shifted. A controlled A/B on
+// the guest (MAUI_NO_RELAYOUT, commit e5e36a7ef9) put all eight back to their pre-seam values, four of
+// them to the exact hundredth. So the relayout seam did not introduce a defect; it EXPOSED one -- the
+// port's measure/arrange does not converge to a fixed point.
+//
+// Guarding it headless matters because the symptom was only ever visible as a fraction of a percent of
+// differing pixels on a Windows capture, which needs a VM, a build and a capture run to observe. A
+// divergence here is the same bug, reproducible in milliseconds.
+TEST(app_host, drive_layout_is_idempotent_over_an_unchanged_tree)
+{
+    auto app = build_app<hello_app>();
+    auto* hello = app->application_as<hello_app>().get();
+    ASSERT_NE(hello, nullptr);
+    maui::hosting::mount_window(*app, hello->win());
+
+    const maui::graphics::size first = maui::hosting::drive_layout(hello->win(), 402.0, 874.0);
+    const maui::graphics::rect first_page_frame = hello->page().frame();
+
+    // Nothing about the tree changed between the two calls -- same window, same content, same bounds.
+    const maui::graphics::size second = maui::hosting::drive_layout(hello->win(), 402.0, 874.0);
+    const maui::graphics::rect second_page_frame = hello->page().frame();
+
+    EXPECT_DOUBLE_EQ(second.width, first.width);
+    EXPECT_DOUBLE_EQ(second.height, first.height);
+    EXPECT_DOUBLE_EQ(second_page_frame.x, first_page_frame.x);
+    EXPECT_DOUBLE_EQ(second_page_frame.y, first_page_frame.y);
+    EXPECT_DOUBLE_EQ(second_page_frame.width, first_page_frame.width);
+    EXPECT_DOUBLE_EQ(second_page_frame.height, first_page_frame.height);
+}
+
+// The same idempotency contract on the DEEP tree (scroll host -> stack -> border -> nested label). The
+// flat hello_app tree above converges, so if the port's layout has a fixed-point bug it needs nesting to
+// surface -- and the eight Windows pages that exposed it are exactly that shape: five CollectionView
+// pages plus a safe-area and a scroll-hosted one. Frames are compared at every level, because a parent
+// that converges can still be hiding a child that does not.
+TEST(app_host, drive_layout_is_idempotent_over_a_nested_tree)
+{
+    auto app = build_app<nested_app>();
+    auto* nested = app->application_as<nested_app>().get();
+    ASSERT_NE(nested, nullptr);
+    maui::hosting::mount_window(*app, nested->win());
+
+    maui::hosting::drive_layout(nested->win(), 402.0, 874.0);
+    const maui::graphics::rect page1 = nested->page().frame();
+    const maui::graphics::rect scroll1 = nested->scroll().frame();
+    const maui::graphics::rect stack1 = nested->stack().frame();
+    const maui::graphics::rect border1 = nested->border().frame();
+    const maui::graphics::rect leaf1 = nested->nested_label().frame();
+
+    maui::hosting::drive_layout(nested->win(), 402.0, 874.0);
+
+    EXPECT_EQ(nested->page().frame(), page1);
+    EXPECT_EQ(nested->scroll().frame(), scroll1);
+    EXPECT_EQ(nested->stack().frame(), stack1);
+    EXPECT_EQ(nested->border().frame(), border1);
+    EXPECT_EQ(nested->nested_label().frame(), leaf1);
+}
