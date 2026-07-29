@@ -23,6 +23,7 @@
 // enforce here). Overlays, the modal stack, visual diagnostics, multi-content, MinimumWidth/MaximumWidth,
 // the title bar / display density, and IPersistedState are out of scope (STATUS.md).
 
+#include <cstdlib>
 #include <functional>
 #include <memory>
 #include <string>
@@ -297,7 +298,15 @@ namespace maui::controls
         // Replay the installed layout pass, or do nothing when no host registered one.
         void request_relayout() const
         {
-            if (relayout_hook_)
+            // TEMPORARY A/B GATE (env-gated, remove once the 8-page cluster is attributed). The seam
+            // landed in 0d8e44adb6 and took EIGHT previously-dead invalidate_measure call sites live at
+            // once -- scroll_view_handler:101, content_page_handler:93, border_handler:123,
+            // stack_layout:25, absolute_layout.hpp:64, editor.hpp:256 and others. Eight board pages
+            // regressed ~0.5pp persistently in the window this landed in, and the cause is unattributed
+            // (see fead5b7bec, 814c4505ee). Setting MAUI_NO_RELAYOUT=1 restores the pre-seam behaviour
+            // in the SAME binary, so one build gives a clean A/B instead of two.
+            static const bool disabled = std::getenv("MAUI_NO_RELAYOUT") != nullptr;
+            if (relayout_hook_ && !disabled)
             {
                 relayout_hook_();
             }
