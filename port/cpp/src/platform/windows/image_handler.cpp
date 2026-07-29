@@ -494,14 +494,30 @@ namespace maui::core
                 pixel_w = bitmap.PixelWidth();
                 pixel_h = bitmap.PixelHeight();
             }
+            // THE PROBE: re-measure with a FINITE height. WinUI's Uniform scale is
+            // min(availW/natW, availH/natH); an implementation that special-cases an infinite axis would
+            // return 0 for the unbounded call while every input is valid -- which is the one story left
+            // standing after fourteen dead hypotheses (fresh binary, decoded bitmap, correct constraint,
+            // live tree, default Max*). If finite_desired is non-zero while desired is 0x0, that is the
+            // whole bug and the fix is to bound the measure, not to chase the decode.
+            image.InvalidateMeasure();
+            image.Measure(winrt::Windows::Foundation::Size{
+                maui::platform::windows::measure_constraint(width_constraint), 10000.0F});
+            const auto finite_desired = image.DesiredSize();
             std::FILE* file = nullptr;
             if (fopen_s(&file, path, "a") == 0 && file != nullptr)
             {
                 std::fprintf(file,
-                             "image.measure cw=%.1f ch=%.1f -> desired=%.1fx%.1f actual=%.1fx%.1f "
-                             "pixel=%dx%d src=%d\n",
-                             width_constraint, height_constraint, desired.Width, desired.Height, image.ActualWidth(),
-                             image.ActualHeight(), pixel_w, pixel_h, image.Source() != nullptr ? 1 : 0);
+                             "image.measure cw=%.1f ch=%.1f -> desired=%.1fx%.1f finite=%.1fx%.1f "
+                             "actual=%.1fx%.1f pixel=%dx%d src=%d vis=%d parent=%d\n",
+                             width_constraint, height_constraint, desired.Width, desired.Height, finite_desired.Width,
+                             finite_desired.Height, image.ActualWidth(), image.ActualHeight(), pixel_w, pixel_h,
+                             image.Source() != nullptr ? 1 : 0,
+                             // A Collapsed UIElement measures to 0x0 UNCONDITIONALLY, whatever its content --
+                             // the one cause that fits every observation here (decoded bitmap, valid
+                             // constraints, live tree, and InvalidateMeasure/settle/finite-height all inert).
+                             image.Visibility() == winui::Visibility::Visible ? 1 : 0,
+                             image.Parent() != nullptr ? 1 : 0);
                 std::fclose(file);
             }
         }
