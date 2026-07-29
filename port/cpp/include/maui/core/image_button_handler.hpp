@@ -21,6 +21,7 @@
 // headless tests observe the load; and the on_click/on_press/on_release hooks are the inbound channel
 // (the button_platform convention).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -75,6 +76,29 @@ namespace maui::core
         move_only_function<void()> on_click;
         move_only_function<void()> on_press;
         move_only_function<void()> on_release;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the Click event-registration token on_connect_handler produced (revoked by
+        // on_disconnect_handler) and the boxed pointer_sink holding the two PointerPressed/PointerReleased
+        // delegates -- the exact button_platform convention (see button_handler.hpp's identical fields'
+        // comment for why POINTER events cannot use a token).
+        std::int64_t click_token = 0;
+        void* pointer_events = nullptr;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native Button via the shared
+        // winui_visual_ops helpers (src/platform/windows/) -- the button_platform convention. Background
+        // rides the same generic apply_background push button_platform uses (not ButtonExtensions.
+        // UpdateBackground's theme-resource override, which ImageButtonHandler.Windows.cs's own
+        // MapBackground calls) -- see the platform partial's header for why that is a deliberate,
+        // measured-equivalent-at-rest simplification, not an oversight.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSButton (defined in

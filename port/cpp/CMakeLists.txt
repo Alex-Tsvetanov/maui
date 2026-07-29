@@ -664,7 +664,7 @@ else()
     set(MAUI_WINDOWS_SWAPS
       window_handler content_page_handler layout_handler label_handler button_handler slider_handler
       scroll_view_handler shape_view_handler entry_handler picker_handler image_handler
-      image_source_services border_handler swipe_view_handler search_bar_handler)
+      image_source_services border_handler swipe_view_handler search_bar_handler image_button_handler)
     foreach(unit IN LISTS MAUI_WINDOWS_SWAPS)
       list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/${unit}.cpp)
       list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/${unit}.cpp)
@@ -824,8 +824,40 @@ if(MAUI_BACKEND STREQUAL "windows")
   # BUILD_INTERFACE only: both paths are machine-local (a NuGet restore directory and a cppwinrt output
   # directory on the build guest). Exported unguarded they would be baked verbatim into mauiTargets.cmake
   # and a consumer on another machine would configure fine and then fail to find winrt/*.h.
+  # App SDK 1.8 split the package: the umbrella Microsoft.WindowsAppSDK.<ver> no longer carries the
+  # headers (MddBootstrap.h now lives in Microsoft.WindowsAppSDK.Foundation.<ver>/include), the way it
+  # also stopped carrying the winmds -- see provision_winui_sdk.ps1's matching note. Through 1.7 the one
+  # include dir below was the whole SDK; from 1.8 the sibling packages' include dirs are needed too, so
+  # glob them rather than name them (the sub-package set and their independent version stamps both move).
+  # _maui_wasdk_pkgs is the full package set for THIS SDK version, reused below for the import-lib hints
+  # and the bootstrap DLL -- 1.8 moved all three (headers, libs, DLL) out of the umbrella together.
+  # Keyed to this SDK's major.minor: a previous version's packages stay on disk after a bump and must
+  # not leak into any of the three.
+  set(_maui_wasdk_pkgs "${MAUI_WINAPPSDK}")
+  get_filename_component(_maui_wasdk_root "${MAUI_WINAPPSDK}" DIRECTORY)
+  get_filename_component(_maui_wasdk_name "${MAUI_WINAPPSDK}" NAME)
+  if(_maui_wasdk_name MATCHES "^Microsoft\\.WindowsAppSDK\\.([0-9]+\\.[0-9]+)\\.")
+    set(_maui_wasdk_mm "${CMAKE_MATCH_1}")
+    file(GLOB _maui_wasdk_siblings "${_maui_wasdk_root}/Microsoft.WindowsAppSDK.*.${_maui_wasdk_mm}.*")
+    foreach(_pkg IN LISTS _maui_wasdk_siblings)
+      if(IS_DIRECTORY "${_pkg}")
+        list(APPEND _maui_wasdk_pkgs "${_pkg}")
+      endif()
+    endforeach()
+  endif()
+  list(REMOVE_DUPLICATES _maui_wasdk_pkgs)
+  set(_maui_wasdk_includes)
+  foreach(_pkg IN LISTS _maui_wasdk_pkgs)
+    if(IS_DIRECTORY "${_pkg}/include")
+      list(APPEND _maui_wasdk_includes "${_pkg}/include")
+    endif()
+  endforeach()
+  set(_maui_wasdk_include_genex "")
+  foreach(_inc IN LISTS _maui_wasdk_includes)
+    list(APPEND _maui_wasdk_include_genex "$<BUILD_INTERFACE:${_inc}>")
+  endforeach()
   target_include_directories(maui_core
-    PUBLIC $<BUILD_INTERFACE:${MAUI_WINUI_GENERATED}> $<BUILD_INTERFACE:${MAUI_WINAPPSDK}/include>
+    PUBLIC $<BUILD_INTERFACE:${MAUI_WINUI_GENERATED}> ${_maui_wasdk_include_genex}
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/windows)
   # The Windows App SDK ships per-RID import libs and the RID folder name changed across versions, so
   # probe both spellings rather than hardcode one. Keyed on the ABI actually being COMPILED (passed in
@@ -839,9 +871,13 @@ if(MAUI_BACKEND STREQUAL "windows")
   else()
     set(_maui_wasdk_rids win-x64 win10-x64)
   endif()
+  # Same 1.8 package split as the include dirs above: the import libs and the bootstrap DLL moved out of
+  # the umbrella package into siblings, so hint every package root, not just MAUI_WINAPPSDK.
   set(_maui_wasdk_lib_hints)
-  foreach(rid IN LISTS _maui_wasdk_rids)
-    list(APPEND _maui_wasdk_lib_hints "${MAUI_WINAPPSDK}/lib/${rid}")
+  foreach(pkg IN LISTS _maui_wasdk_pkgs)
+    foreach(rid IN LISTS _maui_wasdk_rids)
+      list(APPEND _maui_wasdk_lib_hints "${pkg}/lib/${rid}")
+    endforeach()
   endforeach()
   # The cache variable is keyed on the ABI. find_library caches its hit, and an unkeyed name would keep
   # a previously-found x64 import library across a reconfigure to arm64 -- while the bootstrap DLL below
@@ -857,10 +893,17 @@ if(MAUI_BACKEND STREQUAL "windows")
   # The matching bootstrap DLL must sit BESIDE the exe or the process dies at load with 0xC0000135
   # before main() runs - no dialog, no log line, just "the process exited early" in the E2E runner.
   # Published as a cache variable so an app host (examples/) can copy it next to its own executable.
-  foreach(rid IN LISTS _maui_wasdk_rids)
-    if(EXISTS "${MAUI_WINAPPSDK}/runtimes/${rid}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll")
-      set(MAUI_WASDK_BOOTSTRAP_DLL "${MAUI_WINAPPSDK}/runtimes/${rid}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll"
-          CACHE FILEPATH "Windows App Runtime bootstrap DLL to deploy beside a maui executable" FORCE)
+  # Third consumer of the 1.8 package split (see _maui_wasdk_pkgs above): the runtimes/ tree moved out
+  # of the umbrella package too.
+  foreach(pkg IN LISTS _maui_wasdk_pkgs)
+    foreach(rid IN LISTS _maui_wasdk_rids)
+      if(EXISTS "${pkg}/runtimes/${rid}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll")
+        set(MAUI_WASDK_BOOTSTRAP_DLL "${pkg}/runtimes/${rid}/native/Microsoft.WindowsAppRuntime.Bootstrap.dll"
+            CACHE FILEPATH "Windows App Runtime bootstrap DLL to deploy beside a maui executable" FORCE)
+        break()
+      endif()
+    endforeach()
+    if(MAUI_WASDK_BOOTSTRAP_DLL)
       break()
     endif()
   endforeach()
