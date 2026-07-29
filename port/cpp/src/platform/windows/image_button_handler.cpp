@@ -591,12 +591,36 @@ namespace maui::core
             return {0, 0};
         }
         const button_control button = as_button(platform->native);
-        // Clear the pinned size FIRST — platform_arrange stamps Width/Height every pass, and a
-        // FrameworkElement with an explicit size measures to exactly that instead of re-measuring
-        // (button_handler.cpp's identical note; NaN is XAML's "Auto").
-        const auto auto_size = std::numeric_limits<double>::quiet_NaN();
-        button.Width(auto_size);
-        button.Height(auto_size);
+        // ARRANGE/EXPLICIT-SIZE FIX (measured on the guest, commit 11d7965489): this used to clear
+        // Width/Height to NaN UNCONDITIONALLY, discarding a real WidthRequest along with the stale
+        // arranged frame — so a WidthRequest(200) ImageButton (image_button_page.hpp's fit_button_,
+        // configure_aspect_button(fit_button_, aspect_fit, 200, 0)) measured with NO width cap at all: its
+        // Stretch=Uniform content Image scaled the 128x128 icon up to fill the FULL EXTERNAL constraint
+        // (cw=920) instead of the requested ~200, reporting an 886x886 desired image / ~920x906 desired
+        // button that then pushed the page's other 8 buttons off-screen (27.09% light / 31.17% dark).
+        //
+        // The oracle (ViewHandlerExtensions.Windows.cs:56-74 GetDesiredSizeFromHandler + :91-105
+        // AdjustForExplicitSize) keeps Width/Height PERSISTENTLY set to the explicit request (pushed once
+        // by MapWidth/MapHeight -> UpdateWidth/UpdateHeight, ViewExtensions.cs:181-193's
+        // `platformView.Width = view.Width`, propagated verbatim because WinUI's NaN-is-unspecified
+        // convention already matches the xplat one) and, AT MEASURE TIME, only WIDENS the incoming
+        // constraint — `Math.Max(externalConstraint, explicitValue)` when explicitValue is not NaN — it
+        // never clears the pin. Ported the same way below: read i_image_button's own width()/height()
+        // (this port's unset sentinel is NaN for BOTH — confirmed in controls/view.hpp:1010-1021's
+        // resolve_request, which is what the concrete view virtual_view() resolves to implements — so no
+        // encoding translation is needed, same as C#'s NaN convention), pin Width/Height to that, then
+        // widen width_constraint/height_constraint by the same Math.Max rule before measuring.
+        //
+        // platform_arrange's OWN Width/Height stamp (below) is DELIBERATELY UNTOUCHED — see its comment.
+        const auto* view = virtual_view();
+        const double explicit_width = (view != nullptr) ? view->width() : std::numeric_limits<double>::quiet_NaN();
+        const double explicit_height = (view != nullptr) ? view->height() : std::numeric_limits<double>::quiet_NaN();
+        button.Width(explicit_width);
+        button.Height(explicit_height);
+        const double adjusted_width_constraint =
+            std::isnan(explicit_width) ? width_constraint : std::max(width_constraint, explicit_width);
+        const double adjusted_height_constraint =
+            std::isnan(explicit_height) ? height_constraint : std::max(height_constraint, explicit_height);
         // See image_handler.cpp's identical note: Measure() returns a CACHED DesiredSize on an element XAML
         // does not consider measure-dirty, and this port drives layout out-of-cycle so nothing else marks it.
         // The content Image is invalidated too -- the Button's own measure asks its Content for a size, and
@@ -608,8 +632,8 @@ namespace maui::core
         }
         button.InvalidateMeasure();
         button.Measure(
-            winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
-                                             maui::platform::windows::measure_constraint(height_constraint)});
+            winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(adjusted_width_constraint),
+                                             maui::platform::windows::measure_constraint(adjusted_height_constraint)});
         const auto desired = button.DesiredSize();
         return {desired.Width, desired.Height};
     }
@@ -631,6 +655,18 @@ namespace maui::core
         const button_control button = as_button(platform->native);
         winui::Controls::Canvas::SetLeft(button, frame.x);
         winui::Controls::Canvas::SetTop(button, frame.y);
+        // NOT PlatformArrangeHandler (ViewHandlerExtensions.Windows.cs:76-88), which only calls
+        // platformView.Arrange(rect) and NEVER assigns Width/Height — deliberately, per this file's
+        // get_desired_size comment above. layout_handler.cpp's own header (the panel THIS button is a
+        // child of) and button_handler.cpp's identical stamp (:706-710) already establish, as a port-wide
+        // fact rather than an image-button-specific one, that "a Canvas child has no other way to be
+        // sized": winui::Controls::Canvas's real ArrangeOverride positions each child at its OWN
+        // DesiredSize next to Canvas.Left/Top (it measures children with an infinite constraint and hands
+        // out no slot), and WinUI's own layout system revisits this Canvas whenever Canvas.SetLeft/SetTop
+        // change here — which is every platform_arrange call. Leaving Width/Height unset would size this
+        // element to its bare intrinsic content the next time that happens, not to `frame`. Every Windows
+        // handler relies on this stamp for that reason; it is not part of the measured defect and is left
+        // as-is on purpose (see the CRITICAL RISK / Canvas discussion in this slice's task write-up).
         button.Width(frame.width);
         button.Height(frame.height);
     }

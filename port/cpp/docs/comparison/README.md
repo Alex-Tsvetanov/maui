@@ -9002,11 +9002,11 @@ ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-fi
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7557, 27.09% pixels differ · Dark: SSIM 0.7782, 31.17% pixels differ
+Light: SSIM 0.7602, 23.96% pixels differ · Dark: SSIM 0.7438, 29.50% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.7547, 27.11% pixels differ · Dark: SSIM 0.7779, 31.17% pixels differ
+Light: SSIM 0.7591, 23.98% pixels differ · Dark: SSIM 0.7436, 29.50% pixels differ
 
 ### 81. Indicator — 🟡/🟡
 <sub>indicator</sub>
