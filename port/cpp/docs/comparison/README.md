@@ -7804,8 +7804,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 | --- | --- | --- |
 | 🟢 Match | 0 | 0 |
 | 🟡 Minor | 91 | 91 |
-| 🔴 Major | 81 | 81 |
-| ⬛ Blank | 0 | 0 |
+| 🔴 Major | 80 | 81 |
+| ⬛ Blank | 1 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
 ### 1. Absolute Layout — 🟡/🟡
@@ -8873,16 +8873,16 @@ Light: SSIM 0.9771, 0.53% pixels differ · Dark: SSIM 0.9279, 4.28% pixels diffe
 
 Light: SSIM 0.9761, 0.56% pixels differ · Dark: SSIM 0.9276, 4.28% pixels differ
 
-### 72. Header Footer Grid — 🔴/🔴
+### 72. Header Footer Grid — ⬛/🔴
 <sub>header_footer_grid</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/windows/cpp/header_footer_grid_light.png" /></td><td><img width="300px" src="captures/windows/xaml/header_footer_grid_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/header_footer_grid_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/header_footer_grid_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/header_footer_grid_light.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/windows/xaml/header_footer_grid_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/header_footer_grid_dark.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="captures/windows/xaml/header_footer_grid_dark.png" /></td></tr></table>
 
 ports HeaderFooterGrid.xaml (+ HeaderFooterGrid.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### ⬛ C++ Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.3395, 79.84% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+No comparable MAUI/C++ screenshot pair exists for this page on this platform.
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
