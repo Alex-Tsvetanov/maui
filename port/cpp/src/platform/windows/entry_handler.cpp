@@ -752,14 +752,24 @@ namespace maui::core
             return {0, 0};
         }
         const text_box box = as_text_box(platform->native);
-        // Clear the pinned size FIRST (see label/button_handler.cpp's identical note): platform_arrange
-        // stamps Width/Height on this element, and a FrameworkElement with an explicit Width/Height
-        // measures to exactly that, so later layout passes would just read back the PREVIOUS frame.
-        const auto auto_size = std::numeric_limits<double>::quiet_NaN();
-        box.Width(auto_size);
-        box.Height(auto_size);
-        box.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
-                                                     maui::platform::windows::measure_constraint(height_constraint)});
+        // ARRANGE/EXPLICIT-SIZE FIX (generalised from image_button_handler.cpp, commit a2444f94ba): pin
+        // Width/Height to the view's own explicit request (this port's unset sentinel is NaN, same as
+        // C#'s NaN-is-unspecified convention) instead of clearing to NaN unconditionally, then only WIDEN
+        // the incoming constraint at measure time -- see the oracle at ViewHandlerExtensions.Windows.cs:
+        // 56-74 GetDesiredSizeFromHandler + :91-105 AdjustForExplicitSize, and image_button_handler.cpp's
+        // get_desired_size for the full writeup. platform_arrange's OWN stamp (below) is UNTOUCHED.
+        const auto* view = virtual_view();
+        const double explicit_width = (view != nullptr) ? view->width() : std::numeric_limits<double>::quiet_NaN();
+        const double explicit_height = (view != nullptr) ? view->height() : std::numeric_limits<double>::quiet_NaN();
+        box.Width(explicit_width);
+        box.Height(explicit_height);
+        const double adjusted_width_constraint =
+            std::isnan(explicit_width) ? width_constraint : std::max(width_constraint, explicit_width);
+        const double adjusted_height_constraint =
+            std::isnan(explicit_height) ? height_constraint : std::max(height_constraint, explicit_height);
+        box.Measure(
+            winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(adjusted_width_constraint),
+                                             maui::platform::windows::measure_constraint(adjusted_height_constraint)});
         const auto desired = box.DesiredSize();
         return {desired.Width, desired.Height};
     }

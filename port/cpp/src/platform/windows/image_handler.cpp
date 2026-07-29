@@ -596,14 +596,23 @@ namespace maui::core
         // and arranges).
         const border host = as_host(platform->native);
         const image_control image = as_image(platform->native);
-        // Clear the pinned size FIRST, exactly like label/button: platform_arrange stamps an explicit
-        // Width/Height on this element every pass (a Canvas child has no other way to be sized), and a
-        // FrameworkElement with an explicit Width/Height measures to exactly that instead of re-measuring.
-        // Only the HOST is ever pinned now — the child Image's own Width/Height are never set anywhere in
-        // this file (SetupContainer's `PlatformView.Height = Dimension.Unset`, permanently).
-        const auto auto_size = std::numeric_limits<double>::quiet_NaN();
-        host.Width(auto_size);
-        host.Height(auto_size);
+        // ARRANGE/EXPLICIT-SIZE FIX (generalised from image_button_handler.cpp, commit a2444f94ba): pin
+        // Width/Height to the view's own explicit request instead of clearing to NaN unconditionally,
+        // then only WIDEN the incoming constraint at measure time — see the oracle at
+        // ViewHandlerExtensions.Windows.cs:56-74 GetDesiredSizeFromHandler + :91-105 AdjustForExplicitSize,
+        // and image_button_handler.cpp's get_desired_size for the full writeup. Pinned on the HOST (the
+        // element platform_arrange sizes) exactly like label_handler.cpp — the child Image's own
+        // Width/Height are still never set anywhere in this file (SetupContainer's `PlatformView.Height =
+        // Dimension.Unset`, permanently). platform_arrange's OWN stamp is UNTOUCHED.
+        const auto* view = virtual_view();
+        const double explicit_width = (view != nullptr) ? view->width() : std::numeric_limits<double>::quiet_NaN();
+        const double explicit_height = (view != nullptr) ? view->height() : std::numeric_limits<double>::quiet_NaN();
+        host.Width(explicit_width);
+        host.Height(explicit_height);
+        const double adjusted_width_constraint =
+            std::isnan(explicit_width) ? width_constraint : std::max(width_constraint, explicit_width);
+        const double adjusted_height_constraint =
+            std::isnan(explicit_height) ? height_constraint : std::max(height_constraint, explicit_height);
         // Force MeasureOverride to actually RUN. Measure() is a no-op on an element XAML does not consider
         // measure-dirty: it returns the cached DesiredSize instead of re-deriving one. This port drives its
         // own layout out-of-cycle, so nothing else ever marks the element dirty, and the FIRST measure here
@@ -614,8 +623,9 @@ namespace maui::core
         // measure-dirty too.
         host.InvalidateMeasure();
         image.InvalidateMeasure();
-        host.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
-                                                      maui::platform::windows::measure_constraint(height_constraint)});
+        host.Measure(
+            winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(adjusted_width_constraint),
+                                             maui::platform::windows::measure_constraint(adjusted_height_constraint)});
         const auto desired = host.DesiredSize();
         // TEMPORARY DIAGNOSTIC (env-gated, remove once the `image` collapse is understood). Eighteen
         // hypotheses about this page have died on captures, and every one of them was an argument from

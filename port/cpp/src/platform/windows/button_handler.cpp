@@ -659,17 +659,28 @@ namespace maui::core
             return {0, 0};
         }
         const button_control button = as_button(platform->native);
-        // Clear the pinned size FIRST. platform_arrange stamps Width/Height on this element (a Canvas
-        // child has no other way to be sized), and a FrameworkElement with an explicit Width/Height
-        // measures to exactly that -- so the second and later layout passes would just read back the
-        // PREVIOUS frame instead of re-measuring. NaN is XAML's "Auto". C# does the same thing for the
-        // same reason: LabelHandler.Windows.SetupContainer sets `PlatformView.Height = double.NaN`.
-        const auto auto_size = std::numeric_limits<double>::quiet_NaN();
-        button.Width(auto_size);
-        button.Height(auto_size);
+        // ARRANGE/EXPLICIT-SIZE FIX (generalised from image_button_handler.cpp, commit a2444f94ba): this
+        // used to clear Width/Height to NaN UNCONDITIONALLY, discarding a real WidthRequest/HeightRequest
+        // along with the stale arranged frame. The oracle (ViewHandlerExtensions.Windows.cs:56-74
+        // GetDesiredSizeFromHandler + :91-105 AdjustForExplicitSize) instead keeps Width/Height PINNED to
+        // the explicit request and only WIDENS the incoming constraint at measure time -- it never clears
+        // the pin. Ported the same way: read i_button's own width()/height() (this port's unset sentinel
+        // is NaN for both, same as C#'s NaN-is-unspecified convention, so no translation is needed), pin
+        // Width/Height to that, then widen width_constraint/height_constraint by the same Math.Max rule.
+        //
+        // platform_arrange's OWN Width/Height stamp (below) is DELIBERATELY UNTOUCHED -- see its comment.
+        const auto* view = virtual_view();
+        const double explicit_width = (view != nullptr) ? view->width() : std::numeric_limits<double>::quiet_NaN();
+        const double explicit_height = (view != nullptr) ? view->height() : std::numeric_limits<double>::quiet_NaN();
+        button.Width(explicit_width);
+        button.Height(explicit_height);
+        const double adjusted_width_constraint =
+            std::isnan(explicit_width) ? width_constraint : std::max(width_constraint, explicit_width);
+        const double adjusted_height_constraint =
+            std::isnan(explicit_height) ? height_constraint : std::max(height_constraint, explicit_height);
         button.Measure(
-            winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
-                                             maui::platform::windows::measure_constraint(height_constraint)});
+            winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(adjusted_width_constraint),
+                                             maui::platform::windows::measure_constraint(adjusted_height_constraint)});
         const auto desired = button.DesiredSize();
         return {desired.Width, desired.Height};
     }
