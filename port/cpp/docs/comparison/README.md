@@ -8987,11 +8987,11 @@ ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.3930, 82.90% pixels differ · Dark: SSIM 0.3842, 83.60% pixels differ
+Light: SSIM 0.3720, 79.43% pixels differ · Dark: SSIM 0.4078, 83.22% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.3920, 82.92% pixels differ · Dark: SSIM 0.3839, 83.60% pixels differ
+Light: SSIM 0.3710, 79.45% pixels differ · Dark: SSIM 0.4076, 83.22% pixels differ
 
 ### 80. Image Button — 🔴/🔴
 <sub>image_button</sub>

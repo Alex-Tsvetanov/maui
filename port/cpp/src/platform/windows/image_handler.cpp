@@ -43,12 +43,35 @@
 //  4. IsOpaque stays a mirror (no WinUI analog — Image is a FrameworkElement with nothing resembling
 //     C#'s opaque hint, matching the android partial's identical gap).
 //
-// NOT PORTED (out of scope for this slice, matching the header's own note): NeedsContainer /
-// SetupContainer — C# wraps the Image in a Border when Background is set or Aspect is AspectFill (the
-// same reason LabelHandler.Windows wraps its TextBlock). This header has no such container seam for
-// Image on ANY backend yet, so Background is wired (see image_platform::update_background below) but has
-// nowhere to paint (Image is a FrameworkElement, not a Panel/Control/Border) — apply_background's
-// three-way try_as silently finds nothing, a documented gap rather than an invented container.
+// CONTAINER (NeedsContainer / SetupContainer / MapHeight / MapWidth) — ImageHandler.Windows.cs:34-38
+// (NeedsContainer), :40-50 (SetupContainer), :93-106 (MapHeight), :108-123 (MapWidth). The oracle's
+// NeedsContainer is CONDITIONAL:
+//   VirtualView?.Background != null || VirtualView?.Aspect == Aspect.AspectFill || base.NeedsContainer
+// (base.NeedsContainer is ViewExtensions.cs:111-114's Clip/Shadow check — this page sets neither). Checked
+// against every <Image> on port/maui-reference/pages/image.xaml: 5 of its 8 images set BackgroundColor
+// (dotnet_bot.png/Purple, both FontImageSource/Green rows, stream.png/LightPink, dotnet_bot.png/Black+
+// Opacity) => NeedsContainer TRUE; the other 3 (the UriSource row, the WidthRequest=200 animated-gif row,
+// and the plain animated-gif row) set no Background and use the default Aspect.AspectFit (not
+// AspectFill) => NeedsContainer FALSE for all three.
+//
+// This port wraps the Image in a Border host UNCONDITIONALLY instead of reproducing the conditional
+// attach/detach — the same simplification label_handler.cpp already made for LabelHandler.Windows's own
+// conditional NeedsContainer, for the identical reason: a chromeless Border (Padding/BorderThickness/
+// CornerRadius never touched) measures and arranges IDENTICALLY to its bare child, so the 3 images that
+// would stay unwrapped in real MAUI render pixel-for-pixel the same wrapped or bare. The 5 Background-
+// bearing images gain a real paint target: apply_background's existing three-way try_as (winui_visual_
+// ops.cpp) already fills a Border, so no change was needed there — this closes the gap image_handler.hpp's
+// update_background note used to document (Background wired but "has nowhere to land").
+//
+// MapHeight/MapWidth have no direct analog to port: the cross-platform port has no per-property
+// "height"/"width" mapper key for View at all (only window_handler.cpp has a window-level one) —
+// WidthRequest/HeightRequest instead flow into get_desired_size's width_constraint/height_constraint
+// through the shared cross-platform layout math, and the one resolved frame is pushed once from
+// platform_arrange. So the oracle's "the container gets the size, the child stays Auto" is realized
+// structurally instead: get_desired_size and platform_arrange now size/position the HOST border (exactly
+// like label_handler.cpp's as_host/get_desired_size/platform_arrange), and the child Image's own Width/
+// Height are never touched at all — left permanently at WinUI's own Auto/NaN default, which is what
+// SetupContainer's `PlatformView.Height = Dimension.Unset` achieves in the oracle.
 
 #include "maui/core/image_handler.hpp"
 
@@ -89,10 +112,18 @@ namespace
     namespace winui = winrt::Microsoft::UI::Xaml;
     using image_control = winui::Controls::Image;
     using bitmap_image = winui::Media::Imaging::BitmapImage;
+    using border = winui::Controls::Border;
+
+    // The container host — see this file's header CONTAINER note. `native` now boxes the BORDER, not the
+    // bare Image; the label_handler.cpp twin (as_host/as_text_block) is the precedent this mirrors.
+    border as_host(void* native)
+    {
+        return maui::platform::windows::ref<winui::UIElement>(native).as<border>();
+    }
 
     image_control as_image(void* native)
     {
-        return maui::platform::windows::ref<winui::UIElement>(native).as<image_control>();
+        return as_host(native).Child().as<image_control>();
     }
 
     // AspectExtensions.ToStretch: the enum member names match 1:1 (WStretch = Microsoft.UI.Xaml.Media.
@@ -244,8 +275,14 @@ namespace maui::core
     std::unique_ptr<image_platform> image_handler::create_platform_view()
     {
         auto platform = std::make_unique<image_platform>();
+        // Border host, unconditionally — see this file's header CONTAINER note for why (mirrors
+        // label_handler.cpp's create_platform_view exactly: a chromeless Border wrapping the real
+        // control). The Image's own Width/Height are never set anywhere in this file; they stay at
+        // WinUI's Auto/NaN default permanently, which is the oracle's SetupContainer effect.
+        border host;
         image_control image;
-        platform->native = maui::platform::windows::take<winui::UIElement>(image);
+        host.Child(image);
+        platform->native = maui::platform::windows::take<winui::UIElement>(host);
         return platform;
     }
 
@@ -460,31 +497,48 @@ namespace maui::core
         // note 2 for why the reported size can be {0,0} on the very first call (the decode has not
         // completed yet) — the E2E/parity harness's post-launch resize (host_run.cpp's SizeChanged ->
         // drive_layout) supplies the second pass a real app already gets for free.
+        //
+        // Measure the HOST, not the bare Image — the container port (this file's header CONTAINER note):
+        // exactly like label_handler.cpp's get_desired_size, the returned size is what platform_arrange
+        // will size/position, and that is now the Border host (a chromeless Border's DesiredSize equals
+        // its child's, so this is not expected to change any number, only WHICH element the port measures
+        // and arranges).
+        const border host = as_host(platform->native);
         const image_control image = as_image(platform->native);
         // Clear the pinned size FIRST, exactly like label/button: platform_arrange stamps an explicit
         // Width/Height on this element every pass (a Canvas child has no other way to be sized), and a
         // FrameworkElement with an explicit Width/Height measures to exactly that instead of re-measuring.
+        // Only the HOST is ever pinned now — the child Image's own Width/Height are never set anywhere in
+        // this file (SetupContainer's `PlatformView.Height = Dimension.Unset`, permanently).
         const auto auto_size = std::numeric_limits<double>::quiet_NaN();
-        image.Width(auto_size);
-        image.Height(auto_size);
+        host.Width(auto_size);
+        host.Height(auto_size);
         // Force MeasureOverride to actually RUN. Measure() is a no-op on an element XAML does not consider
         // measure-dirty: it returns the cached DesiredSize instead of re-deriving one. This port drives its
         // own layout out-of-cycle, so nothing else ever marks the element dirty, and the FIRST measure here
         // happens while the BitmapImage is still decoding -- caching 0x0. Measured on the guest: 20 passes
         // observing a fully decoded bitmap (pixel=1200x694, 400x300) all still returned desired=0x0, which
-        // is why waiting longer for the decode changed nothing.
+        // is why waiting longer for the decode changed nothing. Both host and child are invalidated: a
+        // fresh Border ancestor does not, by itself, guarantee WinUI treats the already-existing child as
+        // measure-dirty too.
+        host.InvalidateMeasure();
         image.InvalidateMeasure();
-        image.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
-                                                       maui::platform::windows::measure_constraint(height_constraint)});
-        const auto desired = image.DesiredSize();
-        // TEMPORARY DIAGNOSTIC (env-gated, remove once the `image` collapse is understood). Twelve
-        // hypotheses about this page have died on captures, the last one mine, and every one of them was
-        // an argument from reading source. This prints what the measure ACTUALLY observes at each pass,
-        // which distinguishes the two remaining stories that source-reading cannot separate:
+        host.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
+                                                      maui::platform::windows::measure_constraint(height_constraint)});
+        const auto desired = host.DesiredSize();
+        // TEMPORARY DIAGNOSTIC (env-gated, remove once the `image` collapse is understood). Eighteen
+        // hypotheses about this page have died on captures, and every one of them was an argument from
+        // reading source. This prints what the measure ACTUALLY observes at each pass, which distinguishes
+        // the two remaining stories that source-reading cannot separate:
         //   * bitmap present, measure ignores it   -> pixel_w/h > 0 but desired == 0
         //   * bitmap absent at every pass we make  -> pixel_w/h == 0, i.e. the decode really never lands
         //     before the last layout, and image_handler.cpp note 2's "the harness resize supplies a second
         //     pass" is false in practice.
+        // The measured element is now the HOST border rather than the bare Image (this file's CONTAINER
+        // note), so every field below is logged for BOTH: host_* is what get_desired_size actually returns
+        // and what the next layout pass sees; img_* is the bare child's own MeasureOverride result, read
+        // off the SAME host.Measure() call (Border.MeasureOverride cascades into Child.Measure()), kept for
+        // direct comparison against every prior capture of this log (which only ever recorded the image).
         if (const char* const path = std::getenv("MAUI_WINUI_LOG"))
         {
             std::int32_t pixel_w = -1;
@@ -494,36 +548,44 @@ namespace maui::core
                 pixel_w = bitmap.PixelWidth();
                 pixel_h = bitmap.PixelHeight();
             }
+            // The bare child's own DesiredSize, populated as a side effect of the host.Measure() call just
+            // above — captured BEFORE the finite re-probe below overwrites it.
+            const auto img_desired = image.DesiredSize();
             // THE PROBE: re-measure with a FINITE height. WinUI's Uniform scale is
             // min(availW/natW, availH/natH); an implementation that special-cases an infinite axis would
             // return 0 for the unbounded call while every input is valid -- which is the one story left
             // standing after fourteen dead hypotheses (fresh binary, decoded bitmap, correct constraint,
             // live tree, default Max*). If finite_desired is non-zero while desired is 0x0, that is the
-            // whole bug and the fix is to bound the measure, not to chase the decode.
+            // whole bug and the fix is to bound the measure, not to chase the decode. Run on the host
+            // (what actually feeds the return value) AND the bare image (the original probe target).
+            host.InvalidateMeasure();
             image.InvalidateMeasure();
-            image.Measure(winrt::Windows::Foundation::Size{
-                maui::platform::windows::measure_constraint(width_constraint), 10000.0F});
-            const auto finite_desired = image.DesiredSize();
+            host.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
+                                                          10000.0F});
+            const auto host_finite = host.DesiredSize();
+            const auto img_finite = image.DesiredSize();
             std::FILE* file = nullptr;
             if (fopen_s(&file, path, "a") == 0 && file != nullptr)
             {
-                std::fprintf(file,
-                             "image.measure cw=%.1f ch=%.1f -> desired=%.1fx%.1f finite=%.1fx%.1f "
-                             "actual=%.1fx%.1f pixel=%dx%d src=%d vis=%d parent=%d wh=%.1fx%.1f stretch=%d\n",
-                             width_constraint, height_constraint, desired.Width, desired.Height, finite_desired.Width,
-                             finite_desired.Height, image.ActualWidth(), image.ActualHeight(), pixel_w, pixel_h,
-                             image.Source() != nullptr ? 1 : 0,
-                             // A Collapsed UIElement measures to 0x0 UNCONDITIONALLY, whatever its content --
-                             // the one cause that fits every observation here (decoded bitmap, valid
-                             // constraints, live tree, and InvalidateMeasure/settle/finite-height all inert).
-                             image.Visibility() == winui::Visibility::Visible ? 1 : 0,
-                             image.Parent() != nullptr ? 1 : 0,
-                             // Read the pin BACK after clearing it to NaN. Every measure path in this
-                             // backend assumes that clear takes effect; none has ever verified it, and
-                             // actual=920.0x0.0 is exactly the residue a height pinned to 0 would leave.
-                             // A Height of 0 (rather than NaN) makes Measure return 0x0 for ANY content,
-                             // which is the last unexamined way to get the observed result.
-                             image.Width(), image.Height(), static_cast<int>(image.Stretch()));
+                std::fprintf(
+                    file,
+                    "image.measure cw=%.1f ch=%.1f -> host_desired=%.1fx%.1f host_finite=%.1fx%.1f "
+                    "img_desired=%.1fx%.1f img_finite=%.1fx%.1f actual=%.1fx%.1f pixel=%dx%d src=%d vis=%d "
+                    "parent=%d host_wh=%.1fx%.1f img_wh=%.1fx%.1f stretch=%d\n",
+                    width_constraint, height_constraint, desired.Width, desired.Height, host_finite.Width,
+                    host_finite.Height, img_desired.Width, img_desired.Height, img_finite.Width, img_finite.Height,
+                    image.ActualWidth(), image.ActualHeight(), pixel_w, pixel_h, image.Source() != nullptr ? 1 : 0,
+                    // A Collapsed UIElement measures to 0x0 UNCONDITIONALLY, whatever its content --
+                    // the one cause that fits every observation here (decoded bitmap, valid
+                    // constraints, live tree, and InvalidateMeasure/settle/finite-height all inert).
+                    image.Visibility() == winui::Visibility::Visible ? 1 : 0, image.Parent() != nullptr ? 1 : 0,
+                    // Read the pin BACK after clearing it to NaN. Every measure path in this backend
+                    // assumes that clear takes effect; none has ever verified it, and actual=920.0x0.0 is
+                    // exactly the residue a height pinned to 0 would leave. A Height of 0 (rather than NaN)
+                    // makes Measure return 0x0 for ANY content, which is the last unexamined way to get the
+                    // observed result. host_wh is the pin this file now actually sets; img_wh should always
+                    // read NaN/NaN — the child's own Width/Height are never assigned anywhere in this file.
+                    host.Width(), host.Height(), image.Width(), image.Height(), static_cast<int>(image.Stretch()));
                 std::fclose(file);
             }
         }
@@ -544,11 +606,14 @@ namespace maui::core
         {
             return;
         }
-        const image_control image = as_image(platform->native);
-        winui::Controls::Canvas::SetLeft(image, frame.x);
-        winui::Controls::Canvas::SetTop(image, frame.y);
-        image.Width(frame.width);
-        image.Height(frame.height);
+        // Arrange the HOST — see this file's header CONTAINER note; the child Image stretches to fill it
+        // (WinUI's own default HorizontalAlignment/VerticalAlignment for a FrameworkElement is Stretch,
+        // untouched here except by map_aspect's AspectFill Center/Center override).
+        const border host = as_host(platform->native);
+        winui::Controls::Canvas::SetLeft(host, frame.x);
+        winui::Controls::Canvas::SetTop(host, frame.y);
+        host.Width(frame.width);
+        host.Height(frame.height);
     }
 
     // C# uiContext.GetDisplayDensity() (Windows): XamlRoot::RasterizationScale is the DPI scale the
@@ -569,8 +634,9 @@ namespace maui::core
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------
     // Delegated to the shared winui_visual_ops free functions so all controls behave identically; see
-    // that header for why they are free functions taking the void* slot. update_background is wired but
-    // is a no-op in practice for Image — see this file's header "NOT PORTED" note.
+    // that header for why they are free functions taking the void* slot. update_background now LANDS: with
+    // `native` boxing the Border host (this file's header CONTAINER note), apply_background's existing
+    // three-way try_as paints it directly — no change needed there.
     void image_platform::update_visibility(maui::core::visibility value)
     {
         maui::platform::windows::apply_visibility(native, value);

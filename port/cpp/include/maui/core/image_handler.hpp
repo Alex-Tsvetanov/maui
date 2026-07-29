@@ -109,12 +109,10 @@ namespace maui::core
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
-        // A no-op in practice: Microsoft.UI.Xaml.Controls.Image is a FrameworkElement, not a Panel/
-        // Control/Border, so apply_background's three-way try_as finds nothing to paint - exactly the
-        // gap C#'s NeedsContainer/SetupContainer (Background -> a wrapping Border, like LabelHandler.
-        // Windows) exists to close. That container is NOT ported this slice (out of scope; not part of
-        // this header's pre-existing cross-platform surface for ANY backend), so an Image.Background is
-        // faithfully wired here but has nowhere to land yet - a documented gap, not a wrong push.
+        // NOW LANDS: image_handler.cpp's create_platform_view wraps the Image in a Border host (the
+        // container ImageHandler.Windows.NeedsContainer/SetupContainer introduces conditionally on
+        // Background/AspectFill — see that file's header for why this port wraps unconditionally, like
+        // label_handler.cpp), and apply_background's existing three-way try_as already fills a Border.
         void update_background(const maui::graphics::paint* value) override;
 #endif
 
