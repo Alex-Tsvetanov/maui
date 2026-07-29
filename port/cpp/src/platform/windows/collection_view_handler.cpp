@@ -439,6 +439,26 @@ namespace maui::controls
         double measured_sum = 0; // for the item_extent feedback at the bottom of this function
         int measured_rows = 0;
 
+        // TEMPORARY PROBE (env-gated, remove once header_footer_grid's crash is fixed).
+        // Open-and-close per line so the last line survives an abrupt process death -- the technique
+        // that found the `device` page crash and, in c59ed6981d, the resize boundary on this page.
+        const auto cv_trace = [](const char* const fmt, auto... args) {
+            const char* const trace = std::getenv("MAUI_WINUI_LOG");
+            if (trace == nullptr)
+            {
+                return;
+            }
+            std::FILE* f = nullptr;
+            if (fopen_s(&f, trace, "a") == 0 && f != nullptr)
+            {
+                std::fprintf(f, fmt, args...);
+                std::fclose(f);
+            }
+        };
+
+        cv_trace("cv.begin cross=%.1f span=%d vertical=%d structured=%d\n", cross_extent, span, vertical ? 1 : 0,
+                 structured != nullptr ? 1 : 0);
+
         // Realize a full-cross-width row (structured header/footer, empty view, group header/footer):
         // template content > boxed view > text mirror — the android realize_supplemental_native recipe.
         // `is_group_header` opts into the ListViewHeaderItem/GridViewHeaderItem chrome documented at
@@ -450,6 +470,8 @@ namespace maui::controls
             {
                 return; // nothing to show (matches android: no template AND no value)
             }
+            cv_trace("cv.full enter tmpl=%d value=%d group=%d cursor=%.1f cross=%.1f\n", tmpl != nullptr ? 1 : 0,
+                     value.has_value() ? 1 : 0, is_group_header ? 1 : 0, cursor, cross_extent);
             winui::UIElement native{nullptr};
             std::shared_ptr<maui::core::bindable_object> realized =
                 realize_template_content(context, tmpl, value, native);
@@ -474,6 +496,8 @@ namespace maui::controls
             // there is one (a header/footer template or boxed View can be container-rooted, and a bare
             // native Measure() on a container under-reports — see the item loop's comment), else a direct
             // native measure for the plain-text fallback.
+            cv_trace("cv.full realized native=%d view=%d measure_cross=%.1f\n", native != nullptr ? 1 : 0,
+                     dynamic_cast<maui::core::i_view*>(realized.get()) != nullptr ? 1 : 0, measure_cross);
             double extent = 0;
             if (auto* const content_view = dynamic_cast<maui::core::i_view*>(realized.get()))
             {
@@ -497,6 +521,7 @@ namespace maui::controls
                 framework_element.Width(vertical ? measure_cross : extent);
                 framework_element.Height(vertical ? extent : measure_cross);
             }
+            cv_trace("cv.full measured extent=%.1f\n", extent);
             panel.Children().Append(native);
             if (realized)
             {
@@ -506,6 +531,7 @@ namespace maui::controls
                 platform->retained_natives.push_back(std::move(realized));
             }
             cursor += lead + extent + trail + spacing;
+            cv_trace("cv.full exit cursor=%.1f\n", cursor);
         };
 
         // The global (structured) header — realized BEFORE the items/empty region, independent of it
@@ -555,16 +581,8 @@ namespace maui::controls
                     // count/extent per iteration means the LAST line written names the row being realized
                     // when the process died -- the same open-and-close-per-line technique that found the
                     // `device` page crash and, two probes ago, the resize boundary itself.
-                    if (const char* const trace = std::getenv("MAUI_WINUI_LOG"))
-                    {
-                        std::FILE* f = nullptr;
-                        if (fopen_s(&f, trace, "a") == 0 && f != nullptr)
-                        {
-                            std::fprintf(f, "cv.row section=%d first=%d of %d span=%d cross=%.1f col=%.1f\n", section,
-                                         first, count, span, cross_extent, col_cross);
-                            std::fclose(f);
-                        }
-                    }
+                    cv_trace("cv.row section=%d first=%d of %d span=%d cross=%.1f col=%.1f\n", section, first, count,
+                             span, cross_extent, col_cross);
                     const int row_n = std::min(span, count - first);
                     struct realized_col
                     {

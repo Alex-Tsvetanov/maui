@@ -10556,8 +10556,8 @@
             "dark": "captures/windows/maui/header_footer_grid_dark.png"
           },
           "cpp": {
-            "light": null,
-            "dark": null
+            "light": "captures/windows/cpp/header_footer_grid_light.png",
+            "dark": "captures/windows/cpp/header_footer_grid_dark.png"
           },
           "xaml": {
             "light": "captures/windows/xaml/header_footer_grid_light.png",
@@ -10573,8 +10573,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "blank",
-          "review": "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+          "status": "red",
+          "review": "Light: SSIM 0.8272, 11.18% pixels differ \u00b7 Dark: SSIM 0.7839, 14.19% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",

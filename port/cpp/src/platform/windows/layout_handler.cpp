@@ -66,9 +66,21 @@ namespace
     // Insert into the panel's Children at `target_index`, clamped to [0, size]. A negative index (an
     // unfound child) drops to the bottom, matching the iOS twin's insert_subview_at and the headless
     // insert_at. XAML throws on an out-of-range index, so the clamp is load-bearing, not defensive.
+    //
+    // A child ALREADY in this collection is moved, not re-inserted: XAML throws E_INVALIDARG when an
+    // element that already has a parent is added to a UIElementCollection, and the port re-fires each
+    // container's "add" on every mount replay (element::mount_into_handler, driven by the collection
+    // view's ensure_mounted), so the same child legitimately arrives twice. Pass 1 hosts it; pass 2 used
+    // to kill the process inside drive_layout -- that is the header_footer_grid crash. Remove-then-insert
+    // keeps the replay's INDEX meaning intact instead of making a re-add a silent no-op.
     void insert_child_at(const canvas& panel, const winui::UIElement& child, int target_index)
     {
         const auto children = panel.Children();
+        std::uint32_t existing = 0;
+        if (children.IndexOf(child, existing))
+        {
+            children.RemoveAt(existing);
+        }
         const auto count = static_cast<int>(children.Size());
         children.InsertAt(static_cast<std::uint32_t>(std::clamp(target_index, 0, count)), child);
     }
