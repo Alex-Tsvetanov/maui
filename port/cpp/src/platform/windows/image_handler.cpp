@@ -467,6 +467,13 @@ namespace maui::core
         const auto auto_size = std::numeric_limits<double>::quiet_NaN();
         image.Width(auto_size);
         image.Height(auto_size);
+        // Force MeasureOverride to actually RUN. Measure() is a no-op on an element XAML does not consider
+        // measure-dirty: it returns the cached DesiredSize instead of re-deriving one. This port drives its
+        // own layout out-of-cycle, so nothing else ever marks the element dirty, and the FIRST measure here
+        // happens while the BitmapImage is still decoding -- caching 0x0. Measured on the guest: 20 passes
+        // observing a fully decoded bitmap (pixel=1200x694, 400x300) all still returned desired=0x0, which
+        // is why waiting longer for the decode changed nothing.
+        image.InvalidateMeasure();
         image.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
                                                        maui::platform::windows::measure_constraint(height_constraint)});
         const auto desired = image.DesiredSize();

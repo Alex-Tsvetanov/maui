@@ -597,6 +597,16 @@ namespace maui::core
         const auto auto_size = std::numeric_limits<double>::quiet_NaN();
         button.Width(auto_size);
         button.Height(auto_size);
+        // See image_handler.cpp's identical note: Measure() returns a CACHED DesiredSize on an element XAML
+        // does not consider measure-dirty, and this port drives layout out-of-cycle so nothing else marks it.
+        // The content Image is invalidated too -- the Button's own measure asks its Content for a size, and
+        // a stale cache on the child is what freezes the parent (the ImageButton's cached zero-desired
+        // height is what the parent stack then stretches to fill the viewport).
+        if (const image_control image = content_image(button))
+        {
+            image.InvalidateMeasure();
+        }
+        button.InvalidateMeasure();
         button.Measure(
             winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
                                              maui::platform::windows::measure_constraint(height_constraint)});
