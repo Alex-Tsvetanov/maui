@@ -27,7 +27,7 @@
 param(
     [string]$ProbeDir = "C:\maui-src\cpp\tools\parity\windows\winui_probe",
     [string]$WorkDir = "C:\maui-winui",
-    [string]$WinAppSdkVersion = "1.7.250606001",
+    [string]$WinAppSdkVersion = "1.8.251106002",
     [string]$CppWinRtVersion = "2.0.240405.15",
     [string]$WebView2Version = "1.0.2903.40"
 )
