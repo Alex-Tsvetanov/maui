@@ -866,13 +866,10 @@ if(MAUI_BACKEND STREQUAL "windows")
   if(NOT MAUI_TARGET_ABI)
     set(MAUI_TARGET_ABI "arm64")
   endif()
-  # The RID subdirectory spelling has changed twice now, so carry every known form and let the EXISTS /
-  # find_library probes below pick: 1.7 and earlier shipped lib/win10-<abi> (and lib/win-<abi>), 1.8's
-  # Foundation sub-package ships lib/native/<abi>.
   if(MAUI_TARGET_ABI STREQUAL "arm64")
-    set(_maui_wasdk_rids win-arm64 win10-arm64 native/arm64)
+    set(_maui_wasdk_rids win-arm64 win10-arm64)
   else()
-    set(_maui_wasdk_rids win-x64 win10-x64 native/x64)
+    set(_maui_wasdk_rids win-x64 win10-x64)
   endif()
   # Same 1.8 package split as the include dirs above: the import libs and the bootstrap DLL moved out of
   # the umbrella package into siblings, so hint every package root, not just MAUI_WINAPPSDK.

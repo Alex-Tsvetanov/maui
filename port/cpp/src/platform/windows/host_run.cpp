@@ -28,8 +28,8 @@
 #include <winrt/Microsoft.UI.Composition.SystemBackdrops.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
-#include <winrt/Microsoft.UI.Xaml.Markup.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
+#include <winrt/Microsoft.UI.Xaml.Markup.h>
 #include <winrt/Microsoft.UI.Xaml.XamlTypeInfo.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 #include <winrt/Windows.Foundation.Collections.h>
@@ -64,20 +64,9 @@ namespace
     constexpr double k_default_width = 1024.0;
     constexpr double k_default_height = 800.0;
 
-    // The Windows App SDK major/minor the app is built against (1.8). It must match the package restored
+    // The Windows App SDK major/minor the app is built against (1.7). It must match the package restored
     // by tools/parity/windows/build_winui_probe.ps1; a mismatch fails the bootstrap at startup.
-    //
-    // 1.8 SPECIFICALLY BECAUSE THE PARITY BOARD COMPARES AGAINST IT. The reference app resolves
-    // Microsoft.WindowsAppSDK 1.8.251106002 transitively from Microsoft.Maui.Controls 10.0.71 (read out
-    // of maui-reference/app/obj/project.assets.json on the guest); this port was pinned a full minor
-    // release behind at 1.7.250606001. Both apps then create genuine TextBlock/Slider instances but style
-    // them from DIFFERENT shipped Fluent resource dictionaries, whose default control metrics move
-    // between releases -- which showed up on the board as a flat, control-agnostic ~2px height deficit
-    // (a Label measuring 17px against MAUI's 19px, a Slider 41px against 43px) that accumulated down
-    // every vertically-stacked page. That is not a bug in any ported C++: it is the two sides being
-    // built against different WinUI. Matching the version is what makes the comparison meaningful, and
-    // is the same principle as parity ruling 11 -- where src/ and shipped MAUI disagree, the RENDER wins.
-    constexpr UINT32 k_wasdk_major_minor = 0x00010008;
+    constexpr UINT32 k_wasdk_major_minor = 0x00010007;
 
     // Per-step boot logging, OFF unless MAUI_WINUI_LOG names a file. This exists because a WinUI
     // failure gives you nothing: a stowed exception (0xC000027B) unwinds through combase with no
@@ -250,8 +239,9 @@ namespace
             //      still wins. Looked up AFTER RequestedTheme, so it is the right theme's brush.
             if (const auto panel = native.Content().try_as<winui::Controls::Panel>())
             {
-                const bool has_own_background = panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
-                                                winui::DependencyProperty::UnsetValue();
+                const bool has_own_background =
+                    panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
+                    winui::DependencyProperty::UnsetValue();
                 if (!has_own_background)
                 {
                     const auto resources = Resources();

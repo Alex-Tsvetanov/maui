@@ -27,7 +27,7 @@
 [CmdletBinding()]
 param(
     [string]$WorkDir = "C:\maui-winui",
-    [string]$WinAppSdkVersion = "1.8.251106002",
+    [string]$WinAppSdkVersion = "1.7.250606001",
     [string]$CppWinRtVersion = "2.0.240405.15",
     [string]$WebView2Version = "1.0.2903.40"
 )
@@ -80,26 +80,8 @@ if (Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h")) {
     # The winmd folder has moved between App SDK versions (lib/uap10.0 vs lib/uap10.0.18362), so SEARCH.
     # An empty -in would silently produce a projection missing every Microsoft.UI type, and the first
     # error would be a confusing "no such header" hundreds of lines later.
-    # 1.8 SPLIT THE SDK INTO SUB-PACKAGES. Through 1.7 every winmd lived under the single
-    # Microsoft.WindowsAppSDK.<ver> package (lib/uap10.0). 1.8 restores an umbrella package holding NO
-    # winmds at all, with the metadata in siblings -- Microsoft.WindowsAppSDK.WinUI.<ver> carries
-    # Microsoft.UI.Xaml.winmd, .Foundation/.Base/.InteractiveExperiences carry the rest. Searching only
-    # $wasdk therefore found 2 winmds instead of ~30, cppwinrt exited 0 having generated a projection
-    # with no Microsoft.UI types in it, and the failure surfaced as the check below. So scan every
-    # Microsoft.WindowsAppSDK* package folder, not just the one the version string names.
-    # Match ONLY this SDK's own major.minor. Older umbrella packages stay on disk after a version bump
-    # (1.7 sat beside 1.8 here), and feeding cppwinrt both generations at once hands it duplicate type
-    # definitions rather than a merged projection.
-    $wasdkMajorMinor = ($WinAppSdkVersion -split '\.')[0..1] -join '.'
-    $roots = @($webview2, $wasdk)
-    $roots += Get-ChildItem -Path (Split-Path $wasdk -Parent) -Directory -EA SilentlyContinue |
-              Where-Object { $_.Name -like "Microsoft.WindowsAppSDK.*" -and
-                             $_.Name -notlike "Microsoft.WindowsAppSDK.$wasdkMajorMinor.*" -and
-                             $_.Name -match "\.$([regex]::Escape($wasdkMajorMinor))\.[0-9]" } |
-              Select-Object -ExpandProperty FullName
-    $roots = $roots | Sort-Object -Unique
     $winmds = @()
-    foreach ($root in $roots) {
+    foreach ($root in @($wasdk, $webview2)) {
         $winmds += Get-ChildItem -Path $root -Filter *.winmd -Recurse -EA SilentlyContinue |
                    Select-Object -ExpandProperty FullName
     }
