@@ -69,6 +69,18 @@ namespace maui::core
         // open). On the native backends this mirrors the real pan-driven reveal.
         swipe_view_state state;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native SwipeControl via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent (label_platform's exact rationale).
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
+
 #ifdef MAUI_PLATFORM_APPLE
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;

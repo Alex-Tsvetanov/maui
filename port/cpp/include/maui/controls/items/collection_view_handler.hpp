@@ -177,6 +177,31 @@ namespace maui::controls
         std::vector<std::shared_ptr<maui::core::bindable_object>> retained_natives;
 #endif
 
+        // --- windows (the WinUI 3 non-virtualized realization stack) ---
+        // `native` above is a real Microsoft.UI.Xaml.Controls.ScrollViewer whose Content is a Canvas panel
+        // (the scroll_view_handler seam); arrange_native (src/platform/windows/collection_view_handler.cpp)
+        // realizes EVERY item into that Canvas on each pass — no virtualization/recycling (this wave's
+        // documented scope, matching the android partial's "favor render correctness over recycling"
+        // stance). The realized template-content subtrees currently hosted (each OWNS its attached handler +
+        // native view) are retained here so they outlive the local realization pass — the android
+        // retained_natives twin — cleared and rebuilt on every arrange_native call, released in the
+        // backend-defined destructor.
+#ifdef MAUI_PLATFORM_WINDOWS
+        std::vector<std::shared_ptr<maui::core::bindable_object>> retained_natives;
+
+        // ---- generic-IView property pushes (view_platform_base overrides) ----
+        // Pushed to the ScrollViewer via the shared winui_visual_ops free functions, exactly like every
+        // other windows *_platform struct (see label_platform's identical block). NOTE: unlike this struct's
+        // apple/ios/android blocks above (which carry NO such overrides — visibility/opacity/is_enabled/
+        // automation_id/background are not pushed to a CollectionView's native on those backends today,
+        // a pre-existing gap this wave does not touch), windows adds them per this task's house rules.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
+
         // ---- the fake viewport ----
         double viewport_main_extent = 400;  // along the scroll axis
         double viewport_cross_extent = 400; // across it

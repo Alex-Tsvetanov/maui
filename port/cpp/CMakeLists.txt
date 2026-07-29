@@ -663,7 +663,8 @@ else()
   if(MAUI_BACKEND STREQUAL "windows")
     set(MAUI_WINDOWS_SWAPS
       window_handler content_page_handler layout_handler label_handler button_handler slider_handler
-      scroll_view_handler shape_view_handler entry_handler picker_handler image_handler border_handler)
+      scroll_view_handler shape_view_handler entry_handler picker_handler image_handler border_handler
+      swipe_view_handler)
     foreach(unit IN LISTS MAUI_WINDOWS_SWAPS)
       list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/${unit}.cpp)
       list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/${unit}.cpp)
@@ -1061,6 +1062,14 @@ elseif(MAUI_BACKEND STREQUAL "android")
   # device render. Guarded internally by scoped_env / app_context (VM-less degradation). MAUI_PLATFORM_
   # ANDROID is already PUBLIC on maui_core for this backend (so the header's android struct slots compile).
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/android/collection_view_handler.cpp)
+elseif(MAUI_BACKEND STREQUAL "windows")
+  # (windows CollectionView) a real ScrollViewer → Canvas host, the WinUI twin of the android partial
+  # above: the handler realizes a native UIElement per element and positions each ABSOLUTELY every
+  # arrange_native pass (non-virtualized — no ListViewBase/recycling, this wave's documented scope; see
+  # that file's header). The cross-platform simulator still runs as the in-memory state mirror.
+  # MAUI_PLATFORM_WINDOWS is already PUBLIC on maui_core for this backend (so the header's windows struct
+  # slots + five-override block compile).
+  set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/windows/collection_view_handler.cpp)
 else()
   set(MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES src/platform/headless/collection_view_handler.cpp)
 endif()

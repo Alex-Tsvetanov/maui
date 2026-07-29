@@ -1,18 +1,22 @@
 // label_handler — WinUI 3 platform recipe: a real Microsoft.UI.Xaml.Controls.TextBlock, the same native
 // type LabelHandler.Windows.cs creates. Ported from LabelHandler.Windows.cs + the TextBlock half of
-// src/Core/src/Platform/Windows/TextBlockExtensions.cs (the oracle for every Update* below).
+// src/Core/src/Platform/Windows/TextBlockExtensions.cs (the oracle for every Update* below), plus
+// src/Controls/src/Core/Platform/Windows/Extensions/FormattedStringExtensions.cs's UpdateInlines (the
+// oracle for map_formatted_text).
 //
 // Not ported yet (they need infrastructure this first Windows slice does not have): NeedsContainer /
 // SetupContainer (VerticalTextAlignment and Background go through a WrapperView container on Windows —
 // the port has no container seam on this backend yet, so vertical alignment is applied directly to the
-// TextBlock), FormattedText (Inlines), and the HTML text path (LabelHtmlHelper).
+// TextBlock), and the HTML text path (LabelHtmlHelper).
 
 #include "maui/core/label_handler.hpp"
 
 #include <winrt/Microsoft.UI.Text.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Documents.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.UI.Text.h>
 
 #include <algorithm>
@@ -139,6 +143,33 @@ namespace
             default:
                 return winrt::Windows::UI::Text::FontStyle::Normal;
         }
+    }
+
+    // CharacterSpacingExtensions.ToEm: pt * 0.0624 * 1000, in 1/1000 em units. Shared between the
+    // TextBlock-level push (map_character_spacing) and the per-Run push (map_formatted_text) — same
+    // formula, same units, just a different target.
+    std::int32_t to_character_spacing_em(double pt)
+    {
+        return static_cast<std::int32_t>(std::lround(pt * 0.0624 * 1000.0));
+    }
+
+    // Shared between the TextBlock-level push (map_text_decorations) and the per-Run push
+    // (map_formatted_text). maui::core::text_decorations is a scoped enum with NO bitwise operators (it
+    // mirrors C#'s [Flags] enum in VALUES only), so the flag test has to go through the underlying type.
+    winrt::Windows::UI::Text::TextDecorations to_text_decorations(maui::core::text_decorations value)
+    {
+        using winrt::Windows::UI::Text::TextDecorations;
+        const auto bits = static_cast<std::uint8_t>(value);
+        auto flags = TextDecorations::None;
+        if ((bits & static_cast<std::uint8_t>(maui::core::text_decorations::underline)) != 0)
+        {
+            flags |= TextDecorations::Underline;
+        }
+        if ((bits & static_cast<std::uint8_t>(maui::core::text_decorations::strikethrough)) != 0)
+        {
+            flags |= TextDecorations::Strikethrough;
+        }
+        return flags;
     }
 
     // LineBreakMode resolves into TextWrapping + TextTrimming + MaxLines TOGETHER. Ported 1:1 from
@@ -306,9 +337,7 @@ namespace maui::core
             return;
         }
         platform->character_spacing = view.character_spacing();
-        // CharacterSpacingExtensions.ToEm: pt * 0.0624 * 1000, in 1/1000 em units.
-        const auto em = static_cast<std::int32_t>(std::lround(platform->character_spacing * 0.0624 * 1000.0));
-        as_text_block(platform->native).CharacterSpacing(em);
+        as_text_block(platform->native).CharacterSpacing(to_character_spacing_em(platform->character_spacing));
     }
 
     void label_handler::map_text_decorations(label_handler& handler, i_label& view)
@@ -319,30 +348,123 @@ namespace maui::core
             return;
         }
         platform->decorations = view.text_decorations();
-        using winrt::Windows::UI::Text::TextDecorations;
-        // maui::core::text_decorations is a scoped enum with NO bitwise operators (it mirrors C#'s
-        // [Flags] enum in VALUES only), so the flag test has to go through the underlying type.
-        const auto bits = static_cast<std::uint8_t>(platform->decorations);
-        auto flags = TextDecorations::None;
-        if ((bits & static_cast<std::uint8_t>(maui::core::text_decorations::underline)) != 0)
-        {
-            flags |= TextDecorations::Underline;
-        }
-        if ((bits & static_cast<std::uint8_t>(maui::core::text_decorations::strikethrough)) != 0)
-        {
-            flags |= TextDecorations::Strikethrough;
-        }
-        as_text_block(platform->native).TextDecorations(flags);
+        as_text_block(platform->native).TextDecorations(to_text_decorations(platform->decorations));
     }
 
+    // FormattedStringExtensions.UpdateInlines. The port's label_run is already the per-span RESOLUTION
+    // that ToRunAndColorsTuple computes (effective font / color / character-spacing, span-value-or-
+    // label-default, already clamped — see label_run.hpp + controls/label.cpp's rebuild_formatted_text_runs),
+    // so this only has to turn each resolved run into a native Run/TextHighlighter, not re-derive the
+    // span-vs-label fallback chain the C# does.
+    //
+    // Text/FormattedText exclusivity: on the real Windows backend BOTH the Text and FormattedText mapper
+    // keys are ReplaceMapping'd (Label.Mapper.cs) onto the SAME TextBlockExtensions.UpdateText, which
+    // re-decides plain-vs-Inlines from label.FormattedText every time either fires. The port instead keeps
+    // "text" and "formatted_text" as two independent mapper keys (label_handler.cpp, cross-platform), so
+    // THIS map fn owns reverting to the plain-text path when FormattedText is cleared directly (an empty
+    // `runs` — label::set_formatted_text(nullptr) without a paired set_text does not re-invoke map_text) —
+    // matching the "Text stays authoritative on empty runs" contract this file's header comment promises.
+    //
+    // NOT ported: the initial `textBlock.Measure(...)` call and the FindDefaultLineHeight /
+    // SetMeasuredLineHeight bookkeeping UpdateInlines does per run, and Label.Windows.cs's
+    // ArrangeOverride -> RecalculateSpanPositions. All three exist solely to populate each Span's
+    // ISpatialElement.Region for Label.GetChildElements' gesture hit-testing of per-span
+    // GestureRecognizers — a feature this port has not ported (no per-span gesture recognizers exist to
+    // hit-test), and FindDefaultLineHeight's own body confirms it has no rendering side effect (it just
+    // measures, in isolation, an Inline that is added and immediately removed again). Skipping is a
+    // documented scope cut, not an oversight.
     void label_handler::map_formatted_text(label_handler& handler, i_label& view)
     {
-        // Mirror-only for now: the WinUI path is TextBlock.Inlines (a Run per span), which needs the
-        // per-span font/color resolution the Inlines API expects. Recorded so the mirror stays truthful
-        // and the plain-text path above keeps working.
-        if (auto* platform = handler.typed_platform_view())
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr || platform->native == nullptr)
         {
-            platform->formatted_text_runs = view.formatted_text_runs();
+            return;
+        }
+        platform->formatted_text_runs = view.formatted_text_runs();
+        const auto& runs = platform->formatted_text_runs;
+        const text_block block = as_text_block(platform->native);
+
+        if (runs.empty())
+        {
+            // UpdateText's plain-text branch: clear Inlines, clear the highlighters UpdateInlines added
+            // for per-span color/background ranges (`platformControl.TextHighlighters.Clear();`), then
+            // `platformControl.Text = text;`.
+            block.Inlines().Clear();
+            block.TextHighlighters().Clear();
+            platform->text = std::string(view.text());
+            block.Text(maui::platform::windows::to_hstring(platform->text));
+            return;
+        }
+
+        block.Inlines().Clear();
+        block.TextHighlighters().Clear();
+        std::int32_t text_index = 0;
+        for (const label_run& run_data : runs)
+        {
+            winui::Documents::Run run;
+            const winrt::hstring run_text = maui::platform::windows::to_hstring(run_data.text);
+            run.Text(run_text);
+
+            // ToRunAndColorsTuple's `if (!font.IsDefault) run.ApplyFont(...)`, made unconditional: the
+            // port's run_font is ALREADY the resolved effective font (label_run.hpp's GetEffectiveFont
+            // port), so applying it outright reproduces the same value the C# conditional would apply when
+            // it fires. Unlike a bare TextBlock, a Run added to Inlines has no TextBlock font to silently
+            // "inherit" once a DIFFERENT run has already set its own — so this mirrors map_font's own
+            // ALWAYS-assign rule (same fallback constants) rather than the C# IsDefault guard.
+            const font& f = run_data.run_font;
+            run.FontSize(f.size() > 0 ? f.size() : k_default_font_size);
+            run.FontFamily(f.family().empty()
+                               ? winui::Media::FontFamily{k_default_font_family}
+                               : winui::Media::FontFamily{maui::platform::windows::to_hstring(f.family())});
+            run.FontStyle(to_font_style(f.slant()));
+            run.FontWeight(to_font_weight(f.weight()));
+
+            // ToRunAndColorsTuple: `if (span.IsSet(TextDecorationsProperty)) run.TextDecorations = ...`.
+            // label_run.decorations already carries `none` when the span never set them
+            // (label.cpp's rebuild_formatted_text_runs), so applying it unconditionally reproduces the
+            // same "only spans that set decorations get them" behavior.
+            run.TextDecorations(to_text_decorations(run_data.decorations));
+
+            // CharacterSpacing.ToEm — already inheritance-resolved (span value, else the label's, clamped
+            // >= 0) by label_run's resolver.
+            run.CharacterSpacing(to_character_spacing_em(run_data.character_spacing));
+
+            block.Inlines().Append(run);
+
+            // `if (background is not null || textColor is not null) { var textHighlighter = new
+            // TextHighlighter { Ranges = { new TextRange(currentTextIndex, runTextLength) }, Background =
+            // (background ?? Colors.Transparent).ToPlatform(), Foreground = textColor?.ToPlatform() };
+            // run.Foreground = textColor?.ToPlatform(); textBlock.TextHighlighters.Add(textHighlighter); }`
+            // — run AFTER the run is already in Inlines, matching the oracle's order (Run is a reference
+            // type, so mutating it post-Append still reaches the instance already in the collection). The
+            // range is in UTF-16 code units (WinUI's native text-index unit, matching C#'s
+            // `run.Text.Length`), hence measuring `run_text` (the hstring) rather than the UTF-8
+            // `run_data.text`.
+            const bool has_color = run_data.text_color.has_value();
+            const bool has_background = run_data.background_color.has_value();
+            if (has_color || has_background)
+            {
+                winui::Documents::TextHighlighter highlighter;
+                winui::Documents::TextRange text_range{};
+                text_range.StartIndex = text_index;
+                text_range.Length = static_cast<std::int32_t>(run_text.size());
+                highlighter.Ranges().Append(text_range);
+                const maui::graphics::color background =
+                    has_background ? *run_data.background_color : maui::graphics::color{1.0f, 1.0f, 1.0f, 0.0f};
+                highlighter.Background(winui::Media::SolidColorBrush{maui::platform::windows::to_ui_color(background)});
+                if (has_color)
+                {
+                    // Shared between Run.Foreground and TextHighlighter.Foreground, same as the oracle
+                    // assigning the same `textColor.ToPlatform()` value to both.
+                    const winui::Media::SolidColorBrush foreground{
+                        maui::platform::windows::to_ui_color(*run_data.text_color)};
+                    run.Foreground(foreground);
+                    highlighter.Foreground(foreground);
+                }
+                block.TextHighlighters().Append(highlighter);
+            }
+
+            text_index += static_cast<std::int32_t>(run_text.size());
         }
     }
 
@@ -374,7 +496,7 @@ namespace maui::core
         const maui::core::thickness& p = platform->padding;
         as_text_block(platform->native)
             .Padding(winui::Thickness{std::max(0.0, p.left), std::max(0.0, p.top), std::max(0.0, p.right),
-                                     std::max(0.0, p.bottom)});
+                                      std::max(0.0, p.bottom)});
     }
 
     void label_handler::map_line_break_mode(label_handler& handler, i_label& view)
@@ -422,9 +544,8 @@ namespace maui::core
         const auto auto_size = std::numeric_limits<double>::quiet_NaN();
         host.Width(auto_size);
         host.Height(auto_size);
-        host.Measure(winrt::Windows::Foundation::Size{
-            maui::platform::windows::measure_constraint(width_constraint),
-            maui::platform::windows::measure_constraint(height_constraint)});
+        host.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
+                                                      maui::platform::windows::measure_constraint(height_constraint)});
         const auto desired = host.DesiredSize();
         return {desired.Width, desired.Height};
     }
