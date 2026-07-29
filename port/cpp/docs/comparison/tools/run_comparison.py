@@ -509,7 +509,26 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                         time.sleep(settle)
                         n += 1
                         if env.present:
-                            bounds = shoot_presented(env, ccfg, g, remote_shot, pid=pid) or bounds
+                            # `or bounds` HERE WAS THE WORST BUG IN THIS RUNNER. shoot_presented returns
+                            # None when it cannot present after the self-heal, and its docstring says to
+                            # "let the caller drop the frame" -- but `or bounds` swallowed the None, kept
+                            # the previous bounds and fell through to the pull. A failed present never
+                            # overwrites remote_shot, so the pull then fetched the PREVIOUS COLUMN'S file:
+                            # a perfectly valid 1024x800 capture of a different app. The size guard below
+                            # cannot catch that (the dimensions are right) and `launch failures: 0` does
+                            # not either (the launch succeeded; the PRESENT failed).
+                            #
+                            # Measured cost: header_footer_grid banked MAUI's dark frame in both cpp
+                            # columns and scored ~80% for a full day as a phantom port defect, across four
+                            # separate full board passes. check_capture_integrity.py found it only by
+                            # hashing bytes across columns (3b95065b77, 3a15e1613c).
+                            presented = shoot_presented(env, ccfg, g, remote_shot, pid=pid)
+                            if presented is None:
+                                print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — present failed after "
+                                      f"self-heal (no window to capture)")
+                                failed_frames.append(f"{tag}/{col}/{theme}#{n}")
+                                continue
+                            bounds = presented
                         elif win_id:
                             env.agent("shot", remote_shot, "--window", win_id)
                         elif win_rect:
