@@ -21,6 +21,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <cstdint>
 #include <limits>
 #include <memory>
@@ -561,6 +563,40 @@ namespace maui::core
             winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(adjusted_width_constraint),
                                              maui::platform::windows::measure_constraint(adjusted_height_constraint)});
         const auto desired = host.DesiredSize();
+        // TEMPORARY DIAGNOSTIC (env-gated, remove once the short-row question is settled). Measured on
+        // the guest: grouped CollectionView rows come out ~3-4px SHORTER than MAUI's per item, which
+        // accumulates into the grouping cluster's drift and is the same defect as the standalone `label`
+        // page at 21.51% (see e254756fac for the header-span measurements).
+        //
+        // MAUI measures a BARE TextBlock for these cells -- LabelHandler.Windows.cs:8 creates a plain
+        // TextBlock and :10-13 wraps it only when Background is set, VerticalTextAlignment != Start, or
+        // Clip/Shadow. This port always wraps in a Border and measures the HOST, which it cannot stop
+        // doing while the panel is a Canvas (814c4505ee). So the one structural difference between what
+        // MAUI measures and what this port measures is the Border, and this prints both:
+        //   host != child -> the Border is NOT free and that gap is the bug.
+        //   host == child -> the Border is exonerated and the divergence is inside the TextBlock's own
+        //                    measure (font face resolution, default line height).
+        if (const char* const path = std::getenv("MAUI_WINUI_LOG"))
+        {
+            float child_w = -1;
+            float child_h = -1;
+            if (const text_block child = host.Child().try_as<text_block>())
+            {
+                child.Measure(winrt::Windows::Foundation::Size{
+                    maui::platform::windows::measure_constraint(adjusted_width_constraint),
+                    maui::platform::windows::measure_constraint(adjusted_height_constraint)});
+                child_w = child.DesiredSize().Width;
+                child_h = child.DesiredSize().Height;
+            }
+            std::FILE* file = nullptr;
+            if (fopen_s(&file, path, "a") == 0 && file != nullptr)
+            {
+                std::fprintf(file, "label.measure cw=%.1f -> host=%.1fx%.1f child=%.1fx%.1f fs=%.1f\n",
+                             width_constraint, desired.Width, desired.Height, child_w, child_h,
+                             as_text_block(platform->native).FontSize());
+                std::fclose(file);
+            }
+        }
         return {desired.Width, desired.Height};
     }
 
