@@ -496,6 +496,34 @@ namespace maui::core
         map_padding(handler, view);
     }
 
+    // MEASURED DEFECT, ROOT CAUSE CONFIRMED — this returns a size taken before the bitmap exists.
+    //
+    // BitmapImage decoding is ALWAYS asynchronous in WinUI, so a freshly-sourced Image reports (0,0) at
+    // the first Measure (image_handler.cpp's header note 2 states this outright). C# handles it:
+    // ImageHandler.Windows.cs subscribes ImageOpened and re-runs the constraint update when the decode
+    // lands. This backend subscribes nothing, so the layout computed against (0,0) is never revisited.
+    //
+    // The two board symptoms are ONE bug wearing two faces, which is why fixing it here alone would be
+    // treating a face rather than the bug:
+    //   * image_button (27.09% light / 31.17% dark): a zero-desired child that the parent stack then
+    //     stretches, so ONE ImageButton fills the whole viewport (~200x702) and pushes the other eight
+    //     off-screen. The gear glyph inside it renders at the correct ~140px -- the CONTENT measured
+    //     fine, the control's reported height did not.
+    //   * image (82.90% light, the board's 2nd-worst page): the same (0,0) with no stretching parent, so
+    //     every image collapses to zero height and the page shows labels with no pictures. This had been
+    //     attributed to the missing uri_fetch seam and Win2D font sources; those gaps are real but they
+    //     are NOT why bundled file images vanish.
+    //
+    // FIXING IT NEEDS TWO PIECES, and the second is the blocker: wiring ImageOpened per the oracle is
+    // straightforward, but it has nothing to call -- view.hpp:654's invalidate_measure() is an explicit
+    // no-op ("Layout invalidation is wired in M3 (the layout pass); no-op for the M2 seam"). So an
+    // ImageOpened handler alone would fire into a void. Real layout invalidation is the actual work here,
+    // and it is a cross-platform change, not a Windows one.
+    //
+    // Recorded rather than patched because a local fudge (hard-coding a natural size, or forcing a
+    // synchronous decode only for this control) would hide the shared defect and leave `image` broken.
+    // TODO: verify against src/Core/src/Handlers/Image/ImageHandler.Windows.cs (OnImageOpened ->
+    // UpdatePlatformMaxConstraints) when the M3 layout-invalidation seam lands.
     maui::graphics::size image_button_handler::get_desired_size(double width_constraint, double height_constraint) const
     {
         const auto* platform = typed_platform_view();
