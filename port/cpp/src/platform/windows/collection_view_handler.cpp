@@ -101,6 +101,8 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -545,6 +547,24 @@ namespace maui::controls
                 const int count = src->item_count_in_group(section);
                 for (int first = 0; first < count; first += span)
                 {
+                    // TEMPORARY PROBE (env-gated, remove once header_footer_grid's crash is fixed).
+                    // c59ed6981d localized that page's failure precisely: the app enters drive_layout at
+                    // the RESIZED client size (1008x761) and never returns, while the SAME page lays out
+                    // fine at the boot size (944x504). A larger viewport realizes more cells and widens
+                    // cross_extent per column, so this loop is the prime suspect. Logging section/row/
+                    // count/extent per iteration means the LAST line written names the row being realized
+                    // when the process died -- the same open-and-close-per-line technique that found the
+                    // `device` page crash and, two probes ago, the resize boundary itself.
+                    if (const char* const trace = std::getenv("MAUI_WINUI_LOG"))
+                    {
+                        std::FILE* f = nullptr;
+                        if (fopen_s(&f, trace, "a") == 0 && f != nullptr)
+                        {
+                            std::fprintf(f, "cv.row section=%d first=%d of %d span=%d cross=%.1f col=%.1f\n", section,
+                                         first, count, span, cross_extent, col_cross);
+                            std::fclose(f);
+                        }
+                    }
                     const int row_n = std::min(span, count - first);
                     struct realized_col
                     {
