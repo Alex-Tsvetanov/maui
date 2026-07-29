@@ -100,6 +100,13 @@ namespace
         //     settles the tree at the default size.
         maui::hosting::drive_layout(*window, k_window_width, k_window_height);
 
+        // (4b) Install the relayout hook (window::request_relayout) AFTER the first pass — mirrors the
+        //      Android-only jni/relayout.hpp precedent, generalized to every backend (see window.hpp's
+        //      header comment). There is no resize hook on this lane yet (see the note above), so this is
+        //      the only re-entry point today: a leaf's invalidate_measure() (e.g. a margin/orientation/
+        //      SafeAreaEdges change post-boot) replays this SAME pass at the SAME fixed size.
+        window->set_relayout_hook([window] { maui::hosting::drive_layout(*window, k_window_width, k_window_height); });
+
         // (5) Reach the native NSWindow through the window's now-attached handler and show it key + front.
         const auto window_handler = std::dynamic_pointer_cast<maui::core::window_handler>(window->handler());
         if (window_handler == nullptr || window_handler->typed_platform_view() == nullptr)

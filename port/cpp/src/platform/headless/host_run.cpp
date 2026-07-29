@@ -61,6 +61,14 @@ namespace maui::hosting
         //     first layout. Proves the tree measured + arranged; there is no loop to enter afterward.
         drive_layout(*window, k_default_width, k_default_height);
 
+        // (5) Install the relayout hook (window::request_relayout) AFTER the first pass, mirroring the
+        //     Android-only jni/relayout.hpp precedent, generalized to every backend (see window.hpp's
+        //     header comment). Headless has no run loop to defer to, so a later invalidate_measure() (e.g.
+        //     a property change on the built tree, were run_app's caller to hold a reference) replays this
+        //     SAME settle pass synchronously and immediately — not a continuously pumping loop, just one
+        //     more deterministic call at the one size this lane ever lays out at.
+        window->set_relayout_hook([window] { drive_layout(*window, k_default_width, k_default_height); });
+
         return 0;
     }
 } // namespace maui::hosting

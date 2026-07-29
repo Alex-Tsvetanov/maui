@@ -194,6 +194,13 @@ namespace
         os_log(OS_LOG_DEFAULT, "[host_run] mounted app window — laid out (bounds %gx%g)", root_view.bounds.size.width,
                root_view.bounds.size.height);
 
+        // Install the relayout hook (window::request_relayout) AFTER the first pass — mirrors the
+        // Android-only jni/relayout.hpp precedent, generalized to every backend (see window.hpp's header
+        // comment). Reuses the SAME `relayout` closure the resize/safe-area tracker below drives, so a
+        // leaf's invalidate_measure() re-reads the CURRENT root_view bounds + safeAreaInsets exactly like a
+        // real size transition would, rather than replaying a stale captured size.
+        window->set_relayout_hook([relayout, root_view] { relayout(root_view); });
+
         // Install the resize hook: a hidden, non-interactive tracking view pinned to fill root_view. Its
         // layoutSubviews fires whenever root_view re-lays-out (incl. a window-size change), re-running the
         // relayout closure. Guarded on the size actually changing, so drive_layout's frame mutations don't

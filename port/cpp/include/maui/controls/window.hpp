@@ -274,6 +274,35 @@ namespace maui::controls
             on_sleep_ = std::move(on_sleep);
         }
 
+        // ---- layout invalidation (the seam a real IView.InvalidateMeasure ultimately drives) ----
+        // C# IView.InvalidateMeasure (VisualElement.cs) is Handler?.Invoke(nameof(IView.InvalidateMeasure)):
+        // on every native MAUI backend that reaches a real platform view, and the OS-owned native view tree
+        // bubbles the dirty flag to the root on its own, re-triggering CrossPlatformMeasure there on the next
+        // traversal. This port's hosts drive that same top-down remeasure IMPERATIVELY instead
+        // (app_host.cpp's drive_layout, called from each backend's host_run/app_host) — there is no native
+        // auto-bubble, and no per-subtree measure cache to selectively dirty (every drive_layout call
+        // already remeasures the whole tree unconditionally: view<>::measure/arrange, layout::arrange
+        // recompute from scratch every time — see PROJECT files). So the equivalent effect is: replay the
+        // host's layout pass. Each backend's host_run/app_host installs the hook right after its FIRST
+        // drive_layout (mirrors the Android-only platform::request_relayout / set_relayout_hook precedent in
+        // src/platform/android/jni/relayout.hpp, generalized here so every backend shares ONE mechanism
+        // instead of reimplementing its own slot). Unset by default: a window nobody's host has driven yet
+        // (unit tests that call drive_layout directly and never register a hook, or a window that never
+        // reaches its first layout) makes request_relayout() a no-op — the same degradation shape as
+        // Handler?.Invoke on a view with no Handler.
+        void set_relayout_hook(std::function<void()> hook)
+        {
+            relayout_hook_ = std::move(hook);
+        }
+        // Replay the installed layout pass, or do nothing when no host registered one.
+        void request_relayout() const
+        {
+            if (relayout_hook_)
+            {
+                relayout_hook_();
+            }
+        }
+
     protected:
         // The hosted page is the window's one logical child (so the window's BindingContext inherits to it).
         void for_each_logical_child(const std::function<void(element&)>& visit) const override
@@ -321,8 +350,9 @@ namespace maui::controls
         maui::core::scoped_connection toolbar_items_token_;  // tracker → refresh_toolbar_items
         maui::core::scoped_connection menu_bar_items_token_; // tracker → update_handler_value("menu_bar")
         maui::controls::title_bar* title_bar_ = nullptr;
-        std::function<void()> on_resume_; // Application.SendResume hook (set by open_window)
-        std::function<void()> on_sleep_;  // Application.SendSleep hook (set by open_window)
+        std::function<void()> on_resume_;     // Application.SendResume hook (set by open_window)
+        std::function<void()> on_sleep_;      // Application.SendSleep hook (set by open_window)
+        std::function<void()> relayout_hook_; // set_relayout_hook — replays the host's drive_layout pass
         // --- modal events + overlay (G4): the overlay layers (Window._overlays). NON-owning; the
         // caller owns each overlay (PROFILE §8). Insertion-ordered + deduplicated like the C# HashSet. ---
         std::vector<maui::core::i_window_overlay*> overlays_;

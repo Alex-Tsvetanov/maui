@@ -137,8 +137,12 @@ namespace
         stack.arrange(rect(0, 0, 200, 200));
         EXPECT_EQ(child.frame().x, 0); // zero margin, Start-aligned → flush left
 
-        // Grow the left margin and re-run the parent layout pass. invalidate_measure is the headless M3
-        // no-op seam, so the test drives the re-layout the parent would run on MeasureInvalidated.
+        // Grow the left margin and re-run the parent layout pass. child.set_margin fires a REAL
+        // invalidate_measure() now (view.hpp), but it reaches a window only via containing_window() — this
+        // tree is a bare stack/label never mounted under a window, so it stays a no-op here and the test
+        // still drives the re-layout by hand, exactly like a headless app whose host never installed a
+        // relayout hook (see window::request_relayout / tests/hosting/relayout_tests.cpp for the mounted
+        // case where the hook actually fires).
         child.set_margin(thickness(30, 0, 0, 0));
         stack.measure(inf, inf);
         stack.arrange(rect(0, 0, 200, 200));

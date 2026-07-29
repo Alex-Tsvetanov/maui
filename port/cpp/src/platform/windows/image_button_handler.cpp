@@ -514,16 +514,19 @@ namespace maui::core
     //     attributed to the missing uri_fetch seam and Win2D font sources; those gaps are real but they
     //     are NOT why bundled file images vanish.
     //
-    // FIXING IT NEEDS TWO PIECES, and the second is the blocker: wiring ImageOpened per the oracle is
-    // straightforward, but it has nothing to call -- view.hpp:654's invalidate_measure() is an explicit
-    // no-op ("Layout invalidation is wired in M3 (the layout pass); no-op for the M2 seam"). So an
-    // ImageOpened handler alone would fire into a void. Real layout invalidation is the actual work here,
-    // and it is a cross-platform change, not a Windows one.
+    // FIXING IT NEEDED TWO PIECES: wiring ImageOpened per the oracle is straightforward, but it had nothing
+    // to call -- view.hpp's invalidate_measure() was an explicit no-op. THAT PIECE NOW LANDED (view.hpp's
+    // invalidate_measure() really asks the containing window to replay drive_layout, via
+    // window::request_relayout / set_relayout_hook, installed by this backend's host_run.cpp right after
+    // its first pass -- see those files). This comment is left in place because the OTHER piece is still
+    // NOT done: nothing here subscribes ImageOpened yet, so there is still nothing calling the
+    // (now-real) seam for this control, and `image`/`image_button` are still broken until that lands.
     //
     // Recorded rather than patched because a local fudge (hard-coding a natural size, or forcing a
     // synchronous decode only for this control) would hide the shared defect and leave `image` broken.
-    // TODO: verify against src/Core/src/Handlers/Image/ImageHandler.Windows.cs (OnImageOpened ->
-    // UpdatePlatformMaxConstraints) when the M3 layout-invalidation seam lands.
+    // TODO: wire ImageOpened per src/Core/src/Handlers/Image/ImageHandler.Windows.cs (OnImageOpened ->
+    // UpdatePlatformMaxConstraints), then call invalidate_measure() from it -- the layout-invalidation seam
+    // it needs is real now.
     maui::graphics::size image_button_handler::get_desired_size(double width_constraint, double height_constraint) const
     {
         const auto* platform = typed_platform_view();

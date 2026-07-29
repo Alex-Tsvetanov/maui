@@ -235,3 +235,79 @@ TEST(app_host, run_app_boots_and_returns_zero)
     EXPECT_EQ(maui::hosting::run_app(1, static_cast<char**>(argv), configure), 0);
 }
 #endif
+
+// ---- real layout invalidation (view.hpp invalidate_measure/invalidate_arrange + window::request_relayout)
+// invalidate_measure() (view.hpp) now asks the calling view's containing_window() to replay the layout
+// pass its host installed (window::request_relayout / set_relayout_hook) — the generalization of the
+// Android-only jni/relayout.hpp hook onto every backend. These exercise that seam directly at the window
+// level, then through a REAL call site (View.Margin, view.hpp's on_property_changed) on a mounted tree, and
+// confirm the no-window / no-hook cases stay the documented no-ops.
+
+// window::request_relayout invokes whatever hook set_relayout_hook installed, every time it is called.
+TEST(app_host, window_request_relayout_invokes_the_installed_hook)
+{
+    maui::controls::window win;
+    int calls = 0;
+    win.set_relayout_hook([&calls] { ++calls; });
+
+    win.request_relayout();
+    win.request_relayout();
+
+    EXPECT_EQ(calls, 2);
+}
+
+// Mirrors C#'s Handler?.Invoke no-op when nobody wired a handler: a window nobody's host has driven yet
+// (so no hook was ever installed) is a harmless no-op, not a crash.
+TEST(app_host, window_request_relayout_is_a_no_op_with_no_hook_installed)
+{
+    maui::controls::window win;
+    win.request_relayout();
+}
+
+// The real proof: on a MOUNTED tree (handlers attached, first drive_layout done, a host-style relayout
+// hook installed exactly like every backend's host_run/app_host now does post-boot), the pre-existing
+// View.Margin call site (view.hpp's on_property_changed("margin") -> invalidate_measure()) reaches that
+// hook — where before this change it was a documented no-op.
+TEST(app_host, invalidate_measure_on_a_mounted_view_replays_the_hosts_layout_pass)
+{
+    auto app = build_app<hello_app>();
+    auto* hello = app->application_as<hello_app>().get();
+    ASSERT_NE(hello, nullptr);
+    maui::hosting::mount_window(*app, hello->win());
+    maui::hosting::drive_layout(hello->win(), 402.0, 874.0);
+
+    int relayouts = 0;
+    hello->win().set_relayout_hook([&relayouts] { ++relayouts; });
+
+    hello->text_label().set_margin(maui::core::thickness(4));
+
+    EXPECT_EQ(relayouts, 1);
+}
+
+// Before mount_window, containing_window() is null (element::set_containing_window only runs on attach —
+// element.cpp), so a margin change on a not-yet-mounted view stays a no-op, matching C#'s Handler?.Invoke
+// no-op before a handler/window exists.
+TEST(app_host, invalidate_measure_before_mount_is_a_no_op)
+{
+    hello_app hello;
+    hello.text_label().set_margin(maui::core::thickness(4)); // must not crash with no containing window
+}
+
+// C# `void IView.InvalidateArrange() { }` (VisualElement.cs) is a literal empty method body in the shipped
+// source (arrange invalidation was never wired up there either) — faithfully ported as a no-op, so calling
+// it directly must never reach a relayout hook.
+TEST(app_host, invalidate_arrange_is_still_a_documented_no_op)
+{
+    auto app = build_app<hello_app>();
+    auto* hello = app->application_as<hello_app>().get();
+    ASSERT_NE(hello, nullptr);
+    maui::hosting::mount_window(*app, hello->win());
+    maui::hosting::drive_layout(hello->win(), 402.0, 874.0);
+
+    int relayouts = 0;
+    hello->win().set_relayout_hook([&relayouts] { ++relayouts; });
+
+    hello->text_label().invalidate_arrange();
+
+    EXPECT_EQ(relayouts, 0);
+}

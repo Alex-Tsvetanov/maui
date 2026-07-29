@@ -28,8 +28,8 @@
 #include <winrt/Microsoft.UI.Composition.SystemBackdrops.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
-#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.Markup.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.XamlTypeInfo.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 #include <winrt/Windows.Foundation.Collections.h>
@@ -239,9 +239,8 @@ namespace
             //      still wins. Looked up AFTER RequestedTheme, so it is the right theme's brush.
             if (const auto panel = native.Content().try_as<winui::Controls::Panel>())
             {
-                const bool has_own_background =
-                    panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
-                    winui::DependencyProperty::UnsetValue();
+                const bool has_own_background = panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
+                                                winui::DependencyProperty::UnsetValue();
                 if (!has_own_background)
                 {
                     const auto resources = Resources();
@@ -287,6 +286,22 @@ namespace
             boot_log("layout: drive_layout");
             maui::hosting::drive_layout(*window_, width, height);
             boot_log("layout: drive_layout done -- boot complete");
+
+            // Install the relayout hook (window::request_relayout) AFTER the first pass -- mirrors the
+            // Android-only jni/relayout.hpp precedent, generalized to every backend (see window.hpp's
+            // header comment). Re-reads native.Bounds() at call time, like the SizeChanged handler above,
+            // rather than replaying the captured boot size -- so a leaf's invalidate_measure() (e.g. a
+            // margin/orientation/SafeAreaEdges change post-boot) lays out at whatever size the window is
+            // CURRENTLY showing. Deliberately does NOT wire anything new to CALL this hook (e.g. Image's
+            // ImageOpened) -- that is the consumer, out of scope for this seam.
+            window_->set_relayout_hook([this, native] {
+                if (window_ == nullptr)
+                {
+                    return;
+                }
+                const auto current_bounds = native.Bounds();
+                maui::hosting::drive_layout(*window_, current_bounds.Width, current_bounds.Height);
+            });
         }
 
         // ---- IXamlMetadataProvider: delegate to the WinUI controls' own provider ---------------------

@@ -235,6 +235,17 @@ namespace
         maui::platform::android::set_relayout_hook(
             [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
 
+        // (4c) ALSO install the general window::request_relayout hook (window.hpp), generalizing the same
+        //      idea above onto every backend instead of just this Android-only slot: view<>::invalidate_measure
+        //      (view.hpp) routes through a view's containing_window(), not through
+        //      maui::platform::android::request_relayout() — so without this, the seven now-live
+        //      invalidate_measure() call sites (StackLayout Orientation, AbsoluteLayout LayoutBounds, Editor
+        //      AutoSize, View.Margin, ScrollView/ContentPage/Border SafeAreaEdges) would still be no-ops on
+        //      this backend even though they are real everywhere else. The pre-existing android-specific
+        //      hook above is untouched (still the image handler's async-decode path, out of scope here).
+        window->set_relayout_hook(
+            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
+
         // (5) Reach the native FrameLayout through the window's now-attached handler and return it. This is
         //     the apple host's typed_platform_view()->native step, except the void* is the content-view
         //     FrameLayout global ref (window_handler.cpp) instead of an NSWindow.

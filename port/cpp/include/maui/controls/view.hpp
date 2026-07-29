@@ -145,6 +145,15 @@ namespace maui::controls
     // InvalidateMeasureInternal(MarginChanged)). Default thickness{} mirrors C#'s default(Thickness).
     const maui::core::bindable_property<maui::core::thickness>& margin_property();
 
+    // Ask `owner`'s containing window (element::containing_window) to replay its layout pass — the body
+    // of view<>::invalidate_measure() below. A free function, defined out-of-line in view.cpp, because it
+    // needs the COMPLETE `window` type (window::request_relayout): view.hpp only sees `window` via
+    // element.hpp's forward declaration (window.hpp itself includes element.hpp, so view.hpp including
+    // window.hpp back would risk the cycle every other header in this tree avoids — view.cpp has no such
+    // constraint). A no-op when `owner` is not yet attached under any window (mirrors C#'s Handler?.Invoke
+    // no-op before a handler/window exists).
+    void request_containing_window_relayout(element& owner);
+
     // chrome (W1-11): every view is a tool-tip + context-flyout element, exactly as C# VisualElement
     // implements IToolTipElement + IContextFlyoutElement (the shared view_mapper discovers both by
     // dynamic_cast, like C#'s `view is IToolTipElement` checks in ViewHandler.MapToolTip/MapContextFlyout).
@@ -651,10 +660,24 @@ namespace maui::controls
                              resolved_height + view_margin.vertical_thickness()};
             return desired_size_;
         }
+        // C# `void IView.InvalidateMeasure() => InvalidateMeasureOverride();` with the default override
+        // `Handler?.Invoke(nameof(IView.InvalidateMeasure))` (VisualElement.cs:2036-2044) — ask THIS view's
+        // handler to invalidate. On a native MAUI backend that reaches a real platform view whose OS-owned
+        // layout tree bubbles the dirty flag to the root by itself; this port's hosts drive the equivalent
+        // top-down remeasure IMPERATIVELY instead (see window::request_relayout's header comment for why
+        // that is a faithful equivalent here, not an invented shortcut: there is no per-subtree measure
+        // cache for a partial invalidation to target — every drive_layout call already remeasures the whole
+        // tree unconditionally). request_containing_window_relayout is a no-op before this view is attached
+        // under a window with a host-installed hook, matching Handler?.Invoke's no-Handler no-op.
         void invalidate_measure() override
         {
-            // Layout invalidation is wired in M3 (the layout pass); no-op for the M2 seam.
+            request_containing_window_relayout(*this);
         }
+        // C# `void IView.InvalidateArrange() { }` (VisualElement.cs:2047-2049) is a literal EMPTY method
+        // body in the shipped source — arrange invalidation was never wired up (VisualElement.cs:1497-1498
+        // carries the framework's own TODO acknowledging it: "Once we get InvalidateArrange sorted, ..."
+        // will need to call ParentView.InvalidateArrange() instead). This is not an unported M2 stub; it is
+        // what MAUI actually does today, so the faithful port is to leave it exactly as it was.
         void invalidate_arrange() override
         {
         }
@@ -888,12 +911,16 @@ namespace maui::controls
             {
                 update_z_order();
             }
-            // C# View.MarginPropertyChanged → InvalidateMeasureInternal(InvalidationTrigger.MarginChanged):
-            // a margin change re-runs no native mapper (the update_value above is a harmless no-op — margin
-            // is a layout-only property, like the layout alignments) but invalidates measure so the parent
-            // re-lays-out with the new reserved space. invalidate_measure is the M3 no-op seam today (see
-            // below), so the structure is faithful and future-proof — the moment real measure-invalidation
-            // propagation lands, a margin change participates.
+            // C# View.MarginPropertyChanged → InvalidateMeasureInternal(InvalidationTrigger.MarginChanged),
+            // whose MarginChanged branch calls ParentView?.InvalidateMeasure() (the PARENT's, not this
+            // view's own) — because C#'s InvalidateMeasure only ever reaches the ONE handler it is called
+            // on. This port's invalidate_measure() (below) instead replays the WHOLE window's layout pass
+            // unconditionally (there is no per-subtree measure cache to selectively dirty), so calling it
+            // on `this` has the identical observable effect as calling it on the parent would: the next
+            // drive_layout remeasures every node, this one's new margin included. A margin change re-runs no
+            // native mapper (the update_value above is a harmless no-op — margin is a layout-only property,
+            // like the layout alignments) but invalidates measure so the parent re-lays-out with the new
+            // reserved space.
             if (name == "margin")
             {
                 this->invalidate_measure();

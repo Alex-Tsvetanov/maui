@@ -176,6 +176,13 @@ namespace
         maui::platform::android::set_relayout_hook(
             [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
 
+        // (4c) ALSO install the general window::request_relayout hook (window.hpp) — the twin of the
+        //      non-XAML host's step 4c. view<>::invalidate_measure routes through containing_window(), not
+        //      through the Android-only slot above, so without this the now-live invalidate_measure() call
+        //      sites would stay no-ops on this example host.
+        window->set_relayout_hook(
+            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
+
         // (5) Reach the native FrameLayout through the window's handler and return a fresh local ref.
         const auto handler = std::dynamic_pointer_cast<maui::core::window_handler>(window->handler());
         if (handler == nullptr || handler->typed_platform_view() == nullptr)

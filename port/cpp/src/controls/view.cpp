@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 
+#include "maui/controls/window.hpp" // request_containing_window_relayout needs the COMPLETE window type
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/flow_direction.hpp"
@@ -31,6 +32,15 @@
 
 namespace maui::controls
 {
+    // See the declaration in view.hpp for the fidelity note (C# Handler?.Invoke's no-Handler no-op).
+    void request_containing_window_relayout(element& owner)
+    {
+        if (window* host = owner.containing_window())
+        {
+            host->request_relayout();
+        }
+    }
+
     const maui::core::bindable_property<bool>& is_enabled_property()
     {
         static const maui::core::bindable_property<bool> descriptor{"is_enabled", true};

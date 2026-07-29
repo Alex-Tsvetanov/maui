@@ -26,9 +26,11 @@
 //     parity harness resizes the window after launch (host_run.cpp's SizeChanged -> drive_layout, "the
 //     E2E runner pins the window to an explicit rect AFTER launching the process"), by which point a
 //     small local file has virtually always finished decoding. Wiring ImageOpened to force an EARLIER
-//     relayout would mean adding a new cross-cutting relayout hook to host_run.cpp (the android partial's
-//     jni/relayout.hpp analog) — out of this file's scope; get_desired_size instead does the plain real
-//     Measure(), matching the label/button shape exactly.
+//     relayout now HAS somewhere to reach: window::request_relayout / set_relayout_hook (window.hpp),
+//     installed by this backend's host_run.cpp right after its first drive_layout — the generalized,
+//     cross-platform twin of the android partial's jni/relayout.hpp this note used to point at as future
+//     work. Still out of THIS file's scope (the consumer, not the seam): get_desired_size still does the
+//     plain real Measure(), matching the label/button shape exactly.
 //  3. FONT SOURCES STAY MIRROR-ONLY (URI/STREAM ARE NOW REAL). image_source_services.cpp (swapped in via
 //     MAUI_WINDOWS_SWAPS) decodes a uri/stream source into a genuine BitmapImage the same way the FILE fast
 //     path below does (spool-to-temp-file + the Uri ctor — see that file's header for why not

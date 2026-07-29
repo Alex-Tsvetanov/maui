@@ -12,9 +12,9 @@
 namespace maui::controls
 {
     // StackLayout.OrientationProperty: default Vertical; C# OrientationChanged calls InvalidateMeasure
-    // on the owning layout, mirrored here. (invalidate_measure() is currently the M3 no-op seam — see
-    // view::invalidate_measure — but wiring the callback keeps the structure faithful to C# and makes
-    // the seam light up automatically once layout invalidation is implemented.)
+    // on the owning layout, mirrored here. invalidate_measure() (view.hpp) now really asks the containing
+    // window to replay its layout pass (window::request_relayout) — an Orientation change post-mount
+    // re-lays-out the stack for real, on every backend whose host installed the relayout hook.
     const maui::core::bindable_property<stack_orientation>& stack_layout::orientation_property()
     {
         static const maui::core::bindable_property<stack_orientation> descriptor{
