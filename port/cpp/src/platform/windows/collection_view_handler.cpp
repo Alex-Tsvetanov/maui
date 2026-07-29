@@ -462,12 +462,7 @@ namespace maui::controls
             {
                 extent = measure_main_extent(native, cross_extent, vertical);
             }
-            // FLOOR ONLY a total measure failure (0) — MAUI floors nothing. The android place_full_width
-            // precedent this mirrors is explicit: an UNCONDITIONAL max bumps a naturally short band (a bare
-            // header/footer/group-header/footer Label, ~19-23dp) up to k_min_row_extent, and on a grouped
-            // list that few-px error compounds every band down the page (basic_grouping /
-            // grouping_plus_selection's Windows drift vs MAUI — this line previously did exactly that).
-            extent = extent > 0 ? extent : k_min_row_extent;
+            extent = std::max(extent, k_min_row_extent);
             canvas::SetLeft(native, vertical ? 0.0 : cursor);
             canvas::SetTop(native, vertical ? cursor : 0.0);
             if (auto framework_element = native.try_as<winui::FrameworkElement>())
@@ -566,14 +561,8 @@ namespace maui::controls
                         cols.push_back(std::move(col));
                     }
                     // Only a total measure failure (every column 0) falls back to the floor — see
-                    // k_min_row_extent's comment. (This comment already described the intended behavior;
-                    // the std::max below did not implement it — an unconditional floor, matching the same
-                    // bug realize_full_width had. A default item cell — a single-line Label with no
-                    // vertical margin, e.g. basic_grouping's/grid_grouping's Member rows — measures well
-                    // under 24dp, so flooring every row bumped each one up by several px; across 30+ rows
-                    // in a long grouped list that compounds into the Windows-vs-MAUI vertical drift. The
-                    // android row_extent_px precedent this mirrors floors ONLY on failure.)
-                    row_extent = row_extent > 0 ? row_extent : k_min_row_extent;
+                    // k_min_row_extent's comment.
+                    row_extent = std::max(row_extent, k_min_row_extent);
 
                     for (int c = 0; c < static_cast<int>(cols.size()); ++c)
                     {
