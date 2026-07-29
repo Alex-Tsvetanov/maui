@@ -509,7 +509,7 @@ namespace maui::core
             {
                 std::fprintf(file,
                              "image.measure cw=%.1f ch=%.1f -> desired=%.1fx%.1f finite=%.1fx%.1f "
-                             "actual=%.1fx%.1f pixel=%dx%d src=%d vis=%d parent=%d\n",
+                             "actual=%.1fx%.1f pixel=%dx%d src=%d vis=%d parent=%d wh=%.1fx%.1f stretch=%d\n",
                              width_constraint, height_constraint, desired.Width, desired.Height, finite_desired.Width,
                              finite_desired.Height, image.ActualWidth(), image.ActualHeight(), pixel_w, pixel_h,
                              image.Source() != nullptr ? 1 : 0,
@@ -517,7 +517,13 @@ namespace maui::core
                              // the one cause that fits every observation here (decoded bitmap, valid
                              // constraints, live tree, and InvalidateMeasure/settle/finite-height all inert).
                              image.Visibility() == winui::Visibility::Visible ? 1 : 0,
-                             image.Parent() != nullptr ? 1 : 0);
+                             image.Parent() != nullptr ? 1 : 0,
+                             // Read the pin BACK after clearing it to NaN. Every measure path in this
+                             // backend assumes that clear takes effect; none has ever verified it, and
+                             // actual=920.0x0.0 is exactly the residue a height pinned to 0 would leave.
+                             // A Height of 0 (rather than NaN) makes Measure return 0x0 for ANY content,
+                             // which is the last unexamined way to get the observed result.
+                             image.Width(), image.Height(), static_cast<int>(image.Stretch()));
                 std::fclose(file);
             }
         }
