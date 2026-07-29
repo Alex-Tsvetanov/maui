@@ -18,21 +18,27 @@
 //     just via a `file:///` Uri + the BitmapImage(Uri) ctor instead of StorageFile+OpenReadAsync+
 //     SetSourceAsync (both end up decoding the same bytes into a BitmapImage; the Uri ctor needs no
 //     coroutine machinery, which load_file_source_sync's synchronous contract does not have room for).
-//  2. ASYNC DECODE — ImageOpened NOW WIRED. BitmapImage decoding is ALWAYS asynchronous in WinUI — there is
-//     no synchronous decode API, unlike apple's NSImage — so get_desired_size may read {0,0} on the very
-//     first Measure (the decode has not completed yet). ImageHandler.Windows.cs subscribes ImageOpened
-//     precisely to react to this (OnImageOpened -> UpdatePlatformMaxConstraints); this backend now does
-//     the same subscribe/unsubscribe (on_connect_handler/on_disconnect_handler below, token-revoked like
-//     button_handler.cpp's Click), but the CONSEQUENCE it drives is different from the oracle line: rather
-//     than porting UpdatePlatformMaxConstraints's AspectFit MaxWidth/MaxHeight clamp (a separate, narrower
-//     concern this slice does not touch), the callback calls the virtual view's invalidate_measure() —
-//     window::request_relayout / set_relayout_hook (window.hpp), installed by this backend's host_run.cpp
-//     right after its first drive_layout. That seam is what a real MAUI backend gets FOR FREE (its native
-//     OS-owned layout tree bubbles a dirty flag to the root on its own); this port's own C++-side
-//     desired_size_ cache does not auto-correct just because the NATIVE WinUI Image re-measures itself
-//     internally post-decode, so an explicit replay of THIS port's drive_layout is what closes the gap —
-//     see load_file_source_sync/apply_loaded_result below for the belt-and-braces case (an already-decoded
+//  2. ASYNC DECODE — ImageOpened NOW WIRED, UpdatePlatformMaxConstraints NOW PORTED. BitmapImage decoding is
+//     ALWAYS asynchronous in WinUI — there is no synchronous decode API, unlike apple's NSImage — so
+//     get_desired_size may read {0,0} on the very first Measure (the decode has not completed yet).
+//     ImageHandler.Windows.cs subscribes ImageOpened precisely to react to this (OnImageOpened ->
+//     UpdatePlatformMaxConstraints); this backend does the same subscribe/unsubscribe (on_connect_handler/
+//     on_disconnect_handler below, token-revoked like button_handler.cpp's Click). The callback now drives
+//     BOTH oracle consequences: update_platform_max_constraints() (this file's port of
+//     UpdatePlatformMaxConstraints, ImageHandler.Windows.cs:234-261 — caps the child Image's own
+//     MaxWidth/MaxHeight to the decoded intrinsic size on a non-Fill AspectFit axis) ALONGSIDE the
+//     pre-existing call to the virtual view's invalidate_measure() — window::request_relayout /
+//     set_relayout_hook (window.hpp), installed by this backend's host_run.cpp right after its first
+//     drive_layout. That seam is what a real MAUI backend gets FOR FREE (its native OS-owned layout tree
+//     bubbles a dirty flag to the root on its own); this port's own C++-side desired_size_ cache does not
+//     auto-correct just because the NATIVE WinUI Image re-measures itself internally post-decode, so an
+//     explicit replay of THIS port's drive_layout is still needed alongside the new Max* cap — see
+//     load_file_source_sync/apply_loaded_result below for the belt-and-braces case (an already-decoded
 //     source) and this file's on_connect_handler/on_disconnect_handler for the subscribe/teardown.
+//     MapSourceAsync's reset-to-PositiveInfinity (oracle :208-213) is also ported, in
+//     reset_platform_max_constraints (anonymous namespace below), called from each of the three source-
+//     application primitives (load_file_source_sync / apply_loaded_result / clear_source_native) so a
+//     smaller PREVIOUS source's cap cannot leak onto a larger NEW one.
 //  3. FONT SOURCES STAY MIRROR-ONLY (URI/STREAM ARE NOW REAL). image_source_services.cpp (swapped in via
 //     MAUI_WINDOWS_SWAPS) decodes a uri/stream source into a genuine BitmapImage the same way the FILE fast
 //     path below does (spool-to-temp-file + the Uri ctor — see that file's header for why not
@@ -99,6 +105,7 @@
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/image_source_loader.hpp"
 #include "maui/core/image_source_result.hpp"
+#include "maui/core/layout_alignment.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
@@ -261,6 +268,34 @@ namespace maui::core
                 platform.on_image_opened();
             }
         }
+
+        // ImageHandler.Windows.cs's private GetImageSize (oracle
+        // src/Core/src/Handlers/Image/ImageHandler.Windows.cs:263-275): the decoded bitmap's PixelWidth/
+        // PixelHeight, or {0,0} when not yet decoded -- BitmapSource does not populate PixelWidth/
+        // PixelHeight until the image has opened, the same guard notify_if_already_open above already
+        // tests for. Used by update_platform_max_constraints below.
+        maui::graphics::size get_image_size(const image_control& image)
+        {
+            const auto bitmap = image.Source().try_as<bitmap_image>();
+            if (bitmap && bitmap.PixelWidth() > 0 && bitmap.PixelHeight() > 0)
+            {
+                return {static_cast<double>(bitmap.PixelWidth()), static_cast<double>(bitmap.PixelHeight())};
+            }
+            return maui::graphics::size::zero;
+        }
+
+        // MapSourceAsync's reset (oracle src/Core/src/Handlers/Image/ImageHandler.Windows.cs:208-213):
+        // `PlatformView.MaxWidth = double.PositiveInfinity; PlatformView.MaxHeight = double.PositiveInfinity;`
+        // run before EVERY new source is applied, so a smaller PREVIOUS AspectFit source's cap (set by
+        // update_platform_max_constraints, above) cannot leak onto a larger NEW one that hasn't decoded (and
+        // so hasn't had a chance to re-cap) yet. Called from each of the three source-application primitives
+        // below (load_file_source_sync / apply_loaded_result / clear_source_native) -- together those are
+        // every place THIS backend ever assigns a new (or null) Source, i.e. "each load" for this port.
+        void reset_platform_max_constraints(const image_control& image)
+        {
+            image.MaxWidth(std::numeric_limits<double>::infinity());
+            image.MaxHeight(std::numeric_limits<double>::infinity());
+        }
     } // namespace
 
     image_platform::~image_platform()
@@ -308,6 +343,11 @@ namespace maui::core
     void image_handler::on_connect_handler(image_platform& platform)
     {
         platform.on_image_opened = [this] {
+            // OnImageOpened (oracle :218-227): the oracle calls UpdatePlatformMaxConstraints() here so an
+            // AspectFit image's non-Fill axis is capped to its now-decoded intrinsic size. Added ALONGSIDE
+            // the existing invalidate_measure() (this port's own out-of-cycle re-layout trigger, see this
+            // file's header note 2) -- not in place of it.
+            update_platform_max_constraints();
             if (auto* view = virtual_view())
             {
                 view->invalidate_measure();
@@ -333,6 +373,53 @@ namespace maui::core
     {
         detach_native_events(platform);
         platform.on_image_opened = nullptr;
+    }
+
+    // ImageHandler.Windows.cs's private UpdatePlatformMaxConstraints (oracle
+    // src/Core/src/Handlers/Image/ImageHandler.Windows.cs:234-261), ported 1:1. Caps the CHILD Image's own
+    // MaxWidth/MaxHeight -- see image_handler.hpp's declaration comment for why the host is not touched.
+    void image_handler::update_platform_max_constraints()
+    {
+        auto* platform = typed_platform_view();
+        auto* view = virtual_view();
+        // Oracle guard (:236-237): `if (PlatformView is null || VirtualView is null) return;`.
+        if (platform == nullptr || platform->native == nullptr || view == nullptr)
+        {
+            return;
+        }
+
+        const image_control image = as_image(platform->native);
+
+        if (view->aspect() == maui::core::aspect::aspect_fit)
+        {
+            const auto sz = get_image_size(image);
+
+            // Width: cap to intrinsic only if horizontal alignment isn't Fill (oracle :244-247).
+            if (view->horizontal_layout_alignment() != maui::core::layout_alignment::fill && sz.width > 0)
+            {
+                image.MaxWidth(std::min(sz.width, view->maximum_width()));
+            }
+            else
+            {
+                image.MaxWidth(view->maximum_width());
+            }
+
+            // Height: cap to intrinsic only if vertical alignment isn't Fill (oracle :249-253).
+            if (view->vertical_layout_alignment() != maui::core::layout_alignment::fill && sz.height > 0)
+            {
+                image.MaxHeight(std::min(sz.height, view->maximum_height()));
+            }
+            else
+            {
+                image.MaxHeight(view->maximum_height());
+            }
+
+            return;
+        }
+
+        // Non-AspectFit: mirror the view's declared maximums (oracle :258-260).
+        image.MaxWidth(view->maximum_width());
+        image.MaxHeight(view->maximum_height());
     }
 
     // Headless-style no-op: see this file's header note 3 — the async loader's uri/stream/font path
@@ -431,6 +518,7 @@ namespace maui::core
             return;
         }
         const image_control image = as_image(platform.native);
+        reset_platform_max_constraints(image);
         try
         {
             image.Source(bitmap_image{resolve_file_uri(platform.source_file)});
@@ -461,6 +549,7 @@ namespace maui::core
         if (platform.native != nullptr && result.image() != nullptr)
         {
             const image_control image = as_image(platform.native);
+            reset_platform_max_constraints(image);
             image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
             notify_if_already_open(platform, image);
         }
@@ -474,7 +563,9 @@ namespace maui::core
         platform.source_loaded = false;
         if (platform.native != nullptr)
         {
-            as_image(platform.native).Source(nullptr);
+            const image_control image = as_image(platform.native);
+            reset_platform_max_constraints(image);
+            image.Source(nullptr);
         }
     }
 

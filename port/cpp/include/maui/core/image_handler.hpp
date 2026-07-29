@@ -249,6 +249,20 @@ namespace maui::core
         // ios: the trait-collection displayScale; headless: 1.0). Defined in the per-backend partial.
         [[nodiscard]] float query_display_scale() const;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend ONLY: mirrors ImageHandler.Windows.cs's private UpdatePlatformMaxConstraints
+        // (oracle src/Core/src/Handlers/Image/ImageHandler.Windows.cs:234-261). Caps the native Image's own
+        // MaxWidth/MaxHeight -- NOT the Border host's Width/Height (this file's header CONTAINER note: the
+        // host is what get_desired_size/platform_arrange size and arrange; the child Image's own Width/
+        // Height stay untouched Auto/NaN forever, permanently -- MaxWidth/MaxHeight is a DIFFERENT WinUI
+        // property pair from Width/Height, so capping it does not disturb that or reintroduce the 0x0
+        // measure bug commit 0165f5e6b9 fixed). Called from OnImageOpened (image_handler.cpp's
+        // on_connect_handler lambda), exactly where the oracle calls it (:217-227), once the decoded
+        // PixelWidth/PixelHeight are available. No other backend declares this (only WinUI decodes
+        // asynchronously and exposes a native MaxWidth/MaxHeight this port bothers to set).
+        void update_platform_max_constraints();
+#endif
+
         // Per-backend source primitives map_source dispatches to (the routing — file fast-path vs the
         // async loader — lives once in the cross-platform map_source; only these touch the native view /
         // headless mirror). Defined in src/platform/<backend>/image_handler.{cpp,mm}.
