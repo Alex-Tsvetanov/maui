@@ -145,6 +145,19 @@ namespace
     // k_min_row_extent (same rationale, same value).
     constexpr double k_min_row_extent = 24;
 
+    // GROUP HEADER container chrome — src/Controls/src/Core/Platform/Windows/CollectionView/
+    // ItemsViewStyles.xaml's ListViewHeaderItem AND GridViewHeaderItem styles (both identical) override
+    // Padding="12,8,12,0" (left,top,right,bottom) around the header content, plus Margin="0,0,0,4"
+    // trailing the header before the group's first item. The GROUP FOOTER gets NEITHER of these: UWP
+    // ListViewBase has no native group-footer slot, so GroupTemplateContext.cs (same directory) fakes one
+    // by appending the footer as a plain trailing ITEM to the group's own item list — it rides the
+    // regular item container, not ListViewHeaderItem. Confirmed against the real Windows capture: the
+    // footer's orange band sits flush against both edges while the header's green band is inset 12px each
+    // side — so only the GROUP HEADER call site below opts into this chrome.
+    constexpr double k_group_header_cross_padding = 12; // Padding left/right
+    constexpr double k_group_header_lead_padding = 8;   // Padding top (inset before content)
+    constexpr double k_group_header_trail_margin = 4;   // Margin bottom (gap after, before next sibling)
+
     scroll_viewer as_scroll_viewer(void* native)
     {
         return maui::platform::windows::ref<winui::UIElement>(native).as<scroll_viewer>();
@@ -426,7 +439,11 @@ namespace maui::controls
 
         // Realize a full-cross-width row (structured header/footer, empty view, group header/footer):
         // template content > boxed view > text mirror — the android realize_supplemental_native recipe.
-        auto realize_full_width = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value) {
+        // `is_group_header` opts into the ListViewHeaderItem/GridViewHeaderItem chrome documented at
+        // k_group_header_cross_padding above — every OTHER caller (structured header/footer, empty view,
+        // group footer) passes false and keeps the prior flush-to-the-edges behavior.
+        auto realize_full_width = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
+                                      bool is_group_header) {
             if (!tmpl && !value.has_value())
             {
                 return; // nothing to show (matches android: no template AND no value)
@@ -446,6 +463,11 @@ namespace maui::controls
             {
                 native = make_text_block(value.text());
             }
+            // The header container's Padding insets its ContentPresenter too (Margin="{TemplateBinding
+            // Padding}" in the ListViewHeaderItem/GridViewHeaderItem ControlTemplate), so a group header
+            // measures against the padded-down cross extent, not the full row width.
+            const double cross_pad = is_group_header ? k_group_header_cross_padding * 2 : 0.0;
+            const double measure_cross = std::max(0.0, cross_extent - cross_pad);
             // Same preference as the item loop below: the realized content's CROSS-PLATFORM measure when
             // there is one (a header/footer template or boxed View can be container-rooted, and a bare
             // native Measure() on a container under-reports — see the item loop's comment), else a direct
@@ -454,30 +476,34 @@ namespace maui::controls
             if (auto* const content_view = dynamic_cast<maui::core::i_view*>(realized.get()))
             {
                 const maui::graphics::size desired =
-                    vertical ? content_view->measure(cross_extent, std::numeric_limits<double>::infinity())
-                             : content_view->measure(std::numeric_limits<double>::infinity(), cross_extent);
+                    vertical ? content_view->measure(measure_cross, std::numeric_limits<double>::infinity())
+                             : content_view->measure(std::numeric_limits<double>::infinity(), measure_cross);
                 extent = vertical ? desired.height : desired.width;
             }
             else
             {
-                extent = measure_main_extent(native, cross_extent, vertical);
+                extent = measure_main_extent(native, measure_cross, vertical);
             }
             extent = std::max(extent, k_min_row_extent);
-            canvas::SetLeft(native, vertical ? 0.0 : cursor);
-            canvas::SetTop(native, vertical ? cursor : 0.0);
+            const double lead = is_group_header ? k_group_header_lead_padding : 0.0;
+            const double trail = is_group_header ? k_group_header_trail_margin : 0.0;
+            const double cross_origin = is_group_header ? k_group_header_cross_padding : 0.0;
+            canvas::SetLeft(native, vertical ? cross_origin : cursor + lead);
+            canvas::SetTop(native, vertical ? cursor + lead : cross_origin);
             if (auto framework_element = native.try_as<winui::FrameworkElement>())
             {
-                framework_element.Width(vertical ? cross_extent : extent);
-                framework_element.Height(vertical ? extent : cross_extent);
+                framework_element.Width(vertical ? measure_cross : extent);
+                framework_element.Height(vertical ? extent : measure_cross);
             }
             panel.Children().Append(native);
             if (realized)
             {
-                arrange_realized_view(realized, vertical ? maui::graphics::rect{0.0, cursor, cross_extent, extent}
-                                                         : maui::graphics::rect{cursor, 0.0, extent, cross_extent});
+                arrange_realized_view(
+                    realized, vertical ? maui::graphics::rect{cross_origin, cursor + lead, measure_cross, extent}
+                                       : maui::graphics::rect{cursor + lead, cross_origin, extent, measure_cross});
                 platform->retained_natives.push_back(std::move(realized));
             }
-            cursor += extent + spacing;
+            cursor += lead + extent + trail + spacing;
         };
 
         // The global (structured) header — realized BEFORE the items/empty region, independent of it
@@ -485,7 +511,7 @@ namespace maui::controls
         // ahead of the data region regardless of item count).
         if (structured != nullptr)
         {
-            realize_full_width(structured->header_template(), structured->header());
+            realize_full_width(structured->header_template(), structured->header(), false);
         }
 
         const bool empty = src == nullptr || src->item_count() == 0;
@@ -494,7 +520,7 @@ namespace maui::controls
             const bool has_empty_view = view->empty_view_template() != nullptr || view->empty_view().has_value();
             if (has_empty_view)
             {
-                realize_full_width(view->empty_view_template(), view->empty_view());
+                realize_full_width(view->empty_view_template(), view->empty_view(), false);
             }
         }
         else
@@ -513,7 +539,7 @@ namespace maui::controls
             {
                 if (group_header_t)
                 {
-                    realize_full_width(group_header_t, src->group(index_path{.section = section, .item = -1}));
+                    realize_full_width(group_header_t, src->group(index_path{.section = section, .item = -1}), true);
                 }
 
                 const int count = src->item_count_in_group(section);
@@ -596,7 +622,7 @@ namespace maui::controls
 
                 if (group_footer_t)
                 {
-                    realize_full_width(group_footer_t, src->group(index_path{.section = section, .item = -1}));
+                    realize_full_width(group_footer_t, src->group(index_path{.section = section, .item = -1}), false);
                 }
             }
         }
@@ -605,7 +631,7 @@ namespace maui::controls
         // count (like the header).
         if (structured != nullptr)
         {
-            realize_full_width(structured->footer_template(), structured->footer());
+            realize_full_width(structured->footer_template(), structured->footer(), false);
         }
 
         // Size the panel to the greater of the real content and the viewport (the scroll_view_handler
