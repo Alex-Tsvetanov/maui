@@ -11,8 +11,16 @@ DEFAULT = pathlib.Path(__file__).resolve().parents[3] / 'docs' / 'comparison' / 
 path = next((a for a in sys.argv[1:] if not a.startswith('-')), DEFAULT)
 NUM = re.compile(r'Light: SSIM ([\d.]+), ([\d.]+)% .* Dark: SSIM ([\d.]+), ([\d.]+)%')
 
+# Pages whose CONTENT changes between runs, so their score measures the harness rather than the
+# port. Measured 2026-07-29 by running two identical full passes against the same binary: these two
+# swung -49.22pp and -1.86pp with no code change, while every other page stayed within +-0.26pp.
+# Averaging them in makes the board mean move for reasons no code change can influence.
+VOLATILE = {"context_flyout", "hybrid_web_view"}
+
 rows = {}
 for p in json.load(open(path)):
+    if p.get("name") in VOLATILE:
+        continue
     w = p.get('platforms', {}).get('windows')
     if not w:
         continue
@@ -42,7 +50,7 @@ for col in ('cpp', 'xaml'):
 if '--json' in sys.argv:
     print(json.dumps(out, indent=2))
 else:
-    print(f"windows: {out['pages']} pages")
+    print(f"windows: {out['pages']} pages (excluding {len(VOLATILE)} volatile: {', '.join(sorted(VOLATILE))})")
     for k, v in out.items():
         if k == 'pages':
             continue
