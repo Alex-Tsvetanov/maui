@@ -33,12 +33,26 @@
 //     board scored 9.71% (down from 31.27%) with this exact generic push in place — a direct-property
 //     Background is evidently honored by the default Button template's Normal-state binding, only losing
 //     fidelity on hover/pressed, same as note 1's stroke properties.
-//  3. No ImageOpened/ImageFailed/Unloaded wiring. ImageOpened/ImageFailed only drive UpdateIsLoading(false)
-//     — image_handler.cpp's header note 2 already defers this exact wiring for a plain Image (WinUI's
-//     BitmapImage decode is always async; the port's own source-loader already flips is_loading false
-//     synchronously once load_file_source_sync/apply_loaded_result run, matching the file-fast-path
-//     contract every backend shares). Unloaded (the "release if unloaded while pressed" edge case) has no
-//     counterpart in button_handler.cpp either — an edge case a static parity capture never exercises.
+//  3. ImageOpened NOW WIRED (for layout only) — ImageFailed/Unloaded still are not. ImageButtonHandler.
+//     Windows.cs's OWN OnImageOpened (subscribed on the CONTENT image, `_image.ImageOpened += OnImageOpened`
+//     in its ConnectHandler — NOT reached via the shared ImageHandler.Mapper, which only carries the
+//     property maps like Aspect; event subscriptions are wired per-handler) calls ONLY
+//     `VirtualView?.UpdateIsLoading(false)` — it does NOT call UpdatePlatformMaxConstraints (that method
+//     lives on ImageHandler, is private, and ImageButtonHandler never calls it). So the C# consequence of
+//     ImageOpened firing for an ImageButton has nothing to do with layout. The bug this port measured
+//     (image_button 27.09% light / 31.17% dark — a zero-desired child a parent stack stretches) is real
+//     anyway, for the SAME reason image_handler.cpp's header note 2 explains: a real MAUI backend's native
+//     OS-owned layout tree bubbles the post-decode dirty flag to its root FOR FREE (regardless of what the
+//     handler's own OnImageOpened body does), but this port's own C++-side desired_size_ cache does not —
+//     so on_connect_handler below subscribes ImageOpened on the CONTENT image (matching the oracle's
+//     subscription TARGET and lifecycle) and its callback calls invalidate_measure() (the architectural
+//     necessity documented in view.hpp/window.hpp, not a literal transcription of C#'s callback body). Not
+//     touched: UpdateIsLoading already flows through a DIFFERENT, pre-existing path — the cross-platform
+//     map_source (src/core/image_button_handler.cpp) calls view.update_is_loading(false) synchronously
+//     right after the file-fast-path load kicks off, independent of real decode completion (image_handler.
+//     cpp's identical simplification) — so ImageOpened firing has nothing left to flip on this backend.
+//     ImageFailed/Unloaded remain unwired (edge cases a static parity capture never exercises, matching
+//     button_handler.cpp's identical gap).
 
 #include "maui/core/image_button_handler.hpp"
 
@@ -220,10 +234,31 @@ namespace maui::core
                     button.RemoveHandler(winui::UIElement::PointerPressedEvent(), winrt::box_value(sink->pressed));
                     button.RemoveHandler(winui::UIElement::PointerReleasedEvent(), winrt::box_value(sink->released));
                 }
+                // The CONTENT image's ImageOpened subscription (image_handler.cpp's identical token
+                // convention) — revoked here too so ~image_button_platform tears down everything in one call.
+                if (platform.image_opened_token != 0)
+                {
+                    if (const image_control image = content_image(button))
+                    {
+                        image.ImageOpened(winrt::event_token{platform.image_opened_token});
+                    }
+                }
             }
             platform.click_token = 0;
+            platform.image_opened_token = 0;
             delete static_cast<pointer_sink*>(platform.pointer_events);
             platform.pointer_events = nullptr;
+        }
+
+        // Belt-and-braces for concern 3 (an already-decoded/cached BitmapImage reused as a new Source) —
+        // the image_handler.cpp notify_if_already_open convention, applied to the CONTENT image.
+        void notify_if_already_open(maui::core::image_button_platform& platform, const image_control& image)
+        {
+            const auto bitmap = image.Source().try_as<bitmap_image>();
+            if (bitmap && bitmap.PixelWidth() > 0 && bitmap.PixelHeight() > 0 && platform.on_image_opened)
+            {
+                platform.on_image_opened();
+            }
         }
     } // namespace
 
@@ -278,6 +313,14 @@ namespace maui::core
                 view->send_clicked();
             }
         };
+        // ImageButtonHandler.Windows.cs's OnImageOpened, RE-PURPOSED — see this file's header note 3 for
+        // why this callback calls invalidate_measure() rather than the oracle's UpdateIsLoading(false).
+        platform.on_image_opened = [this] {
+            if (auto* view = virtual_view())
+            {
+                view->invalidate_measure();
+            }
+        };
         if (platform.native == nullptr)
         {
             return;
@@ -315,6 +358,25 @@ namespace maui::core
         button.AddHandler(winui::UIElement::PointerPressedEvent(), winrt::box_value(sink->pressed), true);
         button.AddHandler(winui::UIElement::PointerReleasedEvent(), winrt::box_value(sink->released), true);
         platform.pointer_events = sink.release();
+
+        // ImageButtonHandler.Windows.cs's ConnectHandler: `_image.ImageOpened += OnImageOpened;` — attached
+        // on the CONTENT image, before ANY Source is ever set on it (view_handler.hpp's set_virtual_view
+        // calls on_connect_handler before the mapper's first update_properties() pass, which is what runs
+        // map_source — image_handler.cpp's on_connect_handler carries the full ordering argument). Unlike
+        // the oracle's OnImageOpened, this callback calls invalidate_measure() rather than UpdateIsLoading —
+        // see this file's header note 3 for why.
+        if (const image_control image = content_image(button))
+        {
+            platform.image_opened_token = image
+                                              .ImageOpened([self](const winrt::Windows::Foundation::IInspectable&,
+                                                                  const winui::RoutedEventArgs&) {
+                                                  if (self->on_image_opened)
+                                                  {
+                                                      self->on_image_opened();
+                                                  }
+                                              })
+                                              .value;
+        }
     }
 
     void image_button_handler::on_disconnect_handler(image_button_platform& platform)
@@ -323,6 +385,7 @@ namespace maui::core
         platform.on_press = nullptr;
         platform.on_release = nullptr;
         platform.on_click = nullptr;
+        platform.on_image_opened = nullptr;
     }
 
     // ---- the image surface (the ImageMapper chain, keyed on i_image_button) ----
@@ -496,37 +559,26 @@ namespace maui::core
         map_padding(handler, view);
     }
 
-    // MEASURED DEFECT, ROOT CAUSE CONFIRMED — this returns a size taken before the bitmap exists.
+    // MEASURED DEFECT, NOW FIXED (CONSUMER HALF LANDED) — this can still return a size taken before the
+    // bitmap exists, on the FIRST Measure of a freshly-sourced Image; the fix is what happens AFTER that.
     //
     // BitmapImage decoding is ALWAYS asynchronous in WinUI, so a freshly-sourced Image reports (0,0) at
-    // the first Measure (image_handler.cpp's header note 2 states this outright). C# handles it:
-    // ImageHandler.Windows.cs subscribes ImageOpened and re-runs the constraint update when the decode
-    // lands. This backend subscribes nothing, so the layout computed against (0,0) is never revisited.
-    //
-    // The two board symptoms are ONE bug wearing two faces, which is why fixing it here alone would be
-    // treating a face rather than the bug:
+    // the first Measure (image_handler.cpp's header note 2 states this outright). The two board symptoms
+    // this caused were ONE bug wearing two faces:
     //   * image_button (27.09% light / 31.17% dark): a zero-desired child that the parent stack then
     //     stretches, so ONE ImageButton fills the whole viewport (~200x702) and pushes the other eight
     //     off-screen. The gear glyph inside it renders at the correct ~140px -- the CONTENT measured
     //     fine, the control's reported height did not.
     //   * image (82.90% light, the board's 2nd-worst page): the same (0,0) with no stretching parent, so
-    //     every image collapses to zero height and the page shows labels with no pictures. This had been
-    //     attributed to the missing uri_fetch seam and Win2D font sources; those gaps are real but they
-    //     are NOT why bundled file images vanish.
+    //     every image collapses to zero height and the page shows labels with no pictures.
     //
-    // FIXING IT NEEDED TWO PIECES: wiring ImageOpened per the oracle is straightforward, but it had nothing
-    // to call -- view.hpp's invalidate_measure() was an explicit no-op. THAT PIECE NOW LANDED (view.hpp's
-    // invalidate_measure() really asks the containing window to replay drive_layout, via
-    // window::request_relayout / set_relayout_hook, installed by this backend's host_run.cpp right after
-    // its first pass -- see those files). This comment is left in place because the OTHER piece is still
-    // NOT done: nothing here subscribes ImageOpened yet, so there is still nothing calling the
-    // (now-real) seam for this control, and `image`/`image_button` are still broken until that lands.
-    //
-    // Recorded rather than patched because a local fudge (hard-coding a natural size, or forcing a
-    // synchronous decode only for this control) would hide the shared defect and leave `image` broken.
-    // TODO: wire ImageOpened per src/Core/src/Handlers/Image/ImageHandler.Windows.cs (OnImageOpened ->
-    // UpdatePlatformMaxConstraints), then call invalidate_measure() from it -- the layout-invalidation seam
-    // it needs is real now.
+    // FIXING IT NEEDED TWO PIECES, BOTH NOW LANDED: (1) view.hpp's invalidate_measure() is real (asks the
+    // containing window to replay drive_layout, via window::request_relayout / set_relayout_hook, installed
+    // by this backend's host_run.cpp right after its first pass); (2) on_connect_handler above subscribes
+    // ImageOpened on the CONTENT image and calls invalidate_measure() from it (this file's header note 3),
+    // so once the decode lands, THIS get_desired_size gets called again and reports the real size. A local
+    // fudge (hard-coding a natural size, or forcing a synchronous decode only for this control) would have
+    // hidden the shared defect instead of fixing it -- this closes the actual gap.
     maui::graphics::size image_button_handler::get_desired_size(double width_constraint, double height_constraint) const
     {
         const auto* platform = typed_platform_view();
@@ -604,6 +656,7 @@ namespace maui::core
         {
             image.Source(bitmap_image{resolve_file_uri(platform.source_file)});
             image.Visibility(winui::Visibility::Visible);
+            notify_if_already_open(platform, image);
         }
         catch (const winrt::hresult_error&)
         {
@@ -639,6 +692,7 @@ namespace maui::core
         {
             image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
             image.Visibility(winui::Visibility::Visible);
+            notify_if_already_open(platform, image);
         }
     }
 

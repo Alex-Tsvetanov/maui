@@ -76,6 +76,10 @@ namespace maui::core
         move_only_function<void()> on_click;
         move_only_function<void()> on_press;
         move_only_function<void()> on_release;
+        // Windows-only inbound hook: fired once the CONTENT image's BitmapImage finishes decoding — the
+        // image_platform::on_image_opened convention (see that header's comment for why it is indirected
+        // rather than a direct handler `this` capture). Unused on every other backend.
+        move_only_function<void()> on_image_opened;
 
 #ifdef MAUI_PLATFORM_WINDOWS
         // WinUI 3 backend: the Click event-registration token on_connect_handler produced (revoked by
@@ -84,6 +88,9 @@ namespace maui::core
         // comment for why POINTER events cannot use a token).
         std::int64_t click_token = 0;
         void* pointer_events = nullptr;
+        // The CONTENT image's ImageOpened event-registration token (the image_platform::image_opened_token
+        // convention) — revoked by on_disconnect_handler / ~image_button_platform alongside click_token.
+        std::int64_t image_opened_token = 0;
 #endif
 
 #ifdef MAUI_PLATFORM_WINDOWS

@@ -25,6 +25,7 @@
 // into `native` instead). It derives view_platform_base (the shared ViewMapper face) so the generic IView
 // properties (Visibility/Opacity/IsEnabled/AutomationId) map onto the NSImageView too.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -33,6 +34,7 @@
 #include "maui/core/command_mapper.hpp"
 #include "maui/core/i_image.hpp"
 #include "maui/core/image_source_loader.hpp"
+#include "maui/core/move_only_function.hpp"
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_handler.hpp"
 #include "maui/core/view_platform_base.hpp"
@@ -80,6 +82,23 @@ namespace maui::core
         // (controls/view.hpp holds it by shared_ptr); this is only the const* borrow, exactly as the iOS
         // store_clip_shape stash. Unused on headless/Apple (Apple stashes via an associated object instead).
         const maui::graphics::i_shape* clip_shape = nullptr;
+        // Windows-only inbound hook: fired once BitmapImage decoding completes — either by the native
+        // ImageOpened subscription (image_handler.cpp's on_connect_handler) or, for an already-decoded
+        // source, by the belt-and-braces check in load_file_source_sync/apply_loaded_result (see that
+        // file's header note 2 for why both paths exist). Indirected through the platform struct rather
+        // than a direct handler `this` capture — the button_platform on_click convention — so (a) the
+        // static per-backend source primitives (which have no `this`) can invoke it too, and (b) a token
+        // revoke that is somehow skipped resolves to a safe no-op instead of touching a dangling handler.
+        // Unused (never invoked) on every other backend.
+        maui::core::move_only_function<void()> on_image_opened;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the ImageOpened event-registration token on_connect_handler produces, so
+        // on_disconnect_handler (and ~image_platform, which calls it directly so a handler torn down
+        // without a disconnect does not leave the lambda firing into freed memory) can revoke EXACTLY
+        // what it registered — the button_platform click_token convention.
+        std::int64_t image_opened_token = 0;
+#endif
 
 #ifdef MAUI_PLATFORM_WINDOWS
         // WinUI 3 backend: push the generic IView properties to the native Image element via the shared
@@ -176,6 +195,16 @@ namespace maui::core
         static command_mapper<i_image, image_handler>& command_mapper();
 
         static std::unique_ptr<image_platform> create_platform_view();
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend ONLY: subscribe/unsubscribe Microsoft.UI.Xaml.Controls.Image.ImageOpened — the
+        // consumer half of the async-decode fix (this file's header note 2; image_handler.cpp's own
+        // header). No other backend decodes asynchronously, so no other backend declares these — the
+        // view_handler.hpp `if constexpr (requires …)` detection simply finds nothing on those builds and
+        // skips the call, matching the pre-existing (no-op) behavior there exactly.
+        void on_connect_handler(image_platform& platform);
+        static void on_disconnect_handler(image_platform& platform);
+#endif
 
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,
                                                             double height_constraint) const override;

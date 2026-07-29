@@ -18,19 +18,21 @@
 //     just via a `file:///` Uri + the BitmapImage(Uri) ctor instead of StorageFile+OpenReadAsync+
 //     SetSourceAsync (both end up decoding the same bytes into a BitmapImage; the Uri ctor needs no
 //     coroutine machinery, which load_file_source_sync's synchronous contract does not have room for).
-//  2. ASYNC DECODE, NO ImageOpened WIRING. BitmapImage decoding is ALWAYS asynchronous in WinUI — there is
+//  2. ASYNC DECODE — ImageOpened NOW WIRED. BitmapImage decoding is ALWAYS asynchronous in WinUI — there is
 //     no synchronous decode API, unlike apple's NSImage — so get_desired_size may read {0,0} on the very
 //     first Measure (the decode has not completed yet). ImageHandler.Windows.cs subscribes ImageOpened
-//     precisely to react to this (OnImageOpened -> UpdatePlatformMaxConstraints), but that only matters
-//     once this port drives a SECOND layout pass after the initial one — which it already does: the E2E/
-//     parity harness resizes the window after launch (host_run.cpp's SizeChanged -> drive_layout, "the
-//     E2E runner pins the window to an explicit rect AFTER launching the process"), by which point a
-//     small local file has virtually always finished decoding. Wiring ImageOpened to force an EARLIER
-//     relayout now HAS somewhere to reach: window::request_relayout / set_relayout_hook (window.hpp),
-//     installed by this backend's host_run.cpp right after its first drive_layout — the generalized,
-//     cross-platform twin of the android partial's jni/relayout.hpp this note used to point at as future
-//     work. Still out of THIS file's scope (the consumer, not the seam): get_desired_size still does the
-//     plain real Measure(), matching the label/button shape exactly.
+//     precisely to react to this (OnImageOpened -> UpdatePlatformMaxConstraints); this backend now does
+//     the same subscribe/unsubscribe (on_connect_handler/on_disconnect_handler below, token-revoked like
+//     button_handler.cpp's Click), but the CONSEQUENCE it drives is different from the oracle line: rather
+//     than porting UpdatePlatformMaxConstraints's AspectFit MaxWidth/MaxHeight clamp (a separate, narrower
+//     concern this slice does not touch), the callback calls the virtual view's invalidate_measure() —
+//     window::request_relayout / set_relayout_hook (window.hpp), installed by this backend's host_run.cpp
+//     right after its first drive_layout. That seam is what a real MAUI backend gets FOR FREE (its native
+//     OS-owned layout tree bubbles a dirty flag to the root on its own); this port's own C++-side
+//     desired_size_ cache does not auto-correct just because the NATIVE WinUI Image re-measures itself
+//     internally post-decode, so an explicit replay of THIS port's drive_layout is what closes the gap —
+//     see load_file_source_sync/apply_loaded_result below for the belt-and-braces case (an already-decoded
+//     source) and this file's on_connect_handler/on_disconnect_handler for the subscribe/teardown.
 //  3. FONT SOURCES STAY MIRROR-ONLY (URI/STREAM ARE NOW REAL). image_source_services.cpp (swapped in via
 //     MAUI_WINDOWS_SWAPS) decodes a uri/stream source into a genuine BitmapImage the same way the FILE fast
 //     path below does (spool-to-temp-file + the Uri ctor — see that file's header for why not
@@ -191,8 +193,45 @@ namespace
 
 namespace maui::core
 {
+    namespace
+    {
+        // Unhook the ImageOpened subscription on_connect_handler registered — the button_handler.cpp
+        // detach_native_events convention. Called from on_disconnect_handler AND from ~image_platform: the
+        // native lambda captures only `self` (a image_platform*, not the handler), but the platform struct
+        // itself can still be destroyed while the token is live (a handler torn down without a disconnect,
+        // which the element tree does on shutdown) — the next ImageOpened firing would then touch freed
+        // memory, so both teardown paths revoke it.
+        void detach_native_events(maui::core::image_platform& platform)
+        {
+            if (platform.native != nullptr && platform.image_opened_token != 0)
+            {
+                as_image(platform.native).ImageOpened(winrt::event_token{platform.image_opened_token});
+            }
+            platform.image_opened_token = 0;
+        }
+
+        // Belt-and-braces for concern 3 (an already-decoded/cached BitmapImage assigned as a NEW Source):
+        // on_connect_handler's comment argues the INITIAL source cannot race the subscription (this port's
+        // view_handler.hpp always runs on_connect_handler before the first map_source), but that argument
+        // does not cover a LATER source change reusing an already-opened BitmapImage instance, where it is
+        // not certain WinUI re-raises Image.ImageOpened for the reassigned source. Checking PixelWidth/
+        // Height right after the assignment and invoking the same hook directly closes that gap without
+        // depending on the event at all. Harmless if ImageOpened ALSO fires afterward for the same
+        // assignment — invalidate_measure() is safe to call twice (on_connect_handler's termination note:
+        // each call independently settles in at most one extra drive_layout() pass).
+        void notify_if_already_open(image_platform& platform, const image_control& image)
+        {
+            const auto bitmap = image.Source().try_as<bitmap_image>();
+            if (bitmap && bitmap.PixelWidth() > 0 && bitmap.PixelHeight() > 0 && platform.on_image_opened)
+            {
+                platform.on_image_opened();
+            }
+        }
+    } // namespace
+
     image_platform::~image_platform()
     {
+        detach_native_events(*this);
         if (native != nullptr)
         {
             maui::platform::windows::drop<winui::UIElement>(native);
@@ -205,6 +244,55 @@ namespace maui::core
         image_control image;
         platform->native = maui::platform::windows::take<winui::UIElement>(image);
         return platform;
+    }
+
+    // ImageHandler.Windows.cs's ConnectHandler: `platformView.ImageOpened += OnImageOpened;` — subscribed
+    // here, BEFORE the property mapper's first update_properties() pass (view_handler.hpp's
+    // set_virtual_view calls on_connect_handler, THEN property_mapper_->update_properties(), which is what
+    // runs map_source), so this attaches before ANY Source is ever set on this freshly-created Image —
+    // exactly like C#'s CreatePlatformView() handing back a source-less `new WImage()` before ConnectHandler
+    // subscribes. That ordering is why a genuine "decode completed before we subscribed" race cannot occur
+    // on the INITIAL source; see image_handler.cpp's header note 2 + load_file_source_sync/
+    // apply_loaded_result's belt-and-braces check below for the residual (already-decoded/cached source)
+    // case this ordering argument does not, by itself, rule out.
+    //
+    // The callback's `this->IsConnected()` C# guard becomes `virtual_view() != nullptr` here — view_handler
+    // ::disconnect_handler() clears virtual_view_ before the platform view is torn down, so a callback that
+    // fires after disconnect (queued on the dispatcher before revoke ran) is a safe no-op rather than a
+    // stale push. TERMINATION: ImageOpened fires AT MOST ONCE per successfully-decoded source (a WinUI
+    // guarantee — decode-complete is a one-time transition per BitmapImage, and re-measuring the Image via
+    // get_desired_size's Measure() call does not restart the decode or re-raise the event), and it is
+    // delivered via the UI-thread dispatcher, never synchronously re-entrant inside UIElement::Measure() —
+    // so the invalidate_measure() this triggers can drive at most ONE extra drive_layout() pass per source
+    // load, which itself cannot trigger a second ImageOpened. It does not loop.
+    void image_handler::on_connect_handler(image_platform& platform)
+    {
+        platform.on_image_opened = [this] {
+            if (auto* view = virtual_view())
+            {
+                view->invalidate_measure();
+            }
+        };
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        auto* self = &platform;
+        platform.image_opened_token =
+            as_image(platform.native)
+                .ImageOpened([self](const winrt::Windows::Foundation::IInspectable&, const winui::RoutedEventArgs&) {
+                    if (self->on_image_opened)
+                    {
+                        self->on_image_opened();
+                    }
+                })
+                .value;
+    }
+
+    void image_handler::on_disconnect_handler(image_platform& platform)
+    {
+        detach_native_events(platform);
+        platform.on_image_opened = nullptr;
     }
 
     // Headless-style no-op: see this file's header note 3 — the async loader's uri/stream/font path
@@ -306,6 +394,7 @@ namespace maui::core
         try
         {
             image.Source(bitmap_image{resolve_file_uri(platform.source_file)});
+            notify_if_already_open(platform, image);
         }
         catch (const winrt::hresult_error&)
         {
@@ -331,7 +420,9 @@ namespace maui::core
         platform.source_loaded = true;
         if (platform.native != nullptr && result.image() != nullptr)
         {
-            as_image(platform.native).Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+            const image_control image = as_image(platform.native);
+            image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+            notify_if_already_open(platform, image);
         }
     }
 
