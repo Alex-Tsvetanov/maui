@@ -21,9 +21,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <cstdint>
 #include <limits>
 #include <memory>
 #include <string>
@@ -57,6 +57,35 @@ namespace
     // "Segoe UI Variable Text" on Windows 11, and 14 is ControlContentThemeFontSize).
     constexpr double k_default_font_size = 14.0;
     constexpr std::wstring_view k_default_font_family = L"Segoe UI Variable Text";
+
+    // FontManager.Windows.cs:49-56 + :16 -- MAUI does NOT hard-code the default family. It resolves
+    //     _defaultFontFamily ??= (FontFamily)Application.Current.Resources["ContentControlThemeFontFamily"];
+    // i.e. a LIVE THEME-RESOURCE LOOKUP, cached after the first hit. This port hard-coded the string on
+    // the assumption that the resource equals "Segoe UI Variable Text" on Windows 11 -- an assumption the
+    // comment above states outright and which has never been checked against the running app. Measured
+    // consequence if it is wrong: the port's Label rows are 17px at font-size 14 (ratio 1.21) where MAUI's
+    // are ~20-21px (~1.45), which accumulates into the grouped CollectionView drift and the `label` page
+    // (see 73d72bbff8 -- the Border host and the font SIZE are both already exonerated by measurement).
+    //
+    // Resolved once and cached, matching the oracle's ??=. Falls back to the previous constant when the
+    // key is absent rather than throwing, because MAUI's direct indexer would throw and a missing key
+    // here should degrade to today's behaviour, not kill the app.
+    winui::Media::FontFamily default_font_family()
+    {
+        static const winui::Media::FontFamily resolved = [] {
+            const auto resources = winui::Application::Current().Resources();
+            const auto key = winrt::box_value(winrt::hstring{L"ContentControlThemeFontFamily"});
+            if (resources.HasKey(key))
+            {
+                if (const auto family = resources.Lookup(key).try_as<winui::Media::FontFamily>())
+                {
+                    return family;
+                }
+            }
+            return winui::Media::FontFamily{k_default_font_family};
+        }();
+        return resolved;
+    }
 
     // The native element is a BORDER WRAPPING THE TEXTBLOCK, not a bare TextBlock. Two things force
     // that, both visible in the first Windows capture:
@@ -296,7 +325,7 @@ namespace maui::core
         // font back to the default silently keeps the old one.
         block.FontSize(f.size() > 0 ? f.size() : k_default_font_size);
         block.FontFamily(f.family().empty()
-                             ? winui::Media::FontFamily{k_default_font_family}
+                             ? default_font_family()
                              : winui::Media::FontFamily{maui::platform::windows::to_hstring(f.family())});
         block.FontStyle(to_font_style(f.slant()));
         block.FontWeight(to_font_weight(f.weight()));
@@ -416,7 +445,7 @@ namespace maui::core
             const font& f = run_data.run_font;
             run.FontSize(f.size() > 0 ? f.size() : k_default_font_size);
             run.FontFamily(f.family().empty()
-                               ? winui::Media::FontFamily{k_default_font_family}
+                               ? default_font_family()
                                : winui::Media::FontFamily{maui::platform::windows::to_hstring(f.family())});
             run.FontStyle(to_font_style(f.slant()));
             run.FontWeight(to_font_weight(f.weight()));
