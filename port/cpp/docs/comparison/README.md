@@ -8612,11 +8612,11 @@ ports EmptyViewGalleries/EmptyViewSwapGallery.xaml (+ .xaml.cs)
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9248, 1.62% pixels differ · Dark: SSIM 0.8765, 5.37% pixels differ
+Light: SSIM 0.9246, 1.62% pixels differ · Dark: SSIM 0.8763, 5.38% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9238, 1.64% pixels differ · Dark: SSIM 0.8762, 5.37% pixels differ
+Light: SSIM 0.9236, 1.64% pixels differ · Dark: SSIM 0.8761, 5.37% pixels differ
 
 ### 55. Empty View Template — 🔴/🔴
 <sub>empty_view_template</sub>
@@ -8672,11 +8672,11 @@ ports FilterCollectionView.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9078, 1.60% pixels differ · Dark: SSIM 0.8617, 5.39% pixels differ
+Light: SSIM 0.9090, 1.56% pixels differ · Dark: SSIM 0.8629, 5.34% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9077, 1.61% pixels differ · Dark: SSIM 0.8623, 5.37% pixels differ
+Light: SSIM 0.9090, 1.56% pixels differ · Dark: SSIM 0.8636, 5.33% pixels differ
 
 ### 59. Filter Selection — 🔴/🔴
 <sub>filter_selection</sub>

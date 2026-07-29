@@ -36,22 +36,28 @@ def rows(path):
     return w, h, ch, out
 
 
-wa, ha, ca, a = rows(sys.argv[1])
-wb, hb, cb, b = rows(sys.argv[2])
-band = int(sys.argv[3]) if len(sys.argv) > 3 else 40
-# Tolerance matters: this port has a known uniform +-1 background delta, so EXACT equality
-# flags every background pixel and drowns the structure we are looking for.
-tol = int(sys.argv[4]) if len(sys.argv) > 4 else 8
-h = min(ha, hb)
-print(f"a={wa}x{ha}({ca}ch)  b={wb}x{hb}({cb}ch)  comparing {h} rows")
-for top in range(0, h, band):
-    tot = dif = 0
-    for y in range(top, min(top + band, h)):
-        ra, rb = a[y], b[y]
-        for x in range(0, min(wa, wb)):
-            tot += 1
-            pa, pb = ra[x*ca:x*ca+3], rb[x*cb:x*cb+3]
-            if max(abs(pa[k] - pb[k]) for k in range(3)) > tol:
-                dif += 1
-    pct = 100.0 * dif / max(tot, 1)
-    print(f"  y {top:5}-{min(top+band,h):5}  {pct:6.1f}%  {'#' * int(pct / 2)}")
+def main():
+    wa, ha, ca, a = rows(sys.argv[1])
+    wb, hb, cb, b = rows(sys.argv[2])
+    band = int(sys.argv[3]) if len(sys.argv) > 3 else 40
+    # Tolerance matters: this port has a known uniform +-1 background delta, so EXACT equality
+    # flags every background pixel and drowns the structure we are looking for.
+    tol = int(sys.argv[4]) if len(sys.argv) > 4 else 8
+    h = min(ha, hb)
+    print(f"a={wa}x{ha}({ca}ch)  b={wb}x{hb}({cb}ch)  comparing {h} rows")
+    for top in range(0, h, band):
+        tot = dif = 0
+        for y in range(top, min(top + band, h)):
+            ra, rb = a[y], b[y]
+            for x in range(0, min(wa, wb)):
+                tot += 1
+                pa, pb = ra[x*ca:x*ca+3], rb[x*cb:x*cb+3]
+                if max(abs(pa[k] - pb[k]) for k in range(3)) > tol:
+                    dif += 1
+        pct = 100.0 * dif / max(tot, 1)
+        print(f"  y {top:5}-{min(top+band,h):5}  {pct:6.1f}%  {'#' * int(pct / 2)}")
+
+
+# Guarded so rowshift.py can import `rows` (one PNG decoder in the tree, not two).
+if __name__ == "__main__":
+    main()
