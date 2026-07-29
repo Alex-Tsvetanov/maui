@@ -72,12 +72,6 @@ namespace
         return maui::platform::windows::ref<winui::UIElement>(native).as<combo_box>();
     }
 
-    // MAUI's Windows FontManager defaults — see label_handler.cpp's identical constants; the port has no
-    // i_font_manager for this backend yet, so these stand in for fontManager.GetFontSize/GetFontFamily's
-    // resolved defaults (ControlContentThemeFontSize / the Fluent theme's default control font).
-    constexpr double k_default_font_size = 14.0;
-    constexpr std::wstring_view k_default_font_family = L"Segoe UI Variable Text";
-
     // PickerExtensions' ComboBoxForeground resource-key set (see button_handler.cpp's identical
     // k_text_color_keys pattern for WHY a local Foreground alone is insufficient: the control template
     // binds per-visual-state brushes to these theme resources, so an unset override is dropped again the
@@ -422,10 +416,10 @@ namespace maui::core
         const font& f = platform->text_font;
         // ALWAYS assign, never skip — see label_handler.cpp's identical map_font note: C#'s UpdateFont
         // resolves fontManager.GetFontSize/GetFontFamily unconditionally, which fall back to the
-        // framework defaults (k_default_font_size/k_default_font_family) when the Font is unset.
-        combo.FontSize(f.size() > 0 ? f.size() : k_default_font_size);
+        // framework defaults (winui_interop's default_font_size()/default_font_family()) when unset.
+        combo.FontSize(f.size() > 0 ? f.size() : maui::platform::windows::default_font_size());
         combo.FontFamily(f.family().empty()
-                             ? winui::Media::FontFamily{k_default_font_family}
+                             ? maui::platform::windows::default_font_family()
                              : winui::Media::FontFamily{maui::platform::windows::to_hstring(f.family())});
         combo.FontStyle(to_font_style(f.slant()));
         combo.FontWeight(to_font_weight(f.weight()));

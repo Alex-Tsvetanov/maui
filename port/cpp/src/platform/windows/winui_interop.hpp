@@ -11,6 +11,7 @@
 // fails with "error C3779: a function that returns 'auto' cannot be used before it is defined" — an error
 // that does not read as "add an include".
 
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.UI.h>
@@ -75,4 +76,20 @@ namespace maui::platform::windows
 
     // maui::graphics::color is normalized float RGBA; Windows::UI::Color is 8-bit BGRA-ordered fields.
     winrt::Windows::UI::Color to_ui_color(const maui::graphics::color& value);
+
+    // ---- default font resolution ------------------------------------------------------------------
+    // FontManager.Windows.cs:16-17,49-66 — MAUI does NOT hard-code its default control font. Both
+    // DefaultFontFamily and DefaultFontSize resolve, once and cached (`??=`), from a LIVE theme-resource
+    // lookup: Application.Current.Resources["ContentControlThemeFontFamily"/"ControlContentThemeFontSize"].
+    // Every Windows text handler (label/entry/picker/search_bar — see git history for button's documented
+    // divergence: it skips the font push entirely when unset, so it never needed this) used to keep its
+    // own copy of a hard-coded fallback constant; this pair is the single resolver they all call now.
+    //
+    // Cached via a function-local static, matching the oracle's per-instance `??=` (this backend has one
+    // FontManager-equivalent for the process's single Application, so a static plays the same role as the
+    // oracle's per-instance field). Falls back to the pre-lookup constant when the key is absent or the
+    // wrong type, because MAUI's direct indexer/cast would THROW and a missing/mistyped resource here
+    // should degrade to the old behaviour, not crash the app.
+    winrt::Microsoft::UI::Xaml::Media::FontFamily default_font_family();
+    double default_font_size();
 } // namespace maui::platform::windows

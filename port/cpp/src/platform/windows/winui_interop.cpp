@@ -3,12 +3,18 @@
 
 #include "winui_interop.hpp"
 
+// IMap members (HasKey/Lookup below, on Application::Current().Resources()) — the C++/WinRT include
+// rule (see winui_interop.hpp's file header): the impl/*.0.h headers reached transitively only
+// forward-declare those, and calling them without this full header fails with C3779, an error that
+// does not read as "add an include".
+#include <winrt/Windows.Foundation.Collections.h>
+
 #include <windows.h>
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -27,6 +33,12 @@ namespace maui::platform::windows
         {
             return static_cast<std::uint8_t>(std::clamp(component, 0.0F, 1.0F) * 255.0F);
         }
+
+        // The pre-lookup values every handler hard-coded before default_font_family()/default_font_size()
+        // existed (see winui_interop.hpp's doc comment) — the WinUI theme resources they now resolve carry
+        // "Segoe UI Variable Text" / 14 on Windows 11. Kept as the fallback for a missing/mistyped key.
+        constexpr double k_default_font_size = 14.0;
+        constexpr std::wstring_view k_default_font_family = L"Segoe UI Variable Text";
     } // namespace
 
     float measure_constraint(double value)
@@ -79,5 +91,44 @@ namespace maui::platform::windows
     {
         return winrt::Windows::UI::Color{to_byte(value.alpha), to_byte(value.red), to_byte(value.green),
                                          to_byte(value.blue)};
+    }
+
+    // FontManager.Windows.cs:49-56 — `_defaultFontFamily ??= (FontFamily)Application.Current
+    // .Resources["ContentControlThemeFontFamily"]`. Resolved once and cached (function-local static
+    // matches the oracle's `??=`), falling back to the pre-lookup constant when the key is absent or not
+    // actually a FontFamily, rather than throwing like the oracle's direct indexer/cast would.
+    winrt::Microsoft::UI::Xaml::Media::FontFamily default_font_family()
+    {
+        static const winrt::Microsoft::UI::Xaml::Media::FontFamily resolved = [] {
+            const auto resources = winrt::Microsoft::UI::Xaml::Application::Current().Resources();
+            const auto key = winrt::box_value(winrt::hstring{L"ContentControlThemeFontFamily"});
+            if (resources.HasKey(key))
+            {
+                if (const auto family = resources.Lookup(key).try_as<winrt::Microsoft::UI::Xaml::Media::FontFamily>())
+                {
+                    return family;
+                }
+            }
+            return winrt::Microsoft::UI::Xaml::Media::FontFamily{k_default_font_family};
+        }();
+        return resolved;
+    }
+
+    // FontManager.Windows.cs:59-66 — `_defaultFontSize ??= (double)Application.Current
+    // .Resources["ControlContentThemeFontSize"]`. Same resolve-once-and-cache / same-key-class shape as
+    // DefaultFontFamily above (the oracle defines both members identically); same throws-vs-degrades
+    // reasoning for the fallback.
+    double default_font_size()
+    {
+        static const double resolved = [] {
+            const auto resources = winrt::Microsoft::UI::Xaml::Application::Current().Resources();
+            const auto key = winrt::box_value(winrt::hstring{L"ControlContentThemeFontSize"});
+            if (resources.HasKey(key))
+            {
+                return winrt::unbox_value_or<double>(resources.Lookup(key), k_default_font_size);
+            }
+            return k_default_font_size;
+        }();
+        return resolved;
     }
 } // namespace maui::platform::windows

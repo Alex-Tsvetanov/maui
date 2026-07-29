@@ -93,12 +93,6 @@ namespace
         return bindable != nullptr && bindable->is_property_set(property);
     }
 
-    // MAUI's Windows FontManager defaults (see label_handler.cpp's identical constants/rationale): the
-    // WinUI theme's ContentControlThemeFontFamily / ControlContentThemeFontSize, hard-coded because the
-    // port's Windows i_font_manager doesn't exist yet.
-    constexpr double k_default_font_size = 14.0;
-    constexpr std::wstring_view k_default_font_family = L"Segoe UI Variable Text";
-
     // TextAlignmentExtensions.ToPlatform(isLtr: true) — same rationale as label_handler.cpp (no
     // FlowDirection wired through here yet).
     winui::TextAlignment to_platform(maui::core::text_alignment value)
@@ -559,8 +553,8 @@ namespace maui::core
         // ALWAYS assign, never skip (matching label_handler's map_font, NOT button_handler's skip-if-
         // unset): FontExtensions.UpdateFont resolves fontManager.GetFontSize/GetFontFamily
         // unconditionally, and those resolve the FRAMEWORK default when the font is unset.
-        box.FontSize(f.size() > 0 ? f.size() : k_default_font_size);
-        box.FontFamily(f.family().empty() ? winui::Media::FontFamily{k_default_font_family}
+        box.FontSize(f.size() > 0 ? f.size() : maui::platform::windows::default_font_size());
+        box.FontFamily(f.family().empty() ? maui::platform::windows::default_font_family()
                                           : winui::Media::FontFamily{maui::platform::windows::to_hstring(f.family())});
         box.FontStyle(to_font_style(f.slant()));
         box.FontWeight(to_font_weight(f.weight()));
