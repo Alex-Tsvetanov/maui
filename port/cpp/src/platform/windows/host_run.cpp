@@ -194,7 +194,28 @@ namespace
                 [this](const winrt::Windows::Foundation::IInspectable&, const winui::WindowSizeChangedEventArgs& args) {
                     if (window_ != nullptr)
                     {
+                        // TEMPORARY PROBE (env-gated, remove with the other header_footer_grid probes).
+                        // boot_log has been SILENT after boot-complete, which is exactly the window in
+                        // which that page dies: the app boots fully with a visible 960x543 window
+                        // (05edb875ff), then `present` resizes it toward 1024x800 -- firing THIS handler --
+                        // and the window is 0x0 and then gone. If the "resize: drive_layout" line appears
+                        // with no matching "done", the death is inside layout at the TARGET size, which
+                        // boot never exercises (boot lays out at the 944x504 client area). Logging both
+                        // sides so the last line written names the step that killed it -- the method that
+                        // found the `device` page crash after two wrong guesses.
+                        const bool trace = std::getenv("MAUI_WINUI_LOG") != nullptr;
+                        if (trace)
+                        {
+                            char line[128];
+                            std::snprintf(line, sizeof line, "resize: drive_layout %.1fx%.1f", args.Size().Width,
+                                          args.Size().Height);
+                            boot_log(line);
+                        }
                         maui::hosting::drive_layout(*window_, args.Size().Width, args.Size().Height);
+                        if (trace)
+                        {
+                            boot_log("resize: drive_layout done");
+                        }
                     }
                 });
 
