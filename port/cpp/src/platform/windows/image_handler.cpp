@@ -62,6 +62,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <string>
@@ -467,6 +470,34 @@ namespace maui::core
         image.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
                                                        maui::platform::windows::measure_constraint(height_constraint)});
         const auto desired = image.DesiredSize();
+        // TEMPORARY DIAGNOSTIC (env-gated, remove once the `image` collapse is understood). Twelve
+        // hypotheses about this page have died on captures, the last one mine, and every one of them was
+        // an argument from reading source. This prints what the measure ACTUALLY observes at each pass,
+        // which distinguishes the two remaining stories that source-reading cannot separate:
+        //   * bitmap present, measure ignores it   -> pixel_w/h > 0 but desired == 0
+        //   * bitmap absent at every pass we make  -> pixel_w/h == 0, i.e. the decode really never lands
+        //     before the last layout, and image_handler.cpp note 2's "the harness resize supplies a second
+        //     pass" is false in practice.
+        if (const char* const path = std::getenv("MAUI_WINUI_LOG"))
+        {
+            std::int32_t pixel_w = -1;
+            std::int32_t pixel_h = -1;
+            if (const auto bitmap = image.Source().try_as<bitmap_image>())
+            {
+                pixel_w = bitmap.PixelWidth();
+                pixel_h = bitmap.PixelHeight();
+            }
+            std::FILE* file = nullptr;
+            if (fopen_s(&file, path, "a") == 0 && file != nullptr)
+            {
+                std::fprintf(file,
+                             "image.measure cw=%.1f ch=%.1f -> desired=%.1fx%.1f actual=%.1fx%.1f "
+                             "pixel=%dx%d src=%d\n",
+                             width_constraint, height_constraint, desired.Width, desired.Height, image.ActualWidth(),
+                             image.ActualHeight(), pixel_w, pixel_h, image.Source() != nullptr ? 1 : 0);
+                std::fclose(file);
+            }
+        }
         return {desired.Width, desired.Height};
     }
 
