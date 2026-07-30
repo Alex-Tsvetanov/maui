@@ -31,9 +31,12 @@
 //     is mounted post-order via ensure_mounted (the android boxed-VIEW/chrome mount, ported 1:1) so its
 //     own children's native views exist before this file hosts the root. With no template, the DEFAULT
 //     cell is a plain TextBlock mirroring item.text() (C#'s DefaultCell2).
-//   - HEADER / FOOTER (structured, global) and GROUP HEADER / FOOTER (grouped, per-section) realize the
-//     same way, hosted full-cross-width, OUTSIDE the item loop but INLINE on the main-axis cursor (see
-//     "NOT PORTED" below for the horizontal-orientation simplification this implies).
+//   - HEADER / FOOTER (structured, global) and GROUP HEADER (grouped, per-section) realize the same way,
+//     hosted full-cross-width, OUTSIDE the item loop but INLINE on the main-axis cursor (see "NOT PORTED"
+//     below for the horizontal-orientation simplification this implies). The GROUP FOOTER does NOT: UWP
+//     ListViewBase has no native group-footer slot (GroupTemplateContext.cs:25-32), so it is realized
+//     INSIDE the item loop instead, as a trailing ITEM appended to the group's own item list — it rides
+//     a regular item cell (grid column width, the item-row floor), not a full-cross-width band.
 //   - EMPTY VIEW (shown while the source has no items) realizes its template content or a centered
 //     TextBlock, filling the viewport's main extent.
 //   - GRID: a GridItemsLayout(span, orientation) lays `span` item columns across the cross axis (a
@@ -101,8 +104,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <cstdio>
-#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -144,21 +145,61 @@ namespace
     // The floor a realized row/band is clamped to when its real measure comes back 0 (a container root
     // whose own layout_manager has not run yet, or a genuinely empty label) — so a measurement failure
     // can't collapse a row to nothing and let the next one overlap it. Matches the android partial's
-    // k_min_row_extent (same rationale, same value).
+    // k_min_row_extent (same rationale, same value). Grid rows do NOT use this — see
+    // k_grid_item_min_extent below, a distinct SDK-default minimum this constant is not a stand-in for.
     constexpr double k_min_row_extent = 24;
 
+    // GRID item cell minimum — src/Controls/src/Core/Handlers/Items/StructuredItemsViewHandler.
+    // Windows.cs:246-263's GetItemContainerStyle (the GridItemsLayout arm) deliberately sets NO
+    // MinHeight, unlike the linear arm's explicit `MinHeightProperty, 0` at :283-286 — so a GridViewItem
+    // keeps its SDK BasedOn style's default minimum instead of being zeroed. DOCUMENTED DEVIATION (parity
+    // ruling 11): that default isn't derivable from `src/` (no WindowsAppSDK generic.xaml on this
+    // machine — confirmed absent, only `{ThemeResource GridViewItemMinHeight}`-shaped references exist).
+    // VALUE measured from the grid_grouping ground-truth capture: item-text ink lands at an exact 44.0px
+    // pitch (99, 143, 187, 231, 275, 319), vs the port's prior 24 (k_min_row_extent misapplied as this
+    // value) at an exact 24px pitch. Distinct constant from k_min_row_extent on purpose — that one is a
+    // measurement-failure guard, this one is a real, always-on container minimum on the grid path only.
+    constexpr double k_grid_item_min_extent = 44;
+
     // GROUP HEADER container chrome — src/Controls/src/Core/Platform/Windows/CollectionView/
-    // ItemsViewStyles.xaml's ListViewHeaderItem AND GridViewHeaderItem styles (both identical) override
+    // ItemsViewStyles.xaml's ListViewHeaderItem AND GridViewHeaderItem styles override
     // Padding="12,8,12,0" (left,top,right,bottom) around the header content, plus Margin="0,0,0,4"
-    // trailing the header before the group's first item. The GROUP FOOTER gets NEITHER of these: UWP
-    // ListViewBase has no native group-footer slot, so GroupTemplateContext.cs (same directory) fakes one
-    // by appending the footer as a plain trailing ITEM to the group's own item list — it rides the
-    // regular item container, not ListViewHeaderItem. Confirmed against the real Windows capture: the
-    // footer's orange band sits flush against both edges while the header's green band is inset 12px each
-    // side — so only the GROUP HEADER call site below opts into this chrome.
+    // trailing the header before the group's first item (both styles agree on Padding/Margin — see
+    // :207-215 linear / :235-243 grid). The GROUP FOOTER gets NEITHER of these: UWP ListViewBase has no
+    // native group-footer slot, so GroupTemplateContext.cs (same directory) fakes one by appending the
+    // footer as a plain trailing ITEM to the group's own item list — it rides the regular item container,
+    // not ListViewHeaderItem/GridViewHeaderItem. Confirmed against the real Windows capture: the footer's
+    // orange band sits flush against both edges while the header's green band is inset 12px each side —
+    // so only the GROUP HEADER call site below opts into this chrome.
     constexpr double k_group_header_cross_padding = 12; // Padding left/right
     constexpr double k_group_header_lead_padding = 8;   // Padding top (inset before content)
     constexpr double k_group_header_trail_margin = 4;   // Margin bottom (gap after, before next sibling)
+
+    // GROUP HEADER container MinHeight — the one setter ItemsViewStyles.xaml's ListViewHeaderItem
+    // (:215, `MinHeight="{ThemeResource ListViewHeaderItemMinHeight}"`) and GridViewHeaderItem
+    // (:243, `MinHeight="{ThemeResource GridViewHeaderItemMinHeight}"`) both carry that the block
+    // above copied Padding/Margin from but not this. The minimum applies to the CONTAINER, not the
+    // header's content — the content renders at its natural height inset by Padding, and the container
+    // tops up to MinHeight only if `lead_padding + natural_content_extent` falls short (see the
+    // realize_full_width is_group_header branch below). DOCUMENTED DEVIATION (parity ruling 11): neither
+    // theme resource's value is derivable from `src/` (no WindowsAppSDK generic.xaml on this machine),
+    // so the VALUE is measured from ground truth. It is 44 on BOTH paths.
+    //
+    // Both captures agree once the label's ink inset is MEASURED instead of assumed. That inset is
+    // calibrated off the port's own pre-fix geometry, where every term is known from the code: the old
+    // model put basic_grouping's first item box at container_top 55 + lead 8 + extent 24 + trail 4 = 91,
+    // and its ink measured at 96 -- so a 19px label's glyphs start 5px into their box. Same font, same
+    // size, therefore the same 5px inset in MAUI. Applying it:
+    //   - linear (basic_grouping): container top 51 (= 59 label top - 8 Padding-top); MAUI's first item
+    //     ink 104 - 5 inset = box top 99; - 4 trail margin = container bottom 95; 95 - 51 = 44.
+    //     Cross-checked on group 2: label top 369 -> container top 361; 361 + 44 + 4 + 5 = 414, and 414
+    //     is exactly a measured MAUI ink top. Two independent groups, same answer.
+    //   - grid (grid_grouping): container 51..95 = 44, first item row top 99, ink at +5 => 104.
+    // An earlier pass carried 48 here for the linear path. That came from assuming a 1px ink inset on
+    // linear while granting grid the real 5px -- the same label in both, so the asymmetry was the tell.
+    // If a future capture ever shows the two resources genuinely diverging, split this back into two
+    // constants; today the measurement says one value serves both.
+    constexpr double k_group_header_min_height = 44;
 
     scroll_viewer as_scroll_viewer(void* native)
     {
@@ -439,39 +480,20 @@ namespace maui::controls
         double measured_sum = 0; // for the item_extent feedback at the bottom of this function
         int measured_rows = 0;
 
-        // TEMPORARY PROBE (env-gated, remove once header_footer_grid's crash is fixed).
-        // Open-and-close per line so the last line survives an abrupt process death -- the technique
-        // that found the `device` page crash and, in c59ed6981d, the resize boundary on this page.
-        const auto cv_trace = [](const char* const fmt, auto... args) {
-            const char* const trace = std::getenv("MAUI_WINUI_LOG");
-            if (trace == nullptr)
-            {
-                return;
-            }
-            std::FILE* f = nullptr;
-            if (fopen_s(&f, trace, "a") == 0 && f != nullptr)
-            {
-                std::fprintf(f, fmt, args...);
-                std::fclose(f);
-            }
-        };
-
-        cv_trace("cv.begin cross=%.1f span=%d vertical=%d structured=%d\n", cross_extent, span, vertical ? 1 : 0,
-                 structured != nullptr ? 1 : 0);
-
-        // Realize a full-cross-width row (structured header/footer, empty view, group header/footer):
-        // template content > boxed view > text mirror — the android realize_supplemental_native recipe.
+        // Realize a full-cross-width row (structured header/footer, empty view, group header): template
+        // content > boxed view > text mirror — the android realize_supplemental_native recipe. The GROUP
+        // FOOTER is deliberately NOT a caller here any more — see the item loop below, which realizes it
+        // as a trailing ITEM instead (k_group_header_cross_padding's comment explains why: UWP has no
+        // native group-footer slot, and the real footer rides the regular item container, not this band).
         // `is_group_header` opts into the ListViewHeaderItem/GridViewHeaderItem chrome documented at
-        // k_group_header_cross_padding above — every OTHER caller (structured header/footer, empty view,
-        // group footer) passes false and keeps the prior flush-to-the-edges behavior.
+        // k_group_header_cross_padding above — every OTHER caller (structured header/footer, empty view)
+        // passes false and keeps the prior flush-to-the-edges behavior.
         auto realize_full_width = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
                                       bool is_group_header) {
             if (!tmpl && !value.has_value())
             {
                 return; // nothing to show (matches android: no template AND no value)
             }
-            cv_trace("cv.full enter tmpl=%d value=%d group=%d cursor=%.1f cross=%.1f\n", tmpl != nullptr ? 1 : 0,
-                     value.has_value() ? 1 : 0, is_group_header ? 1 : 0, cursor, cross_extent);
             winui::UIElement native{nullptr};
             std::shared_ptr<maui::core::bindable_object> realized =
                 realize_template_content(context, tmpl, value, native);
@@ -496,8 +518,6 @@ namespace maui::controls
             // there is one (a header/footer template or boxed View can be container-rooted, and a bare
             // native Measure() on a container under-reports — see the item loop's comment), else a direct
             // native measure for the plain-text fallback.
-            cv_trace("cv.full realized native=%d view=%d measure_cross=%.1f\n", native != nullptr ? 1 : 0,
-                     dynamic_cast<maui::core::i_view*>(realized.get()) != nullptr ? 1 : 0, measure_cross);
             double extent = 0;
             if (auto* const content_view = dynamic_cast<maui::core::i_view*>(realized.get()))
             {
@@ -510,16 +530,33 @@ namespace maui::controls
             {
                 extent = measure_main_extent(native, measure_cross, vertical);
             }
-            // Left UNCONDITIONAL on purpose, unlike the item-row floor below: these bands are not item
-            // containers (the structured header/footer is ListViewBase.Header/Footer content, a group
-            // header is a ListViewHeaderItem), so the linear MinHeight = 0 setter the item rows are
-            // governed by does not speak to them, and no measurement implicates them -- this page's
-            // header/footer measure 127 and 140, an order above the floor. Deliberately not "fixed" in
-            // the same pass; it would be an unmeasured change riding a measured one.
-            extent = std::max(extent, k_min_row_extent);
             const double lead = is_group_header ? k_group_header_lead_padding : 0.0;
             const double trail = is_group_header ? k_group_header_trail_margin : 0.0;
             const double cross_origin = is_group_header ? k_group_header_cross_padding : 0.0;
+            // Left UNCONDITIONAL on purpose for the non-group-header callers (structured header/footer,
+            // empty view): these bands are not item containers (ListViewBase.Header/Footer content), so
+            // the linear MinHeight = 0 setter the item rows are governed by does not speak to them, and
+            // no measurement implicates them -- this page's header/footer measure 127 and 140, an order
+            // above the floor. Deliberately not "fixed" in the same pass; it would be an unmeasured
+            // change riding a measured one.
+            //
+            // The GROUP HEADER is different: it DOES carry a MinHeight (k_group_header_min_height
+            // above), but that minimum belongs to the CONTAINER, not the content -- the label
+            // renders at its own NATURAL height inset by Padding, and only the container's total (lead
+            // padding + that natural height) tops up to MinHeight when it falls short. So for a group
+            // header `extent` is left UNFLOORED (it drives the content's own placement/size below) and a
+            // separate `container_extent` -- container_extent = max(min_height, lead + extent) -- carries
+            // the floor instead, exactly mirroring ItemsViewStyles.xaml's Padding-then-MinHeight model.
+            double container_extent = lead + extent;
+            if (is_group_header)
+            {
+                container_extent = std::max(k_group_header_min_height, container_extent);
+            }
+            else
+            {
+                extent = std::max(extent, k_min_row_extent);
+                container_extent = extent; // lead is 0 for every non-group-header caller
+            }
             canvas::SetLeft(native, vertical ? cross_origin : cursor + lead);
             canvas::SetTop(native, vertical ? cursor + lead : cross_origin);
             if (auto framework_element = native.try_as<winui::FrameworkElement>())
@@ -527,7 +564,6 @@ namespace maui::controls
                 framework_element.Width(vertical ? measure_cross : extent);
                 framework_element.Height(vertical ? extent : measure_cross);
             }
-            cv_trace("cv.full measured extent=%.1f\n", extent);
             panel.Children().Append(native);
             if (realized)
             {
@@ -536,8 +572,7 @@ namespace maui::controls
                                        : maui::graphics::rect{cursor + lead, cross_origin, extent, measure_cross});
                 platform->retained_natives.push_back(std::move(realized));
             }
-            cursor += lead + extent + trail + spacing;
-            cv_trace("cv.full exit cursor=%.1f\n", cursor);
+            cursor += container_extent + trail + spacing;
         };
 
         // The global (structured) header — realized BEFORE the items/empty region, independent of it
@@ -576,19 +611,18 @@ namespace maui::controls
                     realize_full_width(group_header_t, src->group(index_path{.section = section, .item = -1}), true);
                 }
 
-                const int count = src->item_count_in_group(section);
+                // GROUP FOOTER-as-trailing-ITEM: UWP ListViewBase has no native group-footer slot, so
+                // GroupTemplateContext.cs:25-32 fakes one by appending the footer as a plain extra item
+                // to the group's OWN item list; GroupFooterItemTemplateContext.cs:6 confirms it is just an
+                // ItemTemplateContext subtype with no footer-specific measure/arrange. So it rides the
+                // regular item container (col_cross width, participates in the row floor below) at virtual
+                // index `item_count`, not a full-cross-width band — matching the real capture where an
+                // odd-count group's footer shares its last row with the final item (grid_grouping:
+                // Defenders, 7 items, footer lands column 1 of row 4 alongside "Yellowjacket").
+                const int item_count = src->item_count_in_group(section);
+                const int count = item_count + (group_footer_t ? 1 : 0);
                 for (int first = 0; first < count; first += span)
                 {
-                    // TEMPORARY PROBE (env-gated, remove once header_footer_grid's crash is fixed).
-                    // c59ed6981d localized that page's failure precisely: the app enters drive_layout at
-                    // the RESIZED client size (1008x761) and never returns, while the SAME page lays out
-                    // fine at the boot size (944x504). A larger viewport realizes more cells and widens
-                    // cross_extent per column, so this loop is the prime suspect. Logging section/row/
-                    // count/extent per iteration means the LAST line written names the row being realized
-                    // when the process died -- the same open-and-close-per-line technique that found the
-                    // `device` page crash and, two probes ago, the resize boundary itself.
-                    cv_trace("cv.row section=%d first=%d of %d span=%d cross=%.1f col=%.1f\n", section, first, count,
-                             span, cross_extent, col_cross);
                     const int row_n = std::min(span, count - first);
                     struct realized_col
                     {
@@ -605,10 +639,23 @@ namespace maui::controls
                     // bare native UIElement::Measure() on a container root under-reports).
                     for (int c = 0; c < row_n; ++c)
                     {
-                        const index_path path{.section = section, .item = first + c};
-                        const boxed_item value = src->item(path);
-                        const std::shared_ptr<data_template> resolved =
-                            item_t ? resolve_item_template(item_t, value, container) : nullptr;
+                        const int index = first + c;
+                        boxed_item value;
+                        std::shared_ptr<data_template> resolved;
+                        if (group_footer_t && index == item_count)
+                        {
+                            // The trailing footer slot — same group-context value the header uses (the
+                            // C# footer item wraps the group object, not one of its children), template
+                            // used directly like the header (no selector resolution for group chrome).
+                            value = src->group(index_path{.section = section, .item = -1});
+                            resolved = group_footer_t;
+                        }
+                        else
+                        {
+                            const index_path path{.section = section, .item = index};
+                            value = src->item(path);
+                            resolved = item_t ? resolve_item_template(item_t, value, container) : nullptr;
+                        }
                         realized_col col;
                         col.retain = realize_template_content(context, resolved, value, col.native);
                         if (col.native == nullptr)
@@ -630,23 +677,27 @@ namespace maui::controls
                         row_extent = std::max(row_extent, extent);
                         cols.push_back(std::move(col));
                     }
-                    // The floor is a GRID-ONLY constraint, and on a linear list only a total measure
-                    // failure (every column 0) falls back to it — see k_min_row_extent's comment.
+                    // The floor is a GRID-ONLY constraint (k_grid_item_min_extent), and on a linear list
+                    // only a total measure failure (every column 0) falls back to k_min_row_extent's
+                    // measurement-failure guard.
                     //
                     // src/Controls/src/Core/Handlers/Items/StructuredItemsViewHandler.Windows.cs draws
                     // the line explicitly, per items-layout TYPE:
                     //   * GetVerticalItemContainerStyle (LinearItemsLayout)   -> MinHeight = 0
                     //   * GetHorizontalItemContainerStyle (LinearItemsLayout) -> MinWidth  = 0
                     //   * GetItemContainerStyle (GridItemsLayout)             -> NO minimum setter, so
-                    //     GridViewItem's BasedOn default minimum survives.
+                    //     GridViewItem's BasedOn default minimum survives (k_grid_item_min_extent).
                     // Both linear arms zero the MAIN-AXIS minimum, which is exactly the axis this floor
                     // clamps -- so a linear row must use its true measured extent, and a grid row keeps
-                    // the floor as this port's (still underived) stand-in for that SDK default.
+                    // its own SDK-default floor. k_grid_item_min_extent's comment carries the DOCUMENTED
+                    // DEVIATION note: the SDK value isn't derivable from `src/`, so it is measured from the
+                    // ground-truth capture (parity ruling 11) instead of this port's prior 24 stand-in.
                     //
-                    // MEASURED, not reasoned: the ink profile of basic_grouping puts MAUI's text rows at
-                    // 104/122/142/161/180/199/... -- a ~19px pitch -- against the port's
-                    // 96/119/144/168/192/216/... -- exactly 24. 5px per row, compounding to the +52px
-                    // drift rowshift.py reports by y=432.
+                    // MEASURED: basic_grouping (LINEAR) puts MAUI's text rows at 104/122/142/161/180/199/
+                    // ... -- a ~19px pitch, matched once a linear row uses its true measured extent
+                    // (unfloored). grid_grouping (GRID) puts MAUI's text rows at an exact 44.0px pitch
+                    // (99, 143, 187, 231, 275, 319) -- k_grid_item_min_extent's value, replacing the prior
+                    // 24 (an exact 24px port pitch, 20px short per row).
                     //
                     // THIS WAS TRIED AND REVERTED ONCE (37a15f24da -> 904735d8c7) and the revert was
                     // right at the time for a reason nobody spotted: both landed ~12h BEFORE the theme
@@ -654,9 +705,13 @@ namespace maui::controls
                     // rows against MAUI's 19 -- wrong in the other direction. Labels now measure 19px.
                     // The revert's STATED reason (a Fluent ListViewItem minimum) is false for linear
                     // lists: MinHeight = 0 is set right there in the oracle above.
-                    if (platform->grid || row_extent <= 0)
+                    if (platform->grid)
                     {
-                        row_extent = std::max(row_extent, k_min_row_extent);
+                        row_extent = std::max(row_extent, k_grid_item_min_extent);
+                    }
+                    else if (row_extent <= 0)
+                    {
+                        row_extent = k_min_row_extent;
                     }
 
                     for (int c = 0; c < static_cast<int>(cols.size()); ++c)
@@ -687,11 +742,6 @@ namespace maui::controls
                     measured_sum += row_extent;
                     ++measured_rows;
                     cursor += row_extent + spacing;
-                }
-
-                if (group_footer_t)
-                {
-                    realize_full_width(group_footer_t, src->group(index_path{.section = section, .item = -1}), false);
                 }
             }
         }

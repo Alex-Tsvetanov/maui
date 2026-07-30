@@ -664,16 +664,21 @@ else()
     set(MAUI_WINDOWS_SWAPS
       window_handler content_page_handler layout_handler label_handler button_handler slider_handler
       scroll_view_handler shape_view_handler entry_handler picker_handler image_handler
-      image_source_services border_handler swipe_view_handler search_bar_handler image_button_handler)
+      image_source_services border_handler swipe_view_handler search_bar_handler image_button_handler
+      # (W1-11 chrome) the REAL clip push (a Microsoft.UI.Composition geometric clip) -- see
+      # src/platform/windows/view_chrome_ops.cpp's header. tool_tip/context_flyout stay no-ops here.
+      view_chrome_ops)
     foreach(unit IN LISTS MAUI_WINDOWS_SWAPS)
       list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/${unit}.cpp)
       list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/windows/${unit}.cpp)
     endforeach()
-    # The shared string/color conversions the partials above call (winui_interop.hpp) and the
-    # generic-IView property pushes they delegate to (winui_visual_ops.hpp).
+    # The shared string/color conversions the partials above call (winui_interop.hpp), the
+    # generic-IView property pushes they delegate to (winui_visual_ops.hpp), and the path_f ->
+    # PathGeometry walk shape_view_handler.cpp and border_handler.cpp both call (winui_shape_ops.hpp).
     list(APPEND MAUI_CORE_PLATFORM_SOURCES
       src/platform/windows/winui_interop.cpp
-      src/platform/windows/winui_visual_ops.cpp)
+      src/platform/windows/winui_visual_ops.cpp
+      src/platform/windows/winui_shape_ops.cpp)
   endif()
 endif()
 

@@ -33,15 +33,26 @@
 //     board scored 9.71% (down from 31.27%) with this exact generic push in place — a direct-property
 //     Background is evidently honored by the default Button template's Normal-state binding, only losing
 //     fidelity on hover/pressed, same as note 1's stroke properties.
-//  3. ImageOpened NOW WIRED (for layout only) — ImageFailed/Unloaded still are not. ImageButtonHandler.
-//     Windows.cs's OWN OnImageOpened (subscribed on the CONTENT image, `_image.ImageOpened += OnImageOpened`
-//     in its ConnectHandler — NOT reached via the shared ImageHandler.Mapper, which only carries the
-//     property maps like Aspect; event subscriptions are wired per-handler) calls ONLY
-//     `VirtualView?.UpdateIsLoading(false)` — it does NOT call UpdatePlatformMaxConstraints (that method
-//     lives on ImageHandler, is private, and ImageButtonHandler never calls it). So the C# consequence of
-//     ImageOpened firing for an ImageButton has nothing to do with layout. The bug this port measured
-//     (image_button 27.09% light / 31.17% dark — a zero-desired child a parent stack stretches) is real
-//     anyway, for the SAME reason image_handler.cpp's header note 2 explains: a real MAUI backend's native
+//  3. ImageOpened NOW WIRED (layout AND the MaxHeight clamp) — ImageFailed/Unloaded still are not.
+//     ImageButtonHandler.Windows.cs's OWN OnImageOpened (subscribed on the CONTENT image, `_image.
+//     ImageOpened += OnImageOpened` in its ConnectHandler — NOT reached via the shared ImageHandler.Mapper,
+//     which only carries the property maps like Aspect; event subscriptions are wired per-handler) calls
+//     ONLY `VirtualView?.UpdateIsLoading(false)` — it does NOT call UpdatePlatformMaxConstraints (that
+//     method lives on ImageHandler, is private, and ImageButtonHandler never calls it). CORRECTED: an
+//     earlier version of this note concluded from that alone that "the C# consequence of ImageOpened
+//     firing for an ImageButton has nothing to do with layout" — that missed a SECOND, separate ImageOpened
+//     subscription: ButtonExtensions.UpdateImageSource (ButtonExtensions.cs:173-188, called from this same
+//     ImageButtonImageSourcePartSetter.SetImageSource path) installs its OWN one-shot handler directly on
+//     the BitmapImage (not on the Image control, and not per-connect but per-source-change) whose entire
+//     job IS layout: cap nativeImage.MaxHeight to the decoded bitmap's natural height so the Stretch=Uniform
+//     content Image scales down only, never up. This backend folds that into the SAME callback below
+//     (clamp_image_to_natural_height, in the anonymous namespace above) rather than a second subscription,
+//     since both oracle hooks fire at the identical moment ("this source has finished decoding") and this
+//     callback already reaches every path that moment can occur on (the real ImageOpened event AND
+//     notify_if_already_open's already-decoded belt-and-braces call). The bug this port measured
+//     (image_button 27.09% light / 31.17% dark — a zero-desired child a parent stack stretches, PLUS the
+//     separate now-fixed defect of an uncapped Image scaling up past its natural size) is real for the
+//     out-of-cycle-relayout reason image_handler.cpp's header note 2 explains: a real MAUI backend's native
 //     OS-owned layout tree bubbles the post-decode dirty flag to its root FOR FREE (regardless of what the
 //     handler's own OnImageOpened body does), but this port's own C++-side desired_size_ cache does not —
 //     so on_connect_handler below subscribes ImageOpened on the CONTENT image (matching the oracle's
@@ -50,9 +61,9 @@
 //     touched: UpdateIsLoading already flows through a DIFFERENT, pre-existing path — the cross-platform
 //     map_source (src/core/image_button_handler.cpp) calls view.update_is_loading(false) synchronously
 //     right after the file-fast-path load kicks off, independent of real decode completion (image_handler.
-//     cpp's identical simplification) — so ImageOpened firing has nothing left to flip on this backend.
-//     ImageFailed/Unloaded remain unwired (edge cases a static parity capture never exercises, matching
-//     button_handler.cpp's identical gap).
+//     cpp's identical simplification) — so ImageOpened firing has nothing left to flip on THAT front on
+//     this backend. ImageFailed/Unloaded remain unwired (edge cases a static parity capture never
+//     exercises, matching button_handler.cpp's identical gap).
 
 #include "maui/core/image_button_handler.hpp"
 
@@ -260,6 +271,34 @@ namespace maui::core
                 platform.on_image_opened();
             }
         }
+
+        // ButtonExtensions.cs:173-188 "Ensure that we only scale images down and never up": once the
+        // content Image's BitmapImage has decoded, nativeImage.MaxHeight is capped to
+        // nativeImageSource.GetImageSourceSize(platformButton).Height — the decoded bitmap's PixelHeight
+        // converted from device pixels to DIPs via GetDisplayDensity/XamlRoot.RasterizationScale
+        // (ImageExtensions.cs:21-30 + FrameworkElementExtensions.cs:272-273's `?? 1.0f` fallback, mirrored
+        // by the `root != nullptr` guard below — the same idiom image_handler.cpp's query_display_scale
+        // already uses). Without this cap the Stretch=Uniform content Image fills the Button's whole
+        // content box instead of stopping at its natural size (the port's measured image_button defect).
+        // MaxHeight ONLY — the oracle's BitmapImage branch never touches MaxWidth (that is the SEPARATE
+        // CanvasImageSource/font-source branch just above :173 in the oracle, which resets MaxHeight to
+        // PositiveInfinity instead of capping it; that branch has no counterpart here because font sources
+        // stay mirror-only on this backend — no native CanvasImageSource is ever assigned to this Image,
+        // see this file's header note 3 and image_source_services.cpp — so the reset never has anything to
+        // undo). A bitmap-to-bitmap source swap needs no explicit reset either: the NEW bitmap's own
+        // ImageOpened firing (or notify_if_already_open, above) simply overwrites MaxHeight with the new
+        // natural height, exactly like the oracle's fresh one-shot subscription on each new BitmapImage.
+        void clamp_image_to_natural_height(const image_control& image)
+        {
+            const auto bitmap = image.Source().try_as<bitmap_image>();
+            if (!bitmap || bitmap.PixelHeight() <= 0)
+            {
+                return;
+            }
+            const auto root = image.XamlRoot();
+            const double scale = root != nullptr ? root.RasterizationScale() : 1.0;
+            image.MaxHeight(static_cast<double>(bitmap.PixelHeight()) / scale);
+        }
     } // namespace
 
     image_button_platform::~image_button_platform()
@@ -315,7 +354,20 @@ namespace maui::core
         };
         // ImageButtonHandler.Windows.cs's OnImageOpened, RE-PURPOSED — see this file's header note 3 for
         // why this callback calls invalidate_measure() rather than the oracle's UpdateIsLoading(false).
+        // ALSO now applies ButtonExtensions.UpdateImageSource's MaxHeight clamp (clamp_image_to_natural_
+        // height, above) — that oracle method installs its own one-shot BitmapImage.ImageOpened hook per
+        // source change, but the effect (cap MaxHeight once the natural size is known) is identical to
+        // hooking it here, and this callback already fires from both the real ImageOpened event AND
+        // notify_if_already_open's already-decoded belt-and-braces path, so there is exactly one place to
+        // apply it.
         platform.on_image_opened = [this] {
+            if (auto* p = typed_platform_view(); p != nullptr && p->native != nullptr)
+            {
+                if (const image_control image = content_image(as_button(p->native)))
+                {
+                    clamp_image_to_natural_height(image);
+                }
+            }
             if (auto* view = virtual_view())
             {
                 view->invalidate_measure();

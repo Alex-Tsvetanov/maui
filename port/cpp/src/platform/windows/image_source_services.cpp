@@ -37,16 +37,30 @@
 // STREAM — i_stream_image_source::get_bytes() already produces the encoded bytes; decode_image_bytes does
 // the rest.
 //
-// URI — matches the headless/apple twins' STANDALONE (non-loader-fast-path) shape: read_uri_bytes(uri) (the
-// cross-platform file://+local-path reader; http(s) is unsupported there, per uri_bytes.hpp's own
-// documented scope — unchanged by this file) then decode_image_bytes. NOTE the loader's actual hot path for
-// a real Image control (image_source_loader.cpp's update_uri_source) does not call this service at all — it
-// calls read_uri_bytes + decode_image_bytes directly — so THIS backend's decode_image_bytes is what makes a
-// local-file uri source real on that path too. A remote http(s) uri (e.g. the gallery `image` page's
-// UriSource row, `https://aka.ms/campus.jpg`) still fetches no bytes on this backend: no windows uri_fetch
-// seam is installed (image_handler.cpp's configure_loader stays the documented no-op — wiring a real
-// WinRT HttpClient fetch there is a separate, out-of-scope change from this file, which only supplies the
-// decode primitive the apple/android backends' async fetch already funnels through).
+// URI — the STANDALONE (non-loader-fast-path) service below, uri_image_source_service::load, keeps the same
+// shape as the headless/apple/android twins: read_uri_bytes(uri) (the cross-platform file://+local-path
+// reader; http(s) stays unsupported there, per uri_bytes.hpp's own documented scope — this file does not
+// touch it) then decode_image_bytes. This matches apple's/android's identical STANDALONE bodies: on every
+// backend, the real network fetch lives in the LOADER's fast path, not here.
+//
+// The loader's actual hot path for a real Image control (image_source_loader.cpp's update_uri_source) does
+// NOT call this service at all: it calls the injected uri_fetch seam (image_source_loader::set_uri_fetch),
+// then decode_image_bytes directly. fetch_uri_async, below, IS that seam for this backend now — a real async
+// Windows.Web.Http.HttpClient GET, installed via image_handler.cpp's configure_loader
+// (loader.set_uri_fetch(&fetch_uri_async)), the same wiring shape as apple's NSURLSession fetch_uri_async
+// (image_handler.mm) and android's Java-download fetch_uri_async (image_handler.cpp). A local file:// / bare
+// path uri still reads synchronously via read_uri_bytes (no network, matching apple's identical branch); an
+// http(s) uri starts an async GetBufferAsync request whose completion is explicitly re-posted onto the
+// calling (UI) thread's DispatcherQueue before invoking the loader's sink. This hop is NOT optional: the
+// loader has no windows dispatcher installed (image_handler.cpp's configure_loader never calls
+// set_dispatcher, matching apple), so image_source_loader.cpp's deliver() runs the cache-write + apply
+// INLINE on whatever thread invoked the sink — without the explicit hop, an HttpClient completion landing on
+// a background/threadpool thread would touch the loader's cache map and the WinUI Image control off the UI
+// thread (a real crash risk, not just a style concern). Cancellation is advisory only, checked at completion
+// (matching apple's identical non-abort behavior) — the in-flight HTTP request itself is never cancelled,
+// only its bytes are dropped. The on-disk cache layer (set_disk_cache_directory) is DELIBERATELY left
+// unconfigured by image_handler.cpp's configure_loader — see this file's fetch_uri_async for why (capture-
+// run determinism is an open question, not a guess this file resolves on its own).
 //
 // FONT stays MIRROR-ONLY: FontImageSourceService.Windows.cs (RenderImageSource/GetPlatformImage) rasterizes
 // the glyph via Win2D (Microsoft.Graphics.Canvas: CanvasDevice/CanvasTextFormat/CanvasTextLayout/
@@ -63,6 +77,9 @@
 
 #include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Windows.System.h>
+#include <winrt/Windows.Web.Http.h>
 
 #include <windows.h>
 
@@ -73,10 +90,12 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <utility>
+#include <vector>
 
 #include "maui/core/cancellation_token.hpp"
 #include "maui/core/crc64.hpp"
@@ -85,6 +104,7 @@
 #include "maui/core/i_stream_image_source.hpp"
 #include "maui/core/i_uri_image_source.hpp"
 #include "maui/core/image_decode.hpp"
+#include "maui/core/image_source_loader.hpp"
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/uri_bytes.hpp"
 #include "winui_interop.hpp"
@@ -204,6 +224,38 @@ namespace
                                  std::to_string(counter.fetch_add(1, std::memory_order_relaxed)) + ".tmp";
         return std::filesystem::temp_directory_path() / name;
     }
+
+    // ---- fetch_uri_async's HTTP GET + IBuffer decode helpers ---------------------------------------------
+
+    // Copy a fetched HTTP response's IBuffer into image_bytes. DataReader stages the bytes into a plain
+    // uint8_t buffer first, then each byte is narrowed via static_cast (no reinterpret_cast between
+    // std::byte* and uint8_t* — the same byte-by-byte convention write_bytes/read_uri_bytes use elsewhere in
+    // this file). Empty for a zero-length buffer.
+    maui::core::image_bytes to_image_bytes(const winrt::Windows::Storage::Streams::IBuffer& buffer)
+    {
+        const std::uint32_t length = buffer.Length();
+        if (length == 0)
+        {
+            return {};
+        }
+        std::vector<std::uint8_t> raw(length);
+        winrt::Windows::Storage::Streams::DataReader::FromBuffer(buffer).ReadBytes(raw);
+        maui::core::image_bytes bytes(length);
+        std::transform(raw.begin(), raw.end(), bytes.begin(), [](std::uint8_t b) { return static_cast<std::byte>(b); });
+        return bytes;
+    }
+
+    // Per-fetch state the Completed lambda captures (by shared_ptr): the move-only sink, an OWNED copy of
+    // the cancellation token (the loader's token is a const-ref parameter; this struct must outlive the
+    // call), and the HttpClient itself. The client is kept alive for the whole request deliberately — the
+    // same reason apple's fetch_uri_async uses the process-wide `[NSURLSession sharedSession]` rather than a
+    // short-lived per-request session: destroying an HttpClient can tear down its own outstanding requests.
+    struct uri_fetch_state
+    {
+        maui::core::image_source_loader::uri_bytes_sink sink;
+        maui::core::cancellation_token token;
+        winrt::Windows::Web::Http::HttpClient client;
+    };
 } // namespace
 
 namespace maui::core
@@ -270,6 +322,66 @@ namespace maui::core
         catch (const winrt::hresult_error&)
         {
             on_result(image_source_result{}); // a malformed path/uri — mirror the apple twin's nil-on-failure
+        }
+    }
+
+    // The async uri fetch seam (image_source_loader::uri_fetch) — C# UriImageSource.DownloadStreamAsync,
+    // translated to a real Windows.Web.Http.HttpClient GET. See this file's header URI section for the full
+    // threading/cancellation writeup; installed via image_handler.cpp's configure_loader
+    // (loader.set_uri_fetch(&fetch_uri_async)), the windows twin of apple's NSURLSession fetch_uri_async
+    // (image_handler.mm) and android's Java-download fetch_uri_async (image_handler.cpp). External linkage
+    // (not in the anonymous namespace above) so image_handler.cpp can forward-declare + take its address.
+    void fetch_uri_async(const std::string& uri, const cancellation_token& token,
+                         image_source_loader::uri_bytes_sink sink)
+    {
+        // Local files / non-http schemes: read synchronously (the loader's file:// fast-path equivalent;
+        // matches apple's fetch_uri_async identical branch).
+        if (!uri.starts_with("http://") && !uri.starts_with("https://"))
+        {
+            sink(read_uri_bytes(uri));
+            return;
+        }
+
+        // Captured NOW: fetch_uri_async is only ever called from the UI thread (image_source_loader::
+        // update_source runs synchronously inside the property mapper's update_properties() pass), so this
+        // is the queue the Completed handler below must re-post onto. A null queue (the caller somehow not
+        // on a dispatcher-owning thread) falls back to invoking sink() wherever the completion actually
+        // landed — best effort, matching "no dispatcher: apply inline" (image_source_loader.hpp).
+        const auto ui_queue = winrt::Windows::System::DispatcherQueue::GetForCurrentThread();
+
+        auto state = std::make_shared<uri_fetch_state>(uri_fetch_state{
+            .sink = std::move(sink), .token = token, .client = winrt::Windows::Web::Http::HttpClient{}});
+
+        try
+        {
+            const winrt::Windows::Foundation::Uri url{maui::platform::windows::to_hstring(uri)};
+            auto op = state->client.GetBufferAsync(url);
+            op.Completed([state, ui_queue](auto const& async_op, auto status) {
+                image_bytes bytes;
+                if (status == winrt::Windows::Foundation::AsyncStatus::Completed && !state->token.is_cancelled())
+                {
+                    try
+                    {
+                        bytes = to_image_bytes(async_op.GetResults());
+                    }
+                    catch (const winrt::hresult_error&)
+                    {
+                        bytes = {}; // an HTTP-status/transport failure → nothing fetched
+                    }
+                }
+                if (ui_queue)
+                {
+                    ui_queue.TryEnqueue([state, bytes = std::move(bytes)]() mutable { state->sink(std::move(bytes)); });
+                }
+                else
+                {
+                    state->sink(std::move(bytes));
+                }
+            });
+        }
+        catch (const winrt::hresult_error&)
+        {
+            state->sink(image_bytes{}); // a malformed uri, or GetBufferAsync throwing synchronously
         }
     }
 

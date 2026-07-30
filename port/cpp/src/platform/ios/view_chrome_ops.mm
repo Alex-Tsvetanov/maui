@@ -9,6 +9,10 @@
 //     materialization needs that interaction, so tests assert the ATTACH (view.interactions) only.
 //     The delegate trampoline is retained via an associated object on the view (the interaction holds
 //     it weakly); re-attaching replaces the previous interaction, null removes it.
+//   - apply_native_clip: a documented NO-OP here for the same reason as the apple twin — this backend
+//     already pushes Clip per-control (each handler's own `update_clip` override + `platform_arrange`
+//     re-resolving it against the live bounds, e.g. button_handler.mm's apply_and_store_clip). The
+//     Windows twin (src/platform/windows/view_chrome_ops.cpp) is where this function actually pushes.
 // Compiled as Objective-C++ with ARC for the ios backend.
 
 #include "maui/core/view_chrome_ops.hpp"
@@ -177,5 +181,11 @@ namespace maui::core
         // The interaction holds its delegate weakly — anchor both to the view.
         objc_setAssociatedObject(view, context_delegate_key(), delegate, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         objc_setAssociatedObject(view, context_interaction_key(), interaction, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+
+    void apply_native_clip(void* /*native_view*/, const maui::graphics::i_shape* /*shape*/)
+    {
+        // No-op — see the file header: iOS already pushes Clip per-control from each handler's own
+        // platform_arrange, so this uniform seam must not double-apply.
     }
 } // namespace maui::core

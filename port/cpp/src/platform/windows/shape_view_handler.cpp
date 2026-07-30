@@ -35,10 +35,8 @@
 #include <winrt/Windows.Foundation.h>
 
 #include <cmath>
-#include <cstddef>
 #include <memory>
 #include <optional>
-#include <vector>
 
 #include "maui/core/i_shape_view.hpp"
 #include "maui/graphics/i_shape.hpp"
@@ -47,10 +45,9 @@
 #include "maui/graphics/matrix3x2.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
-#include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/rect.hpp"
-#include "maui/graphics/winding_mode.hpp"
 #include "winui_interop.hpp"
+#include "winui_shape_ops.hpp"
 #include "winui_visual_ops.hpp"
 
 namespace
@@ -99,72 +96,6 @@ namespace
         }
     }
 
-    // Build a PathGeometry from an ALREADY-FLATTENED path_f (move/line/close only — see the
-    // get_flattened_path(..., include_sub_paths=true) call below). Flattening quad/cubic/arc segments
-    // to a fine polyline (path_f's own ArcFlattener-derived logic, ported already for bounds
-    // computation) sidesteps hand-converting the port's center+angle arc representation into WinUI's
-    // endpoint-parameterized ArcSegment — reusing tested port math instead of writing new arc trig.
-    // ponytail: polyline approximation, not native ArcSegment/BezierSegment — upgrade to exact curve
-    // segments only if a future parity pass finds visible faceting (path_f's default 0.001 flatness
-    // is sub-pixel for gallery-sized shapes, so it shouldn't).
-    winui::Media::PathGeometry build_path_geometry(const maui::graphics::path_f& flattened,
-                                                   maui::graphics::winding_mode winding)
-    {
-        using maui::graphics::path_operation;
-
-        winui::Media::PathGeometry geometry;
-        geometry.FillRule(winding == maui::graphics::winding_mode::even_odd ? winui::Media::FillRule::EvenOdd
-                                                                            : winui::Media::FillRule::Nonzero);
-
-        const std::vector<maui::graphics::point_f>& points = flattened.points();
-        std::size_t point_index = 0;
-        winui::Media::PathFigure figure = nullptr;
-        winui::Media::PolyLineSegment segment = nullptr;
-        for (const path_operation op : flattened.segment_types())
-        {
-            switch (op)
-            {
-                case path_operation::move: {
-                    if (figure != nullptr)
-                    {
-                        geometry.Figures().Append(figure);
-                    }
-                    const maui::graphics::point_f& p = points[point_index++];
-                    figure = winui::Media::PathFigure{};
-                    figure.StartPoint(winrt::Windows::Foundation::Point{p.x, p.y});
-                    figure.IsClosed(false);
-                    segment = winui::Media::PolyLineSegment{};
-                    figure.Segments().Append(segment);
-                    break;
-                }
-                case path_operation::line: {
-                    const maui::graphics::point_f& p = points[point_index++];
-                    if (segment != nullptr)
-                    {
-                        segment.Points().Append(winrt::Windows::Foundation::Point{p.x, p.y});
-                    }
-                    break;
-                }
-                case path_operation::close:
-                    if (figure != nullptr)
-                    {
-                        figure.IsClosed(true);
-                    }
-                    break;
-                case path_operation::quad:
-                case path_operation::cubic:
-                case path_operation::arc:
-                    // Do not survive get_flattened_path() — unreachable here.
-                    break;
-            }
-        }
-        if (figure != nullptr)
-        {
-            geometry.Figures().Append(figure);
-        }
-        return geometry;
-    }
-
     // The shared body of update_shape/invalidate_shape/arrange_native: rebuild the Path's geometry +
     // Fill + Stroke from the current virtual-view state. Always re-reads everything (like C#'s
     // InvalidateShape, which has no per-property granularity either) rather than tracking which single
@@ -206,8 +137,7 @@ namespace
         {
             path.transform(*transform);
         }
-        const maui::graphics::path_f flattened = path.get_flattened_path(0.001F, /*include_sub_paths=*/true);
-        content.Data(build_path_geometry(flattened, view->fill_winding()));
+        content.Data(maui::platform::windows::build_path_geometry(path, view->fill_winding()));
 
         // C# DrawFillPath: Fill ?? Background paints the interior; neither set means no fill (the
         // drawable stages a transparent fill color in that case — a null Path.Fill is the same result).

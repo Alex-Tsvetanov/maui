@@ -42,10 +42,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <memory>
 #include <string_view>
-#include <vector>
 
 #include "maui/core/i_border_view.hpp"
 #include "maui/core/i_view.hpp"
@@ -56,9 +54,9 @@
 #include "maui/graphics/matrix3x2.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
-#include "maui/graphics/path_operation.hpp"
 #include "maui/graphics/rect.hpp"
 #include "winui_interop.hpp"
+#include "winui_shape_ops.hpp"
 #include "winui_visual_ops.hpp"
 
 namespace
@@ -132,75 +130,6 @@ namespace
         }
     }
 
-    // GraphicsExtensions.AsPathGeometry (src/Core/src/Platform/Windows/GraphicsExtensions.cs) — the ONE
-    // PathF->PathGeometry walk every Windows caller (Border, shape_view) shares in C#. It never sets
-    // FillRule (WinUI's own default, EvenOdd, is left standing) — unlike shape_view_handler.cpp's own
-    // build_path_geometry twin, which DOES set FillRule from the shape's winding mode, because THAT
-    // control's oracle carries one. Border has no winding-mode surface at all (i_border_stroke exposes
-    // none), so there is nothing to set it from even if this file wanted parity with that other push.
-    //
-    // Flattened to move/line/close only (get_flattened_path below), the same ponytail call
-    // shape_view_handler.cpp already made for its identical geometry-building need: AsPathGeometry's
-    // true behavior emits exact QuadraticBezierSegment/BezierSegment/ArcSegment objects, but path_f's
-    // flattening (ArcFlattener-derived, 0.001 default flatness) is sub-pixel for gallery-sized shapes, so
-    // polyline approximation reuses tested port math instead of hand-porting GeometryUtil's sweep/angle
-    // trig for a border whose default shape is an axis-aligned (round) rectangle anyway.
-    // ponytail: duplicated (not extracted) from shape_view_handler.cpp's build_path_geometry for the
-    // same "don't touch an already-working, unbuildable-here file" reason as the line-cap/join mappers
-    // above; factor into a shared winui_shape_ops.hpp if a third caller ever needs this walk.
-    winui::Media::PathGeometry build_path_geometry(const maui::graphics::path_f& flattened)
-    {
-        using maui::graphics::path_operation;
-
-        winui::Media::PathGeometry geometry;
-        const std::vector<maui::graphics::point_f>& points = flattened.points();
-        std::size_t point_index = 0;
-        winui::Media::PathFigure figure = nullptr;
-        winui::Media::PolyLineSegment segment = nullptr;
-        for (const path_operation op : flattened.segment_types())
-        {
-            switch (op)
-            {
-                case path_operation::move: {
-                    if (figure != nullptr)
-                    {
-                        geometry.Figures().Append(figure);
-                    }
-                    const maui::graphics::point_f& p = points[point_index++];
-                    figure = winui::Media::PathFigure{};
-                    figure.StartPoint(winrt::Windows::Foundation::Point{p.x, p.y});
-                    figure.IsClosed(false);
-                    segment = winui::Media::PolyLineSegment{};
-                    figure.Segments().Append(segment);
-                    break;
-                }
-                case path_operation::line: {
-                    const maui::graphics::point_f& p = points[point_index++];
-                    if (segment != nullptr)
-                    {
-                        segment.Points().Append(winrt::Windows::Foundation::Point{p.x, p.y});
-                    }
-                    break;
-                }
-                case path_operation::close:
-                    if (figure != nullptr)
-                    {
-                        figure.IsClosed(true);
-                    }
-                    break;
-                case path_operation::quad:
-                case path_operation::cubic:
-                case path_operation::arc:
-                    // Do not survive get_flattened_path() — unreachable here.
-                    break;
-            }
-        }
-        if (figure != nullptr)
-        {
-            geometry.Figures().Append(figure);
-        }
-        return geometry;
-    }
 } // namespace
 
 namespace maui::core
@@ -293,8 +222,13 @@ namespace maui::core
         maui::graphics::path_f geometry = spec.shape->path_for_bounds(path_bounds);
         const auto half_thickness = static_cast<float>(thickness / 2.0);
         geometry.transform(maui::graphics::matrix3x2::create_translation(half_thickness, half_thickness));
-        const maui::graphics::path_f flattened = geometry.get_flattened_path(0.001F, /*include_sub_paths=*/true);
-        path.Data(build_path_geometry(flattened));
+        // winui_shape_ops::build_path_geometry, no winding argument: Border has no winding-mode surface
+        // at all (i_border_stroke exposes none), so there is nothing to set PathGeometry.FillRule from —
+        // WinUI's own default (EvenOdd) is left standing, matching GraphicsExtensions.AsPathGeometry
+        // (src/Core/src/Platform/Windows/GraphicsExtensions.cs), which never touches FillRule either.
+        // (shape_view_handler.cpp's call DOES pass a winding, because that control's own oracle carries
+        // one — see winui_shape_ops.hpp's header comment for the shared walk and this FillRule split.)
+        path.Data(maui::platform::windows::build_path_geometry(geometry));
 
         // UpdateStroke/UpdateStrokeThickness: like every backend's border_stroke_spec mirror, only the
         // RESOLVED SOLID color survives (border_handler.hpp: "Gradient strokes are out of scope") — a

@@ -80,6 +80,7 @@
 #include "maui/core/font.hpp"
 #include "maui/core/i_search_bar.hpp"
 #include "maui/core/text_alignment.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
@@ -660,6 +661,13 @@ namespace maui::core
         winui::Controls::Canvas::SetTop(box, frame.y);
         box.Width(frame.width);
         box.Height(frame.height);
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the search bar has a real size.
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------

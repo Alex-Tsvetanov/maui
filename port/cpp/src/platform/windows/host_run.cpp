@@ -194,28 +194,7 @@ namespace
                 [this](const winrt::Windows::Foundation::IInspectable&, const winui::WindowSizeChangedEventArgs& args) {
                     if (window_ != nullptr)
                     {
-                        // TEMPORARY PROBE (env-gated, remove with the other header_footer_grid probes).
-                        // boot_log has been SILENT after boot-complete, which is exactly the window in
-                        // which that page dies: the app boots fully with a visible 960x543 window
-                        // (05edb875ff), then `present` resizes it toward 1024x800 -- firing THIS handler --
-                        // and the window is 0x0 and then gone. If the "resize: drive_layout" line appears
-                        // with no matching "done", the death is inside layout at the TARGET size, which
-                        // boot never exercises (boot lays out at the 944x504 client area). Logging both
-                        // sides so the last line written names the step that killed it -- the method that
-                        // found the `device` page crash after two wrong guesses.
-                        const bool trace = std::getenv("MAUI_WINUI_LOG") != nullptr;
-                        if (trace)
-                        {
-                            char line[128];
-                            std::snprintf(line, sizeof line, "resize: drive_layout %.1fx%.1f", args.Size().Width,
-                                          args.Size().Height);
-                            boot_log(line);
-                        }
                         maui::hosting::drive_layout(*window_, args.Size().Width, args.Size().Height);
-                        if (trace)
-                        {
-                            boot_log("resize: drive_layout done");
-                        }
                     }
                 });
 
@@ -307,35 +286,6 @@ namespace
             boot_log("layout: drive_layout");
             maui::hosting::drive_layout(*window_, width, height);
             boot_log("layout: drive_layout done -- boot complete");
-            // TEMPORARY PROBE (env-gated, remove once header_footer_grid's 0x0 window is understood).
-            // On that ONE page the app boots fully, completes this layout, logs boot complete -- and yet
-            // `present` reports the window as 0x0 and then gone, while cpp_xaml presents fine at
-            // 1024x800 on the same page. Ruled out already: content-driven sizing (window_handler's
-            // MoveAndResize is guarded), UI-thread blocking (--settle 8 changes nothing), and a crash in
-            // layout (boot_complete fires). See 593d3ebaa6.
-            //
-            // Every probe so far asked the OS or the harness what the window is. This asks the APP --
-            // both the XAML Window's Bounds (DIPs, what drive_layout was handed) and the AppWindow's own
-            // Size/Position (physical pixels, what the shell and `present` actually see). If those two
-            // disagree, that gap IS the bug; if the app also believes it is 0x0, the window was never
-            // really created and the fault is upstream of layout entirely.
-            if (std::getenv("MAUI_WINUI_LOG") != nullptr)
-            {
-                const auto b = native.Bounds();
-                char line[256];
-                if (const auto aw = native.AppWindow())
-                {
-                    const auto sz = aw.Size();
-                    const auto ps = aw.Position();
-                    std::snprintf(line, sizeof line, "window: bounds=%.1fx%.1f appwindow=%dx%d at %d,%d visible=%d",
-                                  b.Width, b.Height, sz.Width, sz.Height, ps.X, ps.Y, aw.IsVisible() ? 1 : 0);
-                }
-                else
-                {
-                    std::snprintf(line, sizeof line, "window: bounds=%.1fx%.1f appwindow=NULL", b.Width, b.Height);
-                }
-                boot_log(line);
-            }
 
             // Install the relayout hook (window::request_relayout) AFTER the first pass -- mirrors the
             // Android-only jni/relayout.hpp precedent, generalized to every backend (see window.hpp's

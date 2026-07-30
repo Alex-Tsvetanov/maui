@@ -39,13 +39,17 @@
 //     reset_platform_max_constraints (anonymous namespace below), called from each of the three source-
 //     application primitives (load_file_source_sync / apply_loaded_result / clear_source_native) so a
 //     smaller PREVIOUS source's cap cannot leak onto a larger NEW one.
-//  3. FONT SOURCES STAY MIRROR-ONLY (URI/STREAM ARE NOW REAL). image_source_services.cpp (swapped in via
-//     MAUI_WINDOWS_SWAPS) decodes a uri/stream source into a genuine BitmapImage the same way the FILE fast
-//     path below does (spool-to-temp-file + the Uri ctor — see that file's header for why not
-//     SetSourceAsync().get()); apply_loaded_result pushes result.image() onto the control's Source exactly
-//     like the apple twin. FONT stays mirror-only: FontImageSourceService.Windows.cs rasterizes the glyph
-//     via Win2D (Microsoft.Graphics.Canvas), a native dependency this port does not link on any backend —
-//     see image_source_services.cpp's header for the full citation.
+//  3. FONT SOURCES STAY MIRROR-ONLY (URI/STREAM ARE NOW REAL, INCLUDING A REMOTE HTTP(S) URI).
+//     image_source_services.cpp (swapped in via MAUI_WINDOWS_SWAPS) decodes a uri/stream source into a
+//     genuine BitmapImage the same way the FILE fast path below does (spool-to-temp-file + the Uri ctor —
+//     see that file's header for why not SetSourceAsync().get()); apply_loaded_result pushes result.image()
+//     onto the control's Source exactly like the apple twin. configure_loader (below) now also installs
+//     image_source_services.cpp's fetch_uri_async as the loader's uri_fetch seam, so a REMOTE http(s)
+//     UriImageSource (e.g. the gallery `image` page's `https://aka.ms/campus.jpg` row) is actually
+//     downloaded — a real Windows.Web.Http.HttpClient GET — instead of reading empty from the default
+//     synchronous read_uri_bytes (local-file-only). FONT stays mirror-only: FontImageSourceService.Windows.cs
+//     rasterizes the glyph via Win2D (Microsoft.Graphics.Canvas), a native dependency this port does not
+//     link on any backend — see image_source_services.cpp's header for the full citation.
 //  4. IsOpaque stays a mirror (no WinUI analog — Image is a FrameworkElement with nothing resembling
 //     C#'s opaque hint, matching the android partial's identical gap).
 //
@@ -234,6 +238,14 @@ namespace
 
 namespace maui::core
 {
+    // fetch_uri_async is DEFINED in image_source_services.cpp (this backend's uri/stream/font decode TU —
+    // see that file's header URI section for the full implementation + threading writeup). Forward-declared
+    // here rather than added to a shared header: this is the one call site (configure_loader, below), and
+    // both files already build in the same MAUI_WINDOWS_SWAPS unit list, so no new header/CMake entry is
+    // needed for the two TUs to agree on this signature.
+    void fetch_uri_async(const std::string& uri, const cancellation_token& token,
+                         image_source_loader::uri_bytes_sink sink);
+
     namespace
     {
         // Unhook the ImageOpened subscription on_connect_handler registered — the button_handler.cpp
@@ -422,11 +434,17 @@ namespace maui::core
         image.MaxHeight(view->maximum_height());
     }
 
-    // Headless-style no-op: see this file's header note 3 — the async loader's uri/stream/font path
-    // still resolves against the (unswapped) headless image_source_service_registry defaults
-    // (synchronous read_uri_bytes, no disk cache).
-    void image_handler::configure_loader(image_source_loader& /*loader*/)
+    // Install the real async HTTP(S) uri fetch (image_source_services.cpp's fetch_uri_async — a genuine
+    // Windows.Web.Http.HttpClient GET, the windows twin of apple's NSURLSession fetch + android's
+    // Java-download fetch) so the loader's fast path (image_source_loader.cpp's update_uri_source) can load
+    // a remote UriImageSource (e.g. the gallery `image` page's `https://aka.ms/campus.jpg` row) instead of
+    // falling back to the default synchronous read_uri_bytes (local-file-only, empty for http/https). The
+    // on-disk cache layer (set_disk_cache_directory, matching apple's NSCachesDirectory) is DELIBERATELY
+    // left off — see fetch_uri_async's header note on capture-run determinism; every fresh process launch
+    // still refetches over the network rather than reading a stale disk cache.
+    void image_handler::configure_loader(image_source_loader& loader)
     {
+        loader.set_uri_fetch(&fetch_uri_async);
     }
 
     void image_handler::map_aspect(image_handler& handler, i_image& view)
@@ -627,69 +645,6 @@ namespace maui::core
             winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(adjusted_width_constraint),
                                              maui::platform::windows::measure_constraint(adjusted_height_constraint)});
         const auto desired = host.DesiredSize();
-        // TEMPORARY DIAGNOSTIC (env-gated, remove once the `image` collapse is understood). Eighteen
-        // hypotheses about this page have died on captures, and every one of them was an argument from
-        // reading source. This prints what the measure ACTUALLY observes at each pass, which distinguishes
-        // the two remaining stories that source-reading cannot separate:
-        //   * bitmap present, measure ignores it   -> pixel_w/h > 0 but desired == 0
-        //   * bitmap absent at every pass we make  -> pixel_w/h == 0, i.e. the decode really never lands
-        //     before the last layout, and image_handler.cpp note 2's "the harness resize supplies a second
-        //     pass" is false in practice.
-        // The measured element is now the HOST border rather than the bare Image (this file's CONTAINER
-        // note), so every field below is logged for BOTH: host_* is what get_desired_size actually returns
-        // and what the next layout pass sees; img_* is the bare child's own MeasureOverride result, read
-        // off the SAME host.Measure() call (Border.MeasureOverride cascades into Child.Measure()), kept for
-        // direct comparison against every prior capture of this log (which only ever recorded the image).
-        if (const char* const path = std::getenv("MAUI_WINUI_LOG"))
-        {
-            std::int32_t pixel_w = -1;
-            std::int32_t pixel_h = -1;
-            if (const auto bitmap = image.Source().try_as<bitmap_image>())
-            {
-                pixel_w = bitmap.PixelWidth();
-                pixel_h = bitmap.PixelHeight();
-            }
-            // The bare child's own DesiredSize, populated as a side effect of the host.Measure() call just
-            // above — captured BEFORE the finite re-probe below overwrites it.
-            const auto img_desired = image.DesiredSize();
-            // THE PROBE: re-measure with a FINITE height. WinUI's Uniform scale is
-            // min(availW/natW, availH/natH); an implementation that special-cases an infinite axis would
-            // return 0 for the unbounded call while every input is valid -- which is the one story left
-            // standing after fourteen dead hypotheses (fresh binary, decoded bitmap, correct constraint,
-            // live tree, default Max*). If finite_desired is non-zero while desired is 0x0, that is the
-            // whole bug and the fix is to bound the measure, not to chase the decode. Run on the host
-            // (what actually feeds the return value) AND the bare image (the original probe target).
-            host.InvalidateMeasure();
-            image.InvalidateMeasure();
-            host.Measure(winrt::Windows::Foundation::Size{maui::platform::windows::measure_constraint(width_constraint),
-                                                          10000.0F});
-            const auto host_finite = host.DesiredSize();
-            const auto img_finite = image.DesiredSize();
-            std::FILE* file = nullptr;
-            if (fopen_s(&file, path, "a") == 0 && file != nullptr)
-            {
-                std::fprintf(
-                    file,
-                    "image.measure cw=%.1f ch=%.1f -> host_desired=%.1fx%.1f host_finite=%.1fx%.1f "
-                    "img_desired=%.1fx%.1f img_finite=%.1fx%.1f actual=%.1fx%.1f pixel=%dx%d src=%d vis=%d "
-                    "parent=%d host_wh=%.1fx%.1f img_wh=%.1fx%.1f stretch=%d\n",
-                    width_constraint, height_constraint, desired.Width, desired.Height, host_finite.Width,
-                    host_finite.Height, img_desired.Width, img_desired.Height, img_finite.Width, img_finite.Height,
-                    image.ActualWidth(), image.ActualHeight(), pixel_w, pixel_h, image.Source() != nullptr ? 1 : 0,
-                    // A Collapsed UIElement measures to 0x0 UNCONDITIONALLY, whatever its content --
-                    // the one cause that fits every observation here (decoded bitmap, valid
-                    // constraints, live tree, and InvalidateMeasure/settle/finite-height all inert).
-                    image.Visibility() == winui::Visibility::Visible ? 1 : 0, image.Parent() != nullptr ? 1 : 0,
-                    // Read the pin BACK after clearing it to NaN. Every measure path in this backend
-                    // assumes that clear takes effect; none has ever verified it, and actual=920.0x0.0 is
-                    // exactly the residue a height pinned to 0 would leave. A Height of 0 (rather than NaN)
-                    // makes Measure return 0x0 for ANY content, which is the last unexamined way to get the
-                    // observed result. host_wh is the pin this file now actually sets; img_wh should always
-                    // read NaN/NaN — the child's own Width/Height are never assigned anywhere in this file.
-                    host.Width(), host.Height(), image.Width(), image.Height(), static_cast<int>(image.Stretch()));
-                std::fclose(file);
-            }
-        }
         return {desired.Width, desired.Height};
     }
 

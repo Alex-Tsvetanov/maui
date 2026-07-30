@@ -31,6 +31,7 @@
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/layout_z_order.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
@@ -301,6 +302,15 @@ namespace maui::core
         else
         {
             panel.Clip(nullptr);
+        }
+        // IView.Clip (a DIFFERENT property from ClipsToBounds above -- an arbitrary shape, pushed through
+        // the Composition visual rather than this UIElement.Clip rectangle) is bounds-dependent too;
+        // view_chrome_ops.cpp's apply_native_clip reads the just-set Width/Height back. map_clip's own
+        // push (view_mapper.cpp) always runs before the first arrange, so this re-invoke is what actually
+        // installs it once the layout has a real size.
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
         }
     }
 

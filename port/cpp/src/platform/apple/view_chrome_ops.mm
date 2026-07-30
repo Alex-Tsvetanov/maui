@@ -6,6 +6,12 @@
 //     flyout's i_menu_element tree by apple_menu_ops (rebuilt on every change; null clears it).
 // Works uniformly for every control because the native view comes from the handler's native_view() —
 // no per-control platform override needed. Compiled as Objective-C++ with ARC for the apple backend.
+//
+// apply_native_clip is a documented NO-OP here: this backend already pushes Clip per-control, via each
+// handler's own `update_clip` override storing the shape and its own `platform_arrange` re-resolving it
+// against the live bounds through apple_visual_ops::apply_clip (button_handler.mm:405 and friends). A
+// second uniform push from the shared view_mapper would double-apply the mask, so this stays a no-op —
+// the Windows twin (src/platform/windows/view_chrome_ops.cpp) is where this function actually pushes.
 
 #include "maui/core/view_chrome_ops.hpp"
 
@@ -78,5 +84,11 @@ namespace maui::core
         {
             view.menu = nil; // cleared flyout: remove only the menu the op installed
         }
+    }
+
+    void apply_native_clip(void* /*native_view*/, const maui::graphics::i_shape* /*shape*/)
+    {
+        // No-op — see the file header: apple already pushes Clip per-control from each handler's own
+        // platform_arrange (apple_visual_ops::apply_clip), so this uniform seam must not double-apply.
     }
 } // namespace maui::core

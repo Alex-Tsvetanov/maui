@@ -105,12 +105,19 @@ namespace maui::core
             }
         }
 
+        // chrome (W1-11): pushed to the platform_base mirror AND, like tool_tip/context_flyout, to the
+        // native view via the per-backend view_chrome_ops free function (C#'s ContainerView.UpdateClip
+        // shape — handler.native_view() already resolves to the container when one exists, matching
+        // ViewHandler.cs:472's `((PlatformView?)handler.ContainerView)?.UpdateClip(view)`). Apple/iOS
+        // define apply_native_clip as a no-op here because they already push Clip per-control from their
+        // own platform_arrange (see view_chrome_ops.hpp); Windows is where this call actually lands.
         void map_clip(i_view_handler& handler, i_view& view)
         {
             if (auto* base = handler.platform_base())
             {
                 base->update_clip(view.clip());
             }
+            apply_native_clip(handler.native_view(), view.clip());
         }
 
         // ViewHandler.MapSemantics / MapInputTransparent: push the accessibility metadata (a non-owning
