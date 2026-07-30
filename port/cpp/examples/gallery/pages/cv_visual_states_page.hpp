@@ -100,10 +100,24 @@ namespace maui::samples
                 // under an infinite constraint).
                 add_row_definition(maui::core::grid_length::automatic());
                 add_column_definition(maui::core::grid_length::automatic());
-                // FontSize="Large" (the loader resolves the named size "Large" to 22.0pt, see
-                // xaml_converters.cpp's named_sizes table — matches MAUI's actual measured cell/row
-                // height) + LineBreakMode="NoWrap".
+                // FontSize="Large" + LineBreakMode="NoWrap". NamedSize is PER-PLATFORM in MAUI (a separate
+                // FontNamedSizeService per backend), so "Large" is NOT one number: it is 32 on Windows
+                // (Platform/Windows/Extensions/FontExtensions.cs:40) and 22 on Apple
+                // (Compatibility/iOS/FontNamedSizeService.cs). xaml_converters.cpp's convert_font_size now
+                // resolves it per platform, so the shared-XAML twin gets the right value automatically --
+                // this code-first page has to mirror that by hand because maui::core::font exposes only
+                // system_font_of_size(double) with no named-size overload.
+                // The previous literal 22.0 here carried a comment claiming it "matches MAUI's actual
+                // measured cell/row height"; that was true of the Apple boards it was measured on and wrong
+                // on Windows, where it left the code-first column 10pt short of both MAUI and the twin.
+                // ponytail: a named-size overload on maui::core::font (or exposing convert_font_size to the
+                // code-first layer) would make this a one-liner and remove the duplication -- worth doing if
+                // a second page ever needs a named size; today cv_visual_states is the only one on the board.
+#ifdef MAUI_PLATFORM_WINDOWS
+                label_.set_font(maui::core::font::system_font_of_size(32.0));
+#else
                 label_.set_font(maui::core::font::system_font_of_size(22.0));
+#endif
                 label_.set_line_break_mode(maui::core::line_break_mode::no_wrap);
                 add(label_);
             }

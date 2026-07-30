@@ -7803,8 +7803,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
 | 🟢 Match | 30 | 33 |
-| 🟡 Minor | 132 | 129 |
-| 🔴 Major | 10 | 10 |
+| 🟡 Minor | 133 | 130 |
+| 🔴 Major | 9 | 9 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -8393,20 +8393,20 @@ Light: SSIM 0.9963, 0.00% pixels differ · Dark: SSIM 0.9790, 0.01% pixels diffe
 
 Light: SSIM 0.9963, 0.00% pixels differ · Dark: SSIM 0.9790, 0.01% pixels differ
 
-### 40. Cv Visual States — 🔴/🔴
+### 40. Cv Visual States — 🟡/🟡
 <sub>cv_visual_states</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/cv_visual_states_light.png" /></td><td><img width="300px" src="captures/windows/cpp/cv_visual_states_light.png" /></td><td><img width="300px" src="captures/windows/xaml/cv_visual_states_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/cv_visual_states_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/cv_visual_states_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/cv_visual_states_dark.png" /></td></tr></table>
 
 ports CollectionViewGalleries/SelectionGalleries/ VisualStatesGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9172, 1.41% pixels differ · Dark: SSIM 0.8029, 17.81% pixels differ
+Light: SSIM 0.9519, 1.03% pixels differ · Dark: SSIM 0.9581, 0.87% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9172, 1.41% pixels differ · Dark: SSIM 0.8029, 17.81% pixels differ
+Light: SSIM 0.9519, 1.03% pixels differ · Dark: SSIM 0.9581, 0.87% pixels differ
 
 ### 41. Data Template Selector — 🟡/🟡
 <sub>data_template_selector</sub>

@@ -502,6 +502,37 @@ namespace maui::xaml
             std::string_view name;
             double size;
         };
+        // NamedSize is PER-PLATFORM in MAUI -- there is a separate FontNamedSizeService per backend
+        // (src/Controls/src/Core/Compatibility/{iOS,Android,Windows,Tizen}/FontNamedSizeService.cs), and
+        // this table was the APPLE one applied to every backend. On Windows EVERY name differed, not just
+        // one: measured on cv_visual_states, FontSize="Large" resolved to 22 here against MAUI's 32.
+#ifdef MAUI_PLATFORM_WINDOWS
+        // src/Controls/src/Core/Platform/Windows/Extensions/FontExtensions.cs:34-47 (GetFontSize), verbatim.
+        // DEFAULT is a theme-resource lookup there --
+        // (double)Application.Current.Resources["ControlContentThemeFontSize"] -- which this shared XAML
+        // converter cannot reach (winui_interop's default_font_size() lives in the Windows platform layer,
+        // below this one). 14.0 is that resource's Fluent value and is exactly the fallback
+        // default_font_size() itself uses, so the two agree; a page that overrides
+        // ControlContentThemeFontSize would diverge here.
+        // TODO: verify against FontExtensions.cs:37 if a platform seam for the live lookup is ever added.
+        static constexpr std::array<named_size, 10> named_sizes{{
+            {.name = "Default", .size = 14.0},
+            {.name = "Micro", .size = 15.667},
+            {.name = "Small", .size = 18.667},
+            {.name = "Medium", .size = 22.667},
+            {.name = "Large", .size = 32.0},
+            {.name = "Body", .size = 14.0},
+            {.name = "Caption", .size = 12.0},
+            {.name = "Header", .size = 46.0},
+            {.name = "Subtitle", .size = 20.0},
+            {.name = "Title", .size = 24.0},
+        }};
+#else
+        // The Apple constants (src/Controls/src/Core/Compatibility/iOS/FontNamedSizeService.cs), which
+        // every non-Windows backend has been using. Left EXACTLY as it was: headless, apple, ios and
+        // android are all green on their own boards against it, and re-deriving three more per-platform
+        // tables is a separate, separately-measured change. Android in particular has its own service and
+        // is NOT apple -- flagged, not fixed here.
         static constexpr std::array<named_size, 10> named_sizes{{
             {.name = "Default", .size = 17.0},
             {.name = "Micro", .size = 12.0},
@@ -514,6 +545,7 @@ namespace maui::xaml
             {.name = "Subtitle", .size = 28.0},
             {.name = "Title", .size = 34.0},
         }};
+#endif
         for (const auto& entry : named_sizes)
         {
             if (entry.name == value)
