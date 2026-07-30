@@ -726,3 +726,38 @@ Next diagnostic (cheap, and it ANSWERS rather than predicts): capture `clipping`
 present but with the BoxView overlay temporarily removed, or dump the clip actually installed on each
 element. Do not re-land the branch until that 200x200 square is explained; the two wins above are real
 and worth recovering once it is.
+
+### CONFIRMED BY CAPTURE (2026-07-31): the layer fix lands DARK EXACTLY
+
+`da6ed0bb0c` (host_run.cpp step (3d), `NavigationViewContentBackground` looked up as a theme resource,
+no literal colour) built on the guest and was captured. Measured modal colours, title-bar band vs body:
+
+              title bar   body
+  MAUI  light    232       244
+  port  light    243       249     <- layer CORRECT, base wrong
+  MAUI  dark      32        39
+  port  dark      32        39     <- EXACT
+
+Whole-image mean absolute error, both verification pages:
+
+  box_view      dark 0.03   light 4.50
+  chat_example  dark 0.02   light 5.05
+
+Dark was ~7.0 on every background pixel before this change; it is now ~0.02. The hypothesis is confirmed
+by capture, not by argument.
+
+**The layer composites correctly in BOTH themes.** Light is wrong only because the port's window BASE is
+243 (`ApplicationPageBackgroundThemeBrush`, #F3F3F3) where MAUI's is 232. With a 232 base the arithmetic
+completes exactly: 232 + (128/255)*(255-232) = 243.55 -> 244 = MAUI's observed body, and the base itself
+becomes the title-bar band, fixing the separate 243-vs-232 title-bar defect in the same stroke.
+
+The remaining piece is therefore the light window base, for which Mica `BaseAlt` is the candidate —
+previously measured at exactly light 232 / dark 32 (dark unchanged, so it cannot regress the now-exact
+dark result). It was retired earlier as "worse" because it was measured WITHOUT this layer, leaving the
+body at the bare 232 against MAUI's 244.
+
+**That is now the THIRD component of this one mechanism retired for being measured in isolation**
+(`NavigationViewContentBackground` -> measured over black/white instead of over the base; the "c=278
+impossible" overlay -> assumed one brush for both themes; Mica BaseAlt -> measured without the layer).
+The lesson is specific and worth keeping: a composited effect cannot be evaluated one component at a
+time. Judge the COMPOSED result, or the measurement will be true and the conclusion false.
