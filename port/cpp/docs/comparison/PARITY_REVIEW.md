@@ -419,3 +419,44 @@ NOT ACTIONABLE as a port fix. Options if it ever needs to stop polluting compari
 column with focus suppressed or with a deterministic focus target, or treat the top band of CollectionView
 pages as excluded region. Both are harness changes, not port changes, so neither should be done without a
 ruling. Recording the floor is enough for now: read CollectionView deltas under +-0.50pp as noise.
+
+### The focus visual makes the GREEN COUNT itself non-deterministic by up to ~12 pages
+
+Quantified after the fact, and this is the part that matters for how this board is reported. Between two
+consecutive scorings with the port's code byte-identical, TWELVE pages crossed the SSIM >= 0.98 gate in the
+light theme. For every one of them the PORT capture was bit-identical (0 differing pixels) while MAUI's
+varied by 4081-6581 px:
+
+  page                      cpp run-to-run   maui run-to-run   ssimL swing
+  multiple_bound_selection        0 px            4081 px      0.9839 -> 0.9581
+  header_footer                   0 px            4123 px      0.9888 -> 0.9607
+  some_empty_groups               0 px            4192 px      0.9922 -> 0.9623
+  header_footer_template          0 px            4593 px      0.9898 -> 0.9627
+  varied_size_selector            0 px            6581 px      0.9923 -> 0.9661
+  basic_grouping                  0 px            4192 px      0.9963 -> 0.9668
+  items                           0 px            4077 px      0.9963 -> 0.9679
+  measure_first_strategy          0 px            4164 px      0.9970 -> 0.9682
+  nested_collection               0 px            4418 px      0.9965 -> 0.9682
+  adaptive_collection             0 px            4237 px      0.9950 -> 0.9685
+  single_bound_selection          0 px            4164 px      0.9972 -> 0.9687
+  grouping_plus_selection         0 px            4192 px      0.9967 -> 0.9702
+
+The focus rect costs ~0.03 SSIM, and these pages sit at 0.984-0.997 -- so it straddles the gate. It is
+also PER-PAGE and nondeterministic, not per-run: in the current pass 20 of 43 CollectionView pages carry it
+and 23 do not, and the membership of those sets changes between runs (basic_grouping has it now and did not
+last run).
+
+CONSEQUENCE: the light green count carries a +-12-page uncertainty attributable entirely to the reference
+column. Green counts quoted across this campaign should be read with that band; a swing of ten green pages
+on CollectionView-heavy passes may be nothing but this. ALL-GREEN ON BOTH THEMES IS UNREACHABLE while ~20
+reference captures vary, independent of anything the port does.
+
+MITIGATION OPTIONS -- all HARNESS changes, none a port change, so none should be taken without a ruling:
+  (a) Suppress focus before capturing the MAUI column (click a non-focusable region, or drive the app so no
+      item has focus), making the reference deterministic. Cleanest, and it fixes the cause.
+  (b) Capture the MAUI column N times per page and keep the modal frame, so a stray focus rect is outvoted.
+      Costs N x MAUI capture time on every full pass.
+  (c) Exclude the focus-band region from scoring on CollectionView pages. Cheap, but it blinds the board to
+      real defects in that band.
+  (d) Mark the ~20 affected pages volatile. Honest but it removes a fifth of the board from the metric.
+(a) is the recommendation: it removes the nondeterminism rather than averaging or hiding it.
