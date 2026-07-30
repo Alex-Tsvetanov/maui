@@ -215,6 +215,11 @@ namespace maui::controls
         // wires CollectionChanged/PropertyChanged → Handler.UpdateValue(nameof(...))).
         maui::core::scoped_connection subscribe_items(swipe_items& items, const char* update_name);
 
+        // Windows only (swipe_view_handler::content_hosted_by_platform): whether THIS view's handler hosts
+        // Content as a native platform child that bypasses MAUI's cross-platform content-inset chain.
+        // False (and free) on every other backend/handler.
+        [[nodiscard]] bool content_hosted_by_platform() const;
+
         maui::core::i_view* content_ = nullptr; // NON-owning: the caller owns the content's lifetime
         // The four collections are OWNED (C#'s defaultValueCreator mints them; the developer rarely owns
         // them). Created in the ctor, parented as logical children. Declared BEFORE the subscriptions so

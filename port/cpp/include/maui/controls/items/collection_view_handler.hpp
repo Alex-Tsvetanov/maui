@@ -189,6 +189,19 @@ namespace maui::controls
 #ifdef MAUI_PLATFORM_WINDOWS
         std::vector<std::shared_ptr<maui::core::bindable_object>> retained_natives;
 
+        // ---- native_content_size feedback (the get_desired_size seam) ----
+        // Published at the end of every arrange_native pass (src/platform/windows/collection_view_handler.
+        // cpp): the REAL main-axis content extent that pass measured (content_main there) and the REAL
+        // cross-axis extent (span * the first realized cell's own natural cross measurement, floored per
+        // the grid/linear split k_grid_item_min_extent/k_min_row_extent already use for the main axis — the
+        // ItemsWrapGrid-uniform-cell-from-first-item rule, FormsGridView.cs). native_content_size (defined
+        // in that same file, replacing the shared file's default nullopt for this backend) returns these
+        // once populated; has_real_extent stays false until the first pass has measured at least one row,
+        // so the very first get_desired_size call is byte-identical to before this feedback existed.
+        double real_main_extent = 0;
+        double real_cross_extent = 0;
+        bool has_real_extent = false;
+
         // ---- generic-IView property pushes (view_platform_base overrides) ----
         // Pushed to the ScrollViewer via the shared winui_visual_ops free functions, exactly like every
         // other windows *_platform struct (see label_platform's identical block). NOTE: unlike this struct's

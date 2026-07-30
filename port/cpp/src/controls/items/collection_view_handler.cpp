@@ -236,12 +236,14 @@ namespace maui::controls
                 clamp_to_constraint(cross_content, height_constraint)};
     }
 
-#if !defined(MAUI_PLATFORM_IOS) && !defined(MAUI_PLATFORM_ANDROID)
+#if !defined(MAUI_PLATFORM_IOS) && !defined(MAUI_PLATFORM_ANDROID) && !defined(MAUI_PLATFORM_WINDOWS)
     // The default (headless / apple): there is no laid-out native list to read a real content size from, so
     // get_desired_size keeps its flat item_extent estimate (the headless Controller.GetSize()). The
     // iOS/Catalyst backend overrides this in src/platform/ios/collection_view_handler.mm with the real
     // collectionViewContentSize; the Android backend overrides it in src/platform/android/
-    // collection_view_handler.cpp with a measure-first-item content extent. Headless behavior is unchanged.
+    // collection_view_handler.cpp with a measure-first-item content extent; the Windows backend overrides it
+    // in src/platform/windows/collection_view_handler.cpp with the real main/cross extents its own
+    // arrange_native pass already measured. Headless/apple(AppKit) behavior is unchanged.
     std::optional<maui::graphics::size> collection_view_handler::native_content_size(double /*width_constraint*/,
                                                                                      double /*height_constraint*/)
     {

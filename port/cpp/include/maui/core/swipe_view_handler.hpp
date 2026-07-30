@@ -158,6 +158,30 @@ namespace maui::core
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
 
+        // C# SwipeViewHandler.Windows.cs:31 (MapContent) assigns `PlatformView.Content =
+        // presentedView.ToPlatform(...)` on the native SwipeControl (a ContentControl), whose own
+        // ContentPresenter measures/arranges the child directly. Unlike ContentViewHandler.Windows.cs:15
+        // (`PlatformView.CrossPlatformLayout = VirtualView`), SwipeViewHandler never opts into MAUI's
+        // ICrossPlatformLayout chain, so LayoutExtensions.MeasureContent/ArrangeContent — the ONLY place a
+        // content's own Margin, and this SwipeView's own Padding, are applied — never run on Windows; and
+        // ViewHandler.ViewMapper (ViewHandler.cs:44-75) never projects IView.Margin onto
+        // FrameworkElement.Margin either, so nothing native picks it up in its place.
+        // swipe_view::measure/arrange (src/controls/swipe_view.cpp) read this flag once per pass and
+        // cancel both insets to match. Declared on THIS concrete handler, not the shared i_view_handler
+        // core interface, so no other control/backend is affected — swipe_view.cpp dynamic_casts to
+        // swipe_view_handler* for it instead of the usual i_view_handler*.
+#ifdef MAUI_PLATFORM_WINDOWS
+        [[nodiscard]] bool content_hosted_by_platform() const
+        {
+            return true;
+        }
+#else
+        [[nodiscard]] bool content_hosted_by_platform() const
+        {
+            return false;
+        }
+#endif
+
         // ---- per-backend pieces (the state-machine drivers + content host) ----
         // Re-host the content's native view (C# MauiSwipeView.UpdateContent).
         void set_content();

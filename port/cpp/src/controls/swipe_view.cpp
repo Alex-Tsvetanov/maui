@@ -205,6 +205,12 @@ namespace maui::controls
         }
     }
 
+    bool swipe_view::content_hosted_by_platform() const
+    {
+        auto* swipe_handler = dynamic_cast<maui::core::swipe_view_handler*>(handler().get());
+        return swipe_handler != nullptr && swipe_handler->content_hosted_by_platform();
+    }
+
     void swipe_view::for_each_logical_child(const std::function<void(element&)>& visit) const
     {
         // The four collections always exist; Content is optional.
@@ -222,7 +228,11 @@ namespace maui::controls
     // size requests (the content_page recipe). No content → just the padding within the requests.
     maui::graphics::size swipe_view::measure(double width_constraint, double height_constraint)
     {
-        const maui::core::thickness inset = padding();
+        // Windows: the handler hosts Content directly on the native SwipeControl and never runs
+        // MeasureContent (see swipe_view_handler::content_hosted_by_platform's header comment), so this
+        // SwipeView's own Padding never insets the content there either. Read the flag once per pass.
+        const bool platform_hosted = content_hosted_by_platform();
+        const maui::core::thickness inset = platform_hosted ? maui::core::thickness{} : padding();
         const maui::core::thickness view_margin = margin();
         maui::graphics::size content_size{0, 0};
         if (content_ != nullptr)
@@ -232,6 +242,16 @@ namespace maui::controls
             content_size =
                 content_->measure(width_constraint - inset.horizontal_thickness() - view_margin.horizontal_thickness(),
                                   height_constraint - inset.vertical_thickness() - view_margin.vertical_thickness());
+            if (platform_hosted)
+            {
+                // The content's own measure() (layout::measure / view<>::measure, ComputeDesiredSize) just
+                // added the CONTENT's own Margin back into content_size, exactly as it would for every
+                // other backend. On Windows that Margin is never reserved by anything (see above), so
+                // cancel it back out of the size this SwipeView itself will report/reserve.
+                const maui::core::thickness content_margin = content_->margin();
+                content_size = {std::max(0.0, content_size.width - content_margin.horizontal_thickness()),
+                                std::max(0.0, content_size.height - content_margin.vertical_thickness())};
+            }
         }
         const maui::graphics::size measured{content_size.width + inset.horizontal_thickness(),
                                             content_size.height + inset.vertical_thickness()};
@@ -277,9 +297,24 @@ namespace maui::controls
         }
         if (content_ != nullptr)
         {
-            const maui::core::thickness inset = padding();
-            content_->arrange({inset.left, inset.top, std::max(0.0, frame.width - inset.horizontal_thickness()),
-                               std::max(0.0, frame.height - inset.vertical_thickness())});
+            if (content_hosted_by_platform())
+            {
+                // Windows: OUTSET the bounds handed to the content by its own Margin, so the content's own
+                // compute_frame (invoked inside content_->arrange, e.g. layout::arrange) subtracts that
+                // same margin straight back out — landing exactly where it would if the content had zero
+                // margin, matching MAUI's native ContentPresenter (which never saw the margin in the first
+                // place). See swipe_view_handler::content_hosted_by_platform's header comment; this
+                // SwipeView's own Padding is likewise skipped (no `inset` term below) for the same reason.
+                const maui::core::thickness cm = content_->margin();
+                content_->arrange({-cm.left, -cm.top, frame.width + cm.horizontal_thickness(),
+                                   frame.height + cm.vertical_thickness()});
+            }
+            else
+            {
+                const maui::core::thickness inset = padding();
+                content_->arrange({inset.left, inset.top, std::max(0.0, frame.width - inset.horizontal_thickness()),
+                                   std::max(0.0, frame.height - inset.vertical_thickness())});
+            }
         }
         return {frame.width, frame.height};
     }
