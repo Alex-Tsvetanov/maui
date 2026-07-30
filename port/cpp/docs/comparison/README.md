@@ -7803,8 +7803,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
 | 🟢 Match | 28 | 31 |
-| 🟡 Minor | 133 | 130 |
-| 🔴 Major | 11 | 11 |
+| 🟡 Minor | 134 | 131 |
+| 🔴 Major | 10 | 10 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -8333,20 +8333,20 @@ Light: SSIM 0.6792, 44.46% pixels differ · Dark: SSIM 0.5287, 45.82% pixels dif
 
 Light: SSIM 0.6792, 44.46% pixels differ · Dark: SSIM 0.5287, 45.82% pixels differ
 
-### 36. Controls Stack — 🔴/🔴
+### 36. Controls Stack — 🟡/🟡
 <sub>controls_stack</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/controls_stack_light.png" /></td><td><img width="300px" src="captures/windows/cpp/controls_stack_light.png" /></td><td><img width="300px" src="captures/windows/xaml/controls_stack_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/controls_stack_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/controls_stack_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/controls_stack_dark.png" /></td></tr></table>
 
 a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; demo (ComparePages.ControlsStack()), the shipped-.NET-MAUI reference for the visual-parity comparison: a VerticalStackLayout (Spacing 12, Padding 16) showcasing the basic widgets
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9095, 2.11% pixels differ · Dark: SSIM 0.8927, 2.16% pixels differ
+Light: SSIM 0.9617, 0.68% pixels differ · Dark: SSIM 0.9446, 0.71% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9095, 2.11% pixels differ · Dark: SSIM 0.8927, 2.16% pixels differ
+Light: SSIM 0.9618, 0.68% pixels differ · Dark: SSIM 0.9446, 0.71% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -10157,11 +10157,11 @@ ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9624, 1.29% pixels differ · Dark: SSIM 0.9438, 1.32% pixels differ
+Light: SSIM 0.9945, 0.04% pixels differ · Dark: SSIM 0.9767, 0.05% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9624, 1.29% pixels differ · Dark: SSIM 0.9438, 1.32% pixels differ
+Light: SSIM 0.9945, 0.04% pixels differ · Dark: SSIM 0.9767, 0.05% pixels differ
 
 ### 158. Switch Grouping — 🟡/🟡
 <sub>switch_grouping</sub>

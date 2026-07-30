@@ -22,6 +22,7 @@
 // NSWindowDidBecomeKey notification dance (no macOS backend here yet).
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -65,6 +66,26 @@ namespace maui::core
         // platform dtor. Headless has no native tree, so it has no wrapper (the handler's has_container /
         // container_view mirrors record the state instead).
         void* container = nullptr;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the ToggleSwitch's Toggled event revoke token (winrt::event_token's underlying
+        // type), matching check_box_platform's checked_token / date_picker_platform's opened_token shape —
+        // stored as int64 rather than the WinRT type so this cross-platform header never has to see the
+        // C++/WinRT projection.
+        std::int64_t toggled_token = 0;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native ToggleSwitch via the shared
+        // winui_visual_ops helpers (src/platform/windows/) — same five-override shape as
+        // button_platform/check_box_platform. Selected by MAUI_PLATFORM_WINDOWS, which is PUBLIC on
+        // maui_core for that backend only, so a given build sees exactly one backend's overrides.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSSwitch (defined in
