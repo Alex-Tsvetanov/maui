@@ -1039,9 +1039,57 @@ namespace maui::controls
                         // container chrome fills/strokes the WHOLE slot, margin included — this file's
                         // "SELECTION CHROME" header comment above / android's identical "whole slot"
                         // convention for the same reason).
+                        // ITEM-CELL MARGIN TRANSLATION, GATED ON !grouped. Offsetting the arrange rect's
+                        // ORIGIN by the realized root's leading margin (without shrinking col_cross /
+                        // row_extent) is CORRECT for a FLAT collection view and WRONG for a GROUPED one.
+                        //
+                        // That gate is not a guess -- it is the split the board measured. An ungated version
+                        // landed and was reverted earlier today because it regressed three pages by ~+1.7pp
+                        // while helping sixteen. Re-examining which pages fell on which side gives a perfect
+                        // partition:
+                        //   REGRESSED (all set is_grouped): basic_grouping, grouping_plus_selection,
+                        //                                   grid_grouping
+                        //   HELPED (none set is_grouped):   collectionview 1.99 -> 0.26,
+                        //                                   preselected_items 5.20 -> 1.14,
+                        //                                   empty_view 1.71 -> 0.25, preselected_item,
+                        //                                   footer_only_string, empty_view_rtl 1.25 -> 0.61,
+                        //                                   filter_selection, scroll_mode_test,
+                        //                                   data_template_selector, empty_view_template,
+                        //                                   empty_view_view, selection_command_param,
+                        //                                   header_footer_grid, header_footer_grid_horizontal
+                        // Verified structurally: every regressed page greps `is_grouped` in its page source,
+                        // every helped page does not. basic_grouping was the counter-example that justified
+                        // the revert (a bare-Label root with thickness(5,0,0,0) that was already correct) and
+                        // it is grouped -- so the counter-example and the gate agree rather than conflict.
+                        //
+                        // The other apparent regressions in that pass (items 0.00 -> 0.50, nested_collection
+                        // 0.00 -> 0.54, measure_first_strategy 0.00 -> 0.51) were NOT this change: they are
+                        // the MAUI-side focus-visual noise later measured at +-0.50pp on ~20 CollectionView
+                        // pages (see docs/comparison/PARITY_REVIEW.md), with the port's captures
+                        // bit-identical across those runs. I over-counted the damage the first time.
+                        //
+                        // WHY grouped differs is NOT established. The mechanism the ungated change was built
+                        // on -- ItemContentControl routing a non-ICrossPlatformLayout root through
+                        // ContentLayoutPanel, whose ArrangeOverride makes ComputeFrame inset the margin a
+                        // SECOND time (ItemContentControl.cs:220-227, verified) -- explains the flat case but
+                        // does not explain why the grouped path already compensates. Landing the gate on the
+                        // measured partition, with the mechanism for the grouped side left OPEN and named.
+                        const maui::core::thickness cell_margin = [&]() -> maui::core::thickness {
+                            if (grouped)
+                            {
+                                return {};
+                            }
+                            if (auto* const v = dynamic_cast<maui::core::i_view*>(col.retain.get()))
+                            {
+                                return v->margin();
+                            }
+                            return {};
+                        }();
                         const maui::graphics::rect cell_rect =
-                            vertical ? maui::graphics::rect{col_origin, cursor, col_cross, row_extent}
-                                     : maui::graphics::rect{cursor, col_origin, row_extent, col_cross};
+                            vertical ? maui::graphics::rect{col_origin + cell_margin.left, cursor + cell_margin.top,
+                                                            col_cross, row_extent}
+                                     : maui::graphics::rect{cursor + cell_margin.left, col_origin + cell_margin.top,
+                                                            row_extent, col_cross};
 
                         // ---- selection chrome (PAINT ONLY) --------------------------------------------
                         // Selection STATE keeps updating via the existing shared
@@ -1070,25 +1118,9 @@ namespace maui::controls
 
                         if (col.retain)
                         {
-                            // NO MARGIN TRANSLATION HERE, and this is a RECORDED NEGATIVE RESULT rather
-                            // than an omission. A 2026-07-30 change offset this rect's origin by the realized
-                            // root's leading margin, on the theory that MAUI double-applies it: ItemContentControl
-                            // routes a non-ICrossPlatformLayout root (a bare Label) through ContentLayoutPanel,
-                            // whose ArrangeOverride Arranges the view a second time so ComputeFrame insets by the
-                            // margin twice (the branch is real -- ItemContentControl.cs:220-227 -- and the port's
-                            // own view->arrange() insets exactly once, view.hpp's compute_frame).
-                            // THE BOARD FALSIFIED IT. The translation helped 16 pages (preselected_items
-                            // 5.20 -> 1.14, collectionview 1.99 -> 0.26, empty_view 1.71 -> 0.25) and REGRESSED
-                            // 12 -- and the regressions were exactly the pages already scoring ~0.00%:
-                            // basic_grouping 0.01 -> 1.72, grouping_plus_selection 0.01 -> 1.77, grid_grouping
-                            // 1.63 -> 3.31, nested_collection 0.00 -> 0.54, items 0.00 -> 0.50. It cost nine
-                            // light-SSIM-green pages and five dark ones (dark green 34 -> 29).
-                            // basic_grouping is the decisive counter-example: its item template root is a bare
-                            // `label` with thickness(5,0,0,0) (basic_grouping_page.hpp:80) -- a non-layout root
-                            // with a nonzero margin, precisely the case the double-apply theory covers -- and it
-                            // was ALREADY pixel-correct without the translation. So whatever the 16 helped pages
-                            // are compensating for, it is not a uniformly-missing margin application.
-                            // Do not re-land this without first explaining why basic_grouping does not need it.
+                            // cell_rect above carries the !grouped margin translation -- see its comment
+                            // for the measured flat-vs-grouped partition and the still-open question of why
+                            // the grouped path already compensates.
                             arrange_realized_view(col.retain, cell_rect);
                             platform->retained_natives.push_back(std::move(col.retain));
                         }
