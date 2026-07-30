@@ -9,7 +9,9 @@
 #include "maui/core/window_handler.hpp"
 
 #include <winrt/Microsoft.UI.Windowing.h>
+#include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Graphics.h>
 
@@ -52,6 +54,26 @@ namespace maui::core
         // host_run.cpp activates it once the tree is mounted and laid out, so the first frame the user
         // (and the parity capture) sees is already complete rather than an empty window that fills in.
         platform->native = maui::platform::windows::take(winui::Window{});
+
+        // MauiWinUIWindow.cs:39-46, ported verbatim including its ordering: extend content into the
+        // title bar so the client area starts at the window-rect top instead of below the OS-drawn
+        // caption. Done HERE, at window construction — not in apply_frame — because that is where the
+        // oracle does it too (its own constructor, unconditionally, before any geometry is ever set).
+        // apply_frame is the wrong home for this: it is about position/size, and its NaN geometry guard
+        // early-returns for every app that never calls SetWindowSize (most of them), which would make a
+        // chrome concern silently depend on frame-application call order.
+        if (winrt::Microsoft::UI::Windowing::AppWindowTitleBar::IsCustomizationSupported())
+        {
+            const auto app_window = as_window(platform->native).AppWindow();
+            if (app_window != nullptr)
+            {
+                const auto title_bar = app_window.TitleBar();
+                if (title_bar != nullptr)
+                {
+                    title_bar.ExtendsContentIntoTitleBar(true);
+                }
+            }
+        }
         return platform;
     }
 
@@ -90,8 +112,31 @@ namespace maui::core
         {
             return;
         }
-        // C# MapContent sets the window's root content to the page's platform view.
-        as_window(platform->native).Content(maui::platform::windows::ref<winui::UIElement>(handler->native_view()));
+        const winui::UIElement page_view = maui::platform::windows::ref<winui::UIElement>(handler->native_view());
+        const winui::Window native = as_window(platform->native);
+
+        // C# MapContent sets the window's root content to the page's platform view — but the real MAUI
+        // root is WindowRootView, which insets its content by _appTitleBarHeight (WindowRootView.cs:280
+        // `contentMargin`) precisely BECAUSE the window also extends content into the title bar
+        // (create_platform_view above). Reproduce both halves together: wrap the page in a Grid (a
+        // Panel, so host_run.cpp's themed-background block still finds it via try_as<Panel> and paints
+        // the strip the margin exposes — an unpainted strip would trade a 1px offset for a 32-row
+        // regression) whose single child carries the top margin. Only when the title bar is actually
+        // extended: on an unsupported system it never took effect, and MAUI reserves no band there
+        // either (NavigationRootManager.SetTitleBarVisibility's `isVisible` stays false), so the page
+        // should host flush — exactly as before this fix.
+        if (maui::platform::windows::has_extended_title_bar(native))
+        {
+            page_view.as<winui::FrameworkElement>().Margin(
+                winui::Thickness{0, maui::platform::windows::k_app_title_bar_height, 0, 0});
+            winui::Controls::Grid root{};
+            root.Children().Append(page_view);
+            native.Content(root);
+        }
+        else
+        {
+            native.Content(page_view);
+        }
         platform->content_hosted = true;
     }
 
@@ -134,14 +179,13 @@ namespace maui::core
         const double y = window_view_->y();
         const double w = window_view_->width();
         const double h = window_view_->height();
-        if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(w) || !std::isfinite(h) || w <= 0 ||
-            h <= 0)
+        if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(w) || !std::isfinite(h) || w <= 0 || h <= 0)
         {
             return; // leave the window where the shell put it
         }
-        app_window.MoveAndResize(winrt::Windows::Graphics::RectInt32{
-            static_cast<std::int32_t>(x), static_cast<std::int32_t>(y), static_cast<std::int32_t>(w),
-            static_cast<std::int32_t>(h)});
+        app_window.MoveAndResize(
+            winrt::Windows::Graphics::RectInt32{static_cast<std::int32_t>(x), static_cast<std::int32_t>(y),
+                                                static_cast<std::int32_t>(w), static_cast<std::int32_t>(h)});
     }
 
     // --- chrome (W1-11): mirror-only on this backend for now. C# DOES materialize a real toolbar and

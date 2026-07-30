@@ -48,6 +48,7 @@
 #include "maui/core/i_border_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
@@ -290,6 +291,18 @@ namespace maui::core
         canvas::SetTop(host, frame.y);
         host.Width(frame.width);
         host.Height(frame.height);
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the border has a real size. `native`
+        // boxes a plain Canvas (this file's header — no custom-Panel seam), NOT a Border, so
+        // apply_native_clip's host-vs-child redirect does not fire here; the clip masks the whole
+        // Canvas (stroke path + content), which is the generic IView.Clip — distinct from, and unrelated
+        // to, this file's still-unported ContentPanel.UpdateClip content-to-inner-shape clip (see the
+        // file header).
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------

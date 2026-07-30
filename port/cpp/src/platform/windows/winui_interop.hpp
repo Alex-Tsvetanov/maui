@@ -77,6 +77,27 @@ namespace maui::platform::windows
     // maui::graphics::color is normalized float RGBA; Windows::UI::Color is 8-bit BGRA-ordered fields.
     winrt::Windows::UI::Color to_ui_color(const maui::graphics::color& value);
 
+    // ---- window title-bar band (MauiWinUIWindow.cs / NavigationRootManager.cs) --------------------
+    // MAUI extends its window content into the title bar (MauiWinUIWindow.cs:39-46
+    // `titleBar.ExtendsContentIntoTitleBar = true`) and then reserves a top band for it
+    // (NavigationRootManager.cs:36 "Standard title bar height is 32px" / :39
+    // `var appbarHeight = isVisible ? 32 : 0;` — the literal fallback the oracle itself falls back to
+    // "just in case" the live query below hasn't run yet). The oracle's real mechanism, once the title
+    // bar is live, is `titleBar.Height / GetDisplayDensity()` (NavigationRootManager.cs:46-47) — not
+    // reproduced here because every call site in this port runs before the window is Activated, where
+    // AppWindowTitleBar::Height() reads 0 and XamlRoot::RasterizationScale() has no root to read from
+    // (it would just fall back to this same constant with extra steps). The parity guest runs at 100%
+    // scale, where this constant IS the live value (measured directly in the captures: MAUI's content
+    // starts at row 32). Revisit with a live per-window query if the port ever targets non-100% scale.
+    constexpr double k_app_title_bar_height = 32.0;
+
+    // Whether `window`'s content is currently extended into the title bar (see above). Re-queried at
+    // every call site rather than cached, so host_content()'s decision to reserve the band and
+    // host_run.cpp's decision to shrink the layout viewport by the same amount can never disagree. False
+    // whenever AppWindowTitleBar customization is unsupported (MAUI reserves no band there either —
+    // NavigationRootManager's `isVisible` stays false) or the window/AppWindow/TitleBar isn't live yet.
+    [[nodiscard]] bool has_extended_title_bar(const winrt::Microsoft::UI::Xaml::Window& window);
+
     // ---- default font resolution ------------------------------------------------------------------
     // FontManager.Windows.cs:16-17,49-66 — MAUI does NOT hard-code its default control font. Both
     // DefaultFontFamily and DefaultFontSize resolve, once and cached (`??=`), from a LIVE theme-resource

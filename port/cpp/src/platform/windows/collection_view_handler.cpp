@@ -80,15 +80,24 @@
 //   - item_sizing_strategy (MeasureAllItems vs MeasureFirstItem) is not distinguished — every item is
 //     always individually measured (the strictly-more-correct, more-expensive option; MeasureFirstItem
 //     is a perf optimization this partial does not need).
-//   - get_desired_size()'s native-measurement hook: the shared cross-platform .cpp only special-cases
-//     get_desired_size's content estimate for iOS and Android (`#if !defined(MAUI_PLATFORM_IOS) &&
-//     !defined(MAUI_PLATFORM_ANDROID)` — see native_content_size there); Windows falls into that SAME
-//     default branch as apple/AppKit (nullopt = "no native size", the flat item_extent*count estimate).
-//     To narrow the resulting mismatch WITHOUT touching the shared file, arrange_native below feeds the
-//     REAL measured average row extent back into platform->item_extent after every pass, so the
-//     estimate converges toward the true value across layout passes. This is a port-only device (it
-//     changes no C#-observable behavior, only the internal estimate's accuracy) — not an oracle
-//     citation, and explicitly flagged as such at its call site.
+//   - get_desired_size()'s native-measurement hook: the shared cross-platform .cpp used to special-case
+//     get_desired_size's content estimate for iOS and Android only (`#if !defined(MAUI_PLATFORM_IOS) &&
+//     !defined(MAUI_PLATFORM_ANDROID)` — see native_content_size there), leaving Windows in that SAME
+//     default nullopt branch as apple/AppKit (the flat item_extent*count estimate) — a self-sustaining
+//     fixed point for an unbounded-cross CollectionView (a VerticalStackLayout parent with no
+//     HeightRequest): get_desired_size fell back to the simulator's 400px `viewport_cross_extent` fake-
+//     viewport placeholder, platform_arrange wrote that SAME 400 back from the frame it produced, forever
+//     (header_footer_grid_horizontal rendered 400px tall where MAUI renders 132 = 3 rows x a measured
+//     44px cell). Windows now widens that guard (`&& !defined(MAUI_PLATFORM_WINDOWS)`) and defines its own
+//     native_content_size below (end of this file), reporting the REAL main/cross extents THIS pass
+//     already measured — platform->real_main_extent (content_main below) and platform->real_cross_extent
+//     (span * the first realized cell's own natural cross measurement, captured alongside the existing
+//     per-column main-axis measure in the item loop — no second measurement pass, per this task's "prefer
+//     reporting what the file already knows" guidance). arrange_native ALSO still feeds the REAL measured
+//     average row extent back into platform->item_extent after every pass (unchanged, kept for the same
+//     reason it always existed: some callers — build_entries(), scroll math — still read the flat
+//     item_extent estimate directly, not just get_desired_size). Both are port-only devices (no
+//     C#-observable behavior change, only the internal estimates' accuracy) — not oracle citations.
 
 #include "maui/controls/items/collection_view_handler.hpp"
 
@@ -127,6 +136,7 @@
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/type_tag.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
@@ -215,10 +225,12 @@ namespace
     }
 
     // Measure a BARE native UIElement (the default, no-template TextBlock cell/header/footer) at `cross`
-    // on the cross axis and UNBOUNDED on the main axis, returning the real main-axis DesiredSize — the
-    // label_handler::get_desired_size seam (clear any pinned Width/Height first, so a second-and-later
-    // pass re-measures instead of reading back the previous frame; NaN is XAML's "Auto").
-    double measure_main_extent(const winui::UIElement& element, double cross_extent, bool vertical)
+    // on the cross axis and UNBOUNDED on the main axis, returning the real DesiredSize on BOTH axes (most
+    // callers keep only the main-axis component; the grid cell's cross-axis capture in arrange_native's
+    // column loop, feeding native_content_size, needs the other) — the label_handler::get_desired_size
+    // seam (clear any pinned Width/Height first, so a second-and-later pass re-measures instead of reading
+    // back the previous frame; NaN is XAML's "Auto").
+    maui::graphics::size measure_desired(const winui::UIElement& element, double cross_extent, bool vertical)
     {
         if (auto framework_element = element.try_as<winui::FrameworkElement>())
         {
@@ -230,7 +242,7 @@ namespace
         element.Measure(vertical ? winrt::Windows::Foundation::Size{cross, unbounded}
                                  : winrt::Windows::Foundation::Size{unbounded, cross});
         const auto desired = element.DesiredSize();
-        return vertical ? desired.Height : desired.Width;
+        return {desired.Width, desired.Height};
     }
 } // namespace
 
@@ -448,6 +460,23 @@ namespace maui::controls
         canvas::SetTop(viewer, frame.y);
         viewer.Width(frame.width);
         viewer.Height(frame.height);
+        // Clip is bounds-dependent: view_chrome_ops.cpp's apply_native_clip reads the Width/Height just
+        // stamped above, and map_clip's own push (view_mapper.cpp) always runs BEFORE the first arrange,
+        // so this re-invoke is what actually installs it. Identical to scroll_view_handler.cpp's call and
+        // for the same reason — the clip masks the VIEWPORT (the ScrollViewer that `native` boxes), not
+        // the larger scrollable content panel. This is the one handler the 2026-07-30 clip sweep left out,
+        // by its own account in view_chrome_ops.cpp's header: this file was mid-edit by another change at
+        // the time, so the call was deferred rather than landed blind.
+        // QUALIFIED, unlike every other handler's identical call: this file is `namespace maui::controls`
+        // (line 249) while apply_native_clip is declared in `maui::core`, and ADL cannot bridge them --
+        // the arguments are void* and maui::graphics::i_shape*, so the associated namespaces are graphics,
+        // not core. Unqualified gives error C3861 "identifier not found", which reads like a missing
+        // include rather than a namespace mismatch. scroll_view_handler.cpp and friends are themselves
+        // `namespace maui::core`, which is why their unqualified calls resolve.
+        if (const auto* const clipped = virtual_view(); clipped != nullptr)
+        {
+            maui::core::apply_native_clip(platform->native, clipped->clip());
+        }
 
         const canvas panel = as_panel(platform->native);
         panel.Children().Clear();
@@ -479,6 +508,12 @@ namespace maui::controls
         double cursor = 0;       // main-axis content cursor (dp)
         double measured_sum = 0; // for the item_extent feedback at the bottom of this function
         int measured_rows = 0;
+        // The FIRST realized item cell's own natural cross-axis extent (captured once, below) — an
+        // ItemsWrapGrid uses a UNIFORM cell size derived from the first item (FormsGridView.cs /
+        // ItemsViewStyles.xaml), not a running max, so first-item is the faithful source for
+        // native_content_size's real_cross_extent (published at the bottom of this function).
+        double first_cell_cross = 0;
+        bool have_first_cell_cross = false;
 
         // Realize a full-cross-width row (structured header/footer, empty view, group header): template
         // content > boxed view > text mirror — the android realize_supplemental_native recipe. The GROUP
@@ -487,9 +522,10 @@ namespace maui::controls
         // native group-footer slot, and the real footer rides the regular item container, not this band).
         // `is_group_header` opts into the ListViewHeaderItem/GridViewHeaderItem chrome documented at
         // k_group_header_cross_padding above — every OTHER caller (structured header/footer, empty view)
-        // passes false and keeps the prior flush-to-the-edges behavior.
+        // passes false and keeps the prior flush-to-the-edges behavior. `bottom_anchored` opts into the
+        // viewport-bottom pin below — only the structured FOOTER call site passes true.
         auto realize_full_width = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
-                                      bool is_group_header) {
+                                      bool is_group_header, bool bottom_anchored) {
             if (!tmpl && !value.has_value())
             {
                 return; // nothing to show (matches android: no template AND no value)
@@ -528,7 +564,8 @@ namespace maui::controls
             }
             else
             {
-                extent = measure_main_extent(native, measure_cross, vertical);
+                const maui::graphics::size desired = measure_desired(native, measure_cross, vertical);
+                extent = vertical ? desired.height : desired.width;
             }
             const double lead = is_group_header ? k_group_header_lead_padding : 0.0;
             const double trail = is_group_header ? k_group_header_trail_margin : 0.0;
@@ -557,6 +594,20 @@ namespace maui::controls
                 extent = std::max(extent, k_min_row_extent);
                 container_extent = extent; // lead is 0 for every non-group-header caller
             }
+            // ListViewBase.Footer is routed to ItemsPresenter.Footer inside the FormsListView template's
+            // ScrollViewer (StructuredItemsViewHandler.Windows.cs:190-191; ItemsViewStyles.xaml:71,85,88).
+            // Observed on three ground-truth Windows captures (header_footer_template, header_footer,
+            // footer_only_string): the footer arranges flush with the viewport's BOTTOM edge whenever
+            // header+items don't fill it (the WinUI-internal arrange mechanism itself is not in `src/` —
+            // inferred from the captures, not asserted as fact). `std::max` keeps the pre-existing
+            // sequential placement when content already overflows the viewport, so the footer scrolls
+            // below the items instead of being dragged up into them. Gated on `vertical`: only the
+            // vertical case is measured here — horizontal header/footer placement is the pre-existing
+            // NOT PORTED simplification documented in this file's header comment.
+            if (bottom_anchored && vertical)
+            {
+                cursor = std::max(cursor, frame.height - container_extent);
+            }
             canvas::SetLeft(native, vertical ? cross_origin : cursor + lead);
             canvas::SetTop(native, vertical ? cursor + lead : cross_origin);
             if (auto framework_element = native.try_as<winui::FrameworkElement>())
@@ -580,7 +631,7 @@ namespace maui::controls
         // ahead of the data region regardless of item count).
         if (structured != nullptr)
         {
-            realize_full_width(structured->header_template(), structured->header(), false);
+            realize_full_width(structured->header_template(), structured->header(), false, false);
         }
 
         const bool empty = src == nullptr || src->item_count() == 0;
@@ -589,7 +640,7 @@ namespace maui::controls
             const bool has_empty_view = view->empty_view_template() != nullptr || view->empty_view().has_value();
             if (has_empty_view)
             {
-                realize_full_width(view->empty_view_template(), view->empty_view(), false);
+                realize_full_width(view->empty_view_template(), view->empty_view(), false, false);
             }
         }
         else
@@ -608,7 +659,8 @@ namespace maui::controls
             {
                 if (group_header_t)
                 {
-                    realize_full_width(group_header_t, src->group(index_path{.section = section, .item = -1}), true);
+                    realize_full_width(group_header_t, src->group(index_path{.section = section, .item = -1}), true,
+                                       false);
                 }
 
                 // GROUP FOOTER-as-trailing-ITEM: UWP ListViewBase has no native group-footer slot, so
@@ -663,18 +715,40 @@ namespace maui::controls
                             col.native = make_text_block(value.text());
                         }
                         double extent = 0;
+                        double cross_measured = 0; // this column's own natural CROSS-axis extent (see below)
                         if (auto* const cell_view = dynamic_cast<maui::core::i_view*>(col.retain.get()))
                         {
                             const maui::graphics::size desired =
                                 vertical ? cell_view->measure(col_cross, std::numeric_limits<double>::infinity())
                                          : cell_view->measure(std::numeric_limits<double>::infinity(), col_cross);
                             extent = vertical ? desired.height : desired.width;
+                            cross_measured = vertical ? desired.width : desired.height;
                         }
                         else
                         {
-                            extent = measure_main_extent(col.native, col_cross, vertical);
+                            const maui::graphics::size desired = measure_desired(col.native, col_cross, vertical);
+                            extent = vertical ? desired.height : desired.width;
+                            cross_measured = vertical ? desired.width : desired.height;
                         }
                         row_extent = std::max(row_extent, extent);
+                        // Capture the FIRST realized cell's cross extent only (see the declaration above) —
+                        // native_content_size's real_cross_extent feedback, published at the bottom of this
+                        // function. cross_measured came from the SAME measure() call as `extent` above, just
+                        // reading the other axis of its DesiredSize — no second measurement pass. col_cross
+                        // was the constraint fed to that call; a Label (this page's content) does not grow
+                        // its desired cross size to fill a generous constraint, so this is the content's true
+                        // natural extent as long as col_cross stays >= it (true here — col_cross starts at
+                        // the wrong-but-generous 400/span and only shrinks toward the real, still-sufficient
+                        // value). DOCUMENTED LIMITATION: a cell that actually wants to STRETCH-FILL the cross
+                        // axis would instead report back col_cross itself (self-referential) — untrue for
+                        // this page's plain Label cells; a future page with expanding cell content would need
+                        // Android's off-tree measure-at-full-width approach instead (collection_view_handler.
+                        // cpp's measure_element in src/platform/android).
+                        if (!have_first_cell_cross)
+                        {
+                            first_cell_cross = cross_measured;
+                            have_first_cell_cross = true;
+                        }
                         cols.push_back(std::move(col));
                     }
                     // The floor is a GRID-ONLY constraint (k_grid_item_min_extent), and on a linear list
@@ -750,7 +824,7 @@ namespace maui::controls
         // count (like the header).
         if (structured != nullptr)
         {
-            realize_full_width(structured->footer_template(), structured->footer(), false);
+            realize_full_width(structured->footer_template(), structured->footer(), false, true);
         }
 
         // Size the panel to the greater of the real content and the viewport (the scroll_view_handler
@@ -763,13 +837,54 @@ namespace maui::controls
 
         // Feed the REAL measured average row extent back into the flat-layout-model estimate
         // (platform->item_extent) — see this file's header "NOT PORTED" note on get_desired_size for why
-        // this exists (Windows shares apple/AppKit's nullopt native_content_size fallback, so
-        // get_desired_size()/build_entries() would otherwise report the 100pt/row placeholder forever).
-        // Port-only device; changes no C#-observable behavior, only the internal estimate's accuracy.
+        // this exists (build_entries()/scroll math still read item_extent directly, not just
+        // get_desired_size). Port-only device; changes no C#-observable behavior, only the internal
+        // estimate's accuracy.
         if (measured_rows > 0)
         {
             platform->item_extent = measured_sum / measured_rows;
+
+            // Publish the real extents for native_content_size (below) — see this file's header comment
+            // and the hpp's collection_view_platform field comments. The cross-axis floor mirrors the
+            // grid/linear split k_grid_item_min_extent already applies to row_extent (this floor's
+            // main-axis twin): neither GetItemContainerStyle arm sets a Min* for the grid path (see that
+            // constant's comment above), so a GRID cell keeps GridViewItem's SDK default minimum on
+            // whichever axis is "cross" for this orientation too; a LINEAR cell only floors on a total
+            // measure failure (0), matching k_min_row_extent's fallback role.
+            double real_cross_cell = first_cell_cross;
+            if (platform->grid)
+            {
+                real_cross_cell = std::max(real_cross_cell, k_grid_item_min_extent);
+            }
+            else if (real_cross_cell <= 0)
+            {
+                real_cross_cell = k_min_row_extent;
+            }
+            platform->real_main_extent = content_main;
+            platform->real_cross_extent = static_cast<double>(span) * real_cross_cell;
+            platform->has_real_extent = true;
         }
+    }
+
+    // The Windows override of the get_desired_size seam (C# ItemsViewHandler.Windows.cs /
+    // ViewHandlerExtensions.Windows.cs's platformView.Measure(...).DesiredSize — the shared cross-platform
+    // .cpp's native_content_size() doc comment). Reports what arrange_native's LAST pass already measured
+    // (this file's header comment + the hpp's collection_view_platform field comments) instead of the
+    // shared file's flat item_extent estimate. nullopt before the first successful pass (has_real_extent
+    // starts false) keeps pass 1 byte-identical to before this fix existed — a resize (the E2E runner's
+    // boot-then-resize-to-capture-size choreography, or any later relayout) drives the second pass that
+    // converges on the real value, the same two-pass device item_extent's feedback above already relies on.
+    std::optional<maui::graphics::size> collection_view_handler::native_content_size(double /*width_constraint*/,
+                                                                                     double /*height_constraint*/)
+    {
+        auto* platform = typed_platform_view();
+        if (platform == nullptr || !platform->has_real_extent)
+        {
+            return std::nullopt;
+        }
+        return platform->orientation == items_layout_orientation::vertical
+                   ? maui::graphics::size{platform->real_cross_extent, platform->real_main_extent}
+                   : maui::graphics::size{platform->real_main_extent, platform->real_cross_extent};
     }
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------

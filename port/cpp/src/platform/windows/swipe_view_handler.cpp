@@ -66,6 +66,7 @@
 #include "maui/core/swipe_direction.hpp"
 #include "maui/core/swipe_view_machine.hpp"
 #include "maui/core/swipe_view_requests.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
 #include "winui_interop.hpp"
 #include "winui_visual_ops.hpp"
@@ -266,6 +267,14 @@ namespace maui::core
         const canvas panel = as_panel(platform->native);
         panel.Width(frame.width);
         panel.Height(frame.height);
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the swipe view has a real size. `native`
+        // boxes the swipe control itself (not a Border), so this masks the whole SwipeView viewport.
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------

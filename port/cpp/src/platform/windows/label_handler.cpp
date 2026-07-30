@@ -35,6 +35,7 @@
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/text_decorations.hpp"
 #include "maui/core/thickness.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
@@ -588,6 +589,16 @@ namespace maui::core
         winui::Controls::Canvas::SetTop(host, frame.y);
         host.Width(frame.width);
         host.Height(frame.height);
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the label has a real size. `native`
+        // boxes the HOST Border (this file's CONTAINER note); apply_native_clip redirects onto the
+        // Border's Child (the TextBlock), not the host, per image_handler.cpp's identical host-vs-child
+        // reasoning.
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------

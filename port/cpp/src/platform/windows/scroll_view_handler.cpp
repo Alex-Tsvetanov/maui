@@ -44,6 +44,7 @@
 #include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/scroll_orientation.hpp"
 #include "maui/core/scroll_to_request.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
@@ -351,6 +352,15 @@ namespace maui::core
         const canvas panel = as_panel(platform->native);
         panel.Width(panel_width);
         panel.Height(panel_height);
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the scroll view has a real size. The
+        // clip masks the VIEWPORT (the ScrollViewer `native` boxes), not the (larger, scrollable) content
+        // panel above — matching WrapperView wrapping the ScrollView control itself, not its content.
+        if (view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------

@@ -39,6 +39,7 @@
 #include <optional>
 
 #include "maui/core/i_shape_view.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
@@ -262,6 +263,15 @@ namespace maui::core
         // The shape's geometry is computed FOR these bounds (path_for_bounds), so a resize has to
         // rebuild it — unlike label/button, where the native control lays out its own content.
         refresh_native_shape(*platform, virtual_view());
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the shape view has a real size.
+        // `native` boxes the HOST Border (like label/image); apply_native_clip redirects onto the
+        // Border's Child (the Path), not the host.
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // ---- generic-IView property pushes (view_platform_base overrides) ---------------------------

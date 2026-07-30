@@ -41,13 +41,18 @@
 // maui_core) — no new link dependency, one-directional (controls_shapes never references this file).
 //
 // TWO CALL SITES (both needed — see view_chrome_ops.hpp): view_mapper.cpp's map_clip pushes whenever the
-// Clip PROPERTY changes; each Windows handler's platform_arrange (button/entry/layout/search_bar_handler.
-// cpp, for the controls currently swapped onto this backend) re-pushes whenever the view's SIZE changes,
-// passing the SAME virtual-view clip again. A bounds-RELATIVE shape (maui::graphics::shapes::ellipse/
-// rectangle, which fills whatever rect it is given) genuinely needs the resize-time rebuild; even a
-// bounds-INDEPENDENT one (controls::shapes::ellipse_geometry, this page's shape) still needs it for the
-// "has this view been arranged yet" guard below, since map_clip's own push always runs before the first
-// layout pass.
+// Clip PROPERTY changes; each Windows handler's platform_arrange/arrange_native re-pushes whenever the
+// view's SIZE changes, passing the SAME virtual-view clip again. As of the 2026-07-30 sweep this is EVERY
+// MAUI_WINDOWS_SWAPS handler whose arrange stamps Width/Height on a real element: button, entry, layout,
+// search_bar (the original four), plus image, label, shape_view, border, content_page, picker, slider,
+// scroll_view, swipe_view, image_button. NOT covered: window_handler (IWindow has no Clip — Clip is an
+// i_view member, and i_window derives i_element, not i_view, so there is nothing to push) and
+// collection_view_handler (owned by a concurrent edit at the time of this sweep — same "stamps Width/
+// Height, virtual_view derives i_view" shape as the rest of this list, so it needs the identical call once
+// that edit lands). A bounds-RELATIVE shape (maui::graphics::shapes::ellipse/rectangle, which fills
+// whatever rect it is given) genuinely needs the resize-time rebuild; even a bounds-INDEPENDENT one
+// (controls::shapes::ellipse_geometry, the clip_gallery page's shape) still needs it for the "has this
+// view been arranged yet" guard below, since map_clip's own push always runs before the first layout pass.
 //
 // NO SizeChanged HOOK (a deliberate divergence from WrapperView.cs:131-135/188-195's own re-apply
 // mechanism): both call sites read the element's OWN Width/Height properties (FrameworkElement's plain
@@ -63,6 +68,7 @@
 #include "maui/core/view_chrome_ops.hpp"
 
 #include <winrt/Microsoft.UI.Composition.h>
+#include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Hosting.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 // Not actually needed for an IVector/IMap member here -- CompositionRectangleGeometry::Size(...) below
@@ -178,7 +184,23 @@ namespace maui::core
         {
             return;
         }
-        const comp::Visual visual = winui::Hosting::ElementCompositionPreview::GetElementVisual(element);
+        // HOST-VS-CHILD (image_handler.cpp's CONTAINER note is the canonical writeup): several handlers
+        // on this backend (image/label/shape_view, and any future Border-host handler) box a chromeless
+        // Border WRAPPING the real control instead of the bare control itself -- the Border plays MAUI's
+        // WrapperView/ContainerView role and is what Background paints onto (ImageHandler.Windows.cs:133
+        // ToPlatform()=ContainerView) and what THIS backend's platform_arrange stamps Width/Height on. But
+        // WrapperView.cs:112/126 installs its geometric clip on `GetElementVisual(Child)` -- the CHILD's
+        // visual, not its own -- so the mask must land on the Border's child, not the Border. Width/Height
+        // are still read from `framework_element` below (the passed-in host), since that is the element
+        // this backend's arrange path actually sizes; only the VISUAL the clip attaches to changes here.
+        // A non-Border element (button/entry/layout/search_bar/... which pass their own bare control, no
+        // host) falls through unchanged -- try_as<Border> fails and `clip_target` stays `element`.
+        winui::UIElement clip_target = element;
+        if (const auto host = element.try_as<winui::Controls::Border>(); host != nullptr && host.Child() != nullptr)
+        {
+            clip_target = host.Child();
+        }
+        const comp::Visual visual = winui::Hosting::ElementCompositionPreview::GetElementVisual(clip_target);
         if (visual == nullptr)
         {
             return;
@@ -218,11 +240,16 @@ namespace maui::core
             return; // an unsupported shape kind (see build_geometry) — leave any existing clip alone.
         }
         // WrapperView.cs:125 sets `geometricClip.Offset = -Child.ActualOffset`, which is normally zero
-        // (the child fills its WrapperView) — and this backend installs the clip directly on the SAME
-        // element being positioned rather than on a separate wrapper around it, so the visual's own local
-        // origin already IS that element's top-left; no offset correction is needed. TODO: verify against
-        // WrapperView.cs:104-126 on the VM — if the clip anchors at the window origin instead of the
-        // control's own top-left, this is the line to revisit (Offset = -element's own arranged position).
+        // (the child fills its WrapperView). For a non-Border element (clip_target == element, the SAME
+        // element being positioned), the visual's own local origin already IS that element's top-left, so
+        // no offset correction is needed. For a Border-host element (clip_target == host.Child(), above),
+        // the same zero-offset argument holds only because every current Border-host handler's child
+        // STRETCHES to fill the host exactly (image_handler's default Stretch alignment, label's TextBlock,
+        // shape_view's Path all HorizontalAlignment/VerticalAlignment::Stretch) -- i.e. ActualOffset is
+        // {0,0} relative to the host, same as the oracle's own "normally zero" case. TODO: verify against
+        // WrapperView.cs:104-126 on the VM — if a future Border-host child is NOT stretched (e.g. an
+        // AspectFit image centered smaller than its host), this is the line to revisit (Offset =
+        // -child's actual offset within the host).
         visual.Clip(compositor.CreateGeometricClip(geometry));
     }
 } // namespace maui::core

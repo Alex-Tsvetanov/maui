@@ -17,6 +17,7 @@
 // `text` is the formatted display string. `on_done` is the inbound channel: the headless stand-in for
 // the Done-accessory tap (MauiTimePicker's dateSelected callback → SetVirtualViewTime).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -56,6 +57,27 @@ namespace maui::core
         // Inbound channel (wired by the platform partial; headless tests invoke it directly): commit
         // the wheel's current `time` — the Done-tap analog (SetVirtualViewTime, seconds dropped).
         move_only_function<void()> on_done;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the one event registration token on_connect_handler produces
+        // (SelectedTimeChanged — TimePickerHandler.Windows.cs's ConnectHandler), so on_disconnect_handler
+        // can revoke EXACTLY what it registered. Stored as int64 (winrt::event_token's underlying type)
+        // rather than the WinRT type itself, like picker_platform's selection_changed_token — this
+        // cross-platform header must not see the C++/WinRT projection.
+        std::int64_t selected_time_changed_token = 0;
+
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent. No Windows-specific MapBackground
+        // is ported (core/time_picker_handler.cpp's mapper() comment: "Android/Windows-only Background...
+        // are not replicated"), so update_background below is the ONLY Background push on this backend.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         void update_visibility(maui::core::visibility value) override;

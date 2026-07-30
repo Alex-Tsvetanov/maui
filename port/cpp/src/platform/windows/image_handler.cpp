@@ -110,6 +110,7 @@
 #include "maui/core/image_source_loader.hpp"
 #include "maui/core/image_source_result.hpp"
 #include "maui/core/layout_alignment.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
@@ -670,6 +671,16 @@ namespace maui::core
         winui::Controls::Canvas::SetTop(host, frame.y);
         host.Width(frame.width);
         host.Height(frame.height);
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the image has a real size. `native`
+        // boxes the HOST Border (this file's CONTAINER note) — apply_native_clip itself redirects the
+        // clip onto the Border's Child (the real Image), never the host, matching WrapperView.cs:112's
+        // GetElementVisual(Child) and this page's own gray-surround-vs-masked-photo distinction.
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // C# uiContext.GetDisplayDensity() (Windows): XamlRoot::RasterizationScale is the DPI scale the

@@ -8,6 +8,9 @@
 // forward-declare those, and calling them without this full header fails with C3779, an error that
 // does not read as "add an include".
 #include <winrt/Windows.Foundation.Collections.h>
+// AppWindow / AppWindowTitleBar members (has_extended_title_bar below) — same C3779 rule; only the .cpp
+// needs this, since the header's declaration doesn't name the Windowing types.
+#include <winrt/Microsoft.UI.Windowing.h>
 
 #include <windows.h>
 
@@ -91,6 +94,21 @@ namespace maui::platform::windows
     {
         return winrt::Windows::UI::Color{to_byte(value.alpha), to_byte(value.red), to_byte(value.green),
                                          to_byte(value.blue)};
+    }
+
+    bool has_extended_title_bar(const winrt::Microsoft::UI::Xaml::Window& window)
+    {
+        if (window == nullptr)
+        {
+            return false;
+        }
+        const auto app_window = window.AppWindow();
+        if (app_window == nullptr)
+        {
+            return false;
+        }
+        const auto title_bar = app_window.TitleBar();
+        return title_bar != nullptr && title_bar.ExtendsContentIntoTitleBar();
     }
 
     // FontManager.Windows.cs:49-56 — `_defaultFontFamily ??= (FontFamily)Application.Current

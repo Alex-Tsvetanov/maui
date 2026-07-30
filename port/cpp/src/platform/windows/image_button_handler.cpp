@@ -90,6 +90,7 @@
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/image_source_loader.hpp"
 #include "maui/core/image_source_result.hpp"
+#include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 #include "winui_interop.hpp"
@@ -721,6 +722,15 @@ namespace maui::core
         // as-is on purpose (see the CRITICAL RISK / Canvas discussion in this slice's task write-up).
         button.Width(frame.width);
         button.Height(frame.height);
+        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
+        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
+        // this re-invoke is what actually installs the clip once the image button has a real size.
+        // `native` boxes the Button itself (this file's header — Content IS the Image, no host Border),
+        // matching button_handler.cpp's identical direct push.
+        if (const auto* view = virtual_view(); view != nullptr)
+        {
+            apply_native_clip(platform->native, view->clip());
+        }
     }
 
     // ---- per-backend image-source primitives (the cross-platform map_source in image_button_handler.cpp

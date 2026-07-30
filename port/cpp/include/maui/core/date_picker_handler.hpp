@@ -18,6 +18,7 @@
 // Done-accessory tap that commits the dialog value (OnDoneClicked → SetVirtualViewDate); tests set
 // `date` then invoke it.
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -58,8 +59,32 @@ namespace maui::core
         double character_spacing = 0;
 
         // Inbound channel (wired by the platform partial; headless tests invoke it directly): commit
-        // the dialog's current `date` — the Done-tap analog (OnDoneClicked → SetVirtualViewDate).
+        // the dialog's current `date` — the Done-tap analog (OnDoneClicked → SetVirtualViewDate). The
+        // Windows backend does NOT use this channel (its native CalendarDatePicker.DateChanged fires
+        // with the new value directly, no separate "commit" step — see date_picker_handler.cpp), exactly
+        // like picker_platform's on_done is unused by picker_handler.cpp's Windows SelectionChanged.
         move_only_function<void()> on_done;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the three event registration tokens on_connect_handler produces (Opened /
+        // Closed / DateChanged — DatePickerHandler.Windows.cs's ConnectHandler), so on_disconnect_handler
+        // can revoke EXACTLY what it registered. int64 (winrt::event_token's underlying type), not the
+        // WinRT type itself — this cross-platform header must not see the C++/WinRT projection, matching
+        // picker_platform's identical token fields.
+        std::int64_t opened_token = 0;
+        std::int64_t closed_token = 0;
+        std::int64_t date_changed_token = 0;
+#endif
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native CalendarDatePicker via the
+        // shared winui_visual_ops helpers (src/platform/windows/), exactly like picker_platform's
+        // identical block. Selected by MAUI_PLATFORM_WINDOWS, PUBLIC on maui_core for that backend only.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         void update_visibility(maui::core::visibility value) override;

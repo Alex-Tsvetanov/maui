@@ -35,6 +35,7 @@
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -109,6 +110,19 @@ namespace
             return nullptr;
         }
         return maui::platform::windows::ref<winui::Window>(platform->native);
+    }
+
+    // The port's own layout viewport: `raw_height` (Window.Bounds.Height) minus the reserved title-bar
+    // band, when there is one (winui_interop.hpp's has_extended_title_bar/k_app_title_bar_height).
+    // Bounds now covers the WHOLE window rect (window_handler.cpp's create_platform_view extends
+    // content into the title bar), so handing it to drive_layout unadjusted would lay out 32 DIPs past
+    // where MAUI's own page viewport ends (WindowRootView's content is inset by that same band).
+    double content_viewport_height(const winui::Window& native, double raw_height)
+    {
+        const double inset = maui::platform::windows::has_extended_title_bar(native)
+                                 ? maui::platform::windows::k_app_title_bar_height
+                                 : 0.0;
+        return std::max(0.0, raw_height - inset);
     }
 
     // The code-only WinUI application object. ApplicationT supplies the Application base; the extra
@@ -190,13 +204,14 @@ namespace
             // (3) Re-layout on every resize. This is not a nicety: the E2E runner pins the window to an
             //     explicit rect AFTER launching the process, so the size the app boots at is never the
             //     size it is captured at. Without this the capture would show the boot layout.
-            native.SizeChanged(
-                [this](const winrt::Windows::Foundation::IInspectable&, const winui::WindowSizeChangedEventArgs& args) {
-                    if (window_ != nullptr)
-                    {
-                        maui::hosting::drive_layout(*window_, args.Size().Width, args.Size().Height);
-                    }
-                });
+            native.SizeChanged([this, native](const winrt::Windows::Foundation::IInspectable&,
+                                              const winui::WindowSizeChangedEventArgs& args) {
+                if (window_ != nullptr)
+                {
+                    maui::hosting::drive_layout(*window_, args.Size().Width,
+                                                content_viewport_height(native, args.Size().Height));
+                }
+            });
 
             // (3b) Native theme from the app's REQUESTED theme - the parity-capture dark/light path, and
             //      the twin of what the iOS host does with overrideUserInterfaceStyle. The gallery sets
@@ -237,6 +252,14 @@ namespace
             //      Applied ONLY when the page set no Background of its own: ReadLocalValue returns
             //      UnsetValue exactly when the mapper did not push one, so an explicit page colour
             //      still wins. Looked up AFTER RequestedTheme, so it is the right theme's brush.
+            //
+            //      `native.Content()` is now the title-bar-band wrapper Grid when the window extends
+            //      content into the title bar (window_handler.cpp's host_content), not the page itself
+            //      — the page's own Background (if any) is set independently, on the page's native view
+            //      one level down, and paints over this default everywhere except the reserved band.
+            //      So `panel` here never carries its own local value and this always paints the Grid —
+            //      which is exactly right: it is what shows through the exposed band, matching MAUI's
+            //      title bar having its own theme-coloured strip independent of the page's background.
             if (const auto panel = native.Content().try_as<winui::Controls::Panel>())
             {
                 const bool has_own_background = panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
@@ -281,7 +304,7 @@ namespace
             if (bounds.Width > 0 && bounds.Height > 0)
             {
                 width = bounds.Width;
-                height = bounds.Height;
+                height = content_viewport_height(native, bounds.Height);
             }
             boot_log("layout: drive_layout");
             maui::hosting::drive_layout(*window_, width, height);
@@ -300,7 +323,8 @@ namespace
                     return;
                 }
                 const auto current_bounds = native.Bounds();
-                maui::hosting::drive_layout(*window_, current_bounds.Width, current_bounds.Height);
+                maui::hosting::drive_layout(*window_, current_bounds.Width,
+                                            content_viewport_height(native, current_bounds.Height));
             });
         }
 
