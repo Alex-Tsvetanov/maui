@@ -460,3 +460,22 @@ MITIGATION OPTIONS -- all HARNESS changes, none a port change, so none should be
       real defects in that band.
   (d) Mark the ~20 affected pages volatile. Honest but it removes a fifth of the board from the metric.
 (a) is the recommendation: it removes the nondeterminism rather than averaging or hiding it.
+
+### The reference-column noise is NOT confined to CollectionView pages (measured 2026-07-30)
+
+The focus-visual section above scoped the run-to-run reference variation to ~20 CollectionView pages. That
+scope is too narrow. Measured on a later pass, with the port's code byte-identical and its captures
+BIT-IDENTICAL (0 differing px):
+
+  border_stroke       cpp 0 px changed   maui 4104 px changed   (+0.50pp)
+  border_playground   cpp 0 px changed   maui 3968 px changed   (+0.49pp)
+
+Neither is a CollectionView page. So the ~4000-px / ~0.50pp reference-side swing occurs more broadly than
+first recorded, and the +-12-page green-count uncertainty derived from the CollectionView set is a FLOOR,
+not a ceiling.
+
+This does not change the recommendation -- suppress focus before capturing the MAUI column -- but it raises
+its value: more of the board is affected than the first measurement suggested, and any cross-run comparison
+of ~0.5pp on ANY page should be treated as unattributed until the port-vs-reference capture diff is checked.
+The check is cheap and worth making routine: compare the page's cpp capture against its previous blob; if it
+is 0 px, the movement is not the port's.

@@ -8042,11 +8042,11 @@ ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs) A self-contained, code-
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9815, 1.48% pixels differ · Dark: SSIM 0.9583, 1.63% pixels differ
+Light: SSIM 0.9531, 1.97% pixels differ · Dark: SSIM 0.9280, 2.11% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9829, 1.20% pixels differ · Dark: SSIM 0.9602, 1.31% pixels differ
+Light: SSIM 0.9545, 1.68% pixels differ · Dark: SSIM 0.9299, 1.80% pixels differ
 
 ### 17. Border Resize Content — 🟡/🟡
 <sub>border_resize_content</sub>
@@ -8072,11 +8072,11 @@ ports BorderStroke.xaml (+ BorderStroke.xaml.cs) A self-contained, code-first de
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9588, 3.01% pixels differ · Dark: SSIM 0.9342, 3.02% pixels differ
+Light: SSIM 0.9293, 3.51% pixels differ · Dark: SSIM 0.9039, 3.52% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9588, 3.01% pixels differ · Dark: SSIM 0.9342, 3.02% pixels differ
+Light: SSIM 0.9293, 3.51% pixels differ · Dark: SSIM 0.9039, 3.52% pixels differ
 
 ### 19. Borderless — 🟢/🟢
 <sub>borderless</sub>
@@ -8792,11 +8792,11 @@ a faithful reproduction of the maui-compare &amp;quot;gradient&amp;quot; demo (C
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9873, 4.39% pixels differ · Dark: SSIM 0.9617, 4.40% pixels differ
+Light: SSIM 0.9962, 0.00% pixels differ · Dark: SSIM 0.9797, 0.01% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9873, 4.39% pixels differ · Dark: SSIM 0.9617, 4.40% pixels differ
+Light: SSIM 0.9962, 0.00% pixels differ · Dark: SSIM 0.9797, 0.01% pixels differ
 
 ### 67. Grid — 🟢/🟢
 <sub>grid</sub>

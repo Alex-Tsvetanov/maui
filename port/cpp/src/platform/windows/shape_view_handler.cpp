@@ -46,6 +46,9 @@
 #include "maui/graphics/matrix3x2.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
+// The COMPLETE radial paint type, needed for the dynamic_cast in refresh_native_shape's fill branch (the
+// Win2D circle-vs-ellipse rule below) -- paint.hpp alone only declares the base.
+#include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/rect.hpp"
 #include "winui_interop.hpp"
 #include "winui_shape_ops.hpp"
@@ -147,7 +150,54 @@ namespace
         {
             fill_paint = view->background();
         }
-        content.Fill(fill_paint != nullptr ? maui::platform::windows::brush_for(*fill_paint) : nullptr);
+        // A RADIAL fill needs the CANVAS convention, not the generic-Background one -- MAUI's shape fill is
+        // drawn through Win2D, which collapses the ONE relative Radius into ONE ABSOLUTE-pixel radius and
+        // assigns it to BOTH axes, i.e. a CIRCLE:
+        //   PlatformCanvas.cs:486        radius = Radius * Math.Max(rectangle.Height, rectangle.Width);
+        //   PlatformCanvasState.cs:369-371  RadiusX = RadiusY = _radialGradientRadius;
+        // brush_for() faithfully ports the OTHER oracle (PaintExtensions.Windows.cs's RadiusX = RadiusY =
+        // Radius on a XAML RadialGradientBrush left in RelativeToBoundingBox), which is PER-AXIS -- correct
+        // for a generic IView Background and for Border (BorderExtensions.cs:39) but an ELLIPSE here. On the
+        // `gradient` page that squashed a radius of 0.7 into rx = 0.7*976 = 683 and ry = 0.7*60 = 42 against
+        // MAUI's circle of r = 683; measured, the ellipse hypothesis is excluded by ~16x on the centre-column
+        // fit. The linear band on the same page is BIT-IDENTICAL, which independently rules out ramp
+        // interpolation and colour space.
+        // brush_for() itself is NOT touched: apply_background, border_handler, check_box, date_picker,
+        // time_picker and slider all depend on the relative mapping being preserved.
+        // The android backend already ports this canvas rule (android_canvas.cpp:1131-1137), including the
+        // non-positive-radius fallback to the rect diagonal (GeometryUtil.GetDistance corner-to-corner);
+        // Windows was the only backend missing it.
+        if (fill_paint == nullptr)
+        {
+            content.Fill(nullptr);
+        }
+        else if (const auto* const radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(fill_paint))
+        {
+            const winui::Media::Brush brush = maui::platform::windows::brush_for(*fill_paint);
+            if (const auto radial_brush = brush.try_as<winui::Media::RadialGradientBrush>())
+            {
+                double radius = radial->radius() * std::max(height, width);
+                if (!(radius > 0.0))
+                {
+                    radius = std::hypot(width, height); // the rect diagonal, per the android note above
+                }
+                radial_brush.MappingMode(winui::Media::BrushMappingMode::Absolute);
+                radial_brush.Center(winrt::Windows::Foundation::Point{static_cast<float>(radial->center().x * width),
+                                                                      static_cast<float>(radial->center().y * height)});
+                radial_brush.RadiusX(radius);
+                radial_brush.RadiusY(radius);
+                // GradientOrigin must move with the centre: it defaults to (0.5,0.5), which is a RELATIVE
+                // default and becomes half a pixel from the corner once MappingMode is Absolute. Win2D's
+                // equivalent is an OriginOffset of (0,0) FROM the centre (PlatformCanvasState.cs sets no
+                // offset), so the origin IS the centre.
+                radial_brush.GradientOrigin(radial_brush.Center());
+            }
+            content.Fill(brush);
+        }
+        else
+        {
+            content.Fill(maui::platform::windows::brush_for(*fill_paint));
+        }
 
         // C# DrawStrokePath's early-return guard: no stroke brush or a non-positive thickness draws
         // nothing at all.
@@ -263,6 +313,15 @@ namespace maui::core
         // The shape's geometry is computed FOR these bounds (path_for_bounds), so a resize has to
         // rebuild it — unlike label/button, where the native control lays out its own content.
         refresh_native_shape(*platform, virtual_view());
+        // A RADIAL background is bounds-dependent for the same reason the clip below is: update_background
+        // converts MAUI's relative radius into the absolute-pixel CIRCLE the Win2D canvas draws, and that
+        // needs the arranged Width/Height, which are NaN when the property mapper first pushes the
+        // background at mount time. Re-invoke now that the host has a real size. Non-radial paints fall
+        // through to the same apply_background this would have done anyway, so this is a no-op for them.
+        if (const auto* const view = virtual_view(); view != nullptr && view->background() != nullptr)
+        {
+            platform->update_background(view->background());
+        }
         // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
         // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
         // this re-invoke is what actually installs the clip once the shape view has a real size.
@@ -299,6 +358,51 @@ namespace maui::core
 
     void shape_view_platform::update_background(const maui::graphics::paint* value)
     {
+        // A SHAPE VIEW's Background is drawn by MAUI as the shape's own fill, through the Win2D canvas --
+        // ShapeDrawable.cs:133's `Fill ?? Background` feeds PlatformCanvas.SetFillPaint, which collapses the
+        // ONE relative Radius into ONE ABSOLUTE-pixel radius (PlatformCanvas.cs:486
+        // `radius = Radius * Math.Max(rectangle.Height, rectangle.Width)`) and assigns it to BOTH axes
+        // (PlatformCanvasState.cs:369-371 RadiusX = RadiusY), i.e. a CIRCLE. The generic apply_background
+        // below paints the HOST with brush_for's RelativeToBoundingBox mapping, which is PER-AXIS -- correct
+        // for an ordinary IView Background but an ELLIPSE for a shape.
+        // WHY THIS IS THE LIVE PATH AND THE Fill BRANCH IS NOT: a box_view maps to this handler
+        // (maui_controls_handlers.cpp:165) but carries NO path geometry, so refresh_native_shape draws
+        // nothing and only the host background is visible. Patching the Fill branch first was a measured
+        // NO-OP -- the `gradient` capture came back byte-identical -- which is what pointed here.
+        // brush_for() itself stays untouched: apply_background, border_handler, check_box, date_picker,
+        // time_picker and slider all depend on the relative mapping.
+        if (const auto* const radial = dynamic_cast<const maui::graphics::radial_gradient_paint*>(value))
+        {
+            const auto host = maui::platform::windows::ref<winui::UIElement>(native).try_as<winui::FrameworkElement>();
+            const double w = host != nullptr ? host.Width() : std::numeric_limits<double>::quiet_NaN();
+            const double h = host != nullptr ? host.Height() : std::numeric_limits<double>::quiet_NaN();
+            if (std::isfinite(w) && std::isfinite(h) && w > 0 && h > 0)
+            {
+                const winui::Media::Brush brush = maui::platform::windows::brush_for(*value);
+                if (const auto radial_brush = brush.try_as<winui::Media::RadialGradientBrush>())
+                {
+                    double radius = radial->radius() * std::max(h, w);
+                    if (!(radius > 0.0))
+                    {
+                        radius = std::hypot(w, h); // rect diagonal, per android_canvas.cpp:1131-1137
+                    }
+                    radial_brush.MappingMode(winui::Media::BrushMappingMode::Absolute);
+                    radial_brush.Center(winrt::Windows::Foundation::Point{static_cast<float>(radial->center().x * w),
+                                                                          static_cast<float>(radial->center().y * h)});
+                    radial_brush.RadiusX(radius);
+                    radial_brush.RadiusY(radius);
+                    // See the fill branch: GradientOrigin's (0.5,0.5) default is RELATIVE and must follow
+                    // the centre once MappingMode is Absolute.
+                    radial_brush.GradientOrigin(radial_brush.Center());
+                    if (const auto panel =
+                            maui::platform::windows::ref<winui::UIElement>(native).try_as<winui::Controls::Border>())
+                    {
+                        panel.Background(brush);
+                        return;
+                    }
+                }
+            }
+        }
         maui::platform::windows::apply_background(native, value);
     }
 } // namespace maui::core
