@@ -8132,11 +8132,11 @@ Carousel Page
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9330, 2.13% pixels differ · Dark: SSIM 0.9491, 2.14% pixels differ
+Light: SSIM 0.9869, 0.86% pixels differ · Dark: SSIM 0.9769, 0.87% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9330, 2.13% pixels differ · Dark: SSIM 0.9491, 2.14% pixels differ
+Light: SSIM 0.9869, 0.86% pixels differ · Dark: SSIM 0.9769, 0.87% pixels differ
 
 ### 23. Chat Example — 🟡/🟡
 <sub>chat_example</sub>
@@ -8432,11 +8432,11 @@ ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9934, 0.08% pixels differ · Dark: SSIM 0.9772, 0.09% pixels differ
+Light: SSIM 0.9894, 0.15% pixels differ · Dark: SSIM 0.9729, 0.17% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9962, 0.00% pixels differ · Dark: SSIM 0.9799, 0.01% pixels differ
+Light: SSIM 0.9922, 0.07% pixels differ · Dark: SSIM 0.9757, 0.08% pixels differ
 
 ### 43. Device — 🟡/🟡
 <sub>device</sub>
@@ -8822,7 +8822,7 @@ ports GroupingGalleries/GridGrouping.xaml (+ .xaml.cs) of the C# CollectionView 
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9401, 2.14% pixels differ · Dark: SSIM 0.9209, 2.16% pixels differ
+Light: SSIM 0.9656, 0.54% pixels differ · Dark: SSIM 0.9524, 0.56% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -9107,11 +9107,11 @@ ports iOSDatePickerPage.xaml (+ iOSDatePickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9813, 0.20% pixels differ · Dark: SSIM 0.9697, 0.11% pixels differ
+Light: SSIM 0.9929, 0.07% pixels differ · Dark: SSIM 0.9746, 0.09% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9813, 0.20% pixels differ · Dark: SSIM 0.9697, 0.11% pixels differ
+Light: SSIM 0.9929, 0.07% pixels differ · Dark: SSIM 0.9746, 0.09% pixels differ
 
 ### 88. Ios Entry — 🟡/🟡
 <sub>ios_entry</sub>
@@ -9257,11 +9257,11 @@ ports iOSTimePickerPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/Platf
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9775, 0.27% pixels differ · Dark: SSIM 0.9522, 0.59% pixels differ
+Light: SSIM 0.9965, 0.00% pixels differ · Dark: SSIM 0.9790, 0.01% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9693, 0.51% pixels differ · Dark: SSIM 0.9522, 0.59% pixels differ
+Light: SSIM 0.9965, 0.00% pixels differ · Dark: SSIM 0.9790, 0.01% pixels differ
 
 ### 98. Items — 🟡/🟡
 <sub>items</sub>
@@ -9527,11 +9527,11 @@ a self-contained demo page for the W1-06 picker set: picker, date_picker and tim
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9935, 0.10% pixels differ · Dark: SSIM 0.9740, 0.14% pixels differ
+Light: SSIM 0.9935, 0.10% pixels differ · Dark: SSIM 0.9747, 0.14% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9963, 0.00% pixels differ · Dark: SSIM 0.9768, 0.04% pixels differ
+Light: SSIM 0.9963, 0.00% pixels differ · Dark: SSIM 0.9775, 0.04% pixels differ
 
 ### 116. Pointer Gesture — 🟡/🟡
 <sub>pointer_gesture</sub>
@@ -10217,11 +10217,11 @@ ports TimePickerPage.xaml (+ TimePickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9943, 0.05% pixels differ · Dark: SSIM 0.9784, 0.07% pixels differ
+Light: SSIM 0.9943, 0.05% pixels differ · Dark: SSIM 0.9785, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9962, 0.00% pixels differ · Dark: SSIM 0.9803, 0.01% pixels differ
+Light: SSIM 0.9962, 0.00% pixels differ · Dark: SSIM 0.9804, 0.01% pixels differ
 
 ### 162. Title Bar — 🟡/🟡
 <sub>title_bar</sub>
