@@ -7997,11 +7997,11 @@ a faithful reproduction of the maui-compare &amp;quot;border&amp;quot; demo (Com
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9825, 0.71% pixels differ · Dark: SSIM 0.9377, 4.44% pixels differ
+Light: SSIM 0.9893, 0.35% pixels differ · Dark: SSIM 0.9420, 4.09% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9814, 0.73% pixels differ · Dark: SSIM 0.9375, 4.44% pixels differ
+Light: SSIM 0.9883, 0.37% pixels differ · Dark: SSIM 0.9418, 4.09% pixels differ
 
 ### 14. Border Clip Playground — 🔴/🔴
 <sub>border_clip_playground</sub>
@@ -8012,11 +8012,11 @@ ports BorderClipPlayground.xaml (+ .xaml.cs) The C# page is an interactive Borde
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9115, 2.71% pixels differ · Dark: SSIM 0.8789, 6.18% pixels differ
+Light: SSIM 0.9113, 2.71% pixels differ · Dark: SSIM 0.8788, 6.18% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9142, 2.49% pixels differ · Dark: SSIM 0.8827, 5.93% pixels differ
+Light: SSIM 0.9143, 2.49% pixels differ · Dark: SSIM 0.8827, 5.93% pixels differ
 
 ### 15. Border Layout — 🟡/🟡
 <sub>border_layout</sub>
@@ -8027,11 +8027,11 @@ ports BorderLayout.xaml (+ BorderLayout.xaml.cs) The C# page demonstrates drivin
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9689, 1.06% pixels differ · Dark: SSIM 0.9182, 4.98% pixels differ
+Light: SSIM 0.9692, 1.06% pixels differ · Dark: SSIM 0.9191, 4.92% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9679, 1.08% pixels differ · Dark: SSIM 0.9180, 4.98% pixels differ
+Light: SSIM 0.9682, 1.08% pixels differ · Dark: SSIM 0.9188, 4.92% pixels differ
 
 ### 16. Border Playground — 🔴/🔴
 <sub>border_playground</sub>
@@ -8042,11 +8042,11 @@ ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs) A self-contained, code-
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.7700, 5.15% pixels differ · Dark: SSIM 0.7490, 8.49% pixels differ
+Light: SSIM 0.7721, 5.05% pixels differ · Dark: SSIM 0.7555, 8.39% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.7694, 5.02% pixels differ · Dark: SSIM 0.7503, 8.30% pixels differ
+Light: SSIM 0.7724, 4.83% pixels differ · Dark: SSIM 0.7568, 8.11% pixels differ
 
 ### 17. Border Resize Content — 🔴/🔴
 <sub>border_resize_content</sub>
@@ -8057,11 +8057,11 @@ ports BorderResizeContent.xaml A self-contained, code-first demo that resizes a 
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9300, 3.27% pixels differ · Dark: SSIM 0.8828, 7.03% pixels differ
+Light: SSIM 0.9324, 3.10% pixels differ · Dark: SSIM 0.8870, 6.86% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9308, 3.16% pixels differ · Dark: SSIM 0.8848, 6.90% pixels differ
+Light: SSIM 0.9327, 3.04% pixels differ · Dark: SSIM 0.8882, 6.79% pixels differ
 
 ### 18. Border Stroke — 🔴/🔴
 <sub>border_stroke</sub>
@@ -8297,11 +8297,11 @@ a self-contained demo page for the W1-07 container set: a scroll_view hosting a 
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9350, 1.44% pixels differ · Dark: SSIM 0.9116, 5.14% pixels differ
+Light: SSIM 0.9339, 1.42% pixels differ · Dark: SSIM 0.9124, 5.14% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9340, 1.46% pixels differ · Dark: SSIM 0.9113, 5.14% pixels differ
+Light: SSIM 0.9329, 1.44% pixels differ · Dark: SSIM 0.9121, 5.13% pixels differ
 
 ### 34. Content View — 🟡/🟡
 <sub>content_view</sub>
@@ -8987,11 +8987,11 @@ ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.3756, 79.15% pixels differ · Dark: SSIM 0.4077, 82.95% pixels differ
+Light: SSIM 0.9026, 6.91% pixels differ · Dark: SSIM 0.8702, 10.65% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.3746, 79.17% pixels differ · Dark: SSIM 0.4074, 82.95% pixels differ
+Light: SSIM 0.9016, 6.93% pixels differ · Dark: SSIM 0.8700, 10.65% pixels differ
 
 ### 80. Image Button — 🔴/🔴
 <sub>image_button</sub>
@@ -9002,11 +9002,11 @@ ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-fi
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8758, 5.63% pixels differ · Dark: SSIM 0.8425, 9.65% pixels differ
+Light: SSIM 0.8758, 5.63% pixels differ · Dark: SSIM 0.8528, 9.45% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8748, 5.65% pixels differ · Dark: SSIM 0.8423, 9.65% pixels differ
+Light: SSIM 0.8748, 5.65% pixels differ · Dark: SSIM 0.8526, 9.45% pixels differ
 
 ### 81. Indicator — 🟡/🟡
 <sub>indicator</sub>
@@ -10142,11 +10142,11 @@ ports SwipeViewShadowGallery.xaml A code-first port of the MAUI SwipeView sub-ga
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9577, 1.85% pixels differ · Dark: SSIM 0.9172, 4.61% pixels differ
+Light: SSIM 0.9563, 1.86% pixels differ · Dark: SSIM 0.9162, 4.58% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9567, 1.87% pixels differ · Dark: SSIM 0.9169, 4.61% pixels differ
+Light: SSIM 0.9553, 1.88% pixels differ · Dark: SSIM 0.9160, 4.58% pixels differ
 
 ### 157. Switch — 🟡/🟡
 <sub>switch</sub>
@@ -10367,11 +10367,11 @@ a self-contained demo page for the W1-08 web_view vertical: a web_view loading a
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.8649, 1.92% pixels differ · Dark: SSIM 0.6630, 33.73% pixels differ
+Light: SSIM 0.8721, 1.92% pixels differ · Dark: SSIM 0.6657, 33.73% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8680, 1.85% pixels differ · Dark: SSIM 0.6670, 33.63% pixels differ
+Light: SSIM 0.8753, 1.85% pixels differ · Dark: SSIM 0.6696, 33.63% pixels differ
 
 ### 172. Z Index — 🟡/🟡
 <sub>z_index</sub>

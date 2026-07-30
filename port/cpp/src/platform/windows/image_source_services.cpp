@@ -75,10 +75,10 @@
 #include "maui/core/stream_image_source_service.hpp"
 #include "maui/core/uri_image_source_service.hpp"
 
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Storage.Streams.h>
-#include <winrt/Windows.System.h>
 #include <winrt/Windows.Web.Http.h>
 
 #include <windows.h>
@@ -347,7 +347,21 @@ namespace maui::core
         // is the queue the Completed handler below must re-post onto. A null queue (the caller somehow not
         // on a dispatcher-owning thread) falls back to invoking sink() wherever the completion actually
         // landed — best effort, matching "no dispatcher: apply inline" (image_source_loader.hpp).
-        const auto ui_queue = winrt::Windows::System::DispatcherQueue::GetForCurrentThread();
+        //
+        // Microsoft::UI::Dispatching, NOT Windows::System. This is a WinUI 3 (Windows App SDK) app, whose
+        // UI thread owns a Microsoft.UI DispatcherQueue; the identically-named UWP
+        // Windows::System::DispatcherQueue has no queue on that thread and GetForCurrentThread() returns
+        // NULL. MAUI itself is explicit about which one: src/Core/src/Dispatching/Dispatcher.Windows.cs and
+        // src/Essentials/src/MainThread/MainThread.windows.cs both open with `using Microsoft.UI.Dispatching`
+        // before calling DispatcherQueue.GetForCurrentThread().
+        //
+        // This was NOT a compile error and NOT a crash -- both types exist and both project. The null queue
+        // silently took the fallback branch, so the sink ran on the HTTP completion's threadpool thread and
+        // touched the STA-affine BitmapImage/Image from off-thread. The whole feature was a no-op: the
+        // `image` page's captures came back byte-identical, SSIM included, while the guest could reach
+        // aka.ms/campus.jpg over HTTP 200 the entire time. The same UWP-vs-WinUI3 namespace collision the
+        // `winui` alias note at the top of every handler in this directory warns about.
+        const auto ui_queue = winrt::Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread();
 
         auto state = std::make_shared<uri_fetch_state>(uri_fetch_state{
             .sink = std::move(sink), .token = token, .client = winrt::Windows::Web::Http::HttpClient{}});
