@@ -1085,6 +1085,17 @@ namespace maui::controls
                             }
                             return {};
                         }();
+                        // TWO rects, deliberately. The margin translation above is a CONTENT correction --
+                        // it exists because MAUI's ContentLayoutPanel insets a flat list's cell content by the
+                        // root margin a second time. The SELECTION CHROME is not content: MAUI paints it on
+                        // the item CONTAINER (the ListViewItem/GridViewItem slot), which the margin never
+                        // moves. Feeding one margin-translated rect to both made the fill, indicator and
+                        // checkbox all sit `margin` px off their slot -- a regression introduced today by
+                        // landing the chrome and the translation in separate passes, found independently by
+                        // two diagnoses of preselected_items and selection_synchronization.
+                        const maui::graphics::rect slot_rect =
+                            vertical ? maui::graphics::rect{col_origin, cursor, col_cross, row_extent}
+                                     : maui::graphics::rect{cursor, col_origin, row_extent, col_cross};
                         const maui::graphics::rect cell_rect =
                             vertical ? maui::graphics::rect{col_origin + cell_margin.left, cursor + cell_margin.top,
                                                             col_cross, row_extent}
@@ -1103,16 +1114,16 @@ namespace maui::controls
                             std::ranges::find(platform->selected_paths, cell_path) != platform->selected_paths.end();
                         if (selected)
                         {
-                            paint_selection_fill(panel, dark_theme, platform->grid, cell_rect);
+                            paint_selection_fill(panel, dark_theme, platform->grid, slot_rect);
                             if (!platform->grid && !platform->allows_multiple_selection)
                             {
-                                paint_selection_indicator(panel, dark_theme, cell_rect, vertical);
+                                paint_selection_indicator(panel, dark_theme, slot_rect, vertical);
                             }
                         }
                         panel.Children().Append(col.native);
                         if (platform->allows_multiple_selection)
                         {
-                            paint_selection_checkbox(panel, dark_theme, selected, platform->grid, cell_rect);
+                            paint_selection_checkbox(panel, dark_theme, selected, platform->grid, slot_rect);
                         }
                         // ---------------------------------------------------------------------------------
 
