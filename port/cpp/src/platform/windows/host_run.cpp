@@ -45,6 +45,7 @@
 #include "maui/controls/application.hpp"
 #include "maui/controls/window.hpp"
 #include "maui/core/app_theme.hpp"
+#include "maui/core/i_view_handler.hpp"
 #include "maui/core/i_window.hpp"
 #include "maui/core/window_handler.hpp"
 #include "maui/hosting/app_host.hpp"
@@ -271,6 +272,86 @@ namespace
                     if (resources.HasKey(key))
                     {
                         panel.Background(resources.Lookup(key).as<winui::Media::Brush>());
+                    }
+                }
+            }
+
+            // (3d) The themed CONTENT LAYER, painted translucently on the PAGE's own native view — one
+            //      level below (3c)'s panel. PARITY_REVIEW.md "TASK 1 SOLVED" (2026-07-31): real MAUI
+            //      hosts page content inside a NavigationView whose content area is painted
+            //      `NavigationViewContentBackground`, a StaticResource to `LayerFillColorDefaultBrush`
+            //      (WinUI generic.xaml) — itself translucent (#4C3A3A3A dark / #80FFFFFF light) — layered
+            //      OVER the opaque window base (3c) already paints. Composited over the measured base this
+            //      reproduces the observed body colour in both themes (dark 32+(76/255)*(58-32)=39.75,
+            //      light 232+(128/255)*(255-232)=243.55). Before this the port painted content with the
+            //      window base itself, so the title-bar band and the body were IDENTICAL (delta 0) where
+            //      MAUI shows +7 dark / +12 light.
+            //
+            //      Reached via window_->content()'s own handler (the same lookup window_handler.cpp's
+            //      host_content() uses), not by walking native.Content()'s children, so this lands on the
+            //      page's native view whether or not the title bar is extended. Gated on
+            //      has_extended_title_bar because only then does (3c)'s panel above name a DIFFERENT
+            //      element (the wrapper Grid) from this one (window_handler.cpp's host_content) — without
+            //      the wrapper, native.Content() IS the page's own view, and (3c) already painted it;
+            //      painting it again here would replace that base with this layer instead of compositing
+            //      over it, and there is no reserved band on that system to distinguish anyway.
+            //
+            //      Same has_own_background guard as (3c): an explicit page Background is already a LOCAL
+            //      value on this property by now (content_page_handler.cpp's update_background ran during
+            //      mount_window, above), so ReadLocalValue is non-Unset and this leaves it untouched.
+            //      Confirmed, not assumed: view_mapper.cpp's map_background pushes `view.background()`
+            //      unconditionally for every view including pages with none set, and winui_visual_ops.cpp's
+            //      apply_background(slot, nullptr) CLEARS the property rather than painting Transparent —
+            //      so an unset page background really does read back UnsetValue here.
+            //
+            //      ponytail: this DP is now OWNED by this step — map_background (view_mapper.cpp) still
+            //      pushes here on every future page Background change (including a clear back to unset),
+            //      which would silently wipe the layer with no repaint, and a page swapped into the window
+            //      post-boot gets no layer at all, since this fires once in OnLaunched like every other
+            //      step in this function. Both are fine for the parity lane (one page, no post-boot
+            //      Background churn, per process launch). Fixing either means moving this into
+            //      content_page_handler.cpp's own mapper — deliberately NOT done here, because the
+            //      resource lookup must happen AFTER the app theme is set at (1b)/(3b), which
+            //      create_platform_view (mount time) precedes.
+            if (maui::platform::windows::has_extended_title_bar(native))
+            {
+                auto* const page = window_->content();
+                auto* const page_handler =
+                    page != nullptr ? dynamic_cast<maui::core::i_view_handler*>(page->handler().get()) : nullptr;
+                if (page_handler != nullptr && page_handler->native_view() != nullptr)
+                {
+                    const winui::UIElement page_view =
+                        maui::platform::windows::ref<winui::UIElement>(page_handler->native_view());
+                    if (const auto page_panel = page_view.try_as<winui::Controls::Panel>())
+                    {
+                        const bool has_own_background =
+                            page_panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
+                            winui::DependencyProperty::UnsetValue();
+                        if (!has_own_background)
+                        {
+                            const auto resources = Resources();
+                            const auto key = winrt::box_value(winrt::hstring{L"NavigationViewContentBackground"});
+                            if (resources.HasKey(key))
+                            {
+                                page_panel.Background(resources.Lookup(key).as<winui::Media::Brush>());
+                                boot_log("theme: content layer painted");
+                            }
+                            else
+                            {
+                                // Silent-miss guard: HasKey==false leaves the page unpainted, which looks
+                                // identical to a successful no-op. One line turns a mystery rescore into an
+                                // immediate answer instead of a re-derivation of this whole comment block.
+                                boot_log("theme: content layer resource NOT FOUND -- NavigationViewContentBackground "
+                                         "missing");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Same silent-miss concern as above: a root page whose native view isn't a Panel
+                        // (not true for content_page_handler.cpp's Canvas today, but nothing enforces it)
+                        // would skip the whole block with nothing logged.
+                        boot_log("theme: content layer skipped -- page native view is not a Panel");
                     }
                 }
             }
