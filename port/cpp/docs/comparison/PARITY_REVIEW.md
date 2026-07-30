@@ -679,3 +679,50 @@ Paint the port's page-content root with the `NavigationViewContentBackground` / 
 THEME RESOURCE, so it resolves per theme automatically, over the existing window base. Separately fix the
 light title-bar base (port 243 vs MAUI 232). Then rescore: ~129 dark pages currently sit at diff<=1% but
 SSIM<0.98 and are gated on exactly this, plus 36 light pages.
+
+---
+
+## Rounded-rectangle CLIP coverage: works, but held back by an unexplained `clipping` regression (2026-07-31)
+
+`view_chrome_ops.cpp`'s `build_geometry()` covers only ellipse + rectangle; its own header states rounded
+rectangles are unsupported, and an unsupported shape returns nothing, so the caller **leaves any existing
+clip alone** — i.e. a RoundRectangle/RoundRectangleGeometry `Clip` currently applies NO CLIP AT ALL on
+Windows. A branch was written using `Compositor::CreateRoundedRectangleGeometry` for the uniform-radii
+case only (non-uniform radii genuinely cannot be expressed by its single `Vector2` CornerRadius, so those
+still fall through to unsupported rather than silently approximating). It COMPILES on the guest, so the
+API shape is confirmed real.
+
+Measured (light, cpp column; movement attributed on both sides):
+
+  clip_gallery            3.02% -> 1.46%  (-1.56)   cpp moved 22844, maui 0   REAL WIN
+  clip_corner_radius      2.16% -> 0.60%  (-1.56)   cpp moved 22650, maui 0   REAL WIN
+  clipping                0.00% -> 4.89%  (+4.89)   cpp moved 40000, maui 0   REGRESSION
+  clip / border_clip_playground   unchanged, 0 px moved either side
+
+NOT IMPORTED and REVERTED pending diagnosis — net effect is ~zero-to-negative on green, and `clipping`
+was exactly 0.00%.
+
+### What the `clipping` regression is NOT
+
+- Not the clip *type*. The page passed a bounds-relative `graphics::shapes::round_rectangle` where the
+  C# names `new RoundRectangleGeometry { CornerRadius = 8, Rect = (0,0,400,50) }` — an ABSOLUTE rect.
+  Switching it to `controls::shapes::round_rectangle_geometry` with that explicit rect left the page at
+  **exactly 4.89%**, unchanged. So the geometry choice is not the cause (though the absolute type IS the
+  faithful port of the C# and should be adopted whenever this is fixed).
+- Not the toggle state. The capture is the `initial` frame, `clipping` has no scenario file, the ctor
+  never calls `on_toggle_clip()`, and the status label starts "Not clipping" — so no clip should be
+  applied at capture time at all.
+
+### The actual clue
+
+The changed pixels are **exactly 40000 = 200x200**, at rows 123-322, cols 512-711. That is the
+translucent-red `BoxView` overlay in the overflow Grid's second column — **not** the 8-button row that
+the clip is attached to. So enabling rounded-clip support changes the rendering of a sibling BoxView, not
+the clipped row. That points at something shared — most likely the `clips_to_bounds` / layout clip path
+(`layout_handler.cpp`'s ClipsToBounds rebuilds its clip rectangle through the same helper), or the
+null-shape path no longer clearing an existing clip — rather than at the new rounded branch itself.
+
+Next diagnostic (cheap, and it ANSWERS rather than predicts): capture `clipping` with the rounded branch
+present but with the BoxView overlay temporarily removed, or dump the clip actually installed on each
+element. Do not re-land the branch until that 200x200 square is explained; the two wins above are real
+and worth recovering once it is.
