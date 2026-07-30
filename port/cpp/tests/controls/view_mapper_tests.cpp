@@ -393,14 +393,13 @@ namespace
         EXPECT_EQ(base->clip, control.clip());
         ASSERT_NE(base->clip, nullptr);
         // The clip produces a closed rectangle path fitted to the given bounds: move + 3 lines + close
-        // (5 operations); straight edges flatten to exact bounds, deflated 0.5 DIP/side (default
-        // StrokeThickness 1.0 + Aspect Fill composition — see rectangle.hpp's header note).
+        // (5 operations); straight edges flatten to exact bounds.
         const maui::graphics::path_f path = base->clip->path_for_bounds(maui::graphics::rect(0, 0, 50, 20));
         EXPECT_EQ(path.operation_count(), 5);
         EXPECT_TRUE(path.closed());
         const maui::graphics::rect_f bounds = path.get_bounds_by_flattening();
-        EXPECT_FLOAT_EQ(bounds.width, 49.0F);
-        EXPECT_FLOAT_EQ(bounds.height, 19.0F);
+        EXPECT_FLOAT_EQ(bounds.width, 50.0F);
+        EXPECT_FLOAT_EQ(bounds.height, 20.0F);
 
         control.set_clip(nullptr);
         EXPECT_EQ(base->clip, nullptr);
@@ -421,14 +420,12 @@ namespace
         // append_rounded_rectangle (uniform radius): move + 4 cubics + 3 lines + close (9 operations); a
         // closed path. Its flattened bounds overshoot slightly for the corner Béziers, so the structure +
         // a near-bounds check (small tolerance, as the graphics path tests do for curves) is asserted.
-        // Deflated 0.5 DIP/side (default StrokeThickness 1.0 + Aspect Fill composition — see
-        // round_rectangle.hpp's header note).
         const maui::graphics::path_f path = base->clip->path_for_bounds(maui::graphics::rect(0, 0, 60, 40));
         EXPECT_EQ(path.operation_count(), 9);
         EXPECT_TRUE(path.closed());
         const maui::graphics::rect_f bounds = path.get_bounds_by_flattening();
-        EXPECT_NEAR(bounds.width, 59.0F, 0.2F);
-        EXPECT_NEAR(bounds.height, 39.0F, 0.2F);
+        EXPECT_NEAR(bounds.width, 60.0F, 0.2F);
+        EXPECT_NEAR(bounds.height, 40.0F, 0.2F);
     }
 
     TEST(view_mapper_visual, setting_ellipse_clip_maps_to_mirror)
@@ -443,22 +440,14 @@ namespace
         control.set_clip(clip);
         EXPECT_EQ(base->clip, clip.get());
         ASSERT_NE(base->clip, nullptr);
-        // append_ellipse: move + 4 cubics + close (6 operations); a closed path. Deflated 0.5 DIP/side
-        // (default StrokeThickness 1.0 + Aspect Fill composition — see ellipse.hpp's header note), so the
-        // (0,0,30,30) bounds rect yields a (0.5,0.5,29,29) shape rect. The tolerance here is wider than a
-        // plain "Bezier arc overshoot" margin would need: get_bounds_by_flattening's flattened bounds grow
-        // measurably less tight as the curve's absolute coordinates move away from the origin (a
-        // pre-existing path_f flattening-precision property, unrelated to this fix — confirmed by probing
-        // append_ellipse at (0,0), (0.5,0.5), (1,1) and (100.5,100.5): overshoot grows with the
-        // coordinates' magnitude, not just with the 0.5 fractional offset introduced here). 0.3F covers the
-        // measured (0.5,0.5,29,29) overshoot (~0.27) with margin; a shape further from the origin would
-        // need more.
+        // append_ellipse: move + 4 cubics + close (6 operations); a closed path. The flattened bounds
+        // overshoot slightly for the Bézier arcs, so a small tolerance is used (as the graphics tests do).
         const maui::graphics::path_f path = base->clip->path_for_bounds(maui::graphics::rect(0, 0, 30, 30));
         EXPECT_EQ(path.operation_count(), 6);
         EXPECT_TRUE(path.closed());
         const maui::graphics::rect_f bounds = path.get_bounds_by_flattening();
-        EXPECT_NEAR(bounds.width, 29.0F, 0.3F);
-        EXPECT_NEAR(bounds.height, 29.0F, 0.3F);
+        EXPECT_NEAR(bounds.width, 30.0F, 0.2F);
+        EXPECT_NEAR(bounds.height, 30.0F, 0.2F);
     }
 
     TEST(view_mapper_visual, initial_visual_values_map_on_attach)

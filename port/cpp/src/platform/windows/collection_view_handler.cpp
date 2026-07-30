@@ -69,10 +69,6 @@
 //     read-only paint, matching this task's brief.
 //   - Interactive drag-reorder — can_reorder_items keeps mirroring, but there is no native drag gesture
 //     (matches the android/apple/ios precedent: the drag itself is native and out of scope everywhere).
-//   - CarouselView's one-item-per-page layout (CreateCarouselLayout's FractionalWidth/Height(1)) — a
-//     CarouselView reuses this handler (carousel_view.cpp), but this partial does NOT special-case it
-//     the way android does; a carousel renders as a plain all-items flow. Cut because this task's scope
-//     is CollectionView specifically (the 18 red pages), not CarouselView.
 //   - ItemsUpdatingScrollMode's native scroll-follow (KeepItemsInView / KeepLastItemInView) and the
 //     ScrollTo command (map_scroll_to) — neither drives the native ScrollViewer (no ChangeView call);
 //     both keep updating their cross-platform mirrors only. scroll_view_handler.cpp already has the
@@ -104,6 +100,33 @@
 //     reason it always existed: some callers — build_entries(), scroll math — still read the flat
 //     item_extent estimate directly, not just get_desired_size). Both are port-only devices (no
 //     C#-observable behavior change, only the internal estimates' accuracy) — not oracle citations.
+//
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// CAROUSEL PAGED PATH: CarouselView's one-item-per-page layout
+// ──────────────────────────────────────────────────────────────────────────────────────────────────
+// CarouselView reuses this handler wholesale (carousel_view.cpp registers collection_view_handler for
+// it), but a carousel PAGES — it shows ONE item at a time — not this file's all-items flow. arrange_native
+// takes an early is_carousel branch (SHAPE mirrors src/platform/android/collection_view_handler.cpp's
+// "wave 25" CarouselView paged path 1:1: dynamic_cast the virtual view, realize ONLY the item at the
+// clamped current Position, skip the header/items/empty/footer flow below via is_carousel) but SIZING is
+// Windows-specific, not android's both-axes-full-viewport framing:
+//   ORACLE: CarouselViewHandler.Windows.cs GetItemWidth()/GetItemHeight() (~line 291-313) — the CROSS
+//   axis reports the FULL ActualWidth/ActualHeight (unreduced); only the MAIN axis is reduced by THAT
+//   axis's two PeekAreaInsets plus ItemsLayout.ItemSpacing, both floored at 0 via Math.Max(x, 0). e.g. for
+//   a Horizontal carousel: width (main) = ActualWidth - PeekAreaInsets.Left - PeekAreaInsets.Right -
+//   ItemSpacing; height (cross) = ActualHeight, untouched.
+//   GetItemSpacing() (same file, immediately below) turns the SAME ItemSpacing into a Thickness applied to
+//   the LEADING main-axis edge only (Left for Horizontal, Top for Vertical) — combined with
+//   CreateCarouselListLayout's `ListViewBase.Padding = PeekAreaInsets` (all four sides), the realized
+//   item's main-axis origin is that leading peek inset, so the item's far edge lands
+//   `PeekTrailing + ItemSpacing` short of the viewport's far edge — the visible "peek" sliver of the next
+//   page. The cross-axis origin is 0 (unreduced, matching GetItemHeight/Width leaving that axis alone —
+//   there is no peek across the non-scrolling axis). DEFERRED, same as android: live swipe paging (no
+//   native gesture wiring in this partial at all — see the SELECTION CHROME note above); the gallery's
+//   Prev/Next buttons drive Position programmatically, which re-runs arrange_native and re-realizes.
+//   SCOPE CUT (also matches android): `is_carousel` swallows the empty/else branch whole, so an empty-
+//   source carousel renders nothing at all — no empty-view fallback — same as the android paged path,
+//   which never realizes an empty-view branch for a carousel either.
 
 #include "maui/controls/items/collection_view_handler.hpp"
 
@@ -133,6 +156,7 @@
 
 #include "maui/controls/element.hpp"
 #include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/groupable_items_view.hpp"
 #include "maui/controls/items/i_items_view.hpp"
 #include "maui/controls/items/items_layout_orientation.hpp"
@@ -856,16 +880,106 @@ namespace maui::controls
             cursor += container_extent + trail + spacing;
         };
 
+        // ── CarouselView paged path (see this file's header "CAROUSEL PAGED PATH" comment for the full
+        // oracle citation) — realize ONLY the item at the clamped current Position, WINDOWS-sized (cross
+        // axis full-viewport, main axis reduced by that axis's two PeekAreaInsets + ItemSpacing, floored
+        // at 0), and skip the header/items/empty/footer flow below entirely via is_carousel — a carousel
+        // carries none of that chrome (mirrors android's identical is_carousel gating, different sizing).
+        const bool is_carousel = dynamic_cast<carousel_view*>(view) != nullptr;
+        if (is_carousel && src != nullptr && src->item_count() > 0)
+        {
+            // Redundant with is_carousel above (deliberate — android's identical paged path re-casts
+            // here too, rather than threading the first dynamic_cast's result through the branch).
+            auto* const carousel = dynamic_cast<carousel_view*>(view);
+            const int item_count = src->item_count();
+            // CarouselView.Position clamped into [0, count-1] (the settled page; a fresh carousel is at
+            // 0) — the same clamp android's paged path applies.
+            const int position = std::clamp(carousel != nullptr ? carousel->position() : 0, 0, item_count - 1);
+            const boxed_item value = src->item(index_path{.section = 0, .item = position});
+            const std::shared_ptr<data_template> item_t = view->item_template();
+            const std::shared_ptr<data_template> resolved =
+                item_t ? resolve_item_template(item_t, value, container) : nullptr;
+
+            winui::UIElement native{nullptr};
+            std::shared_ptr<maui::core::bindable_object> realized =
+                realize_template_content(context, resolved, value, native);
+            if (native == nullptr)
+            {
+                if (winui::UIElement boxed = boxed_view_native(context, value))
+                {
+                    native = boxed;
+                    realized = value.as_bindable();
+                }
+            }
+            if (native == nullptr)
+            {
+                native = make_text_block(value.text());
+            }
+
+            // GetItemWidth()/GetItemHeight() (this file's header comment cites the exact oracle lines):
+            // MAIN axis = viewport main extent - leading peek inset - trailing peek inset - ItemSpacing,
+            // floored at 0; CROSS axis = the viewport cross extent, unreduced. carousel_view::
+            // peek_area_insets() (maui/controls/items/carousel_view.hpp) is the port's PeekAreaInsets
+            // accessor; `spacing` (platform->item_spacing, bound above) mirrors ItemsLayout.ItemSpacing.
+            const maui::core::thickness peek =
+                carousel != nullptr ? carousel->peek_area_insets() : maui::core::thickness{};
+            const double viewport_main = vertical ? frame.height : frame.width;
+            const double peek_lead = vertical ? peek.top : peek.left;
+            const double peek_trail = vertical ? peek.bottom : peek.right;
+            const double item_main = std::max(0.0, viewport_main - peek_lead - peek_trail - spacing);
+            const double item_cross = cross_extent;
+
+            // ORIGIN, NOT asserted as fact (the real WinUI Panel/margin arrange mechanics this depends on
+            // are not in `src/` — same caveat this file's footer bottom-anchor comment already carries).
+            // CreateCarouselListLayout's ListViewBase.Padding = PeekAreaInsets (all four sides) is the
+            // one piece that IS in the oracle, so the leading peek inset is used as the item's main-axis
+            // origin here: far edge lands `peek_trail + spacing` short of the viewport's far edge — the
+            // peek sliver. GetItemSpacing() (this file's header comment) returns a Thickness with the
+            // SAME spacing value on the leading edge only, which — if it is applied as a per-item margin
+            // by the real ListViewItem style, not accounted for separately here — would read as an
+            // ADDITIONAL `+ spacing` on this origin (trailing edge would then land exactly at `peek_trail`
+            // instead). Not distinguishable from `src/` alone and not visually checkable from this Mac
+            // (no WinUI toolchain here — see this file's build-verification note). Moot for the gallery's
+            // own carousel_page today: its CarouselView sets neither PeekAreaInsets nor ItemSpacing, so
+            // `peek_lead`/`peek_trail`/`spacing` are all 0 and both readings coincide. The cross axis
+            // origin is 0 either way — GetItemHeight/Width leaves that axis unreduced, so there is no
+            // cross-axis peek to make room for.
+            canvas::SetLeft(native, vertical ? 0.0 : peek_lead);
+            canvas::SetTop(native, vertical ? peek_lead : 0.0);
+            if (auto framework_element = native.try_as<winui::FrameworkElement>())
+            {
+                framework_element.Width(vertical ? item_cross : item_main);
+                framework_element.Height(vertical ? item_main : item_cross);
+            }
+            panel.Children().Append(native);
+            if (realized)
+            {
+                arrange_realized_view(realized, vertical ? maui::graphics::rect{0.0, peek_lead, item_cross, item_main}
+                                                         : maui::graphics::rect{peek_lead, 0.0, item_main, item_cross});
+                platform->retained_natives.push_back(std::move(realized));
+            }
+            // Advance the content cursor by the WHOLE viewport main extent (not item_main, which is
+            // narrower by the peek insets) so the host panel below sizes to exactly ONE page — the same
+            // `cursor_dp += main_viewport_dp` device android's paged path uses.
+            cursor += viewport_main;
+        }
+
         // The global (structured) header — realized BEFORE the items/empty region, independent of it
         // (HeaderFooterView's empty source still shows its View header/footer — C#'s UpdateHeader runs
-        // ahead of the data region regardless of item count).
-        if (structured != nullptr)
+        // ahead of the data region regardless of item count). Skipped for a carousel — see is_carousel
+        // above (a carousel carries no header/footer chrome, matching real MAUI CarouselView).
+        if (!is_carousel && structured != nullptr)
         {
             realize_full_width(structured->header_template(), structured->header(), false, false);
         }
 
         const bool empty = src == nullptr || src->item_count() == 0;
-        if (empty)
+        if (is_carousel)
+        {
+            // The carousel paged path above already realized the single current item; skip the CV's
+            // header/items/empty/footer flow entirely (a carousel carries none of that chrome).
+        }
+        else if (empty)
         {
             const bool has_empty_view = view->empty_view_template() != nullptr || view->empty_view().has_value();
             if (has_empty_view)
@@ -1144,15 +1258,22 @@ namespace maui::controls
         }
 
         // The global (structured) footer — realized AFTER the items/empty region, independent of item
-        // count (like the header).
-        if (structured != nullptr)
+        // count (like the header). Skipped for a carousel, same as the header above.
+        if (!is_carousel && structured != nullptr)
         {
             realize_full_width(structured->footer_template(), structured->footer(), false, true);
         }
 
         // Size the panel to the greater of the real content and the viewport (the scroll_view_handler
         // layout-seam pattern) so ScrollableWidth/Height falls out of native ScrollViewer arithmetic.
-        const double content_main = cursor > spacing ? cursor - spacing : cursor; // drop the trailing spacing
+        // `!is_carousel` gated: the carousel branch above advances `cursor` by the bare viewport main
+        // extent with NO trailing spacing added (there is no next row to space away from — a carousel
+        // page IS the whole content), so subtracting `spacing` here would under-size a carousel whose
+        // ItemsLayout sets a nonzero ItemSpacing; every non-carousel path DOES append a trailing spacing
+        // after its last row/band (realize_full_width's `cursor += ... + spacing`, the item loop's
+        // `cursor += row_extent + spacing`), which is what this subtraction exists to drop.
+        const double content_main =
+            (!is_carousel && cursor > spacing) ? cursor - spacing : cursor; // drop the trailing spacing
         const double viewport_main = vertical ? frame.height : frame.width;
         const double panel_main = std::max(content_main, viewport_main);
         panel.Width(vertical ? cross_extent : panel_main);

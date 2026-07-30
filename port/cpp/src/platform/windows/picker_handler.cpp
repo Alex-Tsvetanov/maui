@@ -18,14 +18,17 @@
 //     `TextBlock` — a ComboBox has no single content TextBlock this handler owns (unlike Button's
 //     DefaultMauiButtonContent slot), so this push is skipped, matching entry_handler.cpp's identical
 //     skip for the same reason.
-//  3. Background (MapBackground → PickerExtensions.UpdateBackground) is a Windows-only theme-resource
-//     remap in C#, but picker_handler.cpp's cross-platform mapper() ALREADY documents "Android/Windows-
-//     only Background... are not replicated" — background is not in this handler's mapper table at all
-//     (confirmed against the headless twin, which also has no map_background). The generic IView
-//     Background still reaches the ComboBox through the five-override block below (a direct brush push,
-//     not the per-visual-state resource keys) — see button_handler.cpp's map_stroke_color for why THAT
-//     distinction matters for state-restyled brushes; Background here is unstated in the C# picker
-//     mapper, so the plain generic push is not a narrowing of anything this handler is asked to do.
+//  3. CORRECTED (was a bug, not a simplification): an earlier version of this note claimed "background is
+//     not in this handler's mapper table at all", and update_background therefore did a plain generic
+//     apply_background push. That is wrong. `PickerHandler.cs:19-20` carries
+//     `#if __ANDROID__ || WINDOWS [nameof(IPicker.Background)] = MapBackground`, and Windows's
+//     MapBackground calls PickerExtensions.UpdateBackground (PickerExtensions.cs:19-29), which overrides
+//     the ComboBoxBackground/PointerOver/Pressed/Disabled/Unfocused resource keys the control template's
+//     per-visual-state brushes bind to — a plain Control.Background alone is dropped the next time the
+//     control re-resolves those brushes. update_background now calls push_background, which reproduces
+//     UpdateBackground exactly. NOTE it sets the resource keys ONLY: unlike DatePickerExtensions, the C#
+//     never assigns ComboBox.Background itself. This is the same class of bug already fixed in
+//     date_picker_handler.cpp (see ITS file-top note 1).
 
 #include "maui/core/picker_handler.hpp"
 
@@ -81,6 +84,13 @@ namespace
         L"ComboBoxForeground", L"ComboBoxForegroundPointerOver", L"ComboBoxForegroundDisabled",
         L"ComboBoxForegroundFocused", L"ComboBoxForegroundFocusedPressed"};
 
+    // PickerExtensions.cs's BackgroundColorResourceKeys (PickerExtensions.cs:31-37). Same rationale as
+    // k_text_color_keys above. NOTE the last key is "Unfocused", not "Focused" as in the Foreground set
+    // and in DatePicker's background set — this list is transcribed from the C#, not inferred.
+    constexpr std::array<std::wstring_view, 5> k_background_keys{
+        L"ComboBoxBackground", L"ComboBoxBackgroundPointerOver", L"ComboBoxBackgroundPressed",
+        L"ComboBoxBackgroundDisabled", L"ComboBoxBackgroundUnfocused"};
+
     void set_resources(const combo_box& combo, std::span<const std::wstring_view> keys,
                        const winui::Media::Brush& brush)
     {
@@ -106,6 +116,23 @@ namespace
         element.RequestedTheme(element.ActualTheme() == winui::ElementTheme::Dark ? winui::ElementTheme::Light
                                                                                   : winui::ElementTheme::Dark);
         element.RequestedTheme(previous);
+    }
+
+    // PickerExtensions.UpdateBackground (PickerExtensions.cs:19-29) — the resource-key set ONLY. Unlike
+    // DatePickerExtensions.UpdateBackground (which sets the keys AND ComboBox.Background), the C# here
+    // never touches the Background property itself, so this deliberately neither pushes nor clears it:
+    // a plain Control.Background is dropped again the moment the control re-resolves its per-visual-state
+    // template brushes, which is exactly why the resource keys exist.
+    void push_background(const combo_box& combo, const maui::graphics::paint* value)
+    {
+        if (value == nullptr)
+        {
+            remove_resources(combo, k_background_keys);
+            refresh_theme_resources(combo);
+            return;
+        }
+        set_resources(combo, k_background_keys, maui::platform::windows::brush_for(*value));
+        refresh_theme_resources(combo);
     }
 
     // "Was this property explicitly set?" — see the twin in button_handler.cpp/label_handler.cpp for why
@@ -579,6 +606,11 @@ namespace maui::core
 
     void picker_platform::update_background(const maui::graphics::paint* value)
     {
-        maui::platform::windows::apply_background(native, value);
+        // NOT the generic apply_background push. PickerHandler.cs:19-20 carries
+        // `#if __ANDROID__ || WINDOWS [nameof(IPicker.Background)] = MapBackground`, whose Windows
+        // implementation is PickerExtensions.UpdateBackground — a theme-RESOURCE-key override, because
+        // the ComboBox template binds its per-visual-state backgrounds to those keys and drops a plain
+        // Control.Background on the next state change. See push_background above.
+        push_background(as_combo(native), value);
     }
 } // namespace maui::core

@@ -48,7 +48,6 @@
 #include "maui/controls/horizontal_stack_layout.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/controls/label.hpp"
-#include "maui/controls/shapes/round_rectangle_geometry.hpp"
 #include "maui/controls/stack_layout.hpp"
 #include "maui/controls/stack_orientation.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
@@ -58,6 +57,7 @@
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/corner_radius.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
 namespace maui::samples
@@ -218,12 +218,11 @@ namespace maui::samples
             row3_.set_clips_to_bounds(clipping);            // _row3.IsClippedToBounds = clipping;
 
             // _row1.Clip = clipping ? new RoundRectangleGeometry { CornerRadius = 8, Rect = (0,0,400,50) } : null;
-            // A Geometry, NOT a Shape: Geometry.PathForBounds (Geometry.cs:17) returns the raw AppendPath
-            // result, so it does NOT get Shape.TransformPathForBounds' 0.5 DIP/side stroke deflate, and it
-            // paints the explicit Rect rather than the bounds handed at draw time.
-            row1_.set_clip(clipping ? std::make_shared<maui::controls::shapes::round_rectangle_geometry>(
-                                          maui::graphics::corner_radius{8}, maui::graphics::rect{0, 0, 400, 50})
-                                    : nullptr);
+            // The port's round_rectangle paints its rounded rect over the bounds handed at draw time, so the
+            // explicit Rect(0,0,400,50) is implicit in the row's own 400×50 bounds; CornerRadius = 8 here.
+            row1_.set_clip(
+                clipping ? std::make_shared<maui::graphics::shapes::round_rectangle>(maui::graphics::corner_radius{8})
+                         : nullptr);
 
             status_.set_text(clipping ? "Clipping" : "Not clipping"); // _status.Text = clipping ? ... : ...;
         }
