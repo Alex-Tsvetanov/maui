@@ -611,3 +611,71 @@ on `borderless`, where the port matches MAUI at exactly 0.00% while applying onl
 cannot be universally true, so the remaining difference is page-specific, not a uniform missing step.
 **Do not act on either reading without a per-page measurement.** Recorded as an open question, not a
 conclusion.
+
+---
+
+## TASK 1 SOLVED (2026-07-31): the dark/light background delta is a MISSING CONTENT LAYER
+
+Mechanism identified, oracle-grounded, no hard-coded colour. The user authorised deeper instrumentation;
+this is its result.
+
+### What the delta actually is
+
+It is NOT the window background, and NOT colour management. Measured on `box_view` (modal colour of the
+title-bar band vs the page body):
+
+           title bar    body      delta
+  MAUI light   232       244       +12
+  MAUI dark     32        39        +7
+  port  light  243       243         0
+  port  dark    32        32         0
+
+MAUI paints the page content on a translucent LAYER over the window base. The port paints the content
+with the window base itself, so it has no layer at all. (The port's light TITLE BAR is also wrong -- 243
+where MAUI is 232 -- which had not been noticed before.)
+
+### The named mechanism
+
+WinUI's own `generic.xaml` (WindowsAppSDK 1.7.250606001, `lib/uap10.0/Microsoft.UI/Themes/generic.xaml`):
+
+  line  204  <Color x:Key="SolidBackgroundFillColorBase">#202020</Color>      (dark)
+  line 5783  <Color x:Key="SolidBackgroundFillColorBase">#F3F3F3</Color>      (light)
+  line 2019  <Color x:Key="LayerFillColorDefault">#4C3A3A3A</Color>           (dark)
+  line 7598  <Color x:Key="LayerFillColorDefault">#80FFFFFF</Color>           (light)
+  line 2433  <StaticResource x:Key="NavigationViewContentBackground" ResourceKey="LayerFillColorDefaultBrush" />
+  line 8015  ... same for light
+
+MAUI's Windows shell hosts page content in a NavigationView (`WindowRootView.cs` references
+`NavigationViewControl`), whose content area is painted `NavigationViewContentBackground` ==
+`LayerFillColorDefaultBrush`. Composited over the measured base:
+
+  dark   32 + (76/255)*(58-32)   = 39.75  -> observed 39   MATCH
+  light 232 + (128/255)*(255-232)= 243.55 -> observed 244  MATCH
+
+(The two round in opposite directions at the 0.5 boundary; both land within 1 level, versus the current
+error of 7 and 12. Exact 8-bit rounding is worth confirming once implemented, not assumed.)
+
+### Why this was ruled out before, and why that ruling was wrong
+
+The earlier sweep recorded "NavigationViewContentBackground: dark 17, light 255 -- worse in both" and
+retired it. Those numbers are reproduced EXACTLY by compositing that brush over the WRONG base:
+over BLACK, dark gives (76/255)*58 = 17.3 -> 17; over WHITE, light saturates to 255. The brush is
+translucent, so measuring it without the window base underneath measures nothing. It was a measurement
+artifact, not a refutation -- the resource was right all along.
+
+Likewise "any single translucent overlay is algebraically impossible -- needs c=278" is only true if the
+SAME (colour, alpha) is assumed in BOTH themes. Theme brushes differ per theme; solving the two equations
+independently is satisfiable, and `LayerFillColorDefault` satisfies both.
+
+Also newly established, and worth keeping: **explicit colours are bit-identical between the columns.**
+Sampling every distinct MAUI colour and taking the modal port colour at those same pixels gives exact
+matches for (100,149,237), (128,0,128), (144,238,144), (255,165,0), (173,216,230), (0,0,0) -- while the
+theme greys are off by exactly 7 at three different levels (39->32, 52->45, 55->48, i.e. the base plus
+alpha-composited layers inheriting it). That rules out gamma/ICC/colour-management as a class.
+
+### What to implement (NOT a hard-coded #272727)
+
+Paint the port's page-content root with the `NavigationViewContentBackground` / `LayerFillColorDefaultBrush`
+THEME RESOURCE, so it resolves per theme automatically, over the existing window base. Separately fix the
+light title-bar base (port 243 vs MAUI 232). Then rescore: ~129 dark pages currently sit at diff<=1% but
+SSIM<0.98 and are gated on exactly this, plus 36 light pages.
