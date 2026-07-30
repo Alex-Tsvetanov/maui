@@ -71,6 +71,33 @@ namespace maui::core
                 if (title_bar != nullptr)
                 {
                     title_bar.ExtendsContentIntoTitleBar(true);
+
+                    // MauiWinUIWindow.cs:48-50/224-238 `SetTileBarButtonColors` — called right after
+                    // ExtendsContentIntoTitleBar=true, same ordering here. Left at its default, the OS
+                    // caption-button strip (minimize/maximize/close) paints an OPAQUE system backdrop —
+                    // measured on this port as a solid (255,255,255) block, 138x32px flush to the
+                    // window's right edge, present identically in both themes. MAUI avoids that by
+                    // punching the button backgrounds transparent so the WindowRootView-painted,
+                    // theme-brushed title-bar strip (host_run.cpp's (3c) block, one level below) shows
+                    // through instead — Transparent is not a per-theme color, so this one call already
+                    // "follows the theme": whatever the (3c) block painted is what shows here.
+                    //
+                    // NOT ported: the oracle also subscribes _viewSettings.ColorValuesChanged to re-call
+                    // this on system UI-color changes (MauiWinUIWindow.cs:48,107,219-222). This port sets
+                    // its theme exactly once at boot (host_run.cpp OnLaunched) with no live system-theme
+                    // subscription anywhere else in the Windows backend, and the value being (re)pushed
+                    // here is theme-INDEPENDENT (Transparent), so there is nothing for a live update to
+                    // change — a subscription would be dead code. Revisit only if the port ever grows
+                    // live system-theme tracking.
+                    //
+                    // NOT ported: Application.Windows.cs's richer SetTitleBarButtonColors (hover/pressed/
+                    // foreground colors keyed to isDark). Those only paint on pointer interaction, which a
+                    // static parity capture never exercises, and are out of scope for the measured
+                    // resting-state defect this fixes. TODO: verify against
+                    // src/Controls/src/Core/Application/Application.Windows.cs if hover/pressed capture
+                    // is ever added.
+                    title_bar.ButtonBackgroundColor(winrt::Windows::UI::Colors::Transparent());
+                    title_bar.ButtonInactiveBackgroundColor(winrt::Windows::UI::Colors::Transparent());
                 }
             }
         }
