@@ -8342,11 +8342,11 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9509, 1.35% pixels differ · Dark: SSIM 0.9361, 1.39% pixels differ
+Light: SSIM 0.9510, 1.35% pixels differ · Dark: SSIM 0.9361, 1.39% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9509, 1.35% pixels differ · Dark: SSIM 0.9361, 1.39% pixels differ
+Light: SSIM 0.9510, 1.35% pixels differ · Dark: SSIM 0.9361, 1.39% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -9527,11 +9527,11 @@ a self-contained demo page for the W1-06 picker set: picker, date_picker and tim
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9380, 0.84% pixels differ · Dark: SSIM 0.9566, 0.23% pixels differ
+Light: SSIM 0.9664, 0.34% pixels differ · Dark: SSIM 0.9551, 0.23% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9698, 0.25% pixels differ · Dark: SSIM 0.9595, 0.13% pixels differ
+Light: SSIM 0.9692, 0.25% pixels differ · Dark: SSIM 0.9579, 0.13% pixels differ
 
 ### 116. Pointer Gesture — 🟡/🟡
 <sub>pointer_gesture</sub>

@@ -17,15 +17,18 @@
 //     button_handler.cpp's map_font note, this WinRT projection only exposes the property on
 //     `TextBlock` — a TimePicker has no single content TextBlock this handler owns, so this push is
 //     skipped, matching picker_handler.cpp's identical skip for the same reason.
-//  3. Background (MapBackground → TimePickerExtensions.UpdateBackground) is a Windows/Android-only
-//     theme-resource remap in C#, but core/time_picker_handler.cpp's cross-platform mapper() comment
-//     already documents "Android/Windows-only Background... are not replicated" — background is not in
-//     this handler's mapper table at all (confirmed against the headless twin and the header, neither of
-//     which declare a map_background). The generic IView Background still reaches the TimePicker through
-//     time_picker_platform::update_background below (a direct brush push, not the per-visual-state
-//     resource keys) — see picker_handler.cpp's map_text_color for why THAT distinction matters for
-//     state-restyled brushes; Background is unstated in this handler's C# mapper, so the plain generic
-//     push is not a narrowing of anything this handler is asked to do.
+//  3. CORRECTED (was a bug, not a simplification): an earlier version of this file believed Background
+//     was unstated for this handler and let it fall through to the generic five-override
+//     apply_background push (a plain Control.Background set). That is wrong — TimePickerHandler.cs's
+//     Mapper DOES carry `#if ANDROID || WINDOWS [nameof(ITimePicker.Background)] = MapBackground`, and
+//     Windows's MapBackground calls TimePickerExtensions.UpdateBackground, which overrides the
+//     TimePickerButtonBackground*/PointerOver/Pressed/Disabled/Focused resource keys the control
+//     template's per-visual-state brushes bind to (a plain Control.Background alone is dropped the
+//     instant the template resolves those keys — same shape as k_text_color_keys below, and the same
+//     shape slider_handler.cpp's update_background already carries for Slider's analogous Windows-only
+//     `MapBackgroundColor` remap). push_background below reproduces UpdateBackground exactly: the
+//     resource-key set AND the plain Background property. time_picker_platform::update_background now
+//     calls it instead of the shared winui_visual_ops::apply_background.
 //  4. map_is_open's "open" branch (TimePickerExtensions.cs:138-159): WinUI's TimePicker exposes no direct
 //     "open the flyout" boolean (unlike ComboBox.IsDropDownOpen), so MAUI itself opens it by locating the
 //     control's automation peer, walking its children for one whose automation class name contains
@@ -84,6 +87,11 @@ namespace
         L"TimePickerButtonForeground", L"TimePickerButtonForegroundPointerOver", L"TimePickerButtonForegroundPressed",
         L"TimePickerButtonForegroundDisabled"};
 
+    // TimePickerExtensions.cs's BackgroundColorResourceKeys — see the file-top deviation note 3.
+    constexpr std::array<std::wstring_view, 5> k_background_keys{
+        L"TimePickerButtonBackground", L"TimePickerButtonBackgroundPointerOver", L"TimePickerButtonBackgroundPressed",
+        L"TimePickerButtonBackgroundDisabled", L"TimePickerButtonBackgroundFocused"};
+
     void set_resources(const time_picker_control& native, std::span<const std::wstring_view> keys,
                        const winui::Media::Brush& brush)
     {
@@ -117,6 +125,23 @@ namespace
     {
         const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
         return bindable != nullptr && bindable->is_property_set(property);
+    }
+
+    // TimePickerExtensions.UpdateBackground — see the file-top deviation note 3. Keyed purely off `value`
+    // being null (matching C#'s `timePicker.Background is null` check, not the bindable is-set flag).
+    void push_background(const time_picker_control& native, const maui::graphics::paint* value)
+    {
+        if (value == nullptr)
+        {
+            remove_resources(native, k_background_keys);
+            native.ClearValue(winui::Controls::Control::BackgroundProperty());
+            refresh_theme_resources(native);
+            return;
+        }
+        const winui::Media::Brush brush = maui::platform::windows::brush_for(*value);
+        set_resources(native, k_background_keys, brush);
+        native.Background(brush);
+        refresh_theme_resources(native);
     }
 
     winrt::Windows::UI::Text::FontWeight to_font_weight(maui::core::font_weight weight)
@@ -472,6 +497,12 @@ namespace maui::core
 
     void time_picker_platform::update_background(const maui::graphics::paint* value)
     {
-        maui::platform::windows::apply_background(native, value);
+        // NOT the generic apply_background push — see the file-top deviation note 3 and push_background's
+        // own comment (same shape as slider_handler.cpp's update_background override).
+        if (native == nullptr)
+        {
+            return;
+        }
+        push_background(as_time_picker(native), value);
     }
 } // namespace maui::core

@@ -7,16 +7,19 @@
 //
 // DOCUMENTED SIMPLIFICATIONS against C#, each narrowed on purpose rather than left vague:
 //
-//  1. Background (MapBackground -> DatePickerExtensions.UpdateBackground) is Android/Windows-only in the
-//     C# mapper table, but date_picker_handler.cpp's cross-platform mapper() ALREADY documents "The
-//     Android/Windows-only Background remap ... stay platform-specific in C# and are not replicated" —
-//     background is not in this handler's mapper table at all (confirmed against the headless twin, which
-//     also has no map_background). The generic IView Background still reaches the CalendarDatePicker
-//     through the five-override block below (a direct brush push), not the per-visual-state
-//     CalendarDatePickerBackground* resource keys UpdateBackground uses — see picker_handler.cpp's
-//     identical map_text_color note for why THAT distinction matters for state-restyled brushes;
-//     Background here is unstated in the C# picker mapper for this handler, so the plain generic push is
-//     not a narrowing of anything this handler is asked to do.
+//  1. CORRECTED (was a bug, not a simplification): an earlier version of this file believed Background
+//     was unstated for this handler and let it fall through to the generic five-override
+//     apply_background push (a plain Control.Background set). That is wrong — DatePickerHandler.cs's
+//     Mapper DOES carry `#if ANDROID || WINDOWS [nameof(IDatePicker.Background)] = MapBackground`, and
+//     Windows's MapBackground calls DatePickerExtensions.UpdateBackground, which overrides the
+//     CalendarDatePickerBackground*/PointerOver/Pressed/Disabled/Focused resource keys the control
+//     template's per-visual-state brushes bind to (a plain Control.Background alone is dropped the
+//     instant the template resolves those keys — same shape as k_text_color_keys below, and the same
+//     shape slider_handler.cpp's update_background already carries for Slider's analogous Windows-only
+//     `MapBackgroundColor` remap). push_background below reproduces UpdateBackground exactly: the
+//     resource-key set AND the plain Background property (DatePickerExtensions.cs sets both, unlike
+//     Slider's resource-keys-only UpdateBackgroundColor). date_picker_platform::update_background now
+//     calls it instead of the shared winui_visual_ops::apply_background.
 //  2. CharacterSpacing (UpdateCharacterSpacing -> ApplyCharacterSpacingToTextBlocks). C# reaches INSIDE
 //     the CalendarDatePicker's control template for a "DateText" descendant TextBlock (with a
 //     Loaded-deferred retry if the template isn't built yet) and sets THAT TextBlock's CharacterSpacing —
@@ -95,6 +98,13 @@ namespace
         L"CalendarDatePickerCalendarGlyphForegroundPointerOver",
         L"CalendarDatePickerCalendarGlyphForegroundPressed",
         L"CalendarDatePickerCalendarGlyphForegroundDisabled",
+    };
+
+    // DatePickerExtensions.cs's BackgroundColorResourceKeys — see the file-top deviation note 1.
+    constexpr std::array<std::wstring_view, 5> k_background_keys{
+        L"CalendarDatePickerBackground",        L"CalendarDatePickerBackgroundPointerOver",
+        L"CalendarDatePickerBackgroundPressed", L"CalendarDatePickerBackgroundDisabled",
+        L"CalendarDatePickerBackgroundFocused",
     };
 
     void set_resources(const calendar_date_picker& combo, std::span<const std::wstring_view> keys,
@@ -321,6 +331,25 @@ namespace
         const winui::Media::SolidColorBrush brush{maui::platform::windows::to_ui_color(text_color)};
         set_resources(combo, k_text_color_keys, brush);
         combo.Foreground(brush);
+        refresh_theme_resources(combo);
+    }
+
+    // DatePickerExtensions.UpdateBackground — see the file-top deviation note 1. Unlike push_text_color's
+    // "unset = leave the theme brush" guard (which reads the bindable's is-set flag), C# keys this purely
+    // off `datePicker.Background` being null, so a null `value` (BackgroundProperty unset OR explicitly
+    // cleared) takes the same clear-and-restore-theme branch view_platform_base's caller already gives us.
+    void push_background(const calendar_date_picker& combo, const maui::graphics::paint* value)
+    {
+        if (value == nullptr)
+        {
+            remove_resources(combo, k_background_keys);
+            combo.ClearValue(winui::Controls::Control::BackgroundProperty());
+            refresh_theme_resources(combo);
+            return;
+        }
+        const winui::Media::Brush brush = maui::platform::windows::brush_for(*value);
+        set_resources(combo, k_background_keys, brush);
+        combo.Background(brush);
         refresh_theme_resources(combo);
     }
 
@@ -644,6 +673,12 @@ namespace maui::core
 
     void date_picker_platform::update_background(const maui::graphics::paint* value)
     {
-        maui::platform::windows::apply_background(native, value);
+        // NOT the generic apply_background push — see the file-top deviation note 1 and push_background's
+        // own comment (same shape as slider_handler.cpp's update_background override).
+        if (native == nullptr)
+        {
+            return;
+        }
+        push_background(as_calendar_date_picker(native), value);
     }
 } // namespace maui::core
