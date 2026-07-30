@@ -585,3 +585,29 @@ plainly visible rather than masked.
 ellipse/rectangle (bounds-relative and *_geometry); **rounded rectangles are not covered at all**
 (its own file header says so). So `Clip` set to a RoundRectangle/RoundRectangleGeometry silently
 applies NO clip on Windows. That is an independent, still-open gap.
+
+#### Correction (2026-07-31): the "where it belongs" paragraph above was ALREADY DONE
+
+The retraction section closes by saying the deflate "belongs" in the border handler per
+`BorderExtensions.UpdatePath`, phrased as guidance "for whoever retries this". That was written without
+checking, and it is wrong in one important way: **the Windows border handler had already implemented it**,
+in `ef892a8300`, before the shared-layer attempt was ever made.
+`port/cpp/src/platform/windows/border_handler.cpp:216-232` computes
+`path_bounds{0, 0, max(0, width - thickness), max(0, height - thickness)}`, calls
+`spec.shape->path_for_bounds(path_bounds)`, and bakes `translate(thickness/2, thickness/2)` into the
+geometry via `path_f::transform` (one fewer native object than a XAML RenderTransform, same net
+position). `spec.thickness` is the BORDER's own `stroke_thickness()` (`src/core/border_handler.cpp:70`),
+so it is correctly zero for `borderless`. The mapping to the oracle is line-for-line.
+
+So the shared-layer change was not "the deflate finally being added" — it was a **SECOND** deflate
+stacked on an existing correct one.
+
+That reframes, but does NOT fully explain, the measurements: a pure double-deflate should have made the
+border pages worse, and `border_stroke` measurably IMPROVED (3.51% -> 1.99%). MAUI's own chain does
+contain two nested steps (the handler's `pathSize` shrink, and then `PathForBounds` on a *Controls*
+Shape, which applies `TransformPathForBounds` with the SHAPE's own StrokeThickness), so "MAUI deflates
+twice and the port only once" is a live hypothesis for `border_stroke`'s residue. But it is contradicted
+on `borderless`, where the port matches MAUI at exactly 0.00% while applying only ONE deflate. Both
+cannot be universally true, so the remaining difference is page-specific, not a uniform missing step.
+**Do not act on either reading without a per-page measurement.** Recorded as an open question, not a
+conclusion.
