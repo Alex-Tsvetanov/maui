@@ -50,6 +50,23 @@ namespace maui::core
         // it to the native bar (NSView layout direction / UISemanticContentAttribute) AND mirror it here.
         maui::core::flow_direction resolved_flow_direction = maui::core::flow_direction::match_parent;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native
+        // Microsoft.UI.Xaml.Controls.ProgressBar via the shared winui_visual_ops helpers
+        // (src/platform/windows/), exactly like slider_platform's / activity_indicator_platform's
+        // identical block. Selected by MAUI_PLATFORM_WINDOWS, which is PUBLIC on maui_core for that
+        // backend only — so every TU of a given build sees exactly one backend's overrides and the class
+        // layout stays ODR-consistent. ProgressBar IS a Control (RangeBase : Control), unlike
+        // label_handler's bare TextBlock, so IsEnabled/Background reach it directly with no
+        // wrapper/container needed. No new DATA fields are added here (display-only handler, no native
+        // events to track), so this addition does not change the struct's layout on non-Windows builds.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
+
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSProgressIndicator (defined in
         // src/platform/apple/progress_bar_handler.mm). Same ODR note as button_platform. An

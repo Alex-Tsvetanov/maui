@@ -58,9 +58,15 @@
 // NOT PORTED (documented deviations, per this task's "leave the existing mirror behaviour and say so"):
 //   - Virtualization / cell recycling — every element is realized fresh each pass (explicitly out of
 //     scope per this task's brief; matches the android partial).
-//   - Selection highlight paint — platform->selected_paths / allows_selection keep updating via the
-//     existing shared update_platform_selection()/update_selection_mode() (untouched), but no native
-//     fill is drawn for a selected cell (android draws one; cut here for this wave's budget).
+//   - Selection highlight paint IS drawn (landed after this file's initial wave — see the
+//     "SELECTION CHROME" block below this header comment for the full recipe): platform->selected_paths
+//     / allows_multiple_selection (kept current by the existing shared update_platform_selection()/
+//     update_selection_mode(), untouched by this change) now drive a from-scratch repaint of the real
+//     Windows ListViewItem/GridViewItem container chrome this partial has no container to bind a
+//     VisualState to. Still NOT ported: any tap/click gesture that would let a user CHANGE selection by
+//     touching a cell — this file has no PointerPressed/Tapped wiring at all (a separate, pre-existing
+//     gap; selection only ever changes here via the mapper, i.e. programmatically), so the new chrome is
+//     read-only paint, matching this task's brief.
 //   - Interactive drag-reorder — can_reorder_items keeps mirroring, but there is no native drag gesture
 //     (matches the android/apple/ios precedent: the drag itself is native and out of scope everywhere).
 //   - CarouselView's one-item-per-page layout (CreateCarouselLayout's FractionalWidth/Height(1)) — a
@@ -109,10 +115,16 @@
 // nor the concept. Third time in this backend; every base class contributes a header.
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
+// SELECTION CHROME (below): Border.Background/BorderBrush need Media's SolidColorBrush, and a
+// SolidColorBrush ctor needs Windows.UI's Color -- both projected types are only forward-declared by
+// the headers above, the same C3779 trap the comment above names for Canvas::Children().
+#include <winrt/Microsoft.UI.Xaml.Media.h>
+#include <winrt/Windows.UI.h>
 
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -243,6 +255,203 @@ namespace
                                  : winrt::Windows::Foundation::Size{unbounded, cross});
         const auto desired = element.DesiredSize();
         return {desired.Width, desired.Height};
+    }
+
+    // ============================================================================================
+    // SELECTION CHROME — the real Windows ListViewItem/GridViewItem container's "Selected" paint.
+    // ============================================================================================
+    // ORACLE: SelectableItemsViewHandler.Windows.cs's UpdatePlatformSelection binds ListViewBase.
+    // SelectedItem(s)/SelectionMode, and the DEFAULT (UNMODIFIED — ItemsViewStyles.xaml overrides only
+    // ListViewHeaderItem/GridViewHeaderItem, never ListViewItem/GridViewItem, per that file) Fluent
+    // container control templates paint the rest via VisualStateManager (Selected/SelectedPointerOver/
+    // SelectedPressed). This partial realizes a bare UIElement straight into a Canvas with NO item
+    // container at all (this file's header comment), so there is no template to bind a VisualState to —
+    // every function below is a from-scratch repaint of what that container's template would have shown,
+    // keyed off platform->selected_paths / allows_multiple_selection, exactly like the fill android's
+    // collection_view_handler.cpp paints for the identical "no container" reason.
+    //
+    // MEASURED from the ground-truth captures — DOCUMENTED DEVIATION, parity ruling 11: there is no
+    // WindowsAppSDK generic.xaml on this machine to read the real ListViewItemBackgroundSelected /
+    // GridViewItemBackgroundSelected / etc. resource VALUES, so the render is authoritative instead.
+    // preselected_items_{light,dark}.png (a GridItemsLayout, Multiple selection) vs preselected_item_
+    // {light,dark}.png and multiple_bound_selection_{light,dark}.png (linear lists, Single and Multiple)
+    // show TWO DIFFERENT chrome shapes, matching the real ListViewItem-vs-GridViewItem template split:
+    //   - LINEAR list (ListViewItem): a flush, UNROUNDED, full-cell-slot background FILL under the
+    //     content (measured 235,235,235 light / 52,52,52 dark, vs this page's own ~244/~39 background —
+    //     a subtle darken, NOT the loud wash android paints). No border stroke. Single/None selection
+    //     additionally shows a small rounded accent "selection indicator" bar flush against the leading
+    //     (vertical: LEFT) edge — ~3dip wide, vertically centered, ~5dip inset top/bottom (a ~26px row's
+    //     bar spans y+5..y+21). Multiple selection shows a CheckBox glyph INSTEAD of the bar (never
+    //     both) — see paint_selection_checkbox.
+    //   - GRID (GridViewItem): a ~4dip-rounded full-cell-slot FILL (238,238,238 light / 48,48,48 dark —
+    //     a smaller darken than linear's) PLUS a ~2dip rounded rectangular BORDER stroke in the accent
+    //     color, both sized to the WHOLE cell slot (margin included, matching android's "whole slot"
+    //     convention for the identical native-container-is-a-box-model reason). Multiple selection
+    //     additionally shows a CheckBox glyph inset in the TOP-RIGHT corner.
+    //   The accent color (border stroke, indicator bar, AND a checked CheckBox's fill — all three
+    //     measured the SAME per theme) is 0,103,192 light / 76,194,255 dark: WinUI's small-UI-element
+    //     accent TINT (darkened on a light backdrop, lightened on a dark one, for legibility), NOT the
+    //     flat SystemAccentColor — a resource-key lookup would risk resolving the wrong (untinted, too
+    //     bright/dark) variant, so this is a measured constant like every other value here.
+    //   NOT MEASURED (no in-scope page exercises it): GRID + Single/None selection. Assumed to keep the
+    //     border+fill without a CheckBox (Single selection never shows one anywhere per the linear
+    //     evidence above) — an INFERENCE, not a capture-backed fact.
+    //   The horizontal-orientation indicator bar (paint_selection_indicator's `!vertical` branch) is
+    //     likewise unmeasured — no horizontal-CollectionView + Single-selection page is in scope — and
+    //     mirrors this file's existing horizontal-header 90-degree-rotation simplification stance.
+    //
+    // Every paint_* function below APPENDS to `panel` directly and returns void: the created Border/
+    // TextBlock objects need no C++-side retention (unlike a template's realized bindable_object) —
+    // Canvas.Children() itself holds the owning COM reference for as long as the element stays a child,
+    // exactly like this file's own bare `make_text_block` TextBlocks above, which are never pushed to
+    // retained_natives either. Clearing on every pass (and thus on deselect / re-realization) falls out
+    // for free from arrange_native's existing `panel.Children().Clear()` at the top of every pass — there
+    // is nothing extra to tear down.
+
+    bool is_dark_theme(const winui::FrameworkElement& element)
+    {
+        return element.ActualTheme() == winui::ElementTheme::Dark;
+    }
+
+    winui::Media::SolidColorBrush solid_brush(std::uint8_t r, std::uint8_t g, std::uint8_t b)
+    {
+        return winui::Media::SolidColorBrush{winrt::Windows::UI::Color{255, r, g, b}};
+    }
+
+    winui::Media::SolidColorBrush selection_accent_brush(bool dark)
+    {
+        return dark ? solid_brush(76, 194, 255) : solid_brush(0, 103, 192);
+    }
+
+    winui::Media::SolidColorBrush selection_fill_brush(bool dark, bool grid)
+    {
+        if (grid)
+        {
+            return dark ? solid_brush(48, 48, 48) : solid_brush(238, 238, 238);
+        }
+        return dark ? solid_brush(52, 52, 52) : solid_brush(235, 235, 235);
+    }
+
+    constexpr double k_selection_border_thickness = 2; // GridViewItem selected-state border stroke
+    constexpr double k_selection_corner_radius = 4;    // GridViewItem selected-state corner rounding
+    constexpr double k_selection_indicator_width = 3;  // ListViewItem's left "selection indicator" bar
+    constexpr double k_selection_indicator_inset = 5;  // bar's top/bottom inset off the full row height
+    constexpr double k_selection_checkbox_size = 20;   // check_box_handler.cpp's own CheckBoxSize, reused
+    constexpr double k_selection_checkbox_corner_radius = 3;
+    constexpr double k_selection_checkbox_margin = 4;      // grid: inset from the cell's top/right corner
+    constexpr double k_selection_checkbox_left_inset = 10; // list: inset from the row's left edge
+
+    // The GridViewItem fill+border (both header comment "chrome shapes" fold into one Border: Background
+    // gives the fill, BorderBrush/Thickness/CornerRadius give the stroke when `grid`) or the ListViewItem
+    // flush fill (no stroke, no rounding, when `!grid`) — appended BEFORE the content native so it sits
+    // BEHIND it (Canvas z-order = append order, the same convention android's add-before-content documents).
+    void paint_selection_fill(const canvas& panel, bool dark, bool grid, const maui::graphics::rect& slot)
+    {
+        winui::Controls::Border fill;
+        fill.Background(selection_fill_brush(dark, grid));
+        if (grid)
+        {
+            fill.BorderBrush(selection_accent_brush(dark));
+            fill.BorderThickness(winui::Thickness{k_selection_border_thickness, k_selection_border_thickness,
+                                                  k_selection_border_thickness, k_selection_border_thickness});
+            fill.CornerRadius(winui::CornerRadius{k_selection_corner_radius, k_selection_corner_radius,
+                                                  k_selection_corner_radius, k_selection_corner_radius});
+        }
+        canvas::SetLeft(fill, slot.x);
+        canvas::SetTop(fill, slot.y);
+        fill.Width(slot.width);
+        fill.Height(slot.height);
+        panel.Children().Append(fill);
+    }
+
+    // ListViewItem's Single/None-selection accent bar — flush against the leading edge (vertical: LEFT;
+    // horizontal: TOP, unmeasured per the header comment), vertically/horizontally centered on the cross
+    // axis, inset on the main axis (measured geometry, header comment). Multiple selection shows a
+    // CheckBox instead (paint_selection_checkbox) — the two are mutually exclusive at the call site below.
+    void paint_selection_indicator(const canvas& panel, bool dark, const maui::graphics::rect& slot, bool vertical)
+    {
+        winui::Controls::Border bar;
+        bar.Background(selection_accent_brush(dark));
+        bar.CornerRadius(winui::CornerRadius{k_selection_indicator_width / 2, k_selection_indicator_width / 2,
+                                             k_selection_indicator_width / 2, k_selection_indicator_width / 2});
+        if (vertical)
+        {
+            canvas::SetLeft(bar, slot.x);
+            canvas::SetTop(bar, slot.y + k_selection_indicator_inset);
+            bar.Width(k_selection_indicator_width);
+            bar.Height(std::max(0.0, slot.height - (2 * k_selection_indicator_inset)));
+        }
+        else
+        {
+            canvas::SetLeft(bar, slot.x + k_selection_indicator_inset);
+            canvas::SetTop(bar, slot.y);
+            bar.Width(std::max(0.0, slot.width - (2 * k_selection_indicator_inset)));
+            bar.Height(k_selection_indicator_width);
+        }
+        panel.Children().Append(bar);
+    }
+
+    // Multiple-selection's CheckBox glyph — HAND-DRAWN (a Border + a checkmark TextBlock), not a real
+    // winui::Controls::CheckBox: CheckBox's default Fluent style carries its own MinWidth/MinHeight/
+    // Padding (the exact reason check_box_handler.cpp needs its own AdjustCheckBoxForNoText margin fixup
+    // for a text-less CheckBox), so a bare Width(20)/Height(20) on a REAL CheckBox would not actually
+    // arrange the box at 20x20 — the style's minimum would win, smearing the glyph off the position this
+    // function computes. A hand-drawn Border has no such style fighting it.
+    //
+    // Shown on EVERY realized cell (checked or not), not just selected ones — measured: preselected_
+    // items_light.png's UNSELECTED cells still show an empty box, and multiple_bound_selection_light.png
+    // confirms the same for a linear list. Sized ~20x20 (measured slightly larger, ~22-24px, on the grid
+    // capture; 20 is check_box_handler.cpp's own established CheckBoxSize constant, reused rather than
+    // adding a second, barely-different, unmeasured-elsewhere magic number). Added AFTER the content
+    // native so it draws ON TOP of it (measured: the checkmark glyph visibly overlaps the label's leading
+    // character in multiple_bound_selection_light.png — content is NOT inset to make room for the
+    // checkbox). IsHitTestVisible(false): this backend wires no tap-to-select gesture yet (this file's
+    // header comment), so the glyph is decorative only and must never intercept a future gesture
+    // recognizer's hits.
+    void paint_selection_checkbox(const canvas& panel, bool dark, bool selected, bool grid,
+                                  const maui::graphics::rect& slot)
+    {
+        winui::Controls::Border box;
+        box.Width(k_selection_checkbox_size);
+        box.Height(k_selection_checkbox_size);
+        box.CornerRadius(winui::CornerRadius{k_selection_checkbox_corner_radius, k_selection_checkbox_corner_radius,
+                                             k_selection_checkbox_corner_radius, k_selection_checkbox_corner_radius});
+        box.IsHitTestVisible(false);
+        if (selected)
+        {
+            box.Background(selection_accent_brush(dark));
+            // The checkmark glyph — Segoe Fluent Icons' CheckMark codepoint (U+E73E), the glyph every
+            // other WinUI3 checked-CheckBox/selection affordance uses. Segoe Fluent Icons ships inside
+            // the Windows App SDK framework package this backend already targets (not the OS image), so
+            // it is present regardless of Windows version — UNVERIFIED ON THE ACTUAL GUEST (this port
+            // does not build on the Windows VM; see this file's own build note), flag if it renders as
+            // tofu/missing-glyph boxes instead of a check mark.
+            text_block glyph;
+            glyph.Text(winrt::hstring{L"\uE73E"});
+            glyph.FontFamily(winui::Media::FontFamily{L"Segoe Fluent Icons"});
+            glyph.FontSize(10);
+            glyph.Foreground(solid_brush(255, 255, 255));
+            glyph.HorizontalAlignment(winui::HorizontalAlignment::Center);
+            glyph.VerticalAlignment(winui::VerticalAlignment::Center);
+            box.Child(glyph);
+        }
+        else
+        {
+            box.Background(dark ? solid_brush(32, 32, 32) : solid_brush(253, 253, 253));
+            box.BorderBrush(dark ? solid_brush(157, 157, 157) : solid_brush(135, 135, 135));
+            box.BorderThickness(winui::Thickness{1, 1, 1, 1});
+        }
+        if (grid)
+        {
+            canvas::SetLeft(box, slot.x + slot.width - k_selection_checkbox_size - k_selection_checkbox_margin);
+            canvas::SetTop(box, slot.y + k_selection_checkbox_margin);
+        }
+        else
+        {
+            canvas::SetLeft(box, slot.x + k_selection_checkbox_left_inset);
+            canvas::SetTop(box, slot.y + ((slot.height - k_selection_checkbox_size) / 2));
+        }
+        panel.Children().Append(box);
     }
 } // namespace
 
@@ -504,6 +713,10 @@ namespace maui::controls
         const double spacing = platform->item_spacing;
         auto* const container = dynamic_cast<maui::core::bindable_object*>(view);
         auto* const structured = dynamic_cast<structured_items_view*>(view);
+        // SELECTION CHROME (see that block's header comment above): resolved ONCE per pass, not per
+        // cell — ActualTheme() is a live tree query and every cell in one arrange_native pass shares the
+        // same resolved theme.
+        const bool dark_theme = is_dark_theme(panel);
 
         double cursor = 0;       // main-axis content cursor (dp)
         double measured_sum = 0; // for the item_extent feedback at the bottom of this function
@@ -820,7 +1033,41 @@ namespace maui::controls
                             framework_element.Width(vertical ? col_cross : row_extent);
                             framework_element.Height(vertical ? row_extent : col_cross);
                         }
+                        // The cell's slot rect (dp) — the SAME rect arrange_realized_view below frames the
+                        // content at (the arrange coordinate convention: one absolute rect drives both
+                        // placement and layout), and what the selection chrome paints against (MAUI's
+                        // container chrome fills/strokes the WHOLE slot, margin included — this file's
+                        // "SELECTION CHROME" header comment above / android's identical "whole slot"
+                        // convention for the same reason).
+                        const maui::graphics::rect cell_rect =
+                            vertical ? maui::graphics::rect{col_origin, cursor, col_cross, row_extent}
+                                     : maui::graphics::rect{cursor, col_origin, row_extent, col_cross};
+
+                        // ---- selection chrome (PAINT ONLY) --------------------------------------------
+                        // Selection STATE keeps updating via the existing shared
+                        // update_platform_selection()/update_selection_mode() (untouched by this change,
+                        // this file's header comment) — selected_paths / allows_multiple_selection are
+                        // simply READ here. Fill/border/indicator paint only a SELECTED cell; the
+                        // CheckBox glyph paints EVERY cell (checked or not) once Multiple selection is on
+                        // — see paint_selection_checkbox's header comment for the measured evidence.
+                        const index_path cell_path{.section = section, .item = first + c};
+                        const bool selected =
+                            std::ranges::find(platform->selected_paths, cell_path) != platform->selected_paths.end();
+                        if (selected)
+                        {
+                            paint_selection_fill(panel, dark_theme, platform->grid, cell_rect);
+                            if (!platform->grid && !platform->allows_multiple_selection)
+                            {
+                                paint_selection_indicator(panel, dark_theme, cell_rect, vertical);
+                            }
+                        }
                         panel.Children().Append(col.native);
+                        if (platform->allows_multiple_selection)
+                        {
+                            paint_selection_checkbox(panel, dark_theme, selected, platform->grid, cell_rect);
+                        }
+                        // ---------------------------------------------------------------------------------
+
                         if (col.retain)
                         {
                             // NO MARGIN TRANSLATION HERE, and this is a RECORDED NEGATIVE RESULT rather
@@ -842,9 +1089,6 @@ namespace maui::controls
                             // was ALREADY pixel-correct without the translation. So whatever the 16 helped pages
                             // are compensating for, it is not a uniformly-missing margin application.
                             // Do not re-land this without first explaining why basic_grouping does not need it.
-                            const maui::graphics::rect cell_rect =
-                                vertical ? maui::graphics::rect{col_origin, cursor, col_cross, row_extent}
-                                         : maui::graphics::rect{cursor, col_origin, row_extent, col_cross};
                             arrange_realized_view(col.retain, cell_rect);
                             platform->retained_natives.push_back(std::move(col.retain));
                         }

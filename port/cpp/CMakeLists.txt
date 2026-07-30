@@ -668,6 +668,7 @@ else()
       editor_handler date_picker_handler
       time_picker_handler
       activity_indicator_handler
+      progress_bar_handler
       check_box_handler
       radio_button_handler
       # (W1-11 chrome) the REAL clip push (a Microsoft.UI.Composition geometric clip) -- see
