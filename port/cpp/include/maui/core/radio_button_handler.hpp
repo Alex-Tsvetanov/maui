@@ -31,6 +31,7 @@
 // mirror every mapped property; and on_select is the inbound channel (the platform partial wires it;
 // headless tests invoke it directly to simulate a native tap).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -70,6 +71,41 @@ namespace maui::core
         int corner_radius = 0;
         // The inbound channel hook (wired by the platform partial; headless tests invoke it directly).
         move_only_function<void()> on_select;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the two event registration tokens on_connect_handler produces -- Checked AND
+        // Unchecked, both wired to the SAME callback (RadioButtonHandler.Windows.cs's ConnectHandler
+        // subscribes both to OnCheckedOrUnchecked) -- so on_disconnect_handler can revoke EXACTLY what it
+        // registered. Stored as int64 (winrt::event_token's underlying type) rather than the WinRT type
+        // itself, matching every other Windows platform struct's token fields (button_platform::click_token,
+        // picker_platform::selection_changed_token, ...) -- this cross-platform header must not see the
+        // C++/WinRT projection.
+        std::int64_t checked_token = 0;
+        std::int64_t unchecked_token = 0;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers (src/platform/windows/). Selected by MAUI_PLATFORM_WINDOWS, which is
+        // PUBLIC on maui_core for that backend only - so every TU of a given build sees exactly one
+        // backend's overrides and the class layout stays ODR-consistent.
+        //
+        // update_background is NOT the shared winui_visual_ops::apply_background push that button/picker
+        // use: RadioButtonHandler.cs's Mapper carries a WINDOWS-ONLY `#if !TIZEN [nameof(IRadioButton.
+        // Background)] = MapBackground`, and Windows's MapBackground -> RadioButtonExtensions.
+        // UpdateBackground overrides the RadioButtonBackground*/PointerOver/Pressed/Disabled resource keys
+        // instead (the control template's per-visual-state brushes bind to those, not to a plain
+        // Control.Background) -- the same theme-resource shape time_picker_handler.cpp/slider_handler.cpp
+        // already carry for their own Windows-only Background remaps. This handler's cross-platform
+        // mapper() (src/core/radio_button_handler.cpp) has no dedicated "background" key of its own -- it
+        // rides the chained view_mapper, per that file's comment -- so this override is the ONLY place the
+        // resource-key dance can live.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the radio NSButton (defined in

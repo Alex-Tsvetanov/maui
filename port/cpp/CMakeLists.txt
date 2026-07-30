@@ -667,6 +667,9 @@ else()
       image_source_services border_handler swipe_view_handler search_bar_handler image_button_handler
       editor_handler date_picker_handler
       time_picker_handler
+      activity_indicator_handler
+      check_box_handler
+      radio_button_handler
       # (W1-11 chrome) the REAL clip push (a Microsoft.UI.Composition geometric clip) -- see
       # src/platform/windows/view_chrome_ops.cpp's header. tool_tip/context_flyout stay no-ops here.
       view_chrome_ops)

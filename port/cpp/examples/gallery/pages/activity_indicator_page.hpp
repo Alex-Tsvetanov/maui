@@ -7,8 +7,8 @@
 //
 // What the MAUI page demonstrates (reproduced here so the demo visibly exercises the control):
 //   - a Default running indicator (IsRunning=True),
-//   - a Styled indicator with an accent Color (the XAML AppThemeBinding light/dark accent; here a fixed
-//     accent color stands in — see note),
+//   - a Styled indicator with Color="CornflowerBlue" (a plain named-color literal in the shared XAML twin
+//     — see note),
 //   - a Styled indicator with BackgroundColor=Yellow (here a solid_color_brush, as the button page does
 //     for BackgroundColor),
 //   - a Larger indicator (WidthRequest/HeightRequest=150),
@@ -16,10 +16,13 @@
 //   - a Not-Running indicator (IsRunning=False),
 //   - an "- End of page -" subhead label.
 //
-// note: the Color AppThemeBinding (Light/Dark accent from the resource dictionary) has no app-theme /
-// resource-dictionary surface in the port, so a single fixed accent color is used. HorizontalOptions has
-// no surface on the port's view, so the Smaller indicator is left at its layout default. The Headline /
-// Subhead label styling likewise maps to plain labels.
+// note: the shared XAML twin (port/maui-reference/pages/activity_indicator.xaml) sets the "Color" cell's
+// Color as a plain named-color literal (Color="CornflowerBlue"), NOT an AppThemeBinding — so this page
+// matches it with the same named color rather than standing in for a themed accent (an earlier revision
+// of this comment claimed the port had no app-theme surface as the reason for a hand-picked literal; that
+// claim was stale even against the twin it was justifying, which never used AppThemeBinding to begin
+// with). HorizontalOptions has no surface on the port's view, so the Smaller indicator is left at its
+// layout default. The Headline / Subhead label styling likewise maps to plain labels.
 
 #include <memory>
 #include <string>
@@ -47,12 +50,12 @@ namespace maui::samples
             default_header_.set_text("Default");
             default_indicator_.set_is_running(true);
 
-            // ---- Styled - Color from theme ----
-            // note: the XAML uses AppThemeBinding Light/Dark accent; the port has no app-theme surface, so
-            // a single fixed accent color stands in for the themed accent.
+            // ---- Styled - Color="CornflowerBlue" ----
+            // note: the shared XAML twin sets a plain named-color literal here (no AppThemeBinding — see
+            // the file-top note), so this matches it with the same named color exactly.
             color_header_.set_text("Color"); // the shared XAML's label text (was verbose "Styled - ...")
             color_indicator_.set_is_running(true);
-            color_indicator_.set_color(maui::graphics::color(0.26F, 0.52F, 0.96F)); // a plausible accent
+            color_indicator_.set_color(maui::graphics::colors::cornflower_blue);
 
             // ---- Styled - BackgroundColor=Yellow ----
             background_header_.set_text("BackgroundColor=Yellow"); // shared XAML label text

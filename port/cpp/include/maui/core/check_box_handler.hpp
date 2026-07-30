@@ -10,6 +10,7 @@
 //
 // Same partial-class split + single cross-platform check_box_platform struct as button_handler.
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -46,6 +47,28 @@ namespace maui::core
         bool is_checked = false;
         const maui::graphics::paint* foreground = nullptr;
         move_only_function<void()> on_checked_changed;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: Checked and Unchecked are two SEPARATE ToggleButton events (C#'s
+        // ConnectHandler subscribes the SAME OnChecked body to both), so two revoke tokens are needed —
+        // the same shape as date_picker_platform's opened_token/closed_token. Stored as int64
+        // (winrt::event_token's underlying type) rather than the WinRT type so this cross-platform header
+        // never has to see the C++/WinRT projection (matching button_platform's click_token).
+        std::int64_t checked_token = 0;
+        std::int64_t unchecked_token = 0;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native CheckBox via the shared
+        // winui_visual_ops helpers (src/platform/windows/) — same five-override shape as
+        // button_platform/picker_platform. Selected by MAUI_PLATFORM_WINDOWS, which is PUBLIC on
+        // maui_core for that backend only, so a given build sees exactly one backend's overrides.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSButton-checkbox (defined in
