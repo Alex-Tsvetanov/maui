@@ -532,3 +532,56 @@ That tolerance now also absorbs a **pre-existing** `path_f::get_bounds_by_flatte
 overshoot grows with the absolute coordinate magnitude, not just the 0.5 fractional offset (probed at
 (0,0), (0.5,0.5), (1,1), (100.5,100.5)). The slack is not intentional headroom; it is masking that bug,
 and a regression in it would no longer be caught there.
+
+### RETRACTED 2026-07-30 (same day) — the deflate above was REVERTED, and the debt it created is VOID
+
+The section immediately above describes the shared-layer 0.5 DIP deflate as landed, and books a
+"full iOS/macOS/Android rescore" obligation against it. **Both statements are now wrong.** The change
+was reverted in `f1a5a17658` after being measured on the board; it never shipped, and **no other
+platform's geometry moved**, so there is NO rescore debt. Read the section above only as the record of
+a hypothesis that was tested and rejected.
+
+What the measurement showed (all port-vs-reference attributed, not noise):
+
+  improved   border_stroke 3.51 -> 1.99, swipe_view_shadow 1.02 -> 0.03,
+             invalidate_shadow_host 1.14 -> 0.51, border_playground 1.97 -> 1.74,
+             alignment 0.37 -> 0.17, border_resize_content 2.07 -> 1.87
+  REGRESSED  clipping 0.00 -> 5.12 (40000 cpp px moved / 1960 maui),
+             borderless 0.00 -> 0.68 (5544 / 0), clip_views 0.10 -> 0.74 (6128 / 1662)
+  net        mean 0.41% -> 0.42%, cpp_light BOTH 119 -> 116
+
+Two pages that were EXACTLY green went red. The oracle chain was sound and the stroke edge did match
+MAUI afterwards ((255,0,0) -> (249,121,121), MAUI's exact antialiased value) — the defect was the
+LAYER, not the geometry.
+
+**Why the shared shape layer is the wrong home.** The graphics shapes are consumed by the CLIP paths
+too — `layout_handler`'s ClipsToBounds rectangle and `view_chrome_ops`' `build_geometry`. MAUI never
+deflates a clip (`Geometry.PathForBounds`, Geometry.cs:17, returns the raw `AppendPath` result), so
+every clipped surface shifted 0.5 DIP against a reference that did not move. Proof it was the deflate
+and not the collateral `clipping_page` Shape->Geometry swap: reverting that swap ALONE left clipping at
+5.12%.
+
+**Where it actually belongs (for whoever retries this).** Windows applies the deflate in the BORDER
+HANDLER, from the *Border's* own StrokeThickness — `BorderExtensions.UpdatePath`
+(Core/src/Platform/Windows/BorderExtensions.cs:17-32):
+
+    strokeThickness = borderPath.StrokeThickness            // the BORDER's, not the Shape's
+    pathSize        = Rect(0, 0, width - strokeThickness, height - strokeThickness)
+    shapePath       = borderShape.PathForBounds(pathSize)
+    borderPath.RenderTransform = TranslateTransform(strokeThickness/2, strokeThickness/2)
+
+Same +0.5/-1.0 at the default thickness 1.0, but correctly **zero** at StrokeThickness=0 — which is
+exactly the `borderless` page (its twin sets `<Setter Property="StrokeThickness" Value="0" />`). A
+hard-coded 0.5 in the shape can express neither that nor "don't touch clips". Note also that MAUI does
+NOT propagate Border.StrokeThickness to the StrokeShape (`Border.StrokeThicknessChanged`,
+Border.cs:388, only invalidates measure), so a Shape's own deflate always uses the Shape's own
+thickness — the two mechanisms are genuinely separate.
+
+Also still true from the retracted section: the `view_mapper_tests` ellipse tolerance and the
+`path_f::get_bounds_by_flattening` precision bug were reverted with it, so that bug is once again
+plainly visible rather than masked.
+
+**Separately confirmed while investigating:** `view_chrome_ops`' `build_geometry` covers only
+ellipse/rectangle (bounds-relative and *_geometry); **rounded rectangles are not covered at all**
+(its own file header says so). So `Clip` set to a RoundRectangle/RoundRectangleGeometry silently
+applies NO clip on Windows. That is an independent, still-open gap.
