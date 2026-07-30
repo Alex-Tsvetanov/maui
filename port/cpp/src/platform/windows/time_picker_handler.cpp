@@ -461,12 +461,23 @@ namespace maui::core
         const time_picker_control native = as_time_picker(platform->native);
         winui::Controls::Canvas::SetLeft(native, frame.x);
         winui::Controls::Canvas::SetTop(native, frame.y);
-        native.Width(frame.width);
+        const auto* const view = virtual_view();
+        // SHRINK-WRAP THE WIDTH -- see date_picker_handler.cpp's platform_arrange for the full rationale and
+        // the oracle citation (ViewHandlerExtensions.Windows.cs:76-89: MAUI's arrange calls Arrange(rect) and
+        // never assigns Width, so WinUI honours the control's own non-Stretch default alignment).
+        // This control MANIFESTS the same bug differently, which is worth recording: the port rendered the
+        // TimePicker 456 DIP wide and CENTRED (x 284..739) where MAUI renders 242 DIP left-aligned
+        // (x 20..261) -- WinUI's TimePicker template does not fill a pinned width the way
+        // CalendarDatePicker's does, it centres inside it. Same cause, different symptom.
+        // PER-HANDLER ON PURPOSE: pinning stays correct for the stretch-by-default controls
+        // (picker_handler.cpp's ComboBox, entry_handler.cpp's TextBox), so do not hoist this.
+        const double natural = view != nullptr ? view->desired_size().width : frame.width;
+        native.Width(natural > 0 ? std::min(frame.width, natural) : frame.width);
         native.Height(frame.height);
         // Clip is bounds-dependent; map_clip's own push (view_mapper.cpp) always runs before the first
         // arrange, so this re-invoke is what actually installs the clip once the control has a real size
         // (picker_handler.cpp's identical platform_arrange).
-        if (const auto* view = virtual_view(); view != nullptr)
+        if (view != nullptr)
         {
             apply_native_clip(platform->native, view->clip());
         }

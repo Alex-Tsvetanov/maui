@@ -591,7 +591,24 @@ namespace maui::controls
             }
             else
             {
-                extent = std::max(extent, k_min_row_extent);
+                // MEASURE-FAILURE GUARD ONLY, not a minimum. Earlier today this was an unconditional
+                // std::max here, with a comment reasoning that "no measurement implicates" these bands
+                // because header_footer_template's header/footer measure 127 and 140 -- an order above the
+                // floor. That was true of a TEMPLATED header and false of a STRING one: a view-level
+                // `Header = "..."` realizes a bare TextBlock measuring 19px at the theme font, so the floor
+                // silently inflated it to 24 and pushed every row below it exactly +5px down. Measured on
+                // basic_grouping and grid_grouping, where that single wrong extent is ~80% of the page diff,
+                // and MAUI's own header band is a bare 19px TextBlock with no minimum
+                // (StructuredItemsViewHandler.Windows.cs assigns ListViewBase.Header directly; nothing in
+                // ItemsViewStyles.xaml gives ListViewBase.Header a MinHeight -- only the ITEM and
+                // GROUP-HEADER containers get one, and the linear item arm explicitly zeroes it).
+                // So these bands take their true measured extent, exactly like the linear item rows since
+                // 458e488dd3, and 24 goes back to being what k_min_row_extent's own comment always said it
+                // was: the fallback when a measure comes back 0.
+                if (extent <= 0)
+                {
+                    extent = k_min_row_extent;
+                }
                 container_extent = extent; // lead is 0 for every non-group-header caller
             }
             // ListViewBase.Footer is routed to ItemsPresenter.Footer inside the FormsListView template's

@@ -638,11 +638,30 @@ namespace maui::core
         const calendar_date_picker combo = as_calendar_date_picker(platform->native);
         winui::Controls::Canvas::SetLeft(combo, frame.x);
         winui::Controls::Canvas::SetTop(combo, frame.y);
-        combo.Width(frame.width);
+        const auto* const view = virtual_view();
+        // SHRINK-WRAP THE WIDTH, do not pin the whole arrange slot. MAUI's PlatformArrangeHandler
+        // (ViewHandlerExtensions.Windows.cs:76-89) only calls platformView.Arrange(rect) and NEVER assigns
+        // Width, so WinUI applies the CalendarDatePicker's own default HorizontalAlignment -- which is not
+        // Stretch -- and the control stays shrink-wrapped to its DesiredSize at the left of the row. This
+        // backend's Canvas convention pins the arranged frame instead (a Canvas does not size its children),
+        // which is INVISIBLE on a transparent control but paints Background/gradient across every extra DIP.
+        // Measured on date_picker: MAUI's pickers occupy x 20..127 (~108 DIP, and 20..135 for the wider
+        // Format="yyyy/MM/dd" one -- it tracks the text, so it is a shrink-wrap, not a fixed style width)
+        // while the port occupied x 20..1003. Three of them paint (BackgroundColor="Blue" plus two
+        // LinearGradientBrush rows), so ~876 extra DIP of colour each smeared across empty page.
+        //
+        // PER-HANDLER ON PURPOSE -- must NOT be hoisted into a shared arrange helper. Pinning the frame is
+        // CORRECT for the stretch-by-default controls, and picker_handler.cpp:546 (ComboBox) and
+        // entry_handler.cpp:789 (TextBox) rely on it. MAUI itself has to force the stretch by hand where it
+        // wants it: MauiButton.cs:14-20's constructor sets HorizontalAlignment = Stretch explicitly.
+        // The control proves it: the Buttons in the same VerticalStackLayout measure x 20..1003 in BOTH
+        // columns, so the arrange RECT is full width in MAUI too -- only the native self-alignment differs.
+        const double natural = view != nullptr ? view->desired_size().width : frame.width;
+        combo.Width(natural > 0 ? std::min(frame.width, natural) : frame.width);
         combo.Height(frame.height);
         // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
         // Height back) — same re-invoke-after-arrange as picker_handler.cpp's platform_arrange.
-        if (const auto* view = virtual_view(); view != nullptr)
+        if (view != nullptr)
         {
             apply_native_clip(platform->native, view->clip());
         }
