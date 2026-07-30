@@ -510,6 +510,12 @@ namespace maui::controls
             {
                 extent = measure_main_extent(native, measure_cross, vertical);
             }
+            // Left UNCONDITIONAL on purpose, unlike the item-row floor below: these bands are not item
+            // containers (the structured header/footer is ListViewBase.Header/Footer content, a group
+            // header is a ListViewHeaderItem), so the linear MinHeight = 0 setter the item rows are
+            // governed by does not speak to them, and no measurement implicates them -- this page's
+            // header/footer measure 127 and 140, an order above the floor. Deliberately not "fixed" in
+            // the same pass; it would be an unmeasured change riding a measured one.
             extent = std::max(extent, k_min_row_extent);
             const double lead = is_group_header ? k_group_header_lead_padding : 0.0;
             const double trail = is_group_header ? k_group_header_trail_margin : 0.0;
@@ -624,9 +630,34 @@ namespace maui::controls
                         row_extent = std::max(row_extent, extent);
                         cols.push_back(std::move(col));
                     }
-                    // Only a total measure failure (every column 0) falls back to the floor — see
-                    // k_min_row_extent's comment.
-                    row_extent = std::max(row_extent, k_min_row_extent);
+                    // The floor is a GRID-ONLY constraint, and on a linear list only a total measure
+                    // failure (every column 0) falls back to it — see k_min_row_extent's comment.
+                    //
+                    // src/Controls/src/Core/Handlers/Items/StructuredItemsViewHandler.Windows.cs draws
+                    // the line explicitly, per items-layout TYPE:
+                    //   * GetVerticalItemContainerStyle (LinearItemsLayout)   -> MinHeight = 0
+                    //   * GetHorizontalItemContainerStyle (LinearItemsLayout) -> MinWidth  = 0
+                    //   * GetItemContainerStyle (GridItemsLayout)             -> NO minimum setter, so
+                    //     GridViewItem's BasedOn default minimum survives.
+                    // Both linear arms zero the MAIN-AXIS minimum, which is exactly the axis this floor
+                    // clamps -- so a linear row must use its true measured extent, and a grid row keeps
+                    // the floor as this port's (still underived) stand-in for that SDK default.
+                    //
+                    // MEASURED, not reasoned: the ink profile of basic_grouping puts MAUI's text rows at
+                    // 104/122/142/161/180/199/... -- a ~19px pitch -- against the port's
+                    // 96/119/144/168/192/216/... -- exactly 24. 5px per row, compounding to the +52px
+                    // drift rowshift.py reports by y=432.
+                    //
+                    // THIS WAS TRIED AND REVERTED ONCE (37a15f24da -> 904735d8c7) and the revert was
+                    // right at the time for a reason nobody spotted: both landed ~12h BEFORE the theme
+                    // font fix (406830415a), when a Label measured 17px, so dropping the floor gave 17px
+                    // rows against MAUI's 19 -- wrong in the other direction. Labels now measure 19px.
+                    // The revert's STATED reason (a Fluent ListViewItem minimum) is false for linear
+                    // lists: MinHeight = 0 is set right there in the oracle above.
+                    if (platform->grid || row_extent <= 0)
+                    {
+                        row_extent = std::max(row_extent, k_min_row_extent);
+                    }
 
                     for (int c = 0; c < static_cast<int>(cols.size()); ++c)
                     {
