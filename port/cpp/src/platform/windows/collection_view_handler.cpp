@@ -823,6 +823,25 @@ namespace maui::controls
                         panel.Children().Append(col.native);
                         if (col.retain)
                         {
+                            // NO MARGIN TRANSLATION HERE, and this is a RECORDED NEGATIVE RESULT rather
+                            // than an omission. A 2026-07-30 change offset this rect's origin by the realized
+                            // root's leading margin, on the theory that MAUI double-applies it: ItemContentControl
+                            // routes a non-ICrossPlatformLayout root (a bare Label) through ContentLayoutPanel,
+                            // whose ArrangeOverride Arranges the view a second time so ComputeFrame insets by the
+                            // margin twice (the branch is real -- ItemContentControl.cs:220-227 -- and the port's
+                            // own view->arrange() insets exactly once, view.hpp's compute_frame).
+                            // THE BOARD FALSIFIED IT. The translation helped 16 pages (preselected_items
+                            // 5.20 -> 1.14, collectionview 1.99 -> 0.26, empty_view 1.71 -> 0.25) and REGRESSED
+                            // 12 -- and the regressions were exactly the pages already scoring ~0.00%:
+                            // basic_grouping 0.01 -> 1.72, grouping_plus_selection 0.01 -> 1.77, grid_grouping
+                            // 1.63 -> 3.31, nested_collection 0.00 -> 0.54, items 0.00 -> 0.50. It cost nine
+                            // light-SSIM-green pages and five dark ones (dark green 34 -> 29).
+                            // basic_grouping is the decisive counter-example: its item template root is a bare
+                            // `label` with thickness(5,0,0,0) (basic_grouping_page.hpp:80) -- a non-layout root
+                            // with a nonzero margin, precisely the case the double-apply theory covers -- and it
+                            // was ALREADY pixel-correct without the translation. So whatever the 16 helped pages
+                            // are compensating for, it is not a uniformly-missing margin application.
+                            // Do not re-land this without first explaining why basic_grouping does not need it.
                             const maui::graphics::rect cell_rect =
                                 vertical ? maui::graphics::rect{col_origin, cursor, col_cross, row_extent}
                                          : maui::graphics::rect{cursor, col_origin, row_extent, col_cross};

@@ -532,12 +532,26 @@ namespace maui::core
             return;
         }
         platform->padding = view.padding();
-        if (!is_set(view, "padding"))
+        const maui::core::thickness& p = platform->padding;
+        // GATE ON ALL-FOUR-NaN, NOT ON "was the bindable set". ControlExtensions.cs:51-56 is
+        //     platformControl.Padding = padding.IsNaN ? defaultThickness ?? new Thickness() : padding.ToPlatform();
+        // where Thickness.IsNaN (Primitives/Thickness.cs:53) requires ALL FOUR components to be NaN, and
+        // ButtonExtensions.cs:146-147 supplies GetResource<Thickness>("ButtonPadding") as that default. So
+        // MAUI falls back to the style padding ONLY for a wholly-NaN thickness and otherwise pushes the
+        // value -- including a plain zero.
+        // The old `!is_set(...) -> ClearValue(PaddingProperty)` restored the WinUI Button style's
+        // ButtonPadding (11 DIPs vertical) for any padding the developer never explicitly assigned, which is
+        // a DIFFERENT predicate: the port's unset padding is thickness{0,0,0,0}, not NaN, so the oracle would
+        // push 0 where the port pushed 11. Measured on input_controls: MAUI renders a sourceless
+        // <ImageButton /> as a 2px hairline (two 1px borders, zero padding, collapsed content Image) where
+        // the port rendered a 13px rounded pill (1 + 11 + 1). On image_button the +11 compounds down the
+        // page across five more paddingless buttons, and on the 40x40 "Custom Size" one it eats 22 of 40
+        // DIPs horizontally, shrinking dotnet_bot.png to roughly a 16x27 content box against MAUI's 38x38.
+        if (std::isnan(p.left) && std::isnan(p.top) && std::isnan(p.right) && std::isnan(p.bottom))
         {
             as_button(platform->native).ClearValue(winui::Controls::Control::PaddingProperty());
             return;
         }
-        const maui::core::thickness& p = platform->padding;
         as_button(platform->native).Padding(winui::Thickness{p.left, p.top, p.right, p.bottom});
     }
 

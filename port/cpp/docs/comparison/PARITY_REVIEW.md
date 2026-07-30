@@ -383,3 +383,39 @@ The ~96-page difference is dominated by this delta.
 
 Until this is ruled on, the remaining Windows work is page-shaped content defects, which are tracked in
 the board README rather than here.
+
+---
+
+## MAUI's own CollectionView captures carry a ~0.50pp focus-visual noise floor (measured 2026-07-30)
+
+MEASURED, with the port's binary and captures held constant: on CollectionView pages, MAUI's GROUND-TRUTH
+column differs between two runs by ~4100 px (~0.50% of the frame). The port's own capture over the same two
+runs is BIT-IDENTICAL (0 differing pixels on basic_grouping), so the variation is entirely MAUI's.
+
+What varies is a WinUI FOCUS VISUAL: a 2px near-black (26,26,26) rectangle outline around the group header
+-- 1008 px wide on rows 51-52, then 4 px on each of rows 53-94. Present in one run, absent in the other.
+  basic_grouping          4192 px (0.512%)  band y 51-94, x 8-1015
+  items                   4077 px (0.498%)  band y 52-68
+  measure_first_strategy  4164 px (0.508%)  band y 60-97
+
+CONSEQUENCES, and this changes how CollectionView scores must be read:
+1. Roughly 20 CollectionView pages have a +-0.50pp run-to-run noise floor that no port change can affect.
+   A page moving 0.00 -> 0.50 or 0.20 -> 0.70 across two captures is NOISE, not a regression. This is
+   distinct from the board-wide +-0.15pp floor measured on 2026-07-29 for ordinary pages.
+2. It explains a diagnosis that was correctly refuted earlier today. An `items` finding identified this
+   exact band as a WinUI focus visual and proposed matching it; the skeptic refuted the fix as a provable
+   no-op. Both were right, and the deeper reason is now measured: the band is not reliably present in the
+   REFERENCE, so there is nothing stable to match.
+3. It does NOT rescue the reverted item-cell margin translation, and I want the record precise about how
+   much damage that change actually did. Its regressions on basic_grouping (0.01 -> 1.72),
+   grouping_plus_selection (0.01 -> 1.77) and grid_grouping (1.63 -> 3.31) are ~+1.7pp, far above this
+   floor and therefore real. But several pages I counted against it -- items 0.00 -> 0.50,
+   nested_collection 0.00 -> 0.54, measure_first_strategy 0.00 -> 0.51 -- moved by exactly this focus
+   visual and were NOT its fault. I over-counted the damage; the revert still stands on the three real
+   regressions plus basic_grouping's counter-example (a bare-Label root with thickness(5,0,0,0) that was
+   already pixel-correct without the translation).
+
+NOT ACTIONABLE as a port fix. Options if it ever needs to stop polluting comparisons: capture the MAUI
+column with focus suppressed or with a deterministic focus target, or treat the top band of CollectionView
+pages as excluded region. Both are harness changes, not port changes, so neither should be done without a
+ruling. Recording the floor is enough for now: read CollectionView deltas under +-0.50pp as noise.
