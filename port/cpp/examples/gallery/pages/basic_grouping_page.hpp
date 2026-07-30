@@ -38,13 +38,17 @@
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/item_collection.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/stack_layout.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/core/handler_registry.hpp"
+#include "maui/core/layout_handler.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/safe_area_edges.hpp"
 #include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/solid_paint.hpp"
+#include "maui/hosting/maui_app.hpp"
 
 namespace maui::samples
 {
@@ -65,6 +69,38 @@ namespace maui::samples
             std::string name;
             int count = 0;
             friend bool operator==(const team_key&, const team_key&) = default;
+        };
+
+        // The group footer template root: the shared XAML twin's <StackLayout><Label BackgroundColor=
+        // "Orange" Margin="0,0,0,15" /></StackLayout> (basic_grouping.xaml). Identical to
+        // grid_grouping_page.hpp's group_footer_cell — see that file for the full rationale. In short:
+        // rooting the template directly at a Label that carries BOTH the background AND the margin paints
+        // the 15pt margin's reserved space orange too (measured on Windows as a ~29px band vs MAUI's
+        // ~19px); the twin's wrapper keeps the margin EXTERNAL to the painted box. It OWNS its Label
+        // because layout::add() is non-owning.
+        class group_footer_cell final : public maui::controls::stack_layout
+        {
+        public:
+            group_footer_cell()
+            {
+                label_.set_background(std::static_pointer_cast<maui::graphics::paint>(
+                    std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::orange)));
+                label_.set_margin(maui::core::thickness(0, 0, 0, 15)); // twin: inner Label Margin="0,0,0,15"
+                add(label_);
+            }
+
+        protected:
+            void on_binding_context_changed() override
+            {
+                maui::controls::stack_layout::on_binding_context_changed(); // propagate to children first
+                if (const auto key = binding_context<team_key>())
+                {
+                    label_.set_text("Total members: " + std::to_string(key->count));
+                }
+            }
+
+        private:
+            maui::controls::label label_;
         };
 
         basic_grouping_page()
@@ -94,17 +130,10 @@ namespace maui::samples
                                     maui::core::font::system_font_of_size(16, maui::core::font_weight::bold));
             list_.set_group_header_template(group_header);
 
-            // ---- the group footer template: an Orange Label bound to Team.Count, formatted like
-            // {Binding Count, StringFormat='Total members: {0:D}'} ----
-            auto group_footer = maui::controls::data_template::of<maui::controls::label>();
-            group_footer->set_binding<std::string, team_key>(
-                maui::controls::label::text_property(),
-                [](const team_key& key) { return "Total members: " + std::to_string(key.count); });
-            group_footer->set_value(maui::controls::background_property(),
-                                    std::static_pointer_cast<maui::graphics::paint>(
-                                        std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::orange)));
-            group_footer->set_value(maui::controls::margin_property(), maui::core::thickness(0, 0, 0, 15));
-            list_.set_group_footer_template(group_footer);
+            // ---- the group footer template: a StackLayout > orange Label bound to Team.Count, formatted
+            // like {Binding Count, StringFormat='Total members: {0:D}'} (see group_footer_cell above for
+            // why this is a composite cell rather than a data_template::of<label>()) ----
+            list_.set_group_footer_template(maui::controls::data_template::of<group_footer_cell>());
 
             // ---- IsGrouped + the view-level header/footer strings ----
             list_.set_is_grouped(true);
@@ -124,6 +153,15 @@ namespace maui::samples
         [[nodiscard]] maui::controls::content_page& page()
         {
             return page_;
+        }
+
+        // PRE-MOUNT hook (gallery_host.hpp gallery_pre_mount): register group_footer_cell's handler BEFORE
+        // mount_window / the collection_view realize walk. It is a brand-new user type, so its handler is
+        // not self-registered and the realize path would silently fail to materialize the group footer.
+        // It is a stack_layout subclass, so it shares stack_layout's layout_handler.
+        void register_handlers(maui::hosting::maui_app& app)
+        {
+            maui::core::register_handler<group_footer_cell, maui::core::layout_handler>(app.handlers());
         }
 
         [[nodiscard]] maui::controls::collection_view& list()

@@ -303,6 +303,25 @@ def _byte_rows(path: str, per_row: int = 16) -> str:
     return "\n".join(rows) if rows else "        0x00,"
 
 
+def _write_if_changed(path: str, text: str) -> bool:
+    """Write `text` to `path` only when the content actually differs; return True if written.
+
+    The bytes-mode TUs are generated at CMake CONFIGURE time, so an unconditional write re-stamps every
+    generated .xaml.cpp on every configure. Ninja keys off mtime, so all ~195 TUs then recompile on every
+    build even when no .xaml changed — measured at ~40 min per Windows cycle. Content-comparing first makes
+    a no-op configure genuinely free and leaves incremental builds proportional to what actually changed.
+    """
+    try:
+        with open(path, encoding="utf-8") as fh:
+            if fh.read() == text:
+                return False
+    except (OSError, UnicodeDecodeError):
+        pass  # missing/unreadable/not-utf8 — fall through and write
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    return True
+
+
 def _clang_format(files: list[str]) -> None:
     clang_format = shutil.which("clang-format")
     if clang_format and files:
@@ -329,6 +348,7 @@ def cmd_gen(args: argparse.Namespace) -> int:
             return 2
         os.makedirs(out_dir, exist_ok=True)
         kept_bytes = 0
+        rewrote = 0
         for name in names:
             src = os.path.join(PAGES if name in shared else VIEWS, name + ".xaml")
             # PRESERVE a hand-written port-side code-behind (the .xaml.cpp analog of MAUI's .xaml.cs, e.g.
@@ -350,14 +370,15 @@ def cmd_gen(args: argparse.Namespace) -> int:
                 if n != 1:
                     print(f"error: {committed}: expected exactly one #embed directive line, found {n}")
                     return 2
-                with open(os.path.join(out_dir, name + ".xaml.cpp"), "w") as fh:
-                    fh.write(body)
+                rewrote += _write_if_changed(os.path.join(out_dir, name + ".xaml.cpp"), body)
                 kept_bytes += 1
             else:
-                with open(os.path.join(out_dir, name + ".xaml.cpp"), "w") as fh:
-                    fh.write(BYTES_CPP.format(name=name, byte_rows=_byte_rows(src), mark=GENERATED_MARK))
+                rewrote += _write_if_changed(
+                    os.path.join(out_dir, name + ".xaml.cpp"),
+                    BYTES_CPP.format(name=name, byte_rows=_byte_rows(src), mark=GENERATED_MARK))
         print(f"generated {len(names)} bytes-mode TUs into {out_dir} "
-              f"({len(shared)} shared, {len(legacy)} legacy, {kept_bytes} hand-written code-behind preserved)")
+              f"({len(shared)} shared, {len(legacy)} legacy, {kept_bytes} hand-written code-behind preserved; "
+              f"{rewrote} rewritten, {len(names) - rewrote} unchanged)")
         return 0
 
     written = []

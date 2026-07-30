@@ -2,7 +2,9 @@
 //
 // Characterization derived from src/Controls/src/Core/Shapes/RoundRectangle.cs (GetPath/PathForBounds):
 // path_for_bounds builds a rounded-rectangle path over the bounds from the four per-corner radii (order:
-// top-left, top-right, bottom-left, bottom-right). The simplified port omits Stretch/StrokeThickness.
+// top-left, top-right, bottom-left, bottom-right), composed with Shape.TransformPathForBounds' net 0.5
+// DIP/side deflate (the default StrokeThickness 1.0 + Aspect Fill composition — see round_rectangle.hpp's
+// header note). The full Stretch/Aspect fit and InnerPathForBounds remain out of scope.
 
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/path_f.hpp"
@@ -48,16 +50,19 @@ TEST(round_rectangle_tests, set_corner_radius)
 TEST(round_rectangle_tests, path_for_bounds_structure)
 {
     // RoundRectangle.GetPath -> AppendRoundedRectangle: move + 4 cubics + 3 lines + close = 9 ops.
+    // path_for_bounds also composes the net 0.5 DIP/side deflate (default StrokeThickness 1.0 + Aspect
+    // Fill; see round_rectangle.hpp's header note), so a (0,0,60,40) bounds rect yields a (0.5,0.5,59,39)
+    // shape rect.
     const round_rectangle rr(corner_radius(8, 4, 2, 6));
     const path_f path = rr.path_for_bounds(rect(0, 0, 60, 40));
     EXPECT_EQ(9, path.operation_count());
     EXPECT_TRUE(path.closed());
     // Path starts at (minX, minY + topLeftRadius).
-    EXPECT_EQ(point_f(0.0F, 8.0F), path.first_point());
+    EXPECT_EQ(point_f(0.5F, 8.5F), path.first_point());
 
     const rect_f bounds = path.get_bounds_by_flattening();
-    EXPECT_NEAR(60.0F, bounds.width, 0.5F);
-    EXPECT_NEAR(40.0F, bounds.height, 0.5F);
+    EXPECT_NEAR(59.0F, bounds.width, 0.5F);
+    EXPECT_NEAR(39.0F, bounds.height, 0.5F);
 }
 
 TEST(round_rectangle_tests, uniform_radius_path_matches_per_corner)

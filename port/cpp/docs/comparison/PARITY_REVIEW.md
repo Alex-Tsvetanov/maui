@@ -479,3 +479,56 @@ its value: more of the board is affected than the first measurement suggested, a
 of ~0.5pp on ANY page should be treated as unattributed until the port-vs-reference capture diff is checked.
 The check is cheap and worth making routine: compare the page's cpp capture against its previous blob; if it
 is 0 px, the movement is not the port's.
+
+---
+
+## Shape stroke deflate: a 4-platform geometry change made on a Windows-only measurement (2026-07-30)
+
+`maui::graphics::shapes::{rectangle, ellipse, round_rectangle}::path_for_bounds` now applies MAUI's
+`Shape.TransformPathForBounds` net **0.5 DIP/side deflate**. Oracle chain, all verified against `src/`:
+
+- `Shape.cs:320-323` -- `viewBounds.X += StrokeThickness/2; Width -= StrokeThickness`, with
+  `StrokeThicknessProperty` defaulting to `1.0` (`Shape.cs:80-81`) => +0.5 / -1.0 per axis.
+- `Rectangle.cs:18`, `Ellipse.cs:17`, `RoundRectangle.cs:12` -- all three constructors set
+  `Aspect = Stretch.Fill`, overriding `Shape`'s own `Stretch.None` default (`Shape.cs:106`), so the
+  Fill branch (`Shape.cs:378-383`) scales by `(W-1)/W` and translates to `viewBounds.Left = 0.5`.
+- `Border.cs:81` -- `StrokeShapeProperty` defaults to `new Rectangle()`, a *Controls* Shape. So MAUI's
+  default Border stroke genuinely deflates; the port's did not.
+
+**Why the shared graphics layer and not a Windows handler.** `maui::controls::shapes::rectangle` (the
+full Shape port) already implemented this deflate -- which is why the `shapes` page scored 0.04% while
+the Border family did not. The two families had *diverged*, and the graphics one was the wrong one.
+The XAML loader shows the same split from the other side: `xaml_visitors.cpp:1866`'s comment records
+that `<Ellipse>`/`<Rectangle>` resolve to `register_type`'d **controls** shapes (already deflating)
+while `<RoundRectangle>` alone minted the **graphics** type. This change removes that inconsistency.
+
+**Use-site sweep (every `graphics::shapes::` site outside tests was classified):** all 23 non-test
+sites are `Border.StrokeShape` / `Frame` -- MAUI counterpart is a Controls Shape, so the deflate is
+correct at every one. Exactly **one** site was wrong and is fixed in the same change:
+`clipping_page.hpp:223` passed a graphics *Shape* to `set_clip` where the C# it ports uses
+`RoundRectangleGeometry` -- and `Geometry.PathForBounds` (`Geometry.cs:17`) returns the raw
+`AppendPath` result with **no** deflate. It now uses `controls::shapes::round_rectangle_geometry` with
+the explicit `Rect(0,0,400,50)` the C# passes. XAML clips cannot hit this: `VisualElement.Clip` is
+typed `Geometry` in MAUI, so no XAML clip ever resolves to a Shape.
+
+### OUTSTANDING DEBT -- iOS / macOS / Android are unrescored
+
+This was measured on the **Windows** board only. The change is in shared code, and the other three
+backends' `IView.Clip` and Border content-clip paths DO call `path_for_bounds`, so their rendering
+moves 0.5 DIP. Windows is unaffected on the clip path specifically -- `view_chrome_ops.cpp` dispatches
+on concrete shape type and builds Composition geometry directly, never calling `path_for_bounds`.
+
+Per oracle the new position is the *correct* one on all four platforms, so this is expected convergence,
+not regression -- but it is **unverified by pixels** on three of them. The headless suite is 3775/3775,
+which does not render. Exposed families to rescore: `border*`, `clip*`, `clipping`, `containers`,
+`box_view`, `chat_example`, `swipe_view_shadow`, `custom_swipe_item_view`, `alignment`, `borderless`,
+`invalidate_shadow_host`, `radio_button_content`, `radio_template_from_style`, `varied_size_selector`.
+If an iOS/macOS/Android board moves by ~1px on stroke edges, this change is the first thing to check.
+
+### Minor: a masked precision bug
+
+`view_mapper_tests.cpp`'s ellipse tolerance was widened to `0.3F` to absorb the deflated coordinates.
+That tolerance now also absorbs a **pre-existing** `path_f::get_bounds_by_flattening` bug -- flattening
+overshoot grows with the absolute coordinate magnitude, not just the 0.5 fractional offset (probed at
+(0,0), (0.5,0.5), (1,1), (100.5,100.5)). The slack is not intentional headroom; it is masking that bug,
+and a regression in it would no longer be caught there.
