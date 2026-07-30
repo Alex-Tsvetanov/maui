@@ -313,3 +313,73 @@ the spacing and green all three.
   hydrate a CollectionView nested inside another CollectionView's ItemTemplate, so the inner lists render
   empty (0.6% body content vs MAUI's 3.6%). The scorer under-reports it because the item text is sparse.
   Fixing needs the loader/template-inflater to realize a nested CollectionView cell — deferred.
+
+---
+
+## Windows dark-theme background delta — AWAITING A USER RULING (2026-07-30)
+
+The port renders the page background `#202020` (32,32,32) where MAUI renders `#272727` (39,39,39), in
+DARK only (light is off by 1, which is noise). The mechanism is still unknown after six mechanisms were
+ruled out by measurement (recorded in the campaign brief: ApplicationPageBackgroundThemeBrush,
+NavigationViewContentBackground, all 5318 SolidColorBrush entries reachable from Application.Resources
+dumped from inside the running app, MicaBackdrop{BaseAlt} in both themes, any single translucent overlay
+— algebraically needs c=278 — and low-alpha white compositing, which needs ~#08FFFFFF where the table has
+only #00 #0D #14 #15 #1F). It has NEVER been hard-coded and must not be.
+
+### What it costs — CORRECTED, and this supersedes what the campaign assumed
+
+It was long recorded as costing "~4% on all 172 pages". **That was mis-attributed.** Two measurements:
+
+1. **It costs ZERO on the diff metric.** `pixel_score.py:113` counts a pixel as differing only above
+   `DIFF_THRESHOLD = 25/255`. The delta is SEVEN levels. It has never contributed to "% pixels differ".
+2. **The real ~4% was CHROME**, the one cause the brief explicitly ruled out — and it is now fixed in two
+   commits: the 32-DIP title-bar band (32px of an 800px frame = 4.00%, `ef892a8300`) and the opaque
+   caption-button strip (138x32 = 4314px = 0.53%, `b91b2018d9`). Together those took dark GREEN 0 -> 27.
+
+### What it DOES cost: dark SSIM, and it is the deciding factor for otherwise-perfect pages
+
+`b91b2018d9`'s commit message claims the delta is "measured NOT to matter". **That claim is wrong and is
+retracted here.** It came from a confounded experiment: adding +7 to the WHOLE dark capture, which fixes
+the background *and breaks every content pixel at the same time*, so it showed almost no net gain.
+
+Re-measured correctly — offsetting ONLY pixels whose value is the port's background — the delta gains
+**+0.004 to +0.018 SSIM per page** (items 0.9424 -> 0.9596, check_box 0.9486 -> 0.9667,
+menu_bar 0.9485 -> 0.9653, ios_safe_area 0.9494 -> 0.9655).
+
+And the exact arithmetic explains why it is decisive. SSIM between two CONSTANT fields is
+`(2*mu_a*mu_b + C1) / (mu_a^2 + mu_b^2 + C1)`; with mu = 39 vs 32 and `C1 = (0.01*255)^2 = 6.5025`:
+
+    (2*39*32 + 6.5) / (39^2 + 32^2 + 6.5) = 2502.5 / 2551.5 = 0.98079
+
+So **every uniform background region in a dark capture is capped at SSIM 0.9808** against a 0.98 gate —
+essentially zero headroom. Banded SSIM confirms it directly: on `items` dark, every 100-row band from
+y=200 to y=800 reads a uniform **0.9806**, while the SAME bands in light read 0.9999-1.0000.
+
+The consequence, on pages with no content defect at all:
+
+| page            | full-page light SSIM | full-page dark SSIM |
+|-----------------|----------------------|---------------------|
+| button          | 0.9962               | 0.9872              |
+| grid            | 0.9963               | 0.9806              |
+| styles          | 0.9965               | 0.9795              |
+| absolute_layout | 0.9921               | 0.9759              |
+
+These pages are pixel-correct in light and straddle the gate in dark purely on the background cap. Board
+state as of `a2505b8a89`: dark has **123 pages under the 1% diff gate but only 27 clearing SSIM >= 0.98**.
+The ~96-page difference is dominated by this delta.
+
+### The ruling requested
+
+(a) **Accept as a documented deviation under policy #3.** Consequence, stated honestly: dark can reach
+    roughly 27-40 green out of 170 and no further, because the cap sits below the gate for any page whose
+    content is not *better* than pixel-perfect. All-green on both themes becomes unreachable.
+(b) **Authorise deeper instrumentation.** The two untried avenues are UI Automation over MAUI's live
+    visual tree (to find what actually paints the root), and a window RECT/DPI comparison in case the two
+    captured client areas are not the same region. Note the title-bar work already proved the client areas
+    DID differ (the port started at y=31, MAUI at y=32), so avenue two has partial precedent.
+(c) A third option not in the original framing: **raise or per-theme the SSIM gate**, on the grounds that
+    a 7-level uniform offset is not a perceptual defect. This changes the measuring stick rather than the
+    port, so it needs an explicit ruling — it is not a call to make silently.
+
+Until this is ruled on, the remaining Windows work is page-shaped content defects, which are tracked in
+the board README rather than here.
