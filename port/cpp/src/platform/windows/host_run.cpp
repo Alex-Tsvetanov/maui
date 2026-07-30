@@ -59,6 +59,7 @@ namespace
     // inside namespace maui::* that name WINS over a file-scope alias - an `xaml::Application` here
     // would resolve to maui::xaml and fail with "'Start': is not a member of 'maui::xaml'".
     namespace winui = winrt::Microsoft::UI::Xaml;
+    namespace backdrops = winrt::Microsoft::UI::Composition::SystemBackdrops;
 
     // The fallback content size, used only until the real window reports one. A desktop-ish default
     // rather than the headless lane's phone viewport: this backend always has a real window, so this is
@@ -241,14 +242,43 @@ namespace
                 }
             }
 
-            // (3c) The themed PAGE BACKGROUND, painted opaquely on the content root.
+            // (3c) The themed PAGE BACKGROUND — an opaque fallback paint, now applied ONLY when the
+            //      window has no Mica backdrop to show through.
             //
-            //      MauiWinUIWindow.cs:52-54 DOES set a Mica BaseAlt SystemBackdrop, and I once read
-            //      that as the mechanism and switched to it. MEASURED RESULT: greens 10 -> 0, and the
-            //      light page went grey (~#E9E9E9) where MAUI is near-white. The oracle line is real;
-            //      the conclusion was not. MAUI's WindowRootView paints an OPAQUE themed background
-            //      over the backdrop, so the Mica never shows through - setting it without that
-            //      overpaint exposes a tint MAUI never displays. Reverted, deliberately.
+            //      MauiWinUIWindow.cs:52-55 DOES set a Mica BaseAlt SystemBackdrop
+            //      (window_handler.cpp's create_platform_view now ports that line verbatim, guarded
+            //      the same way: `if (MicaController.IsSupported())`). An EARLIER attempt applied it and
+            //      measured light 232 at the body — that IS the raw Mica value, so the backdrop DID
+            //      reach the screen (this block must have been bypassed or not yet written for that
+            //      test, since an opaque #F3F3F3 paint would have read back 243, not 232). It was
+            //      retired as "worse" purely by body-vs-body comparison: 232 is farther from MAUI's 244
+            //      than the flat #F3F3F3 fallback's 243 was. PARITY_REVIEW.md's TASK 1 (2026-07-31)
+            //      later showed why: the missing piece was never the backdrop, it was (3d)'s translucent
+            //      content layer, which that test never had — measured over the raw 232 base it composes
+            //      to exactly MAUI's 244 (see (3d) below). So the earlier retirement was correct about
+            //      the SYMPTOM (232 alone looks worse) but wrong about the CAUSE (nothing to do with an
+            //      opaque overpaint, which this block did not yet gate at the time).
+            //
+            //      What DOES have to change now that both pieces exist together: an opaque Background
+            //      assigned here composites IN FRONT of the window's SystemBackdrop (the backdrop draws
+            //      behind the whole XAML content island), so if this block ran unconditionally today it
+            //      WOULD hide the backdrop just applied in create_platform_view — a real defeat, just not
+            //      the one that sank the earlier attempt. So: on a Mica-capable system this block must do
+            //      NOTHING — leave the panel's Background unset/transparent so the backdrop shows through
+            //      directly, exactly like MAUI's own WindowRootView (WindowRootViewStyle.xaml's root
+            //      `Page` sets no explicit Background of its own — verified by reading the style, not
+            //      assumed).
+            //
+            //      The flat-brush paint below is kept ONLY as the non-Mica fallback: on a system where
+            //      `MicaController.IsSupported()` is false, the window never got a backdrop (mirroring
+            //      the oracle's own guard in the ctor), so there is nothing for a transparent panel to
+            //      expose — MAUI's Page would fall back to its own default themed background there too,
+            //      which this reproduces.
+            //
+            //      Logged either way (boot_log below): the two arms are visually indistinguishable from
+            //      "the change didn't take" if MicaController::IsSupported() ever comes back false on a
+            //      guest believed to support Mica, and that would otherwise cost a full guest round trip
+            //      to notice.
             //
             //      Applied ONLY when the page set no Background of its own: ReadLocalValue returns
             //      UnsetValue exactly when the mapper did not push one, so an explicit page colour
@@ -261,19 +291,28 @@ namespace
             //      So `panel` here never carries its own local value and this always paints the Grid —
             //      which is exactly right: it is what shows through the exposed band, matching MAUI's
             //      title bar having its own theme-coloured strip independent of the page's background.
-            if (const auto panel = native.Content().try_as<winui::Controls::Panel>())
+            if (!backdrops::MicaController::IsSupported())
             {
-                const bool has_own_background = panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
-                                                winui::DependencyProperty::UnsetValue();
-                if (!has_own_background)
+                boot_log("theme: window base = flat fallback -- MicaController not supported");
+                if (const auto panel = native.Content().try_as<winui::Controls::Panel>())
                 {
-                    const auto resources = Resources();
-                    const auto key = winrt::box_value(winrt::hstring{L"ApplicationPageBackgroundThemeBrush"});
-                    if (resources.HasKey(key))
+                    const bool has_own_background =
+                        panel.ReadLocalValue(winui::Controls::Panel::BackgroundProperty()) !=
+                        winui::DependencyProperty::UnsetValue();
+                    if (!has_own_background)
                     {
-                        panel.Background(resources.Lookup(key).as<winui::Media::Brush>());
+                        const auto resources = Resources();
+                        const auto key = winrt::box_value(winrt::hstring{L"ApplicationPageBackgroundThemeBrush"});
+                        if (resources.HasKey(key))
+                        {
+                            panel.Background(resources.Lookup(key).as<winui::Media::Brush>());
+                        }
                     }
                 }
+            }
+            else
+            {
+                boot_log("theme: window base = Mica backdrop (BaseAlt)");
             }
 
             // (3d) The themed CONTENT LAYER, painted translucently on the PAGE's own native view — one
@@ -281,20 +320,24 @@ namespace
             //      hosts page content inside a NavigationView whose content area is painted
             //      `NavigationViewContentBackground`, a StaticResource to `LayerFillColorDefaultBrush`
             //      (WinUI generic.xaml) — itself translucent (#4C3A3A3A dark / #80FFFFFF light) — layered
-            //      OVER the opaque window base (3c) already paints. Composited over the measured base this
-            //      reproduces the observed body colour in both themes (dark 32+(76/255)*(58-32)=39.75,
-            //      light 232+(128/255)*(255-232)=243.55). Before this the port painted content with the
-            //      window base itself, so the title-bar band and the body were IDENTICAL (delta 0) where
-            //      MAUI shows +7 dark / +12 light.
+            //      OVER whatever base is visible beneath the page: on the normal Mica-capable system
+            //      that base is the RAW SystemBackdrop (3c) now deliberately leaves unobscured (measured
+            //      232 light / 32 dark); on the non-Mica fallback it is (3c)'s opaque paint instead.
+            //      Composited over the Mica base this reproduces the observed body colour in both themes
+            //      (dark 32+(76/255)*(58-32)=39.75, light 232+(128/255)*(255-232)=243.55). Before this
+            //      layer existed the port painted content with the window base itself, so the title-bar
+            //      band and the body were IDENTICAL (delta 0) where MAUI shows +7 dark / +12 light.
             //
             //      Reached via window_->content()'s own handler (the same lookup window_handler.cpp's
             //      host_content() uses), not by walking native.Content()'s children, so this lands on the
             //      page's native view whether or not the title bar is extended. Gated on
             //      has_extended_title_bar because only then does (3c)'s panel above name a DIFFERENT
             //      element (the wrapper Grid) from this one (window_handler.cpp's host_content) — without
-            //      the wrapper, native.Content() IS the page's own view, and (3c) already painted it;
-            //      painting it again here would replace that base with this layer instead of compositing
-            //      over it, and there is no reserved band on that system to distinguish anyway.
+            //      the wrapper, native.Content() IS the page's own view, and on the non-Mica fallback
+            //      (3c) already painted it there; painting it again here would replace that base with
+            //      this layer instead of compositing over it, and there is no reserved band on that
+            //      system to distinguish anyway. (On the Mica path (3c) paints nothing either way, so
+            //      this guard only matters for the fallback.)
             //
             //      Same has_own_background guard as (3c): an explicit page Background is already a LOCAL
             //      value on this property by now (content_page_handler.cpp's update_background ran during

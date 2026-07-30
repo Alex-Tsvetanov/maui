@@ -8,8 +8,10 @@
 
 #include "maui/core/window_handler.hpp"
 
+#include <winrt/Microsoft.UI.Composition.SystemBackdrops.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
@@ -30,6 +32,7 @@ namespace
     // inside namespace maui::* that name WINS over a file-scope alias - an `xaml::Application` here
     // would resolve to maui::xaml and fail with "'Start': is not a member of 'maui::xaml'".
     namespace winui = winrt::Microsoft::UI::Xaml;
+    namespace backdrops = winrt::Microsoft::UI::Composition::SystemBackdrops;
 
     winui::Window as_window(void* native)
     {
@@ -77,10 +80,10 @@ namespace maui::core
                     // caption-button strip (minimize/maximize/close) paints an OPAQUE system backdrop —
                     // measured on this port as a solid (255,255,255) block, 138x32px flush to the
                     // window's right edge, present identically in both themes. MAUI avoids that by
-                    // punching the button backgrounds transparent so the WindowRootView-painted,
-                    // theme-brushed title-bar strip (host_run.cpp's (3c) block, one level below) shows
-                    // through instead — Transparent is not a per-theme color, so this one call already
-                    // "follows the theme": whatever the (3c) block painted is what shows here.
+                    // punching the button backgrounds transparent so whatever is actually behind them —
+                    // the raw Mica backdrop set below, or host_run.cpp's (3c) fallback paint on a
+                    // non-Mica system — shows through instead. Transparent is not a per-theme color, so
+                    // this one call already "follows the theme" either way.
                     //
                     // NOT ported: the oracle also subscribes _viewSettings.ColorValuesChanged to re-call
                     // this on system UI-color changes (MauiWinUIWindow.cs:48,107,219-222). This port sets
@@ -100,6 +103,22 @@ namespace maui::core
                     title_bar.ButtonInactiveBackgroundColor(winrt::Windows::UI::Colors::Transparent());
                 }
             }
+        }
+
+        // MauiWinUIWindow.cs:52-55 `if (MicaController.IsSupported()) base.SystemBackdrop = new
+        // MicaBackdrop { Kind = MicaKind.BaseAlt };` — ported verbatim, including the guard: on a
+        // system with no Mica compositor support the window keeps no backdrop, exactly like the
+        // oracle, and host_run.cpp's (3c) step paints its own opaque fallback base for that case.
+        // `BaseAlt` (not `Base`) is the subtler of the two Mica tints — the oracle's literal choice,
+        // not a guess; it is also what host_run.cpp's compositing arithmetic was derived against.
+        //
+        // Independent of the ExtendsContentIntoTitleBar block above (C# does not nest one inside the
+        // other either) — Mica applies whether or not title-bar extension succeeded.
+        if (backdrops::MicaController::IsSupported())
+        {
+            winui::Media::MicaBackdrop backdrop{};
+            backdrop.Kind(backdrops::MicaKind::BaseAlt);
+            as_window(platform->native).SystemBackdrop(backdrop);
         }
         return platform;
     }
