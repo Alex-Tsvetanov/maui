@@ -389,8 +389,9 @@ namespace
     constexpr double k_selection_checkbox_left_inset = 14;
     // The label's own content is NOT currently inset to make room for the checkbox at all (paint_selection_
     // checkbox's header comment already flagged this, unfixed, from an earlier pass: "the checkmark glyph
-    // visibly overlaps the label's leading character... content is NOT inset"). Real MAUI starts the
-    // content flush against the checkbox's OWN right edge, not the cell's raw left edge.
+    // visibly overlaps the label's leading character... content is NOT inset"). MAUI does inset it -- but
+    // only PARTLY, so the square still overlaps the leading character (see the CORRECTED note below, which
+    // supersedes this paragraph's "flush against the checkbox's own right edge" reading).
     //
     // RECONCILING A PRIOR PASS'S OPPOSITE READING (it measured content as CONSTANT-offset-from-correct by a
     // row/content-DEPENDENT 28-40px, not a fixed amount, and stopped short of shipping either fix pending
@@ -409,7 +410,29 @@ namespace
     // LIST-ONLY (`!grid`): a GRID cell's checkbox sits in the TOP-RIGHT corner (paint_selection_checkbox's
     // `grid` branch), nowhere near where grid content starts, so no content inset applies there --
     // preselected_items (GRID, Multiple selection, currently green) is untouched by this constant.
-    constexpr double k_selection_checkbox_content_inset = k_selection_checkbox_left_inset + k_selection_checkbox_size;
+    // CORRECTED (measured against the MAUI render after the inset above landed): the first shipped value,
+    // left_inset + size = 34, OVERSHOT by exactly 6px. Cross-correlating the two column ink-profiles over
+    // the text-only window x in [55,260) of selection_synchronization_light.png gives an L1 distance of
+    // ZERO at a shift of +6 and non-zero at every other shift in [-12,+12] -- the port's content is a pure
+    // 6px right-translation of MAUI's, pixel-identical otherwise. Hence 28.
+    //
+    // The ORACLE gives the mechanism, not this number. generic.xaml (WindowsAppSDK 1.7.250606001,
+    // .../Microsoft.WinUI/Themes/generic.xaml:15762) sizes MultiSelectSquare Width=20 Margin="12,0,0,0",
+    // and its ContentPresenterTranslateTransform keyframes (:15502, :15524) rest at X=0 with the item's own
+    // left padding already clearing the square -- i.e. content offset = 12 + 20 = 32 measured from the
+    // LISTVIEWITEM CONTENT ORIGIN. The port's cell `slot.x` is not that origin (it sits ~4px right of it,
+    // which is also why left_inset is 14 rather than the oracle's 12 yet lands the box at MAUI's exact
+    // x27-46), so 32 cannot be transplanted directly. Per parity ruling 11 the render decides the value;
+    // the oracle decides that a single constant offset is the right SHAPE for it.
+    //
+    // Note this reverses the DIRECTION of the previous pass's premise, which read MAUI as insetting content
+    // flush past the checkbox's right edge. It does not: MAUI's content starts UNDER the square (its first
+    // text ink is at x45, inside the 27-46 box), which is why MAUI's checked rows visibly read "tem 2" /
+    // "tem 3" with the leading "I" hidden behind the blue square. The port must overlap it the same way.
+    // LIST-ONLY (`!grid`): a GRID cell's checkbox sits in the TOP-RIGHT corner (paint_selection_checkbox's
+    // `grid` branch), nowhere near where grid content starts, so no content inset applies there --
+    // preselected_items (GRID, Multiple selection, currently green) is untouched by this constant.
+    constexpr double k_selection_checkbox_content_inset = 28;
 
     // The GridViewItem fill+border (both header comment "chrome shapes" fold into one Border: Background
     // gives the fill, BorderBrush/Thickness/CornerRadius give the stroke when `grid`) or the ListViewItem
@@ -501,7 +524,20 @@ namespace
             text_block glyph;
             glyph.Text(winrt::hstring{L"\uE73E"});
             glyph.FontFamily(winui::Media::FontFamily{L"Segoe Fluent Icons"});
-            glyph.FontSize(10);
+            // FontSize 16 — WinUI's own value for THIS affordance: generic.xaml's ListViewItem template
+            // (WindowsAppSDK 1.7.250606001, .../Microsoft.WinUI/Themes/generic.xaml:15762) declares
+            //   <FontIcon x:Name="MultiSelectCheck" Glyph="&#xE73E;" FontSize="16"
+            //             Foreground="{ThemeResource ListViewItemCheckBrush}" />
+            // inside a 20x20 "MultiSelectSquare" Border — the same 20x20 box this function draws.
+            // CAVEAT (documented, not hidden): the MAUI render we match uses the NATIVE
+            // ListViewItemPresenter path, not that XAML template — its rounded corners come from
+            // ListViewItemCheckBoxCornerRadius=3 (generic.xaml:2303), and the presenter rasterizes its
+            // check internally, so no XAML FontSize governs the actual pixels. 16 is therefore
+            // corroborated, not cited: measured against the MAUI capture, the previous 10 rendered the
+            // glyph ink at 8x6 px where MAUI's is 12x9 — a 1.5x shortfall, i.e. ~15, which lands on 16
+            // within the +/-0.5px quantisation of an integer ink bbox. Per parity ruling 11 the render
+            // wins; the XAML sibling is what makes 16 the principled reading of that measurement.
+            glyph.FontSize(16);
             glyph.Foreground(solid_brush(255, 255, 255));
             glyph.HorizontalAlignment(winui::HorizontalAlignment::Center);
             glyph.VerticalAlignment(winui::VerticalAlignment::Center);
@@ -521,7 +557,13 @@ namespace
         else
         {
             canvas::SetLeft(box, slot.x + k_selection_checkbox_left_inset);
-            canvas::SetTop(box, slot.y + ((slot.height - k_selection_checkbox_size) / 2));
+            // Round the centred offset to a whole pixel. The oracle's MultiSelectSquare is a plain
+            // VerticalAlignment="Center" child, and WinUI resolves that under UseLayoutRounding (on by
+            // default), so its 20px box always lands on whole-pixel edges. Placing it on a Canvas skips
+            // that pass: an odd slot.height put SetTop on a .5 boundary and the 20px box rasterised 21px
+            // tall with both horizontal edges antialiased (measured y99-119 vs MAUI's y100-119, in both
+            // themes, on the checked AND unchecked boxes alike).
+            canvas::SetTop(box, std::round(slot.y + ((slot.height - k_selection_checkbox_size) / 2)));
         }
         panel.Children().Append(box);
     }
