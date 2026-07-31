@@ -180,6 +180,7 @@ def _declare_prototypes() -> None:
         (user32.SetWindowPos, [hwnd, hwnd, ci, ci, ci, ci, ui], bo),
         (user32.ShowWindow, [hwnd, ci], bo),
         (user32.SetForegroundWindow, [hwnd], bo),
+        (user32.GetShellWindow, [], hwnd),
         (user32.SetCursorPos, [ci, ci], bo),
         (user32.GetSystemMetrics, [ci], ci),
         (gdi32.CreateCompatibleDC, [hdc], hdc),
@@ -484,6 +485,41 @@ def cmd_window_id(a) -> int:
     return _emit(ok=False, error=f"no visible top-level window for pid {a.pid}")
 
 
+def _defocus_before_shot(hwnd: int) -> None:
+    """Hand OS foreground to the desktop shell so `hwnd` is the INACTIVE window at the instant we
+    photograph it — suppressing WinUI's keyboard-focus visual (a thin near-black outline WinUI paints
+    around whichever control is Tab-order-first at launch) without sending the app a single click,
+    keystroke, or scroll.
+
+    WHY THIS EXISTS. PARITY_REVIEW.md documents ~24 pages whose ONLY diff vs the MAUI reference is this
+    focus outline, present on some captures and absent on others with the SAME code+binary — a run-to-run
+    reference-side coin flip that straddles the SSIM gate (up to ~12 pages of green-count noise per pass).
+    Its toggling was observed in LOCKSTEP across unrelated pages at consistent run boundaries — the
+    signature of a session-wide condition, not a per-page one. `cmd_present` above already calls
+    `SetForegroundWindow(hwnd)` in its geometry-settle loop but never checks its return value; Windows can
+    silently refuse a foreground-steal request (the foreground-lock timeout), which would leave the window
+    INACTIVE on some runs and ACTIVE on others — exactly this toggle. Rather than depend on that call
+    succeeding, this makes the end state explicit: deactivate on purpose, every time, right before the
+    shot, so the outcome is asserted instead of inherited.
+
+    WHY THIS IS SAFE. Deactivation is a window-manager Z/activation change (WM_ACTIVATE), not an input
+    event — nothing is posted into the app's message queue, so no control can be clicked, no page can
+    scroll, no dialog can dismiss. `_capture_hwnd` uses PrintWindow(PW_RENDERFULLCONTENT), which (module
+    docstring hazard 2) reads the window's own composed backing store and needs neither focus nor
+    Z-order — an inactive, non-topmost window still captures its full content.
+
+    Applied unconditionally from `cmd_present`'s single --shot call site, so every column (maui_xaml, cpp,
+    cpp_xaml) is deactivated identically before every frame — this must never be reference-only, or the
+    comparison itself becomes asymmetric. `--no-defocus` exists only to debug this behavior on the guest.
+    """
+    shell = user32.GetShellWindow()
+    if not shell:
+        return  # no desktop shell window found (unusual); leave activation state as-is rather than guess
+    user32.SetForegroundWindow(wintypes.HWND(shell))
+    time.sleep(0.15)  # let the WM_ACTIVATE-driven repaint (chrome + focus-visual removal) land before
+                       # PrintWindow reads the backing store
+
+
 def cmd_present(a) -> int:
     """Foreground the window and force it to an EXPLICIT position+size so every column captures at the
     SAME rect; optionally capture atomically via --shot.
@@ -494,7 +530,11 @@ def cmd_present(a) -> int:
     which a WinUI 3 window can still be settling.
 
     Like the macOS twin this FAILS LOUDLY if the window never reaches the target size rather than
-    returning a short rect as success: a silently short frame is the failure that gets scored."""
+    returning a short rect as success: a silently short frame is the failure that gets scored.
+
+    Unless --no-defocus is passed, the window is deliberately made INACTIVE right before the --shot
+    capture (see _defocus_before_shot) to make WinUI's keyboard-focus visual deterministically absent
+    from every column's frame, instead of a run-to-run coin flip on the MAUI reference column alone."""
     wins = _windows_of_pid(a.pid) if a.pid else []
     if not wins:
         # Fall back to matching by process image name, so --proc alone still works.
@@ -525,6 +565,8 @@ def cmd_present(a) -> int:
 
     shot_info: dict = {}
     if a.shot:
+        if a.defocus:
+            _defocus_before_shot(hwnd)
         ok, err, size = _capture_hwnd(hwnd, a.shot)
         if not ok:
             return _emit(ok=False, proc=a.proc, id=hwnd, bounds=rect, error=f"shot failed: {err}")
@@ -833,6 +875,10 @@ def main(argv=None) -> int:
     s.add_argument("--zoom", action="store_true", help="(ignored; explicit --x/--y/--w/--h supersede)")
     s.add_argument("--pid", type=int, default=0, help="the app's pid (preferred over --proc)")
     s.add_argument("--shot", default="", help="capture the window to this path once size is confirmed")
+    s.add_argument("--no-defocus", dest="defocus", action="store_false", default=True,
+                   help="skip the pre-shot OS-foreground handoff that suppresses WinUI's keyboard-focus "
+                        "visual (debugging only; leaves the reference-column focus-visual coin flip in "
+                        "place)")
     s.set_defaults(fn=cmd_present)
 
     s = sub.add_parser("click"); s.add_argument("x", type=int); s.add_argument("y", type=int)

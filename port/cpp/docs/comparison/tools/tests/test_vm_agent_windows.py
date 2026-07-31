@@ -130,12 +130,30 @@ def test_subcommand_surface(agent) -> None:
     print(f"  ok  subcommand surface: all {len(want)} macOS-parity subcommands present")
 
 
+def test_present_defocus_flag(agent) -> None:
+    """`present --defocus` must default True (every column gets WinUI focus-visual suppression, see
+    _defocus_before_shot, with zero run_comparison.py change) and `--no-defocus` must be able to turn it
+    off for on-guest debugging. Exercises the REAL argparse tree main() builds, via a swapped-in
+    cmd_present that just records the parsed namespace instead of touching Win32."""
+    captured: dict = {}
+    real_cmd_present = agent.cmd_present
+    agent.cmd_present = lambda a: captured.__setitem__("ns", a) or 0
+    try:
+        agent.main(["present", "--proc", "x"])
+        assert captured["ns"].defocus is True, "present must defocus by default"
+        agent.main(["present", "--proc", "x", "--no-defocus"])
+        assert captured["ns"].defocus is False, "--no-defocus must flip it off"
+    finally:
+        agent.cmd_present = real_cmd_present
+    print("  ok  present --defocus: defaults True, --no-defocus flips it off")
+
+
 def main() -> int:
     agent = _load_agent()
     print(f"vm_agent_windows.py checks (host={sys.platform}, agent DPI mode={agent.DPI_MODE})")
     failures = 0
     for fn in (test_bgra_to_rgb_rows, test_write_png_roundtrip,
-               test_png_of_a_realistic_shot, test_subcommand_surface):
+               test_png_of_a_realistic_shot, test_subcommand_surface, test_present_defocus_flag):
         try:
             fn(agent)
         except AssertionError as e:
