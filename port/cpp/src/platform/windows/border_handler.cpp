@@ -4,9 +4,10 @@
 // (UpdateContent). This port has no custom-Panel seam yet (no C++/WinRT DependencyObject subclass), so
 // the host is a plain Canvas — the same simplification content_page_handler.cpp / layout_handler.cpp
 // already make for "a panel that just holds children the cross-platform layout positions itself" — with
-// TWO children: the stroke Path (index 0, permanent, appended once in create_platform_view and never
-// removed) and the hosted content (index 1, re-set by set_content). The Path is always Children()[0],
-// so as_path() below needs no separate boxed handle for it.
+// TWO PERMANENT children, both appended once in create_platform_view and never removed: the stroke Path
+// (index 0) and a content-host Canvas (index 1) that holds the hosted content and carries the content
+// clip (see THE CONTENT CLIP below). Both indices are fixed for the platform view's whole lifetime, so
+// as_path() / as_content_host() below need no separate boxed handles.
 //
 // Background routing (BorderHandler.cs's MapBackground + ViewExtensions.UpdateBorderBackground):
 // Border.Shape defaults to a Rectangle (border.cpp's stroke_shape_property()) and is never null in this
@@ -20,17 +21,43 @@
 // content_page/layout — both already implemented once, cross-platform, in src/core/border_handler.cpp.
 // Only the per-backend HALF of platform_arrange (arrange_native: frame the host) lives here.
 //
-// Not ported yet (documented deviation, like the iOS/Apple partials' own scope notes in border_handler.
-// hpp): ContentPanel.UpdateClip's Composition geometric clip, which masks the CONTENT to the border's
-// INNER shape (round-rectangle inset by half the stroke thickness) via ElementCompositionPreview /
-// CanvasDevice / CompositionPath. That needs the Composition API surface (Microsoft.UI.Composition +
-// Win2D's CanvasDevice) no other Windows handler in this port touches yet, and only matters when content
-// overflows into a rounded corner — a much smaller visual gap than the missing stroke + background this
-// slice closes. The stroke geometry, fill, and content hosting below are the dominant fix.
+// THE CONTENT CLIP (ContentPanel.UpdateClip), previously deferred here and now ported: C# masks the
+// CONTENT — not the stroke — to the border's INNER shape, so a photo or an oversized glyph cannot spill
+// past a circular/triangular/rounded border. Microsoft.UI.Xaml.UIElement.Clip only accepts a
+// RectangleGeometry, so a non-rectangular clip has to go through Composition: a CompositionGeometricClip
+// over a CompositionPathGeometry, set on the visual behind the content.
+//
+// TWO deviations from the C# shape, both structural, neither changing the resulting geometry:
+//
+//  1. THE CLIPPED VISUAL. C# puts the clip on the CONTENT's own visual and then cancels the content's
+//     position out of it (`geometricClip.Offset = strokeThickness - Content.ActualOffset`), which lands
+//     the clip at (T, T) in the panel's space whatever the content's alignment did. This port gives the
+//     host a THIRD permanent child instead — a content-host Canvas spanning the whole border box, with
+//     the content inside it — and clips THAT. Its visual's origin IS the border's origin, so the same
+//     placement is a plain translate by (T, T) with no content-position term at all. That matters here
+//     for a reason C# does not have: border::arrange (src/controls/border.cpp) frames the handler BEFORE
+//     it arranges the content, so a content-relative offset read during arrange_native would be one
+//     layout pass stale — C#'s ArrangeOverride runs AFTER base.ArrangeOverride has placed the children.
+//     A permanent clipped visual also survives a content change for free (C# has to re-clip, since a new
+//     content element means a new visual).
+//  2. THE GEOMETRY SOURCE. CompositionPath takes a Windows.Graphics.IGeometrySource2D, and C# gets one
+//     from Win2D (`CanvasDevice.GetSharedDevice()` + `PathF.AsPath(device)`). Win2D has no C++/WinRT
+//     projection in this build, so d2d_geometry_source below implements that interface directly over a
+//     Direct2D geometry — d2d1.lib ships in the Windows SDK, so this adds NO new dependency (one extra
+//     entry beside WindowsApp.lib in CMakeLists.txt; vcpkg.json is untouched).
 
 #include "maui/core/border_handler.hpp"
 
+// d2d1.h pulls in windows.h, whose GetCurrentTime function-like macro then eats the argument list of the
+// projection's Timeline::GetCurrentTime (C4002) — host_run.cpp carries the same #undef for the same
+// reason. windows.graphics.interop.h must follow d2d1.h: it names ID2D1Geometry / ID2D1Factory.
+#include <d2d1.h>
+#undef GetCurrentTime
+#include <windows.graphics.interop.h>
+
+#include <winrt/Microsoft.UI.Composition.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Hosting.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.Shapes.h>
 #include <winrt/Microsoft.UI.Xaml.h>
@@ -39,23 +66,29 @@
 // with "error C3779: a function that returns 'auto' cannot be used before it is defined."
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Graphics.h>
 
 #include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string_view>
+#include <utility>
 
 #include "maui/core/i_border_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
 #include "maui/core/view_chrome_ops.hpp"
+#include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/matrix3x2.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/path_f.hpp"
+#include "maui/graphics/path_operation.hpp"
+#include "maui/graphics/point_f.hpp"
 #include "maui/graphics/rect.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include "winui_interop.hpp"
 #include "winui_shape_ops.hpp"
 #include "winui_visual_ops.hpp"
@@ -75,12 +108,18 @@ namespace
         return maui::platform::windows::ref<winui::UIElement>(native).as<canvas>();
     }
 
-    // The stroke Path is always Children()[0] — appended once in create_platform_view and never
-    // removed (set_content() below clears + re-adds it FIRST, ahead of the content child, on every
-    // content change), so this index is stable for the platform view's whole lifetime.
+    // The host's two children are BOTH permanent, appended once in create_platform_view and never
+    // removed, so these indices are stable for the platform view's whole lifetime: [0] the stroke Path
+    // (painted behind), [1] the content-host Canvas that holds the hosted content and carries the
+    // Composition content clip (see the file header). set_content() swaps children INSIDE [1].
     shape_path as_path(void* native)
     {
         return as_host(native).Children().GetAt(0).as<shape_path>();
+    }
+
+    canvas as_content_host(void* native)
+    {
+        return as_host(native).Children().GetAt(1).as<canvas>();
     }
 
     // The child's native UIElement via its view-handler's native_view() — the content_page/layout twin.
@@ -131,6 +170,247 @@ namespace
         }
     }
 
+    // ---- the content clip (ContentPanel.UpdateClip) ----------------------------------------------
+    // One process-wide Direct2D factory for the clip geometries. SINGLE_THREADED: every call below is on
+    // the UI thread. Deliberately never released — a function-local com_ptr would release at static
+    // teardown, after COM is already gone.
+    ID2D1Factory* d2d_factory()
+    {
+        static ID2D1Factory* const factory = []() -> ID2D1Factory* {
+            ID2D1Factory* created = nullptr;
+            if (FAILED(::D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &created)))
+            {
+                return nullptr;
+            }
+            return created;
+        }();
+        return factory;
+    }
+
+    // The Win2D stand-in (file header, deviation 2). Windows.Graphics.IGeometrySource2D is a pure marker
+    // interface — CompositionPath does all of its real work through the classic-COM
+    // IGeometrySource2DInterop it QIs for, which is what these two methods answer.
+    struct d2d_geometry_source : winrt::implements<d2d_geometry_source, winrt::Windows::Graphics::IGeometrySource2D,
+                                                   ABI::Windows::Graphics::IGeometrySource2DInterop>
+    {
+        explicit d2d_geometry_source(winrt::com_ptr<ID2D1PathGeometry> geometry) : geometry_{std::move(geometry)}
+        {
+        }
+
+        IFACEMETHODIMP GetGeometry(ID2D1Geometry** value) noexcept final
+        {
+            if (value == nullptr)
+            {
+                return E_POINTER;
+            }
+            // A plain base-class upcast (single inheritance), so it cannot fail — no QI. The member keeps
+            // the PATH geometry type rather than the base because ::Stream below is a PathGeometry member
+            // (ID2D1Geometry's own streaming face is Simplify, which would re-approximate).
+            ID2D1Geometry* const geometry = geometry_.get();
+            geometry->AddRef();
+            *value = geometry;
+            return S_OK;
+        }
+
+        // The compositor asks for the geometry on ITS OWN D2D factory first. Rather than bet on a
+        // foreign-factory geometry being accepted, replay ours into a path geometry the caller's factory
+        // owns — ID2D1PathGeometry::Stream re-emits the figures into any sink, so this is exact, not a
+        // re-approximation.
+        IFACEMETHODIMP TryGetGeometryUsingFactory(ID2D1Factory* factory, ID2D1Geometry** value) noexcept final
+        {
+            if (value == nullptr)
+            {
+                return E_POINTER;
+            }
+            *value = nullptr;
+            if (factory == nullptr || !geometry_)
+            {
+                return S_OK; // "cannot" — the caller falls back to GetGeometry
+            }
+            winrt::com_ptr<ID2D1PathGeometry> replayed;
+            if (const HRESULT hr = factory->CreatePathGeometry(replayed.put()); FAILED(hr))
+            {
+                return hr;
+            }
+            winrt::com_ptr<ID2D1GeometrySink> sink;
+            if (const HRESULT hr = replayed->Open(sink.put()); FAILED(hr))
+            {
+                return hr;
+            }
+            if (const HRESULT hr = geometry_->Stream(sink.get()); FAILED(hr))
+            {
+                return hr;
+            }
+            if (const HRESULT hr = sink->Close(); FAILED(hr))
+            {
+                return hr;
+            }
+            *value = replayed.detach();
+            return S_OK;
+        }
+
+    private:
+        winrt::com_ptr<ID2D1PathGeometry> geometry_;
+    };
+
+    // maui::graphics::path_f → an ID2D1PathGeometry, FLATTENED to line segments. Unlike the stroke path
+    // (winui_shape_ops' walk, which emits real quad/cubic/arc segments because the stroke is RENDERED
+    // from it), a clip is a mask, so path_f's own curve flattener — the port of MAUI's PathF.
+    // GetFlattenedPath, the same code MAUI would use — keeps this walk to BeginFigure/AddLine at a
+    // 0.001 px error bound, two orders of magnitude under a pixel. `include_sub_paths = true` is REQUIRED:
+    // the default stops at the FIRST Close, silently dropping every later sub-path of a multi-figure shape.
+    winrt::com_ptr<ID2D1PathGeometry> build_clip_geometry(const maui::graphics::path_f& path)
+    {
+        ID2D1Factory* const factory = d2d_factory();
+        if (factory == nullptr)
+        {
+            return nullptr;
+        }
+        winrt::com_ptr<ID2D1PathGeometry> geometry;
+        if (FAILED(factory->CreatePathGeometry(geometry.put())))
+        {
+            return nullptr;
+        }
+        winrt::com_ptr<ID2D1GeometrySink> sink;
+        if (FAILED(geometry->Open(sink.put())))
+        {
+            return nullptr;
+        }
+        // EvenOdd — WinUI's own PathGeometry default, which the stroke path leaves standing too (see the
+        // build_path_geometry call site below on why Border has no winding surface to set it from). D2D
+        // requires the fill mode BEFORE the first figure.
+        sink->SetFillMode(D2D1_FILL_MODE_ALTERNATE);
+        const maui::graphics::path_f flat = path.get_flattened_path(0.001F, true);
+        bool in_figure = false;
+        int point_index = 0;
+        for (const maui::graphics::path_operation op : flat.segment_types())
+        {
+            switch (op)
+            {
+                case maui::graphics::path_operation::move: {
+                    if (in_figure)
+                    {
+                        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                    }
+                    const maui::graphics::point_f point = flat[point_index++];
+                    sink->BeginFigure(D2D1::Point2F(point.x, point.y), D2D1_FIGURE_BEGIN_FILLED);
+                    in_figure = true;
+                    break;
+                }
+                case maui::graphics::path_operation::line: {
+                    const maui::graphics::point_f point = flat[point_index++];
+                    if (in_figure)
+                    {
+                        sink->AddLine(D2D1::Point2F(point.x, point.y));
+                    }
+                    break;
+                }
+                case maui::graphics::path_operation::close:
+                    if (in_figure)
+                    {
+                        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                        in_figure = false;
+                    }
+                    break;
+                default:
+                    break; // flattening leaves only move/line/close
+            }
+        }
+        // Every figure ends CLOSED, including one the path left open: this geometry is a FILL region (a
+        // mask), and D2D fills an open figure by implicitly closing it anyway.
+        if (in_figure)
+        {
+            sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+        }
+        if (FAILED(sink->Close()))
+        {
+            return nullptr;
+        }
+        return geometry;
+    }
+
+    // RoundRectangle.InnerPathForBounds(bounds, st) — UpdateClip's IRoundRectangle branch: GetInnerPath's
+    // box (inset st/2, sized W−st, radii each reduced by st), then Shape.TransformPathForBounds' Stretch.
+    // Fill rescale back onto `bounds` (RoundRectangle's ctor sets Aspect = Fill). Net effect versus a
+    // plain path_for_bounds: the same box, with the corner radii pulled in by the stroke — which is
+    // exactly the "rounded corners peek past the clip" difference this branch exists for.
+    //
+    // Built here rather than in the shared shape layer: i_shape carries only PathForBounds (i_shape.hpp
+    // records IRoundRectangle as not ported), this is its ONE caller, and a shared-layer change to this
+    // exact geometry was already reverted once (f1a5a17658) for leaking into paths MAUI does not inset.
+    // NOT applied, for the same reason: TransformPathForBounds' own `viewBounds.X += StrokeThickness/2`
+    // term (the StrokeShape's OWN default 1.0 thickness) — the same 0.5 DIP question as update_border's
+    // k_shape_self_deflate below, kept out of the clip so the two stay separately measurable.
+    maui::graphics::path_f inner_round_rectangle_path(const maui::graphics::shapes::round_rectangle& shape,
+                                                      const maui::graphics::rect& bounds, double stroke_thickness)
+    {
+        maui::graphics::path_f path;
+        const double width = bounds.width - stroke_thickness;
+        const double height = bounds.height - stroke_thickness;
+        if (width <= 0 || height <= 0)
+        {
+            return path;
+        }
+        const maui::graphics::corner_radius radii = shape.corner_radius();
+        const auto reduce = [stroke_thickness](double radius) {
+            return static_cast<float>(std::max(0.0, radius - stroke_thickness));
+        };
+        const auto inset = static_cast<float>(stroke_thickness / 2.0);
+        path.append_rounded_rectangle(inset, inset, static_cast<float>(width), static_cast<float>(height),
+                                      reduce(radii.top_left), reduce(radii.top_right), reduce(radii.bottom_left),
+                                      reduce(radii.bottom_right));
+        // Stretch.Fill: scale the inner path's bounds (inset, inset, width, height) back onto `bounds`.
+        const auto scale_x = static_cast<float>(bounds.width / width);
+        const auto scale_y = static_cast<float>(bounds.height / height);
+        path.transform(maui::graphics::matrix3x2::create_scale(scale_x, scale_y) *
+                       maui::graphics::matrix3x2::create_translation(static_cast<float>(bounds.x) - (scale_x * inset),
+                                                                     static_cast<float>(bounds.y) - (scale_y * inset)));
+        return path;
+    }
+
+    // ContentPanel.UpdateClip itself: mask the content-host visual to the border's INNER shape.
+    //
+    // The bounds are UpdateClip's own and deliberately NOT shared with update_border's: this deflates by
+    // TWICE the thickness (`Rect(0, 0, width - strokeThickness * 2, height - strokeThickness * 2)`) where
+    // UpdatePath deflates by one and re-centers by half. A shared bounds helper between the two would be a
+    // half-stroke error on all four sides.
+    void apply_content_clip(void* native, const maui::core::border_stroke_spec& spec)
+    {
+        const canvas host = as_host(native);
+        const auto visual = winui::Hosting::ElementCompositionPreview::GetElementVisual(as_content_host(native));
+        const double width = host.Width();
+        const double height = host.Height();
+        const double thickness = spec.thickness;
+        const maui::graphics::rect path_size{0, 0, width - (2 * thickness), height - (2 * thickness)};
+        // No shape, not yet laid out (NaN before the first arrange_native), or a stroke thick enough to
+        // swallow the box: no clip at all, matching C#'s early returns (which leave Visual.Clip unset).
+        if (spec.shape == nullptr || !std::isfinite(width) || !std::isfinite(height) || path_size.width <= 0 ||
+            path_size.height <= 0)
+        {
+            visual.Clip(nullptr);
+            return;
+        }
+        const auto* round_rect = dynamic_cast<const maui::graphics::shapes::round_rectangle*>(spec.shape);
+        maui::graphics::path_f clip = round_rect != nullptr
+                                          ? inner_round_rectangle_path(*round_rect, path_size, thickness / 2.0)
+                                          : spec.shape->path_for_bounds(path_size);
+        // C#'s `geometricClip.Offset = strokeThickness - Content.ActualOffset` places the clip at (T, T)
+        // in the PANEL's space; this visual already starts at the host's origin (file header, deviation
+        // 1), so the placement is the translate alone.
+        const auto offset = static_cast<float>(thickness);
+        clip.transform(maui::graphics::matrix3x2::create_translation(offset, offset));
+        const winrt::com_ptr<ID2D1PathGeometry> geometry = build_clip_geometry(clip);
+        if (!geometry)
+        {
+            visual.Clip(nullptr);
+            return;
+        }
+        const auto compositor = visual.Compositor();
+        const winrt::Microsoft::UI::Composition::CompositionPath composition_path{
+            winrt::make<d2d_geometry_source>(geometry)};
+        visual.Clip(compositor.CreateGeometricClip(compositor.CreatePathGeometry(composition_path)));
+    }
+
 } // namespace
 
 namespace maui::core
@@ -148,18 +428,19 @@ namespace maui::core
         auto platform = std::make_unique<border_platform>();
         canvas host;
         shape_path path;
-        // The stroke path is the host's ONE permanent child, appended once here at Children()[0] — see
-        // as_path()'s note on why that index never moves.
+        canvas content_host;
+        // Both children are permanent, appended once here in painting order — see as_path() /
+        // as_content_host()'s note on why those indices never move.
         host.Children().Append(path);
+        host.Children().Append(content_host);
         platform->native = maui::platform::windows::take<winui::UIElement>(host);
         return platform;
     }
 
-    // C# UpdateContent: CachedChildren.Clear() + EnsureBorderPath() + re-parent Content. Clearing
-    // everything and re-adding the path FIRST (so it stays index 0, painted behind the content) then the
-    // new content keeps a re-set (the mapper re-runs on every Content change) from stacking two
-    // generations of content on top of each other — the content_page_handler.cpp precedent, with the
-    // extra permanent path child border alone needs.
+    // C# UpdateContent: CachedChildren.Clear() + EnsureBorderPath() + re-parent Content. Here the stroke
+    // path and the content host are permanent, so a content re-set (the mapper re-runs on every Content
+    // change) only swaps the content host's single child — which cannot stack two generations of content,
+    // and leaves the content host's Composition clip in place rather than losing it with the old visual.
     void border_handler::set_content()
     {
         auto* platform = typed_platform_view();
@@ -172,13 +453,11 @@ namespace maui::core
         {
             return;
         }
-        const canvas host = as_host(platform->native);
-        const shape_path path = as_path(platform->native); // a strong ref — survives the Clear() below
-        host.Children().Clear();
-        host.Children().Append(path);
+        const canvas content_host = as_content_host(platform->native);
+        content_host.Children().Clear();
         if (const winui::UIElement element = native_child(platform->hosted_content))
         {
-            host.Children().Append(element);
+            content_host.Children().Append(element);
         }
     }
 
@@ -210,6 +489,7 @@ namespace maui::core
         {
             path.Data(nullptr);
             path.Stroke(nullptr);
+            apply_content_clip(platform->native, spec); // clears the clip on this same "nothing to draw"
             return;
         }
 
@@ -295,6 +575,10 @@ namespace maui::core
         }
         path.StrokeDashArray(dashes);
         path.StrokeDashOffset(spec.dash_offset);
+
+        // ContentPanel.UpdateBorder's tail: the same shape + thickness that just built the stroke also
+        // define the content clip, so every stroke push re-issues it (C#'s UpdateBorder → UpdateClip).
+        apply_content_clip(platform->native, spec);
     }
 
     // The backend half of platform_arrange (border_handler.cpp's cross-platform half calls this, then
@@ -319,14 +603,27 @@ namespace maui::core
         canvas::SetTop(host, frame.y);
         host.Width(frame.width);
         host.Height(frame.height);
-        // Clip is bounds-dependent (view_chrome_ops.cpp's apply_native_clip reads the just-set Width/
-        // Height back); map_clip's own push (view_mapper.cpp) always runs before the first arrange, so
-        // this re-invoke is what actually installs the clip once the border has a real size. `native`
-        // boxes a plain Canvas (this file's header — no custom-Panel seam), NOT a Border, so
-        // apply_native_clip's host-vs-child redirect does not fire here; the clip masks the whole
-        // Canvas (stroke path + content), which is the generic IView.Clip — distinct from, and unrelated
-        // to, this file's still-unported ContentPanel.UpdateClip content-to-inner-shape clip (see the
-        // file header).
+        // The content host spans the whole border box at the host's origin — that is what makes its
+        // visual the border's own coordinate space for the content clip (file header, deviation 1). Its
+        // children keep being positioned by their own handlers in exactly the host-relative coordinates
+        // they used when the content was a direct child (border::arrange arranges content host-relative).
+        const canvas content_host = as_content_host(platform->native);
+        canvas::SetLeft(content_host, 0);
+        canvas::SetTop(content_host, 0);
+        content_host.Width(frame.width);
+        content_host.Height(frame.height);
+        // ContentPanel.ArrangeOverride's own UpdateClip call: the clip is bounds-dependent, and this is
+        // the push that installs it once the border has a real size (platform_arrange only re-runs
+        // update_border when the SIZE changed, so this cannot be left to that path alone).
+        apply_content_clip(platform->native, platform->border);
+        // The generic IView.Clip, a DIFFERENT clip on a different element by a different mechanism —
+        // view_chrome_ops.cpp's RectangleGeometry on the host UIElement, masking the whole Canvas (stroke
+        // path AND content), where the content clip above is a Composition geometric clip on the content
+        // host alone. It is bounds-dependent too (apply_native_clip reads the just-set Width/Height back)
+        // and map_clip's own push (view_mapper.cpp) always runs before the first arrange, so this
+        // re-invoke is what actually installs it once the border has a real size. `native` boxes a plain
+        // Canvas (this file's header — no custom-Panel seam), NOT a Border, so apply_native_clip's
+        // host-vs-child redirect does not fire here.
         if (const auto* view = virtual_view(); view != nullptr)
         {
             apply_native_clip(platform->native, view->clip());

@@ -923,7 +923,11 @@ if(MAUI_BACKEND STREQUAL "windows")
     message(FATAL_ERROR "Microsoft.WindowsAppRuntime.Bootstrap.dll not found for ABI ${MAUI_TARGET_ABI}")
   endif()
   # WindowsApp.lib is the WinRT API surface; the bootstrap lib is the unpackaged-activation shim.
-  target_link_libraries(maui_core PUBLIC "${MAUI_WASDK_BOOTSTRAP}" WindowsApp.lib)
+  # d2d1.lib is the Windows SDK's Direct2D (NOT a new external dependency, nothing added to vcpkg.json):
+  # border_handler.cpp's content clip needs a Windows.Graphics.IGeometrySource2D for CompositionPath, and
+  # the only shipping implementation is Win2D, which has no C++/WinRT projection here — so the handler
+  # implements that interface over an ID2D1PathGeometry instead. See its file header.
+  target_link_libraries(maui_core PUBLIC "${MAUI_WASDK_BOOTSTRAP}" WindowsApp.lib d2d1.lib)
 endif()
 # The headless twin of the platform blocks above: MAUI_PLATFORM_HEADLESS (PUBLIC, the same ODR rule) marks
 # the in-memory backend. It also gates the headless-only run_app entry (host_run.hpp / src/platform/headless/
