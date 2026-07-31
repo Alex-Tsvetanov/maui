@@ -1271,3 +1271,35 @@ WinUI draws the focus visual only for `FocusState::Keyboard`, so setting focus t
 (or clearing it) INSIDE the app -- e.g. a diagnostic switch in the MauiReference app and the gallery,
 compiled in for capture builds -- would suppress the outline without disturbing the window manager or the
 agent's desktop. That keeps the fix in-process, where it cannot break the transport.
+
+### Capture-harness recovery: orphaned guest processes block every subsequent run (2026-07-31)
+
+Symptom: `run_comparison.py` reports `ConnectionRefusedError` / `ConnectionResetError` on `present` and
+`launch`, self-heals once, then emits `DROPPED — present failed after self-heal (no window to capture)`
+and/or `launch failed` for whole pages or single columns. Worst case the run aborts with a
+`FileNotFoundError` on its own `summary.json`.
+
+Cause: a previous run left GUEST-SIDE ORPHANS. Two independent kinds, both must be cleared:
+  1. **App processes** — `gallery`, `gallery_xaml`, `MauiReference` still running in session 1. A stale
+     `gallery_xaml` is why the `cpp_xaml` COLUMN specifically kept dropping while the other two worked:
+     its process was already alive, so the launch had nothing new to present.
+  2. **Agent processes / scheduled task** — a stale `maui-agent-session1` task plus zombie `py`/`python`
+     processes holding 127.0.0.1:8770, so the new agent cannot bind and every connect is refused.
+
+Recovery (verified to restore a clean 3/3-column run, exit 0, zero failures):
+
+    ssh <guest> "Get-Process | Where-Object { $_.ProcessName -match 'gallery|Maui' } |
+                 Stop-Process -Force -ErrorAction SilentlyContinue"
+    ssh <guest> "schtasks /End /TN maui-agent-session1"
+    ssh <guest> "Get-Process python,py -ErrorAction SilentlyContinue | Stop-Process -Force"
+
+then re-run. The runner relaunches its own session-1 agent.
+
+**Check this FIRST whenever a run drops frames.** A dropped column silently produces a partial board, and
+a partial board scored as if complete is the failure mode this project is least able to detect from the
+numbers alone. Note the harness itself behaves well here — it names every dropped page/column explicitly
+rather than skipping quietly, which is what makes a 1-page health check a sufficient gate before a
+1104-shot pass.
+
+**Worth automating:** the runner clears remote STAGING before a run but not guest PROCESSES. Killing
+orphans at run start would make this class of failure impossible rather than merely diagnosable.
