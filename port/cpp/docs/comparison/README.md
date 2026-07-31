@@ -7802,8 +7802,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 159 | 160 |
-| 🟡 Minor | 10 | 9 |
+| 🟢 Match | 161 | 162 |
+| 🟡 Minor | 8 | 7 |
 | 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -8183,20 +8183,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.02% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.02% pixels differ
 
-### 26. Clip — 🟡/🟡
+### 26. Clip — 🟢/🟢
 <sub>clip</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/clip_light.png" /></td><td><img width="300px" src="captures/windows/cpp/clip_light.png" /></td><td><img width="300px" src="captures/windows/xaml/clip_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/clip_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/clip_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/clip_dark.png" /></td></tr></table>
 
 ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout that shows the SAME dotnet_bot.png image five times, each successive copy carrying a different geome
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9746, 2.31% pixels differ · Dark: SSIM 0.9732, 2.32% pixels differ
+Light: SSIM 0.9992, 0.04% pixels differ · Dark: SSIM 0.9977, 0.05% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9746, 2.31% pixels differ · Dark: SSIM 0.9732, 2.32% pixels differ
+Light: SSIM 0.9992, 0.04% pixels differ · Dark: SSIM 0.9977, 0.05% pixels differ
 
 ### 27. Clip Corner Radius — 🟢/🟢
 <sub>clip_corner_radius</sub>
@@ -8207,26 +8207,26 @@ ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/Shap
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9931, 0.60% pixels differ · Dark: SSIM 0.9917, 0.62% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9931, 0.60% pixels differ · Dark: SSIM 0.9917, 0.62% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
-### 28. Clip Gallery — 🟡/🟡
+### 28. Clip Gallery — 🟢/🟢
 <sub>clip_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/clip_gallery_light.png" /></td><td><img width="300px" src="captures/windows/cpp/clip_gallery_light.png" /></td><td><img width="300px" src="captures/windows/xaml/clip_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/clip_gallery_dark.png" /></td></tr></table>
 
 ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that shows the SAME &amp;quot;oasis.jpg&amp;quot; image SEVEN times — one bare
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9821, 1.46% pixels differ · Dark: SSIM 0.9809, 1.47% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9821, 1.46% pixels differ · Dark: SSIM 0.9809, 1.47% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
 ### 29. Clip Views — 🟢/🟢
 <sub>clip_views</sub>
