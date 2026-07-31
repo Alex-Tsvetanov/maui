@@ -67,15 +67,31 @@ public partial class App : Application
             {
                 // AddPage's own initial-focus call is synchronous with (or chained directly off) this same
                 // page.Loaded event, so by the time any continuation queued after it runs, that focus is
-                // already set -- there is nothing to race here. The short delay below only waits out layout
-                // settling (well under the 1200ms this file already trusts for MAUI_SHOT below), not the focus
-                // itself.
+                // already set -- there is nothing to race here. run_comparison.py's own --settle default is
+                // 1.0s (two of them elapse -- launch and the scenario's one step -- before the host's
+                // --shot), so this 200ms delay, which only waits out layout settling and not the focus
+                // itself, has a wide margin before any capture can happen.
                 await Task.Delay(200);
                 if (page.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement root &&
                     root.XamlRoot is { } xamlRoot &&
                     Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(xamlRoot) is Microsoft.UI.Xaml.UIElement focused)
                 {
-                    focused.Focus(Microsoft.UI.Xaml.FocusState.Pointer);
+                    // Two independent levers, neither assumed sufficient alone: (a) re-Focus with
+                    // FocusState.Pointer, which WinUI's stock OnGotFocus/GoToState template logic treats as
+                    // "no rectangle needed" -- BUT Focus(FocusState)'s own documented "Programmatic retains
+                    // the prior state" behavior means a re-Focus call on an ALREADY-focused element is not
+                    // safe to assume always reassigns FocusState; and (b) UseSystemFocusVisuals=false on
+                    // that element when it is a Control -- a template-level switch that suppresses the
+                    // system-drawn rect independently of any FocusState transition happening at all. Logged,
+                    // not assumed -- this repo's own idiom for "did the workaround actually take" (see
+                    // _defocus_before_shot's requested_ok/verified in vm_agent_windows.py) -- so a board run
+                    // that still shows the band points at this line instead of a fresh forensics pass.
+                    var refocused = focused.Focus(Microsoft.UI.Xaml.FocusState.Pointer);
+                    if (focused is Microsoft.UI.Xaml.Controls.Control control)
+                    {
+                        control.UseSystemFocusVisuals = false;
+                    }
+                    Console.Out.WriteLine($"[reference] DEFOCUS {focused.GetType().Name} refocused={refocused}");
                 }
             };
         }

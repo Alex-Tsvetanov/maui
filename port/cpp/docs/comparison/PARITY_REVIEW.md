@@ -1284,6 +1284,58 @@ WinUI draws the focus visual only for `FocusState::Keyboard`, so setting focus t
 compiled in for capture builds -- would suppress the outline without disturbing the window manager or the
 agent's desktop. That keeps the fix in-process, where it cannot break the transport.
 
+### In-process suppression IMPLEMENTED, NOT BUILD-VERIFIED (2026-07-31, `2d224abf1f`)
+
+Implemented the retry direction above, with one correction to it and one addition beyond it.
+
+**Correction: the auto-focus is `FocusState.Programmatic`, not `FocusState.Keyboard`.** Read
+`WindowRootViewContainer.AddPage` -> `TryMoveFocusToPage` -> `SetFocusToFirstElement`
+(`src/Core/src/Platform/Windows/WindowRootViewContainer.cs`) rather than assuming: MAUI's own initial-focus
+call is `focusableElement.Focus(FocusState.Programmatic)`, fired on every page add. WinUI's stock control
+templates paint the keyboard-style outline for Programmatic focus the same as Keyboard focus -- only
+Pointer/touch is exempt -- so the fix only relies on the Pointer-is-exempt half, not on the state being
+literally Keyboard, and survives the correction.
+
+**What shipped** (`port/maui-reference/app/App.xaml.cs`, `#if WINDOWS`, gated on
+`MAUI_SUPPRESS_FOCUS_VISUAL=1` which `run_comparison.py` now passes to every launch unconditionally, same
+shape as `MAUI_CAPTURE_TINT_NORMAL`): 200ms after `page.Loaded` (run_comparison's own `--settle` default is
+1.0s, applied twice before any `--shot`, so this has a wide margin), find whatever element
+`FocusManager.GetFocusedElement` reports and apply TWO independent levers -- re-`Focus` it with
+`FocusState.Pointer`, and if it is a `Control`, also set `UseSystemFocusVisuals = false` on it (a
+template-level switch independent of any FocusState transition). Both outcomes are logged
+(`[reference] DEFOCUS <type> refocused=<bool>`) rather than assumed, matching this file's
+`_defocus_before_shot` `requested_ok`/`verified` precedent -- a board that still shows the band should
+point at that log line, not a fresh forensics pass.
+
+**The C++ side needed no change**, and this was verified, not assumed: `port/cpp/src/platform/windows/
+host_run.cpp` hosts a page's native view directly via `native.Content(...)`, with no Frame-style
+AddPage/RemovePage container and no initial-focus `Focus()` call anywhere in the Windows backend -- and the
+review's own repeated cross-run measurements above already show the port's captures bit-identical while
+MAUI's toggled on the exact same pages. Documented in place (`host_run.cpp`, at the `Activate()` call) so a
+future change to this backend's page-hosting re-checks the assumption instead of inheriting it silently.
+
+**NOT build-verified.** The guest is unreachable for this task (nobody logged in at console, session-1
+agent cannot start) and this Mac cannot compile the Windows TFM at all
+(`net10.0-windows10.0.19041.0` is only added to `App.csproj`'s `TargetFrameworks` under
+`$([MSBuild]::IsOSPlatform('windows'))`, which is false here) -- so `page.Handler?.PlatformView`,
+`FrameworkElement.XamlRoot`, and `Control.UseSystemFocusVisuals` are unverified against the actual WinUI 3
+API surface beyond web documentation. **First guest action should be `build_maui_reference.ps1`**, the
+cheapest gate, before spending a board run on it. `check_winrt_includes.py`: 0 problems (the C++-side change
+is comment-only).
+
+**The acceptance test needs two halves, not one.** A single page improving (e.g. `label` light
+0.50% -> 0.01%, the number this section already measured for the foreground-based attempt) only shows the
+reference side improved -- it does not rule out the fix silently introducing a NEW band on the C++ side
+(which the "no change needed" finding above says shouldn't happen, but "shouldn't" is not "verified"). Gate
+on BOTH: a page already known to carry the band drops, AND a page that was already 0.00 stays 0.00 (not
+just on the `maui` column -- on `cpp`/`cpp_xaml` too, which is the actual test of the "no C++ change needed"
+claim).
+
+**`--defocus` (`vm_agent_windows.py`, opt-in / OFF by default) must stay OFF together with this.** Nothing
+in either mechanism stops someone passing both on the same run; doing so would reintroduce the exact
+session-1 desktop teardown this whole line of work exists to avoid, for no additional benefit once the
+in-process suppression is on.
+
 ### Capture-harness recovery: orphaned guest processes block every subsequent run (2026-07-31)
 
 Symptom: `run_comparison.py` reports `ConnectionRefusedError` / `ConnectionResetError` on `present` and
