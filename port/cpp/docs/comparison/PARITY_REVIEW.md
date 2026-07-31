@@ -1888,3 +1888,158 @@ controls, same 4px, clean) and was wrong to ship anyway once a THIRD, better-cho
 label's own trailing glyphs, not the box) was taken. Worth keeping as a general lesson for this file: a
 constant that reproduces cleanly on 2 samples is necessary, not sufficient — check a measurement the fix
 does NOT touch before trusting it explains the whole gap.
+
+---
+
+## Both remaining actionable Windows defects SHIPPED (2026-07-31, follow-up pass): the HorizontalGrid
+## column-width mechanism, and the selection-checkbox measurement resolved differently than either prior
+## pass concluded
+
+Picked up the two pages the immediately-preceding entry explicitly separated from the other three
+(Win2D/architectural/MAUI-quirk scope cuts): `header_footer_grid_horizontal` and `selection_
+synchronization`. Both got a real, shipped fix this pass — `src/platform/windows/collection_view_handler.
+cpp` only, commit `826c197b3a`. `check_winrt_includes.py`: `checked 31 file(s): 0 problem(s)`. `dev.sh` NOT
+run: `collection_view_handler.cpp`'s windows partial is only added to `MAUI_CONTROLS_ITEMS_PLATFORM_SOURCES`
+when `MAUI_BACKEND STREQUAL "windows"` (`CMakeLists.txt:1131`) — the headless preset dev.sh drives never
+compiles this file, so it provides no signal and running it would just restate the existing 3775/3775
+baseline. No shared/cross-platform code was touched by either fix. UNVERIFIED BY BUILD (no Windows
+toolchain on this Mac) — everything below is a pixel-measurement-and-source-reading argument, not a
+compiled-and-run result.
+
+### `header_footer_grid_horizontal`: the prior entry's own diagnosis was right, and DID need fixing —
+### it just needed a Windows-scoped mechanism, not the cross-platform one the brief assumed
+
+The immediately-preceding entry found the real defect (MAUI wraps `"Vegetables.jpg, 3"` onto 2 lines, cpp
+renders it on 1) and traced it to a `HorizontalGrid` column-width mismatch, but declined to fix it because
+it is ALSO yellow on iOS/Mac Catalyst and "the actual column-width logic lives per-backend... this needs an
+agent with reason to touch iOS/Catalyst captures too." That per-backend claim is confirmed correct by
+reading all four backends' `collection_view_handler` sources this pass (android/apple/ios/windows each
+implement their own independent grid column-sizing code — `grid_items_layout.cpp`, the one truly shared
+file, is a 34-line property holder with no sizing algorithm at all). That means the CONVERSE also holds: a
+Windows-only fix cannot regress and does not need to touch iOS/Catalyst, whose own yellow scores on this
+page have their own (unfixed, out-of-scope-for-this-pass) causes. **The brief's premise — "the defect is
+probably NOT Windows-specific... a fix may be cross-platform" — does not hold**; it's a coincidence of
+symptom (all three backends happen to under-wrap the same page), not a shared mechanism, matching this same
+doc's own general lesson from the neighboring `pickers`/`search_bar` entry ("3 of 4 suggest CollectionView"
+was also the wrong axis to split on there).
+
+**Mechanism, with the oracle:** `src/Controls/src/Core/Platform/Windows/CollectionView/FormsGridView.cs`
+`UpdateItemSize()` — for a `GridItemsLayout` with `Orientation="Horizontal"` (this page's `"HorizontalGrid,
+3"`), sets `_wrapGrid.ItemHeight = ActualHeight / Span` but leaves `ItemWidth` **unset**. An unset
+`ItemsWrapGrid.ItemWidth` locks the WHOLE panel to a uniform column width derived from the FIRST realized
+item, not a per-column auto-fit (the same principle this file's own `first_cell_cross` comment already
+documented for the CROSS axis, just never applied to the MAIN axis in the actual arrange loop). Confirmed
+by measurement, not just the oracle: `header_footer_grid_horizontal_light.png`'s 4 column text-run x-origins
+(ink-measured) are 21, 109, 199, 288 — three consecutive deltas of 88/90/89, i.e. one uniform ~89px pitch
+across all 4 columns, not four independently-sized ones; column 0's own natural width (its longest
+un-wrapped item, `"cover1.jpg, 0"`) measures ~86px, matching that pitch within capture/AA noise. cpp's prior
+code computed `row_extent` (the column's main-axis extent, for a Horizontal grid) as an independent running
+max PER column-group, so a column holding a longer string got its own wider slot instead of being forced to
+wrap inside column 0's real width.
+
+**The fix:** lock `row_extent` to the FIRST column-group's value for every later group, gated on
+`platform->grid && !vertical` (grep over `port/maui-reference/pages` confirms `header_footer_grid_horizontal`
+is the ONLY page in this gallery using `HorizontalGrid` — every `VerticalGrid` page, e.g. `grid_grouping`/
+`header_footer_grid`/`preselected_items`/`staggered_layout`, is untouched). No change needed to the earlier
+per-cell probe `measure()` call (still unbounded-width) that establishes this value from column 0:
+`arrange_realized_view` already re-measures each cell's content at the FINAL arranged width via its own
+`view->measure(frame.width, frame.height)` call before `arrange()`, so once `row_extent` is locked to the
+real value, a later column's Label wraps correctly on its own. Verified the wrap will actually occur, not
+just narrow-then-clip: `Label.LineBreakModeProperty` defaults to `WordWrap` in both the C# oracle
+(`Label.cs:103`) and the port's own `label.cpp:90`, and this page's item template does not override it, so
+`label_handler.cpp`'s `apply_line_break_mode` maps it to `TextWrapping::Wrap` (not `NoWrap`) by default —
+narrowing the arrange width reflows text across lines rather than truncating it. Also verified `label_
+handler.cpp`'s `platform_arrange` unconditionally re-stamps `host.Width(frame.width)` on every arrange
+regardless of what an earlier `measure()` constraint was, so there is no stale-pin risk from the two-phase
+measure/arrange split.
+
+**Falsifiable prediction:** `header_footer_grid_horizontal`'s wrap-defect share of the diff (this doc's own
+prior accounting: rows 220-235/310-320 = 49% of the DARK diff) should collapse toward 0 on recapture; the
+separate, architectural rotation-AA residual on the footer label (~20% of dark, the same family as the
+`varied_size_selector` finding) is untouched and should survive. Whether the page fully clears the SSIM gate
+or lands closer-but-still-yellow depends on how much of the remaining ~30% (scattered, not attributed to
+either named mechanism) moves with it — a real open question, not a confident "now green" claim. iOS and
+Mac Catalyst captures of this page are UNTOUCHED (their own per-backend grid code was not modified) and
+should show byte-identical scores to before on next recapture; if they move at all, that would falsify this
+entry's "independently implemented" finding above and is worth flagging loudly.
+
+### `selection_synchronization` / `multiple_bound_selection` / `cv_visual_states`: ONE constant checkbox/
+### content-overlap defect, not the two content-dependent ones the immediately-preceding pass drafted
+
+The immediately-preceding entry found a real 4px checkbox-position error (`k_selection_checkbox_left_inset`
+should be 14, not 10) but declined to ship it, having discovered what looked like a SECOND, larger,
+content-dependent defect (the label's own trailing glyphs — the "2" in `"Item 2"` vs the "1" in `"Item 1"`
+— measured 40px vs 28px off, a row/content-dependent gap a single mispositioned constant couldn't produce)
+and correctly refused to ship a fix proven insufficient by its own measurement.
+
+**That second measurement does not reproduce.** Re-measured `selection_synchronization_light.png` with a
+full-glyph-HEIGHT dark-pixel run scan (not a single fixed y-scanline, which is what the prior pass used):
+the "2" in a CHECKED `"Item 2"` row and the "1" in an UNCHECKED `"Item 1"` row both start their digit at
+x=73 (68-79 span, depending on the individual digit glyph's own width) — the SAME position, not 85-89 vs
+74-75. A single scanline crosses a glyph at an arbitrary height, and a digit's ink-bearing at that height is
+shape-dependent ("1" is a narrow vertical stroke, "2" is wide and rounded) independent of any real per-row
+position difference — that shape noise, not a real content-dependent shift, produced the 40-vs-28 reading.
+Confirmed the label's content position is genuinely constant (not content/state-dependent) two more ways:
+(a) the checkbox+"Item" glyph run measures identically, x=27-67, for BOTH the checked and unchecked row on
+the same page; (b) a second, larger-font page (`cv_visual_states_light.png`, "Multi Selection" section)
+shows the identical qualitative pattern — checkbox ~22-40, "Item" glyphs resume flush against its right
+edge on every row regardless of checked state, no font-dependent variation in the OVERLAP mechanism itself
+(the checkbox is a fixed ~20px glyph, not font-scaled).
+
+**The real, single mechanism:** the label's content is not, and never was, positioned relative to the
+checkbox at all — it renders at its raw, checkbox-oblivious cell position (matching `paint_selection_
+checkbox`'s own pre-existing header comment, which already flagged this and shipped nothing: "the checkmark
+glyph visibly overlaps the label's leading character... content is NOT inset to make room for the
+checkbox"). Real MAUI's content starts flush against the checkbox's OWN right edge (`checkbox_left +
+checkbox_size`, no additional gap) — not co-located with the checkbox's left edge, and not shifted by any
+row/content-dependent amount.
+
+**The fix, two parts, shipped together (the immediately-preceding pass explicitly reserved the right to
+ship both once this ambiguity resolved):**
+1. `k_selection_checkbox_left_inset`: 10 -> 14, matching the already-measured, already-drafted correction
+   (checkbox's own solid-fill bounding box sits at absolute x=27 on a row whose slot is x=13).
+2. New `k_selection_checkbox_content_inset` (`= k_selection_checkbox_left_inset + k_selection_checkbox_size`
+   = 34): the cell's CONTENT arrange rect (not its selection-chrome slot rect, which stays whole-cell for the
+   fill/indicator/checkbox) is shifted right and narrowed by this amount, LIST cells only (`!platform->grid
+   && platform->allows_multiple_selection`) — a GRID cell's checkbox sits in the TOP-RIGHT corner
+   (`paint_selection_checkbox`'s `grid` branch), nowhere near where grid content starts, so `preselected_
+   items` (GRID, Multiple selection, green) is untouched by construction, verified by reading its own
+   checkbox-positioning branch (`k_selection_checkbox_margin`, a different constant this fix never touches).
+
+**Per-page falsifiable predictions, computed from each page's OWN pre-fix pixel measurement, not just
+asserted:**
+  - `selection_synchronization` (target): pre-fix cpp slot origin ~13 (checkbox at 23 = 13+10). Post-fix
+    checkbox = 13+14 = **27**, exactly matching MAUI's measured 27. Post-fix content start = 13+34 = **47**,
+    within 1px of MAUI's ~48 (derived from the digit-position argument above). Should clear the SSIM gate.
+  - `multiple_bound_selection` (GUARD, dark SSIM 0.9831 — only 0.0031 of margin, the tightest guard in this
+    fix's blast radius): pre-fix cpp slot origin ~12 (checkbox at 18 = 12+~6, some capture-noise slop already
+    present). Post-fix checkbox = 12+14 = **26** vs MAUI's measured 22 — a **4px residual**, same direction
+    and magnitude as this fix's other predicted residuals, expected because the correction constant is
+    calibrated globally, off `selection_synchronization`'s own slot, not per-page. Post-fix content =
+    12+34 = **46** vs MAUI's ~42 (derived the same way) — also a ~4px residual. Both residuals are a small
+    fraction of the CURRENT >20px gap this page already tolerates at 0.9831 — predict this page's dark SSIM
+    IMPROVES and stays green, not regresses; would be a real problem (and a real prediction failure) if it
+    instead moved yellow.
+  - `cv_visual_states` (green, light SSIM 0.9859 — flagged by the immediately-preceding entry as relevant to
+    "whoever picks up defect (2)," not one of this task's originally-named guards): pre-fix cpp slot origin
+    ~8 (checkbox at 15 = 8+~7). Post-fix checkbox = 8+14 = **22**, exactly matching MAUI's measured 22.
+    Post-fix content = 8+34 = **42**, within 0-2px of MAUI's ~40-42. The cleanest prediction of the three —
+    should move measurably closer to 0 diff, not just stay green.
+  - `preselected_item` (GUARD, singular, `SelectionMode="Single"` — no checkbox drawn at all,
+    `allows_multiple_selection` false) and `preselected_items` (GUARD, plural, GRID — the `!platform->grid`
+    gate excludes it): both structurally untouched by either changed constant; predict BYTE-IDENTICAL
+    captures, not just "still green."
+
+Regression pages named above (`selection_synchronization`, `multiple_bound_selection`, `cv_visual_states`,
+`preselected_item`, `preselected_items`) individually verified present in both `port/cpp/examples/gallery/
+pages/` and `comparison.json` with a `windows` platform entry before being cited. Full accounting of every
+`SelectionMode="Multiple"` page in `port/maui-reference/pages/*.xaml` (4 total: the 3 above plus
+`preselected_items`) confirms no other page is affected either way.
+
+**What in the immediately-preceding entries turned out to be wrong:** the brief's premise that `header_
+footer_grid_horizontal`'s defect is likely shared/cross-platform code (it's independently implemented per
+backend — confirmed by reading all four `collection_view_handler` sources, not inferred); and the "two
+compounding, content-dependent defects" reading of the selection-checkbox gap (it's one constant defect,
+the apparent content-dependence was digit-glyph-shape measurement noise from a single-scanline scan). Both
+corrections came from applying this doc's own recurring lesson — re-measure with a DIFFERENT method before
+trusting a clean-looking number — one level deeper than the passes before them did.
