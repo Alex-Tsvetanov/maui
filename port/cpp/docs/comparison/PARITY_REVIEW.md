@@ -1367,3 +1367,58 @@ rather than skipping quietly, which is what makes a 1-page health check a suffic
 
 **Worth automating:** the runner clears remote STAGING before a run but not guest PROCESSES. Killing
 orphans at run start would make this class of failure impossible rather than merely diagnosable.
+
+---
+
+## varied_size_selector dark 3.05%: edge ANTIALIASING, not geometry — no fix shipped (2026-07-31)
+
+Dark 3.05% / SSIM 0.975, light 0.00%. Investigated and deliberately left unfixed. Recording the negative
+result in full because the geometry hypotheses are now closed and re-deriving them would cost a cycle.
+
+**The alpha reading was right; the mechanism was not what it implied.** MAUI's two dominant diff colours
+are Wheat (245,222,179) composited over the dark background (39,39,39) at TWO consistent alphas:
+    (194,177,145) -> a = 0.752 / 0.754 / 0.757 across R/G/B
+    ( 92, 86, 75) -> a = 0.257 / 0.257 / 0.257
+The port renders fully opaque (1.0) and not-at-all (0.0). That looked like a missing Opacity or an item
+container visual state. It is neither.
+
+**What was ruled out, by measurement or primary source:**
+- Per-cell / per-column state: all 6 cell boundaries (rows 32-33, 130-133, 230-233, 330-333, 430-433,
+  530-533) dumped at x = 20/100/300/500/700/900/1000 are BYTE-IDENTICAL at every column. Uniform and
+  position-independent — not a per-item state.
+- A geometry/pitch bug: sub-pixel edge centroids fitted by 50%-coverage crossing give top edges at
+  32.488/132.488/.../532.488 and bottom edges at 130.512/.../530.512 — pitch exactly 100.0, ZERO drift
+  over 5 independent boundaries, fill span 98.024 = 100 - 2x1.0, matching the documented deflate. The
+  port's integer positions match this to sub-pixel precision. `collection_view_handler` arrange is correct.
+- A stroke-matches-background hack: `StrokeExtensions.UpdateStroke` returns early on null and never
+  touches Path.Stroke; `new Path()` sets nothing. MAUI's Path.Stroke is null, same as the port's.
+- Item-container chrome: `StructuredItemsViewHandler.Windows.cs`'s GetVerticalItemContainerStyle sets
+  Margin(0, ItemSpacing, 0, ItemSpacing) and LinearItemsLayout.ItemSpacing defaults to 0. Verified on the
+  guest that `ListViewItemBackground` resolves to SubtleFillColorTransparentBrush (transparent at rest).
+
+**The actual mechanism:** every fill edge in MAUI's render — including the ISOLATED top edge of cell 1,
+which has no neighbour above to confound it — carries an inherent ~2-pixel-row antialiasing footprint
+(a 0.257/0.755 coverage split). The shared inter-cell boundary is exactly the superposition of two such
+independent edge footprints, which reproduces all four observed rows with no extra paint required. The
+port draws the same edge with NO antialiasing — a hard binary cutoff. 12 edges x ~1000 px is consistent
+with the ~11000-px-per-alpha-group counts.
+
+**Theme-independence:** re-solving on the light pair via G/B (R is useless there, 245 vs 244) shows the
+identical 0.75/0.25 coverage structure. This is NOT a dark-theme bug; Wheat at 75% over (244,244,244)
+blends to ~Wheat, so the same defect is simply unmeasurable in light. Do not go looking for a theme branch.
+
+**Why nothing was shipped:** the deflate integral matches exactly on both sides, so `border_handler` is
+correct — and its last speculative change was reverted (`f1a5a17658`) for leaking into clip paths. A change
+premised on "geometry matches, only AA differs" would be either a no-op or a regression risk to the
+already-green `border` / `border_layout` / `borderless` pages, unverifiable without a Windows compiler.
+
+**Narrowed, NOT confirmed:** the leading remaining explanation is that real MAUI hosts each cell in a
+native ListViewItem/ContentPresenter whose compositing/rasterization introduces the AA, while this port
+realizes cells by direct placement on a bare Canvas (a scope cut the handler's own header documents).
+Closing it needs either live Windows inspection of `winui::Shapes::Path` fill AA under Canvas vs
+ListViewItem hosting, or a decision to implement real native item containers — a large architectural
+change, not a targeted fix.
+
+**Coverage:** `varied_size_selector.xaml` is the ONLY board page combining a CollectionView with a Border
+cell, so there is no second data point. (`borderless.xaml` sets StrokeThickness="0", making
+shape_self_inset a no-op, which is why it is green while testing something structurally different.)
