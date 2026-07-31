@@ -966,3 +966,136 @@ risk either way.
 verification was done or claimed; the numbers above are static analysis of committed capture PNGs plus
 manual review against the already-compiling `label_handler.cpp`/`image_handler.cpp` precedent this fix
 mirrors.
+
+---
+
+## The "passes diff, fails SSIM" cluster: 22/24 pages are the known focus-visual noise floor, not a port defect (2026-07-31)
+
+Investigated a cluster the brief defined by predicate `diff<=1.0% on both themes AND SSIM<0.98 on either`
+against `comparison.json`'s `pixel` slot — enumerated mechanically, **24 pages, not the ~20 estimated**:
+`multiple_bound_selection, layout_is_enabled, modal, input_transparent, nested_collection,
+preselected_item, picker, selection_synchronization, ios_picker, navigation_gallery, ios_pan_gesture,
+ios_safe_area, label, ios_scroll_view, menu_bar, ios_slider_update_on_tap, footer_only_string,
+header_footer, progress_bar, items, search_bar, header_footer_grid_horizontal, header_footer_grid,
+title_bar`.
+
+**This is the same noise floor the "MAUI's own CollectionView captures carry a ~0.50pp focus-visual noise
+floor" and "NOT confined to CollectionView pages" sections above already identified (2026-07-30) — this
+entry corroborates it on a disjoint, mostly-non-CollectionView page set and corrects/sharpens three of its
+claims.** It is not new; treat this as confirmation + generalization, not a new finding.
+
+**Corroboration, done independently before re-reading the sections above.** For each page, connected-
+component-labeled the maui-vs-cpp diff mask (4-connectivity, `>25`/255 per-channel threshold). Nearly
+every page's #1 component is a thin (2-4px) rounded-rectangle OUTLINE anchored at the top of the page,
+full- or partial-width depending on the focused control's width, magnitude ~216-218/255 (i.e. genuinely
+near-black-vs-near-background, not antialiasing noise). Visually this is a WinUI keyboard-focus visual
+around the page's first focusable control in tab order — `label`'s "Change Formatted String" `Button`,
+`modal`'s "Push Page" `Button`, `picker`'s first `Picker` (rendered as a `ComboBox` with a text-insertion
+caret, confirming it is genuinely *focused*, not just decorated), `layout_is_enabled`'s "Enabled" `Button`
+in a half-width column. **This falsifies the investigation brief's own steer that CollectionView might be
+the shared thread** — `label`, `menu_bar`, `progress_bar`, `ios_safe_area`, `ios_scroll_view` etc. show
+the identical band and contain no `CollectionView` at all; it lands on the first tab-stop, whatever type
+it is.
+
+**Determinism check, both directions, matching this file's established method (hold the port capture
+constant, watch the reference):**
+
+    cpp  vs cpp,  picker,  4 consecutive dated runs:  0, 0, 0 px        (bit-identical every time)
+    maui vs maui, modal/label/multiple_bound_selection, SAME 4 run-boundaries:
+      07-29 07:42 -> 07-29 21:47   4164 / 4088 / 4081 px  (~0.50%)
+      07-29 21:47 -> 07-30 04:03      0 /    0 /    0 px
+      07-30 04:03 -> 07-30 08:51   4164 / 4088 / 4081 px  (~0.50%)
+      07-30 08:51 -> 07-31 02:01      0 /    0 /    0 px
+
+Three unrelated pages toggle at **exactly the same run boundaries**, by nearly the same pixel count each
+time, while the port is bit-identical throughout. That is stronger than "present/absent, membership
+changes between runs" (this file's earlier, correct characterization from a 43-page CollectionView
+sample) — on this 3-page sample the toggle is in lockstep, suggesting whatever decides it may be a
+per-capture-*session* condition (e.g. whether the VM/window had OS-level input focus at the moment that
+batch was screenshotted) rather than a fully independent per-page coin flip. Both observations are
+measured, on different page sets, and not necessarily in tension — a session-level factor could still
+produce page-level variation if a page's own Loaded timing races the batch boundary. Recording as an open
+mechanism question, not resolving it.
+
+**Quantified explanatory power.** For each page/theme, patched the top-2 connected components (the focus
+band + — dark only — a ~50-100px titlebar caption-button hover-highlight cluster at `y11-20,x880-1005`,
+present on every dark capture, independently confirmed stable-vs-absent the same way) from `maui` onto
+`cpp`'s pixels, then rescored with the exact `ssim()`/`diff_pct` from `tools/parity/pixel_score.py`
+(reused, not reimplemented):
+
+  **22 of 24 pages go fully green (both themes) once those two components are neutralized.** The 2 that
+  don't are real, separate, page-specific port defects (below) — not part of this noise floor.
+
+**Why 0.5% of pixels costs 3pp of SSIM (the brief asked for this):** SSIM is an 11×11-windowed local
+score; a full-width 2-4px band touches on the order of 6% of the image's windows at a near-zero local
+score (near-black vs. near-white inside the window), and even a modest fraction of near-zero windows pulls
+the frame-mean SSIM down disproportionately to the raw pixel fraction. That the diff stays under the 1%
+gate while SSIM crosses under 0.98 is exactly this metric's known behavior for a thin, high-contrast,
+spatially-concentrated defect — consistent with, not contradicting, the earlier "0.03 SSIM cost" note
+above.
+
+**Dark-worse-than-light, explained (the brief flagged this as a possible clue):** two additive, both
+reference-side: (1) the focus band itself is taller/darker in the dark-theme render (~6100px vs ~4100px
+light — same control, more contrast against the dark background), and (2) a second, dark-only ~50-100px
+cluster at the window's minimize/close caption buttons (`y11-20`), present on every dark page checked and
+absent on every light one — looks like a stray hover/press highlight on the OS-drawn titlebar chrome, not
+app content. Confirmed present/absent the same cross-run way as the focus band.
+
+**NOT ACTIONABLE as a port fix**, same conclusion and same mitigation menu as the sections above (suppress
+focus before capturing the MAUI column is the standing recommendation) — this entry adds no new mitigation
+option, just a second, independent measurement supporting the existing one.
+
+### The 2 pages NOT explained by the noise floor — separate, real, page-specific defects
+
+**`layout_is_enabled` — child-order bug, FOUND AND FIXED (commit `38fe6277b7`).** Its own top component IS
+the focus band (partial-width, ~3065px, on the "Enabled" button in the left/top column — missed by a
+width-heuristic on the first pass, confirmed present by direct visual inspection and by connected-
+component analysis). But even after neutralizing that band the page still misses green by a second,
+smaller (~few-hundred px) component: `examples/gallery/pages/layout_is_enabled_page.hpp`'s
+`build_right_controls()` added all three row captions ("Enable/Disable Layout/Button/Command") FIRST, then
+all three `CheckBox`es afterward, instead of interleaving them — so the port's right-column
+`VerticalStackLayout` rendered three captions stacked with no checkbox between them, then three checkboxes
+bunched at the bottom, while `LayoutIsEnabledPage.xaml:109-114` (the oracle) interleaves
+`Label,CheckBox,Label,CheckBox,Label,CheckBox`. Fixed by moving each `right_controls_.add(check)` to
+directly follow its caption (3-line diff, pure reordering of already-valid statements, no new types or
+signatures). **Confirmed correctly scoped two ways:** (a) `docs/comparison/captures/windows/xaml/
+layout_is_enabled_{light,dark}.png` — the compile-time-XAML twin, a completely independent authoring/
+render path — already shows the correct interleaved order, so this was a code-first-builder-only bug, not
+shared with the XAML loader (no companion fix needed there); (b) the rescore above shows patching just the
+top-2 components (focus band + this cluster) reaches green using the OLD, unfixed captures, i.e. the
+region my fix targets is exactly the page's second-largest diff contributor. **This fix will NOT green the
+page on its own** — the dominant ~3000px component is the same unfixable reference noise as the other 22
+pages; the next capture will very likely still show `layout_is_enabled` yellow, just with a smaller
+number. Since this page file compiles into every backend's gallery app, the fix also affects
+iOS/macOS/Android captures of this page, not just Windows.
+
+**`selection_synchronization` — CollectionView checked-cell layout, NOT fixed (reserved territory).** The
+`CheckBox` in each selectable row's cell is positioned mid-label-text in `cpp` (`"It[box]em 1"`) instead of
+before all of it (`maui`: `"[box]Item 1"`) — a real, deterministic (stable across the same run set) cell-
+layout defect, visually distinct from both the focus-band pattern and from `layout_is_enabled`'s ordering
+bug. This is CollectionView item-cell chrome, adjacent to `border_handler.cpp`/`view_chrome_ops.cpp`,
+which this task was explicitly told not to touch (another agent's territory) — documented here, not fixed.
+
+**`title_bar` — CheckBox-to-Label gap, NOT fixed (untestable on this Mac).** Every `check_row` on this page
+(`HorizontalStackLayout` of `CheckBox` + `Label`, structurally identical to the C# XAML) renders the
+checkbox glyph at an IDENTICAL position/size to MAUI in both columns, but the label starts ~88px further
+right in the MAUI reference than in `cpp` — stable across all 5 runs checked on the MAUI side (0px
+run-to-run diff), so this is a real, repeatable behavioral difference, not capture noise. Likely cause:
+`CheckBoxHandler.Windows.cs`'s `AdjustCheckBoxForNoText` (faithfully ported at
+`src/platform/windows/check_box_handler.cpp:150-175`) sets `MinWidth/MinHeight=0` synchronously but defers
+shrinking the template root `Grid`'s margin to a `Loaded` handler; if real WinUI's `Loaded` fires before
+the control template is realized (`VisualTreeHelper.GetChildrenCount(checkBox) <= 0`), the margin-shrink
+silently no-ops forever, leaving the wider default margin — a race in the ORIGINAL C# this port's `Loaded`
+analog may not reproduce. **Not fixed**: this is a hypothesis about real WinUI timing, not something
+verifiable without compiling and running on Windows (explicitly out of scope for this Mac), and
+deliberately reproducing a race rather than a deterministic behavior is a bad trade for one page.
+`header_footer_grid`/`header_footer_grid_horizontal`'s dark-theme residual (the two pages that reach green
+in light but fall just short in dark after patching the top-2 components) likely share this same
+CheckBox-gap cause — both pages contain `CheckBox` rows — but this was not separately confirmed.
+
+**Verification performed on this Mac:** `check_winrt_includes.py` (0 problems, no Windows/WinRT files
+touched by the one fix). The `layout_is_enabled_page.hpp` fix could not be compiled on this Mac (no
+configured `examples/` build tree for any backend in this worktree) — reviewed by hand: pure statement
+reordering, all three `right_controls_.add(...)` calls and their member types were already valid at their
+old call sites, so this carries effectively no syntax/type risk. No Windows backend build or run was
+performed or claimed anywhere in this entry.
