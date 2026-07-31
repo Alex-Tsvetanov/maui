@@ -145,6 +145,23 @@ namespace maui::core
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend ONLY: the measured size is a hard lower bound. A WinUI FrameworkElement measures
+        // to max(MinWidth, Width), so the Fluent CheckBox style's own minimum outranks an explicit
+        // WidthRequest — MEASURED on the ground truth (captures/windows/maui/border_playground_light.png:
+        // that page's `WidthRequest="48"` checkbox occupies 120 DIP, the same 120 every unrequested
+        // checkbox on the board takes). Without this opt-in view<>::measure applies the cross-platform
+        // ResolveConstraints clamp and reports the 48, collapsing the row's gap to its label. This is the
+        // "revisit with the capture as evidence" case windows/button_handler.cpp's own
+        // content_is_minimum_size() note anticipates, and CheckBox's 120 IS that evidence. Button stays
+        // false — no board page shows MAUI refusing to shrink a Windows Button, so whether its own style
+        // carries a floor is untested either way; only CheckBox has a measurement and only CheckBox opts
+        // in. Declared behind MAUI_PLATFORM_WINDOWS (PUBLIC on maui_core
+        // for that backend only) so every TU of a given build sees one backend's overrides and the class
+        // layout stays ODR-consistent — the same guard progress_bar_handler.hpp documents. No data fields.
+        [[nodiscard]] bool content_is_minimum_size() const override;
+#endif
+
         // Property map functions (platform recipe).
         static void map_is_checked(check_box_handler& handler, i_check_box& view);
         static void map_foreground(check_box_handler& handler, i_check_box& view);

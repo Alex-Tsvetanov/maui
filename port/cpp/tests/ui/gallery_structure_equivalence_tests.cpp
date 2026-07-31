@@ -267,7 +267,11 @@ namespace
             "radio_button_content",
             "custom_layout",
             "chat_example",
-            "layout_is_enabled",
+            // layout_is_enabled REMOVED 2026-07-31: its divergence CLOSED. The builder used to add all
+            // three row captions before all three checkboxes; 38fe6277b7 interleaved them to match
+            // LayoutIsEnabledPage.xaml:109-114, so builder and twin now describe identically and the test
+            // is strict again. (This suite asserts divergence BIDIRECTIONALLY — a key left on this list
+            // after its page is fixed FAILS with "divergence closed", which is what surfaced it.)
             "indicator",
             "path_gallery",
             "border_clip_playground",

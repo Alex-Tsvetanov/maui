@@ -16,7 +16,9 @@
 //     just-loaded CheckBox's template root Grid margin from its default to
 //     `(CheckBoxHeight - CheckBoxSize) / 2` on every side, matching C# exactly. Skipping this would leave
 //     a text-less checkbox's measured/arranged box noticeably larger than MAUI's actual render (the SIZE
-//     concern this control was flagged for), so it is ported rather than deferred.
+//     concern this control was flagged for), so it is ported rather than deferred. Its sibling
+//     `MinWidth = 0` / `MinHeight = 0` lines are DELIBERATELY NOT ported — see adjust_check_box_for_no_text
+//     below for the measurement and the C# citation that make them dead code on Windows.
 //  2. IsTextScaleFactorEnabled. ControlExtensions.UpdateFont assigns this on every `Control`, but per
 //     button_handler.cpp's map_font note, this WinRT projection only exposes the property on
 //     `TextBlock` — CheckBox has no font/text mapper entry at all in CheckBoxHandler.cs's shared Mapper
@@ -149,8 +151,29 @@ namespace
     // idiom (picker_handler.cpp's map_is_open / time_picker_handler.cpp's map_is_open).
     void adjust_check_box_for_no_text(const check_box_control& checkbox)
     {
-        checkbox.MinWidth(0);
-        checkbox.MinHeight(0);
+        // C#'s `checkBox.MinWidth = 0; checkBox.MinHeight = 0;` are OMITTED ON PURPOSE — on Windows they
+        // are DEAD before they can ever measure. ViewHandler.MapMinimumWidth/MapMinimumHeight
+        // (src/Core/src/Handlers/View/ViewHandler.cs:254-307) guard their connect-time skip with
+        // `#elif !WINDOWS // TODO: Investigate why we can't skip this on Windows`, so on Windows ALONE the
+        // mapper always runs at connect, and an unset MinimumWidthRequest takes UpdateMinimumWidth's else
+        // branch — `platformView.ClearValue(FrameworkElement.MinWidthProperty)`
+        // (src/Core/src/Platform/Windows/ViewExtensions.cs:195-224) — which wipes the local zero these two
+        // lines just wrote and hands the CheckBox back to its Fluent style's own minimum (the same style
+        // minimum collection_view_handler.cpp's hand-drawn-glyph note cites as unbeatable by a plain
+        // Width()). MEASURED against the ground truth: every MAUI checkbox on the Windows board occupies
+        // exactly 120 DIP of its row — captures/windows/maui/title_bar_light.png's six CheckBox+Label rows
+        // put the glyph at x=14..33 and the label at x=128 off a control left edge of 8, and
+        // border_playground_light.png's row does the same at 120 DESPITE its WidthRequest="48" (WinUI
+        // clamps Width up to MinWidth). Writing the zero here made this port measure 32 (or the bare 48),
+        // collapsing the gap to every following sibling on border_playground / title_bar / controls_stack.
+        // Never set MinWidth/MinHeight at all: not setting them IS the post-ClearValue state, and the 120
+        // stays the theme's number rather than a constant this file would have to guess.
+        //
+        // ponytail: this leaves an EXPLICIT MinimumWidthRequest/MinimumHeightRequest unhonoured — a
+        // pre-existing board-wide gap, not a checkbox one (this port wires no "minimum_width" property_mapper
+        // key for ANY control; see switch_handler.cpp's note, which folds its Switch-specific
+        // SwitchExtensions.UpdateMinWidth into measure instead). Fold it in the same way here if a page
+        // ever sets one on a CheckBox.
         checkbox.Padding(winui::Thickness{0, 0, 0, 0});
 
         auto token = std::make_shared<winrt::event_token>();
@@ -351,6 +374,15 @@ namespace maui::core
                                              maui::platform::windows::measure_constraint(adjusted_height_constraint)});
         const auto desired = checkbox.DesiredSize();
         return {desired.Width, desired.Height};
+    }
+
+    bool check_box_handler::content_is_minimum_size() const
+    {
+        // TRUE, unlike windows/button_handler.cpp — see check_box_handler.hpp for the measurement. The
+        // DesiredSize get_desired_size just returned is ALREADY WinUI's max(MinWidth, Width) clamp, so
+        // flooring the cross-platform resolve at it is what reproduces the native measure rather than
+        // asserting a floor of this port's own invention.
+        return true;
     }
 
     void check_box_handler::platform_arrange(const maui::graphics::rect& frame)
