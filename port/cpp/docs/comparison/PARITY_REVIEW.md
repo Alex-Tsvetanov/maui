@@ -2169,3 +2169,39 @@ is in the Image measure/constraint path** (`image_handler.cpp`'s note 2 area —
 that `image_handler.cpp`'s header still asserts the overflow happens "in BOTH the MAUI capture and, now,
 this port's" — that was written when the stand-in was a SQUARE transparent bitmap; with a real 81x100
 glyph the aspect differs and the claim no longer holds. Fix that comment when fixing the measure.
+
+### RESOLVED 2026-08-01 — it was the RASTERIZER after all (canvas box), not the measure path
+
+The section above is correct that the Image overflows its row and that only the top ~92 output rows are
+ever visible. Its **conclusion is wrong** on one point: *"That empty top margin is CORRECT and
+oracle-faithful … MAUI produces the same bitmap."* MAUI does not.
+
+`src/`'s `FontImageSourceService.Windows.cs` is a POST-10.0.71 revision. The board renders against
+shipped **10.0.71** (`port/maui-reference/app/MauiReference.csproj:18`), and the two differ in exactly
+three lines — `:80`, `:83-84`, `:90-91`:
+
+| | `src/` snapshot | shipped 10.0.71 |
+|---|---|---|
+| layout box | `CanvasTextLayout(.., fontSize, fontSize)` | `CanvasTextLayout(.., 0, 0)` |
+| canvas size | `LayoutBounds.{Width,Height} + 2` | `DrawBounds.{Width,Height} + 2` |
+| draw offset | `-LayoutBounds.{X,Y} + 1` | `-DrawBounds.{X,Y} + 1` |
+
+`LayoutBounds` is the LINE BOX; `DrawBounds` is the INK box. Measured on the guest, before → after:
+
+```
+size=20  bounds=17.50x21.80  px=20x24  ink=241     ->  bounds=17.50x17.50  px=20x20  ink=241
+size=90  bounds=78.75x98.09  px=81x100 ink=3898    ->  bounds=78.75x78.75  px=81x81  ink=3898
+```
+
+Same ink, tighter canvas. The widths were never the problem (`DrawBounds.Width == LayoutBounds.Width`:
+this glyph fills its advance); the line box's ~20% vertical leading was, because the page's ~50x
+`Stretch=Uniform` blow-up turns a 3-row top margin on a 24-row canvas into ~148 output rows — more than
+the entire 92-row visible band. Dumping the new bitmap shows alpha ink at rows **0**-17, cols 1-18: the
+antialiased raster spills across the nominal 1px pad at the top, which is why MAUI (and now the port)
+has saturated ink in the band's very first pixel row.
+
+Per **parity ruling 11** (render wins) the port follows the shipped revision, documented in
+`image_source_services.cpp`'s `render_font_glyph`. `update_platform_max_constraints` and the rest of the
+measure path were NOT touched — they were never at fault. Result: `image` windows
+**5.44% / SSIM 0.967 (yellow) -> 0.00% / SSIM 0.9993 (green)**, light and dark, `cpp` and `xaml`; band
+rows 700-791 now read green=50301 / row700=626 / row790=435 in all three columns, identical.

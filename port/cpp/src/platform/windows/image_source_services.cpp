@@ -117,14 +117,21 @@
 // catch in font_image_source_service::load produced the pre-Win2D transparent-square fallback -- check that
 // Microsoft.Graphics.Canvas.dll actually landed beside gallery.exe before suspecting the render math.
 //
-// UNRESOLVED, JUDGE THE TWO HALF-BANDS SEPARATELY: score rows 700-745 apart from rows 746-791. MAUI measures
-// saturated-white ink as high as row 700 itself (255,255,255 at (700,500)), but a `LayoutBounds+2` canvas
-// has a transparent 1px pad at its top edge, which at the page's ~45x Stretch=Uniform upscale should render
-// GREEN for roughly the first 44 output rows -- the 1px-pad model and MAUI's measured pixels disagree here,
-// and nobody has resolved which is wrong. A white-vs-green stripe confined to rows 700-745 after this patch
-// is therefore NOT evidence the fix failed; do not go hunting the render math for it. Diagnose by logging
-// bounds.X/Y/Width/Height and SizeInPixels() ONCE and comparing to the measured stripe height, not by
-// eyeballing the glyph.
+// RESOLVED 2026-08-01 -- the above note's "MAUI has saturated-white ink as high as row 700 itself, but our
+// canvas has a transparent pad there" contradiction was real, and the culprit was the CANVAS BOX, not the
+// 1px pad: `src/` sizes the canvas from LayoutBounds (the LINE BOX -- 81x100 for Ionicons U+F30C at size 90,
+// with the ink at rows 15-93), while the SHIPPED 10.0.71 the board renders against uses DrawBounds (the INK
+// box). At this page's ~50x upscale a 15% line-box top margin is ~180 output rows, i.e. more than the entire
+// 92-row visible band -- which is exactly the all-green band that was scored. See render_font_glyph's
+// DOCUMENTED DEVIATION block for the three-line diff and the ruling-11 citation.
+//
+// And the 1px pad is a non-issue, measured rather than modelled: dumping the size-20 bitmap
+// (MAUI_FONT_GLYPH_DUMP, below) gives a 20x20 canvas whose ALPHA ink runs rows 0-17, cols 1-18 -- the
+// antialiased raster spills across the nominal 1px pad at the TOP (DrawBounds is the outline box, the
+// coverage of the topmost partly-covered row lands above it), so there is no transparent first row to
+// blow up into a ~49-row background stripe. That is why MAUI has saturated ink in the band's very first
+// pixel row, and why this port now does too. Verified 2026-08-01: band rows 700-791 read
+// green=50301 / row700=626 / row790=435 in ALL THREE columns (maui, cpp, xaml), identical.
 
 #include "maui/core/file_image_source_service.hpp"
 #include "maui/core/font_image_source_service.hpp"
@@ -423,15 +430,28 @@ namespace
         // there, so SOME device path works, but Win2D on that driver has not been exercised. If activation
         // throws here, that is where to look first -- not at the font/layout code below.
         const canvas::CanvasDevice device = canvas::CanvasDevice::GetSharedDevice();
-        // Oracle :80 -- the layout box is fontSize x fontSize. That box plus the Center/Center alignment
-        // above is what makes LayoutBounds.{X,Y} non-zero, and hence the draw offset below necessary.
+        // DOCUMENTED DEVIATION from the read-only `src/` snapshot, per parity ruling 11 (render wins) --
+        // this follows the SHIPPED MauiVersion the board renders against, not `src/`. The two revisions
+        // of FontImageSourceService.Windows.cs differ in exactly three places:
+        //   src/ (post-10.0.71 snapshot)          shipped 10.0.71 (MauiReference.csproj:18)
+        //   :80  CanvasTextLayout(.., size, size)  :80  CanvasTextLayout(.., 0, 0)
+        //   :83-84 LayoutBounds.{Width,Height}+2   :83-84 DrawBounds.{Width,Height}+2
+        //   :90-91 -LayoutBounds.{X,Y} + 1         :90-91 -DrawBounds.{X,Y} + 1
+        // LayoutBounds is the LINE BOX (advance width x line height); DrawBounds is the INK box. For
+        // Ionicons U+F30C that is the whole `image` page: measured on the guest, a LayoutBounds canvas is
+        // 81x100 with the ink at rows 15-93, i.e. a 15% transparent top margin, and the page's ~50x
+        // Stretch=Uniform blow-up turns that margin into MORE than the whole visible row -- pure
+        // background where MAUI draws glyph. MAUI's own capture has saturated ink in the row's FIRST pixel
+        // row, which only a DrawBounds (ink-tight) canvas produces. The 0x0 layout box is carried across
+        // too: with Center/Center alignment it just recentres the layout origin, which the draw offset
+        // below cancels, but it is what the shipped revision passes.
         const canvas::Text::CanvasTextLayout layout{device, maui::platform::windows::to_hstring(source.glyph()), format,
-                                                    font_size, font_size};
-        const winrt::Windows::Foundation::Rect bounds = layout.LayoutBounds();
+                                                    0.0F, 0.0F};
+        const winrt::Windows::Foundation::Rect bounds = layout.DrawBounds();
 
         // Oracle :82-84 -- "add a 1px padding all around". This canvas size is the whole ballgame on the
         // `image` page: the Image is Stretch=Uniform into a ~984 DIP wide row, so the bitmap is upscaled
-        // ~45x and the band's pixels are decided by bounds.Width, not by the ink.
+        // ~50x and the band's pixels are decided by bounds.Height, not by the ink's own resolution.
         canvas::CanvasRenderTarget target{device, bounds.Width + 2.0F, bounds.Height + 2.0F, base_logical_dpi};
         {
             const canvas::CanvasDrawingSession session = target.CreateDrawingSession();
@@ -504,6 +524,19 @@ namespace
                     {
                         max_a = a;
                         peak = i - 3;
+                    }
+                }
+                // Env-gated raw dump. The fastest way to answer "is the right glyph in the right place"
+                // is to LOOK at the bitmap, not to keep inferring it from counters.
+                if (const char* const dump_dir = std::getenv("MAUI_FONT_GLYPH_DUMP"))
+                {
+                    const std::string out = std::string{dump_dir} + "\\glyph_" + std::to_string(pixel_size.Width) +
+                                            "x" + std::to_string(pixel_size.Height) + ".bgra";
+                    std::FILE* raw = nullptr;
+                    if (fopen_s(&raw, out.c_str(), "wb") == 0 && raw != nullptr)
+                    {
+                        std::fwrite(destination, 1, copied, raw);
+                        std::fclose(raw);
                     }
                 }
                 const std::size_t row_bytes = static_cast<std::size_t>(pixel_size.Width) * 4;

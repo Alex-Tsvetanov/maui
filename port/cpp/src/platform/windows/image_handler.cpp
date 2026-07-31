@@ -47,22 +47,20 @@
 //     configure_loader (below) now also installs image_source_services.cpp's fetch_uri_async as the
 //     loader's uri_fetch seam, so a REMOTE http(s) UriImageSource (e.g. the gallery `image` page's
 //     `https://aka.ms/campus.jpg` row) is actually downloaded — a real Windows.Web.Http.HttpClient GET —
-//     instead of reading empty from the default synchronous read_uri_bytes (local-file-only). FONT stays
-//     glyph-mirror-only: FontImageSourceService.Windows.cs rasterizes the glyph via Win2D
-//     (Microsoft.Graphics.Canvas), a native dependency this port does not link on any backend — see
-//     image_source_services.cpp's header for the full citation. But a font source's SIZE is no longer
-//     mirrored away: image_source_services.cpp now boxes a correctly-(square-approximate-)sized, fully
-//     transparent WriteableBitmap in its place, so apply_loaded_result below (kind == "font" branch) still
-//     has a real native handle to push onto Source — WinUI's own Stretch measure does the rest, matching
-//     MAUI's real (Win2D-driven) render's SIZE without reproducing its DRAW. Measured: a font-sourced Image
-//     with no native Source at all measured to 0x0, collapsing the row (background included) instead of
-//     reproducing MAUI's real Stretch=Uniform blowup (the VerticalStackLayout's unconstrained cross-axis
-//     makes WinUI derive its scale from width alone, so the row runs off the bottom of the window in BOTH
-//     the MAUI capture and, now, this port's) — that collapse was 100% of the `image` page's diff region
-//     before this fix. It does NOT close 100% of the 8.45%/11.06% afterward, though: roughly half the dark
-//     diff and roughly a third of the light diff remain, all of it the drawn glyph ink this backend still
-//     cannot rasterize (see image_source_services.cpp's header for the precise measurement and why light's
-//     residual is proportionally larger).
+//     instead of reading empty from the default synchronous read_uri_bytes (local-file-only). FONT IS NOW
+//     REAL TOO: image_source_services.cpp activates Win2D (Microsoft.Graphics.Canvas) at runtime — nothing
+//     is LINKED, Win2D ships no import library; see CMakeLists.txt's Win2D block — and rasterizes the glyph
+//     through the same CanvasTextLayout/CanvasRenderTarget sequence FontImageSourceService.Windows.cs uses,
+//     boxing the result as a WriteableBitmap (a CanvasImageSource cannot be used: get_image_size below
+//     needs a BitmapSource — see that file's render_font_glyph for the box-choice citation, and its
+//     DOCUMENTED DEVIATION block for why the canvas comes from DrawBounds, per parity ruling 11). The
+//     earlier transparent-square stand-in is gone. Measured along the way: a font-sourced Image with no
+//     native Source at all measured to 0x0, collapsing the row (background included) instead of reproducing
+//     MAUI's real Stretch=Uniform blowup — the VerticalStackLayout's unconstrained cross-axis makes WinUI
+//     derive its scale from width alone, so the row is upscaled ~50x and runs off the bottom of the window
+//     in BOTH the MAUI capture and this port's, and only its top ~92 rows are ever visible on the `image`
+//     page. That means the band's pixels are decided ENTIRELY by the first few source rows of the bitmap,
+//     which is why the canvas box (ink vs line box) — not the ink quality — was the whole residual.
 //  4. IsOpaque stays a mirror (no WinUI analog — Image is a FrameworkElement with nothing resembling
 //     C#'s opaque hint, matching the android partial's identical gap).
 //
@@ -631,8 +629,7 @@ namespace maui::core
                 if (fopen_s(&file, log_path, "a") == 0 && file != nullptr)
                 {
                     const auto applied = image.Source().try_as<bitmap_source>();
-                    std::fprintf(file,
-                                 "apply_source: kind='%s' applied=%d px=%dx%d opacity=%.2f vis=%d stretch=%d\n",
+                    std::fprintf(file, "apply_source: kind='%s' applied=%d px=%dx%d opacity=%.2f vis=%d stretch=%d\n",
                                  result.kind().c_str(), applied ? 1 : 0, applied ? applied.PixelWidth() : -1,
                                  applied ? applied.PixelHeight() : -1, static_cast<double>(image.Opacity()),
                                  image.Visibility() == winui::Visibility::Visible ? 1 : 0,

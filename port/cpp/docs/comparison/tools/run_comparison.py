@@ -497,6 +497,12 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                               # console attached, so Console.Out is discarded outright. Per-column and
                               # per-theme so two columns never interleave into one file.
                               f"MAUI_WINUI_LOG={posixpath.dirname(ccfg['_remote'])}\\diag_{col}_{theme}.log"]
+                # Raw-glyph BGRA dump (image_source_services.cpp's render_font_glyph). Forwarded ONLY when
+                # the HOST sets it, so an ordinary board run does not write a .bgra per font source per
+                # page. Kept because looking at the bitmap is what finally settled the `image` page after
+                # five wrong hypotheses; the guest path must be writable by the app process.
+                if os.environ.get("MAUI_FONT_GLYPH_DUMP"):
+                    launch_env.append(f"MAUI_FONT_GLYPH_DUMP={os.environ['MAUI_FONT_GLYPH_DUMP']}")
                 if ccfg.get("driver") == "cpp_devflow" and ccfg.get("devflow_port"):
                     launch_env.append(f"MAUI_DEVFLOW_PORT={ccfg['devflow_port']}")  # starts the in-app agent
                 launch_args = ["launch", "--bundle", ccfg["_remote"], "--proc", ccfg["process"]]
