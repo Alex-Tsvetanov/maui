@@ -761,3 +761,38 @@ body at the bare 232 against MAUI's 244.
 impossible" overlay -> assumed one brush for both themes; Mica BaseAlt -> measured without the layer).
 The lesson is specific and worth keeping: a composited effect cannot be evaluated one component at a
 time. Judge the COMPOSED result, or the measurement will be true and the conclusion false.
+
+---
+
+## `clipping` 0.00 -> 4.89: a DOUBLE-COMPOSITE of translucent content (2026-07-31) — MISATTRIBUTED EARLIER
+
+Correction to the entry above titled "Rounded-rectangle CLIP coverage ... unexplained `clipping`
+regression". That entry blames the rounded-rect clip branch for the 200x200 square. **That attribution was
+wrong.** The clip branch is reverted (verified absent from HEAD *and* from the guest source tree, 0
+occurrences of `round_rectangle_geometry` in both), yet `clipping` still scores 4.89% on the full board.
+
+**What it actually is.** In the diff region (rows 95-322, cols 512-711, exactly 40020 px) both columns
+have the SAME pixel count of the affected colour; only the value differs:
+
+    MAUI  (255, 82, 0)   36778 px
+    port  (255, 41, 0)   36778 px
+
+That is the page's translucent red BoxView (`Background=Red`, `Opacity=0.5`) over the orange page
+background (255,165,0):
+
+    correct    0.5*0   + 0.5*165 = 82.5 -> 82     = MAUI
+    port       0.5*0   + 0.5*82  = 41.0 -> 41     = one EXTRA 0.5 blend
+
+So the port composites the translucent overlay TWICE. It is an OPACITY bug, not a clip bug — which is why
+reverting the clip work did not and could not fix it, and why the symptom survived that revert.
+
+**When it appeared.** `clipping` was 0.00% before this session's background work. It is therefore a
+regression from the content-layer / Mica change (`da6ed0bb0c` + `47b97adf18`), not from the clip branch.
+Plausible mechanism to check first: with the opaque `(3c)` base paint now skipped under Mica, a surface
+that used to be composited once against an opaque background is being drawn against a transparent one and
+picking up an extra blend — i.e. the page background and the layer are both contributing. Check whether
+the page's own view and the `(3c)` panel are BOTH painting, and whether `Opacity` is applied at two levels.
+
+**Scope.** Only pages with translucent content over a page background are at risk. `clipping` is the one
+currently caught; a sweep for `set_opacity` + an explicit page background would bound it. This does NOT
+affect the background mechanism itself, which is measured exact in both themes on opaque pages.
