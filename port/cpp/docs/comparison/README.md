@@ -7802,8 +7802,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 164 | 164 |
-| 🟡 Minor | 5 | 5 |
+| 🟢 Match | 165 | 165 |
+| 🟡 Minor | 4 | 4 |
 | 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -8402,11 +8402,11 @@ ports CollectionViewGalleries/SelectionGalleries/ VisualStatesGallery.xaml (+ .x
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9859, 0.49% pixels differ · Dark: SSIM 0.9905, 0.50% pixels differ
+Light: SSIM 0.9855, 0.55% pixels differ · Dark: SSIM 0.9945, 0.18% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9859, 0.49% pixels differ · Dark: SSIM 0.9905, 0.50% pixels differ
+Light: SSIM 0.9855, 0.55% pixels differ · Dark: SSIM 0.9945, 0.18% pixels differ
 
 ### 41. Data Template Selector — 🟢/🟢
 <sub>data_template_selector</sub>
@@ -8888,20 +8888,20 @@ Light: SSIM 0.9833, 0.31% pixels differ · Dark: SSIM 0.9805, 0.32% pixels diffe
 
 Light: SSIM 0.9967, 0.15% pixels differ · Dark: SSIM 0.9911, 0.28% pixels differ
 
-### 73. Header Footer Grid Horizontal — 🟡/🟡
+### 73. Header Footer Grid Horizontal — 🟢/🟢
 <sub>header_footer_grid_horizontal</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/windows/cpp/header_footer_grid_horizontal_light.png" /></td><td><img width="300px" src="captures/windows/xaml/header_footer_grid_horizontal_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/header_footer_grid_horizontal_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/header_footer_grid_horizontal_dark.png" /></td></tr></table>
 
 ports HeaderFooterGridHorizontal.xaml (+ HeaderFooterGridHorizontal.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9846, 0.47% pixels differ · Dark: SSIM 0.9799, 0.61% pixels differ
+Light: SSIM 0.9994, 0.08% pixels differ · Dark: SSIM 0.9943, 0.21% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9846, 0.47% pixels differ · Dark: SSIM 0.9799, 0.61% pixels differ
+Light: SSIM 0.9994, 0.08% pixels differ · Dark: SSIM 0.9943, 0.21% pixels differ
 
 ### 74. Header Footer Template — 🟢/🟢
 <sub>header_footer_template</sub>
@@ -9407,11 +9407,11 @@ ports MultipleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Colle
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9890, 0.17% pixels differ · Dark: SSIM 0.9831, 0.19% pixels differ
+Light: SSIM 0.9902, 0.15% pixels differ · Dark: SSIM 0.9844, 0.16% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9890, 0.17% pixels differ · Dark: SSIM 0.9831, 0.19% pixels differ
+Light: SSIM 0.9902, 0.15% pixels differ · Dark: SSIM 0.9844, 0.16% pixels differ
 
 ### 108. Navigation Gallery — 🟢/🟢
 <sub>navigation_gallery</sub>
@@ -9872,11 +9872,11 @@ ports SelectionSynchronization.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Col
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9689, 0.38% pixels differ · Dark: SSIM 0.9551, 0.40% pixels differ
+Light: SSIM 0.9727, 0.32% pixels differ · Dark: SSIM 0.9586, 0.33% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9689, 0.38% pixels differ · Dark: SSIM 0.9551, 0.40% pixels differ
+Light: SSIM 0.9727, 0.32% pixels differ · Dark: SSIM 0.9586, 0.33% pixels differ
 
 ### 139. Semantics — 🟢/🟢
 <sub>semantics</sub>
