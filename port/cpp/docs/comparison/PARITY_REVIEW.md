@@ -1631,3 +1631,260 @@ rasterized edge to the nearest device pixel, which would make the fix a no-op or
 one-row-displaced cutoff rather than a real improvement — see "Why it was not shipped" above for the full
 reasoning and the specific one-capture check that would settle it. `git diff` on this pass touches only this
 doc file; `src/platform/windows/border_handler.cpp` is back at its pre-investigation state.
+
+---
+
+## The 4 "diff<=1%, SSIM<0.98" pages: FOUR separate mechanisms, not one (2026-07-31)
+
+Investigated the remaining Windows yellow cluster (`pickers`, `header_footer_grid_horizontal`,
+`selection_synchronization`, `search_bar` — all pass the diff gate comfortably, all miss SSIM). The brief's
+own steer ("3 of 4 names suggest CollectionView") does NOT hold up: `pickers` and `search_bar` contain no
+CollectionView at all, and their dominant defect turns out to be shared with each other, not with the two
+CollectionView pages. **Verdict: four pages, at least four distinct mechanisms, none safely fixable from
+this Mac this pass.** No code shipped. `check_winrt_includes.py`: `checked 31 file(s): 0 problem(s)`
+(baseline — no source files touched).
+
+Method: for each page/theme, computed the same `diff`/`ssim()` this repo's `pixel_score.py` uses, then
+read off exactly which rows/columns the low-SSIM windows and diff-mask pixels sit in (Pillow + numpy,
+committed captures only), and visually cropped every hot region to identify what control/glyph is there.
+Pixel accounting below sums to (or very near) 100% of each page's diff-mask population, not just the worst
+few windows, so the attributions are not cherry-picked outliers.
+
+### `pickers` (light 0.59%/0.9681, dark 0.64%/0.9625): ~80-90% the known focus-visual noise floor — AND a
+### direct counterexample to this doc's own "verified: the C++ side needs no change" claim
+
+Region accounting (light): rows 50-95 (a focus rectangle around the "Pick a room" `Picker`) = 4096 of 4869
+diff px (84%); rows 190-215 (a text-content difference, below) = 773 px (16%); rows 0-25/30-50 = 0. Dark:
+same two regions = 4100+797 of 5269 (93%), plus a ~98px dark-only titlebar cluster and a ~274px "Pick a
+room" text-color artifact (next section).
+
+The rows 50-95 rectangle IS the same "MAUI's own CollectionView captures carry a ~0.50pp focus-visual noise
+floor" / "22 of 24 pages" mechanism this doc already extensively documents (2px near-black 26,26,26
+rectangle, ~1008px-wide top/bottom edges, ~4px-wide left/right edges) — **but on `pickers_light` it sits on
+the CPP column, not MAUI's.** Measured directly: `cpp/pickers_light.png` shows the "Pick a room" `Picker`
+(a `ComboBox`) with a full keyboard-focus outline AND a text-insertion caret; `maui/pickers_light.png` shows
+the same control with neither. `pickers_dark` has the band on the opposite (MAUI) column instead — same
+page, same control, two themes, two different sides. This directly contradicts the "Focus-visual
+suppression... In-process suppression IMPLEMENTED" entry's claim: *"The C++ side needed no change, and this
+was verified... host_run.cpp has no initial-focus `Focus()` call anywhere in the Windows backend."* That
+statement was true of the SAMPLE it was measured against (this doc's own repeated cross-run tests never
+showed the band on `cpp`) but is not true in general — the port's own WinUI `ComboBox` can and does end up
+keyboard-focused at capture time on at least one page. Operationally this matters: `MAUI_SUPPRESS_FOCUS_VISUAL`
+only patches `port/maui-reference/app/App.xaml.cs` (the MAUI reference app). If the C++ gallery app can also
+carry the band, that suppression is one-sided and the doc's own prescribed two-halves acceptance test ("a
+page already at 0.00 stays 0.00 on cpp too") will eventually catch a page where it doesn't. NOT a port
+rendering bug (nothing about `pickers`' layout or paint is wrong) — it's a capture-time input-focus race,
+same family as the existing mechanism, just not proven one-directional. No action taken; flagging so the
+suppression fix (or its verification pass) accounts for both columns, not just MAUI's.
+
+Rows 190-215 (the "No room on ... at ..." readout Label, 16% light / 15% dark): MAUI shows "No room on
+(no date) at (no time)"; cpp shows "No room on 7/31/2026 at 09:00" — cpp's `DatePicker`/`TimePicker`
+propagate their resting default value into the bound readout at init, MAUI's Windows render does not. This
+is the SAME shape of quirk ruling 10(c) already covers for Mac Catalyst ("picker default-value propagation
+at init... MAUI Mac Catalyst does not fire a DatePicker/TimePicker's default through its change event at
+first layout... whereas iOS/Android (and the port on all backends) propagate the default... the port's
+fuller render is CORRECT"), just now observed on **Windows**, a platform ruling 10(c) doesn't currently
+list. Plausibly the same underlying MAUI behavior (binding-update timing at first layout), not something
+Mac-Catalyst-specific — but that's an inference, not confirmed against another Windows page exercising the
+same bindings, so recording as a candidate ruling-10(c) extension rather than assuming it. Either way: not
+a port bug, the port's fuller readout matches iOS/Android/the port's own other backends, nothing to fix.
+
+### `search_bar` (light 0.24%/0.9927, dark 0.44%/0.9739): same focus-visual floor (light: 98% of the diff),
+### plus a NEW MAUI dark-theme quirk, not previously documented
+
+Light: rows 109-110 (the accent-color focus underline WinUI draws under a focused `TextBox`-derived control
+— the SearchBar variant of the same mechanism as `pickers`' rectangle, different WinUI control template)
+account for 1946 of 1990 diff px (98%); everything else is single-digit-px noise. This time the band sits on
+the MAUI column (matches the doc's usual direction). Not actionable, same reasoning as above.
+
+Dark: the focus band (rows 105-113, 1946px, 54%) plus a **second, NOT previously documented artifact**
+(rows 215-260, 773px, 21%): the "Italic 24pt" `SearchBar`'s own entered text. `maui/search_bar_dark.png`
+renders that text at luma ~5-52 (i.e. barely distinguishable from its own ~52-value dark fill — effectively
+invisible); `cpp/search_bar_dark.png` renders the identical string at full light-theme-appropriate contrast
+(up to 255). Critically: in the LIGHT-theme capture of the SAME element, the two columns are **byte-identical**
+(max abs diff = 0 across the whole text region) — cpp's renderer is already provably correct there. So this
+is not "cpp guesses the wrong color" — cpp already matches MAUI exactly in light theme; only MAUI's own
+DARK capture goes wrong. The value MAUI shows in dark (luma ~5-52) is suspiciously close to what a
+LIGHT-theme foreground color would look like sitting on a dark fill — i.e. this reads like a text-color
+brush that got resolved once (at light-theme values) and never re-evaluated when the app's dark theme
+applied, a stuck/stale `ThemeResource` rather than a deliberate render. No SearchBar `TextColor` is set in
+the source XAML (`<SearchBar Text="Italic 24pt" FontSize="24" FontAttributes="Italic" />`), so there's no
+explicit-color-vs-unset-sentinel confusion to blame on the port; the port isn't in this pipeline at all —
+this is 100% a `port/maui-reference` capture artifact (or a genuine upstream MAUI Windows dark-theme bug).
+Per ruling 3 ("New MAUI imperfections -> flag, don't act, pause for a user ruling"): flagged here, not
+fixed, not matched. The port's brighter/legible rendering is very likely the ONE that's actually correct;
+matching MAUI's near-invisible text would make the port worse, not better.
+
+### `pickers` dark, same signature: "Pick a room" `Picker.Title` header text (rows 30-50, 274px, 5% of
+### the page total)
+
+Same shape as the `search_bar` finding immediately above, on a different control: `maui/pickers_dark.png`'s
+"Pick a room" header (the `Picker.Title`, mapped to the `ComboBox`'s Header) renders at luma 5-52; light
+theme, same element, is byte-identical between columns (max abs diff = 0). Recording as the SAME candidate
+mechanism as the SearchBar text above — two independent controls, two independent pages, identical
+"stuck-at-light-theme-color, only in dark, only for this one element while the rest of the page correctly
+follows the theme" signature — worth a single ruling covering both rather than two.
+
+### `selection_synchronization` (light 0.38%/0.9689, dark 0.40%/0.9551): the previously-documented
+### "checkbox mid-text" defect is REAL, but is TWO compounding, differently-sized defects, not one —
+### drafted a one-constant fix, then DISCONFIRMED it by measurement and did NOT ship it
+
+100% of the light diff (3151/3151 px) and 97% of dark (3173/3271) sit in cols 0-90 — the multi-select
+`CheckBox` glyph `paint_selection_checkbox` hand-draws into every `SelectionMode="Multiple"` CollectionView
+cell (`src/platform/windows/collection_view_handler.cpp`). This confirms the existing entry ("selection_
+synchronization — CollectionView checked-cell layout, NOT fixed (reserved territory)... adjacent to
+border_handler.cpp/view_chrome_ops.cpp, which this task was explicitly told not to touch"). This pass WAS
+allowed to touch it (no such restriction in this brief) and went looking for the actual fix.
+
+**First measurement, which looked like a clean single-constant bug.** The checkbox's own bounding box
+(found by isolating its solid accent-blue fill, `(0,103,192)`, unambiguous — not contaminated by adjacent
+text anti-aliasing) is **exactly 20px wide in both columns** (matches `k_selection_checkbox_size = 20`,
+correct) but its LEFT edge is a constant **4px too far left in cpp**, confirmed on 3 independent controls:
+  `selection_synchronization` row 136/161 (checked): maui 27-46, cpp 23-42 (slot.x=13, `Margin="5,2,5,5"`)
+  `multiple_bound_selection`  row 140/149 (checked): maui 22-41, cpp 18-37 (slot.x=8, no margin)
+Both give `maui_left - cpp_left = 4` exactly, at two different `slot.x` values, on a page that's currently
+GREEN (`multiple_bound_selection`, 0.17%/0.19%) precisely because it only has 4 checkbox rows vs.
+`selection_synchronization`'s 9 CollectionViews' worth — same underlying 4px error, ~9x the row count, well
+past the SSIM gate. This pointed straight at `k_selection_checkbox_left_inset = 10` (line ~379): change it
+to `14`. Drafted the one-line fix.
+
+**Then applied the discriminator a reviewer flagged before shipping: measure the LABEL's own trailing
+glyphs, well clear of the box, not just the box.** This is the part that changes the conclusion. On
+`selection_synchronization` row 136 ("Item 2", checked), the "2" digit — fully clear of either column's box
+— sits at col **85-89 in maui** vs. col **44-50 in cpp**: a **40px** gap, not 4px. On the unchecked "Item 1"
+row (98-121), the "1" digit sits at col **74-75 maui** vs. **46-47 cpp**: a **28px** gap. Both far exceed
+the clean, reproducible 4px the box itself carries, and — this is the key tell — **the size of the gap
+differs by row/content (40px vs 28px) while the box's own 4px offset does not.** A single mispositioned
+`slot.x` feeding both the box and the label would move both by the SAME amount; it doesn't. There are two
+independent, compounding defects: (1) the checkbox is a flat 4px too far left (real, confirmed, small), and
+(2) something in this same cell's Label content — likely its own measured/available width, or a second,
+separate x-origin — sits well further left in cpp than in maui, by an amount that is NOT constant. Visually
+this is exactly what the crops show: cpp's `"It[box]2"` isn't just "the box is 4px left of where it should
+be", the whole `"Item N"` string reads MORE COMPRESSED than MAUI's `"[box]tem N"` — MAUI's checkbox+text
+together span roughly 75-89px of "Item 2"/"Item 1", cpp's span roughly 42-51px, a ~2x difference that a
+20px, 4px-off checkbox cannot produce on its own.
+
+**Did NOT ship the `k_selection_checkbox_left_inset` constant change.** The 4px box-only offset reproduces
+cleanly on two samples, but its SIGN is only trustworthy once defect (2) is ruled out: if the real cause
+turns out to be a too-narrow measured cell content width (the leading hypothesis below), the checkbox is
+merely inheriting that wrong slot, `left_inset = 10` is already correct relative to it, and moving it to 14
+would overshoot once (2) is fixed — this doc's own next paragraph says exactly that. So the 4px is a
+symptom of unknown standing, not a confirmed independent bug to correct in isolation. Shipping it alone
+would also, at best, fix a 4-in-~30px sliver of a much larger gap, very likely leaving
+`selection_synchronization` yellow anyway, while adding an unverifiable (no Windows compiler on this Mac)
+change whose interaction with the larger, undiagnosed defect is unknown. This is the same judgment call this file has made before (the `apply_content_clip` inset draft,
+written and reverted for a related reason: two plausible mechanisms, no way to distinguish them from 8-bit
+captures alone) — write it down precisely enough for whoever has Windows compile access to pick straight up,
+don't ship a fix proven insufficient by the same measurement that found it.
+
+**A third data point that does NOT fit a constant model either, recorded but not chased:**
+`cv_visual_states` (currently green, 0.9859L/0.9905D) shows the same qualitative "checkbox eats into the
+label" pattern on its `FontSize="Large"` multi-select rows, but the box-left gap there reads closer to
+**9px**, not 4px (noisier measurement — Large-font glyph anti-aliasing overlaps the box-detection heuristic
+more than the default-size rows above, so treat 9 as approximate, not exact). A 4px-vs-9px spread across
+default vs. Large font strengthens the case for "font/content-dependent," i.e. defect (2), not a single
+mis-set constant. `cv_visual_states` is not in scope for this pass and was only checked for regression
+safety (see prediction below); its own resolution is left to whoever picks up defect (2).
+
+**Falsifiable prediction for whoever ships the real fix:** the true fix must move the LABEL's own glyph
+positions right by a page/content-dependent amount (not a constant), in addition to (or possibly instead
+of, if defect (2) turns out to subsume defect (1) — e.g. if both trace to the same cell content-arrange
+call computing too-small an available width for the `HorizontalStackLayout`-equivalent content, which would
+also explain why the checkbox — sized/positioned off that same too-small slot — lands 4px short). Check
+that hypothesis FIRST on the real guest: instrument or log the cell's computed content width against MAUI's
+own `ItemsRepeater`/`ListView` cell width for the identical row, before assuming two unrelated bugs. If
+confirmed to be one underlying cause (a too-narrow measured cell content width), `k_selection_checkbox_
+left_inset` should NOT be touched at all — it would already be correct once the content width is fixed, and
+this pass's proposed 10->14 change would then OVERSHOOT.
+
+**Guard/regression pages if this is picked up:** `multiple_bound_selection` (green, dark SSIM 0.9831 — only
+0.0031 of margin, must stay green), `cv_visual_states` (green, light SSIM 0.9859), `preselected_items`
+(green — GridItemsLayout branch, uses `k_selection_checkbox_margin` not `_left_inset`, must NOT move),
+`preselected_item` (green, singular — `SelectionMode="Single"`, no checkbox at all, must NOT move).
+
+### `header_footer_grid_horizontal` (light 0.47%/0.9846, dark 0.61%/0.9799 — misses dark by 0.0001): a
+### REAL layout defect, but cross-platform-suspect, so NOT Windows-surgical — not fixed
+
+Region accounting (dark): rows 220-231 (a `HorizontalGrid, 3` `CollectionView` column's item text) = 1600px
+(rows 220-235) + 853px (rows 310-320) = 49%; rows 430-450 (the rotated "This Is A Footer" label) = 1014px
+(20%); remainder scattered. Visually confirmed by cropping: MAUI wraps `"Vegetables.jpg, 3"` and
+`"FlowerBuds.jpg, 5"` onto two lines inside their grid cell; cpp fits the identical strings on one line —
+cpp is computing (or being handed) a WIDER per-column width than MAUI for this `HorizontalGrid` `Span="3"`
+CollectionView (10 items, `<Label Text="{Binding .}" Margin="6" />` cells, no explicit item width). This is
+a genuine port_diff, not noise or a capture artifact — the two renders show materially different column
+widths, not a sub-pixel or antialiasing difference.
+
+**Not fixed, and not attempted, because it is not Windows-exclusive:** `header_footer_grid_horizontal` is
+independently YELLOW on iOS (0.9748L/0.9745D) and Mac Catalyst (0.9786L/0.9774D) too — only Android is
+green. Column-width computation for `GridItemsLayout` is either shared cross-platform code or independently
+buggy on 3 of 4 backends with different magnitudes; either way, a Windows-only change can't be verified not
+to leave iOS/Catalyst's (possibly-different-cause) yellows untouched or to avoid a regression there that
+this Mac has no way to check in the same pass. `grid_items_layout.cpp` itself (the shared descriptor file,
+`span`/`vertical_item_spacing`/`horizontal_item_spacing` properties) is a 34-line property holder with no
+sizing algorithm in it — the actual column-width logic lives per-backend, so this needs an agent with
+reason to touch iOS/Catalyst captures too, not a Windows-scoped one.
+
+The rows 430-450 rotated-footer-text residual (20% of dark) is visually an antialiasing-softness difference
+at the glyph edges of a `Rotation="10"` Label, not a position/content difference (both columns clearly read
+"A Footer" at the same size and angle) — almost certainly the same class of thing as this doc's own
+`varied_size_selector` finding (edge AA under a transform is architectural, not a targeted-fixable bug).
+Not chased further; it's a fifth of one page's dark diff, not the dominant term.
+
+**The dark-miss-by-0.0001 the brief flagged is fully explained by "not quite enough of the above resolved,"
+not a separate near-miss mechanism** — no single component here is anywhere near the gate on its own; it is
+the combination of the grid-wrap defect (real, cross-platform, not fixed) and the rotation-AA residual
+(architectural, not fixable) landing just under threshold together.
+
+### Answering the brief directly: one cause or four
+
+**Four**, not one — matching the brief's own caution against forcing a unification, and its steer ("3 of 4
+suggest CollectionView") turned out to be the wrong axis to split on. The actual split is by MECHANISM,
+which cuts across the CollectionView/non-CollectionView line the brief proposed:
+  1. Reference-focus-visual capture noise (session-level, can land on EITHER column) — `pickers` light+dark,
+     `search_bar` light. Already documented elsewhere in this file; this pass adds the cpp-side
+     counterexample. Not actionable from source.
+  2. A new "stuck light-theme text color in dark captures" MAUI-reference quirk — `pickers` dark (Picker
+     header), `search_bar` dark (SearchBar text). Not previously documented. Not a port bug (port's
+     dark-theme rendering is provably correct in the one case with a byte-identical light-theme control:
+     matches MAUI exactly there). Flagged per ruling 3, not fixed.
+  3. `HorizontalGrid` column-width mismatch — `header_footer_grid_horizontal` only. Real port_diff (or
+     shared-code diff), but touches 3 backends independently, out of this pass's safe verification range.
+  4. CollectionView multi-select cell content layout — `selection_synchronization` only. Two compounding
+     defects (a confirmed, small, constant checkbox-position error + a larger, content-dependent label-
+     width error). Drafted and DISCONFIRMED a partial fix before shipping it; documented precisely enough
+     to resume without redoing the measurement work.
+  5. (minor, non-dominant) Rotation-transform edge AA — `header_footer_grid_horizontal` dark only, ~20% of
+     that one theme's diff, architectural, same family as the already-documented `varied_size_selector`
+     finding.
+
+**Worktree note, unrelated to any finding above but worth recording for whoever runs here next:**
+mid-investigation, three consecutive `git log -1` calls in this same session returned `a734782658`, then
+`bcb41ea90a`, then `cd3752dd71` — different HEAD hashes with no action taken on this side. At the middle
+observation, `docs/comparison/captures/windows/` (1094 files) and every `"windows"` key in
+`comparison.json` were absent from the working tree; both were back and byte-consistent with the brief's
+original four scores by the third observation. No rebase markers were present at any point, and no local
+modifications were involved — this settled on its own, evidently from another session rewriting history on
+this shared branch/worktree mid-flight. All four target pages' numbers were re-verified against the settled
+tree (`cd3752dd71`) and match the brief exactly, and this doc's findings are keyed to that settled state —
+but the next agent here should check `git log -1` before trusting anything on disk, not assume the tree is
+static just because a task brief pins a hash.
+
+**Nothing shipped this pass.** `check_winrt_includes.py`: `checked 31 file(s): 0 problem(s)` (no source
+files were touched — this is the baseline, not evidence of a fix). `tools/dev.sh` was not run: no
+cross-platform code changed, and the headless preset does not compile `src/platform/windows/*` anyway, so
+it would provide no signal on the one file this investigation centered on. No Windows build or run was
+performed or claimed anywhere in this entry. All 10 guard pages (`border`,
+`border_layout`, `borderless`, `shapes`, `alignment`, `border_stroke`, `border_playground`, `clip`,
+`clip_gallery`, `clip_corner_radius`) verified present in `comparison.json` with a `windows` platform entry
+and confirmed still green — unaffected, as expected, since no code changed. Regression-relevant page names
+used above (`multiple_bound_selection`, `cv_visual_states`, `preselected_items`, `preselected_item`,
+`picker`) individually verified present in `comparison.json` with a `windows` entry before being cited.
+
+**What in the original brief turned out to be wrong:** the CollectionView-shared-cause steer (addressed
+above — it's a coincidence of naming, not a shared mechanism); and implicitly, the assumption that a
+"pixel-forensics-confirmed, single-constant" fix is safe to ship once measured — the `selection_
+synchronization` checkbox constant looked exactly like that after the FIRST measurement (two independent
+controls, same 4px, clean) and was wrong to ship anyway once a THIRD, better-chosen measurement (the
+label's own trailing glyphs, not the box) was taken. Worth keeping as a general lesson for this file: a
+constant that reproduces cleanly on 2 samples is necessary, not sufficient — check a measurement the fix
+does NOT touch before trusting it explains the whole gap.
