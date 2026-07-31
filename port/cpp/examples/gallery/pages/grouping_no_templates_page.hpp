@@ -7,18 +7,34 @@
 //   <CollectionView x:Name="CollectionView" IsGrouped="True" />
 // The xaml.cs ctor sets ItemsSource = new SuperTeams() — the same List<Team> (Team : List<Member>) used
 // by BasicGrouping: six Marvel rosters keyed by Team.Name. With NO templates, the CollectionView falls
-// back to its DEFAULT rendering of the grouped data: each item cell and each group boundary shows the
-// object's ToString() (Team.ToString() = Name; Member.ToString() = Name). That is the demonstrated
-// feature: IsGrouped with no group/item templates — grouped data rendered by the framework's defaults.
+// back to its DEFAULT rendering of the grouped data — but that default is PLATFORM-SPECIFIC, verified
+// against real captures, not assumed:
+//   - iOS/Android/macOS (and this page's cross-platform/headless simulator): each item cell and each
+//     group boundary shows the object's ToString() (Team.ToString() = Name; Member.ToString() = Name),
+//     confirmed against port/cpp/docs/comparison/captures/ios/maui/grouping_no_templates_light.png.
+//   - Windows is DIFFERENT: ItemsViewHandler.Windows.cs:329 leaves the native ListViewBase.ItemTemplate
+//     null when there's no MAUI ItemTemplate, so WinUI's own default rendering calls ToString() on the
+//     ALREADY-WRAPPED Microsoft.Maui.Controls.Platform.ItemTemplateContext object (every item is wrapped
+//     regardless of grouping — ObservableItemTemplateCollection/ItemTemplateContextList), which has no
+//     ToString() override — so every default item cell literally reads
+//     "Microsoft.Maui.Controls.Platform.ItemTemplateContext", NOT the item's Name; and every group
+//     boundary renders BLANK (GroupedItemTemplateCollection.cs:70 leaves the header content null, so
+//     ItemContentControl.Realize() bails out), not the team name — confirmed against
+//     port/cpp/docs/comparison/captures/windows/maui/grouping_no_templates_light.png. That divergence is
+//     handled entirely in the Windows platform partial (src/platform/windows/collection_view_handler.cpp)
+//     and does not change what THIS page/the other backends need to build.
 //
 // Port mapping (mirrors basic_grouping_page's structural grouping, but stripped of all three templates +
 // the view-level header/footer to match this oracle):
 //   - member is the reflection-free Member — just Name, made STRING-CONVERTIBLE (operator std::string)
-//     so the default (template-less) item cell renders it: with no item_template the handler binds
-//     `cell.text = boxed_item.text()`, and boxed_item::text() is the ToString stand-in, which only
-//     produces text for string-convertible Ts (boxed_item.hpp). This is exactly the C# Member.ToString();
+//     so the default (template-less) item cell renders it on iOS/Android/macOS/headless: with no
+//     item_template the handler binds `cell.text = boxed_item.text()`, and boxed_item::text() is the
+//     ToString stand-in, which only produces text for string-convertible Ts (boxed_item.hpp) — exactly
+//     the C# Member.ToString(). Windows ignores this text for the default cell (see above) but the
+//     conversion is still needed for the other three backends;
 //   - team_key is the reflection-free Team KEY half — Name, likewise string-convertible so the default
-//     group-boundary cell renders the team name (the C# Team.ToString() = Name);
+//     group-boundary cell renders the team name on iOS/Android/macOS/headless (the C# Team.ToString() =
+//     Name); Windows renders that boundary blank instead (see above);
 //   - build_teams() reproduces SuperTeams() (the same six rosters as BasicGrouping), each as a
 //     make_grouping of a team_key + an observable_collection<member>;
 //   - set_is_grouped(true) is the whole config; NO set_item_template / set_group_*_template /
@@ -39,11 +55,11 @@
 #include <vector>
 
 #include "maui/controls/content_page.hpp"
-#include "maui/core/safe_area_edges.hpp"
-#include "maui/core/safe_area_regions.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/item_collection.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 
 namespace maui::samples
 {

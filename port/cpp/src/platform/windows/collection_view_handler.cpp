@@ -29,8 +29,21 @@
 //     set_maui_context -> set_handler — the C# TemplatedCell2.Bind path, identical to the android/apple/
 //     ios realize path). A container-rooted template (e.g. header_footer_template's Image+Label stack)
 //     is mounted post-order via ensure_mounted (the android boxed-VIEW/chrome mount, ported 1:1) so its
-//     own children's native views exist before this file hosts the root. With no template, the DEFAULT
-//     cell is a plain TextBlock mirroring item.text() (C#'s DefaultCell2).
+//     own children's native views exist before this file hosts the root. With NO ITEM TEMPLATE, the
+//     default cell is NOT a mirror of the item's own text: ItemsViewHandler.Windows.cs:329 leaves
+//     ListViewBase.ItemTemplate null in that case, so WinUI's native default rendering calls ToString()
+//     on whatever object is actually bound — and every item is ALREADY wrapped in an
+//     Microsoft.Maui.Controls.Platform.ItemTemplateContext by ObservableItemTemplateCollection /
+//     ItemTemplateContextList regardless of grouping (Platform/Windows/CollectionView/*.cs). That type has
+//     no ToString() override, so the CLR default applies: the fully-qualified type name. Verified against
+//     a real Windows capture (grouping_no_templates, MauiReference 10.0.71) — every default cell literally
+//     reads "Microsoft.Maui.Controls.Platform.ItemTemplateContext", not the item's Name. A GROUP HEADER
+//     with no GroupHeaderTemplate is different again: GroupableItemsViewHandler.Windows.cs always installs
+//     a GroupStyleSelector, so the header BAND still exists (floored at k_group_header_min_height below),
+//     but GroupedItemTemplateCollection.cs:70 leaves its content context null when there's no template, so
+//     ItemContentControl.Realize() bails out early (dataTemplate is null) and the band renders BLANK, not
+//     the group key's text — also confirmed against the same capture (empty gaps between groups, no team
+//     name drawn).
 //   - HEADER / FOOTER (structured, global) and GROUP HEADER (grouped, per-section) realize the same way,
 //     hosted full-cross-width, OUTSIDE the item loop but INLINE on the main-axis cursor (see "NOT PORTED"
 //     below for the horizontal-orientation simplification this implies). The GROUP FOOTER does NOT: UWP
@@ -763,7 +776,13 @@ namespace maui::controls
         // viewport-bottom pin below — only the structured FOOTER call site passes true.
         auto realize_full_width = [&](const std::shared_ptr<data_template>& tmpl, const boxed_item& value,
                                       bool is_group_header, bool bottom_anchored) {
-            if (!tmpl && !value.has_value())
+            // A GROUP HEADER band always exists once IsGrouped is true — GroupHeaderStyleSelector.cs
+            // installs a GroupStyle unconditionally, independent of whether the developer set a
+            // GroupHeaderTemplate — so it must NOT early-return here even with no template and no value
+            // (that combination means "blank content", not "no band"; see this file's header comment).
+            // Every OTHER caller (structured header/footer, empty view) keeps the prior behavior: nothing
+            // to show when both are absent.
+            if (!is_group_header && !tmpl && !value.has_value())
             {
                 return; // nothing to show (matches android: no template AND no value)
             }
@@ -1001,10 +1020,16 @@ namespace maui::controls
             const int sections = src->group_count();
             for (int section = 0; section < sections; ++section)
             {
-                if (group_header_t)
+                if (grouped)
                 {
-                    realize_full_width(group_header_t, src->group(index_path{.section = section, .item = -1}), true,
-                                       false);
+                    // With a GroupHeaderTemplate, bind the band to the real group key (unchanged). With
+                    // none, pass a BLANK value (not the group key) — GroupedItemTemplateCollection.cs:70
+                    // leaves the header's content context null in that case, so the band renders empty,
+                    // not the group's ToString() (see this file's header comment / realize_full_width's
+                    // is_group_header carve-out above).
+                    const boxed_item header_value =
+                        group_header_t ? src->group(index_path{.section = section, .item = -1}) : boxed_item{};
+                    realize_full_width(group_header_t, header_value, true, false);
                 }
 
                 // GROUP FOOTER-as-trailing-ITEM: UWP ListViewBase has no native group-footer slot, so
@@ -1038,6 +1063,7 @@ namespace maui::controls
                         const int index = first + c;
                         boxed_item value;
                         std::shared_ptr<data_template> resolved;
+                        bool no_item_template = false;
                         if (group_footer_t && index == item_count)
                         {
                             // The trailing footer slot — same group-context value the header uses (the
@@ -1051,12 +1077,20 @@ namespace maui::controls
                             const index_path path{.section = section, .item = index};
                             value = src->item(path);
                             resolved = item_t ? resolve_item_template(item_t, value, container) : nullptr;
+                            no_item_template = item_t == nullptr;
                         }
                         realized_col col;
                         col.retain = realize_template_content(context, resolved, value, col.native);
                         if (col.native == nullptr)
                         {
-                            col.native = make_text_block(value.text());
+                            // NO MAUI ItemTemplate: the default cell mirrors the (always-wrapped)
+                            // ItemTemplateContext object's ToString(), not the item's own text — see this
+                            // file's header comment for the oracle citation + capture verification. The
+                            // footer-slot branch above is untouched (still value.text(), the group key —
+                            // a different, template-driven context this fix does not change).
+                            col.native = make_text_block(no_item_template
+                                                             ? "Microsoft.Maui.Controls.Platform.ItemTemplateContext"
+                                                             : value.text());
                         }
                         double extent = 0;
                         double cross_measured = 0; // this column's own natural CROSS-axis extent (see below)
