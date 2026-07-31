@@ -16894,12 +16894,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9681, 0.59% pixels differ \u00b7 Dark: SSIM 0.9625, 0.64% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9970, 0.09% pixels differ \u00b7 Dark: SSIM 0.9935, 0.14% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9711, 0.50% pixels differ \u00b7 Dark: SSIM 0.9655, 0.55% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9964, 0.05% pixels differ"
         }
       }
     }
