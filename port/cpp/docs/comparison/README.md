@@ -7802,8 +7802,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 161 | 162 |
-| 🟡 Minor | 8 | 7 |
+| 🟢 Match | 162 | 163 |
+| 🟡 Minor | 7 | 6 |
 | 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -7877,11 +7877,11 @@ a faithful reproduction of the maui-compare &amp;quot;alignment&amp;quot; demo (
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9938, 0.17% pixels differ · Dark: SSIM 0.9972, 0.19% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9938, 0.17% pixels differ · Dark: SSIM 0.9972, 0.19% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
 ### 6. Animation — 🟢/🟢
 <sub>animation</sub>
@@ -8063,20 +8063,20 @@ Light: SSIM 0.9897, 0.45% pixels differ · Dark: SSIM 0.9816, 0.46% pixels diffe
 
 Light: SSIM 0.9903, 0.44% pixels differ · Dark: SSIM 0.9817, 0.47% pixels differ
 
-### 18. Border Stroke — 🟡/🟡
+### 18. Border Stroke — 🟢/🟢
 <sub>border_stroke</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/border_stroke_light.png" /></td><td><img width="300px" src="captures/windows/cpp/border_stroke_light.png" /></td><td><img width="300px" src="captures/windows/xaml/border_stroke_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/border_stroke_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/border_stroke_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/border_stroke_dark.png" /></td></tr></table>
 
 ports BorderStroke.xaml (+ BorderStroke.xaml.cs) A self-contained, code-first demo of Border StrokeThickness and how a Border tracks the height of its content
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9971, 1.49% pixels differ · Dark: SSIM 0.9568, 1.51% pixels differ
+Light: SSIM 0.9997, 0.01% pixels differ · Dark: SSIM 0.9983, 0.03% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9971, 1.49% pixels differ · Dark: SSIM 0.9568, 1.51% pixels differ
+Light: SSIM 0.9997, 0.01% pixels differ · Dark: SSIM 0.9983, 0.03% pixels differ
 
 ### 19. Borderless — 🟢/🟢
 <sub>borderless</sub>

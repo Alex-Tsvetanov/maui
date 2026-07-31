@@ -397,7 +397,8 @@ namespace
         const auto* round_rect = dynamic_cast<const maui::graphics::shapes::round_rectangle*>(spec.shape);
         maui::graphics::path_f clip = round_rect != nullptr
                                           ? inner_round_rectangle_path(*round_rect, path_size, thickness / 2.0)
-                                          : spec.shape->path_for_bounds(path_size);
+                                          : spec.shape->path_for_bounds(
+                                                maui::core::shape_self_inset(path_size, thickness));
         // C#'s `geometricClip.Offset = strokeThickness - Content.ActualOffset` places the clip at (T, T)
         // in the PANEL's space; this visual already starts at the host's origin (file header, deviation
         // 1), so the placement is the translate alone.
