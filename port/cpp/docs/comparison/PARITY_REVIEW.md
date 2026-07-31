@@ -1422,3 +1422,212 @@ change, not a targeted fix.
 **Coverage:** `varied_size_selector.xaml` is the ONLY board page combining a CollectionView with a Border
 cell, so there is no second data point. (`borderless.xaml` sets StrokeThickness="0", making
 shape_self_inset a no-op, which is why it is green while testing something structurally different.)
+
+---
+
+## The three non-Win2D Windows reds/yellows do NOT share one cause — one strong lead, no fix shipped (2026-07-31)
+
+Task: check whether `border_stroke`, `border_playground`, `varied_size_selector` (the board's last three
+non-green, non-Win2D Windows pages) share one systemic "missing edge antialiasing" cause. They do not — three
+separate mechanisms, evidenced below. For `border_stroke` a specific, well-corroborated candidate fix was
+found and DRAFTED, then DELIBERATELY NOT SHIPPED after a second review surfaced an un-ruled-out alternative
+that the fix could not distinguish itself from using only the committed captures. Recording the full
+derivation here, including the reason it stopped short, so the next agent does not re-walk the same ground
+before doing the one live-Windows check that would settle it.
+
+### The brief's own premise is falsified by row 75
+
+`border_stroke`'s T=1 cell has an ISOLATED outer edge (Red stroke fill against the page background,
+`captures/windows/{maui,cpp}/border_stroke_light.png`, row 75, cols 200/500/800): MAUI and cpp are
+**bit-identical**, `(249,121,121)` on both sides. Solving `pixel = a*(255,0,0) + (1-a)*(244,244,244)`
+gives `a≈0.504` consistently across R/G/B. So the port's WinUI `Shapes::Path` fill DOES antialias
+fractional-position edges correctly — "the port's Windows shape rendering is missing antialiasing
+generally" is dead on its own evidence. The three pages' failures needed separate diagnosis, not one
+mechanism hunt.
+
+### border_stroke: content-clip geometry, not rendering — strong lead, NOT shipped
+
+Same page, one row down (row 76, the RED-stroke/ORANGE-content seam): MAUI shows genuine fractional
+coverage, cpp shows an EXACTLY-zero-coverage cutoff — pure `(255,165,0)` orange, no blend at all. This
+repeats identically at all 12 edges on the page (T=1/5/10, both grids; horizontal AND vertical, confirmed
+by scanning both a row range and, separately, a column range through the T=10 cell's LEFT edge at row 146 —
+same values, same zero-coverage cutoff at col 30). `alignment.xaml` (4x default-Rectangle Border + Label
+BackgroundColor="Blue") shows the identical signature at 8/8 edges: MAUI blends `(188,92,155)`, cpp cuts
+hard to pure Blue `(0,0,255)`.
+
+**Why "hard cutoff" is not itself proof of "AA disabled."** The STROKE's own outer edge (row 75, above)
+sits at a FRACTIONAL row position — `border_handler.cpp`'s `update_border()` already applies
+`maui::core::shape_self_inset` (a constant 0.5 DIP/side, gated `thickness > 0`) to the stroke geometry, and
+the resulting sub-pixel centroid (`+0.517`, per this doc's own earlier measurement) is exactly why that
+edge blends. `apply_content_clip()`'s non-round-rect branch — the ORANGE content seam — called the port's
+own (deliberately non-self-insetting) `spec.shape->path_for_bounds(path_size)` directly, with NO analogous
+inset. An edge that lands EXACTLY on an integer pixel row has nothing fractional to blend by construction —
+indistinguishable from "AA disabled" by symptom, but a geometry bug, not a rendering one.
+
+**Oracle.** C#'s `ContentPanel.UpdateClip` branches on `IRoundRectangle`: that branch calls
+`RoundRectangle.InnerPathForBounds` (already ported here as `inner_round_rectangle_path`, measured correct
+below). Every OTHER shape falls through to the plain `strokeShape.PathForBounds(bounds)` — and
+`PathForBounds` on any Controls Shape unconditionally folds in `TransformPathForBounds`'s 0.5 DIP/side
+self-inset (the same chain `shape_self_inset` already carries for the STROKE, three call sites up in this
+same file). The port's non-round-rect content-clip branch was calling the equivalent of `PathForBounds`
+without that inset — a real, separate gap from the (already-fixed) stroke deflate, not a duplicate of it.
+
+**Independent corroboration, same page, different platform.** This file's own cross-platform pass
+(2026-07-31, earlier the same day) already measured and fixed the Android twin of this exact gap: *"Measured
+on `border_stroke`, MAUI's orange content edge sits `+0.50` pt inward of the port's at both T=1 and T=5 —
+the same constant as the stroke — so `border_content_inner_path_points`'s non-round-rect branch is inset
+too."* This Windows change is that fix's Windows twin, on the same page, same measured offset.
+
+**The apparent conflict, and why it isn't one.** The comment directly above `inner_round_rectangle_path`
+says "DO NOT extend `shape_self_inset` to this clip," measured on `border_resize_content`'s Ellipse
+"circle+image" cell (114 px residual, all clip-edge AA, no directional bias). That measurement is real but
+scoped ONLY to the round-rect branch's own `InnerPathForBounds` — a genuinely different C# code path from
+the non-round-rect branch this fix touches. Re-checked directly here: `border_resize_content`'s row0/col0
+Ellipse cell (translucent-red Label content, NOT the noisier image cell) shows, at its top edge (col 265,
+row 56): MAUI `(172,193,159)`, cpp `(216,91,75)` — **cpp blends too**, just at a different value, unlike
+border_stroke's EXACT zero. Curved boundaries land at a fractional pixel position at nearly every scan
+angle regardless of any inset bug, so they show SOME coverage gradation either way — a radius-residual
+check (as the prior measurement used) is not sensitive enough to distinguish "correctly inset" from
+"missing a 0.5 DIP inset" on a curve the way a straight axis-aligned edge makes obvious (zero vs nonzero
+coverage, unambiguous). The two findings do not contradict: one says the ROUND-RECT branch is fine (still
+true, unchanged by this fix), the other exposes that the NON-round-rect branch — which `border_resize_content`
+also exercises via its Ellipse and Polygon cells — was never measured for this specific defect at all.
+
+**T-invariance, checked properly.** All 12 content-clip-seam pixels (T=1/5/10, both grids, top AND bottom
+edges) read the EXACT SAME MAUI value, `(251,133,92)`, bit-for-bit — not merely similar, identical to the
+byte. A 3-colour least-squares solve (`RED=(255,0,0)`, `ORANGE=(255,165,0)`, plus a page-background third
+term) fits this consistently across all six edges with the same coefficients every time, which is the same
+signature the doc's own stroke-centroid table used to conclude "a fixed 0.5 DIP/side inset, not a scale
+error, not noise" — a quantity that depended on `thickness` (which varies 1/5/10) would not generically
+produce an identical byte-for-byte MAUI pixel at every T by coincidence.
+
+**The draft fix.** `apply_content_clip()`'s non-round-rect branch: wrap `path_size` in
+`maui::core::shape_self_inset(path_size, thickness)` before calling `spec.shape->path_for_bounds(...)`,
+mirroring `update_border`'s existing stroke-geometry call three lines up in the same file. This was written,
+reviewed, and then reverted — see below.
+
+**Why it was not shipped.** The cpp side of the seam is not merely "close to" the hard endpoint colour, it
+is BIT-IDENTICAL to it (`(255,165,0)`, exactly the interior orange, zero measurable admixture of red or
+background). Two different explanations produce that same observation, and the committed 8-bit captures
+cannot distinguish them:
+
+  (a) the geometry is missing the 0.5 DIP inset and consequently lands EXACTLY on an integer pixel row,
+      which has nothing fractional to blend — the draft fix's premise. Adding the inset moves the edge to
+      a genuinely fractional position and the seam should soften.
+  (b) the geometry is already fractional (possibly even already off by roughly 0.5 DIP, undistinguishable
+      from (a) at this point), but something in the `apply_content_clip` → Direct2D → `CompositionGeometricClip`
+      pipeline SNAPS the rasterized clip edge to the nearest device pixel before compositing. If so, adding
+      0.5 DIP either lands on the SAME integer after snapping (no visible change) or the ADJACENT one (the
+      cutoff moves one row, not softens) — in neither case does the fix do what it is meant to.
+
+These are NOT distinguishable from the PNG alone: 8-bit quantization means "coverage = 100.0%" and
+"coverage = 99.6%, rounds identically at 8 bits" render pixel-identical either way, so "cpp shows zero
+blend" cannot itself prove "cpp's edge sits at an exact integer" strongly enough to rule out (b). The
+STROKE path (`path.Data`, a WinUI `Shapes::Path`) is proven NOT to snap — its own 0.5 DIP inset produces a
+measured `+0.517` DIP sub-pixel centroid that blends correctly, matching MAUI bit-for-bit (row 75). But the
+content clip is a structurally different pipeline from that same file's own header comment: Direct2D
+geometry → `IGeometrySource2DInterop` → `compositor.CreateGeometricClip`, not a `Shapes::Path` fill/stroke.
+"The sibling code path doesn't snap" does not prove this one doesn't; it is exactly the kind of
+platform-rasterizer question the `varied_size_selector` investigation (elsewhere in this doc) also hit and
+correctly declined to guess past. Shipping the inset without settling (a) vs (b) risks either a no-op or a
+same-magnitude one-row-displaced cutoff dressed up as "reference noise" (this doc's own recorded
+`border_stroke` cross-run swing is 4104 MAUI px / +0.50pp with the port BYTE-IDENTICAL both times — a wrong
+fix could hide inside that band for a whole cycle before anyone notices it didn't work).
+
+**What would settle it, cheaply, on the guest (no code change needed for the check itself):** apply the
+`shape_self_inset` change alone, capture `border_stroke` and `alignment`, and read the SIGN and MAGNITUDE
+of the movement. Per this doc's own reference-noise section, a diff_pct move under ~0.5pp on either page is
+within measured cross-run noise and inconclusive either way — but the underlying pixel VALUES resolve it
+regardless of magnitude: if the seam row's cpp value now shows genuine fractional coverage (anything other
+than exactly one of the two flanking hard colours), hypothesis (a) is confirmed and the fix works; if it is
+still bit-identical to a hard colour (whichever row it is now on), hypothesis (b) is confirmed and the fix
+needs a different mechanism (likely: whatever in the D2D/Composition clip chain is snapping, not the
+geometry feeding it). That one-line diff plus a single capture is the whole remaining task.
+
+### border_playground: a DIFFERENT mechanism — port already antialiases here, just to a different value
+
+`border_playground`'s Border (`Stroke="#CAC531"`, `StrokeDashArray="1,1"`, `LinearGradientBrush`
+Background, asymmetric `RoundRectangle CornerRadius="20,0,0,12"`) shows NO child content with its own
+BackgroundColor — the Label inside has none — so `apply_content_clip` never paints a visible seam here
+regardless of this fix. Its board-visible diff (1.11%/1.26%, `DIFF_THRESHOLD=25` metric) is dominated by
+two ~6-row bands at the shape's own top/bottom edges (cols 24-999, i.e. spanning the full width, not
+localized to the rounded corners). Sampled at col 500/700, row 48: MAUI `(223,220,147)` solves to α≈0.50
+coverage of the stroke color over background; cpp `(240,240,218)` solves to α≈0.10 — **the port DOES blend
+here, just at roughly 1/5th the coverage MAUI shows**, the opposite signature from border_stroke's exact
+zero. This points at a dash-phase / gradient-sampling / RoundRectangle-corner position mismatch in the
+Border's own stroke+fill rendering (`path.Stroke`/`path.Fill`, NOT `apply_content_clip`) — an unrelated,
+unfixed, architecturally separate question. Raw (non-thresholded) diff on this page is ~22% of pixels, but
+almost all of it is sub-threshold (±1-3 unit) gradient-interpolation rounding noise unrelated to either
+mechanism above.
+
+**Prediction if the draft fix above is ever applied: `border_playground` must NOT move.** It never touches
+`apply_content_clip`'s non-round-rect branch (StrokeShape is `RoundRectangle`, taking the untouched branch)
+and has no visible content-clip seam regardless. A movement here on a future capture would mean the fix has
+a side effect not accounted for in this section.
+
+### varied_size_selector: outside this mechanism entirely — the prior diagnosis stands
+
+`varied_size_selector`'s cells set `BackgroundColor="Wheat"` on the BORDER itself (not a child), which
+`border_platform::update_background` routes to the STROKE PATH's `Fill` (`path.Fill()`), per this file's
+own header note on Background routing — never `apply_content_clip`. Nothing in this investigation touches
+that path. The existing diagnosis (this doc, "varied_size_selector dark 3.05%: edge ANTIALIASING, not
+geometry") — a CollectionView-cell fractional-positioning question, narrowed to "real MAUI hosts each cell
+in a native ListViewItem/ContentPresenter... this port realizes cells by direct placement on a bare
+Canvas," needing live Windows inspection or a native-item-container architecture change — is unchanged and
+still correctly unfixed. It shares no code path, and by extension no fix, with either of the other two pages.
+
+### Falsifiable predictions, IF the draft `shape_self_inset` fix is applied
+
+Not shipped in this pass — recorded so whoever applies it (after the live check above) knows what to expect:
+
+  border_stroke              SHOULD show genuine fractional coverage at the seam row (settles hypothesis
+                              (a) vs (b) above) and the diff_pct SHOULD drop from 1.49%/1.51%. Not expected
+                              to reach 0.00% — a small clip-edge-AA residual (curved/diagonal-adjacent
+                              rounding, cf. border_resize_content's 114 px) is plausible even once the
+                              position is right. A diff_pct move under ~0.5pp is within this doc's own
+                              measured reference-capture noise floor (border_stroke swung 4104 MAUI px /
+                              +0.50pp between runs with the port's code and captures byte-identical) and
+                              should not be over-read — read the PIXEL VALUES at the seam, not just diff_pct.
+  alignment                  SHOULD improve slightly (currently green, 0.17%/0.19%) — stays green either way.
+  border_resize_content      MAY move slightly (currently green, 0.45%/0.46%) — its Ellipse and Polygon
+                              cells (4 of its 6 Border instances) go through the changed branch. Expected
+                              small if any; the RoundRectangle cells (2 of 6) are untouched. This is the
+                              page the fix's own author could not fully resolve (see the conflict discussion
+                              above) — check it first, not last.
+  border_playground          should NOT move (different mechanism, different code path — see above).
+  varied_size_selector       should NOT move (different mechanism, different code path — see above).
+  border, border_layout,     should NOT move — all explicit-RoundRectangle StrokeShape (round-rect branch,
+    border_clip_playground,   untouched) or no colored child content reaching the inner edge, or
+    border_styles,             StrokeThickness=0 (shape_self_inset's own gate, `borderless`).
+    borderless, containers,
+    swipe_view_shadow
+  carousel_page/carousel_view, invalidate_shadow_host, radio_template_from_style: default-Rectangle Border,
+    but no colored child content (carousel's Label has none) or content color ≈ identical to the stroke
+    color (`radio_template_from_style`'s `#F3F2F1` stroke AND fill) — should NOT move visibly.
+
+### Verified vs assumed
+
+VERIFIED (by pixel measurement on committed captures, no compiler needed): the row-75/row-76 coverage
+arithmetic on `border_stroke` (both by row-scan and column-scan, exactly zero cpp-side coverage at all 12
+edges); the `alignment.xaml` 8-edge corroboration (identical hard-cutoff-vs-blend signature, different
+page, different colors); the `border_resize_content` Ellipse cell showing PARTIAL (not zero) coverage at
+its own seam, which is why it does not contradict border_stroke's finding despite sharing the same code
+branch; the T-invariance of MAUI's blend value across T=1/5/10 (bit-identical, not merely similar);
+`path_for_bounds`/`shape_self_inset` signatures match the draft call site
+(`maui::graphics::rect shape_self_inset(const maui::graphics::rect&, double)`,
+`maui::graphics::path_f path_for_bounds(const maui::graphics::rect&) const` — confirmed against
+`include/maui/graphics/i_shape.hpp` and `include/maui/core/border_handler.hpp`); the full sweep of all 17
+`<Border`-using page XAMLs in `port/maui-reference/pages/` for StrokeShape + colored-child-content
+combinations (table above); `check_winrt_includes.py` clean (`checked 31 file(s): 0 problem(s)`, run against
+the working tree with no code changes present, since none were kept).
+
+NOT SHIPPED, and why: a draft one-line fix (wrap `path_size` in `maui::core::shape_self_inset(path_size,
+thickness)` in `apply_content_clip()`'s non-round-rect branch, mirroring `update_border`'s existing stroke
+call three lines up) was written and then reverted. It is well-derived from the C# oracle and corroborated
+by an already-landed, already-measured Android fix on this SAME page — but this investigation could not
+rule out, using only the committed 8-bit captures, that the content-clip's Direct2D/`CompositionGeometricClip`
+pipeline (a structurally different path from the proven-correct `Shapes::Path` stroke rendering) snaps its
+rasterized edge to the nearest device pixel, which would make the fix a no-op or a same-magnitude
+one-row-displaced cutoff rather than a real improvement — see "Why it was not shipped" above for the full
+reasoning and the specific one-capture check that would settle it. `git diff` on this pass touches only this
+doc file; `src/platform/windows/border_handler.cpp` is back at its pre-investigation state.
