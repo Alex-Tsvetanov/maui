@@ -316,9 +316,23 @@ namespace maui::core
         // A RADIAL background is bounds-dependent for the same reason the clip below is: update_background
         // converts MAUI's relative radius into the absolute-pixel CIRCLE the Win2D canvas draws, and that
         // needs the arranged Width/Height, which are NaN when the property mapper first pushes the
-        // background at mount time. Re-invoke now that the host has a real size. Non-radial paints fall
-        // through to the same apply_background this would have done anyway, so this is a no-op for them.
-        if (const auto* const view = virtual_view(); view != nullptr && view->background() != nullptr)
+        // background at mount time. Re-invoke now that the host has a real size.
+        //
+        // GATED the same way src/core/shape_view_handler.cpp's map_background gates the FIRST push:
+        // `background != nullptr && fill != nullptr`. A Background with NO Fill/Color is the shape's OWN
+        // fill via refresh_native_shape's `Fill ?? Background` (line ~148 above) — the host Border must
+        // stay transparent then, exactly like map_background's comment says ("the host stays transparent").
+        // This re-invoke used to run unconditionally on `background != nullptr` alone, which — for a
+        // background-only shape like a translucent BoxView (Background=Red, Opacity=0.5, no Color) —
+        // ALSO painted `border.Background(red)` on the host, stacking a second identical opaque paint
+        // directly behind the Path's own Fill=red inside the SAME Opacity=0.5 group. That is not a no-op:
+        // measured on `clipping`'s overlay BoxView, MAUI's single red-over-orange blend gives (255,82,0)
+        // while the port's double-painted host+path gave (255,41,0) -- exactly one extra 0.5 blend
+        // (0.5*0 + 0.5*82 = 41), confined to the overlay's 40020px because everywhere else on the page is
+        // opaque (redundant opaque-over-opaque paints are invisible there). Was a NO-OP only for the
+        // radial-background-with-fill case this comment used to describe; not for background-without-fill.
+        if (const auto* const view = virtual_view();
+            view != nullptr && view->background() != nullptr && view->fill() != nullptr)
         {
             platform->update_background(view->background());
         }
