@@ -2043,3 +2043,65 @@ compounding, content-dependent defects" reading of the selection-checkbox gap (i
 the apparent content-dependence was digit-glyph-shape measurement noise from a single-scanline scan). Both
 corrections came from applying this doc's own recurring lesson — re-measure with a DIFFERENT method before
 trusting a clean-looking number — one level deeper than the passes before them did.
+
+---
+
+## `generic.xaml` is READABLE ON THE GUEST — use it as a first-class oracle
+
+The single most useful tooling discovery of this pass. WinUI's full default theme dictionary ships as
+plain XAML inside the Windows App SDK NuGet package on the VM:
+
+```
+C:\Users\Testings-VM\.nuget\packages\microsoft.windowsappsdk\1.7.250606001\
+    lib\net6.0-windows10.0.18362.0\Microsoft.WinUI\Themes\generic.xaml
+```
+
+Grep it with `Select-String` over SSH. It resolves every `{ThemeResource ...}` key the port has been
+hand-approximating, INCLUDING per-theme colour values (the Light dictionary and the Dark dictionary each
+redefine the same keys; a third HighContrast block uses `#FF0000` placeholders — do not mistake it for a
+real value). This directly settled four separate questions in one pass that had previously been guessed:
+
+| question | key | light | dark |
+|---|---|---|---|
+| checked glyph colour | `ListViewItemCheckBrush` -> `TextOnAccentFillColorPrimary` | `#FFFFFF` | **`#000000`** |
+| unchecked square fill | `ListViewItemCheckBoxBrush` -> `ControlAltFillColorSecondary` | `#06000000` | `#19000000` |
+| unchecked square border | `ListViewItemCheckBoxBorderBrush` -> `ControlStrongStrokeColorDefault` | `#72000000` | `#8BFFFFFF` |
+| check glyph size | `MultiSelectCheck` FontIcon (:15762) | `16` | `16` |
+
+**Two traps this exposed, both of which had already cost real errors:**
+
+1. **Theme-INVERTING keys.** `TextOnAccentFillColorPrimary` is white in light and BLACK in dark. Any port
+   code that hardcodes "white glyph on accent" is right in one theme and wrong in the other, and a
+   light-only measurement will never catch it. Check both dictionaries for every key.
+2. **Deliberately TRANSLUCENT keys.** `ControlAltFillColorSecondary` is `#06000000` / `#19000000` — 2%
+   and 10% black. Compositing these down to an opaque RGB (which the port had done) discards the entire
+   point of them: what shows THROUGH. The unchecked selection square is translucent enough that the
+   label's leading glyph is legible through it.
+
+**Scope limit — read this before citing it.** MAUI's CollectionView renders through the NATIVE
+`ListViewItemPresenter`, which rasterises the check glyph and the selection indicator internally. So
+generic.xaml is authoritative for the BRUSHES (the presenter reads the same resource keys) but has NO
+geometry for those two visuals: the indicator gets only a brush (:2319) and `CornerRadius` 1.5 (:2304),
+never a width or height. Where geometry is needed, ruling 11 applies — the render decides the value, and
+generic.xaml's sibling XAML template is corroboration, not citation.
+
+## Open item for a user ruling: `selection_synchronization` and the SSIM floor
+
+The page is **pixel-converged and still yellow**, and no further pixel work will change that.
+
+- diff: **53px light / 63px dark out of 819200 = 0.01%**, clearing the `<=1.0%` bar by two orders of magnitude
+- SSIM: **0.9816 light (passes) / 0.9696 dark (fails the 0.98 bar)**
+
+SSIM is barely tracking pixel count on this page: it moved +0.0016 while the diff fell 235px->137px, and
++0.0017 more while it fell 137px->63px. Extrapolating, even reaching zero diff would not obviously clear
+0.98. This is the same structural-SSIM behaviour already recorded for the four-SSIM-page cluster — SSIM's
+windowed response punishes compact, high-contrast, localized differences far out of proportion to area.
+
+Everything mechanically identifiable on this page has been fixed and verified MAUI-exact: checkbox box
+geometry, glyph size, glyph colour per theme, translucent unchecked fill, content offset, selection
+indicator extent and position. The known residual is ~36px where MAUI's unchecked square border does not
+occupy x46 (its label's leading "I" shows there instead) plus pill corner-radius antialiasing.
+
+**Ruling requested:** treat this page as converged and exempt on the dark SSIM bar, or keep grinding a
+0.01%-diff page? Recommend the former — the remaining delta is below the level at which the metric is
+meaningfully discriminating.
