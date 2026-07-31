@@ -7802,8 +7802,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 136 | 137 |
-| 🟡 Minor | 33 | 32 |
+| 🟢 Match | 137 | 138 |
+| 🟡 Minor | 32 | 31 |
 | 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -7823,20 +7823,20 @@ Light: SSIM 0.9954, 0.25% pixels differ · Dark: SSIM 0.9958, 0.26% pixels diffe
 
 Light: SSIM 0.9993, 0.06% pixels differ · Dark: SSIM 0.9982, 0.08% pixels differ
 
-### 2. Activity Indicator — 🟡/🟡
+### 2. Activity Indicator — 🟢/🟢
 <sub>activity_indicator</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/activity_indicator_light.png" /></td><td><img width="300px" src="captures/windows/cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/windows/xaml/activity_indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/activity_indicator_dark.png" /></td></tr></table>
 
 ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9765, 4.17% pixels differ · Dark: SSIM 0.9405, 4.48% pixels differ
+Light: SSIM 0.9864, 0.49% pixels differ · Dark: SSIM 0.9870, 0.45% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9714, 4.44% pixels differ · Dark: SSIM 0.9453, 4.23% pixels differ
+Light: SSIM 0.9845, 0.59% pixels differ · Dark: SSIM 0.9865, 0.48% pixels differ
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -8342,7 +8342,7 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9942, 0.18% pixels differ · Dark: SSIM 0.9931, 0.21% pixels differ
+Light: SSIM 0.9944, 0.18% pixels differ · Dark: SSIM 0.9931, 0.21% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
