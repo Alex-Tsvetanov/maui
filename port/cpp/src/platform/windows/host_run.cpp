@@ -26,8 +26,10 @@
 #include <MddBootstrap.h>
 
 #include <winrt/Microsoft.UI.Composition.SystemBackdrops.h>
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Input.h>
 #include <winrt/Microsoft.UI.Xaml.Markup.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.XamlTypeInfo.h>
@@ -36,6 +38,7 @@
 #include <winrt/Windows.Foundation.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
@@ -60,6 +63,7 @@ namespace
     // would resolve to maui::xaml and fail with "'Start': is not a member of 'maui::xaml'".
     namespace winui = winrt::Microsoft::UI::Xaml;
     namespace backdrops = winrt::Microsoft::UI::Composition::SystemBackdrops;
+    namespace dispatching = winrt::Microsoft::UI::Dispatching;
 
     // The fallback content size, used only until the real window reports one. A desktop-ish default
     // rather than the headless lane's phone viewport: this backend always has a real window, so this is
@@ -403,28 +407,34 @@ namespace
             //     window has no client size until it is shown - laying out before would use the fallback
             //     and then immediately be corrected by the SizeChanged above.
             //
-            //     NO keyboard-focus-visual suppression is added here, unlike the MAUI reference column's
-            //     App.xaml.cs (its #if WINDOWS block, gated on MAUI_SUPPRESS_FOCUS_VISUAL). Investigated,
-            //     not assumed: PARITY_REVIEW.md's focus-visual sections measured this port's OWN captures
-            //     as BIT-IDENTICAL run-to-run on every page where the reference column's outline toggled
-            //     ("cpp 0 px changed / maui 4081-6581 px changed" across repeated passes on basic_grouping,
-            //     items, label, modal, border_stroke, border_playground, ...), and patching just the
-            //     reference's outline pixels onto this port's captures reached green with no residual band
-            //     left over - both point at this port never painting one, not merely painting a matching
-            //     one. The reason is structural, not incidental: the reference outline traces back to
-            //     WindowRootViewContainer.AddPage's TryMoveFocusToPage -> SetFocusToFirstElement
-            //     (src/Core/src/Platform/Windows/WindowRootViewContainer.cs), which auto-focuses the page's
-            //     first focusable descendant because MAUI hosts every page through a Frame-style
-            //     AddPage/RemovePage container. This port's window_handler hosts the page's native view
-            //     directly via native.Content(...) (window_handler.cpp) - no such container exists here,
-            //     and this Windows backend has no initial-focus Focus() call anywhere (grepped: only
+            //     CORRECTED (this block used to say "no suppression needed here" -- that conclusion was
+            //     WRONG, disproven by direct pixel measurement, not by argument). The reasoning below this
+            //     paragraph is the OLD claim, kept for the trail; do not trust its conclusion.
+            //
+            //     Re-measured directly (Pillow, committed captures, 2026-07-31): `pickers_light.png` and
+            //     `pickers_dark.png` both show a sharp, full-width near-black/white rectangle (light: RGB
+            //     26,26,26 at rows 55-56/93-94 around the "Pick a room" ComboBox; dark: the matching
+            //     high-contrast band at the same two rows, ~252k-pixel delta vs the `maui` column) PLUS a
+            //     solid accent-blue vertical bar inside the box (a caret) -- on BOTH the `cpp` AND `xaml`
+            //     capture columns, byte-identical between the two, absent from `maui` in both themes. So
+            //     this port's own gallery (both framework builds -- they share this file) CAN and DOES
+            //     carry a keyboard-focus visual at capture time, on at least the `pickers` page. Separately,
+            //     `search_bar_light.png`/`search_bar_dark.png` show the same mechanism but on the OTHER
+            //     side (the `maui` column carries the accent-color focus underline under the SearchBar;
+            //     `cpp`/`xaml` are clean there) -- i.e. this is a capture-time input-focus race that can
+            //     land on EITHER side, not a one-directional MAUI-only artifact.
+            //
+            //     The OLD reasoning below is still factually true as far as it goes -- this Windows backend
+            //     really has no explicit initial-focus Focus() call anywhere (grepped again: only
             //     time_picker_handler.cpp's popup open/close focus juggling and editor_handler.cpp /
-            //     search_bar_handler.cpp's Got/LostFocus listeners, none of them a startup focus setter).
-            //     So there is nothing here for MAUI_SUPPRESS_FOCUS_VISUAL to suppress; run_comparison.py
-            //     still passes it to this process unconditionally (same as MAUI_CAPTURE_TINT_NORMAL), it is
-            //     simply never read on this side. Re-run this investigation before assuming the silence
-            //     still holds if this backend ever grows Frame-style navigation or an explicit initial
-            //     Focus() call.
+            //     search_bar_handler.cpp's Got/LostFocus listeners, none of them a startup focus setter) --
+            //     but that fact does not imply nothing ever becomes focused. WinUI's own window-activation
+            //     path can hand keyboard focus to the first focusable descendant when a window with no
+            //     explicit focus owner is Activate()'d, independent of MAUI's Frame-style
+            //     AddPage/TryMoveFocusToPage this port never runs. Whatever the exact trigger, the fix does
+            //     not need to name it: read back whatever IS focused right before capture and neutralize
+            //     it, the same lever the reference column already uses successfully (see the block right
+            //     after drive_layout, below).
             boot_log("activate: before");
             native.Activate();
             boot_log("activate: after");
@@ -456,6 +466,72 @@ namespace
             boot_log("layout: drive_layout");
             maui::hosting::drive_layout(*window_, width, height);
             boot_log("layout: drive_layout done -- boot complete");
+
+            // Capture-determinism opt-in, the PORT-SIDE half of MAUI_SUPPRESS_FOCUS_VISUAL -- the twin of
+            // port/maui-reference/app/App.xaml.cs's #if WINDOWS block. That block existed alone until the
+            // comment above this one was found wrong by measurement: this port's own `pickers` capture
+            // (both the `cpp` and `xaml` columns, which share this file) can carry the identical keyboard-
+            // focus rectangle + caret the reference column shows on OTHER pages, so a one-sided fix leaves
+            // a page where the noise floor sits on this port's side undetected by the reference-only
+            // suppression. run_comparison.py already sets this env var unconditionally on every column's
+            // launch (same shape as MAUI_CAPTURE_TINT_NORMAL) -- it was simply never read on this side
+            // until now.
+            //
+            // Same recipe as the reference, on purpose (Focus(FocusState::Pointer) is what WinUI's stock
+            // OnGotFocus/GoToState template logic treats as "no rectangle needed"; UseSystemFocusVisuals on
+            // a Control is the template-level switch that suppresses the system-drawn rect independently of
+            // any FocusState transition): a one-shot 200ms DispatcherQueueTimer (mirroring the reference's
+            // `await Task.Delay(200)` on page.Loaded -- there is no page.Loaded here, so this is armed right
+            // after the first drive_layout instead, the closest equivalent "boot settled" point) reads back
+            // whatever FocusManager reports focused at that moment and neutralizes it. Deliberately does
+            // NOT special-case which control it is or why it got focus -- see the corrected comment above:
+            // the trigger doesn't need to be named for this to neutralize it.
+            //
+            // Microsoft::UI::Dispatching, NOT Windows::System -- same WinUI-3-vs-UWP DispatcherQueue
+            // collision image_source_services.cpp's fetch_uri_async note already documents for this
+            // backend; GetForCurrentThread() on the other (UWP) type returns null on this app's thread.
+            //
+            // The timer is a MEMBER (focus_suppress_timer_), not a local -- a local one-shot timer that
+            // goes out of scope before Start()'s 200ms elapses is a real risk this codebase's own house
+            // rule (winrt handle capture, not raw pointers) exists to avoid; keeping it alive as long as
+            // the app object removes any doubt rather than trusting undocumented DispatcherQueue-internal
+            // keep-alive behavior neither this comment nor its author has verified.
+            if (const char* const suppress_focus = std::getenv("MAUI_SUPPRESS_FOCUS_VISUAL");
+                suppress_focus != nullptr && std::string_view{suppress_focus} == "1")
+            {
+                if (const auto queue = dispatching::DispatcherQueue::GetForCurrentThread())
+                {
+                    focus_suppress_timer_ = queue.CreateTimer();
+                    focus_suppress_timer_.Interval(std::chrono::milliseconds(200));
+                    focus_suppress_timer_.IsRepeating(false);
+                    focus_suppress_timer_.Tick([native](auto&&, auto&&) {
+                        const auto root = native.Content().try_as<winui::FrameworkElement>();
+                        const auto xaml_root = root ? root.XamlRoot() : nullptr;
+                        if (xaml_root == nullptr)
+                        {
+                            boot_log("defocus: no XamlRoot yet");
+                            return;
+                        }
+                        const auto focused_obj = winui::Input::FocusManager::GetFocusedElement(xaml_root);
+                        if (const auto focused = focused_obj.try_as<winui::UIElement>())
+                        {
+                            const bool refocused = focused.Focus(winui::FocusState::Pointer);
+                            if (const auto control = focused.try_as<winui::Controls::Control>())
+                            {
+                                control.UseSystemFocusVisuals(false);
+                            }
+                            boot_log(refocused ? "defocus: applied, refocused=true"
+                                               : "defocus: applied, refocused=false");
+                        }
+                        else
+                        {
+                            boot_log("defocus: nothing focused");
+                        }
+                    });
+                    focus_suppress_timer_.Start();
+                    boot_log("defocus: timer armed");
+                }
+            }
 
             // Install the relayout hook (window::request_relayout) AFTER the first pass -- mirrors the
             // Android-only jni/relayout.hpp precedent, generalized to every backend (see window.hpp's
@@ -498,6 +574,10 @@ namespace
         // maui_app above owns - so it outlives every use here.
         maui::controls::window* window_ = nullptr;
         winui::XamlTypeInfo::XamlControlsXamlMetaDataProvider provider_;
+        // Owns the MAUI_SUPPRESS_FOCUS_VISUAL one-shot timer (see the block right after
+        // "layout: drive_layout done" in OnLaunched) for the app's lifetime, so it cannot be destroyed
+        // before its 200ms elapses. Null (unarmed) unless that env var is set.
+        dispatching::DispatcherQueueTimer focus_suppress_timer_{nullptr};
     };
 } // namespace
 
