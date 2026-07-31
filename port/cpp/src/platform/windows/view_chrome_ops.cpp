@@ -25,11 +25,23 @@
 // CompositionGeometry base class, not specifically a CompositionPathGeometry). This is exact (not an
 // approximation) for the shapes it covers — ellipse/rectangle, absolute or bounds-relative — including
 // this page's shared EllipseGeometry; the same spirit as android_clip_ops.hpp's own convex-only honest
-// degradation. RoundRectangleGeometry/round_rectangle are NOT covered: their four INDEPENDENT corner
-// radii cannot be expressed by CreateRoundedRectangleGeometry's single uniform Vector2 corner size, so
-// approximating would silently render a wrong shape rather than the documented gap this file leaves
-// instead. PathGeometry/GeometryGroup are not covered either (same Win2D gap). Any of these leaves an
-// existing clip untouched — TODO: verify against WrapperView.cs:117-120 once Win2D is linked here.
+// degradation. RoundRectangleGeometry/round_rectangle ARE covered, but only when all four corner radii
+// are EQUAL: CreateRoundedRectangleGeometry takes a single uniform Vector2 corner size, while MAUI's
+// CornerRadius carries four INDEPENDENT radii, so a genuinely non-uniform radius set (e.g.
+// clip_corner_radius_page's 4-slider demo once dragged apart) cannot be expressed exactly —
+// approximating would silently render a wrong shape, so that case falls through to the same
+// documented-gap return as an unsupported shape instead (honest degradation, matching the convex-only
+// precedent above). PathGeometry/GeometryGroup are not covered either (same Win2D gap). Any of these
+// leaves an existing clip untouched — TODO: verify against WrapperView.cs:117-120 once Win2D is linked
+// here.
+//
+// NOTE on that "leaves an existing clip untouched" fallback for round_rectangle_geometry specifically:
+// because it is a GeometryGroup, callers like clip_corner_radius_page mutate the SAME instance
+// (set_corner_radius) and re-push it (set_clip) to make the change observable. So the moment the four
+// sliders diverge, apply_native_clip below hits this unsupported-shape early-return and the VISUAL'S
+// CLIP IS NOT UPDATED — the image keeps showing the last uniform-radius clip it had, not "no clip" and
+// not the new (non-uniform) shape. That is a stale-clip symptom, distinct from PathGeometry/GeometryGroup
+// (which were never clippable in the first place and so read as "unclipped" from frame one).
 //
 // LAYERING NOTE: build_geometry() is, to my knowledge, the first file under src/core or src/platform to
 // #include maui/controls/shapes/*_geometry.hpp — every other clip path (android_clip_ops.hpp, apple/ios
@@ -82,9 +94,11 @@
 
 #include "maui/controls/shapes/ellipse_geometry.hpp"
 #include "maui/controls/shapes/rectangle_geometry.hpp"
+#include "maui/controls/shapes/round_rectangle_geometry.hpp"
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/shapes/ellipse.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include "winui_interop.hpp"
 
 namespace
@@ -120,7 +134,25 @@ namespace
     {
         using maui::controls::shapes::ellipse_geometry;
         using maui::controls::shapes::rectangle_geometry;
+        using maui::controls::shapes::round_rectangle_geometry;
         namespace graphics_shapes = maui::graphics::shapes;
+
+        // Shared by both round-rect branches below: CreateRoundedRectangleGeometry only takes ONE
+        // uniform Vector2 corner size, so a non-uniform maui::graphics::corner_radius (four independent
+        // fields) cannot be expressed exactly — nullopt here means "fall through to unsupported" (see
+        // the file header's honest-degradation note), never an approximation. DELIBERATELY compares the
+        // four fields directly rather than via corner_radius::equals()/operator==: that equals() special-
+        // cases TWO default-constructed (non-parameterized) instances as equal without a field compare,
+        // which is the wrong question here (an own-fields-equal check on ONE instance, not an instance
+        // equality check against another) and would be easy to reach for by mistake.
+        auto uniform_radius = [](const maui::graphics::corner_radius& corner) -> std::optional<float> {
+            if (corner.top_left == corner.top_right && corner.top_left == corner.bottom_left &&
+                corner.top_left == corner.bottom_right)
+            {
+                return static_cast<float>(corner.top_left);
+            }
+            return std::nullopt;
+        };
 
         if (const auto* ellipse = dynamic_cast<const ellipse_geometry*>(&shape))
         {
@@ -150,10 +182,34 @@ namespace
             geometry.Size({width, height});
             return geometry;
         }
-        // round_rectangle[_geometry] (per-corner radii — CreateRoundedRectangleGeometry only takes ONE
-        // uniform Vector2 corner size, so an asymmetric MAUI CornerRadius cannot be represented exactly
-        // without approximating), PathGeometry, and GeometryGroup all need the Win2D route the file
-        // header documents as missing. TODO: verify against WrapperView.cs:117-120 once Win2D
+        if (const auto* round_rect_geom = dynamic_cast<const round_rectangle_geometry*>(&shape))
+        {
+            if (const std::optional<float> radius = uniform_radius(round_rect_geom->corner_radius()))
+            {
+                comp::CompositionRoundedRectangleGeometry geometry = compositor.CreateRoundedRectangleGeometry();
+                geometry.Offset(
+                    {static_cast<float>(round_rect_geom->rect().x), static_cast<float>(round_rect_geom->rect().y)});
+                geometry.Size({static_cast<float>(round_rect_geom->rect().width),
+                               static_cast<float>(round_rect_geom->rect().height)});
+                geometry.CornerRadius({*radius, *radius});
+                return geometry;
+            }
+            // Non-uniform radii: honest degradation (see the file header) — fall through to unsupported.
+        }
+        if (const auto* round_rect = dynamic_cast<const graphics_shapes::round_rectangle*>(&shape))
+        {
+            if (const std::optional<float> radius = uniform_radius(round_rect->corner_radius()))
+            {
+                comp::CompositionRoundedRectangleGeometry geometry = compositor.CreateRoundedRectangleGeometry();
+                geometry.Offset({0.0F, 0.0F});
+                geometry.Size({width, height});
+                geometry.CornerRadius({*radius, *radius});
+                return geometry;
+            }
+            // Non-uniform radii: honest degradation (see the file header) — fall through to unsupported.
+        }
+        // PathGeometry and GeometryGroup (beyond round_rectangle[_geometry] above) need the Win2D route
+        // the file header documents as missing. TODO: verify against WrapperView.cs:117-120 once Win2D
         // (CanvasDevice/CanvasGeometry) is linked on this backend.
         return nullptr;
     }
