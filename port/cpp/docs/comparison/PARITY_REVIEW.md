@@ -612,6 +612,58 @@ cannot be universally true, so the remaining difference is page-specific, not a 
 **Do not act on either reading without a per-page measurement.** Recorded as an open question, not a
 conclusion.
 
+#### RESOLVED (2026-07-31, later same day) — subpixel centroid measurement: the second deflate is real, gated on thickness > 0
+
+Run-length pixel classification (the measurement above) can't see a half-pixel shift — a hard band at
+`[20.0, 25.0]` and a soft band at `[20.5, 25.5]` classify almost identically under a color threshold. Redone
+with per-pixel alpha solved against the known flanking colors (`bg`/`orange`/`red`), then compared by total
+coverage and coverage CENTROID on isolated stroke edges, on `border_stroke` (T=1, 5, 10; all four edges,
+`docs/comparison/captures/windows/{maui,cpp}/border_stroke_light.png`):
+
+    edge                    MAUI centroid   cpp centroid   delta
+    row1 top    (T=1)         75.517           75.000       +0.517
+    row10 bottom(T=10)       160.983          161.500       -0.517
+    row1 left   (T=1)         20.517           20.000       +0.517
+    row5 left   (T=5)         22.517           22.000       +0.517
+    row10 left  (T=10)        25.017           24.500       +0.517
+    row1 right  (T=1)       1002.483         1003.000       -0.517
+    row5 right  (T=5)       1000.483         1001.000       -0.517
+    row10 right (T=10)       997.983          998.500       -0.517
+
+Every edge, at every thickness, moves ~0.5 DIP INWARD relative to the cpp render, independent of `T` — the
+signature of a fixed 0.5 DIP/side inset, not a scale error. Left AND right move toward each other (not the
+same direction), so it is a symmetric SIZE shrink, not a translate. This is exactly `Shape.cs`'s own default
+`StrokeThickness = 1.0` (0.5/side) feeding `TransformPathForBounds` unconditionally on the Controls-Shape
+oracle — confirmed by re-reading `Shape.cs:300-411` + `Rectangle.cs:57-83` directly: `GetPath()` bakes a
+`StrokeThickness/2` inset using the SHAPE's own thickness, and `TransformPathForBounds`'s subsequent
+Aspect=Fill scale+translate — computed from the SAME shape thickness — reduces to the identity transform for
+an unrounded Rectangle (numerator and denominator shrink by the identical amount), so the NET effect of the
+whole chain is a single, constant 0.5 DIP/side inset. Not a double deflate; one 0.5 DIP inset, arrived at via
+two steps that cancel everywhere except that shared 0.5.
+
+The `borderless` tiebreaker: per that same `src/` chain, this 0.5 DIP inset is UNCONDITIONAL — it should
+apply even at the Border's own StrokeThickness=0, because it comes from the *shape's* default (1.0), which
+`Border.cs` never overrides from the Border's own thickness. Measured directly on `borderless` (a StrokeThickness=0
+pink/red Border pair sharing a Grid boundary, `captures/windows/{maui,cpp}/borderless_light.png`): the
+pink/red fill boundary is **bit-identical** between MAUI and cpp at `y=412`, zero blended pixels, no gap —
+i.e. MAUI's actual shipped 10.0.71 render does NOT apply this inset when the Border has no stroke. That
+contradicts the literal unconditional reading of `src/` (a `src/`-vs-shipped drift, ruling 11 territory — the
+render wins). So the fix implemented (`src/platform/windows/border_handler.cpp`, `update_border()`) gates the
+extra 0.5 DIP/side inset on `thickness > 0`: a deliberate, MEASURED deviation from the literal `src/` chain,
+scoped to the Windows border handler alone (not the shared graphics shape layer, so clips stay undeflated,
+same as before).
+
+Also resolves the dangling "border_stroke measurably improved 3.51 -> 1.99 under the wrongly-placed shared
+deflate" fact from the retraction above: that improvement was this SAME correct 0.5 DIP inset, just applied
+in the wrong layer (also hitting clips, which is why it net-regressed the board overall).
+
+**Root cause of the missing inset, for the record:** `include/maui/graphics/shapes/{rectangle,round_rectangle,
+ellipse}.hpp` are documented "SIMPLIFIED PORT"s whose header comments state the shape's own default
+`StrokeThickness` is `0`. It is not — `Shape.cs:80-81` defaults it to `1.0`. That incorrect premise is why
+this port never had ANY shape-level self-inset anywhere. Not fixed at the shape layer here (out of scope for
+this pass, and the shared layer is the wrong home per the retraction above); the header comments are still
+wrong and worth a follow-up correction so a future reader doesn't re-derive the same incorrect premise.
+
 ---
 
 ## TASK 1 SOLVED (2026-07-31): the dark/light background delta is a MISSING CONTENT LAYER

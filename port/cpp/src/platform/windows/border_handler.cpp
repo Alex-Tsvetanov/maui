@@ -220,7 +220,35 @@ namespace maui::core
         const double thickness = spec.thickness;
         const maui::graphics::rect path_bounds{0, 0, std::max(0.0, width - thickness),
                                                std::max(0.0, height - thickness)};
-        maui::graphics::path_f geometry = spec.shape->path_for_bounds(path_bounds);
+
+        // Second, SEPARATE deflate — MEASURED, not derived from src/ (see PARITY_REVIEW.md "Correction
+        // 2026-07-31" + the subpixel centroid follow-up). Border.cs:81's default StrokeShape is a
+        // *Controls* Rectangle whose own StrokeThickness defaults to 1.0 (Shape.cs:80-81) and feeds
+        // Shape.TransformPathForBounds unconditionally, net an ADDITIONAL 0.5 DIP/side inset stacked on
+        // top of this handler's own Border-level deflate above (which uses the BORDER's thickness, not
+        // the shape's — Border.cs never propagates StrokeThickness to StrokeShape). The port's default
+        // `graphics::shapes::{rectangle,round_rectangle,ellipse}` are SIMPLIFIED PORTS (see their own
+        // header comments) that skip this self-inset entirely on the (incorrect — Shape.cs's real default
+        // is 1.0, not 0) premise that the shape's own StrokeThickness defaults to 0, so it never happens
+        // anywhere in this port. Reproducing it in the shared graphics layer was tried and reverted
+        // (`f1a5a17658`): it leaked into CLIP paths, which MAUI never deflates (Geometry.PathForBounds
+        // has no such step). Subpixel coverage-centroid measurement on border_stroke/border_playground
+        // (T=1,5,10, all four edges) shows MAUI's rendered stroke centerline sits ~0.5 DIP further inward
+        // than a single deflate, at every thickness — but borderless (StrokeThickness=0) matches the
+        // port's UNDEFLATED fill edge bit-exactly (0 differing px at the fill boundary). Both can't be
+        // explained by an unconditional shape-level inset, so this gates on thickness > 0: a deliberate,
+        // MEASURED deviation from the literal src/ chain (which reads as unconditional), scoped to this
+        // handler alone so clips (view_chrome_ops.cpp) and the borderless fill path stay untouched.
+        maui::graphics::rect shape_bounds = path_bounds;
+        if (thickness > 0.0)
+        {
+            constexpr double k_shape_self_deflate = 0.5; // MAUI's default Controls-Shape StrokeThickness/2
+            shape_bounds.x += k_shape_self_deflate;
+            shape_bounds.y += k_shape_self_deflate;
+            shape_bounds.width = std::max(0.0, shape_bounds.width - (2 * k_shape_self_deflate));
+            shape_bounds.height = std::max(0.0, shape_bounds.height - (2 * k_shape_self_deflate));
+        }
+        maui::graphics::path_f geometry = spec.shape->path_for_bounds(shape_bounds);
         const auto half_thickness = static_cast<float>(thickness / 2.0);
         geometry.transform(maui::graphics::matrix3x2::create_translation(half_thickness, half_thickness));
         // winui_shape_ops::build_path_geometry, no winding argument: Border has no winding-mode surface
