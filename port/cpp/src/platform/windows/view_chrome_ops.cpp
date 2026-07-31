@@ -87,6 +87,10 @@
 // textually matches check_winrt_includes.py's IVector::Size heuristic (a documented false-positive
 // shape the lint owns up to). Included anyway: it is a real, harmless header and keeps the lint at 0.
 #include <winrt/Windows.Foundation.Collections.h>
+// float2/float3 (UIElement::ActualOffset() below returns a float3; CompositionGeometricClip::Offset()
+// takes a float2) -- named explicitly now (apply_native_clip's offset-compensation fix), so the owning
+// header is included by name rather than relied on transitively via Composition/Xaml.
+#include <winrt/Windows.Foundation.Numerics.h>
 
 #include <cmath>
 #include <optional>
@@ -252,9 +256,11 @@ namespace maui::core
         // A non-Border element (button/entry/layout/search_bar/... which pass their own bare control, no
         // host) falls through unchanged -- try_as<Border> fails and `clip_target` stays `element`.
         winui::UIElement clip_target = element;
+        bool clip_target_is_border_child = false;
         if (const auto host = element.try_as<winui::Controls::Border>(); host != nullptr && host.Child() != nullptr)
         {
             clip_target = host.Child();
+            clip_target_is_border_child = true;
         }
         const comp::Visual visual = winui::Hosting::ElementCompositionPreview::GetElementVisual(clip_target);
         if (visual == nullptr)
@@ -295,17 +301,29 @@ namespace maui::core
         {
             return; // an unsupported shape kind (see build_geometry) — leave any existing clip alone.
         }
-        // WrapperView.cs:125 sets `geometricClip.Offset = -Child.ActualOffset`, which is normally zero
-        // (the child fills its WrapperView). For a non-Border element (clip_target == element, the SAME
-        // element being positioned), the visual's own local origin already IS that element's top-left, so
-        // no offset correction is needed. For a Border-host element (clip_target == host.Child(), above),
-        // the same zero-offset argument holds only because every current Border-host handler's child
-        // STRETCHES to fill the host exactly (image_handler's default Stretch alignment, label's TextBlock,
-        // shape_view's Path all HorizontalAlignment/VerticalAlignment::Stretch) -- i.e. ActualOffset is
-        // {0,0} relative to the host, same as the oracle's own "normally zero" case. TODO: verify against
-        // WrapperView.cs:104-126 on the VM — if a future Border-host child is NOT stretched (e.g. an
-        // AspectFit image centered smaller than its host), this is the line to revisit (Offset =
-        // -child's actual offset within the host).
-        visual.Clip(compositor.CreateGeometricClip(geometry));
+        // WrapperView.cs:125: `geometricClip.Offset = -Child.ActualOffset`. CORRECTED (was previously
+        // skipped here on the assumption every Border-host child stretches to fill its host, citing
+        // image_handler's "default Stretch alignment" -- that premise is false for AspectFill: image_
+        // handler.cpp's map_aspect (ImageViewExtensions.UpdateAspect ported 1:1) Center-aligns the child
+        // Image on BOTH axes for Aspect::aspect_fill, and an AspectFill-scaled child routinely overflows
+        // its host on one axis (e.g. dotnet_bot.png is 1200x694 -- scaled to fill a 200x200 host it comes
+        // out ~346x200, landing the child ~73 DIP negative on X once centered). The clip geometry above is
+        // built in the DEVELOPER's coordinate space (element-local, origin at THIS element's own top-left
+        // -- e.g. RectangleGeometry's Rect="0,15,150,150" assumes (0,0) is the element's corner), but for
+        // a Border-host element the visual actually being clipped is the CHILD's, whose own local origin
+        // sits whatever ActualOffset away from the host once alignment shifts it off (0,0). Left
+        // uncompensated, that shift silently crops content the developer's clip never asked to hide --
+        // this was the entire clip/clip_gallery page diff (RectangleGeometry/EllipseGeometry/
+        // RoundRectangleGeometry clips on AspectFill images losing their right-hand content). For
+        // clip_target == element (no Border host: button/entry/layout/search_bar/...), the element IS the
+        // visual being positioned, so its own local origin already matches the developer's coordinate
+        // space and no correction applies -- clip_target_is_border_child stays false there.
+        comp::CompositionGeometricClip geometric_clip = compositor.CreateGeometricClip(geometry);
+        if (clip_target_is_border_child)
+        {
+            const winrt::Windows::Foundation::Numerics::float3 child_offset = clip_target.ActualOffset();
+            geometric_clip.Offset({-child_offset.x, -child_offset.y});
+        }
+        visual.Clip(geometric_clip);
     }
 } // namespace maui::core
