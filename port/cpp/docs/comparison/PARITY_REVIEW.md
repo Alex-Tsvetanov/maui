@@ -796,3 +796,121 @@ the page's own view and the `(3c)` panel are BOTH painting, and whether `Opacity
 **Scope.** Only pages with translucent content over a page background are at risk. `clipping` is the one
 currently caught; a sweep for `set_opacity` + an explicit page background would bound it. This does NOT
 affect the background mechanism itself, which is measured exact in both themes on opaque pages.
+
+## `activity_indicator` — NOT animation-phase noise; a real Fill/container defect, FIXED (2026-07-31)
+
+Windows board's #2 worst page (light 4.17% SSIM 0.977, dark 4.48% SSIM 0.941), flagged as possibly
+VOLATILE going in (ProgressRing is an animating indeterminate spinner, so two captures at different
+animation phases can legitimately differ). Diagnosed before touching any code, per two decisive checks.
+
+**Check 1 — is the port's own render deterministic?** MD5 of `activity_indicator_light`'s `cpp` capture
+across every dated run under `docs/comparison/2026-07-*` where the handler file was unchanged (all of them
+— it was last touched at `d2c70a0803`, before every run compared):
+
+    2026-07-29-01_22_51  f7b60f857738714b473914845101a062
+    2026-07-29-03_47_17  f7b60f857738714b473914845101a062
+    2026-07-29-05_30_30  f7b60f857738714b473914845101a062
+    2026-07-29-07_42_14  f7b60f857738714b473914845101a062
+    2026-07-29-17_10_40  f7b60f857738714b473914845101a062
+    2026-07-29-18_27_25  f7b60f857738714b473914845101a062
+
+Six independent runs spanning many hours, byte-identical. (The three other MD5s seen across the full
+history change lockstep with unrelated page/background commits, not randomly — consistent with a
+deterministic capture, not a spinning-phase race.) This refutes "animation phase noise" as the
+explanation for the page's SCORE — a genuinely phase-random capture would not be reproducible six times
+running.
+
+**Check 2 — where is the diff, and how much of it is which shape?** Region breakdown of the maui-vs-cpp
+pixel diff (light theme, 34346 px total / 4.19%):
+
+    Default ring (y78-118)                 155 px   0.5%
+    Color ring (y145-185)                  153 px   0.4%
+    Yellow BackgroundColor bar (y195-265)  31347 px  91.3%
+    Larger ring (y280-435)                  995 px   2.9%
+    Smaller ring + downstream label shift  1696 px   4.9%
+
+Dark theme (36804 px / 4.49%) matches the same shape: yellow bar 85.3%, Larger-ring 8.8%, Smaller+shift
+4.6%, Default/Color rings 0.5%/0.5% each. The dominant defect by two orders of magnitude is the
+`BackgroundColor="Yellow"` row, not ring position or ring size (the brief's own steer — "the ring
+measures 32 in both columns" — is correct about the ring, and misleading as guidance: the real defect is
+one level up, in how much of the ROW the container occupies, not how big the ring drawn inside it is).
+
+**Root cause.** `View.HorizontalOptionsProperty`'s default is `LayoutOptions.Fill` (`View.cs:31-34`), and
+neither `ActivityIndicator.cs` nor the XAML overrides it, so `LayoutExtensions.ComputeFrame`/
+`AlignHorizontal` hands `platform_arrange` a `frame` as wide as the whole `VerticalStackLayout` row
+(~984 DIP of a 1024-wide window). Measured on the light capture: MAUI's default-size ring sits horizontally
+CENTRED (x-centre ~504 of that row) and its Yellow background spans the full row (x 20..1003). The
+unfixed port pinned `Canvas.SetLeft(ring, frame.x)` — the row's LEFT edge — with no centring math, and
+painted `Background` directly onto the bare ring (ProgressRing IS a `Control`, so `update_background`
+"worked" for colour), so the port's ring sat at x-centre ~32 and its yellow patch spanned only x 21..50: a
+small square hugging the ring at the left, instead of MAUI's full-width bar. MAUI achieves the wide bar
+(and the ring recentring inside it) via `ActivityIndicatorHandler.Windows.cs`'s `NeedsContainer` — when
+`Background != null`, MAUI wraps the `ProgressRing` in a `WrapperView`/`ContainerView` that owns the
+Fill-arranged frame and Background paint, with the ring centred as its content. This port's Windows
+backend had never ported that container seam for ActivityIndicator (its own file-header comment said so
+explicitly) — `label_handler.cpp` and `image_handler.cpp` had already closed the identical gap for
+TextBlock/Image on this Canvas-based backend by wrapping unconditionally in a chromeless `Border`.
+
+**The XAML column independently corroborates the same defect** (not just cpp): `xaml`'s
+`activity_indicator_{light,dark}.png` shows the identical shape — ring x-centre ~28.5 (left-aligned, not
+~504/~511 like MAUI), yellow bar x 21..50 (not the full row) — in BOTH themes. Since `cpp` and `xaml`
+route through the same `src/platform/windows/activity_indicator_handler.cpp`, this is conclusive evidence
+the defect is handler-level, not page-construction — one fix should move both board columns
+(`pixel` 4.17%/4.48% AND `pixel_xaml` 4.44%/4.23%).
+
+**Fix landed** (`port/cpp/src/platform/windows/activity_indicator_handler.cpp`, commit pending): wrap the
+`ProgressRing` in a `Border` host unconditionally, mirroring `label_handler.cpp`/`image_handler.cpp`
+exactly — `native` now boxes the host; `as_ring()` resolves `host.Child()`. `create_platform_view` sets the
+ring's own `HorizontalAlignment`/`VerticalAlignment` to `Center` (unlike label/image's `Stretch` default,
+since a ring should never distort to fill space). `platform_arrange` now stamps the HOST's Width/Height to
+the resolved `frame` unconditionally (frame.width already resolves to the right value for both the
+Fill-unset and the explicit-WidthRequest case via the shared `compute_frame`, so no extra branching is
+needed there), while the RING's own Width/Height keep the pre-existing explicit-only pin (a ProgressRing
+has no Image-style Stretch/Aspect knob, so only an explicit WidthRequest/HeightRequest may resize the
+glyph itself — this is what keeps the "Larger"/"Smaller" rows' explicit 150×150 / 10×10 requests rendering
+at their current, already-correct sizes). `update_is_enabled`/`update_automation_id` are redirected to
+resolve the ring specifically (not the new host) — `apply_is_enabled`'s `try_as<Control>` silently no-ops
+on a `Border`, and unlike label/image (whose wrapped content was never a `Control` either), this port's
+ActivityIndicator's IsEnabled currently DOES work (ProgressRing IS a `Control`), so redirecting avoids a
+new regression rather than accepting label/image's pre-existing gap. `apply_native_clip`
+(`view_chrome_ops.cpp`) already special-cases a Border-boxed native with no changes needed — its own
+comment anticipates "any future Border-host handler."
+
+**Predicted outcome** (unverified — this Mac cannot compile or run the Windows backend; the next VM
+rescore should confirm): the 91%/85% yellow-bar component and the 0.5%/0.4% ring-centring component both
+resolve, predicting roughly light 4.19% → ~0.3-0.4%, dark 4.49% → ~0.5-0.6% — i.e. GREEN, driven mostly by
+the two residuals below staying open. Do not treat a from-code prediction as a landed score; rescore before
+updating the board.
+
+**Two residuals NOT fixed by this change** (small, and NOT the reason this page was investigated):
+
+1. **Larger-ring arc-shape mismatch (~3-9% of the diff).** The `WidthRequest="150" HeightRequest="150"`
+   row's visible arc bounding box differs between MAUI and cpp (e.g. light: MAUI x440-511/y356-425 vs cpp
+   x454-536/y387-425) beyond what position alone explains. Both rings ARE indeterminate spinners — unlike
+   the page-level determinism proven above (which held across independent RUNS of the SAME app), this is
+   MAUI-vs-cpp at a single instant, where the two apps' animation timers are not synchronized — so this
+   looks like genuine phase variance in miniature, isolated to the one row big enough for the arc's sweep
+   angle to matter visually. Not investigated further; flagged for whoever picks this back up.
+2. **6px downstream vertical shift below the `Smaller` row (~5% of the diff).** The `NotRunning`/`-End of
+   page-` labels sit 6px higher in cpp than in MAUI (measured on light: y486 vs y492, y553 vs y559), while
+   every label above (`Larger`, `Smaller`) matches exactly. The `Smaller` row is
+   `WidthRequest="10" HeightRequest="10"` — an explicit, non-animated size that should not vary by
+   animation phase at all, so a fixed 6px height difference between columns suggests MAUI's `ProgressRing`
+   honors a minimum-size floor (e.g. `MinHeight`) below which an explicit HeightRequest cannot shrink it,
+   and this port's ring does not. Not fixed here (out of scope for the container defect this entry
+   diagnoses); worth a follow-up if this page doesn't fully clear after the container fix rescopes it.
+
+**Blast radius checked.** Two other Windows-board pages construct an `<ActivityIndicator>`:
+`controls_stack.xaml` (`IsRunning="True"`, no Background, inside a `HorizontalStackLayout` — currently
+GREEN 0.18%/0.21%) and `value_controls.xaml` (`IsRunning="False"`, not on the Windows board). For
+`controls_stack`, this fix changes the ring's CROSS-axis (vertical) centring within that row — visually
+checked against both captures and the row's siblings (CheckBox/Switch) are close enough in natural height
+to the ring's own ~32px that the expected shift is a few px at most, well under what would move a
+0.18%-diff page out of green. `value_controls` isn't tracked on the Windows board, so it is not a scoring
+risk either way.
+
+**Verification performed on this Mac:** `check_winrt_includes.py` (0 problems), `clang-format --dry-run`
+(clean), brace/paren balance. The Windows backend cannot be compiled here — no build or runtime
+verification was done or claimed; the numbers above are static analysis of committed capture PNGs plus
+manual review against the already-compiling `label_handler.cpp`/`image_handler.cpp` precedent this fix
+mirrors.
