@@ -375,8 +375,41 @@ namespace
     constexpr double k_selection_indicator_inset = 5;  // bar's top/bottom inset off the full row height
     constexpr double k_selection_checkbox_size = 20;   // check_box_handler.cpp's own CheckBoxSize, reused
     constexpr double k_selection_checkbox_corner_radius = 3;
-    constexpr double k_selection_checkbox_margin = 4;      // grid: inset from the cell's top/right corner
-    constexpr double k_selection_checkbox_left_inset = 10; // list: inset from the row's left edge
+    constexpr double k_selection_checkbox_margin = 4; // grid: inset from the cell's top/right corner
+    // list: inset from the row's left edge. CORRECTED 10 -> 14 (selection_synchronization_light.png,
+    // MauiReference): the checkbox's own solid-fill bounding box (isolated on its unambiguous accent-blue
+    // fill, (0,103,192)) sits at absolute page x=27 on a row whose slot starts at x=13 -- a real, constant
+    // 14px inset, not 10. A prior pass measured this same 4px shortfall (maui_left - cpp_left = 4 at two
+    // different slot.x values, multiple_bound_selection AND selection_synchronization) but declined to
+    // ship the correction: at the time it looked like it might be entirely subsumed by a second, larger
+    // defect (the label's own content starting under the checkbox instead of after it -- see
+    // k_selection_checkbox_content_inset below), so fixing this constant in isolation risked overshooting
+    // once that second defect was fixed. It is NOT subsumed: measured independently below (the checkbox's
+    // OWN left edge, isolated from any label content), so both corrections ship together.
+    constexpr double k_selection_checkbox_left_inset = 14;
+    // The label's own content is NOT currently inset to make room for the checkbox at all (paint_selection_
+    // checkbox's header comment already flagged this, unfixed, from an earlier pass: "the checkmark glyph
+    // visibly overlaps the label's leading character... content is NOT inset"). Real MAUI starts the
+    // content flush against the checkbox's OWN right edge, not the cell's raw left edge.
+    //
+    // RECONCILING A PRIOR PASS'S OPPOSITE READING (it measured content as CONSTANT-offset-from-correct by a
+    // row/content-DEPENDENT 28-40px, not a fixed amount, and stopped short of shipping either fix pending
+    // that ambiguity): its own discriminator -- "measure the label's trailing glyphs, well clear of the
+    // box" -- is the right test, its DATA just doesn't reproduce under a full-glyph-height scan. Re-measured
+    // on selection_synchronization_light.png: the "2" in a CHECKED "Item 2" row and the "1" in an UNCHECKED
+    // "Item 1" row both start their digit at x=73 (68-79 depending on the digit's own glyph width) -- the
+    // SAME position, not the reported 85-89 vs 74-75 (that single-scanline reading crossed a glyph's own
+    // left-side-bearing, which varies by digit shape ("1" vs "2") independent of any real per-row shift). A
+    // digit reachable only at x~73 requires the label's own text to START around x~47-48 (checkbox_left(27)
+    // + checkbox_size(20), no gap -- "Item " then advances ~25-26px to its digit) -- NOT at the checkbox's
+    // OWN left edge (27, co-located with it), which is the reading that would make the defect content-
+    // dependent. That content start is CONSTANT across both rows, confirmed on a second, larger-font page
+    // too (cv_visual_states_light.png, "Multi Selection": checkbox 22-40ish, "Item" glyphs resume flush at
+    // ~40 on every row regardless of checked state). One constant defect, not two content-dependent ones.
+    // LIST-ONLY (`!grid`): a GRID cell's checkbox sits in the TOP-RIGHT corner (paint_selection_checkbox's
+    // `grid` branch), nowhere near where grid content starts, so no content inset applies there --
+    // preselected_items (GRID, Multiple selection, currently green) is untouched by this constant.
+    constexpr double k_selection_checkbox_content_inset = k_selection_checkbox_left_inset + k_selection_checkbox_size;
 
     // The GridViewItem fill+border (both header comment "chrome shapes" fold into one Border: Background
     // gives the fill, BorderBrush/Thickness/CornerRadius give the stroke when `grid`) or the ListViewItem
@@ -440,11 +473,13 @@ namespace
     // confirms the same for a linear list. Sized ~20x20 (measured slightly larger, ~22-24px, on the grid
     // capture; 20 is check_box_handler.cpp's own established CheckBoxSize constant, reused rather than
     // adding a second, barely-different, unmeasured-elsewhere magic number). Added AFTER the content
-    // native so it draws ON TOP of it (measured: the checkmark glyph visibly overlaps the label's leading
-    // character in multiple_bound_selection_light.png — content is NOT inset to make room for the
-    // checkbox). IsHitTestVisible(false): this backend wires no tap-to-select gesture yet (this file's
-    // header comment), so the glyph is decorative only and must never intercept a future gesture
-    // recognizer's hits.
+    // native so it draws ON TOP of it — for a GRID cell this is inert (the checkbox sits in the top-right
+    // corner, away from content); for a LIST cell the content is now inset by k_selection_checkbox_
+    // content_inset (this file's arrange_native, the cell_rect/content_rect split) so the two no longer
+    // overlap in the common case — see that constant's own comment for the fix and the measurement that
+    // superseded the "content is NOT inset" note this comment used to carry. IsHitTestVisible(false): this
+    // backend wires no tap-to-select gesture yet (this file's header comment), so the glyph is decorative
+    // only and must never intercept a future gesture recognizer's hits.
     void paint_selection_checkbox(const canvas& panel, bool dark, bool selected, bool grid,
                                   const maui::graphics::rect& slot)
     {
@@ -764,6 +799,16 @@ namespace maui::controls
         // native_content_size's real_cross_extent (published at the bottom of this function).
         double first_cell_cross = 0;
         bool have_first_cell_cross = false;
+        // HORIZONTAL GRID ONLY (GridItemsLayout, Orientation=Horizontal, span > 1): the column WIDTH's
+        // uniform-from-first-column value -- see the row-group loop below (the `platform->grid && !vertical`
+        // block right after the k_grid_item_min_extent floor) for the full mechanism. Same "first realized,
+        // not a running max/per-column value" principle as first_cell_cross above, just on the MAIN axis
+        // instead of the cross axis, and only relevant when a grid's orientation puts columns on the main
+        // (scrolling) axis. FormsGridView.Windows.cs's UpdateItemSize sets ItemHeight from ActualHeight/Span
+        // for a Horizontal-orientation grid but leaves ItemWidth UNSET -- an unset ItemsWrapGrid dimension
+        // locks to the FIRST realized item's own natural size for the WHOLE panel, not a per-column auto-fit.
+        double uniform_col_main = 0;
+        bool have_uniform_col_main = false;
 
         // Realize a full-cross-width row (structured header/footer, empty view, group header): template
         // content > boxed view > text mirror — the android realize_supplemental_native recipe. The GROUP
@@ -1166,6 +1211,42 @@ namespace maui::controls
                         row_extent = k_min_row_extent;
                     }
 
+                    // HORIZONTAL GRID COLUMN WIDTH, locked to the FIRST column-group (see uniform_col_main's
+                    // declaration above for the FormsGridView.Windows.cs oracle). Without this, every
+                    // column-group above computed its OWN row_extent (a running max of only ITS OWN row_n
+                    // items' unbounded-width measurements) -- so a column holding a wide string got its own
+                    // wide slot instead of being forced to WRAP inside the first column's narrower real MAUI
+                    // width. Confirmed against header_footer_grid_horizontal_light.png (MauiReference): the
+                    // 4 column starts (text-run x-origins, ink-measured) are 21, 109, 199, 288 -- three
+                    // consecutive deltas of 88/90/89, i.e. one uniform ~89px pitch, not four independently-
+                    // sized columns; column 0's OWN natural width (its longest un-wrapped item, "cover1.jpg,
+                    // 0") measures ~86px, matching that pitch within capture/AA noise. `arrange_realized_view`
+                    // below re-measures each cell's content at the FINAL arranged width (this row_extent) via
+                    // its own view->measure() call, so locking row_extent here is enough to make a Label in a
+                    // later column actually WRAP to fit -- no change needed to the earlier per-cell probe
+                    // measure() (col_cross/infinity) that only exists to establish this value from column 0.
+                    // Falsifiable: header_footer_grid_horizontal is the ONLY page in this gallery using
+                    // `HorizontalGrid` (grep over port/maui-reference/pages confirms it) -- every other
+                    // CollectionView page (VerticalGrid or a linear list, either orientation) is untouched by
+                    // this block, since it is gated on `!vertical` AND `platform->grid` together. NOTE:
+                    // k_grid_item_min_extent (just above) was calibrated as a HEIGHT floor from a Vertical
+                    // grid capture (grid_grouping); it now also floors this Horizontal grid's column WIDTH
+                    // purely because both share the generic `row_extent` variable. Inert on this page today
+                    // (measured ~89px column pitch is well clear of the 44px floor) -- not a measured width
+                    // minimum, just don't mistake it for one later.
+                    if (platform->grid && !vertical)
+                    {
+                        if (have_uniform_col_main)
+                        {
+                            row_extent = uniform_col_main;
+                        }
+                        else
+                        {
+                            uniform_col_main = row_extent;
+                            have_uniform_col_main = true;
+                        }
+                    }
+
                     for (int c = 0; c < static_cast<int>(cols.size()); ++c)
                     {
                         realized_col& col = cols[static_cast<std::size_t>(c)];
@@ -1249,6 +1330,25 @@ namespace maui::controls
                                                             col_cross, row_extent}
                                      : maui::graphics::rect{cursor + cell_margin.left, col_origin + cell_margin.top,
                                                             row_extent, col_cross};
+                        // MULTIPLE-SELECTION CHECKBOX CONTENT INSET (list only). `graphics::rect` is a real
+                        // screen-space rect regardless of `vertical` (the ternary above already resolved
+                        // which logical axis feeds x/width), so a single x/width adjustment here covers both
+                        // orientations. k_selection_checkbox_content_inset's own comment has the measurement;
+                        // this is the CONTENT side of that fix (the CHECKBOX side is paint_selection_checkbox
+                        // reading the now-corrected k_selection_checkbox_left_inset via slot_rect, untouched
+                        // here). DOCUMENTED LIMITATION: only shifts/shrinks the FINAL arrange rect that
+                        // arrange_realized_view below re-measures against -- the EARLIER per-cell probe
+                        // measure() feeding row_extent (this row's height) still uses the un-inset col_cross,
+                        // so a string that only starts wrapping once narrowed by this inset would under-
+                        // report its row's height. Not chased: the only two `!grid` + Multiple-selection
+                        // gallery pages (selection_synchronization, multiple_bound_selection) are short
+                        // "Item N" labels nowhere near a wrap boundary even after this inset.
+                        maui::graphics::rect content_rect = cell_rect;
+                        if (!platform->grid && platform->allows_multiple_selection)
+                        {
+                            content_rect.x += k_selection_checkbox_content_inset;
+                            content_rect.width = std::max(0.0, content_rect.width - k_selection_checkbox_content_inset);
+                        }
 
                         // ---- selection chrome (PAINT ONLY) --------------------------------------------
                         // Selection STATE keeps updating via the existing shared
@@ -1277,10 +1377,11 @@ namespace maui::controls
 
                         if (col.retain)
                         {
-                            // cell_rect above carries the !grouped margin translation -- see its comment
-                            // for the measured flat-vs-grouped partition and the still-open question of why
-                            // the grouped path already compensates.
-                            arrange_realized_view(col.retain, cell_rect);
+                            // content_rect == cell_rect except for a Multiple-selection list cell (the
+                            // checkbox content inset above); cell_rect itself carries the !grouped margin
+                            // translation -- see its comment for the measured flat-vs-grouped partition and
+                            // the still-open question of why the grouped path already compensates.
+                            arrange_realized_view(col.retain, content_rect);
                             platform->retained_natives.push_back(std::move(col.retain));
                         }
                     }
