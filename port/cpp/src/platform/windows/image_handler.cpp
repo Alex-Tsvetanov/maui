@@ -415,6 +415,18 @@ namespace maui::core
     // ImageHandler.Windows.cs's private UpdatePlatformMaxConstraints (oracle
     // src/Core/src/Handlers/Image/ImageHandler.Windows.cs:234-261), ported 1:1. Caps the CHILD Image's own
     // MaxWidth/MaxHeight -- see image_handler.hpp's declaration comment for why the host is not touched.
+    //
+    // WHY get_desired_size NEEDS NO MATCHING CAP ON THE HOST: FrameworkElement.Measure(availableSize) is a
+    // sealed WinUI behavior, not something this file implements -- it clamps the availableSize it hands to
+    // MeasureOverride, AND the DesiredSize it returns afterward, to THIS element's OWN MinWidth/MaxWidth
+    // (and Height), independent of whatever constraint the CALLER (here, the Border host's own
+    // MeasureOverride, invoked from get_desired_size's host.Measure) passed in. So setting MaxWidth/
+    // MaxHeight on the child Image alone is sufficient — a font source with e.g. MaximumWidthRequest=200/
+    // MaximumHeightRequest=200 (context_flyout's Image) self-limits to 200x200 inside its own Measure()
+    // call regardless of the huge unconstrained size the host/VerticalStackLayout offers, and the
+    // chromeless Border's own DesiredSize (no padding to add) equals that already-capped child size. This
+    // is traced from documented WinUI/UWP/WPF FrameworkElement measure semantics, not guest-observed —
+    // recheck on context_flyout's own recapture if this reasoning is ever in doubt.
     void image_handler::update_platform_max_constraints()
     {
         auto* platform = typed_platform_view();
