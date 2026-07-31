@@ -122,6 +122,19 @@ function(maui_add_app name)
     add_custom_command(TARGET ${name} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MAUI_WASDK_BOOTSTRAP_DLL}" "$<TARGET_FILE_DIR:${name}>"
       COMMENT "Copying Microsoft.WindowsAppRuntime.Bootstrap.dll next to ${name}")
+    # Win2D's native DLL, beside the exe for the same reason the bootstrap DLL above is -- but with a much
+    # quieter failure mode. C++/WinRT activates Microsoft.Graphics.Canvas.* by probing this DLL on the
+    # default search path (see the framework CMakeLists.txt windows block for the base.h line numbers), so
+    # if it is missing nothing crashes: font_image_source_service::load catches the activation failure and
+    # falls back to a blank transparent glyph, i.e. the page renders exactly as it did before Win2D existed.
+    # That is a parity regression that looks like "the fix didn't work", so fail the CONFIGURE instead.
+    if(NOT MAUI_WIN2D_DLL)
+      message(FATAL_ERROR "MAUI_WIN2D_DLL is not set; configure the framework for "
+                          "MAUI_BACKEND=windows through tools/parity/windows/configure_port_windows.ps1")
+    endif()
+    add_custom_command(TARGET ${name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MAUI_WIN2D_DLL}" "$<TARGET_FILE_DIR:${name}>"
+      COMMENT "Copying Microsoft.Graphics.Canvas.dll (Win2D) next to ${name}")
     if(ARG_RESOURCES)
       add_custom_command(TARGET ${name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARG_RESOURCES}

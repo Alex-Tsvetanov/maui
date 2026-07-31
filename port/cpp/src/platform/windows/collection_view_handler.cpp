@@ -379,7 +379,12 @@ namespace
 
     constexpr double k_selection_border_thickness = 2; // GridViewItem selected-state border stroke
     constexpr double k_selection_corner_radius = 4;    // GridViewItem selected-state corner rounding
-    constexpr double k_selection_indicator_width = 3;  // ListViewItem's left "selection indicator" bar
+    // The LINEAR-LIST selection backplate's inset inside the cell slot, and its corner rounding. See
+    // paint_selection_fill for the measurement and the generic.xaml citations. Grid cells use neither.
+    constexpr double k_selection_backplate_inset_x = 4;
+    constexpr double k_selection_backplate_inset_y = 2;
+    constexpr double k_selection_backplate_corner_radius = 4; // generic.xaml ListViewItemCornerRadius
+    constexpr double k_selection_indicator_width = 3;         // ListViewItem's left "selection indicator" bar
     // The bar's extent along the row's LONG axis is a CONSTANT 16, not a fraction of the row. The previous
     // model derived it as slot.height - 2*5, which tracked row height; MAUI's does not. Measured on two
     // pages with different row heights, MAUI's bar is 16px in BOTH: preselected_item y178-193 (port drew
@@ -470,10 +475,41 @@ namespace
             fill.CornerRadius(winui::CornerRadius{k_selection_corner_radius, k_selection_corner_radius,
                                                   k_selection_corner_radius, k_selection_corner_radius});
         }
-        canvas::SetLeft(fill, slot.x);
-        canvas::SetTop(fill, slot.y);
-        fill.Width(slot.width);
-        fill.Height(slot.height);
+        else
+        {
+            // LINEAR-LIST backplate: INSET inside the slot and ROUNDED — it does NOT fill the cell.
+            //
+            // This was the whole of selection_synchronization's SSIM failure, and it was invisible to the
+            // pixel count. The over-painted ring differs from the page background by only 9 (light) / 13
+            // (dark) — UNDER pixel_score.py's DIFF_THRESHOLD of 25 — so diff_pct read 0.01% while ~21,000
+            // structurally-wrong pixels dragged SSIM to 0.9696. Measured: 21,416 light / 21,249 dark
+            // sub-threshold pixels (modal delta 9 / 13) against just 53 / 63 above threshold. That is why
+            // eliminating the above-threshold pixels moved SSIM almost not at all.
+            //
+            // The inset is 4 dip horizontally, 2 dip vertically, measured identically on three pages
+            // (port slot -> MAUI backplate):
+            //   selection_synchronization  x13-1010 -> x17-1006      (L4 R4)
+            //   preselected_item           x8-1015  -> x12-1011      (L4 R4)
+            //   multiple_bound_selection   x8-1015  -> x12-1011      (L4 R4)
+            // Corner radius 4 is the oracle's own ListViewItemCornerRadius — generic.xaml:2302 (Dark),
+            // :7884 (Light), both <CornerRadius x:Key="ListViewItemCornerRadius">4</CornerRadius>, bound
+            // into the presenter at :27332 as CornerRadius="{ThemeResource ListViewItemCornerRadius}".
+            // (:5084 is the HighContrast copy, also 4.) The DefaultListViewItemStyle template carries no
+            // Margin setter, so the inset is rasterised inside the native ListViewItemPresenter and has no
+            // XAML-expressible form to copy — ruling 11: the render supplies the value.
+            //
+            // Visible consequence, and a good regression tell: two ADJACENT selected rows show a 4px
+            // page-background gap in MAUI where the port previously drew one merged block.
+            fill.CornerRadius(
+                winui::CornerRadius{k_selection_backplate_corner_radius, k_selection_backplate_corner_radius,
+                                    k_selection_backplate_corner_radius, k_selection_backplate_corner_radius});
+        }
+        const double inset_x = grid ? 0.0 : k_selection_backplate_inset_x;
+        const double inset_y = grid ? 0.0 : k_selection_backplate_inset_y;
+        canvas::SetLeft(fill, slot.x + inset_x);
+        canvas::SetTop(fill, slot.y + inset_y);
+        fill.Width(std::max(0.0, slot.width - (2 * inset_x)));
+        fill.Height(std::max(0.0, slot.height - (2 * inset_y)));
         panel.Children().Append(fill);
     }
 
@@ -589,7 +625,14 @@ namespace
             // darkest (26,26,26) light / brightest (230,230,230) dark -- text ink either way -- against the
             // port's flat 251-253 / 32-33.
             box.Background(dark ? alpha_brush(0x19, 0, 0, 0) : alpha_brush(0x06, 0, 0, 0));
-            box.BorderBrush(dark ? solid_brush(157, 157, 157) : solid_brush(135, 135, 135));
+            // ListViewItemCheckBoxBorderBrush -> ControlStrongStrokeColorDefaultBrush (generic.xaml:2314
+            // Dark / :7896 Light), which is TRANSLUCENT: #8BFFFFFF dark (:2008), #72000000 light (:7587).
+            // The previous opaque 157/135 were the exact composite of those over the page background
+            // (light 244*(1-114/255) = 134.9; dark 39+(255-39)*139/255 = 156.7) — which is why they looked
+            // correct and survived several passes. They are only correct where the background IS the page.
+            // Over the label's leading glyph, which starts UNDER the square, MAUI's border lets the text
+            // show through (MAUI reads 0x49 there against the port's opaque 0x87).
+            box.BorderBrush(dark ? alpha_brush(0x8B, 255, 255, 255) : alpha_brush(0x72, 0, 0, 0));
             box.BorderThickness(winui::Thickness{1, 1, 1, 1});
         }
         if (grid)
@@ -1448,12 +1491,17 @@ namespace maui::controls
                         if (selected)
                         {
                             paint_selection_fill(panel, dark_theme, platform->grid, slot_rect);
-                            if (!platform->grid && !platform->allows_multiple_selection)
-                            {
-                                paint_selection_indicator(panel, dark_theme, slot_rect, vertical);
-                            }
                         }
                         panel.Children().Append(col.native);
+                        // The indicator bar is appended AFTER the content, so it draws ON TOP of it — the
+                        // backplate stays BELOW. Measured: in the pill's own 3x16 footprint MAUI shows 47 of
+                        // 48 pixels as pure accent, i.e. the bar is unobstructed, while the port showed only
+                        // 30 because the label's leading glyph was painted over it. (That 17-pixel shortfall
+                        // was previously mistaken for corner-radius antialiasing; it is overdraw.)
+                        if (selected && !platform->grid && !platform->allows_multiple_selection)
+                        {
+                            paint_selection_indicator(panel, dark_theme, slot_rect, vertical);
+                        }
                         if (platform->allows_multiple_selection)
                         {
                             paint_selection_checkbox(panel, dark_theme, selected, platform->grid, slot_rect);

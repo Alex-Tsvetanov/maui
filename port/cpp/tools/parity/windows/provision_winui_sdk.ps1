@@ -29,7 +29,8 @@ param(
     [string]$WorkDir = "C:\maui-winui",
     [string]$WinAppSdkVersion = "1.7.250606001",
     [string]$CppWinRtVersion = "2.0.240405.15",
-    [string]$WebView2Version = "1.0.2903.40"
+    [string]$WebView2Version = "1.0.2903.40",
+    [string]$Win2DVersion = "1.3.2"
 )
 
 $ErrorActionPreference = "Stop"
@@ -55,6 +56,7 @@ if (-not (Test-Path $nuget)) {
 $packages = Join-Path $WorkDir "packages"
 foreach ($pkg in @(@{n="Microsoft.WindowsAppSDK"; v=$WinAppSdkVersion},
                    @{n="Microsoft.Web.WebView2";  v=$WebView2Version},
+                   @{n="Microsoft.Graphics.Win2D"; v=$Win2DVersion},
                    @{n="Microsoft.Windows.CppWinRT"; v=$CppWinRtVersion})) {
     $dest = Join-Path $packages ($pkg.n + "." + $pkg.v)
     if (Test-Path $dest) { Ok "$($pkg.n) $($pkg.v) already restored"; continue }
@@ -68,11 +70,13 @@ foreach ($pkg in @(@{n="Microsoft.WindowsAppSDK"; v=$WinAppSdkVersion},
 
 $wasdk = Join-Path $packages ("Microsoft.WindowsAppSDK." + $WinAppSdkVersion)
 $webview2 = Join-Path $packages ("Microsoft.Web.WebView2." + $WebView2Version)
+$win2d = Join-Path $packages ("Microsoft.Graphics.Win2D." + $Win2DVersion)
 $cppwinrtPkg = Join-Path $packages ("Microsoft.Windows.CppWinRT." + $CppWinRtVersion)
 
 # ---------------------------------------------------------------- cppwinrt projection
 $generated = Join-Path $WorkDir "generated"
-if (Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h")) {
+if ((Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h")) -and
+    (Test-Path (Join-Path $generated "winrt\Microsoft.Graphics.Canvas.h"))) {
     Ok "projection already generated"
 } else {
     $cppwinrt = Get-ChildItem -Path $cppwinrtPkg -Filter cppwinrt.exe -Recurse | Select-Object -First 1
@@ -81,7 +85,7 @@ if (Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h")) {
     # An empty -in would silently produce a projection missing every Microsoft.UI type, and the first
     # error would be a confusing "no such header" hundreds of lines later.
     $winmds = @()
-    foreach ($root in @($wasdk, $webview2)) {
+    foreach ($root in @($wasdk, $webview2, $win2d)) {
         $winmds += Get-ChildItem -Path $root -Filter *.winmd -Recurse -EA SilentlyContinue |
                    Select-Object -ExpandProperty FullName
     }
@@ -100,9 +104,13 @@ if (Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h")) {
     if (-not (Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h"))) {
         throw "cppwinrt reported success but winrt/Microsoft.UI.Xaml.Controls.h is missing"
     }
+    if (-not (Test-Path (Join-Path $generated "winrt\Microsoft.Graphics.Canvas.h"))) {
+        throw "cppwinrt reported success but winrt/Microsoft.Graphics.Canvas.h is missing (Win2D winmd not picked up?)"
+    }
     Ok "projection generated into $generated"
 }
 
 # Forward slashes: these go straight into a CMake -D argument, where a backslash is an escape.
 Write-Output ("WINAPPSDK=" + ($wasdk -replace '\\','/'))
 Write-Output ("WINUI_GENERATED=" + ($generated -replace '\\','/'))
+Write-Output ("WIN2D=" + ($win2d -replace '\\','/'))

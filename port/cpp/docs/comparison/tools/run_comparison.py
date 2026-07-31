@@ -489,7 +489,14 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                               # `#if WINDOWS` block, harmlessly unused on every other column/platform, same
                               # shape as MAUI_CAPTURE_TINT_NORMAL above. Passed unconditionally so all three
                               # columns get it identically rather than only the reference column.
-                              "MAUI_SUPPRESS_FOCUS_VISUAL=1"]
+                              "MAUI_SUPPRESS_FOCUS_VISUAL=1",
+                              # Where BOTH columns write diagnostics: the C++ backend's boot_log()
+                              # (host_run.cpp) and App.xaml.cs's focus-suppression line. Without this
+                              # they go nowhere -- cmd_launch uses Popen(DETACHED_PROCESS) with no stdout
+                              # redirect (vm_agent_windows.py) and an unpackaged WinUI 3 app has no
+                              # console attached, so Console.Out is discarded outright. Per-column and
+                              # per-theme so two columns never interleave into one file.
+                              f"MAUI_WINUI_LOG={posixpath.dirname(ccfg['_remote'])}\\diag_{col}_{theme}.log"]
                 if ccfg.get("driver") == "cpp_devflow" and ccfg.get("devflow_port"):
                     launch_env.append(f"MAUI_DEVFLOW_PORT={ccfg['devflow_port']}")  # starts the in-app agent
                 launch_args = ["launch", "--bundle", ccfg["_remote"], "--proc", ccfg["process"]]

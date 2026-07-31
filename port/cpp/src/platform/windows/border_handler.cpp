@@ -395,10 +395,9 @@ namespace
             return;
         }
         const auto* round_rect = dynamic_cast<const maui::graphics::shapes::round_rectangle*>(spec.shape);
-        maui::graphics::path_f clip = round_rect != nullptr
-                                          ? inner_round_rectangle_path(*round_rect, path_size, thickness / 2.0)
-                                          : spec.shape->path_for_bounds(
-                                                maui::core::shape_self_inset(path_size, thickness));
+        maui::graphics::path_f clip =
+            round_rect != nullptr ? inner_round_rectangle_path(*round_rect, path_size, thickness / 2.0)
+                                  : spec.shape->path_for_bounds(maui::core::shape_self_inset(path_size, thickness));
         // C#'s `geometricClip.Offset = strokeThickness - Content.ActualOffset` places the clip at (T, T)
         // in the PANEL's space; this visual already starts at the host's origin (file header, deviation
         // 1), so the placement is the translate alone.
@@ -500,8 +499,31 @@ namespace maui::core
 
         // BorderExtensions.UpdatePath: PathForBounds fitted to (width - thickness, height - thickness),
         // then a RenderTransform translate of (thickness/2, thickness/2) centers the stroke ON the shape
-        // edge. The port bakes the same translate into the geometry via path_f::transform instead of a
-        // separate XAML RenderTransform object — the identical net position, one fewer native object.
+        // edge (BorderExtensions.cs:30, verbatim:
+        //   borderPath.RenderTransform = new TranslateTransform() { X = st / 2, Y = st / 2 };).
+        //
+        // CORRECTED. This handler used to BAKE that translate into the geometry via path_f::transform,
+        // documented here as "the identical net position, one fewer native object". The net RECT is indeed
+        // identical — but the RASTERIZATION is not, and that deviation was the whole of varied_size_selector's
+        // 3.05% dark diff (24,398 of 24,961 differing pixels = 97.7%, a 2px soft ring around all six cells).
+        //
+        // A RenderTransform is a COMPOSITION-time transform: WinUI rasterizes the geometry at its LOCAL
+        // coordinates and then RESAMPLES that raster by the offset. Baking translates the geometry before
+        // rasterization, so the edges land on different subpixel positions. At the default StrokeThickness
+        // 1.0 (Border.cs:174) the difference is maximal: path_bounds is (0,0,W-1,H-1) and shape_self_inset
+        // adds 0.5/side, putting the LOCAL fill edges on HALF-integers (0.5, H-1.5). Analytic AA there gives
+        // coverage [0.5, 1, 1, ... 1, 0.5]; resampling that by +0.5 gives out[q] = 0.5*L[q-1] + 0.5*L[q] =
+        // 0.25, 0.75, 1.00 ... 0.75, 0.25 — a two-step ramp. Baking instead puts those edges on INTEGERS and
+        // rasterizes them HARD. Measured on varied_size_selector_dark.png at x=500 over the wheat cell
+        // (245,222,179) on (39,39,39):
+        //     MAUI  y32=(92,86,75)  y33=(194,177,145)  y34=wheat     <- the 0.25 / 0.75 / 1.00 ramp
+        //     port  y32=(39,39,39)  y33=wheat                        <- hard cutoff, no ramp
+        // The predicted 0.25/0.75 matches the measured 0.257/0.754 on both axes, and the corners are the
+        // exact separable product of the two 1-D ramps — i.e. a pure half-pixel resample of a hard
+        // rectangle, which is precisely what a RenderTransform does and a bake cannot.
+        //
+        // This is also why every prior pass concluded "geometry matches to sub-pixel precision" and looked
+        // elsewhere (native cell hosting): the geometry DOES match. Only the rasterization differed.
         const double thickness = spec.thickness;
         const maui::graphics::rect path_bounds{0, 0, std::max(0.0, width - thickness),
                                                std::max(0.0, height - thickness)};
@@ -518,10 +540,8 @@ namespace maui::core
         // NOTE this handler's earlier comment called the gate "MEASURED, not derived from src/", on the
         // reading that Shape.TransformPathForBounds applies unconditionally. That was incomplete: the gate
         // IS in src/ (Border.cs:433-439). See the shared helper.
-        maui::graphics::path_f geometry =
+        const maui::graphics::path_f geometry =
             spec.shape->path_for_bounds(maui::core::shape_self_inset(path_bounds, thickness));
-        const auto half_thickness = static_cast<float>(thickness / 2.0);
-        geometry.transform(maui::graphics::matrix3x2::create_translation(half_thickness, half_thickness));
         // winui_shape_ops::build_path_geometry, no winding argument: Border has no winding-mode surface
         // at all (i_border_stroke exposes none), so there is nothing to set PathGeometry.FillRule from —
         // WinUI's own default (EvenOdd) is left standing, matching GraphicsExtensions.AsPathGeometry
@@ -529,6 +549,15 @@ namespace maui::core
         // (shape_view_handler.cpp's call DOES pass a winding, because that control's own oracle carries
         // one — see winui_shape_ops.hpp's header comment for the shared walk and this FillRule split.)
         path.Data(maui::platform::windows::build_path_geometry(geometry));
+
+        // The stroke-centering offset, as a real RenderTransform — see the derivation above. Set
+        // UNCONDITIONALLY, matching the oracle: BorderExtensions.cs assigns Data and RenderTransform
+        // together inside one `borderPath is not null` branch, with no thickness gate (a thickness of 0
+        // simply yields an identity translate).
+        winui::Media::TranslateTransform stroke_center_offset;
+        stroke_center_offset.X(thickness / 2.0);
+        stroke_center_offset.Y(thickness / 2.0);
+        path.RenderTransform(stroke_center_offset);
 
         // UpdateStroke/UpdateStrokeThickness: like every backend's border_stroke_spec mirror, only the
         // RESOLVED SOLID color survives (border_handler.hpp: "Gradient strokes are out of scope") — a

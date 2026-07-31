@@ -91,7 +91,62 @@ public partial class App : Application
                     {
                         control.UseSystemFocusVisuals = false;
                     }
-                    Console.Out.WriteLine($"[reference] DEFOCUS {focused.GetType().Name} refocused={refocused}");
+
+                    // (c) A THIRD lever, because (a) and (b) are STRUCTURALLY INCAPABLE of clearing a text
+                    // control's focus paint. Both act only on the SYSTEM-DRAWN focus rect. That is the only
+                    // focus pixel a Button has -- WinUI's generic.xaml declares DefaultButtonStyle at :27399
+                    // and its ControlTemplate's CommonStates group is Normal/PointerOver/Pressed/Disabled
+                    // with NO Focused state at all -- which is why (a)+(b) alone took `label` light from
+                    // 0.50% to 0.01%. But AutoSuggestBoxTextBoxStyle (:15988, wired to AutoSuggestBox at
+                    // :34199) -> ControlTemplate TargetType="TextBox" (:16006) -> CommonStates ->
+                    // <VisualState x:Name="Focused"> repaints the CONTROL ITSELF: BorderElement.Background =
+                    // TextControlBackgroundFocused, BorderElement.BorderBrush = TextControlBorderBrushFocused,
+                    // BorderElement.BorderThickness = TextControlBorderThemeThicknessFocused = "1,1,1,2"
+                    // (:1965 Dark dict / :7544 Light) -- a 2px BOTTOM edge in the accent gradient. That is
+                    // exactly the measured search_bar artifact: rows 109-110, 1946 px, plus the box interior
+                    // switching ControlFillColorDefault -> ControlFillColorInputActive. CommonStates carries
+                    // no FocusState discrimination, so Pointer focus enters "Focused" identically to
+                    // Programmatic focus. Only genuinely LOSING focus clears it.
+                    //
+                    // VERIFIED NECESSARY, not assumed: a full-board recapture on a build already containing
+                    // (a)+(b) still scored search_bar light 0.9927/0.24%, dark 0.9754/0.43%.
+                    //
+                    // Blur to the OUTERMOST Control ancestor, never the nearest: an AutoSuggestBox is the
+                    // nearest Control above its own inner TextBox (SearchBarHandler.Windows.cs:6 makes the
+                    // Windows SearchBar an AutoSuggestBox, and its own comment notes the inner TextBox is
+                    // what actually takes focus), and focusing it just delegates straight back down.
+                    // WindowRootView sets IsTabStop=false in its ctor (WindowRootView.cs:42), so it must be
+                    // re-enabled before Focus() will take; its ControlTemplate
+                    // (Styles/WindowRootViewStyle.xaml:63) declares no VisualStateManager at all, so
+                    // focusing it paints nothing of its own beyond the system rect, which we also disable.
+                    Microsoft.UI.Xaml.Controls.Control blurTarget = null;
+                    for (var node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(focused);
+                         node is not null;
+                         node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node))
+                    {
+                        if (node is Microsoft.UI.Xaml.Controls.Control candidate)
+                        {
+                            blurTarget = candidate;
+                        }
+                    }
+
+                    var blurred = false;
+                    if (blurTarget is not null)
+                    {
+                        blurTarget.IsTabStop = true;
+                        blurTarget.UseSystemFocusVisuals = false;
+                        // Re-read focus rather than trusting Focus()'s return: WinUI can report true while
+                        // delegating focus straight back to the same descendant, and a bounce-back would
+                        // otherwise be indistinguishable from a real blur in the log below.
+                        blurred = blurTarget.Focus(Microsoft.UI.Xaml.FocusState.Programmatic) &&
+                                  !ReferenceEquals(
+                                      Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(xamlRoot), focused);
+                    }
+
+                    var nowFocused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(xamlRoot);
+                    Console.Out.WriteLine(
+                        $"[reference] DEFOCUS {focused.GetType().Name} refocused={refocused} " +
+                        $"blurred={blurred} now={(nowFocused as object)?.GetType().Name ?? "none"}");
                 }
             };
         }

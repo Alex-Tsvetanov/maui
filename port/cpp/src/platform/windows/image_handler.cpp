@@ -623,6 +623,21 @@ namespace maui::core
             // without this call update_platform_max_constraints() (which a Fill-aligned axis skips past
             // regardless, but a non-Fill axis depends on) would never run for a font source at all.
             notify_if_already_open(platform, image);
+            // Env-gated. A font source can reach here with a fully-rasterized bitmap and still show
+            // nothing, so log what actually landed on Source rather than inferring from "no error".
+            if (const char* const log_path = std::getenv("MAUI_WINUI_LOG"))
+            {
+                std::FILE* file = nullptr;
+                if (fopen_s(&file, log_path, "a") == 0 && file != nullptr)
+                {
+                    const auto applied = image.Source().try_as<bitmap_source>();
+                    std::fprintf(file, "apply_source: kind='%s' applied=%d px=%dx%d opacity=%.2f vis=%d\n",
+                                 result.kind().c_str(), applied ? 1 : 0, applied ? applied.PixelWidth() : -1,
+                                 applied ? applied.PixelHeight() : -1, static_cast<double>(image.Opacity()),
+                                 image.Visibility() == winui::Visibility::Visible ? 1 : 0);
+                    std::fclose(file);
+                }
+            }
         }
     }
 
@@ -635,6 +650,18 @@ namespace maui::core
         if (platform.native != nullptr)
         {
             const image_control image = as_image(platform.native);
+            // Env-gated. apply_loaded_result can verifiably set a good Source and the control can STILL
+            // render nothing, which happens if a later mapper pass lands here and clears it. Log so the
+            // two are distinguishable in one run.
+            if (const char* const log_path = std::getenv("MAUI_WINUI_LOG"))
+            {
+                std::FILE* file = nullptr;
+                if (fopen_s(&file, log_path, "a") == 0 && file != nullptr)
+                {
+                    std::fprintf(file, "clear_source: had_source=%d\n", image.Source() != nullptr ? 1 : 0);
+                    std::fclose(file);
+                }
+            }
             reset_platform_max_constraints(image);
             image.Source(nullptr);
         }

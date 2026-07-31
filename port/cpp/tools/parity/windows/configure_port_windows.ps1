@@ -79,9 +79,11 @@ $sdkOut = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSSc
 $sdkOut | ForEach-Object { Write-Host "   $_" }
 $wasdk = ($sdkOut | Select-String '^WINAPPSDK=(.+)$').Matches.Groups[1].Value
 $generated = ($sdkOut | Select-String '^WINUI_GENERATED=(.+)$').Matches.Groups[1].Value
-if (-not $wasdk -or -not $generated) { throw "provision_winui_sdk.ps1 did not report both paths" }
+$win2d = ($sdkOut | Select-String '^WIN2D=(.+)$').Matches.Groups[1].Value
+if (-not $wasdk -or -not $generated -or -not $win2d) { throw "provision_winui_sdk.ps1 did not report all three paths" }
 Info "WindowsAppSDK: $wasdk"
 Info "projection   : $generated"
+Info "Win2D        : $win2d"
 
 $env:VCPKG_ROOT = "C:\vcpkg"
 Info "configuring (vcpkg builds gtest/benchmark/pugixml first; this is the slow part)"
@@ -101,6 +103,7 @@ $cmakeArgs = @(
     "-DMAUI_TARGET_ABI=$abi",
     "-DMAUI_WINAPPSDK=$wasdk",
     "-DMAUI_WINUI_GENERATED=$generated",
+    "-DMAUI_WIN2D=$win2d",
     "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 )
 Info ("cmake " + ($cmakeArgs -join " "))
