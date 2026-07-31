@@ -1,6 +1,6 @@
 # .NET MAUI C++ port — visual parity comparison
 
-Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **macOS** (Mac Catalyst + AppKit) and **Android**. Each section is collapsible and holds a discrepancy-count summary, then one subheader per page titled with a `{Sonnet}/{Gemini}` status-emoji combo (🟢 match / 🟡 minor / 🔴 major / ⬛ blank / ⏳ unreviewed). Under each page: the MAUI / C++ / C++&amp;XAML renders (light over dark; missing captures show a placeholder), then a subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's own status emoji and holding its review prose. Generated from `comparison.json` by `tools/gen_readme.py` — do not edit by hand. A final **Windows** section appears when `windows_pipeline.json` is present; it records PIPELINE validation, not parity — see its own preamble.
+Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **macOS** (Mac Catalyst + AppKit) and **Android**. Each section is collapsible and holds a discrepancy-count summary, then one subheader per page titled with a `{Sonnet}/{Gemini}` status-emoji combo (🟢 match / 🟡 minor / 🔴 major / ⬛ blank / ⏳ unreviewed). Under each page: the MAUI / C++ / C++&amp;XAML renders (light over dark; missing captures show a placeholder), then a subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's own status emoji and holding its review prose. Generated from `comparison.json` by `tools/gen_readme.py` — do not edit by hand.
 
 <details>
 <summary><h2>iOS (172 examples) — click to expand</h2></summary>
@@ -7794,31 +7794,2598 @@ Light: SSIM 1.0, 0.0% pixels differ · Dark: SSIM 1.0, 0.0% pixels differ
 </details>
 
 <details>
-<summary><h2>Windows — pipeline validation (NOT a parity result) — click to expand</h2></summary>
+<summary><h2>Windows (172 examples) — click to expand</h2></summary>
 
-> **This section is not a visual-parity result and must not be read as one.** The Windows column is the mingw-cross **Win32 smoke app**, which paints the same layout for every page (only the title and a page-hash-derived swatch row change) — it is not the gallery. There is also no MAUI Windows reference column, so **no scores are computed**. MAUI's Windows backend is WinUI 3 (`Microsoft.UI.Xaml`), so only a WinUI 3 render can ever be compared against MAUI — see `docs/WINDOWS_TOOLCHAIN.md`.
+Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows backend — captured on a Windows 11 ARM64 VM in light and dark. **The C++ columns are empty on purpose:** the port has no Windows backend yet, so `MAUI_BACKEND=windows` falls through to the headless mirrors (which create no widgets) and `examples/gallery` does not even link for Windows. This section therefore publishes the MAUI **reference** and shows the C++ gap honestly rather than hiding it; see `docs/WINDOWS_TOOLCHAIN.md`.
 
-What it *does* establish: the end-to-end Windows harness works at board scale — every page launched in the guest's interactive session, was pinned to an exact window rect, and produced a decodable, correctly-sized, page-distinct PNG that the host pulled back.
+**Discrepancy counts** (MAUI-vs-C++ parity verdicts from the deterministic pixel-perfect score — SSIM + per-pixel diff; AI-based review has been invalidated/removed):
 
-Run `2026-07-28-00_25_41` at commit `db3bc539f0` (column `cpp_smoke`). Captures live in a gitignored dated run directory; this table is the committed record.
+| Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
+| --- | --- | --- |
+| 🟢 Match | 0 | 0 |
+| 🟡 Minor | 0 | 0 |
+| 🔴 Major | 0 | 0 |
+| ⬛ Blank | 0 | 0 |
+| ⏳ Unreviewed | 172 | 172 |
 
-| Metric | Value |
-| --- | --- |
-| Pages captured | 6 |
-| Frames captured | 14 |
-| Frames dropped (window never presented) | 0 |
-| Frames undecodable | 0 |
-| Distinct images | 12 of 14 |
-| Identical frames within a page | 2 |
-| Identical frames ACROSS pages | 0 |
-| Capture sizes | `1024x800` x14 |
-| Presented window bounds | `[128, 30, 1024, 800]` x14 |
-| Themes | dark x7, light x7 |
+### 1. Absolute Layout — ⏳/⏳
+<sub>absolute_layout</sub>
 
-Caveats recorded with the run:
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
 
-- The Windows column is the mingw-cross Win32 SMOKE app, not the gallery: it paints the same layout for every page, varying only the title and a page-hash-derived swatch row. These frames therefore say nothing about MAUI visual fidelity.
-- There is no MAUI Windows reference column yet, so no scores are computed -- the runner skips scoring when maui_xaml is absent.
-- MAUI's Windows backend is WinUI 3 (Microsoft.UI.Xaml), so only a WinUI 3 render can ever be compared against MAUI. See docs/WINDOWS_TOOLCHAIN.md.
+ports AbsoluteLayoutPage.xaml A self-contained, code-first demo of the AbsoluteLayout control
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 2. Activity Indicator — ⏳/⏳
+<sub>activity_indicator</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 3. Adaptive Collection — ⏳/⏳
+<sub>adaptive_collection</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports AdaptiveCollectionView.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.AdaptiveCollectionView)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 4. Alerts — ⏳/⏳
+<sub>alerts</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports AlertsPage.xaml (+ AlertsPage.xaml.cs) The C# AlertsPage drives the three Page dialog services — DisplayAlertAsync (simple OK + Yes/No), DisplayActionSheetAsync (simple + Cancel/Delete), and DisplayPromptAsync (two questions) — from a
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 5. Alignment — ⏳/⏳
+<sub>alignment</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;alignment&amp;quot; demo (ComparePages.Alignment()), the shipped-.NET-MAUI reference for the visual-parity comparison
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 6. Animation — ⏳/⏳
+<sub>animation</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 7. App Theme Binding — ⏳/⏳
+<sub>app_theme_binding</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports AppThemeBindingPage.xaml
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 8. Application Control — ⏳/⏳
+<sub>application_control</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ApplicationControlPage.xaml (+ .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 9. Auto Size Shapes — ⏳/⏳
+<sub>auto_size_shapes</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports AutoSizeShapesGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/AutoSizeShapesGallery.xaml: a 3-row Grid (RowSpacing 0) that proves a stroked Ellipse auto-sizes to fill exactly half of the av
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 10. Basic Grouping — ⏳/⏳
+<sub>basic_grouping</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports GroupingGalleries/BasicGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 11. Basic Swipe — ⏳/⏳
+<sub>basic_swipe</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BasicSwipeGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/BasicSwipeGallery.xaml: a vertical StackLayout of five SwipeViews, each demonstrating a different revealed-side / SwipeMode c
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 12. Behaviors — ⏳/⏳
+<sub>behaviors</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BehaviorsPage.xaml (+ .xaml.cs) and its companion Controls.Sample/Behaviors/NumericValidationBehavior.cs
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 13. Border — ⏳/⏳
+<sub>border</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;border&amp;quot; demo (ComparePages.BorderPage()), the shipped-.NET-MAUI reference for the visual-parity comparison: a single Border centered on the page — red 5pt stroke, a RoundRectangle StrokeShape (Co
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 14. Border Clip Playground — ⏳/⏳
+<sub>border_clip_playground</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BorderClipPlayground.xaml (+ .xaml.cs) The C# page is an interactive Border-shape playground: a 100x100 Border (red stroke) clips an AspectFill Image (oasis.jpg) into the currently selected StrokeShape, while controls below mutate the
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 15. Border Layout — ⏳/⏳
+<sub>border_layout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BorderLayout.xaml (+ BorderLayout.xaml.cs) The C# page demonstrates driving Border.StrokeThickness from a Slider: a Slider (0..40, set to 5 in OnAppearing) is bound to the Border&amp;#x27;s StrokeThickness; the Border (Silver stroke, White bac
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 16. Border Playground — ⏳/⏳
+<sub>border_playground</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs) A self-contained, code-first interactive Border playground
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 17. Border Resize Content — ⏳/⏳
+<sub>border_resize_content</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BorderResizeContent.xaml A self-contained, code-first demo that resizes a Border&amp;#x27;s CONTENT and watches the Border track it
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 18. Border Stroke — ⏳/⏳
+<sub>border_stroke</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BorderStroke.xaml (+ BorderStroke.xaml.cs) A self-contained, code-first demo of Border StrokeThickness and how a Border tracks the height of its content
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 19. Borderless — ⏳/⏳
+<sub>borderless</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports Borderless.xaml A self-contained, code-first demo of a stroke-less Border
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 20. Box View — ⏳/⏳
+<sub>box_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports BoxViewPage.xaml (+ BoxViewPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 21. Button — ⏳/⏳
+<sub>button</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 22. Carousel Page — ⏳/⏳
+<sub>carousel_page</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+Carousel Page
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 23. Chat Example — ⏳/⏳
+<sub>chat_example</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ChatExample.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.ItemSizeGalleries.ChatExample), tracking the maui-compare reference demo ~/maui-compare/Pages/ChatExamplePage.cs (the visual-parity oracle)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 24. Check Box — ⏳/⏳
+<sub>check_box</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CheckBoxPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined CheckBox states — Default, Colored (Color=Purple), Disabled, Disabled+Colored+Checked — followed by a &amp;quot;Change IsChecked&amp;quot; row pairing a Button
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 25. Chrome — ⏳/⏳
+<sub>chrome</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W1-11 window-chrome family: page toolbar items (primary + secondary), a menu bar (File menu with items, a separator and a sub-menu), a context flyout (right-click menu) on a button, and a tooltip — all wir
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 26. Clip — ⏳/⏳
+<sub>clip</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout that shows the SAME dotnet_bot.png image five times, each successive copy carrying a different geome
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 27. Clip Corner Radius — ⏳/⏳
+<sub>clip_corner_radius</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/ShapesGalleries/ClipCornerRadiusGallery.xaml) is a StackLayout (Padding=12) that demonstrates DRIVING a RoundRectangleGeometry&amp;#x27;s per-corner CornerRadius from four s
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 28. Clip Gallery — ⏳/⏳
+<sub>clip_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that shows the SAME &amp;quot;oasis.jpg&amp;quot; image SEVEN times — one bare
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 29. Clip Views — ⏳/⏳
+<sub>clip_views</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipViewsGallery.xaml; no code-behind beyond an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that proves the Clip surface (VisualElement.C
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 30. Clipping — ⏳/⏳
+<sub>clipping</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror this gallery page)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 31. Collectionview — ⏳/⏳
+<sub>collectionview</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;collectionview&amp;quot; demo (ComparePages.CollectionViewPage()), the shipped-.NET-MAUI reference for the visual-parity comparison: a CollectionView over 24 captioned items, a string Header (&amp;quot;This is the
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 32. Composition Gallery — ⏳/⏳
+<sub>composition_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CompositionGallery.xaml A self-contained, code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/CompositionGallery.xaml: a StackLayout holding two Beige 250x250 Grids (Margin 12) that compose multiple overlappi
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 33. Containers — ⏳/⏳
+<sub>containers</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W1-07 container set: a scroll_view hosting a vertical stack of content-hosting containers — a border-framed label (stroke + dashed outline + rounded shape), a legacy frame (BorderColor/CornerRadius/HasShad
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 34. Content View — ⏳/⏳
+<sub>content_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ContentViewPage.xaml (+ ContentViewPage.xaml.cs), code-first
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 35. Context Flyout — ⏳/⏳
+<sub>context_flyout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches a MenuFlyout as the FlyoutBase.ContextFlyout (right-click / long-press menu) of several controls and wires each menu item to a handler: - a Button (&amp;quot;Increment b
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 36. Controls Stack — ⏳/⏳
+<sub>controls_stack</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; demo (ComparePages.ControlsStack()), the shipped-.NET-MAUI reference for the visual-parity comparison: a VerticalStackLayout (Spacing 12, Padding 16) showcasing the basic widgets
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 37. Custom Layout — ⏳/⏳
+<sub>custom_layout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CustomLayoutPage.xaml (+ CustomLayoutPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 38. Custom Size Swipe — ⏳/⏳
+<sub>custom_size_swipe</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CustomSizeSwipeViewGallery.xaml (+ .xaml.cs) The MAUI CustomSizeSwipeViewGallery is a single SwipeView whose Left / Right / Top item collections each reveal CUSTOM-SIZED content: a SwipeItemView wrapping a Grid/StackLayout with an exp
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 39. Custom Swipe Item View — ⏳/⏳
+<sub>custom_swipe_item_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CustomSwipeItemViewGallery.xaml A self-contained, code-first port of the .NET MAUI &amp;quot;CustomSwipeItem&amp;quot; gallery: a message-list row whose right swipe reveals a CUSTOM-content swipe item (a swipe_item_view, not a plain swipe_item)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 40. Cv Visual States — ⏳/⏳
+<sub>cv_visual_states</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CollectionViewGalleries/SelectionGalleries/ VisualStatesGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 41. Data Template Selector — ⏳/⏳
+<sub>data_template_selector</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports DataTemplateSelectorGallery.xaml (+ DataTemplateSelectorGallery.xaml.cs, including its WeekendSelector + SearchTermSelector classes)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 42. Date Picker — ⏳/⏳
+<sub>date_picker</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 43. Device — ⏳/⏳
+<sub>device</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports DevicePage.xaml
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 44. Dispatcher — ⏳/⏳
+<sub>dispatcher</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports DispatcherPage.xaml (+ .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 45. Drag Drop — ⏳/⏳
+<sub>drag_drop</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports DragAndDropBetweenLayouts.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.DragAndDropBetweenLayouts)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 46. Editor — ⏳/⏳
+<sub>editor</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EditorPage.xaml (Microsoft.Maui.Controls sample gallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 47. Effects — ⏳/⏳
+<sub>effects</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EffectsPage.xaml (Maui.Controls.Sample.Pages.EffectsPage)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 48. Ellipse Gallery — ⏳/⏳
+<sub>ellipse_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EllipseGallery.xaml A self-contained, code-first port of the MAUI Shapes EllipseGallery (Pages/Controls/ShapesGalleries/EllipseGallery.xaml + .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 49. Empty View — ⏳/⏳
+<sub>empty_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewStringGallery.xaml (+ EmptyViewStringGallery.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 50. Empty View Load Simulate — ⏳/⏳
+<sub>empty_view_load_simulate</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewGalleries/EmptyViewLoadSimulateGallery.xaml (+ EmptyViewLoadSimulateGallery.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 51. Empty View Null — ⏳/⏳
+<sub>empty_view_null</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewGalleries/EmptyViewNullGallery.xaml (+ EmptyViewNullGallery.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 52. Empty View Rtl — ⏳/⏳
+<sub>empty_view_rtl</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewGalleries/EmptyViewRTLGallery.xaml (+ EmptyViewRTLGallery.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 53. Empty View Selector — ⏳/⏳
+<sub>empty_view_selector</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewGalleries/EmptyViewWithDataTemplateSelector.xaml (+ .xaml.cs, incl
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 54. Empty View Swap — ⏳/⏳
+<sub>empty_view_swap</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewGalleries/EmptyViewSwapGallery.xaml (+ .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 55. Empty View Template — ⏳/⏳
+<sub>empty_view_template</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewGalleries/EmptyViewTemplateGallery.xaml (+ EmptyViewTemplateGallery.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 56. Empty View View — ⏳/⏳
+<sub>empty_view_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EmptyViewGalleries/EmptyViewViewGallery.xaml (+ EmptyViewViewGallery.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 57. Entry — ⏳/⏳
+<sub>entry</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports EntryPage.xaml (Microsoft.Maui.Controls sample gallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 58. Filter Collection — ⏳/⏳
+<sub>filter_collection</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports FilterCollectionView.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 59. Filter Selection — ⏳/⏳
+<sub>filter_selection</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports FilterSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.FilterSelection)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 60. Flex Layout — ⏳/⏳
+<sub>flex_layout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports FlexLayoutPage.xaml A self-contained, code-first demo of the FlexLayout control: the classic &amp;quot;holy grail&amp;quot; page layout built from nested flexboxes
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 61. Focus — ⏳/⏳
+<sub>focus</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports FocusPage.xaml (+ FocusPage.xaml.cs) The C# FocusPage is a focus-subsystem demo: an Entry whose Focused/Unfocused events (OnFocusEntryFocusChanged) append &amp;quot;Focused&amp;quot;/&amp;quot;Unfocused&amp;quot; lines to a scrolling InfoLabel, plus two buttons — &amp;quot;Focus
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 62. Fonts — ⏳/⏳
+<sub>fonts</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;fonts&amp;quot; demo (ComparePages.Fonts()), the shipped-.NET-MAUI reference for the visual-parity comparison: a ScrollView over a VerticalStackLayout (Spacing 8, Padding 16) of nine Labels — Title/Subtit
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 63. Footer Only String — ⏳/⏳
+<sub>footer_only_string</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports FooterOnlyString.xaml (+ FooterOnlyString.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 64. Formatted Text — ⏳/⏳
+<sub>formatted_text</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the G1 rich-text slice: a label whose FormattedText is built from several styled spans (bold / italic / colored / underlined / kerned), plus a plain label proving the Text ⇄ FormattedText exclusivity
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 65. Gestures — ⏳/⏳
+<sub>gestures</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports GesturesPage.xaml (+ .xaml.cs) The MAUI GesturesPage.xaml is a *gallery navigation* page: a CollectionView listing gesture-demo sections that the shell navigates into
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 66. Gradient — ⏳/⏳
+<sub>gradient</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;gradient&amp;quot; demo (ComparePages.Gradient()), the shipped-.NET-MAUI reference for the visual-parity comparison: a VerticalStackLayout (Spacing 12, Padding 16) of two captioned 60px BoxViews — a Linea
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 67. Grid — ⏳/⏳
+<sub>grid</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;grid&amp;quot; demo (ComparePages.GridPage()), the shipped-.NET-MAUI reference for the visual-parity comparison: a Grid (Padding 16, Row/ColumnSpacing 6) with RowDefinitions Auto / 80 / 80 and two Star co
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 68. Grid Grouping — ⏳/⏳
+<sub>grid_grouping</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports GroupingGalleries/GridGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 69. Grouping No Templates — ⏳/⏳
+<sub>grouping_no_templates</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports GroupingGalleries/GroupingNoTemplates.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 70. Grouping Plus Selection — ⏳/⏳
+<sub>grouping_plus_selection</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CollectionViewGalleries/GroupingGalleries/ GroupingPlusSelection.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 71. Header Footer — ⏳/⏳
+<sub>header_footer</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HeaderFooterString.xaml (+ HeaderFooterString.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 72. Header Footer Grid — ⏳/⏳
+<sub>header_footer_grid</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HeaderFooterGrid.xaml (+ HeaderFooterGrid.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 73. Header Footer Grid Horizontal — ⏳/⏳
+<sub>header_footer_grid_horizontal</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HeaderFooterGridHorizontal.xaml (+ HeaderFooterGridHorizontal.xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 74. Header Footer Template — ⏳/⏳
+<sub>header_footer_template</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HeaderFooterTemplate.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 75. Header Footer View — ⏳/⏳
+<sub>header_footer_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HeaderFooterView.xaml (+ .xaml.cs) of the C# CollectionView gallery (CollectionViewGalleries/HeaderFooterGalleries)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 76. Hit Testing — ⏳/⏳
+<sub>hit_testing</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPage)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 77. Horizontal Stack — ⏳/⏳
+<sub>horizontal_stack</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+Horizontal Stack
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 78. Hybrid Web View — ⏳/⏳
+<sub>hybrid_web_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HybridWebViewPage.xaml (+ HybridWebViewPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 79. Image — ⏳/⏳
+<sub>image</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ImagePage.xaml (+ ImagePage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 80. Image Button — ⏳/⏳
+<sub>image_button</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-first demo page for the ImageButton control (the C# gallery-page convention, mirroring the input_controls_page / image_page pattern)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 81. Indicator — ⏳/⏳
+<sub>indicator</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports IndicatorPage.xaml A self-contained, code-first demo of the IndicatorView control
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 82. Input Controls — ⏳/⏳
+<sub>input_controls</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W1-05 input-control set: editor, search_bar, radio_button (+ the radio_button_group attached grouping) and image_button on one vertical stack, wired together so every input drives a visible output (the C#
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 83. Input Transparent — ⏳/⏳
+<sub>input_transparent</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports InputTransparentPage.xaml (Maui.Controls.Sample.Pages.InputTransparentPage)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 84. Invalidate Brush — ⏳/⏳
+<sub>invalidate_brush</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports InvalidateBrushGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/InvalidateBrushGallery.xaml (&amp;quot;Invalidate Brushes Playground&amp;quot;): a VerticalStackLayout (Padding 12) with — - a &amp;quot;Change color&amp;quot; Bu
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 85. Invalidate Shadow Host — ⏳/⏳
+<sub>invalidate_shadow_host</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports InvalidateShadowHostPage.xaml A self-contained, code-first demo that a shadow re-applies (invalidates) when its host&amp;#x27;s size changes, mirroring the C# core gallery page (Pages/Core/ShadowGalleries/InvalidateShadowHostPage.xaml + .xaml.
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 86. Ios Blur Effect — ⏳/⏳
+<sub>ios_blur_effect</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSBlurEffectPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/PlatformSpecifics/iOS/iOSBlurEffectPage.xaml + .xaml.cs): an Image (Source=&amp;quot;oasis.jpg&amp;quot;) carrying the iOSSpecific VisualElement.BlurEffect knob (XAML seeds it to Extr
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 87. Ios Date Picker — ⏳/⏳
+<sub>ios_date_picker</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSDatePickerPage.xaml (+ iOSDatePickerPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 88. Ios Entry — ⏳/⏳
+<sub>ios_entry</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSEntryPage.xaml (+ iOSEntryPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 89. Ios First Responder — ⏳/⏳
+<sub>ios_first_responder</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSFirstResponderPage.xaml (+ .xaml.cs) The C# iOSFirstResponderPage is a VisualElement-first-responder demo: a StackLayout with an explanatory Label, a &amp;quot;First Entry&amp;quot; + plain &amp;quot;OK&amp;quot; Button (tapping OK dismisses the keyboard because the
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 90. Ios Pan Gesture — ⏳/⏳
+<sub>ios_pan_gesture</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSPanGestureRecognizerPage.xaml (+ .xaml.cs) The C# iOSPanGestureRecognizerPage is a StackLayout with: a bold message Label (_messageLabel), a &amp;quot;Toggle Simultaneous Gesture Recognition&amp;quot; Button, and a grouped ListView of employees whos
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 91. Ios Picker — ⏳/⏳
+<sub>ios_picker</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSPickerPage.xaml (+ iOSPickerPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 92. Ios Safe Area — ⏳/⏳
+<sub>ios_safe_area</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSSafeAreaPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/PlatformSpecifics/iOS/iOSSafeAreaPage.xaml + .xaml.cs): a long Lorem-ipsum Label over a &amp;quot;Disable Use Safe Area&amp;quot; button
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 93. Ios Scroll View — ⏳/⏳
+<sub>ios_scroll_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSScrollViewPage.xaml (+ iOSScrollViewPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 94. Ios Search Bar — ⏳/⏳
+<sub>ios_search_bar</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSSearchBarPage.xaml (+ iOSSearchBarPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 95. Ios Slider Update On Tap — ⏳/⏳
+<sub>ios_slider_update_on_tap</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSSliderUpdateOnTapPage.xaml (+ iOSSliderUpdateOnTapPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 96. Ios Swipe Transition — ⏳/⏳
+<sub>ios_swipe_transition</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSSwipeViewTransitionModePage.xaml (+ .xaml.cs) The C# iOSSwipeViewTransitionModePage is a StackLayout with: a horizontal row holding a &amp;quot;SwipeTransitionMode:&amp;quot; Label + an EnumPicker over the SwipeTransitionMode enum (Reveal / Drag, Se
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 97. Ios Time Picker — ⏳/⏳
+<sub>ios_time_picker</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports iOSTimePickerPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/PlatformSpecifics/iOS/iOSTimePickerPage.xaml + .xaml.cs): a TimePicker carrying the iOSSpecific TimePicker.UpdateMode knob (XAML seeds it to WhenFinished) over a but
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 98. Items — ⏳/⏳
+<sub>items</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W2-19 items core: a collection_view over a live observable items source with a templated cell, single selection driving a readout label, and an EmptyView for the cleared state (the C# CollectionView galler
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 99. Items Updating Scroll Mode — ⏳/⏳
+<sub>items_updating_scroll_mode</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ItemsUpdatingScrollModeGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery (Maui.Controls.Sample.Pages.CollectionViewGalleries.ScrollModeGalleries.ItemsUpdatingScrollModeGallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 100. Label — ⏳/⏳
+<sub>label</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports LabelPage.xaml (+ LabelPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 101. Layout Is Enabled — ⏳/⏳
+<sub>layout_is_enabled</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports LayoutIsEnabledPage.xaml (+ LayoutIsEnabledPage.xaml.cs) The C# page demonstrates how IsEnabled on a layout cascades to its children: a 2x2 grid whose left column hosts a &amp;quot;MainLayout&amp;quot; full of state-demo sub-stacks (all-enabled / all-d
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 102. Line Gallery — ⏳/⏳
+<sub>line_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports LineGallery.xaml A self-contained, code-first port of the MAUI Shapes LineGallery (Pages/Controls/ShapesGalleries/LineGallery.xaml + .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 103. Line Join Gallery — ⏳/⏳
+<sub>line_join_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports LineJoinGallery.xaml A self-contained, code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/LineJoinGallery.xaml: a StackLayout that demonstrates the three StrokeLineJoin variants on an identical open polyline
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 104. Measure First Strategy — ⏳/⏳
+<sub>measure_first_strategy</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports MeasureFirstStrategy.xaml (+ .xaml.cs) of the C# CollectionView gallery (Maui.Controls.Sample.Pages.CollectionViewGalleries.GroupingGalleries.MeasureFirstStrategy)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 105. Menu Bar — ⏳/⏳
+<sub>menu_bar</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports MenuBarPage.xaml (+ MenuBarPage.cs) The C# page declares three page-level MenuBarItems (Page.MenuBarItems — the app menu bar) and a small visible body: - &amp;quot;Before File&amp;quot; : &amp;quot;Before File Action&amp;quot; (accelerator &amp;quot;b&amp;quot;), &amp;quot;Cool item 1&amp;quot;, a separat
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 106. Modal — ⏳/⏳
+<sub>modal</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ModalPage.xaml (+ .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 107. Multiple Bound Selection — ⏳/⏳
+<sub>multiple_bound_selection</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports MultipleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.MultipleBoundSelection)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 108. Navigation Gallery — ⏳/⏳
+<sub>navigation_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports NavigationGallery.xaml (+ .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 109. Nested Collection — ⏳/⏳
+<sub>nested_collection</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports NestedGalleries/NestedCollectionViewGallery.xaml (+ NestedCollectionViewGallery.xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 110. Pan Gesture Events — ⏳/⏳
+<sub>pan_gesture_events</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PanGestureEventsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PanGestureEventsGallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 111. Path Aspect Gallery — ⏳/⏳
+<sub>path_aspect_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PathAspectGallery.xaml A self-contained, code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/PathAspectGallery.xaml: a StackLayout (Padding 12) that demonstrates the four Path Aspect modes on one identical ge
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 112. Path Gallery — ⏳/⏳
+<sub>path_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PathGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/PathGallery.xaml: a ScrollView over a StackLayout (Padding 12) that walks eight Path variants (plus two caption-only markup-string Labels
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 113. Path Transform String — ⏳/⏳
+<sub>path_transform_string</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PathTransformStringGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/PathTransformStringGallery.xaml: a ScrollView over a StackLayout (Padding 12) that shows the SAME two-figure Path geometry
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 114. Picker — ⏳/⏳
+<sub>picker</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PickerPage.xaml (+ PickerPage.xaml.cs) A self-contained, code-first demo page for the Picker control (the C# gallery-page convention, mirroring the value_controls_page / pickers_page pattern)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 115. Pickers — ⏳/⏳
+<sub>pickers</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W1-06 picker set: picker, date_picker and time_picker on one vertical stack, wired together so every selection drives a visible output (the C# gallery-page convention, code-first; the value_controls_page p
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 116. Pointer Gesture — ⏳/⏳
+<sub>pointer_gesture</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PointerGestureGalleryPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PointerGestureGalleryPage)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 117. Polygon Gallery — ⏳/⏳
+<sub>polygon_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PolygonGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/PolygonGallery.xaml: a ScrollView over a StackLayout (Padding 12) that walks four Polygon variants, each under a caption Label — - &amp;quot;A
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 118. Polyline Gallery — ⏳/⏳
+<sub>polyline_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PolylineGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/PolylineGallery.xaml: a StackLayout (Padding 12 — no ScrollView in the C# source) holding two Polyline variants, each under a caption
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 119. Preselected Item — ⏳/⏳
+<sub>preselected_item</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PreselectedItemGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.PreselectedItemGallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 120. Preselected Items — ⏳/⏳
+<sub>preselected_items</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports PreselectedItemsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.PreselectedItemsGallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 121. Progress Bar — ⏳/⏳
+<sub>progress_bar</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ProgressBarPage.xaml (+ ProgressBarPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 122. Radio Button Border — ⏳/⏳
+<sub>radio_button_border</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RadioButtonBorder.xaml A self-contained, code-first demo of RadioButton border styling
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 123. Radio Button Content — ⏳/⏳
+<sub>radio_button_content</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the RadioButton.Content surface
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 124. Radio Button Group — ⏳/⏳
+<sub>radio_button_group</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RadioButtonGroupGallery.xaml A self-contained, code-first demo of the RadioButtonGroup ATTACHED-PROPERTY grouping: a vertical StackLayout carries RadioButtonGroup.GroupName=&amp;quot;foo&amp;quot;, so every descendant RadioButton — including one nested
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 125. Radio Button Group Binding — ⏳/⏳
+<sub>radio_button_group_binding</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RadioButtonGroupBindingGallery.xaml A code-first demo of binding the RadioButtonGroup attached properties (GroupName + SelectedValue) to a view-model
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 126. Radio Button Group Gallery — ⏳/⏳
+<sub>radio_button_group_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RadioButtonGroupGalleryPage.xaml A self-contained, code-first demo of RadioButton grouping SCOPE, mirroring the C# controls gallery page (Pages/Controls/RadioButtonGalleries/RadioButtonGroupGalleryPage.xaml)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 127. Radio Content Properties — ⏳/⏳
+<sub>radio_content_properties</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ContentProperties.xaml A self-contained, code-first demo of how RadioButton propagates the standard Text/Font properties to its Content
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 128. Radio Template From Style — ⏳/⏳
+<sub>radio_template_from_style</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports TemplateFromStyle.xaml A self-contained, code-first demo of applying a RadioButton ControlTemplate
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 129. Rectangle Gallery — ⏳/⏳
+<sub>rectangle_gallery</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RectangleGallery.xaml A self-contained, code-first port of the MAUI Shapes RectangleGallery (Pages/Controls/ShapesGalleries/RectangleGallery.xaml + .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 130. Refresh View — ⏳/⏳
+<sub>refresh_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RefreshViewPage.xaml (+ RefreshViewPage.xaml.cs + RefreshViewModel.cs) A self-contained, code-first demo page for the RefreshView control (the C# gallery-page convention, mirroring the swipe_refresh_page pattern)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 131. Relative Layout — ⏳/⏳
+<sub>relative_layout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports RelativeLayoutPage.xaml
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 132. Scattered Radio Button — ⏳/⏳
+<sub>scattered_radio_button</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ScatteredRadioButtonGallery.xaml A code-first demo that radio buttons DON&amp;#x27;T have to share a container to be grouped: grouping is by GroupName, so buttons scattered across separate containers (and one bare button outside any grouped co
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 133. Scroll Mode Test — ⏳/⏳
+<sub>scroll_mode_test</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ScrollModeTestGallery.xaml (+ .xaml.cs) of the C# CollectionView gallery (Maui.Controls.Sample.Pages.CollectionViewGalleries.ScrollModeGalleries.ScrollModeTestGallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 134. Scroll To Group — ⏳/⏳
+<sub>scroll_to_group</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 135. Scroll View — ⏳/⏳
+<sub>scroll_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ScrollViewPage.xaml (+ the ScrollViewPages sub-demos: ScrollViewOrientationPage / ScrollToEndPage / ScrollToFromConstructorPage), code-first
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 136. Search Bar — ⏳/⏳
+<sub>search_bar</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SearchBarPage.xaml (Microsoft.Maui.Controls sample gallery)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 137. Selection Command Param — ⏳/⏳
+<sub>selection_command_param</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SelectionChangedCommandParameter.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SelectionChangedCommandParameter)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 138. Selection Synchronization — ⏳/⏳
+<sub>selection_synchronization</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SelectionSynchronization.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SelectionSynchronization)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 139. Semantics — ⏳/⏳
+<sub>semantics</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SemanticsPage.xaml (+ SemanticsPage.xaml.cs) The C# SemanticsPage is an accessibility showcase: a long VerticalStackLayout where nearly every control carries SemanticProperties.Description / .Hint, plus a block of labels exercising Se
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 140. Shadow Playground — ⏳/⏳
+<sub>shadow_playground</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ShadowPlaygroundPage.xaml A self-contained, code-first demo of the view Shadow surface, mirroring the C# core gallery page (Pages/Core/ShadowGalleries/ShadowPlaygroundPage.xaml + .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 141. Shape App Theme — ⏳/⏳
+<sub>shape_app_theme</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ShapeAppThemeGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/ShapeAppThemeGallery.xaml: a StackLayout (Padding 12) holding a caption Label and a 200x80 Rectangle, all themed via {AppThemeBi
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 142. Shapes — ⏳/⏳
+<sub>shapes</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a faithful reproduction of the maui-compare &amp;quot;shapes&amp;quot; demo (ComparePages.Shapes()), the shipped-.NET-MAUI reference for the visual-parity comparison: a ScrollView over a vertical stack of four LABELLED shapes, each bold-captioned and Start-a
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 143. Single Bound Selection — ⏳/⏳
+<sub>single_bound_selection</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SingleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SingleBoundSelection)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 144. Slider — ⏳/⏳
+<sub>slider</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SliderPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined Slider states — Default, BackgroundColor (Blue), Background (yellow→green LinearGradientBrush), Minimum(5)/Maximum(15) with a value readout (Val
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 145. Some Empty Groups — ⏳/⏳
+<sub>some_empty_groups</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports GroupingGalleries/SomeEmptyGroups.xaml (+ .xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 146. Stack Layout — ⏳/⏳
+<sub>stack_layout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports StackLayoutPage.xaml Demonstrates the generic maui::controls::stack_layout (the orientation-switching sibling of the fixed vertical/horizontal stacks) by nesting two inner stacks inside an outer vertical stack with a 12px margin: a &amp;quot;V
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 147. Staggered Layout — ⏳/⏳
+<sub>staggered_layout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports AlternateLayoutGalleries/StaggeredLayout.xaml (+ StaggeredLayout.xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 148. Stepper — ⏳/⏳
+<sub>stepper</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports StepperPage.xaml (+ StepperPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 149. Styles — ⏳/⏳
+<sub>styles</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports StylesPage.xaml
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 150. Swipe Gesture — ⏳/⏳
+<sub>swipe_gesture</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SwipeViewGestureRecognizerGallery.xaml (+ .xaml.cs) The MAUI SwipeViewGestureRecognizerGallery is a CollectionView of &amp;quot;message&amp;quot; rows; each row&amp;#x27;s DataTemplate is a SwipeView wired three ways, proving gesture recognizers AND swipe-item
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 151. Swipe Item Position — ⏳/⏳
+<sub>swipe_item_position</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SwipeItemPositionGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/SwipeItemPositionGallery.xaml: a 2-row Grid (Auto / *) with a Picker on top and one SwipeView below that carries TWO S
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 152. Swipe Item Size — ⏳/⏳
+<sub>swipe_item_size</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SwipeItemSizeGallery.xaml A self-contained, code-first port of the .NET MAUI &amp;quot;SwipeItem Size Gallery&amp;quot;: a scrolling stack of swipe_views demonstrating how a left SwipeItem&amp;#x27;s icon size and the SwipeView content size interact
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 153. Swipe Refresh — ⏳/⏳
+<sub>swipe_refresh</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W2-20 swipe + refresh controls: a refresh_view wrapping a swipe_view (which itself wraps a labeled row), with a readout label reflecting the latest interaction
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 154. Swipe Threshold — ⏳/⏳
+<sub>swipe_threshold</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports HorizontalSwipeThresholdGallery.xaml (+ .xaml.cs) The MAUI HorizontalSwipeThresholdGallery shows how SwipeView.Threshold (the swipe distance, in DIPs, the user must drag before the items settle open / execute) interacts with SwipeItem
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 155. Swipe View Margin — ⏳/⏳
+<sub>swipe_view_margin</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SwipeViewMarginGallery.xaml A self-contained, code-first port of the .NET MAUI &amp;quot;SwipeView Margin Gallery&amp;quot;: two swipe_views whose content&amp;#x27;s Margin + Padding are driven by two sliders, demonstrating that the revealed SwipeItems stay cor
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 156. Swipe View Shadow — ⏳/⏳
+<sub>swipe_view_shadow</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SwipeViewShadowGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/SwipeViewShadowGallery.xaml: a padded vertical StackLayout proving a drop Shadow renders correctly on SwipeView content
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 157. Switch — ⏳/⏳
+<sub>switch</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined Switch states — Default, BackgroundColor (Blue), Background (a yellow→green LinearGradientBrush), Disabled, OnColor (Red), ThumbColor (Orange)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 158. Switch Grouping — ⏳/⏳
+<sub>switch_grouping</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports CollectionViewGalleries/GroupingGalleries/ SwitchGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 159. Tabbed Flyout — ⏳/⏳
+<sub>tabbed_flyout</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W1-10 tabbed + flyout vertical: a flyout_page whose FLYOUT pane is a titled menu (two buttons selecting the detail&amp;#x27;s tabs + a &amp;quot;Toggle flyout&amp;quot; presenting/dismissing itself) and whose DETAIL pane is a tabbed
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 160. Templated View — ⏳/⏳
+<sub>templated_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports TemplatedViewPage.xaml The C# page contrasts a standard CardView control with a compact one driven by a ControlTemplate (&amp;quot;CardViewCompressed&amp;quot;) and a custom Rate control built entirely from a ControlTemplate + a heart PathGeometry
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 161. Time Picker — ⏳/⏳
+<sub>time_picker</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports TimePickerPage.xaml (+ TimePickerPage.xaml.cs)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 162. Title Bar — ⏳/⏳
+<sub>title_bar</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports TitleBarPage.xaml A self-contained, code-first demo of the TitleBar control
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 163. Toolbar — ⏳/⏳
+<sub>toolbar</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ToolbarPage.xaml (Maui.Controls.Sample.Pages.ToolbarPage)
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 164. Transform Playground — ⏳/⏳
+<sub>transform_playground</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports TransformPlaygroundGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/TransformPlaygroundGallery.xaml: a 50x50 Path rectangle (red fill, blue stroke 4) sits in a 200x200 light-grey panel; belo
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 165. Transformations — ⏳/⏳
+<sub>transformations</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports TransformationsPage.xaml (+ .xaml.cs) The MAUI TransformationsPage drives a single target view&amp;#x27;s render transforms from a column of knobs: Sliders for Scale / ScaleX / ScaleY (Maximum 10) and Rotation / RotationX / RotationY (Maximum
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 166. Triggers — ⏳/⏳
+<sub>triggers</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports TriggersPage.xaml
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 167. Update Path Data — ⏳/⏳
+<sub>update_path_data</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports UpdatePathDataGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/UpdatePathDataGallery.xaml: a 2-row Grid (RowSpacing 0) that proves a Path repaints when its Data geometry is replaced at runti
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 168. Varied Size Selector — ⏳/⏳
+<sub>varied_size_selector</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports DataTemplateSelectorGalleries/VariedSizeDataTemplateSelectorGallery.xaml (+ VariedSizeDataTemplateSelectorGallery.xaml.cs) of the C# CollectionView gallery
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 169. Vertical Stack — ⏳/⏳
+<sub>vertical_stack</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+Vertical Stack
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 170. Visual States — ⏳/⏳
+<sub>visual_states</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports VisualStatesPage.xaml
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 171. Web View — ⏳/⏳
+<sub>web_view</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+a self-contained demo page for the W1-08 web_view vertical: a web_view loading a STATIC html_web_view_source (no network), back/forward/reload buttons over the handler-pushed CanGoBack/CanGoForward read-onlys, an &amp;quot;Eval 1+1&amp;quot; button driving t
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
+
+### 172. Z Index — ⏳/⏳
+<sub>z_index</sub>
+
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td><td><img width="300px" src="_placeholder.png" /></td></tr></table>
+
+ports ZIndexPage.xaml (+ ZIndexPage.xaml.cs), code-first
+
+#### ⏳ Pixel-Perfect Score — C++ (C1/C3)
+
+_Not yet reviewed._
+
+#### ⏳ Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+_Not yet reviewed._
 
 </details>

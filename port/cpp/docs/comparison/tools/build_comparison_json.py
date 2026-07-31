@@ -43,6 +43,10 @@ PLATFORM_FW = {
     "ios": ("maui", "cpp", "xaml"),
     "maccatalyst": ("maui", "cpp", "xaml", "appkit_cpp", "appkit_xaml"),
     "android": ("maui", "cpp", "xaml"),
+    # Windows: the maui column is the real WinUI 3 MauiReference built on the guest. cpp/xaml are
+    # listed so their ABSENCE is rendered as a visible placeholder rather than silently omitted --
+    # the port has no Windows backend yet (docs/WINDOWS_TOOLCHAIN.md section 6).
+    "windows": ("maui", "cpp", "xaml"),
 }
 EMPTY_REVIEW = {"status": None, "review": ""}
 

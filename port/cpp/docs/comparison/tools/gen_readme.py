@@ -26,9 +26,6 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 COMP = os.path.normpath(os.path.join(HERE, ".."))
 JSON = os.path.join(COMP, "comparison.json")
-# Optional: the Windows PIPELINE-validation record (tools/parity/windows/summarize_board_run.py).
-# Absent until a Windows board run has been summarized, in which case the section is omitted.
-WINDOWS_JSON = os.path.join(COMP, "windows_pipeline.json")
 README = os.path.join(COMP, "README.md")
 PLACEHOLDER = "_placeholder.png"
 IMG_W = "300px"
@@ -38,6 +35,7 @@ PLATFORMS = [
     ("ios", "iOS", ["maui", "cpp", "xaml"], False),
     ("maccatalyst", "macOS", ["maui", "cpp", "xaml", "appkit_cpp", "appkit_xaml"], True),
     ("android", "Android", ["maui", "cpp", "xaml"], False),
+    ("windows", "Windows", ["maui", "cpp", "xaml"], False),
 ]
 FW_LABEL = {
     "maui": "MAUI", "cpp": "C++", "xaml": "C++ &amp; XAML",
@@ -59,6 +57,12 @@ NOTES = {
                    "backend (no MAUI reference; they track completeness, C++ == C++&amp;XAML).",
     "android": "Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the same "
                "Android emulator in light and dark. MAUI is the content ground truth.",
+    "windows": "Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows backend — "
+               "captured on a Windows 11 ARM64 VM in light and dark. **The C++ columns are empty on "
+               "purpose:** the port has no Windows backend yet, so `MAUI_BACKEND=windows` falls through "
+               "to the headless mirrors (which create no widgets) and `examples/gallery` does not even "
+               "link for Windows. This section therefore publishes the MAUI **reference** and shows the "
+               "C++ gap honestly rather than hiding it; see `docs/WINDOWS_TOOLCHAIN.md`.",
 }
 
 
@@ -182,82 +186,6 @@ def section(pages, plat, display, fws, n):
 
 
 
-def windows_pipeline_section():
-    """The Windows section.
-
-    Rendered from windows_pipeline.json, NOT from comparison.json, because it is deliberately not a
-    parity section: the Windows column is currently the mingw Win32 smoke app and there is no MAUI
-    Windows reference to score against. It is titled and worded so it can never be mistaken for a
-    fidelity verdict -- 182 rows of green-looking "results" that said nothing about MAUI would be worse
-    than no section at all. Returns "" when the record is absent."""
-    if not os.path.isfile(WINDOWS_JSON):
-        return ""
-    d = json.load(open(WINDOWS_JSON, encoding="utf-8"))
-    dropped = d.get("dropped_frames") or []
-    bad = d.get("frames_undecodable") or []
-    cross = d.get("duplicate_frames_cross_page") or []
-    sizes = d.get("sizes") or {}
-    size_line = ", ".join(f"`{k}` x{v}" for k, v in sorted(sizes.items(), key=lambda kv: -kv[1]))
-    bounds = d.get("window_bounds") or {}
-    bounds_line = ", ".join(f"`{k}` x{v}" for k, v in sorted(bounds.items(), key=lambda kv: -kv[1]))
-
-    rows = [
-        ("Pages captured", str(d.get("pages_captured", "?"))),
-        ("Frames captured", str(d.get("frames_total", "?"))),
-        ("Frames dropped (window never presented)", f"**{len(dropped)}**" if dropped else "0"),
-        ("Frames undecodable", f"**{len(bad)}**" if bad else "0"),
-        ("Distinct images", f"{d.get('unique_images', '?')} of {d.get('frames_total', '?')}"),
-        ("Identical frames within a page", str(d.get("duplicate_frames_same_page", "?"))),
-        ("Identical frames ACROSS pages", f"**{len(cross)}**" if cross else "0"),
-        ("Capture sizes", size_line or "-"),
-        ("Presented window bounds", bounds_line or "-"),
-        ("Themes", ", ".join(f"{k} x{v}" for k, v in sorted((d.get("themes") or {}).items())) or "-"),
-    ]
-
-    out = ["<details>", "<summary><h2>Windows — pipeline validation (NOT a parity result) — click to "
-           "expand</h2></summary>", ""]
-    out.append("> **This section is not a visual-parity result and must not be read as one.** The "
-               "Windows column is the mingw-cross **Win32 smoke app**, which paints the same layout for "
-               "every page (only the title and a page-hash-derived swatch row change) — it is not the "
-               "gallery. There is also no MAUI Windows reference column, so **no scores are computed**. "
-               "MAUI's Windows backend is WinUI 3 (`Microsoft.UI.Xaml`), so only a WinUI 3 render can "
-               "ever be compared against MAUI — see `docs/WINDOWS_TOOLCHAIN.md`.")
-    out.append("")
-    out.append("What it *does* establish: the end-to-end Windows harness works at board scale — every "
-               "page launched in the guest's interactive session, was pinned to an exact window rect, and "
-               "produced a decodable, correctly-sized, page-distinct PNG that the host pulled back.")
-    out.append("")
-    out.append(f"Run `{esc(str(d.get('run_dir')))}` at commit `{esc(str(d.get('commit'))[:10])}` "
-               f"(column `{esc(str(d.get('column')))}`). Captures live in a gitignored dated run "
-               f"directory; this table is the committed record.")
-    out.append("")
-    out.append("| Metric | Value |")
-    out.append("| --- | --- |")
-    for k, v in rows:
-        out.append(f"| {k} | {v} |")
-    out.append("")
-    if dropped:
-        out.append(f"**{len(dropped)} dropped frame(s)** — these pages were NOT captured:")
-        out.append("")
-        for f in dropped[:40]:
-            out.append(f"- `{esc(f)}`")
-        out.append("")
-    if cross:
-        out.append("**Identical images across DIFFERENT pages** — this would mean a page's environment "
-                   "never took effect or a stale window was photographed:")
-        out.append("")
-        for grp in cross[:20]:
-            out.append(f"- {', '.join('`' + esc(x) + '`' for x in grp)}")
-        out.append("")
-    out.append("Caveats recorded with the run:")
-    out.append("")
-    for c in d.get("caveats") or []:
-        out.append(f"- {esc(c)}")
-    out.append("")
-    out.append("</details>")
-    return "\n".join(out)
-
-
 def main():
     pages = json.load(open(JSON, encoding="utf-8"))
     n = len(pages)
@@ -271,17 +199,11 @@ def main():
         "C++ / C++&amp;XAML renders (light over dark; missing captures show a placeholder), then a "
         "subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's "
         "own status emoji and holding its review prose. Generated from `comparison.json` by "
-        "`tools/gen_readme.py` — do not edit by hand. A final **Windows** section appears when "
-        "`windows_pipeline.json` is present; it records PIPELINE validation, not parity — see "
-        "its own preamble.",
+        "`tools/gen_readme.py` — do not edit by hand.",
         "",
     ]
     for plat, display, fws, _is_mac in PLATFORMS:
         out.append(section(pages, plat, display, fws, n))
-        out.append("")
-    win = windows_pipeline_section()
-    if win:
-        out.append(win)
         out.append("")
     text = "\n".join(out).rstrip("\n") + "\n"
     open(README, "w", encoding="utf-8").write(text)

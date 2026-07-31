@@ -73,18 +73,28 @@ root = "C:/Users/Testings-VM/maui-comparison"   # forward slashes are fine and a
 python3 = "py"
 
 # --- columns --------------------------------------------------------------------------------------
-# LANE 2 (start here): the mingw-cross smoke app. Build with:
-#   tools/parity/windows/build_smoke.sh
-# It reads MAUI_SAMPLE_PAGE / MAUI_APPEARANCE like the real hosts, so the runner drives it unchanged.
-[environments.windows-x64.columns.cpp_smoke]
-artifact  = "port/cpp/build/windows-smoke"      # the dir is deployed; `process` is found inside it
-process   = "maui_smoke.exe"
-page_env  = "MAUI_SAMPLE_PAGE"
-theme_env = "MAUI_APPEARANCE"
-theme_light = "light"
-theme_dark  = "dark"
+# --- the MAUI REFERENCE column (ground truth) ------------------------------------------------------
+# The real C# MAUI app running as WinUI 3, BUILT ON THE GUEST (MAUI's Windows target cannot be
+# cross-built from macOS). `artifact_remote` therefore points at the guest-side build output and the
+# runner uses it in place instead of deploying from the host.
+#   1. tools/parity/windows/provision_dotnet.ps1      (once: .NET SDK + maui-windows workload)
+#   2. sync port/maui-reference to C:/maui-src, then build_maui_reference.ps1
+[environments.windows-x64.columns.maui_xaml]
+artifact_remote = "C:/maui-src/maui-reference/app/bin/Debug/net10.0-windows10.0.19041.0/win-arm64"
+artifact  = "port/maui-reference/app"   # host path, unused while artifact_remote is set (kept for reference)
+process   = "MauiReference.exe"
+page_env  = "MAUI_COMPARE_PAGE"
+theme_env = "MAUI_THEME"
+theme_light = "Light"
+theme_dark  = "Dark"
 driver = "coordinate"
 
+# The C++ columns are NOT enabled: the port has no Windows backend yet. `MAUI_BACKEND=windows` falls
+# through to the headless mirrors, which create no widgets, and host_run.cpp is gated to the headless
+# backend so examples/gallery does not even link for Windows. Both need the WinUI 3 handler fan-out
+# (docs/WINDOWS_TOOLCHAIN.md section 6) before a C++ column can be compared against the reference above.
+# The mingw Win32 smoke app that used to sit here was TRANSPORT scaffolding and is deliberately not a
+# board column -- it paints the same layout for every page and can never match MAUI.
 # LANE 1 (the parity lane — uncomment once the guest builds land; see WINDOWS_TOOLCHAIN.md §5).
 # MauiReference published for windows, plus the port's two WinUI 3 columns.
 #[environments.windows-x64.columns.maui_xaml]
