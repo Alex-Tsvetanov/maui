@@ -7802,8 +7802,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 162 | 163 |
-| 🟡 Minor | 7 | 6 |
+| 🟢 Match | 163 | 163 |
+| 🟡 Minor | 6 | 6 |
 | 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -8033,16 +8033,16 @@ Light: SSIM 0.9945, 0.27% pixels differ · Dark: SSIM 0.9935, 0.29% pixels diffe
 
 Light: SSIM 0.9945, 0.27% pixels differ · Dark: SSIM 0.9935, 0.29% pixels differ
 
-### 16. Border Playground — 🟡/🟢
+### 16. Border Playground — 🟢/🟢
 <sub>border_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/border_playground_light.png" /></td><td><img width="300px" src="captures/windows/cpp/border_playground_light.png" /></td><td><img width="300px" src="captures/windows/xaml/border_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/border_playground_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/border_playground_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/border_playground_dark.png" /></td></tr></table>
 
 ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs) A self-contained, code-first interactive Border playground
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9954, 1.11% pixels differ · Dark: SSIM 0.9899, 1.26% pixels differ
+Light: SSIM 0.9979, 0.55% pixels differ · Dark: SSIM 0.9911, 0.64% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
