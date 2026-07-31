@@ -483,7 +483,13 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
             for theme in themes:
                 theme_val = ccfg[f"theme_{theme}"]
                 launch_env = [f"{ccfg['page_env']}={tag}", f"{ccfg['theme_env']}={theme_val}",
-                              "MAUI_CAPTURE_TINT_NORMAL=1"]
+                              "MAUI_CAPTURE_TINT_NORMAL=1",
+                              # In-process WinUI keyboard-focus-visual suppression (PARITY_REVIEW.md
+                              # "Focus-visual suppression" section) -- consumed only by App.xaml.cs's
+                              # `#if WINDOWS` block, harmlessly unused on every other column/platform, same
+                              # shape as MAUI_CAPTURE_TINT_NORMAL above. Passed unconditionally so all three
+                              # columns get it identically rather than only the reference column.
+                              "MAUI_SUPPRESS_FOCUS_VISUAL=1"]
                 if ccfg.get("driver") == "cpp_devflow" and ccfg.get("devflow_port"):
                     launch_env.append(f"MAUI_DEVFLOW_PORT={ccfg['devflow_port']}")  # starts the in-app agent
                 launch_args = ["launch", "--bundle", ccfg["_remote"], "--proc", ccfg["process"]]

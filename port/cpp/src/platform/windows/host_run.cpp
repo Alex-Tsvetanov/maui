@@ -402,6 +402,29 @@ namespace
             // (4) Show it, then lay out at the size it actually got. Activate first because a WinUI
             //     window has no client size until it is shown - laying out before would use the fallback
             //     and then immediately be corrected by the SizeChanged above.
+            //
+            //     NO keyboard-focus-visual suppression is added here, unlike the MAUI reference column's
+            //     App.xaml.cs (its #if WINDOWS block, gated on MAUI_SUPPRESS_FOCUS_VISUAL). Investigated,
+            //     not assumed: PARITY_REVIEW.md's focus-visual sections measured this port's OWN captures
+            //     as BIT-IDENTICAL run-to-run on every page where the reference column's outline toggled
+            //     ("cpp 0 px changed / maui 4081-6581 px changed" across repeated passes on basic_grouping,
+            //     items, label, modal, border_stroke, border_playground, ...), and patching just the
+            //     reference's outline pixels onto this port's captures reached green with no residual band
+            //     left over - both point at this port never painting one, not merely painting a matching
+            //     one. The reason is structural, not incidental: the reference outline traces back to
+            //     WindowRootViewContainer.AddPage's TryMoveFocusToPage -> SetFocusToFirstElement
+            //     (src/Core/src/Platform/Windows/WindowRootViewContainer.cs), which auto-focuses the page's
+            //     first focusable descendant because MAUI hosts every page through a Frame-style
+            //     AddPage/RemovePage container. This port's window_handler hosts the page's native view
+            //     directly via native.Content(...) (window_handler.cpp) - no such container exists here,
+            //     and this Windows backend has no initial-focus Focus() call anywhere (grepped: only
+            //     time_picker_handler.cpp's popup open/close focus juggling and editor_handler.cpp /
+            //     search_bar_handler.cpp's Got/LostFocus listeners, none of them a startup focus setter).
+            //     So there is nothing here for MAUI_SUPPRESS_FOCUS_VISUAL to suppress; run_comparison.py
+            //     still passes it to this process unconditionally (same as MAUI_CAPTURE_TINT_NORMAL), it is
+            //     simply never read on this side. Re-run this investigation before assuming the silence
+            //     still holds if this backend ever grows Frame-style navigation or an explicit initial
+            //     Focus() call.
             boot_log("activate: before");
             native.Activate();
             boot_log("activate: after");

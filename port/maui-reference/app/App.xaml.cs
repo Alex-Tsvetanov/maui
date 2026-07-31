@@ -44,6 +44,43 @@ public partial class App : Application
         var page = PageDispatch.Create(key);
         var window = new Window(page);
 
+#if WINDOWS
+        // Capture-determinism opt-in (MAUI_SUPPRESS_FOCUS_VISUAL=1, set identically on every column by
+        // run_comparison.py -- same shape as MAUI_CAPTURE_TINT_NORMAL in MauiProgram.cs). WindowRootViewContainer
+        // auto-focuses the page's first focusable control on every AddPage
+        // (src/Core/src/Platform/Windows/WindowRootViewContainer.cs's TryMoveFocusToPage -> SetFocusToFirstElement,
+        // `focusableElement.Focus(FocusState.Programmatic)`), and WinUI's stock control templates paint their
+        // keyboard-style focus outline for Programmatic focus exactly like Keyboard focus -- only Pointer/touch
+        // focus is exempt. That outline is what PARITY_REVIEW.md's "MAUI's own CollectionView captures carry a
+        // ~0.50pp focus-visual noise floor" / "Focus-visual suppression" sections measured: ~0.50% of pixels,
+        // present or absent from run to run with the port's code byte-identical, pushing up to ~22 pages under
+        // the SSIM gate. A prior attempt suppressed it via SetForegroundWindow(GetShellWindow()) right before
+        // the host's screenshot -- it worked (0.50% -> 0.01%) but deactivated the session-1 capture agent's own
+        // desktop mid-run and had to be reverted (e2e.py's --defocus, opt-in / OFF by default since). This is
+        // the in-process alternative that review left as the next thing to try: leave the focused element
+        // exactly where AddPage put it, just re-affirm it with FocusState.Pointer, which every stock control
+        // template's OnGotFocus/GoToState logic treats as "no rectangle needed" -- nothing here touches window
+        // activation or the shell, so it cannot repeat that failure.
+        if (Environment.GetEnvironmentVariable("MAUI_SUPPRESS_FOCUS_VISUAL") == "1")
+        {
+            page.Loaded += async (_, _) =>
+            {
+                // AddPage's own initial-focus call is synchronous with (or chained directly off) this same
+                // page.Loaded event, so by the time any continuation queued after it runs, that focus is
+                // already set -- there is nothing to race here. The short delay below only waits out layout
+                // settling (well under the 1200ms this file already trusts for MAUI_SHOT below), not the focus
+                // itself.
+                await Task.Delay(200);
+                if (page.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement root &&
+                    root.XamlRoot is { } xamlRoot &&
+                    Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(xamlRoot) is Microsoft.UI.Xaml.UIElement focused)
+                {
+                    focused.Focus(Microsoft.UI.Xaml.FocusState.Pointer);
+                }
+            };
+        }
+#endif
+
         if (Environment.GetEnvironmentVariable("MAUI_SHOT") == "1")
         {
             page.Loaded += async (_, _) =>
