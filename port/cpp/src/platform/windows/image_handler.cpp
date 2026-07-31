@@ -631,10 +631,12 @@ namespace maui::core
                 if (fopen_s(&file, log_path, "a") == 0 && file != nullptr)
                 {
                     const auto applied = image.Source().try_as<bitmap_source>();
-                    std::fprintf(file, "apply_source: kind='%s' applied=%d px=%dx%d opacity=%.2f vis=%d\n",
+                    std::fprintf(file,
+                                 "apply_source: kind='%s' applied=%d px=%dx%d opacity=%.2f vis=%d stretch=%d\n",
                                  result.kind().c_str(), applied ? 1 : 0, applied ? applied.PixelWidth() : -1,
                                  applied ? applied.PixelHeight() : -1, static_cast<double>(image.Opacity()),
-                                 image.Visibility() == winui::Visibility::Visible ? 1 : 0);
+                                 image.Visibility() == winui::Visibility::Visible ? 1 : 0,
+                                 static_cast<int>(image.Stretch()));
                     std::fclose(file);
                 }
             }

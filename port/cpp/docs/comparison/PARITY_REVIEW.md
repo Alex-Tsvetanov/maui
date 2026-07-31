@@ -2105,3 +2105,67 @@ occupy x46 (its label's leading "I" shows there instead) plus pill corner-radius
 **Ruling requested:** treat this page as converged and exempt on the dark SSIM bar, or keep grinding a
 0.01%-diff page? Recommend the former — the remaining delta is below the level at which the metric is
 meaningfully discriminating.
+
+---
+
+## `image`: Win2D landed and WORKS; the remaining defect is a MEASURE bug, not a raster bug
+
+Win2D is fully integrated (Microsoft.Graphics.Win2D 1.3.2, provisioned + projected + activated
+registration-free) and `render_font_glyph` faithfully reproduces
+`FontImageSourceService.Windows.cs:57-97`. It demonstrably rasterizes. The page is still 5.44%, and
+FIVE hypotheses died on measurements before the real cause surfaced. Recording all of them so the next
+pass does not re-run them.
+
+**Verified working, end to end** (env-gated `MAUI_WINUI_LOG` diagnostics, now plumbed by
+`run_comparison.py`):
+
+```
+font_glyph: family='Ionicons' glyph_bytes=3 size=90.0 bounds=78.75x98.09 px=81x100 ink=3898
+font_copy:  copied=32400 ink=3898 solid(a>=250)=3405 max_a=255 peak=[255 255 255 255]
+apply_source: kind='font' applied=1 px=81x100 opacity=1.00 vis=1 stretch=2
+```
+
+i.e. the font family resolves, Win2D draws 3,405 FULLY OPAQUE WHITE pixels, the memcpy lands every one
+of 32,400 bytes in the WriteableBitmap's own buffer, and `Image.Source` reads back as a visible 81x100
+BitmapSource at opacity 1. Nothing throws anywhere.
+
+**Hypotheses REFUTED by measurement (do not retry):**
+
+1. *Win2D activation failed / DLL missing.* No — `Microsoft.Graphics.Canvas.dll` and `ionicons.ttf` are
+   both beside `gallery.exe`, and the render logs prove activation succeeded.
+2. *The page passes an empty glyph.* No — `glyph_bytes=3` (U+F30C in UTF-8), matching the twin's
+   `Glyph="&#xf30c;"`.
+3. *A later mapper pass clears Source.* No — `clear_source` logs `had_source=0`, so those clears belong
+   to other Image controls on the page.
+4. *`Invalidate()` runs before the bitmap is attached, so it pushes to no composition surface.*
+   Plausible, and REFUTED: re-invalidating after `image.Source(...)` changed nothing. Reverted.
+5. *Premultiplied-vs-straight alpha, or a pixel-format mismatch.* No — the ink is `[255 255 255 255]`,
+   valid premultiplied opaque white.
+
+**THE DECISIVE EXPERIMENT.** Filling the same buffer with OPAQUE RED instead of the glyph rendered
+**90,528 red pixels — the ENTIRE band**, exactly the area the green background had occupied. So the
+WriteableBitmap plumbing is perfect and the bitmap IS displayed. That single result partitions the
+problem away from rasterization entirely.
+
+**THE ACTUAL CAUSE.** `stretch=2` (`Stretch.Uniform`) plus a band that the bitmap fills edge-to-edge
+means the Image is scaled by WIDTH and OVERFLOWS: 81x100 -> 984x1215, of which only the top ~92 rows
+(≈7.6 SOURCE rows) are ever on screen. And the glyph's ink does not start until source row 14:
+
+```
+row_ink[0..13] = 0,0,0,0,0,0,0,0,0,0,0,0,0,0    (the 81x100, size-90 bitmap)
+row_ink[0..13] = 0,0,0,8,11,9,11,12,14,14,...   (the 20x24, size-20 bitmap)
+```
+
+The visible slice is rows 0-7, which are empty — hence a band of pure `(0,128,0)`. The ink is not
+missing; it is BELOW the fold.
+
+That empty top margin is CORRECT and oracle-faithful: `LayoutBounds` (which the oracle uses verbatim,
+:82-84 and :89-93) includes the line box's leading above the glyph, so `-LayoutBounds.Y + 1` places the
+LAYOUT top at row 1 and the ink lower. MAUI produces the same bitmap.
+
+So the divergence is that MAUI's Image FITS its row while the port's overflows it. **The remaining bug
+is in the Image measure/constraint path** (`image_handler.cpp`'s note 2 area —
+`update_platform_max_constraints` / the unconstrained cross-axis), NOT in the glyph rasterizer. Note
+that `image_handler.cpp`'s header still asserts the overflow happens "in BOTH the MAUI capture and, now,
+this port's" — that was written when the stand-in was a SQUARE transparent bitmap; with a real 81x100
+glyph the aspect differs and the claim no longer holds. Fix that comment when fixing the measure.

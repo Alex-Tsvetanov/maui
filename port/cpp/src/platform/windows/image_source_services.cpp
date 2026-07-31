@@ -493,10 +493,35 @@ namespace
                 {
                     dest_ink += (destination[i] != 0) ? 1 : 0;
                 }
-                std::fprintf(file, "font_copy: src=%u cap=%u copied=%zu dest_ink=%zu first=[%u %u %u %u]\n",
-                             pixels.size(), buffer.Capacity(), copied, dest_ink, copied > 3 ? destination[0] : 0,
-                             copied > 3 ? destination[1] : 0, copied > 3 ? destination[2] : 0,
-                             copied > 3 ? destination[3] : 0);
+                std::size_t solid = 0;
+                unsigned max_a = 0;
+                std::size_t peak = 0;
+                for (std::size_t i = 3; i < copied; i += 4)
+                {
+                    const unsigned a = destination[i];
+                    solid += (a >= 250) ? 1 : 0;
+                    if (a > max_a)
+                    {
+                        max_a = a;
+                        peak = i - 3;
+                    }
+                }
+                const std::size_t row_bytes = static_cast<std::size_t>(pixel_size.Width) * 4;
+                std::string rows;
+                for (std::size_t r = 0; r < pixel_size.Height && r < 14; ++r)
+                {
+                    std::size_t n = 0;
+                    for (std::size_t i = (r * row_bytes) + 3; i < (r + 1) * row_bytes && i < copied; i += 4)
+                    {
+                        n += (destination[i] != 0) ? 1 : 0;
+                    }
+                    rows += std::to_string(n) + ",";
+                }
+                std::fprintf(file,
+                             "font_copy: copied=%zu ink=%zu solid=%zu max_a=%u peak=[%u %u %u %u] "
+                             "row_ink[0..13]=%s\n",
+                             copied, dest_ink, solid, max_a, destination[peak], destination[peak + 1],
+                             destination[peak + 2], destination[peak + 3], rows.c_str());
                 std::fclose(file);
             }
         }
