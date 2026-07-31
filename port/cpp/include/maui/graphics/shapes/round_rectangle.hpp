@@ -7,9 +7,18 @@
 // bottom-right — the order in RoundRectangle.GetPath).
 //
 // SIMPLIFIED PORT (recorded in port/STATUS.md): the Stretch/Aspect fit (TransformPathForBounds) and the
-// StrokeThickness insets / inner-path are out of scope; with default StrokeThickness 0 + Aspect Fill the
-// C# result is the rounded rectangle filling the bounds, which we build directly. A uniform single-radius
-// ctor is kept for back-compat. The out-of-line body lives in round_rectangle.cpp.
+// StrokeThickness insets / inner-path are out of scope; under Aspect Fill the C# result is the rounded
+// rectangle filling the bounds, which we build directly. A uniform single-radius ctor is kept for
+// back-compat. The out-of-line body lives in round_rectangle.cpp.
+//
+// MIND THE OMITTED SELF-INSET. Earlier revisions of this note claimed C#'s default StrokeThickness is 0.
+// It is 1.0 (Shape.StrokeThicknessProperty, Shape.cs:80-81), and TransformPathForBounds turns that into a
+// constant 0.5/side inward inset of the bounds — real and visible wherever MAUI derives a Border's
+// geometry from a Shape (Border.StrokeShape is always one). It is deliberately still NOT reinstated here:
+// doing so leaked into clip paths, which MAUI never deflates (Geometry.PathForBounds has no such step) —
+// the revert is recorded in docs/comparison/PARITY_REVIEW.md. The compensation lives in the platform
+// border handlers instead, via maui::core::shape_self_inset (core/border_handler.hpp), which carries the
+// derivation and the measured evidence. See also rectangle.hpp / ellipse.hpp, which shared the mistake.
 
 #include "maui/graphics/corner_radius.hpp"
 #include "maui/graphics/i_shape.hpp"

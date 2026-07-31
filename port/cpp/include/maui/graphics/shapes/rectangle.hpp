@@ -6,9 +6,18 @@
 //
 // SIMPLIFIED PORT (this unit, recorded in port/STATUS.md): the full Shape machinery — StrokeThickness
 // insets, the Stretch/Aspect fit (TransformPathForBounds, which needs path_f::Transform(Matrix3x2), an
-// omitted M0 feature), and the RadiusX/RadiusY rounding — is out of scope here. With the default
-// StrokeThickness 0 and Aspect Fill, C#'s result is the unit rectangle scaled to fill the bounds; we build
-// that directly: append_rectangle over the bounds rect. Header-only (the body is a single append call).
+// omitted M0 feature), and the RadiusX/RadiusY rounding — is out of scope here. Under Aspect Fill C#'s
+// result is the unit rectangle scaled to fill the bounds; we build that directly: append_rectangle over
+// the bounds rect. Header-only (the body is a single append call).
+//
+// MIND THE OMITTED SELF-INSET. Earlier revisions of this note claimed C#'s default StrokeThickness is 0.
+// It is 1.0 (Shape.StrokeThicknessProperty, Shape.cs:80-81), and TransformPathForBounds turns that into a
+// constant 0.5/side inward inset of the bounds. Because Border.StrokeShape DEFAULTS to a
+// Microsoft.Maui.Controls.Shapes.Rectangle, that inset is real and visible wherever MAUI derives a
+// Border's geometry from a Shape. It is deliberately still NOT reinstated here: doing so leaked into clip
+// paths, which MAUI never deflates (Geometry.PathForBounds has no such step) — the revert is recorded in
+// docs/comparison/PARITY_REVIEW.md. The compensation lives in the platform border handlers instead, via
+// maui::core::shape_self_inset (core/border_handler.hpp), which carries the derivation and the evidence.
 
 #include "maui/graphics/i_shape.hpp"
 #include "maui/graphics/path_f.hpp"

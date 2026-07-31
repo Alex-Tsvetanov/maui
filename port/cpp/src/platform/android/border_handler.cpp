@@ -582,7 +582,11 @@ namespace
         {
             return {};
         }
-        return spec.shape->path_for_bounds(maui::graphics::rect{x, y, w, h});
+        // ...and then the default StrokeShape's OWN 0.5 pt/side self-inset on top: MauiDrawable.
+        // UpdateClipPath hands those bounds to _shape.ToPlatform(...), whose non-innerPath branch is a bare
+        // shape.PathForBounds (ShapeExtensions.cs:34) — so the Controls Rectangle's own StrokeThickness 1.0
+        // deflates them again. Derivation + the `> 0` latch: shape_self_inset (core/border_handler.hpp).
+        return spec.shape->path_for_bounds(maui::core::shape_self_inset(maui::graphics::rect{x, y, w, h}, sw));
     }
 
     // The Border CONTENT clip path (in POINTS, over the host's laid-out size) — the ONE mirror of C#'s
@@ -629,8 +633,14 @@ namespace
                                           reduce(r.bottom_right));
             return path;
         }
-        // The non-IRoundRectangle ToPlatform branch: pathBounds = Rect(1.5st, 1.5st, W−3st, H−3st).
-        const maui::graphics::rect inner{1.5 * st, 1.5 * st, inner_w3, inner_h3};
+        // The non-IRoundRectangle ToPlatform branch: pathBounds = Rect(1.5st, 1.5st, W−3st, H−3st) — and
+        // then shape.PathForBounds(pathBounds) (ShapeExtensions.cs:34), so the default StrokeShape's own
+        // 0.5 pt/side self-inset applies here too (shape_self_inset, core/border_handler.hpp). The
+        // IRoundRectangle branch above does NOT get it: InnerPathForBounds is called directly, never
+        // through PathForBounds. Measured on border_stroke: MAUI's orange content edge sits +0.50 pt
+        // inward of the port's at StrokeThickness 1 and 5, the same constant as the stroke itself.
+        const maui::graphics::rect inner =
+            maui::core::shape_self_inset(maui::graphics::rect{1.5 * st, 1.5 * st, inner_w3, inner_h3}, st);
         if (dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr)
         {
             path.append_ellipse(static_cast<float>(inner.x), static_cast<float>(inner.y),

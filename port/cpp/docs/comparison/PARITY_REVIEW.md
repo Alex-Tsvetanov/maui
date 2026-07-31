@@ -696,6 +696,104 @@ code path: `alignment` (5), `border_alignment`, `border_clip_playground` (slider
 three pages this task targeted — an unmoved page outside {`borderless`, `shapes`} would itself be a signal
 worth checking, and a moved page inside this list is the fix working, not a new regression to chase.
 
+#### CROSS-PLATFORM (2026-07-31, later): the same inset was missing on iOS, Catalyst, AppKit and Android
+
+The Windows fix above was scoped to one backend. It is not a Windows defect — the missing inset comes from a
+SHARED wrong premise (the three `graphics::shapes::*` headers), so every backend whose MAUI counterpart
+routes a Border's geometry through `Shape.PathForBounds` had it too. All four were checked against `src/`
+and then measured; three needed the fix, and the fourth turned out not to be exempt after all.
+
+**Oracle, per backend.** Where each backend's MAUI counterpart gets the Border's path:
+
+| backend | MAUI chain | routes through `Shape.PathForBounds`? |
+|---|---|---|
+| Windows | `BorderExtensions.UpdatePath` | yes (already fixed, `229c66a407`) |
+| iOS / Catalyst | `MauiCALayer.GetClipPath()` -> `shape.PathForBounds(bounds)` (`MauiCALayer.cs:307-313`), consumed by BOTH `DrawBackground` and `DrawBorder` | **yes** |
+| macOS AppKit | no MAUI counterpart; twin of the iOS ops file, ground truth is the Catalyst MAUI column | **yes** (by construction) |
+| Android | `MauiDrawable.UpdateClipPath` -> `_shape.ToPlatform(bounds, sw, density)` (`MauiDrawable.Android.cs:410`) -> `shape.PathForBounds(pathBounds)` (`ShapeExtensions.cs:34`) | **yes** |
+
+One dead end worth recording so it is not re-walked: `src/Core/src/Platform/Android/BorderDrawable.cs` looks
+like the Android Border drawable and builds its path from raw geometry (`GetPath`, line 494) with no
+`IShape` involved at all — which reads as "Android is exempt". It is **not** the class `Border` uses.
+`StrokeExtensions.UpdateMauiDrawable` instantiates `MauiDrawable` (`StrokeExtensions.cs:136-146`), which
+lives in `src/Core/src/Graphics/MauiDrawable.Android.cs`, not under `Platform/Android/` — which is why a
+`grep PathForBounds src/Core/src/Platform/Android/` misses it entirely.
+
+**Measurement.** Same subpixel technique, re-derived per platform rather than reusing the Windows numbers.
+Four rays walk outward from a seed inside each Border on `border_stroke_light`; each crosses the red stroke
+into the page background, so the outer edge is a clean two-colour red/white ramp and a ramp pixel's red
+coverage is exactly `1 - G/255`. With pixel `k` covering `[k, k+1)` in outward-step coordinates the edge is
+`e = k_lastPureRed + sum(coverage)`. The SAME seed is used for both columns, so `e_cpp - e_maui` is the
+shift with no alignment assumption. Delta in DIP, `+` = the port's stroke sits further OUT:
+
+    platform          px/DIP   T=1 left/right  T=5 left/right  T=10 left/right  outermost top/bottom
+    ios                3.0     +0.50 / +0.50   +0.50 / +0.50   +0.50 / +0.50     +0.50 / +0.50
+    android            2.75    +0.50 / +0.50   +0.50 / +0.50   +0.50 / +0.50     +0.50 / (n/a)
+    windows (pre-fix)  1.0     +0.50 / +0.50   +0.50 / +0.50   +0.50 / +0.50     +0.50 / +0.50
+
+Windows is listed because its committed `cpp` column still predates `229c66a407` (last touched in
+`2bf6d6e6b3`): reproducing the exact signature the Windows commit already fixed is the **positive control**
+for the technique. Constant in `T`, symmetric left-vs-right (a size shrink, not a translate), identical
+across both grids on the page.
+
+`maccatalyst` is measured differently on purpose. Its capture shows two-pixel ramps on hard edges in BOTH
+columns — the column is resampled somewhere in the VM capture path — so its coverage deltas read
++0.21..+0.32 DIP and that magnitude is not trustworthy. The resampling-immune observation is integer-level
+and unambiguous: adjacent Borders in the `*,*,*` Grid are separated by a **2-row gap** in the MAUI column
+and **abut exactly** in the cpp column (`maui` runs `81..101`, `104..132`; `cpp` one run `80..133`). Two
+adjacent Borders each pulling in 0.5 DIP is exactly a 1 DIP gap. iOS shows the same thing at 3x (`maui`
+`311..372`, `377..462`; `cpp` one run `309..584`). Catalyst compiles the *same* `ios_border_ops.hpp` the
+iOS column proves, so it is fixed by construction, not by its own weaker measurement.
+
+**Negative control at StrokeThickness = 0** (`borderless_light`, a Pink/Red Border pair filling a `*,*`
+Grid): the Pink->Red transition row is **identical** between the MAUI and cpp columns on all three
+platforms — ios `y=1353`, maccatalyst `y=415/416`, android `y=1205` — with no gap and no blended row. Zero
+inset in both columns at T=0, on every platform. The `thickness > 0` gate is confirmed independently of
+Windows.
+
+**iOS/macOS needed a shape the Windows fix did not.** On Windows the Border's fill comes from a separate
+`ContentPanel` background, so deflating the stroke geometry alone was correct. On iOS/macOS `MauiCALayer`
+feeds ONE path — `GetClipPath()` — to both `DrawBackground` and `DrawBorder`, and the port mirrors that with
+`apply_clip(...)` plus the `CAShapeLayer` stroke at double width with the mask cutting the outer half.
+Deflating only the stroke path there would have moved its inner edge while the mask still cut at the
+undeflated outer edge: a `thickness + 0.5` wide band instead of a `thickness` band shifted by 0.5 — and a
+single-edge centroid check would have PASSED on that. So the inset is taken once, at the top of
+`apply_border_stroke`, and feeds both. (The gate has to cover the `apply_clip` call too, which runs before
+the `draws_border` early-return.)
+
+**Android needed the content clip as well.** `ShapeExtensions.ToPlatform(..., innerPath: true)` splits: the
+`IRoundRectangle` branch calls `InnerPathForBounds` directly (no `PathForBounds`, so **no** inset), every
+other shape falls through to `shape.PathForBounds(Rect(1.5st, 1.5st, W-3st, H-3st))` (**inset applies**).
+Measured on `border_stroke`, MAUI's orange content edge sits `+0.50` pt inward of the port's at both T=1 and
+T=5 — the same constant as the stroke — so `border_content_inner_path_points`'s non-round-rect branch is
+inset too, and its round-rectangle branch deliberately is not.
+
+**What landed.** One shared helper, `maui::core::shape_self_inset(bounds, thickness)` in
+`include/maui/core/border_handler.hpp`, carrying the whole derivation (including the `Border.cs:433-439`
+latch) in one place instead of four copies; called from `ios_border_ops.hpp`, `apple_border_ops.hpp`, and
+`android/border_handler.cpp` (`border_shape_path_points` + the inner-path non-round-rect branch). The three
+`graphics::shapes::*` headers' "default StrokeThickness 0" claim is corrected in place — comment-only, the
+shapes still deliberately do NOT self-inset, and each now points at the helper and at the `f1a5a17658`
+revert so the premise cannot be re-derived. `view_chrome_ops.cpp` (Windows clips), `ios_visual_ops.hpp` /
+`apple_visual_ops.hpp` `apply_clip` (the general `View.Clip` route) and `android_clip_ops.hpp` are all
+untouched — MAUI never deflates those.
+
+Not done in this pass: collapsing the Windows handler's own inline copy of the inset onto the shared helper.
+Another session held uncommitted work in `src/platform/windows/border_handler.cpp` (the ContentPanel
+content-clip port) throughout; Windows behaviour is already correct, so this is a comment/dedup cleanup to
+fold in once that lands.
+
+**Verification.** `build/apple` builds clean, 3186/3187 ctest pass; `build/ios` builds clean;
+`build/android`'s `border_handler.cpp.o` compiles clean. The single apple failure,
+`gallery_structure_equivalence.layout_is_enabled`, is a *de-list* assertion ("divergence closed — remove
+'layout_is_enabled' from known_diverging()") on the gallery view-tree comparison, which never renders — it
+belongs to the concurrent `IsEnabled` cascade work in this worktree, not to this change. The full
+`build/android` target still fails before linking for an unrelated environment reason: the compile-time-XAML
+codegen step runs `maui_xaml_codegen` on the emulator via `tools/android-emu-run.sh`, and the emulator
+cannot open the host-side `tools/xaml_codegen/samples/*.xaml`. **No board recapture was run** — all four
+`cpp` capture columns still show the pre-fix geometry, so the next board pass should move the ~15-page list
+above on iOS, Catalyst, AppKit and Android too, not only on Windows.
+
 ---
 
 ## TASK 1 SOLVED (2026-07-31): the dark/light background delta is a MISSING CONTENT LAYER

@@ -238,8 +238,17 @@ namespace maui::platform::ios
             return;
         }
 
+        // The default StrokeShape's own 0.5 DIP/side self-inset (shape_self_inset, core/border_handler.hpp
+        // — full derivation + the `thickness > 0` latch there). MauiCALayer feeds ONE path,
+        // GetClipPath() = shape.PathForBounds(bounds), to BOTH DrawBackground and DrawBorder, so the inset
+        // has to be taken ONCE here and reused by the mask below AND the stroke path: deflating only the
+        // stroke would shift its inner edge while the mask still cut at the undeflated outer edge, turning
+        // a pure 0.5 DIP offset into a `thickness + 0.5` wide band. The general View.Clip route through
+        // ios_visual_ops.hpp's apply_clip is NOT affected — MAUI never deflates that one.
+        const maui::graphics::rect shape_bounds = maui::core::shape_self_inset(bounds, spec.thickness);
+
         // The shape mask: clips background + content + the stroke's outer half (see the header).
-        apply_clip(native, spec.shape, bounds);
+        apply_clip(native, spec.shape, shape_bounds);
 
         CAShapeLayer* stroke_layer = find_border_layer(layer);
         const bool draws_border = spec.has_stroke && spec.thickness > 0 && spec.shape != nullptr;
@@ -263,7 +272,7 @@ namespace maui::platform::ios
         stroke_layer.frame = CGRectMake(bounds.x, bounds.y, bounds.width, bounds.height);
         stroke_layer.fillColor = nil; // stroke only — the background is the container layer's
 
-        const maui::graphics::path_f path = spec.shape->path_for_bounds(bounds);
+        const maui::graphics::path_f path = spec.shape->path_for_bounds(shape_bounds);
         CGPathRef cg = path_to_cg_path(path);
         stroke_layer.path = cg;
         CGPathRelease(cg);

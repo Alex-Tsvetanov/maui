@@ -25,6 +25,7 @@
 // cross-platform (border_handler.cpp); create + set_content + update_border + arrange_native live per
 // backend under src/platform/<backend>/border_handler.{cpp,mm}.
 
+#include <algorithm>
 #include <any>
 #include <memory>
 #include <string_view>
@@ -61,6 +62,46 @@ namespace maui::core
         float miter_limit = 0;                          // StrokeMiterLimit
         const maui::graphics::i_shape* shape = nullptr; // non-owning borrow (the control owns it)
     };
+
+    // The extra 0.5 DIP/side inset MAUI's DEFAULT Border.StrokeShape carries — applied by each backend to
+    // the bounds it feeds i_shape::path_for_bounds, wherever MAUI's own chain routes through
+    // Shape.PathForBounds. STACKS ON TOP of that backend's Border-level (StrokeThickness) deflate.
+    //
+    // Border.StrokeShapeProperty defaults to a *Controls* Rectangle (Border.cs:81) whose OWN
+    // StrokeThickness defaults to 1.0 (Shape.cs:80-81) and feeds Shape.TransformPathForBounds
+    // (Shape.cs:312-323) unconditionally — `viewBounds.X += StrokeThickness / 2; Width -=
+    // StrokeThickness`. The inset is a CONSTANT 0.5 per side: it comes from the SHAPE's own thickness,
+    // never the Border's, and Border does not propagate its StrokeThickness to the shape. The single
+    // exception is Border.UpdateStrokeShape (Border.cs:433-439):
+    //     if (StrokeShape is Shape strokeShape && StrokeThickness == 0)
+    //         strokeShape.StrokeThickness = StrokeThickness;
+    // — a one-way LATCH. It only ever zeroes the shape's thickness, only when the Border's own
+    // StrokeThickness is set to 0, and never restores it. For the static markup this port renders that
+    // is exactly "no inset while the Border is unstroked", which is the thickness > 0 gate below. (A
+    // Border driven 5 -> 0 -> 5 at RUNTIME keeps a zeroed shape in MAUI and so keeps no inset; the port
+    // does not reproduce that latched state — a deliberately narrow divergence, invisible to markup.)
+    //
+    // The port's default StrokeShape is graphics::shapes::rectangle, a SIMPLIFIED shape with no
+    // StrokeThickness of its own and no self-inset (see its header), so nothing reproduced this
+    // anywhere. Reproducing it INSIDE those shared shapes was tried and reverted (f1a5a17658): it leaked
+    // into clip paths, which MAUI never deflates (Geometry.PathForBounds has no such step). Hence this
+    // helper, called only from the border handlers, on only the paths MAUI derives from a Shape.
+    //
+    // Measured, not merely derived: subpixel coverage-centroid measurement of border_stroke's stroke
+    // edges against the real-MAUI capture columns (docs/comparison/PARITY_REVIEW.md) puts the port's
+    // stroke a constant +0.5 DIP further OUT on all four edges at StrokeThickness 1, 5 and 10 —
+    // independent of the thickness — on iOS, Android and (pre-fix) Windows, while borderless
+    // (StrokeThickness = 0) already matched the MAUI column exactly.
+    [[nodiscard]] inline maui::graphics::rect shape_self_inset(const maui::graphics::rect& bounds, double thickness)
+    {
+        if (thickness <= 0.0)
+        {
+            return bounds; // Border.UpdateStrokeShape latched the shape's own thickness to 0
+        }
+        constexpr double k_inset = 0.5; // the default Controls Shape's StrokeThickness (1.0) / 2
+        return maui::graphics::rect{bounds.x + k_inset, bounds.y + k_inset, std::max(0.0, bounds.width - (2 * k_inset)),
+                                    std::max(0.0, bounds.height - (2 * k_inset))};
+    }
 
     // Derives view_platform_base so the shared view_mapper pushes the generic IView properties onto it.
     struct border_platform : view_platform_base
