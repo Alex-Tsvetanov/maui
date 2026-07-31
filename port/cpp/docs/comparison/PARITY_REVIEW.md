@@ -641,17 +641,28 @@ an unrounded Rectangle (numerator and denominator shrink by the identical amount
 whole chain is a single, constant 0.5 DIP/side inset. Not a double deflate; one 0.5 DIP inset, arrived at via
 two steps that cancel everywhere except that shared 0.5.
 
-The `borderless` tiebreaker: per that same `src/` chain, this 0.5 DIP inset is UNCONDITIONAL — it should
-apply even at the Border's own StrokeThickness=0, because it comes from the *shape's* default (1.0), which
-`Border.cs` never overrides from the Border's own thickness. Measured directly on `borderless` (a StrokeThickness=0
-pink/red Border pair sharing a Grid boundary, `captures/windows/{maui,cpp}/borderless_light.png`): the
-pink/red fill boundary is **bit-identical** between MAUI and cpp at `y=412`, zero blended pixels, no gap —
-i.e. MAUI's actual shipped 10.0.71 render does NOT apply this inset when the Border has no stroke. That
-contradicts the literal unconditional reading of `src/` (a `src/`-vs-shipped drift, ruling 11 territory — the
-render wins). So the fix implemented (`src/platform/windows/border_handler.cpp`, `update_border()`) gates the
-extra 0.5 DIP/side inset on `thickness > 0`: a deliberate, MEASURED deviation from the literal `src/` chain,
-scoped to the Windows border handler alone (not the shared graphics shape layer, so clips stay undeflated,
-same as before).
+The `borderless` tiebreaker: measured directly on `borderless` (a StrokeThickness=0 pink/red Border pair
+sharing a Grid boundary, `captures/windows/{maui,cpp}/borderless_light.png`), the pink/red fill boundary is
+**bit-identical** between MAUI and cpp at `y=412`, zero blended pixels, no gap — MAUI does NOT apply the
+inset when the Border has no stroke. So the fix (`src/platform/windows/border_handler.cpp`,
+`update_border()`) gates the extra 0.5 DIP/side inset on `thickness > 0`, scoped to the border handler alone
+(not the shared graphics shape layer, so clips stay undeflated, same as before).
+
+> **Correction (2026-07-31, cross-platform pass).** This paragraph originally called the gate "a deliberate,
+> MEASURED deviation from the literal `src/` chain", on the reading that `src/` makes the inset
+> unconditional. That reading was incomplete — **the gate IS in `src/`**, in `Border.UpdateStrokeShape`
+> (`src/Controls/src/Core/Border/Border.cs:433-439`), which was not consulted when the above was written:
+>
+>     if (StrokeShape is Shape strokeShape && StrokeThickness == 0)
+>         strokeShape.StrokeThickness = StrokeThickness;
+>
+> It fires from `OnPropertyChanged` for `StrokeThickness` / `StrokeShape` (`Border.cs:417-420`) and zeroes
+> the *shape's* own thickness whenever the Border's is set to 0. Note what it is precisely: a **one-way
+> latch**, not a function of the thickness — it only ever writes 0, never restores 1.0, so a Border driven
+> 5 -> 0 -> 5 at runtime keeps a zeroed shape and therefore keeps no inset. For the static markup this port
+> renders, latch and gate coincide exactly, which is why the measurement and the oracle agree. There is no
+> `src/`-vs-shipped drift here and no ruling-11 call to defend; the port's `thickness > 0` gate is
+> straightforwardly correct, and only the runtime-latch tail is (harmlessly) unmodelled.
 
 Also resolves the dangling "border_stroke measurably improved 3.51 -> 1.99 under the wrongly-placed shared
 deflate" fact from the retraction above: that improvement was this SAME correct 0.5 DIP inset, just applied
@@ -660,9 +671,9 @@ in the wrong layer (also hitting clips, which is why it net-regressed the board 
 **Root cause of the missing inset, for the record:** `include/maui/graphics/shapes/{rectangle,round_rectangle,
 ellipse}.hpp` are documented "SIMPLIFIED PORT"s whose header comments state the shape's own default
 `StrokeThickness` is `0`. It is not — `Shape.cs:80-81` defaults it to `1.0`. That incorrect premise is why
-this port never had ANY shape-level self-inset anywhere. Not fixed at the shape layer here (out of scope for
-this pass, and the shared layer is the wrong home per the retraction above); the header comments are still
-wrong and worth a follow-up correction so a future reader doesn't re-derive the same incorrect premise.
+this port never had ANY shape-level self-inset anywhere. Still not fixed *at the shape layer* (the shared
+layer is the wrong home per the retraction above) — but the three header comments themselves were corrected
+in the cross-platform pass below, so a future reader no longer re-derives the same wrong premise.
 
 **`borderless`'s OUTER edges also confirm zero inset** (not just the pink/red interior seam above): the
 top edge (title bar -> pink), left/right edges (window frame -> pink), all measured bit-identical between
@@ -1120,3 +1131,45 @@ configured `examples/` build tree for any backend in this worktree) — reviewed
 reordering, all three `right_controls_.add(...)` calls and their member types were already valid at their
 old call sites, so this carries effectively no syntax/type risk. No Windows backend build or run was
 performed or claimed anywhere in this entry.
+
+---
+
+## Focus-visual suppression: mechanism WORKS, but it KILLS the capture transport (2026-07-31)
+
+The user authorised suppressing the reference column's WinUI keyboard-focus visual. Implemented as an
+OS-foreground handoff (`SetForegroundWindow(GetShellWindow())`) immediately before each `--shot`, inside
+`cmd_present` so all three columns get it identically.
+
+**It works, and it is not safe to leave on.** Both halves are measured:
+
+WORKS -- `label` light, maui-vs-cpp: **0.50% -> 0.01%**, with 6228 reference px moved (the focus outline
+plus inactive title-bar chrome). The band is gone. The hypothesis was correct.
+
+KILLS THE RUN -- the same run then died. Requested `label,modal,picker`; only `label` completed, and even
+its `cpp_xaml` column was dropped:
+
+    ~ present failed (empty reply from agent) -- resolution-toggle self-heal, retrying
+    ~ present failed (transport: ConnectionRefusedError: [Errno 61] Connection refused)
+    ! label/cpp_xaml/light#1: DROPPED -- present failed after self-heal (no window to capture)
+    ! modal/{maui_xaml,cpp,cpp_xaml}/light:  launch failed: ConnectionRefusedError
+    ! picker/{maui_xaml,cpp,cpp_xaml}/light: launch failed: ConnectionRefusedError
+
+Attribution is clean: every prior run on this guest captured its full set (the 2026-07-31-02_01_46 full
+board took 1104/1104 with 0 failures). The FIRST run with defocus enabled died after one page. Handing OS
+foreground to the shell evidently tears down the session-1 agent's own desktop session -- which is exactly
+the environment the loop's own notes warn about (an app in session 0 has no desktop and never reaches
+OnLaunched; the agent depends on holding a real session-1 desktop).
+
+**Action taken: the flag is now OPT-IN (`--defocus`), default OFF**, so the harness can always complete a
+run. The unit test was updated to encode the safe default and the reason. Do NOT enable it for a scoring
+run until the transport teardown is solved.
+
+**Worth noting the harness behaved WELL here:** it did not silently drop pages. It reported each failure
+loudly, self-healed once, and exited non-zero-ish with an explicit DROPPED line. That is why this was
+caught in a 3-page verification run instead of corrupting a 1104-shot board.
+
+**If someone retries this**, the promising direction is a suppression that does NOT touch OS foreground:
+WinUI draws the focus visual only for `FocusState::Keyboard`, so setting focus to `FocusState::Pointer`
+(or clearing it) INSIDE the app -- e.g. a diagnostic switch in the MauiReference app and the gallery,
+compiled in for capture builds -- would suppress the outline without disturbing the window manager or the
+agent's desktop. That keeps the fix in-process, where it cannot break the transport.

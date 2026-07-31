@@ -131,8 +131,12 @@ def test_subcommand_surface(agent) -> None:
 
 
 def test_present_defocus_flag(agent) -> None:
-    """`present --defocus` must default True (every column gets WinUI focus-visual suppression, see
-    _defocus_before_shot, with zero run_comparison.py change) and `--no-defocus` must be able to turn it
+    """`present --defocus` must default FALSE and be opt-in.
+
+    It was briefly default-ON to suppress WinUI's keyboard-focus visual, but the first run with it
+    enabled KILLED the session-1 agent transport after one page (ConnectionRefusedError on every
+    subsequent launch; see PARITY_REVIEW.md). Handing OS foreground to the shell evidently tears down
+    the agent's own desktop session. Default-off keeps the harness able to complete a run; the flag
     off for on-guest debugging. Exercises the REAL argparse tree main() builds, via a swapped-in
     cmd_present that just records the parsed namespace instead of touching Win32."""
     captured: dict = {}
@@ -140,12 +144,12 @@ def test_present_defocus_flag(agent) -> None:
     agent.cmd_present = lambda a: captured.__setitem__("ns", a) or 0
     try:
         agent.main(["present", "--proc", "x"])
-        assert captured["ns"].defocus is True, "present must defocus by default"
-        agent.main(["present", "--proc", "x", "--no-defocus"])
-        assert captured["ns"].defocus is False, "--no-defocus must flip it off"
+        assert captured["ns"].defocus is False, "present must NOT defocus by default"
+        agent.main(["present", "--proc", "x", "--defocus"])
+        assert captured["ns"].defocus is True, "--defocus must opt in"
     finally:
         agent.cmd_present = real_cmd_present
-    print("  ok  present --defocus: defaults True, --no-defocus flips it off")
+    print("  ok  present --defocus: defaults False, --defocus opts in")
 
 
 def main() -> int:

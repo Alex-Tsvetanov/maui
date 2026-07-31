@@ -904,10 +904,11 @@ def main(argv=None) -> int:
     s.add_argument("--zoom", action="store_true", help="(ignored; explicit --x/--y/--w/--h supersede)")
     s.add_argument("--pid", type=int, default=0, help="the app's pid (preferred over --proc)")
     s.add_argument("--shot", default="", help="capture the window to this path once size is confirmed")
-    s.add_argument("--no-defocus", dest="defocus", action="store_false", default=True,
-                   help="skip the pre-shot OS-foreground handoff that suppresses WinUI's keyboard-focus "
-                        "visual (debugging only; leaves the reference-column focus-visual coin flip in "
-                        "place)")
+    s.add_argument("--defocus", dest="defocus", action="store_true", default=False,
+                   help="OPT-IN: hand OS foreground to the shell before --shot, to suppress WinUI's "
+                        "keyboard-focus visual. DEFAULT OFF -- enabling it killed the session-1 agent "
+                        "transport mid-run on 2026-07-31 (see PARITY_REVIEW.md). Do not enable for a "
+                        "scoring run until that is resolved.")
     s.set_defaults(fn=cmd_present)
 
     s = sub.add_parser("click"); s.add_argument("x", type=int); s.add_argument("y", type=int)
