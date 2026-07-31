@@ -3,7 +3,8 @@
 // Microsoft.UI.Xaml.Media.Imaging.BitmapImage, boxed into the result the same way image_handler.cpp boxes
 // the control's own native view (winui_interop.hpp's take/ref/drop). Ported from
 // FileImageSourceService.Windows.cs / UriImageSourceService.Windows.cs / StreamImageSourceService.Windows.cs.
-// FontImageSourceService.Windows.cs stays MIRROR-ONLY — see the FONT section below for why.
+// FontImageSourceService.Windows.cs stays MIRROR-ONLY FOR THE GLYPH (but is now correctly SIZED) — see the
+// FONT section below for why.
 //
 // ASYNC DECODE, NO SYNC WAIT (image_handler.cpp's header note 2, restated here because this file hits it
 // too): WinUI's BitmapImage has no synchronous decode API. image_handler.cpp's own file fast-path already
@@ -62,13 +63,44 @@
 // unconfigured by image_handler.cpp's configure_loader — see this file's fetch_uri_async for why (capture-
 // run determinism is an open question, not a guess this file resolves on its own).
 //
-// FONT stays MIRROR-ONLY: FontImageSourceService.Windows.cs (RenderImageSource/GetPlatformImage) rasterizes
-// the glyph via Win2D (Microsoft.Graphics.Canvas: CanvasDevice/CanvasTextFormat/CanvasTextLayout/
-// CanvasImageSource) — a separate native dependency this port does not link on ANY backend. There is no
-// plain-WinUI (non-Win2D) glyph-to-image rasterizer to fall back to; inventing one (e.g. hand-drawing via
-// Direct2D/DirectWrite) would be a new rasterizer, which this file's own task explicitly says to leave
-// mirrored rather than invent. The Image page's two "Font Image Source" rows (Ionicons glyphs) stay blank
-// bands on this backend, same as before this file existed.
+// FONT stays MIRROR-ONLY FOR THE GLYPH, but is now SIZED for real: FontImageSourceService.Windows.cs
+// (RenderImageSource/GetPlatformImage) rasterizes the glyph via Win2D (Microsoft.Graphics.Canvas:
+// CanvasDevice/CanvasTextFormat/CanvasTextLayout/CanvasImageSource) — a separate native dependency this
+// port does not link on ANY backend. There is no plain-WinUI (non-Win2D) glyph-to-image rasterizer to
+// fall back to; inventing one (e.g. hand-drawing via Direct2D/DirectWrite) would be a new rasterizer,
+// which this file's own task explicitly says to leave mirrored rather than invent. So the drawn ICON
+// PIXELS genuinely stay unrendered on this backend.
+//
+// CORRECTED (measured on the guest, `image` page): before this fix, the ENTIRE diff region (rows 700-791,
+// cols 20-1003 in both themes) was this collapse — the Image's own BackgroundColor already paints
+// (image_handler.cpp's unconditional Border host + winui_visual_ops.cpp's apply_background), that part was
+// never blocked by Win2D, but this service used to return a `!nullptr`-image-less result (headless-shaped:
+// no native handle at all), so the Image control's Source was never assigned anything, so WinUI's own
+// Stretch=Uniform measure had no PixelWidth/PixelHeight to work from and collapsed the whole row to 0x0 —
+// taking the painted-but-now-zero-area Background down with it, rather than reproducing MAUI's real render
+// of this row (NOT a modest label-height band — Stretch=Uniform with the VerticalStackLayout's
+// unconstrained vertical axis makes WinUI derive its scale from the ONE finite axis (width) and blow the
+// near-square glyph canvas up to roughly the row's own width, tall enough to run off the bottom of the
+// captured window). font_image_source_service::load below reproduces that SIZE (a transparent
+// WriteableBitmap — plain WinUI, no Win2D) without reproducing the DRAW. Measured against the real MAUI
+// pixels this closes ROUGHLY HALF the dark diff and ROUGHLY A THIRD of the light diff, not all of it —
+// light's residual is larger because MAUI's un-drawn glyph ink is a near-white blur that already sits
+// close enough to the light page background to undercount as "matching" today, so filling the row with
+// solid green (correct) trades that accidental near-match for a real green-vs-white difference. The
+// remaining diff either way is the drawn glyph ink itself, an acknowledged gap (no Win2D linked).
+//
+// ACCEPTANCE CHECK for whoever recaptures on the guest (this is a PREDICTED mechanism, not a compiled-and-
+// observed one — this port cannot build Windows sources off-guest, and this backend already has a prior
+// case of a fully-decoded BitmapImage measuring 0x0 across 20 guest passes, so "assign a Source, measure
+// follows" is exactly the kind of claim that needs a real check, not just this comment): in the recaptured
+// `image_light`/`image_dark` PNGs, rows 0-699 must stay at EXACTLY ZERO diff against MAUI's (they are
+// today) — any diff appearing there means the exploded row pushed content and shifted the page, not just
+// grew in place. Rows 700-791 should fall from 69218/90626 toward roughly 44565 (both themes, same maui
+// pixels there). If rows 700-791 do not change AT ALL, DesiredSize likely still came back 0x0 for this
+// element and WriteableBitmap needs an explicit `.Invalidate()` after construction. "pixel" and
+// "pixel_xaml" board slots are byte-identical on this page today (the xaml and cpp galleries build the
+// same FontImageSource the same way) — they should still be after recapture; if they diverge, the xaml
+// loader is constructing/measuring the font source differently from the code-first builder.
 
 #include "maui/core/file_image_source_service.hpp"
 #include "maui/core/font_image_source_service.hpp"
@@ -115,6 +147,10 @@ namespace
     // shadow it inside namespace maui::*).
     namespace winui = winrt::Microsoft::UI::Xaml;
     using bitmap_image = winui::Media::Imaging::BitmapImage;
+    // font_image_source_service::load's SIZE-ONLY stand-in — see this file's header FONT section. A
+    // sibling of bitmap_image (both derive Media::ImageSource), never interchangeable with it: boxed and
+    // unboxed under its OWN type below, never through the bitmap_image take/ref/drop calls.
+    using writeable_bitmap = winui::Media::Imaging::WriteableBitmap;
 
     // ---- file:// Uri construction, shared by the FILE resolver and the spooled-bytes decoder below -----
 
@@ -436,10 +472,33 @@ namespace maui::core
             on_result(image_source_result{}); // not a font source / empty glyph → nothing rendered
             return;
         }
-        // MIRROR ONLY — see this file's header FONT section (FontImageSourceService.Windows.cs rasterizes
-        // via Win2D, a dependency this port does not link). Headless-shaped result: no native handle, kind
-        // + glyph recorded, resolution_dependent=true (matches the headless/apple twins' font result).
-        on_result(image_source_result{nullptr, nullptr, "font", std::string(font_src->glyph()),
+        // SIZED MIRROR — see this file's header FONT section. The glyph itself stays unrendered (Win2D-only,
+        // not linked here), but a real, correctly-SIZED native handle is boxed so WinUI's own Stretch=
+        // Uniform measure has something to work from — the same reason this is NOT `nullptr, nullptr` like
+        // the headless/apple-mirror shape anymore. A fresh WriteableBitmap's pixel buffer is zero-
+        // initialized (fully transparent), so nothing is drawn into it: the Border host's BackgroundColor
+        // (already painted — winui_visual_ops.cpp's apply_background) shows through every pixel unchanged.
+        //
+        // SQUARE, NOT Win2D's real ink-bounds: RenderImageSource's true canvas is
+        // `layout.LayoutBounds.{Width,Height} + 2`, which needs an actual text layout (Win2D) to know. This
+        // port cannot compute that, so it approximates with a SQUARE canvas (Ionicons glyphs, like most
+        // icon fonts, are drawn roughly square in their em-box) sized off the FontImageSource's own Size —
+        // `+ 2` mirrors the oracle's 1px-all-around padding purely for narrative fidelity. The approximation
+        // is deliberately unconcerned with being the exact square: on THIS page (and any FontImageSource
+        // inside a VerticalStackLayout/unconstrained cross-axis), WinUI's Stretch=Uniform scale collapses to
+        // the single ratio `availableWidth / naturalWidth` once one axis is infinite, and for a NATURALLY
+        // SQUARE bitmap that ratio (and therefore the measured result) is IDENTICAL no matter what the
+        // square's absolute side length is — a 3x3 transparent bitmap measures exactly like a 22x22 one.
+        // (Acknowledged gap: a non-square glyph, or a font image measured with BOTH axes finite, would still
+        // diverge from Win2D's real ink-bounds aspect ratio — this is a size approximation, not exact parity.)
+        const auto side = static_cast<std::int32_t>(std::max(1.0, font_src->font().size()) + 2);
+        void* const boxed = maui::platform::windows::take<writeable_bitmap>(writeable_bitmap{side, side});
+        on_result(image_source_result{boxed,
+                                      [boxed]() {
+                                          void* slot = boxed;
+                                          maui::platform::windows::drop<writeable_bitmap>(slot);
+                                      },
+                                      "font", std::string(font_src->glyph()),
                                       /*resolution_dependent*/ true});
     }
 } // namespace maui::core

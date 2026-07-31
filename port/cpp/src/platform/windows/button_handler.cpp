@@ -69,6 +69,10 @@ namespace
     using panel_control = winui::Controls::StackPanel;
     using image_control = winui::Controls::Image;
     using bitmap_image = winui::Media::Imaging::BitmapImage;
+    // A font-sourced result's boxed type (image_source_services.cpp's font_image_source_service::load,
+    // shared with image_handler.cpp/image_button_handler.cpp) — see apply_loaded_result below for why it
+    // must be unboxed under its OWN type, never reinterpreted through bitmap_image's.
+    using writeable_bitmap = winui::Media::Imaging::WriteableBitmap;
 
     button_control as_button(void* native)
     {
@@ -739,7 +743,8 @@ namespace maui::core
         // Matches image_handler.cpp's configure_loader (windows): a no-op. The async loader's uri/stream
         // path already resolves through image_source_services.cpp's MAUI_WINDOWS_SWAPS registration
         // (apply_loaded_result below reads the same real BitmapImage handle that produces); font sources
-        // stay mirror-only there too (Win2D is not linked on any backend — see that file's header note 3).
+        // stay glyph-mirror-only there too (Win2D is not linked on any backend — see that file's header FONT
+        // section), but ARE now sized for real via a boxed WriteableBitmap — see apply_loaded_result below.
     }
 
     void button_handler::load_file_source_sync(button_platform& platform, const i_file_image_source& file_src)
@@ -796,11 +801,21 @@ namespace maui::core
             return;
         }
         // result.image() carries a real BitmapImage handle for uri/stream sources (image_source_services.cpp
-        // — file header note 1); font sources still resolve with no native handle and stay mirror-only,
-        // exactly like image_handler.cpp's apply_loaded_result.
+        // — file header note 1), and now a WriteableBitmap handle for font sources too (a SIZE-ONLY stand-in
+        // — the glyph itself stays unrendered, no Win2D linked). Two unrelated boxed types reach here, so
+        // which `ref<T>` unboxes it is picked by kind(), exactly like image_handler.cpp's identical branch
+        // — reinterpreting a boxed writeable_bitmap as a bitmap_image would be a real type-punning bug (no
+        // gallery Button currently sets a FontImageSource, so this is a latent-bug fix, not a measured one).
         if (result.image() != nullptr)
         {
-            image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+            if (result.kind() == "font")
+            {
+                image.Source(maui::platform::windows::ref<writeable_bitmap>(result.image()));
+            }
+            else
+            {
+                image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+            }
             image.Visibility(winui::Visibility::Visible);
         }
         sync_content_composition(button, platform.content_layout);

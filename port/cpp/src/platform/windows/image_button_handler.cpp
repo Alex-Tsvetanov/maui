@@ -104,6 +104,10 @@ namespace
     using button_control = winui::Controls::Button;
     using image_control = winui::Controls::Image;
     using bitmap_image = winui::Media::Imaging::BitmapImage;
+    // A font-sourced result's boxed type (image_source_services.cpp's font_image_source_service::load,
+    // shared with image_handler.cpp) — see this file's apply_loaded_result for why it must be unboxed
+    // under its OWN type, never reinterpreted through bitmap_image's.
+    using writeable_bitmap = winui::Media::Imaging::WriteableBitmap;
 
     button_control as_button(void* native)
     {
@@ -748,9 +752,24 @@ namespace maui::core
     }
 
     // ---- per-backend image-source primitives (the cross-platform map_source in image_button_handler.cpp
-    // routes here) — ButtonExtensions.UpdateImageSource, minus the CanvasImageSource (font-source) branch:
-    // font sources stay mirror-only on this backend, matching image_handler.cpp/button_handler.cpp's
-    // identical gap (no Win2D linked on any backend — see image_source_services.cpp).
+    // routes here) — ButtonExtensions.UpdateImageSource, minus the CanvasImageSource (font-source) DRAW:
+    // font sources stay glyph-mirror-only on this backend (no Win2D linked on any backend — see
+    // image_source_services.cpp), matching image_handler.cpp/button_handler.cpp's identical gap, but are
+    // sized for real (image_source_services.cpp's font_image_source_service::load boxes a real, correctly-
+    // sized WriteableBitmap now — see apply_loaded_result below for why it is unboxed under its own type).
+    // No current gallery ImageButton uses FontImageSource (image_button.xaml / input_controls.xaml are both
+    // file/empty sources only), so this is a latent-bug fix, not a measured regression.
+    //
+    // clamp_image_to_natural_height/notify_if_already_open below DELIBERATELY stay try_as<bitmap_image>
+    // (NOT widened to the bitmap_source base image_handler.cpp's twin now uses): the oracle's :165-171 has
+    // a SEPARATE CanvasImageSource branch here — explicit `nativeImage.Width/Height = size` + MaxHeight =
+    // Infinity, NOT the BitmapImage branch's "clamp MaxHeight to natural size" — which this port does not
+    // implement (this file's header note 3). A font-sourced ImageButton/Button would therefore get NEITHER
+    // oracle branch's exact sizing today (no natural-height clamp, and no explicit small-icon pin either —
+    // it would fall through to whatever plain Stretch=Uniform does with an unconstrained box, closer to the
+    // plain Image control's blow-up than the oracle's pinned-small-icon button chrome). Inert today (no
+    // FontImageSource on any gallery Button/ImageButton) — a real gap if one is ever added, not a claim
+    // this port already handles it.
 
     void image_button_handler::configure_loader(maui::core::image_source_loader& /*loader*/)
     {
@@ -808,13 +827,25 @@ namespace maui::core
         {
             return;
         }
-        // result.image() carries a real BitmapImage handle for uri/stream sources; font sources have no
-        // native handle and stay mirror-only (image_handler.cpp/button_handler.cpp's identical shape).
+        // result.image() carries a real BitmapImage handle for uri/stream sources, and now a WriteableBitmap
+        // handle for font sources too (image_source_services.cpp's font_image_source_service::load — a
+        // SIZE-ONLY stand-in, see that file's header; the glyph itself stays unrendered, no Win2D linked).
+        // Two unrelated boxed types reach here, so which `ref<T>` unboxes it is picked by kind(), exactly
+        // like image_handler.cpp's identical branch — reinterpreting a boxed writeable_bitmap as a
+        // bitmap_image would be a real (if currently unexercised — no gallery ImageButton uses
+        // FontImageSource yet) type-punning bug, not merely a style concern.
         if (result.image() != nullptr)
         {
-            image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+            if (result.kind() == "font")
+            {
+                image.Source(maui::platform::windows::ref<writeable_bitmap>(result.image()));
+            }
+            else
+            {
+                image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+                notify_if_already_open(platform, image);
+            }
             image.Visibility(winui::Visibility::Visible);
-            notify_if_already_open(platform, image);
         }
     }
 

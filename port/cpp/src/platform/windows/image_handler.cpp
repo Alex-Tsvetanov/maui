@@ -39,17 +39,30 @@
 //     reset_platform_max_constraints (anonymous namespace below), called from each of the three source-
 //     application primitives (load_file_source_sync / apply_loaded_result / clear_source_native) so a
 //     smaller PREVIOUS source's cap cannot leak onto a larger NEW one.
-//  3. FONT SOURCES STAY MIRROR-ONLY (URI/STREAM ARE NOW REAL, INCLUDING A REMOTE HTTP(S) URI).
-//     image_source_services.cpp (swapped in via MAUI_WINDOWS_SWAPS) decodes a uri/stream source into a
-//     genuine BitmapImage the same way the FILE fast path below does (spool-to-temp-file + the Uri ctor —
-//     see that file's header for why not SetSourceAsync().get()); apply_loaded_result pushes result.image()
-//     onto the control's Source exactly like the apple twin. configure_loader (below) now also installs
-//     image_source_services.cpp's fetch_uri_async as the loader's uri_fetch seam, so a REMOTE http(s)
-//     UriImageSource (e.g. the gallery `image` page's `https://aka.ms/campus.jpg` row) is actually
-//     downloaded — a real Windows.Web.Http.HttpClient GET — instead of reading empty from the default
-//     synchronous read_uri_bytes (local-file-only). FONT stays mirror-only: FontImageSourceService.Windows.cs
-//     rasterizes the glyph via Win2D (Microsoft.Graphics.Canvas), a native dependency this port does not
-//     link on any backend — see image_source_services.cpp's header for the full citation.
+//  3. FONT SOURCES STAY GLYPH-MIRROR-ONLY, BUT ARE NOW REAL SIZE (URI/STREAM ARE FULLY REAL, INCLUDING A
+//     REMOTE HTTP(S) URI). image_source_services.cpp (swapped in via MAUI_WINDOWS_SWAPS) decodes a
+//     uri/stream source into a genuine BitmapImage the same way the FILE fast path below does
+//     (spool-to-temp-file + the Uri ctor — see that file's header for why not SetSourceAsync().get());
+//     apply_loaded_result pushes result.image() onto the control's Source exactly like the apple twin.
+//     configure_loader (below) now also installs image_source_services.cpp's fetch_uri_async as the
+//     loader's uri_fetch seam, so a REMOTE http(s) UriImageSource (e.g. the gallery `image` page's
+//     `https://aka.ms/campus.jpg` row) is actually downloaded — a real Windows.Web.Http.HttpClient GET —
+//     instead of reading empty from the default synchronous read_uri_bytes (local-file-only). FONT stays
+//     glyph-mirror-only: FontImageSourceService.Windows.cs rasterizes the glyph via Win2D
+//     (Microsoft.Graphics.Canvas), a native dependency this port does not link on any backend — see
+//     image_source_services.cpp's header for the full citation. But a font source's SIZE is no longer
+//     mirrored away: image_source_services.cpp now boxes a correctly-(square-approximate-)sized, fully
+//     transparent WriteableBitmap in its place, so apply_loaded_result below (kind == "font" branch) still
+//     has a real native handle to push onto Source — WinUI's own Stretch measure does the rest, matching
+//     MAUI's real (Win2D-driven) render's SIZE without reproducing its DRAW. Measured: a font-sourced Image
+//     with no native Source at all measured to 0x0, collapsing the row (background included) instead of
+//     reproducing MAUI's real Stretch=Uniform blowup (the VerticalStackLayout's unconstrained cross-axis
+//     makes WinUI derive its scale from width alone, so the row runs off the bottom of the window in BOTH
+//     the MAUI capture and, now, this port's) — that collapse was 100% of the `image` page's diff region
+//     before this fix. It does NOT close 100% of the 8.45%/11.06% afterward, though: roughly half the dark
+//     diff and roughly a third of the light diff remain, all of it the drawn glyph ink this backend still
+//     cannot rasterize (see image_source_services.cpp's header for the precise measurement and why light's
+//     residual is proportionally larger).
 //  4. IsOpaque stays a mirror (no WinUI analog — Image is a FrameworkElement with nothing resembling
 //     C#'s opaque hint, matching the android partial's identical gap).
 //
@@ -124,6 +137,14 @@ namespace
     namespace winui = winrt::Microsoft::UI::Xaml;
     using image_control = winui::Controls::Image;
     using bitmap_image = winui::Media::Imaging::BitmapImage;
+    // A font-sourced result's boxed type (image_source_services.cpp's font_image_source_service::load) —
+    // a SIBLING of bitmap_image, never interchangeable with it; apply_loaded_result below unboxes each
+    // result under its OWN type, branching on result.kind().
+    using writeable_bitmap = winui::Media::Imaging::WriteableBitmap;
+    // The common BASE of both — GetImageSize's oracle type (ImageHandler.Windows.cs:265 `Source is
+    // BitmapSource`), covering BitmapImage's PixelWidth/PixelHeight AND WriteableBitmap's identically, so
+    // get_image_size/notify_if_already_open below need no kind() branch at all.
+    using bitmap_source = winui::Media::Imaging::BitmapSource;
     using border = winui::Controls::Border;
 
     // The container host — see this file's header CONTAINER note. `native` now boxes the BORDER, not the
@@ -275,7 +296,7 @@ namespace maui::core
         // each call independently settles in at most one extra drive_layout() pass).
         void notify_if_already_open(image_platform& platform, const image_control& image)
         {
-            const auto bitmap = image.Source().try_as<bitmap_image>();
+            const auto bitmap = image.Source().try_as<bitmap_source>();
             if (bitmap && bitmap.PixelWidth() > 0 && bitmap.PixelHeight() > 0 && platform.on_image_opened)
             {
                 platform.on_image_opened();
@@ -283,13 +304,16 @@ namespace maui::core
         }
 
         // ImageHandler.Windows.cs's private GetImageSize (oracle
-        // src/Core/src/Handlers/Image/ImageHandler.Windows.cs:263-275): the decoded bitmap's PixelWidth/
-        // PixelHeight, or {0,0} when not yet decoded -- BitmapSource does not populate PixelWidth/
-        // PixelHeight until the image has opened, the same guard notify_if_already_open above already
-        // tests for. Used by update_platform_max_constraints below.
+        // src/Core/src/Handlers/Image/ImageHandler.Windows.cs:263-275): `Source is BitmapSource bitmap` —
+        // the decoded bitmap's PixelWidth/PixelHeight, or {0,0} when not yet decoded -- BitmapSource does
+        // not populate PixelWidth/PixelHeight until the image has opened, the same guard
+        // notify_if_already_open above already tests for. Used by update_platform_max_constraints below.
+        // try_as<bitmap_source>, matching the oracle's own base-type check, not bitmap_image specifically
+        // -- a font source's boxed writeable_bitmap (image_source_services.cpp) is a BitmapSource too, and
+        // its PixelWidth/PixelHeight are populated synchronously at construction (no decode to wait for).
         maui::graphics::size get_image_size(const image_control& image)
         {
-            const auto bitmap = image.Source().try_as<bitmap_image>();
+            const auto bitmap = image.Source().try_as<bitmap_source>();
             if (bitmap && bitmap.PixelWidth() > 0 && bitmap.PixelHeight() > 0)
             {
                 return {static_cast<double>(bitmap.PixelWidth()), static_cast<double>(bitmap.PixelHeight())};
@@ -553,8 +577,10 @@ namespace maui::core
 
     // The async loader's apply: see this file's header note 3. A !loaded() result clears the view (the
     // SetImageSource(null) analog); a loaded result always updates the string mirrors, and — when it
-    // carries a real native handle (uri/stream; not font, see note 3) — pushes it onto the control's
-    // Source, mirroring the apple twin's `as_image_view(...).image = ...`.
+    // carries a real native handle — pushes it onto the control's Source, mirroring the apple twin's
+    // `as_image_view(...).image = ...`. TWO boxed shapes reach here now (see the writeable_bitmap alias
+    // above): uri/stream/file box a bitmap_image, font boxes a writeable_bitmap (image_source_services.cpp)
+    // — unrelated WinRT sibling types, so which `ref<T>` to unbox with is picked by kind(), not assumed.
     void image_handler::apply_loaded_result(image_platform& platform, const image_source_result& result)
     {
         if (!result.loaded())
@@ -569,7 +595,21 @@ namespace maui::core
         {
             const image_control image = as_image(platform.native);
             reset_platform_max_constraints(image);
-            image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+            if (result.kind() == "font")
+            {
+                image.Source(maui::platform::windows::ref<writeable_bitmap>(result.image()));
+            }
+            else
+            {
+                image.Source(maui::platform::windows::ref<bitmap_image>(result.image()));
+            }
+            // notify_if_already_open/get_image_size both check via bitmap_source (the oracle's own
+            // `Source is BitmapSource` type), which covers a font source's WriteableBitmap exactly like a
+            // file/uri/stream source's BitmapImage — so this belt-and-braces call is NOT font-conditional.
+            // For a WriteableBitmap this is not even "belt and braces": it is the ONLY trigger, since
+            // WriteableBitmap's size is known synchronously (no decode) and never raises ImageOpened, so
+            // without this call update_platform_max_constraints() (which a Fill-aligned axis skips past
+            // regardless, but a non-Fill axis depends on) would never run for a font source at all.
             notify_if_already_open(platform, image);
         }
     }
