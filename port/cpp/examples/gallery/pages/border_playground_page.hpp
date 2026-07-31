@@ -15,8 +15,11 @@
 // imperative seeding — its Pickers carry only a Title (no selection) and its Entries carry only Text/
 // Placeholder (no BackgroundColor tint), and MAUI's actual captured render of the twin shows that
 // unseeded resting state. This port matches the TWIN's resting state (not the fully-interactive C# ctor):
-// it paints the live Border once via paint_border_only() (gradient/shape/dash — the part already verified
-// to match MAUI) WITHOUT seeding any picker's selection or tinting any Entry's background. Every picker's
+// it paints the live Border once via paint_border_only() (background gradient/shape/dash — the parts
+// verified to match MAUI; the STROKE color is overridden back to the twin's plain solid `Stroke="#CAC531"`
+// after update_border() runs, since that call always builds a start->end gradient for the interactive C#
+// ctor's sake — see paint_border_only()'s own comment) WITHOUT seeding any picker's selection or tinting
+// any Entry's background. Every picker's
 // Update* switch already falls through its `default:` case to the same value the C# seed would have
 // picked (shape default -> round_rectangle, line join default -> miter, line cap default -> butt), so the
 // Border's rendered gradient/shape/dash stays identical either way — only the pickers' own displayed
@@ -152,8 +155,9 @@ namespace maui::samples
             //     the BORDER's rendered gradient/shape/dash stays byte-identical; only the pickers' own
             //     displayed (non-)selection changes.
             //   - run update_border()/update_background() for their BORDER-repaint side effects (needed
-            //     so the live gradient banner + dashed stroke shape render at all — the part of this page
-            //     already verified to match MAUI) but suppress their ENTRY-background-tinting side effect
+            //     so the live gradient banner + dashed stroke shape render at all — verified to match MAUI
+            //     for shape/dash/background; the stroke COLOR is then corrected back to the twin's plain
+            //     solid Stroke, see paint_border_only()) but suppress their ENTRY-background-tinting side effect
             //     (BackgroundStartColor/EndColor/BorderStartColor/EndColor.BackgroundColor = color) during
             //     this initial pass — the twin's Entries never carry that tint at rest. Later, genuine
             //     user edits to an Entry's text still run the full update (tint included), matching C#.
@@ -347,6 +351,23 @@ namespace maui::samples
         {
             update_background(/*tint_entries=*/false);
             update_border(/*tint_entries=*/false);
+            // update_border() above always builds a start->end LinearGradientBrush stroke (matching the
+            // C# ctor's fully-interactive UpdateBorder body). But the twin's static markup only ever
+            // authors `Stroke="#CAC531"` — a plain solid-color string, not a <LinearGradientBrush> (unlike
+            // its <Border.Background>, which IS an explicit LinearGradientBrush element) — so the twin's
+            // markup, and therefore MAUI's actual captured render of it, shows a SOLID stroke at rest; the
+            // gradient only exists once the C# ctor's imperative code runs, which the twin can't express.
+            // Measured (windows/{maui,xaml} captures, DIFF_THRESHOLD=25): MAUI's stroke is flat #CAC531
+            // (202,197,49) at every sampled x from col 52 to col 954, zero drift; the port's cross-platform
+            // border_stroke_spec has no multi-stop-gradient-stroke representation regardless (Gradient
+            // strokes are out of scope, core/border_handler.hpp) and collapses ANY gradient paint to
+            // gradient_paint::background_color()'s start/end blend — (222,223,108), the exact wrong color
+            // this page was showing — so keeping the gradient here could never reach either the twin's nor
+            // MAUI's actual pixels. Override the resting stroke back to the twin's real solid color; a
+            // later genuine user edit (update_border(true), tint_entries) still builds the full gradient,
+            // matching the C# ctor's interactive intent (untested — only the initial frame is captured).
+            border_view_.set_stroke(
+                std::make_shared<maui::graphics::solid_paint>(color_from_string(border_start_entry_.text())));
         }
 
         // C# UpdateBackground: a left-to-right linear gradient from the two background-color entries.
