@@ -7802,8 +7802,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 137 | 138 |
-| 🟡 Minor | 32 | 31 |
+| 🟢 Match | 139 | 140 |
+| 🟡 Minor | 30 | 29 |
 | 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -8033,7 +8033,7 @@ Light: SSIM 0.9894, 0.39% pixels differ · Dark: SSIM 0.9872, 0.63% pixels diffe
 
 Light: SSIM 0.9894, 0.39% pixels differ · Dark: SSIM 0.9872, 0.63% pixels differ
 
-### 16. Border Playground — 🟡/🟡
+### 16. Border Playground — 🟡/🟢
 <sub>border_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/border_playground_light.png" /></td><td><img width="300px" src="captures/windows/cpp/border_playground_light.png" /></td><td><img width="300px" src="captures/windows/xaml/border_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/border_playground_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/border_playground_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/border_playground_dark.png" /></td></tr></table>
@@ -8042,11 +8042,11 @@ ports BorderPlayground.xaml (+ BorderPlayground.xaml.cs) A self-contained, code-
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9854, 1.48% pixels differ · Dark: SSIM 0.9706, 1.62% pixels differ
+Light: SSIM 0.9902, 1.25% pixels differ · Dark: SSIM 0.9847, 1.41% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9867, 1.20% pixels differ · Dark: SSIM 0.9725, 1.31% pixels differ
+Light: SSIM 0.9929, 0.69% pixels differ · Dark: SSIM 0.9861, 0.78% pixels differ
 
 ### 17. Border Resize Content — 🟡/🟡
 <sub>border_resize_content</sub>
@@ -8342,11 +8342,11 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9944, 0.18% pixels differ · Dark: SSIM 0.9931, 0.21% pixels differ
+Light: SSIM 0.9984, 0.01% pixels differ · Dark: SSIM 0.9970, 0.02% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9944, 0.18% pixels differ · Dark: SSIM 0.9931, 0.21% pixels differ
+Light: SSIM 0.9983, 0.02% pixels differ · Dark: SSIM 0.9972, 0.02% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -8942,11 +8942,11 @@ ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPag
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9855, 0.33% pixels differ · Dark: SSIM 0.9815, 0.40% pixels differ
+Light: SSIM 0.9855, 0.33% pixels differ · Dark: SSIM 0.9863, 0.29% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9855, 0.33% pixels differ · Dark: SSIM 0.9815, 0.40% pixels differ
+Light: SSIM 0.9855, 0.33% pixels differ · Dark: SSIM 0.9863, 0.29% pixels differ
 
 ### 77. Horizontal Stack — 🟢/🟢
 <sub>horizontal_stack</sub>
@@ -9308,20 +9308,20 @@ Light: SSIM 0.9715, 0.50% pixels differ · Dark: SSIM 0.9677, 0.76% pixels diffe
 
 Light: SSIM 0.9715, 0.50% pixels differ · Dark: SSIM 0.9677, 0.76% pixels differ
 
-### 101. Layout Is Enabled — 🟡/🟢
+### 101. Layout Is Enabled — 🟢/🟢
 <sub>layout_is_enabled</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/layout_is_enabled_light.png" /></td><td><img width="300px" src="captures/windows/cpp/layout_is_enabled_light.png" /></td><td><img width="300px" src="captures/windows/xaml/layout_is_enabled_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/layout_is_enabled_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/layout_is_enabled_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/layout_is_enabled_dark.png" /></td></tr></table>
 
 ports LayoutIsEnabledPage.xaml (+ LayoutIsEnabledPage.xaml.cs) The C# page demonstrates how IsEnabled on a layout cascades to its children: a 2x2 grid whose left column hosts a &amp;quot;MainLayout&amp;quot; full of state-demo sub-stacks (all-enabled / all-d
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9772, 0.62% pixels differ · Dark: SSIM 0.9767, 0.64% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9869, 0.37% pixels differ · Dark: SSIM 0.9868, 0.39% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
 ### 102. Line Gallery — 🟢/🟢
 <sub>line_gallery</sub>
@@ -10223,20 +10223,20 @@ Light: SSIM 0.9981, 0.05% pixels differ · Dark: SSIM 0.9965, 0.07% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
-### 162. Title Bar — 🟡/🟡
+### 162. Title Bar — 🟢/🟢
 <sub>title_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/title_bar_light.png" /></td><td><img width="300px" src="captures/windows/cpp/title_bar_light.png" /></td><td><img width="300px" src="captures/windows/xaml/title_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/title_bar_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/title_bar_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/title_bar_dark.png" /></td></tr></table>
 
 ports TitleBarPage.xaml A self-contained, code-first demo of the TitleBar control
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9784, 0.47% pixels differ · Dark: SSIM 0.9766, 0.50% pixels differ
+Light: SSIM 0.9999, 0.02% pixels differ · Dark: SSIM 0.9985, 0.03% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9784, 0.47% pixels differ · Dark: SSIM 0.9766, 0.50% pixels differ
+Light: SSIM 0.9999, 0.02% pixels differ · Dark: SSIM 0.9985, 0.03% pixels differ
 
 ### 163. Toolbar — 🟢/🟢
 <sub>toolbar</sub>
