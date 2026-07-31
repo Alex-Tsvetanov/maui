@@ -586,6 +586,9 @@ namespace
         // UpdateClipPath hands those bounds to _shape.ToPlatform(...), whose non-innerPath branch is a bare
         // shape.PathForBounds (ShapeExtensions.cs:34) — so the Controls Rectangle's own StrokeThickness 1.0
         // deflates them again. Derivation + the `> 0` latch: shape_self_inset (core/border_handler.hpp).
+        // Gated on `sw`, not on spec.thickness: this file already treats "thickness set but no Stroke brush"
+        // as unstroked everywhere (MauiDrawable would not), so the inset follows the same convention rather
+        // than introducing a second, inconsistent one.
         return spec.shape->path_for_bounds(maui::core::shape_self_inset(maui::graphics::rect{x, y, w, h}, sw));
     }
 

@@ -778,13 +778,25 @@ revert so the premise cannot be re-derived. `view_chrome_ops.cpp` (Windows clips
 `apple_visual_ops.hpp` `apply_clip` (the general `View.Clip` route) and `android_clip_ops.hpp` are all
 untouched — MAUI never deflates those.
 
-Not done in this pass: collapsing the Windows handler's own inline copy of the inset onto the shared helper.
-Another session held uncommitted work in `src/platform/windows/border_handler.cpp` (the ContentPanel
-content-clip port) throughout; Windows behaviour is already correct, so this is a comment/dedup cleanup to
-fold in once that lands.
+`ios_border_ops.hpp` has a THIRD `path_for_bounds` caller besides the mask and the stroke —
+`border_shadow_silhouette_path` — and it is inset too, for the reason its own header already states: MAUI
+sets no explicit `ShadowPath`, so the silhouette is whatever `MauiCALayer` DREW, and on iOS everything it
+draws goes through the (now inset) `GetClipPath()`. Leaving it undeflated would cast a shadow 0.5 DIP
+larger than the fill and stroke it belongs to. AppKit has no silhouette twin, so there is nothing to
+mirror there. `swipe_view_shadow` and `invalidate_shadow_host` — both already in the movement list above —
+are the pages to read this on; their improvement under the retracted shared-layer deflate is *consistent
+with* this but is not proof of the silhouette specifically, since that attempt moved the mask and stroke
+at the same time.
+
+`controls::frame` routes through these same handlers with its own `graphics::shapes::round_rectangle`
+default (`frame.cpp:114`), so Frame pages (`containers`) take the inset as well. Correct per oracle —
+MAUI's `Frame` likewise carries a Controls RoundRectangle — but recorded here rather than left to read as
+collateral.
 
 **Verification.** `build/apple` builds clean, 3186/3187 ctest pass; `build/ios` builds clean;
-`build/android`'s `border_handler.cpp.o` compiles clean. The single apple failure,
+`build/android`'s `border_handler.cpp.o` compiles clean. **Windows is compile-unverified on this host** —
+its edit is a pure refactor onto the shared helper (identical arithmetic, same gate) plus a comment
+correction, but it has not been through MSVC on the VM. The single apple failure,
 `gallery_structure_equivalence.layout_is_enabled`, is a *de-list* assertion ("divergence closed — remove
 'layout_is_enabled' from known_diverging()") on the gallery view-tree comparison, which never renders — it
 belongs to the concurrent `IsEnabled` cascade work in this worktree, not to this change. The full

@@ -94,11 +94,16 @@ namespace maui::platform::ios
     // sibling layer has no drawn content, so reproduce that silhouette as an explicit shadowPath: the filled
     // shape when `has_fill`, else the shape stroked to a thin ring (the exact ring width is imperceptible
     // under the blur, so the visible `thickness` band is close enough).
+    //
+    // Takes the same shape_self_inset as apply_border_stroke below, and for the reason stated right above:
+    // the silhouette is the RENDERED CONTENT, and on iOS that content is drawn through
+    // MauiCALayer.GetClipPath() — the inset path. An undeflated silhouette here would cast a shadow 0.5 DIP
+    // larger than the fill and stroke it belongs to.
     inline CGPathRef border_shadow_silhouette_path(const maui::core::border_stroke_spec& spec, bool has_fill,
                                                    maui::graphics::rect bounds)
     {
-        const maui::graphics::path_f path =
-            spec.shape->path_for_bounds(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height});
+        const maui::graphics::path_f path = spec.shape->path_for_bounds(
+            maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness));
         CGPathRef filled = path_to_cg_path(path); // +1 owned
         if (has_fill)
         {
