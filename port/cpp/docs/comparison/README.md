@@ -7802,8 +7802,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 129 | 130 |
-| 🟡 Minor | 39 | 38 |
+| 🟢 Match | 132 | 133 |
+| 🟡 Minor | 36 | 35 |
 | 🔴 Major | 4 | 4 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -8198,20 +8198,20 @@ Light: SSIM 0.9746, 2.31% pixels differ · Dark: SSIM 0.9732, 2.32% pixels diffe
 
 Light: SSIM 0.9746, 2.31% pixels differ · Dark: SSIM 0.9732, 2.32% pixels differ
 
-### 27. Clip Corner Radius — 🟡/🟡
+### 27. Clip Corner Radius — 🟢/🟢
 <sub>clip_corner_radius</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/windows/cpp/clip_corner_radius_light.png" /></td><td><img width="300px" src="captures/windows/xaml/clip_corner_radius_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/clip_corner_radius_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/clip_corner_radius_dark.png" /></td></tr></table>
 
 ports ClipCornerRadiusGallery.xaml (+ .xaml.cs) The C# page (Pages/Controls/ShapesGalleries/ClipCornerRadiusGallery.xaml) is a StackLayout (Padding=12) that demonstrates DRIVING a RoundRectangleGeometry&amp;#x27;s per-corner CornerRadius from four s
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9828, 2.16% pixels differ · Dark: SSIM 0.9821, 2.17% pixels differ
+Light: SSIM 0.9931, 0.60% pixels differ · Dark: SSIM 0.9917, 0.62% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9828, 2.16% pixels differ · Dark: SSIM 0.9821, 2.17% pixels differ
+Light: SSIM 0.9931, 0.60% pixels differ · Dark: SSIM 0.9917, 0.62% pixels differ
 
 ### 28. Clip Gallery — 🟡/🟡
 <sub>clip_gallery</sub>
@@ -8222,11 +8222,11 @@ ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.x
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9712, 3.02% pixels differ · Dark: SSIM 0.9711, 3.03% pixels differ
+Light: SSIM 0.9821, 1.46% pixels differ · Dark: SSIM 0.9809, 1.47% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9712, 3.02% pixels differ · Dark: SSIM 0.9711, 3.03% pixels differ
+Light: SSIM 0.9821, 1.46% pixels differ · Dark: SSIM 0.9809, 1.47% pixels differ
 
 ### 29. Clip Views — 🟢/🟢
 <sub>clip_views</sub>
@@ -8237,26 +8237,26 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9969, 0.16% pixels differ · Dark: SSIM 0.9958, 0.16% pixels differ
+Light: SSIM 0.9983, 0.10% pixels differ · Dark: SSIM 0.9972, 0.10% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9969, 0.16% pixels differ · Dark: SSIM 0.9958, 0.16% pixels differ
+Light: SSIM 0.9983, 0.10% pixels differ · Dark: SSIM 0.9972, 0.10% pixels differ
 
-### 30. Clipping — 🟡/🟡
+### 30. Clipping — 🟢/🟢
 <sub>clipping</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/clipping_light.png" /></td><td><img width="300px" src="captures/windows/cpp/clipping_light.png" /></td><td><img width="300px" src="captures/windows/xaml/clipping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/clipping_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/clipping_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/clipping_dark.png" /></td></tr></table>
 
 compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror this gallery page)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9977, 4.89% pixels differ · Dark: SSIM 0.9966, 4.90% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9977, 4.89% pixels differ · Dark: SSIM 0.9966, 4.90% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
 
 ### 31. Collectionview — 🟢/🟢
 <sub>collectionview</sub>
@@ -9068,20 +9068,20 @@ Light: SSIM 0.9970, 0.07% pixels differ · Dark: SSIM 0.9940, 0.11% pixels diffe
 
 Light: SSIM 0.9970, 0.07% pixels differ · Dark: SSIM 0.9940, 0.11% pixels differ
 
-### 85. Invalidate Shadow Host — 🟡/🟡
+### 85. Invalidate Shadow Host — 🟢/🟢
 <sub>invalidate_shadow_host</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/invalidate_shadow_host_light.png" /></td><td><img width="300px" src="captures/windows/cpp/invalidate_shadow_host_light.png" /></td><td><img width="300px" src="captures/windows/xaml/invalidate_shadow_host_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/invalidate_shadow_host_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/invalidate_shadow_host_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/invalidate_shadow_host_dark.png" /></td></tr></table>
 
 ports InvalidateShadowHostPage.xaml A self-contained, code-first demo that a shadow re-applies (invalidates) when its host&amp;#x27;s size changes, mirroring the C# core gallery page (Pages/Core/ShadowGalleries/InvalidateShadowHostPage.xaml + .xaml.
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9636, 1.14% pixels differ · Dark: SSIM 0.9610, 1.40% pixels differ
+Light: SSIM 0.9925, 0.63% pixels differ · Dark: SSIM 0.9927, 0.65% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9636, 1.14% pixels differ · Dark: SSIM 0.9610, 1.40% pixels differ
+Light: SSIM 0.9925, 0.63% pixels differ · Dark: SSIM 0.9927, 0.65% pixels differ
 
 ### 86. Ios Blur Effect — 🟢/🟢
 <sub>ios_blur_effect</sub>
