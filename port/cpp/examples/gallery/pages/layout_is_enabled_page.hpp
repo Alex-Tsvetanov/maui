@@ -217,6 +217,7 @@ namespace maui::samples
             add_caption(right_controls_, "Enable/Disable Layout");
             // CheckBox IsChecked="{Binding IsLayoutEnabled}" — drive the right layout's IsEnabled.
             layout_check_.checked_changed.connect([this](bool checked) { right_layout_.set_is_enabled(checked); });
+            right_controls_.add(layout_check_);
 
             add_caption(right_controls_, "Enable/Disable Button");
             // CheckBox IsChecked="{Binding IsButtonEnabled}" — drive the mixed button's IsEnabled.
@@ -226,13 +227,11 @@ namespace maui::samples
                     right_mixed_button_->set_is_enabled(checked);
                 }
             });
+            right_controls_.add(button_check_);
 
             add_caption(right_controls_, "Enable/Disable Command");
             // CheckBox IsChecked="{Binding IsCommandEnabled}" — gate the bound command's CanExecute.
             command_check_.checked_changed.connect([this](bool checked) { command_enabled_ = checked; });
-
-            right_controls_.add(layout_check_);
-            right_controls_.add(button_check_);
             right_controls_.add(command_check_);
 
             grid_.add(right_controls_);
