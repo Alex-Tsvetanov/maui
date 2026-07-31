@@ -339,8 +339,12 @@ namespace
     // records IRoundRectangle as not ported), this is its ONE caller, and a shared-layer change to this
     // exact geometry was already reverted once (f1a5a17658) for leaking into paths MAUI does not inset.
     // NOT applied, for the same reason: TransformPathForBounds' own `viewBounds.X += StrokeThickness/2`
-    // term (the StrokeShape's OWN default 1.0 thickness) — the same 0.5 DIP question as update_border's
-    // k_shape_self_deflate below, kept out of the clip so the two stay separately measurable.
+    // term — i.e. maui::core::shape_self_inset, which update_border below DOES apply to the STROKE.
+    // DO NOT extend that helper to this clip. Measured on the guest (border_resize_content, light,
+    // 2026-07-31): the circle+image cell's ENTIRE residual after this fix is 114 px, every one of them
+    // between 0.94 and 1.04 of the clip radius (median exactly 1.00), zero interior, zero outside, and
+    // discontinuous around the circumference — clip-EDGE antialiasing. A missing 0.5 DIP inset would
+    // instead read as a continuous ~270 px ring biased to one side. The clip is placed correctly as-is.
     maui::graphics::path_f inner_round_rectangle_path(const maui::graphics::shapes::round_rectangle& shape,
                                                       const maui::graphics::rect& bounds, double stroke_thickness)
     {
