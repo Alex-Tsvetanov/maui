@@ -318,6 +318,23 @@ namespace maui::core
         // clip_target == element (no Border host: button/entry/layout/search_bar/...), the element IS the
         // visual being positioned, so its own local origin already matches the developer's coordinate
         // space and no correction applies -- clip_target_is_border_child stays false there.
+        //
+        // ACTUALOFFSET TIMING: unlike Width/Height (plain DPs, read back synchronously the instant this
+        // function's own caller sets them), ActualOffset is ARRANGE-computed and only reflects WinUI's own
+        // automatic layout pass, which this call does not force -- so the FIRST apply_native_clip for a
+        // freshly-arranged element (boot's drive_layout, before WinUI has ever arranged this Border/Child
+        // pair) can read a stale/zero ActualOffset. Not forced synchronously here (a mid-tree-walk
+        // UpdateLayout() would risk laying out sibling elements this same drive_layout pass has not
+        // finished stamping yet). This backend does not need to get it right on that first call: host_run.
+        // cpp's SizeChanged handler unconditionally replays drive_layout once the E2E harness pins the
+        // window to its capture rect ("Without this the capture would show the boot layout" -- the SAME
+        // reasoning applies to ActualOffset here), and that resize is a REAL WinUI layout event, so by the
+        // time it fires WinUI has necessarily arranged the tree at least once. Since clip.xaml/clip_gallery.
+        // xaml's images use fixed WidthRequest/HeightRequest (unaffected by window size), the host stays
+        // 200x200 across both passes, so the child's Center-aligned overflow offset this second call reads
+        // is already the final, settled one. TODO: verify on the VM -- if a future clip target's host size
+        // legitimately changes between these two passes (unlike this page), this is the assumption to
+        // revisit.
         comp::CompositionGeometricClip geometric_clip = compositor.CreateGeometricClip(geometry);
         if (clip_target_is_border_child)
         {
