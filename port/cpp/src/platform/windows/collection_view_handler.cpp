@@ -380,8 +380,20 @@ namespace
     constexpr double k_selection_border_thickness = 2; // GridViewItem selected-state border stroke
     constexpr double k_selection_corner_radius = 4;    // GridViewItem selected-state corner rounding
     constexpr double k_selection_indicator_width = 3;  // ListViewItem's left "selection indicator" bar
-    constexpr double k_selection_indicator_inset = 5;  // bar's top/bottom inset off the full row height
-    constexpr double k_selection_checkbox_size = 20;   // check_box_handler.cpp's own CheckBoxSize, reused
+    // The bar's extent along the row's LONG axis is a CONSTANT 16, not a fraction of the row. The previous
+    // model derived it as slot.height - 2*5, which tracked row height; MAUI's does not. Measured on two
+    // pages with different row heights, MAUI's bar is 16px in BOTH: preselected_item y178-193 (port drew
+    // 21) and selection_synchronization's second list y729-744 (port drew 15). Centring a fixed 16 then
+    // predicts MAUI's exact top edge on both -- 170 + (31-16)/2 = 177.5 -> 178, and 724 + (25-16)/2 =
+    // 728.5 -> 729 -- which is the check that turned "two off-by-N bugs" into one wrong model.
+    // No XAML oracle exists for this geometry: generic.xaml gives the indicator only a brush (:2319) and
+    // ListViewItemSelectionIndicatorCornerRadius 1.5 (:2304); the native ListViewItemPresenter rasterises
+    // its size internally. Ruling 11 -- the render decides the value.
+    constexpr double k_selection_indicator_length = 16;
+    // Distance from the row's LEADING edge. Was 0 (bar flush at slot.x); MAUI insets it 4, measured
+    // identically on both pages above (maui x17 vs port x13; maui x12 vs port x8).
+    constexpr double k_selection_indicator_lead_inset = 4;
+    constexpr double k_selection_checkbox_size = 20; // check_box_handler.cpp's own CheckBoxSize, reused
     constexpr double k_selection_checkbox_corner_radius = 3;
     constexpr double k_selection_checkbox_margin = 4; // grid: inset from the cell's top/right corner
     // list: inset from the row's left edge. CORRECTED 10 -> 14 (selection_synchronization_light.png,
@@ -475,18 +487,28 @@ namespace
         bar.Background(selection_accent_brush(dark));
         bar.CornerRadius(winui::CornerRadius{k_selection_indicator_width / 2, k_selection_indicator_width / 2,
                                              k_selection_indicator_width / 2, k_selection_indicator_width / 2});
+        // Fixed 16 along the long axis, CENTRED in the slot (not row-height-derived), and inset 4 off the
+        // leading edge. Rounded for the same reason paint_selection_checkbox rounds: a Canvas child skips
+        // the UseLayoutRounding pass, so a .5 offset would rasterise one pixel taller with both ends
+        // antialiased.
         if (vertical)
         {
-            canvas::SetLeft(bar, slot.x);
-            canvas::SetTop(bar, slot.y + k_selection_indicator_inset);
+            canvas::SetLeft(bar, slot.x + k_selection_indicator_lead_inset);
+            canvas::SetTop(bar, std::round(slot.y + ((slot.height - k_selection_indicator_length) / 2)));
             bar.Width(k_selection_indicator_width);
-            bar.Height(std::max(0.0, slot.height - (2 * k_selection_indicator_inset)));
+            bar.Height(k_selection_indicator_length);
         }
         else
         {
-            canvas::SetLeft(bar, slot.x + k_selection_indicator_inset);
-            canvas::SetTop(bar, slot.y);
-            bar.Width(std::max(0.0, slot.width - (2 * k_selection_indicator_inset)));
+            // UNVERIFIED BRANCH — the same fixed-16 model applied by symmetry, NOT by measurement. Both
+            // pages the 16 was measured on are vertical lists. No page on the board exercises this branch:
+            // header_footer_grid_horizontal is the only horizontal-orientation page and it sets no
+            // SelectionMode, so it never paints an indicator. The change is therefore inert on the board —
+            // it cannot regress a score, and it cannot be confirmed by one either. Measure before trusting
+            // it if a horizontal single-selection page is ever added.
+            canvas::SetLeft(bar, std::round(slot.x + ((slot.width - k_selection_indicator_length) / 2)));
+            canvas::SetTop(bar, slot.y + k_selection_indicator_lead_inset);
+            bar.Width(k_selection_indicator_length);
             bar.Height(k_selection_indicator_width);
         }
         panel.Children().Append(bar);

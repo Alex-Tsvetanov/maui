@@ -93,12 +93,15 @@ namespace maui::core
                     // change — a subscription would be dead code. Revisit only if the port ever grows
                     // live system-theme tracking.
                     //
-                    // NOT ported: Application.Windows.cs's richer SetTitleBarButtonColors (hover/pressed/
-                    // foreground colors keyed to isDark). Those only paint on pointer interaction, which a
-                    // static parity capture never exercises, and are out of scope for the measured
-                    // resting-state defect this fixes. TODO: verify against
-                    // src/Controls/src/Core/Application/Application.Windows.cs if hover/pressed capture
-                    // is ever added.
+                    // Ported ELSEWHERE, not here: Application.Windows.cs's richer SetTitleBarButtonColors
+                    // (hover/pressed/foreground keyed to isDark) now lives in host_run.cpp step (3b-ii),
+                    // which is where the oracle puts it — inside ApplyThemeToWindow, immediately after
+                    // root.RequestedTheme, since it needs the resolved theme this constructor does not yet
+                    // have. CORRECTION: this comment previously justified skipping that set entirely, on
+                    // the grounds those properties "only paint on pointer interaction, which a static
+                    // parity capture never exercises". That holds for the four hover/pressed properties
+                    // but NOT for ButtonForegroundColor, the RESTING glyph colour — whose omission cost a
+                    // constant 98-pixel caption-strip diff on every one of the board's 58 dark pages.
                     title_bar.ButtonBackgroundColor(winrt::Windows::UI::Colors::Transparent());
                     title_bar.ButtonInactiveBackgroundColor(winrt::Windows::UI::Colors::Transparent());
                 }

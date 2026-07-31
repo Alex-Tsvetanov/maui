@@ -246,6 +246,50 @@ namespace
                 }
             }
 
+            // (3b-ii) Application.Windows.cs `ApplyThemeToWindow` calls SetTitleBarButtonColors(
+            //      platformWindow, isDark) IMMEDIATELY after setting root.RequestedTheme, inside the same
+            //      dispatcher lambda (:112-119) — so this is that call, in that position.
+            //
+            //      This is the SECOND, theme-keyed half of the oracle's title-bar colour handling. The
+            //      first half (MauiWinUIWindow's own ctor: ExtendsContentIntoTitleBar + the two
+            //      theme-INDEPENDENT transparent BACKGROUNDS) is already ported, in window_handler.cpp's
+            //      create_platform_view. That file's comment claimed the remaining properties "only paint
+            //      on pointer interaction, which a static parity capture never exercises" — TRUE of the
+            //      four hover/pressed properties, but FALSE of ButtonForegroundColor, which is the RESTING
+            //      colour of the minimize/maximize/close glyphs. Left at its default, that strip follows
+            //      the SYSTEM theme rather than the app's, so a dark capture drew near-black glyphs on the
+            //      dark caption bar. Measured: an identical 98-pixel diff at y11-20 x896-997 on ALL 58
+            //      dark pages of the board — universal and constant, not a per-page or capture-time
+            //      artifact.
+            //
+            //      Ported faithfully rather than foreground-only: the hover/pressed values cost one call
+            //      each and omitting them would leave the port silently diverging the moment pointer
+            //      capture is ever added. Values are Application.Windows.cs's TitleBarColors (:144-152):
+            //      Light/DarkForeground = Black/White, Hover = #18 alpha, Pressed = #1F alpha.
+            if (winrt::Microsoft::UI::Windowing::AppWindowTitleBar::IsCustomizationSupported())
+            {
+                if (const auto app_window = native.AppWindow())
+                {
+                    if (const auto title_bar = app_window.TitleBar())
+                    {
+                        const bool is_dark = application->requested_theme() == maui::core::app_theme::dark;
+                        // Aggregate-initialised rather than via ColorHelper::FromArgb (the oracle's C#
+                        // ergonomics for the same struct): calling a ColorHelper MEMBER would drag in
+                        // winrt/Windows.UI.h under this backend's full-header-for-members rule, and the
+                        // rest of the backend already builds Color{a,r,g,b} directly.
+                        const std::uint8_t ch = is_dark ? 255 : 0;
+                        const winrt::Windows::UI::Color fg{255, ch, ch, ch};
+                        const winrt::Windows::UI::Color hover_bg{24, ch, ch, ch};   // TitleBarColors #18 alpha
+                        const winrt::Windows::UI::Color pressed_bg{31, ch, ch, ch}; // TitleBarColors #1F alpha
+                        title_bar.ButtonHoverBackgroundColor(hover_bg);
+                        title_bar.ButtonPressedBackgroundColor(pressed_bg);
+                        title_bar.ButtonHoverForegroundColor(fg);
+                        title_bar.ButtonPressedForegroundColor(fg);
+                        title_bar.ButtonForegroundColor(fg);
+                    }
+                }
+            }
+
             // (3c) The themed PAGE BACKGROUND — an opaque fallback paint, now applied ONLY when the
             //      window has no Mica backdrop to show through.
             //
