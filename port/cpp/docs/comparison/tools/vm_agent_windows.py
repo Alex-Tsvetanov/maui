@@ -180,6 +180,7 @@ def _declare_prototypes() -> None:
         (user32.SetWindowPos, [hwnd, hwnd, ci, ci, ci, ci, ui], bo),
         (user32.ShowWindow, [hwnd, ci], bo),
         (user32.SetForegroundWindow, [hwnd], bo),
+        (user32.GetForegroundWindow, [], hwnd),
         (user32.GetShellWindow, [], hwnd),
         (user32.SetCursorPos, [ci, ci], bo),
         (user32.GetSystemMetrics, [ci], ci),
@@ -485,11 +486,11 @@ def cmd_window_id(a) -> int:
     return _emit(ok=False, error=f"no visible top-level window for pid {a.pid}")
 
 
-def _defocus_before_shot(hwnd: int) -> None:
+def _defocus_before_shot(hwnd: int) -> tuple[bool, bool]:
     """Hand OS foreground to the desktop shell so `hwnd` is the INACTIVE window at the instant we
-    photograph it — suppressing WinUI's keyboard-focus visual (a thin near-black outline WinUI paints
-    around whichever control is Tab-order-first at launch) without sending the app a single click,
-    keystroke, or scroll.
+    photograph it — an attempt to suppress WinUI's keyboard-focus visual (a thin near-black outline WinUI
+    paints around whichever control is Tab-order-first at launch) without sending the app a single click,
+    keystroke, or scroll. Returns (requested_ok, verified) — see the two levels of "did it work" below.
 
     WHY THIS EXISTS. PARITY_REVIEW.md documents ~24 pages whose ONLY diff vs the MAUI reference is this
     focus outline, present on some captures and absent on others with the SAME code+binary — a run-to-run
@@ -502,11 +503,26 @@ def _defocus_before_shot(hwnd: int) -> None:
     succeeding, this makes the end state explicit: deactivate on purpose, every time, right before the
     shot, so the outcome is asserted instead of inherited.
 
-    WHY THIS IS SAFE. Deactivation is a window-manager Z/activation change (WM_ACTIVATE), not an input
-    event — nothing is posted into the app's message queue, so no control can be clicked, no page can
-    scroll, no dialog can dismiss. `_capture_hwnd` uses PrintWindow(PW_RENDERFULLCONTENT), which (module
-    docstring hazard 2) reads the window's own composed backing store and needs neither focus nor
-    Z-order — an inactive, non-topmost window still captures its full content.
+    EFFICACY IS NOT PROVEN, ONLY MEASURED PER-CALL. The brief's mechanism is FocusState::Keyboard vs
+    ::Pointer, a XAML-level concept this Win32-level call does not directly touch; this function's actual
+    lever is window ACTIVATION, a plausible but distinct trigger for the same visual (WinUI commonly ties
+    focus-visual and other "active" chrome to WM_ACTIVATE) that cannot be confirmed without a Windows box.
+    Two things ARE knowable from ctypes alone and are both returned so the runner can log them per frame
+    instead of trusting silently: `requested_ok` is SetForegroundWindow's own BOOL (it can lie -- return
+    TRUE without the switch landing); `verified` is GetForegroundWindow() != hwnd read back afterwards,
+    which is the real check. If `SetForegroundWindow(hwnd)` above is itself being silently refused by the
+    same OS-level foreground-lock this theory blames, `SetForegroundWindow(shell)` here is the SAME API
+    under a plausibly-but-not-provably different exemption (deactivating TO the shell is not "stealing"
+    the user's attention the way activating an arbitrary app is) — cannot be ruled out from macOS, which
+    is exactly why this call's own success is checked and reported rather than assumed.
+
+    WHY THIS IS SAFE REGARDLESS OF EFFICACY. Deactivation is a window-manager Z/activation change
+    (WM_ACTIVATE), not an input event — nothing is posted into the app's message queue, so no control can
+    be clicked, no page can scroll, no dialog can dismiss, whether or not the call actually lands.
+    `_capture_hwnd` uses PrintWindow(PW_RENDERFULLCONTENT), which (module docstring hazard 2) reads the
+    window's own composed backing store and needs neither focus nor Z-order — an inactive, non-topmost
+    window still captures its full content. This is why activation, not a click, was chosen: it is the one
+    lever in the brief's candidate list that cannot mutate content even when the underlying theory is wrong.
 
     Applied unconditionally from `cmd_present`'s single --shot call site, so every column (maui_xaml, cpp,
     cpp_xaml) is deactivated identically before every frame — this must never be reference-only, or the
@@ -514,10 +530,15 @@ def _defocus_before_shot(hwnd: int) -> None:
     """
     shell = user32.GetShellWindow()
     if not shell:
-        return  # no desktop shell window found (unusual); leave activation state as-is rather than guess
-    user32.SetForegroundWindow(wintypes.HWND(shell))
-    time.sleep(0.15)  # let the WM_ACTIVATE-driven repaint (chrome + focus-visual removal) land before
-                       # PrintWindow reads the backing store
+        return False, False  # no desktop shell window found (unusual); nothing to hand foreground to
+    requested_ok = bool(user32.SetForegroundWindow(wintypes.HWND(shell)))
+    # 0.15s is an UNCALIBRATED guess at the WM_ACTIVATE-driven repaint (chrome + focus-visual removal)
+    # landing before PrintWindow reads the backing store -- there is no guest to time this against from
+    # here. If the first real run's captures still show the focus band despite `verified=True`, widen
+    # this before suspecting the mechanism itself.
+    time.sleep(0.15)
+    verified = user32.GetForegroundWindow() != hwnd
+    return requested_ok, verified
 
 
 def cmd_present(a) -> int:
@@ -533,8 +554,10 @@ def cmd_present(a) -> int:
     returning a short rect as success: a silently short frame is the failure that gets scored.
 
     Unless --no-defocus is passed, the window is deliberately made INACTIVE right before the --shot
-    capture (see _defocus_before_shot) to make WinUI's keyboard-focus visual deterministically absent
-    from every column's frame, instead of a run-to-run coin flip on the MAUI reference column alone."""
+    capture (see _defocus_before_shot) in an attempt to make WinUI's keyboard-focus visual
+    deterministically absent from every column's frame, instead of a run-to-run coin flip on the MAUI
+    reference column alone. The result is reported as `defocused`/`defocus_verified` rather than assumed
+    -- see _defocus_before_shot's docstring for why efficacy is a measurement here, not a guarantee."""
     wins = _windows_of_pid(a.pid) if a.pid else []
     if not wins:
         # Fall back to matching by process image name, so --proc alone still works.
@@ -566,11 +589,17 @@ def cmd_present(a) -> int:
     shot_info: dict = {}
     if a.shot:
         if a.defocus:
-            _defocus_before_shot(hwnd)
+            # Reported, not assumed -- see _defocus_before_shot's docstring on why this call's own
+            # success is measured per-frame rather than trusted. The host (run_comparison.py) currently
+            # only logs these via the printed JSON; nothing downstream depends on their values yet.
+            requested_ok, verified = _defocus_before_shot(hwnd)
+            shot_info["defocused"] = requested_ok
+            shot_info["defocus_verified"] = verified
         ok, err, size = _capture_hwnd(hwnd, a.shot)
         if not ok:
             return _emit(ok=False, proc=a.proc, id=hwnd, bounds=rect, error=f"shot failed: {err}")
-        shot_info = {"shot": a.shot, "shot_size": size}
+        shot_info["shot"] = a.shot
+        shot_info["shot_size"] = size
     # `window` is REQUIRED by the shared host helper (run_comparison.shoot_presented checks
     # rect+window+shot); the macOS agent emits it as the CGWindowID. Emitting only `id` made every
     # present look like a failure: the host retried 3x per frame and recorded window_bounds=null, while
