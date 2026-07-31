@@ -136,12 +136,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9921, 0.25% pixels differ \u00b7 Dark: SSIM 0.9759, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9954, 0.25% pixels differ \u00b7 Dark: SSIM 0.9958, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9960, 0.06% pixels differ \u00b7 Dark: SSIM 0.9780, 0.08% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9993, 0.06% pixels differ \u00b7 Dark: SSIM 0.9982, 0.08% pixels differ"
         }
       }
     }
@@ -284,11 +284,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9699, 4.32% pixels differ \u00b7 Dark: SSIM 0.9218, 4.40% pixels differ"
+          "review": "Light: SSIM 0.9765, 4.17% pixels differ \u00b7 Dark: SSIM 0.9405, 4.48% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9693, 4.36% pixels differ \u00b7 Dark: SSIM 0.9213, 4.42% pixels differ"
+          "review": "Light: SSIM 0.9714, 4.44% pixels differ \u00b7 Dark: SSIM 0.9453, 4.23% pixels differ"
         }
       }
     }
@@ -430,12 +430,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9685, 0.65% pixels differ \u00b7 Dark: SSIM 0.9474, 0.66% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9987, 0.13% pixels differ \u00b7 Dark: SSIM 0.9975, 0.14% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9695, 0.54% pixels differ \u00b7 Dark: SSIM 0.9481, 0.55% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9998, 0.02% pixels differ \u00b7 Dark: SSIM 0.9982, 0.03% pixels differ"
         }
       }
     }
@@ -578,11 +578,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.01% pixels differ \u00b7 Dark: SSIM 0.9807, 0.02% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.01% pixels differ \u00b7 Dark: SSIM 0.9807, 0.02% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         }
       }
     }
@@ -724,12 +724,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9882, 0.37% pixels differ \u00b7 Dark: SSIM 0.9761, 0.38% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9919, 0.37% pixels differ \u00b7 Dark: SSIM 0.9959, 0.38% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9882, 0.37% pixels differ \u00b7 Dark: SSIM 0.9761, 0.38% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9919, 0.37% pixels differ \u00b7 Dark: SSIM 0.9959, 0.38% pixels differ"
         }
       }
     }
@@ -871,12 +871,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9793, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9793, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -1018,12 +1018,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -1165,12 +1165,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9796, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9796, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -1313,11 +1313,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9945, 0.45% pixels differ \u00b7 Dark: SSIM 0.9931, 0.46% pixels differ"
+          "review": "Light: SSIM 0.9946, 0.45% pixels differ \u00b7 Dark: SSIM 0.9931, 0.46% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9945, 0.45% pixels differ \u00b7 Dark: SSIM 0.9931, 0.46% pixels differ"
+          "review": "Light: SSIM 0.9946, 0.45% pixels differ \u00b7 Dark: SSIM 0.9931, 0.46% pixels differ"
         }
       }
     }
@@ -1459,12 +1459,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9668, 0.52% pixels differ \u00b7 Dark: SSIM 0.9553, 0.53% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9984, 0.02% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9668, 0.52% pixels differ \u00b7 Dark: SSIM 0.9553, 0.53% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9984, 0.02% pixels differ"
         }
       }
     }
@@ -1606,12 +1606,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9942, 0.19% pixels differ \u00b7 Dark: SSIM 0.9792, 0.04% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9979, 0.19% pixels differ \u00b7 Dark: SSIM 0.9971, 0.04% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9942, 0.19% pixels differ \u00b7 Dark: SSIM 0.9792, 0.04% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9979, 0.19% pixels differ \u00b7 Dark: SSIM 0.9971, 0.04% pixels differ"
         }
       }
     }
@@ -1753,12 +1753,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9666, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9927, 0.24% pixels differ \u00b7 Dark: SSIM 0.9846, 0.25% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9666, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9927, 0.24% pixels differ \u00b7 Dark: SSIM 0.9846, 0.25% pixels differ"
         }
       }
     }
@@ -1900,12 +1900,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9940, 0.22% pixels differ \u00b7 Dark: SSIM 0.9772, 0.23% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.22% pixels differ \u00b7 Dark: SSIM 0.9966, 0.23% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9940, 0.22% pixels differ \u00b7 Dark: SSIM 0.9772, 0.23% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9978, 0.22% pixels differ \u00b7 Dark: SSIM 0.9966, 0.23% pixels differ"
         }
       }
     }
@@ -2047,12 +2047,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9822, 0.71% pixels differ \u00b7 Dark: SSIM 0.9670, 0.72% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9859, 0.71% pixels differ \u00b7 Dark: SSIM 0.9851, 0.72% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9864, 0.47% pixels differ \u00b7 Dark: SSIM 0.9714, 0.48% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9901, 0.47% pixels differ \u00b7 Dark: SSIM 0.9896, 0.48% pixels differ"
         }
       }
     }
@@ -2194,12 +2194,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9858, 0.39% pixels differ \u00b7 Dark: SSIM 0.9685, 0.63% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9894, 0.39% pixels differ \u00b7 Dark: SSIM 0.9872, 0.63% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9858, 0.39% pixels differ \u00b7 Dark: SSIM 0.9685, 0.63% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9894, 0.39% pixels differ \u00b7 Dark: SSIM 0.9872, 0.63% pixels differ"
         }
       }
     }
@@ -2342,11 +2342,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9531, 1.97% pixels differ \u00b7 Dark: SSIM 0.9280, 2.11% pixels differ"
+          "review": "Light: SSIM 0.9854, 1.48% pixels differ \u00b7 Dark: SSIM 0.9706, 1.62% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9545, 1.68% pixels differ \u00b7 Dark: SSIM 0.9299, 1.80% pixels differ"
+          "review": "Light: SSIM 0.9867, 1.20% pixels differ \u00b7 Dark: SSIM 0.9725, 1.31% pixels differ"
         }
       }
     }
@@ -2489,11 +2489,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9675, 2.07% pixels differ \u00b7 Dark: SSIM 0.9493, 2.09% pixels differ"
+          "review": "Light: SSIM 0.9712, 2.07% pixels differ \u00b7 Dark: SSIM 0.9656, 2.10% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9693, 1.89% pixels differ \u00b7 Dark: SSIM 0.9516, 1.90% pixels differ"
+          "review": "Light: SSIM 0.9731, 1.89% pixels differ \u00b7 Dark: SSIM 0.9680, 1.90% pixels differ"
         }
       }
     }
@@ -2636,11 +2636,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9293, 3.51% pixels differ \u00b7 Dark: SSIM 0.9039, 3.52% pixels differ"
+          "review": "Light: SSIM 0.9625, 3.01% pixels differ \u00b7 Dark: SSIM 0.9477, 3.02% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9293, 3.51% pixels differ \u00b7 Dark: SSIM 0.9039, 3.52% pixels differ"
+          "review": "Light: SSIM 0.9625, 3.01% pixels differ \u00b7 Dark: SSIM 0.9477, 3.02% pixels differ"
         }
       }
     }
@@ -2783,11 +2783,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9991, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9991, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -2930,11 +2930,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9805, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9805, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -3077,11 +3077,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9872, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9872, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -3223,12 +3223,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9869, 0.86% pixels differ \u00b7 Dark: SSIM 0.9769, 0.87% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9869, 0.86% pixels differ \u00b7 Dark: SSIM 0.9967, 0.87% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9869, 0.86% pixels differ \u00b7 Dark: SSIM 0.9769, 0.87% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9869, 0.86% pixels differ \u00b7 Dark: SSIM 0.9967, 0.87% pixels differ"
         }
       }
     }
@@ -3370,12 +3370,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9913, 0.11% pixels differ \u00b7 Dark: SSIM 0.9722, 0.12% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9913, 0.11% pixels differ \u00b7 Dark: SSIM 0.9722, 0.12% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -3517,12 +3517,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9953, 0.04% pixels differ \u00b7 Dark: SSIM 0.9776, 0.05% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9990, 0.04% pixels differ \u00b7 Dark: SSIM 0.9977, 0.05% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9784, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -3664,12 +3664,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9981, 0.00% pixels differ \u00b7 Dark: SSIM 0.9797, 0.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9981, 0.00% pixels differ \u00b7 Dark: SSIM 0.9797, 0.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         }
       }
     }
@@ -3812,11 +3812,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9709, 2.31% pixels differ \u00b7 Dark: SSIM 0.9566, 2.32% pixels differ"
+          "review": "Light: SSIM 0.9746, 2.31% pixels differ \u00b7 Dark: SSIM 0.9732, 2.32% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9709, 2.31% pixels differ \u00b7 Dark: SSIM 0.9566, 2.32% pixels differ"
+          "review": "Light: SSIM 0.9746, 2.31% pixels differ \u00b7 Dark: SSIM 0.9732, 2.32% pixels differ"
         }
       }
     }
@@ -3959,11 +3959,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9791, 2.16% pixels differ \u00b7 Dark: SSIM 0.9642, 2.17% pixels differ"
+          "review": "Light: SSIM 0.9828, 2.16% pixels differ \u00b7 Dark: SSIM 0.9821, 2.17% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9791, 2.16% pixels differ \u00b7 Dark: SSIM 0.9642, 2.17% pixels differ"
+          "review": "Light: SSIM 0.9828, 2.16% pixels differ \u00b7 Dark: SSIM 0.9821, 2.17% pixels differ"
         }
       }
     }
@@ -4106,11 +4106,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9675, 3.02% pixels differ \u00b7 Dark: SSIM 0.9545, 3.03% pixels differ"
+          "review": "Light: SSIM 0.9712, 3.02% pixels differ \u00b7 Dark: SSIM 0.9711, 3.03% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9675, 3.02% pixels differ \u00b7 Dark: SSIM 0.9545, 3.03% pixels differ"
+          "review": "Light: SSIM 0.9712, 3.02% pixels differ \u00b7 Dark: SSIM 0.9711, 3.03% pixels differ"
         }
       }
     }
@@ -4252,12 +4252,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9946, 0.10% pixels differ \u00b7 Dark: SSIM 0.9779, 0.11% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9969, 0.16% pixels differ \u00b7 Dark: SSIM 0.9958, 0.16% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9946, 0.10% pixels differ \u00b7 Dark: SSIM 0.9779, 0.11% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9969, 0.16% pixels differ \u00b7 Dark: SSIM 0.9958, 0.16% pixels differ"
         }
       }
     }
@@ -4399,12 +4399,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9998, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9977, 4.89% pixels differ \u00b7 Dark: SSIM 0.9966, 4.90% pixels differ"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9998, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9977, 4.89% pixels differ \u00b7 Dark: SSIM 0.9966, 4.90% pixels differ"
         }
       }
     }
@@ -4546,12 +4546,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9835, 0.26% pixels differ \u00b7 Dark: SSIM 0.9656, 0.27% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9973, 0.07% pixels differ \u00b7 Dark: SSIM 0.9958, 0.09% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9835, 0.26% pixels differ \u00b7 Dark: SSIM 0.9656, 0.27% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9973, 0.07% pixels differ \u00b7 Dark: SSIM 0.9958, 0.09% pixels differ"
         }
       }
     }
@@ -4694,11 +4694,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.01% pixels differ \u00b7 Dark: SSIM 0.9813, 0.03% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9985, 0.03% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.01% pixels differ \u00b7 Dark: SSIM 0.9813, 0.03% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9985, 0.03% pixels differ"
         }
       }
     }
@@ -4840,12 +4840,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9851, 0.47% pixels differ \u00b7 Dark: SSIM 0.9698, 0.48% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9887, 0.49% pixels differ \u00b7 Dark: SSIM 0.9883, 0.46% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9851, 0.47% pixels differ \u00b7 Dark: SSIM 0.9698, 0.48% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9887, 0.49% pixels differ \u00b7 Dark: SSIM 0.9883, 0.46% pixels differ"
         }
       }
     }
@@ -4987,12 +4987,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9787, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9787, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -5135,11 +5135,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.6792, 44.46% pixels differ \u00b7 Dark: SSIM 0.5287, 45.82% pixels differ"
+          "review": "Light: SSIM 0.6292, 42.76% pixels differ \u00b7 Dark: SSIM 0.6253, 48.46% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.6792, 44.46% pixels differ \u00b7 Dark: SSIM 0.5287, 45.82% pixels differ"
+          "review": "Light: SSIM 0.6292, 42.76% pixels differ \u00b7 Dark: SSIM 0.6253, 48.46% pixels differ"
         }
       }
     }
@@ -5281,12 +5281,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9617, 0.68% pixels differ \u00b7 Dark: SSIM 0.9446, 0.71% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9942, 0.18% pixels differ \u00b7 Dark: SSIM 0.9931, 0.21% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9618, 0.68% pixels differ \u00b7 Dark: SSIM 0.9446, 0.71% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9944, 0.18% pixels differ \u00b7 Dark: SSIM 0.9931, 0.21% pixels differ"
         }
       }
     }
@@ -5429,11 +5429,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9981, 0.00% pixels differ \u00b7 Dark: SSIM 0.9828, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9981, 0.00% pixels differ \u00b7 Dark: SSIM 0.9828, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -5576,11 +5576,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9995, 0.00% pixels differ \u00b7 Dark: SSIM 0.9812, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9995, 0.00% pixels differ \u00b7 Dark: SSIM 0.9812, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -5722,12 +5722,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9790, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9790, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -5869,12 +5869,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9524, 1.00% pixels differ \u00b7 Dark: SSIM 0.9586, 0.75% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9859, 0.49% pixels differ \u00b7 Dark: SSIM 0.9905, 0.50% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9524, 1.00% pixels differ \u00b7 Dark: SSIM 0.9586, 0.75% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9859, 0.49% pixels differ \u00b7 Dark: SSIM 0.9905, 0.50% pixels differ"
         }
       }
     }
@@ -6016,12 +6016,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9665, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9844, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9665, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9844, 0.26% pixels differ"
         }
       }
     }
@@ -6163,12 +6163,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9894, 0.15% pixels differ \u00b7 Dark: SSIM 0.9729, 0.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9869, 0.47% pixels differ \u00b7 Dark: SSIM 0.9857, 0.49% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9922, 0.07% pixels differ \u00b7 Dark: SSIM 0.9757, 0.08% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9880, 0.45% pixels differ \u00b7 Dark: SSIM 0.9869, 0.47% pixels differ"
         }
       }
     }
@@ -6310,12 +6310,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9879, 0.25% pixels differ \u00b7 Dark: SSIM 0.9699, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9914, 0.25% pixels differ \u00b7 Dark: SSIM 0.9900, 0.27% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9784, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -6458,11 +6458,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9808, 0.02% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9808, 0.02% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         }
       }
     }
@@ -6605,11 +6605,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9966, 0.00% pixels differ \u00b7 Dark: SSIM 0.9824, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9966, 0.00% pixels differ \u00b7 Dark: SSIM 0.9824, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -6751,12 +6751,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.25% pixels differ \u00b7 Dark: SSIM 0.9695, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.25% pixels differ \u00b7 Dark: SSIM 0.9695, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         }
       }
     }
@@ -6898,12 +6898,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9891, 0.25% pixels differ \u00b7 Dark: SSIM 0.9678, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9891, 0.25% pixels differ \u00b7 Dark: SSIM 0.9678, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         }
       }
     }
@@ -7045,12 +7045,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9952, 0.17% pixels differ \u00b7 Dark: SSIM 0.9768, 0.18% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9989, 0.17% pixels differ \u00b7 Dark: SSIM 0.9967, 0.18% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9952, 0.17% pixels differ \u00b7 Dark: SSIM 0.9768, 0.18% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9989, 0.17% pixels differ \u00b7 Dark: SSIM 0.9967, 0.18% pixels differ"
         }
       }
     }
@@ -7192,12 +7192,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9903, 0.25% pixels differ \u00b7 Dark: SSIM 0.9706, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9858, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9903, 0.25% pixels differ \u00b7 Dark: SSIM 0.9706, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9858, 0.26% pixels differ"
         }
       }
     }
@@ -7339,12 +7339,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9892, 0.15% pixels differ \u00b7 Dark: SSIM 0.9710, 0.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9928, 0.15% pixels differ \u00b7 Dark: SSIM 0.9911, 0.18% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9892, 0.15% pixels differ \u00b7 Dark: SSIM 0.9710, 0.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9928, 0.15% pixels differ \u00b7 Dark: SSIM 0.9911, 0.18% pixels differ"
         }
       }
     }
@@ -7486,12 +7486,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9907, 0.12% pixels differ \u00b7 Dark: SSIM 0.9725, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9943, 0.12% pixels differ \u00b7 Dark: SSIM 0.9926, 0.14% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9907, 0.12% pixels differ \u00b7 Dark: SSIM 0.9725, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9943, 0.12% pixels differ \u00b7 Dark: SSIM 0.9926, 0.14% pixels differ"
         }
       }
     }
@@ -7633,12 +7633,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9629, 0.61% pixels differ \u00b7 Dark: SSIM 0.9409, 0.67% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9953, 0.11% pixels differ \u00b7 Dark: SSIM 0.9912, 0.17% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9649, 0.57% pixels differ \u00b7 Dark: SSIM 0.9428, 0.63% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9973, 0.07% pixels differ \u00b7 Dark: SSIM 0.9933, 0.13% pixels differ"
         }
       }
     }
@@ -7780,12 +7780,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.24% pixels differ \u00b7 Dark: SSIM 0.9666, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.24% pixels differ \u00b7 Dark: SSIM 0.9666, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         }
       }
     }
@@ -7927,12 +7927,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9862, 0.31% pixels differ \u00b7 Dark: SSIM 0.9638, 0.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9899, 0.31% pixels differ \u00b7 Dark: SSIM 0.9815, 0.33% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9862, 0.31% pixels differ \u00b7 Dark: SSIM 0.9638, 0.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9899, 0.31% pixels differ \u00b7 Dark: SSIM 0.9815, 0.33% pixels differ"
         }
       }
     }
@@ -8074,12 +8074,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9862, 0.31% pixels differ \u00b7 Dark: SSIM 0.9637, 0.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9899, 0.31% pixels differ \u00b7 Dark: SSIM 0.9815, 0.33% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9862, 0.31% pixels differ \u00b7 Dark: SSIM 0.9637, 0.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9899, 0.31% pixels differ \u00b7 Dark: SSIM 0.9815, 0.33% pixels differ"
         }
       }
     }
@@ -8221,12 +8221,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9862, 0.31% pixels differ \u00b7 Dark: SSIM 0.9637, 0.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9899, 0.31% pixels differ \u00b7 Dark: SSIM 0.9815, 0.33% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9862, 0.31% pixels differ \u00b7 Dark: SSIM 0.9637, 0.33% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9899, 0.31% pixels differ \u00b7 Dark: SSIM 0.9815, 0.33% pixels differ"
         }
       }
     }
@@ -8368,12 +8368,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9891, 0.25% pixels differ \u00b7 Dark: SSIM 0.9697, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9891, 0.25% pixels differ \u00b7 Dark: SSIM 0.9697, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         }
       }
     }
@@ -8515,12 +8515,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9877, 0.21% pixels differ \u00b7 Dark: SSIM 0.9705, 0.23% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9934, 0.17% pixels differ \u00b7 Dark: SSIM 0.9898, 0.24% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9915, 0.11% pixels differ \u00b7 Dark: SSIM 0.9742, 0.13% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9973, 0.07% pixels differ \u00b7 Dark: SSIM 0.9936, 0.14% pixels differ"
         }
       }
     }
@@ -8662,12 +8662,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9891, 0.24% pixels differ \u00b7 Dark: SSIM 0.9671, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9891, 0.24% pixels differ \u00b7 Dark: SSIM 0.9671, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9843, 0.26% pixels differ"
         }
       }
     }
@@ -8810,11 +8810,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9998, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9998, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -8956,12 +8956,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9663, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9844, 0.25% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9663, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9844, 0.25% pixels differ"
         }
       }
     }
@@ -9103,12 +9103,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9785, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9785, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -9251,11 +9251,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9707, 0.50% pixels differ \u00b7 Dark: SSIM 0.9502, 0.52% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9683, 0.76% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9707, 0.50% pixels differ \u00b7 Dark: SSIM 0.9502, 0.52% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9683, 0.76% pixels differ"
         }
       }
     }
@@ -9397,12 +9397,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9951, 0.03% pixels differ \u00b7 Dark: SSIM 0.9769, 0.05% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9983, 0.03% pixels differ \u00b7 Dark: SSIM 0.9968, 0.05% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9967, 0.00% pixels differ \u00b7 Dark: SSIM 0.9785, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -9545,11 +9545,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9822, 0.02% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9822, 0.02% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.02% pixels differ"
         }
       }
     }
@@ -9691,12 +9691,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9797, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9797, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -9839,11 +9839,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9806, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9806, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -9986,11 +9986,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9656, 0.54% pixels differ \u00b7 Dark: SSIM 0.9524, 0.56% pixels differ"
+          "review": "Light: SSIM 0.9692, 0.54% pixels differ \u00b7 Dark: SSIM 0.9686, 0.81% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9656, 0.54% pixels differ \u00b7 Dark: SSIM 0.9524, 0.56% pixels differ"
+          "review": "Light: SSIM 0.9692, 0.54% pixels differ \u00b7 Dark: SSIM 0.9686, 0.81% pixels differ"
         }
       }
     }
@@ -10133,11 +10133,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.7407, 6.52% pixels differ \u00b7 Dark: SSIM 0.7184, 6.73% pixels differ"
+          "review": "Light: SSIM 0.7695, 6.01% pixels differ \u00b7 Dark: SSIM 0.7327, 7.04% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.7407, 6.52% pixels differ \u00b7 Dark: SSIM 0.7184, 6.73% pixels differ"
+          "review": "Light: SSIM 0.7695, 6.01% pixels differ \u00b7 Dark: SSIM 0.7327, 7.04% pixels differ"
         }
       }
     }
@@ -10280,11 +10280,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9702, 0.52% pixels differ \u00b7 Dark: SSIM 0.9564, 0.53% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9700, 0.78% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9702, 0.52% pixels differ \u00b7 Dark: SSIM 0.9564, 0.53% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9700, 0.78% pixels differ"
         }
       }
     }
@@ -10427,11 +10427,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9676, 0.50% pixels differ \u00b7 Dark: SSIM 0.9488, 0.52% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9683, 0.76% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9676, 0.50% pixels differ \u00b7 Dark: SSIM 0.9488, 0.52% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9683, 0.76% pixels differ"
         }
       }
     }
@@ -10574,11 +10574,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9772, 0.39% pixels differ \u00b7 Dark: SSIM 0.9596, 0.42% pixels differ"
+          "review": "Light: SSIM 0.9833, 0.31% pixels differ \u00b7 Dark: SSIM 0.9765, 0.42% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9905, 0.23% pixels differ \u00b7 Dark: SSIM 0.9717, 0.38% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9967, 0.15% pixels differ \u00b7 Dark: SSIM 0.9871, 0.37% pixels differ"
         }
       }
     }
@@ -10721,11 +10721,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9785, 0.55% pixels differ \u00b7 Dark: SSIM 0.9601, 0.69% pixels differ"
+          "review": "Light: SSIM 0.9846, 0.47% pixels differ \u00b7 Dark: SSIM 0.9759, 0.71% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9785, 0.55% pixels differ \u00b7 Dark: SSIM 0.9601, 0.69% pixels differ"
+          "review": "Light: SSIM 0.9846, 0.47% pixels differ \u00b7 Dark: SSIM 0.9759, 0.71% pixels differ"
         }
       }
     }
@@ -10868,11 +10868,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9627, 1.49% pixels differ \u00b7 Dark: SSIM 0.9399, 1.42% pixels differ"
+          "review": "Light: SSIM 0.9899, 0.93% pixels differ \u00b7 Dark: SSIM 0.9559, 1.67% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9627, 1.49% pixels differ \u00b7 Dark: SSIM 0.9399, 1.42% pixels differ"
+          "review": "Light: SSIM 0.9899, 0.93% pixels differ \u00b7 Dark: SSIM 0.9559, 1.67% pixels differ"
         }
       }
     }
@@ -11014,12 +11014,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9926, 0.31% pixels differ \u00b7 Dark: SSIM 0.9767, 0.32% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9958, 0.24% pixels differ \u00b7 Dark: SSIM 0.9908, 0.34% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9926, 0.31% pixels differ \u00b7 Dark: SSIM 0.9767, 0.32% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9958, 0.24% pixels differ \u00b7 Dark: SSIM 0.9908, 0.34% pixels differ"
         }
       }
     }
@@ -11161,12 +11161,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9772, 0.41% pixels differ \u00b7 Dark: SSIM 0.9662, 0.34% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9855, 0.33% pixels differ \u00b7 Dark: SSIM 0.9815, 0.40% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9772, 0.41% pixels differ \u00b7 Dark: SSIM 0.9662, 0.34% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9855, 0.33% pixels differ \u00b7 Dark: SSIM 0.9815, 0.40% pixels differ"
         }
       }
     }
@@ -11308,12 +11308,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9782, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9782, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -11456,11 +11456,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9495, 2.23% pixels differ \u00b7 Dark: SSIM 0.4729, 63.40% pixels differ"
+          "review": "Light: SSIM 0.9533, 2.25% pixels differ \u00b7 Dark: SSIM 0.5005, 63.38% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9495, 2.23% pixels differ \u00b7 Dark: SSIM 0.4729, 63.40% pixels differ"
+          "review": "Light: SSIM 0.9533, 2.25% pixels differ \u00b7 Dark: SSIM 0.5005, 63.38% pixels differ"
         }
       }
     }
@@ -11603,11 +11603,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9939, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9984, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9939, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9984, 0.01% pixels differ"
         }
       }
     }
@@ -11749,12 +11749,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9890, 0.17% pixels differ \u00b7 Dark: SSIM 0.9731, 0.18% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9927, 0.17% pixels differ \u00b7 Dark: SSIM 0.9875, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9890, 0.17% pixels differ \u00b7 Dark: SSIM 0.9731, 0.18% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9927, 0.17% pixels differ \u00b7 Dark: SSIM 0.9875, 0.26% pixels differ"
         }
       }
     }
@@ -11896,12 +11896,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9861, 0.24% pixels differ \u00b7 Dark: SSIM 0.9674, 0.28% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9916, 0.21% pixels differ \u00b7 Dark: SSIM 0.9889, 0.24% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.19% pixels differ \u00b7 Dark: SSIM 0.9701, 0.22% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.19% pixels differ \u00b7 Dark: SSIM 0.9899, 0.22% pixels differ"
         }
       }
     }
@@ -12043,12 +12043,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9668, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9927, 0.24% pixels differ \u00b7 Dark: SSIM 0.9845, 0.25% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9668, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9927, 0.24% pixels differ \u00b7 Dark: SSIM 0.9845, 0.25% pixels differ"
         }
       }
     }
@@ -12191,11 +12191,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9301, 1.07% pixels differ \u00b7 Dark: SSIM 0.9211, 0.88% pixels differ"
+          "review": "Light: SSIM 0.9711, 0.54% pixels differ \u00b7 Dark: SSIM 0.9660, 0.82% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9301, 1.07% pixels differ \u00b7 Dark: SSIM 0.9211, 0.88% pixels differ"
+          "review": "Light: SSIM 0.9711, 0.54% pixels differ \u00b7 Dark: SSIM 0.9660, 0.82% pixels differ"
         }
       }
     }
@@ -12337,12 +12337,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9933, 0.07% pixels differ \u00b7 Dark: SSIM 0.9739, 0.08% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9970, 0.07% pixels differ \u00b7 Dark: SSIM 0.9940, 0.11% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9933, 0.07% pixels differ \u00b7 Dark: SSIM 0.9739, 0.08% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9970, 0.07% pixels differ \u00b7 Dark: SSIM 0.9940, 0.11% pixels differ"
         }
       }
     }
@@ -12485,11 +12485,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9600, 1.14% pixels differ \u00b7 Dark: SSIM 0.9498, 1.16% pixels differ"
+          "review": "Light: SSIM 0.9636, 1.14% pixels differ \u00b7 Dark: SSIM 0.9610, 1.40% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9600, 1.14% pixels differ \u00b7 Dark: SSIM 0.9498, 1.16% pixels differ"
+          "review": "Light: SSIM 0.9636, 1.14% pixels differ \u00b7 Dark: SSIM 0.9610, 1.40% pixels differ"
         }
       }
     }
@@ -12632,11 +12632,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9881, 0.24% pixels differ \u00b7 Dark: SSIM 0.9819, 0.25% pixels differ"
+          "review": "Light: SSIM 0.9918, 0.24% pixels differ \u00b7 Dark: SSIM 0.9855, 0.37% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9881, 0.24% pixels differ \u00b7 Dark: SSIM 0.9819, 0.25% pixels differ"
+          "review": "Light: SSIM 0.9918, 0.24% pixels differ \u00b7 Dark: SSIM 0.9855, 0.37% pixels differ"
         }
       }
     }
@@ -12778,12 +12778,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9929, 0.07% pixels differ \u00b7 Dark: SSIM 0.9746, 0.09% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9962, 0.07% pixels differ \u00b7 Dark: SSIM 0.9942, 0.10% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9929, 0.07% pixels differ \u00b7 Dark: SSIM 0.9746, 0.09% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9962, 0.07% pixels differ \u00b7 Dark: SSIM 0.9942, 0.10% pixels differ"
         }
       }
     }
@@ -12925,12 +12925,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9902, 0.25% pixels differ \u00b7 Dark: SSIM 0.9704, 0.27% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9925, 0.25% pixels differ \u00b7 Dark: SSIM 0.9850, 0.27% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9902, 0.25% pixels differ \u00b7 Dark: SSIM 0.9704, 0.27% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9925, 0.25% pixels differ \u00b7 Dark: SSIM 0.9850, 0.27% pixels differ"
         }
       }
     }
@@ -13072,12 +13072,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.24% pixels differ \u00b7 Dark: SSIM 0.9679, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9843, 0.25% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.24% pixels differ \u00b7 Dark: SSIM 0.9679, 0.25% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.24% pixels differ \u00b7 Dark: SSIM 0.9843, 0.25% pixels differ"
         }
       }
     }
@@ -13220,11 +13220,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9677, 0.49% pixels differ \u00b7 Dark: SSIM 0.9485, 0.50% pixels differ"
+          "review": "Light: SSIM 0.9714, 0.49% pixels differ \u00b7 Dark: SSIM 0.9676, 0.74% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9677, 0.49% pixels differ \u00b7 Dark: SSIM 0.9485, 0.50% pixels differ"
+          "review": "Light: SSIM 0.9714, 0.49% pixels differ \u00b7 Dark: SSIM 0.9676, 0.74% pixels differ"
         }
       }
     }
@@ -13367,11 +13367,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9675, 0.50% pixels differ \u00b7 Dark: SSIM 0.9449, 0.56% pixels differ"
+          "review": "Light: SSIM 0.9711, 0.50% pixels differ \u00b7 Dark: SSIM 0.9647, 0.56% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9675, 0.50% pixels differ \u00b7 Dark: SSIM 0.9449, 0.56% pixels differ"
+          "review": "Light: SSIM 0.9711, 0.50% pixels differ \u00b7 Dark: SSIM 0.9647, 0.56% pixels differ"
         }
       }
     }
@@ -13514,11 +13514,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9693, 0.51% pixels differ \u00b7 Dark: SSIM 0.9494, 0.52% pixels differ"
+          "review": "Light: SSIM 0.9720, 0.51% pixels differ \u00b7 Dark: SSIM 0.9677, 0.77% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9693, 0.51% pixels differ \u00b7 Dark: SSIM 0.9494, 0.52% pixels differ"
+          "review": "Light: SSIM 0.9720, 0.51% pixels differ \u00b7 Dark: SSIM 0.9677, 0.77% pixels differ"
         }
       }
     }
@@ -13661,11 +13661,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9704, 0.51% pixels differ \u00b7 Dark: SSIM 0.9503, 0.52% pixels differ"
+          "review": "Light: SSIM 0.9697, 0.51% pixels differ \u00b7 Dark: SSIM 0.9679, 0.76% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9704, 0.51% pixels differ \u00b7 Dark: SSIM 0.9503, 0.52% pixels differ"
+          "review": "Light: SSIM 0.9697, 0.51% pixels differ \u00b7 Dark: SSIM 0.9679, 0.76% pixels differ"
         }
       }
     }
@@ -13807,12 +13807,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9903, 0.25% pixels differ \u00b7 Dark: SSIM 0.9710, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9859, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9903, 0.25% pixels differ \u00b7 Dark: SSIM 0.9710, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9859, 0.26% pixels differ"
         }
       }
     }
@@ -13955,11 +13955,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9668, 0.49% pixels differ \u00b7 Dark: SSIM 0.9490, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9706, 0.49% pixels differ \u00b7 Dark: SSIM 0.9680, 0.74% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9668, 0.49% pixels differ \u00b7 Dark: SSIM 0.9490, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9706, 0.49% pixels differ \u00b7 Dark: SSIM 0.9680, 0.74% pixels differ"
         }
       }
     }
@@ -14101,12 +14101,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9934, 0.05% pixels differ \u00b7 Dark: SSIM 0.9759, 0.06% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9971, 0.05% pixels differ \u00b7 Dark: SSIM 0.9954, 0.08% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9934, 0.05% pixels differ \u00b7 Dark: SSIM 0.9759, 0.06% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9971, 0.05% pixels differ \u00b7 Dark: SSIM 0.9954, 0.08% pixels differ"
         }
       }
     }
@@ -14248,12 +14248,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9965, 0.00% pixels differ \u00b7 Dark: SSIM 0.9790, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9965, 0.00% pixels differ \u00b7 Dark: SSIM 0.9790, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9922, 0.14% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -14396,11 +14396,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9679, 0.50% pixels differ \u00b7 Dark: SSIM 0.9494, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9716, 0.50% pixels differ \u00b7 Dark: SSIM 0.9690, 0.75% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9679, 0.50% pixels differ \u00b7 Dark: SSIM 0.9494, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9716, 0.50% pixels differ \u00b7 Dark: SSIM 0.9690, 0.75% pixels differ"
         }
       }
     }
@@ -14542,12 +14542,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9927, 0.08% pixels differ \u00b7 Dark: SSIM 0.9759, 0.09% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9953, 0.08% pixels differ \u00b7 Dark: SSIM 0.9934, 0.11% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9927, 0.08% pixels differ \u00b7 Dark: SSIM 0.9759, 0.09% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9953, 0.08% pixels differ \u00b7 Dark: SSIM 0.9934, 0.11% pixels differ"
         }
       }
     }
@@ -14690,11 +14690,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9677, 0.50% pixels differ \u00b7 Dark: SSIM 0.9609, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9715, 0.50% pixels differ \u00b7 Dark: SSIM 0.9677, 0.76% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9677, 0.50% pixels differ \u00b7 Dark: SSIM 0.9609, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9715, 0.50% pixels differ \u00b7 Dark: SSIM 0.9677, 0.76% pixels differ"
         }
       }
     }
@@ -14837,11 +14837,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9734, 0.62% pixels differ \u00b7 Dark: SSIM 0.9815, 0.26% pixels differ"
+          "review": "Light: SSIM 0.9772, 0.62% pixels differ \u00b7 Dark: SSIM 0.9767, 0.64% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9832, 0.37% pixels differ \u00b7 Dark: SSIM 0.9914, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9869, 0.37% pixels differ \u00b7 Dark: SSIM 0.9868, 0.39% pixels differ"
         }
       }
     }
@@ -14983,12 +14983,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9783, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9783, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -15130,12 +15130,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9792, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9792, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -15278,11 +15278,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9682, 0.51% pixels differ \u00b7 Dark: SSIM 0.9489, 0.53% pixels differ"
+          "review": "Light: SSIM 0.9712, 0.51% pixels differ \u00b7 Dark: SSIM 0.9668, 0.77% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9682, 0.51% pixels differ \u00b7 Dark: SSIM 0.9489, 0.53% pixels differ"
+          "review": "Light: SSIM 0.9712, 0.51% pixels differ \u00b7 Dark: SSIM 0.9668, 0.77% pixels differ"
         }
       }
     }
@@ -15425,11 +15425,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9680, 0.50% pixels differ \u00b7 Dark: SSIM 0.9485, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9717, 0.50% pixels differ \u00b7 Dark: SSIM 0.9679, 0.76% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9680, 0.50% pixels differ \u00b7 Dark: SSIM 0.9485, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9717, 0.50% pixels differ \u00b7 Dark: SSIM 0.9679, 0.76% pixels differ"
         }
       }
     }
@@ -15572,11 +15572,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9663, 0.56% pixels differ \u00b7 Dark: SSIM 0.9479, 0.58% pixels differ"
+          "review": "Light: SSIM 0.9700, 0.55% pixels differ \u00b7 Dark: SSIM 0.9655, 0.82% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9663, 0.56% pixels differ \u00b7 Dark: SSIM 0.9479, 0.58% pixels differ"
+          "review": "Light: SSIM 0.9700, 0.55% pixels differ \u00b7 Dark: SSIM 0.9655, 0.82% pixels differ"
         }
       }
     }
@@ -15719,11 +15719,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9595, 0.66% pixels differ \u00b7 Dark: SSIM 0.9378, 0.68% pixels differ"
+          "review": "Light: SSIM 0.9621, 0.66% pixels differ \u00b7 Dark: SSIM 0.9559, 0.92% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9595, 0.66% pixels differ \u00b7 Dark: SSIM 0.9378, 0.68% pixels differ"
+          "review": "Light: SSIM 0.9621, 0.66% pixels differ \u00b7 Dark: SSIM 0.9559, 0.92% pixels differ"
         }
       }
     }
@@ -15866,11 +15866,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9682, 0.51% pixels differ \u00b7 Dark: SSIM 0.9498, 0.53% pixels differ"
+          "review": "Light: SSIM 0.9714, 0.51% pixels differ \u00b7 Dark: SSIM 0.9669, 0.77% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9682, 0.51% pixels differ \u00b7 Dark: SSIM 0.9498, 0.53% pixels differ"
+          "review": "Light: SSIM 0.9714, 0.51% pixels differ \u00b7 Dark: SSIM 0.9669, 0.77% pixels differ"
         }
       }
     }
@@ -16013,11 +16013,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9682, 0.54% pixels differ \u00b7 Dark: SSIM 0.9417, 0.55% pixels differ"
+          "review": "Light: SSIM 0.9717, 0.54% pixels differ \u00b7 Dark: SSIM 0.9656, 0.81% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9682, 0.54% pixels differ \u00b7 Dark: SSIM 0.9417, 0.55% pixels differ"
+          "review": "Light: SSIM 0.9717, 0.54% pixels differ \u00b7 Dark: SSIM 0.9656, 0.81% pixels differ"
         }
       }
     }
@@ -16160,11 +16160,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9985, 0.06% pixels differ \u00b7 Dark: SSIM 0.9969, 0.07% pixels differ"
+          "review": "Light: SSIM 0.9986, 0.06% pixels differ \u00b7 Dark: SSIM 0.9969, 0.07% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -16306,12 +16306,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9793, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9793, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -16453,12 +16453,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9791, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9791, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -16600,12 +16600,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9900, 0.28% pixels differ \u00b7 Dark: SSIM 0.9736, 0.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9938, 0.28% pixels differ \u00b7 Dark: SSIM 0.9937, 0.17% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9781, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -16748,11 +16748,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9668, 0.51% pixels differ \u00b7 Dark: SSIM 0.9330, 0.82% pixels differ"
+          "review": "Light: SSIM 0.9706, 0.51% pixels differ \u00b7 Dark: SSIM 0.9489, 0.84% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9668, 0.51% pixels differ \u00b7 Dark: SSIM 0.9330, 0.82% pixels differ"
+          "review": "Light: SSIM 0.9706, 0.51% pixels differ \u00b7 Dark: SSIM 0.9489, 0.84% pixels differ"
         }
       }
     }
@@ -16894,12 +16894,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9935, 0.10% pixels differ \u00b7 Dark: SSIM 0.9747, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9956, 0.15% pixels differ \u00b7 Dark: SSIM 0.9923, 0.20% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9775, 0.04% pixels differ"
+          "review": "Light: SSIM 0.9696, 0.55% pixels differ \u00b7 Dark: SSIM 0.9952, 0.10% pixels differ"
         }
       }
     }
@@ -17041,12 +17041,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9787, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9787, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -17188,12 +17188,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9943, 0.09% pixels differ \u00b7 Dark: SSIM 0.9778, 0.09% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9980, 0.09% pixels differ \u00b7 Dark: SSIM 0.9977, 0.09% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9943, 0.09% pixels differ \u00b7 Dark: SSIM 0.9778, 0.09% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9980, 0.09% pixels differ \u00b7 Dark: SSIM 0.9977, 0.09% pixels differ"
         }
       }
     }
@@ -17335,12 +17335,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9782, 0.44% pixels differ \u00b7 Dark: SSIM 0.9636, 0.45% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9818, 0.44% pixels differ \u00b7 Dark: SSIM 0.9839, 0.46% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9945, 0.06% pixels differ \u00b7 Dark: SSIM 0.9771, 0.07% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9982, 0.06% pixels differ \u00b7 Dark: SSIM 0.9974, 0.07% pixels differ"
         }
       }
     }
@@ -17483,11 +17483,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9638, 0.52% pixels differ \u00b7 Dark: SSIM 0.9413, 0.53% pixels differ"
+          "review": "Light: SSIM 0.9670, 0.52% pixels differ \u00b7 Dark: SSIM 0.9617, 0.78% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9638, 0.52% pixels differ \u00b7 Dark: SSIM 0.9413, 0.53% pixels differ"
+          "review": "Light: SSIM 0.9670, 0.52% pixels differ \u00b7 Dark: SSIM 0.9617, 0.78% pixels differ"
         }
       }
     }
@@ -17629,12 +17629,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9863, 0.27% pixels differ \u00b7 Dark: SSIM 0.9703, 0.29% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9900, 0.27% pixels differ \u00b7 Dark: SSIM 0.9873, 0.34% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9863, 0.27% pixels differ \u00b7 Dark: SSIM 0.9703, 0.29% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9900, 0.27% pixels differ \u00b7 Dark: SSIM 0.9873, 0.34% pixels differ"
         }
       }
     }
@@ -17777,11 +17777,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9685, 0.50% pixels differ \u00b7 Dark: SSIM 0.9498, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9722, 0.50% pixels differ \u00b7 Dark: SSIM 0.9684, 0.75% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9685, 0.50% pixels differ \u00b7 Dark: SSIM 0.9498, 0.51% pixels differ"
+          "review": "Light: SSIM 0.9722, 0.50% pixels differ \u00b7 Dark: SSIM 0.9684, 0.75% pixels differ"
         }
       }
     }
@@ -17923,12 +17923,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9930, 0.08% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9967, 0.08% pixels differ \u00b7 Dark: SSIM 0.9950, 0.12% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9930, 0.08% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9967, 0.08% pixels differ \u00b7 Dark: SSIM 0.9950, 0.12% pixels differ"
         }
       }
     }
@@ -18071,11 +18071,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9915, 0.08% pixels differ \u00b7 Dark: SSIM 0.9809, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9952, 0.08% pixels differ \u00b7 Dark: SSIM 0.9936, 0.14% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9915, 0.08% pixels differ \u00b7 Dark: SSIM 0.9809, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9952, 0.08% pixels differ \u00b7 Dark: SSIM 0.9936, 0.14% pixels differ"
         }
       }
     }
@@ -18217,12 +18217,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9916, 0.08% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9953, 0.08% pixels differ \u00b7 Dark: SSIM 0.9937, 0.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9916, 0.08% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9953, 0.08% pixels differ \u00b7 Dark: SSIM 0.9937, 0.13% pixels differ"
         }
       }
     }
@@ -18364,12 +18364,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9926, 0.08% pixels differ \u00b7 Dark: SSIM 0.9797, 0.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9957, 0.08% pixels differ \u00b7 Dark: SSIM 0.9939, 0.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9926, 0.08% pixels differ \u00b7 Dark: SSIM 0.9797, 0.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9957, 0.08% pixels differ \u00b7 Dark: SSIM 0.9939, 0.13% pixels differ"
         }
       }
     }
@@ -18511,12 +18511,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9897, 0.11% pixels differ \u00b7 Dark: SSIM 0.9794, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9934, 0.11% pixels differ \u00b7 Dark: SSIM 0.9917, 0.18% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9897, 0.11% pixels differ \u00b7 Dark: SSIM 0.9794, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9934, 0.11% pixels differ \u00b7 Dark: SSIM 0.9917, 0.18% pixels differ"
         }
       }
     }
@@ -18658,12 +18658,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9925, 0.08% pixels differ \u00b7 Dark: SSIM 0.9798, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9959, 0.08% pixels differ \u00b7 Dark: SSIM 0.9941, 0.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9925, 0.08% pixels differ \u00b7 Dark: SSIM 0.9798, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9959, 0.08% pixels differ \u00b7 Dark: SSIM 0.9941, 0.13% pixels differ"
         }
       }
     }
@@ -18805,12 +18805,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9920, 0.06% pixels differ \u00b7 Dark: SSIM 0.9756, 0.16% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9957, 0.06% pixels differ \u00b7 Dark: SSIM 0.9951, 0.16% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9923, 0.06% pixels differ \u00b7 Dark: SSIM 0.9755, 0.16% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9961, 0.06% pixels differ \u00b7 Dark: SSIM 0.9950, 0.16% pixels differ"
         }
       }
     }
@@ -18952,12 +18952,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9943, 0.18% pixels differ \u00b7 Dark: SSIM 0.9764, 0.15% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9980, 0.18% pixels differ \u00b7 Dark: SSIM 0.9960, 0.15% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9943, 0.18% pixels differ \u00b7 Dark: SSIM 0.9764, 0.15% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9980, 0.18% pixels differ \u00b7 Dark: SSIM 0.9960, 0.15% pixels differ"
         }
       }
     }
@@ -19099,12 +19099,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9863, 0.20% pixels differ \u00b7 Dark: SSIM 0.9683, 0.21% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9901, 0.20% pixels differ \u00b7 Dark: SSIM 0.9879, 0.25% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9863, 0.20% pixels differ \u00b7 Dark: SSIM 0.9683, 0.21% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9901, 0.20% pixels differ \u00b7 Dark: SSIM 0.9879, 0.25% pixels differ"
         }
       }
     }
@@ -19246,12 +19246,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9957, 0.04% pixels differ \u00b7 Dark: SSIM 0.9793, 0.12% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9991, 0.04% pixels differ \u00b7 Dark: SSIM 0.9972, 0.12% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9957, 0.04% pixels differ \u00b7 Dark: SSIM 0.9793, 0.12% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9991, 0.04% pixels differ \u00b7 Dark: SSIM 0.9972, 0.12% pixels differ"
         }
       }
     }
@@ -19393,12 +19393,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9916, 0.08% pixels differ \u00b7 Dark: SSIM 0.9796, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9954, 0.08% pixels differ \u00b7 Dark: SSIM 0.9956, 0.13% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9916, 0.08% pixels differ \u00b7 Dark: SSIM 0.9796, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9954, 0.08% pixels differ \u00b7 Dark: SSIM 0.9956, 0.13% pixels differ"
         }
       }
     }
@@ -19540,12 +19540,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9876, 0.19% pixels differ \u00b7 Dark: SSIM 0.9709, 0.20% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9904, 0.19% pixels differ \u00b7 Dark: SSIM 0.9884, 0.20% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9902, 0.13% pixels differ \u00b7 Dark: SSIM 0.9733, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9929, 0.13% pixels differ \u00b7 Dark: SSIM 0.9909, 0.14% pixels differ"
         }
       }
     }
@@ -19687,12 +19687,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9933, 0.12% pixels differ \u00b7 Dark: SSIM 0.9759, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9963, 0.12% pixels differ \u00b7 Dark: SSIM 0.9917, 0.14% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9933, 0.12% pixels differ \u00b7 Dark: SSIM 0.9759, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9963, 0.12% pixels differ \u00b7 Dark: SSIM 0.9917, 0.14% pixels differ"
         }
       }
     }
@@ -19834,12 +19834,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9788, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9788, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -19982,11 +19982,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9585, 0.43% pixels differ"
+          "review": "Light: SSIM 0.9927, 0.24% pixels differ \u00b7 Dark: SSIM 0.9739, 0.44% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9889, 0.24% pixels differ \u00b7 Dark: SSIM 0.9585, 0.43% pixels differ"
+          "review": "Light: SSIM 0.9927, 0.24% pixels differ \u00b7 Dark: SSIM 0.9739, 0.44% pixels differ"
         }
       }
     }
@@ -20128,12 +20128,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9677, 0.49% pixels differ \u00b7 Dark: SSIM 0.9497, 0.50% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9677, 0.49% pixels differ \u00b7 Dark: SSIM 0.9497, 0.50% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -20276,11 +20276,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9398, 0.87% pixels differ \u00b7 Dark: SSIM 0.9065, 0.89% pixels differ"
+          "review": "Light: SSIM 0.9689, 0.38% pixels differ \u00b7 Dark: SSIM 0.9551, 0.40% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9398, 0.87% pixels differ \u00b7 Dark: SSIM 0.9065, 0.89% pixels differ"
+          "review": "Light: SSIM 0.9689, 0.38% pixels differ \u00b7 Dark: SSIM 0.9551, 0.40% pixels differ"
         }
       }
     }
@@ -20422,12 +20422,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9967, 0.01% pixels differ \u00b7 Dark: SSIM 0.9780, 0.08% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9945, 0.08% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9967, 0.01% pixels differ \u00b7 Dark: SSIM 0.9780, 0.08% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9945, 0.08% pixels differ"
         }
       }
     }
@@ -20569,12 +20569,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.26% pixels differ \u00b7 Dark: SSIM 0.9683, 0.27% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9924, 0.26% pixels differ \u00b7 Dark: SSIM 0.9841, 0.27% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.26% pixels differ \u00b7 Dark: SSIM 0.9683, 0.27% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9924, 0.26% pixels differ \u00b7 Dark: SSIM 0.9841, 0.27% pixels differ"
         }
       }
     }
@@ -20717,11 +20717,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9985, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9985, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -20863,12 +20863,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9961, 0.04% pixels differ \u00b7 Dark: SSIM 0.9783, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9998, 0.04% pixels differ \u00b7 Dark: SSIM 0.9984, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9961, 0.04% pixels differ \u00b7 Dark: SSIM 0.9783, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9998, 0.04% pixels differ \u00b7 Dark: SSIM 0.9984, 0.01% pixels differ"
         }
       }
     }
@@ -21010,12 +21010,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9687, 0.51% pixels differ \u00b7 Dark: SSIM 0.9483, 0.53% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9687, 0.51% pixels differ \u00b7 Dark: SSIM 0.9483, 0.53% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -21158,11 +21158,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9800, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9800, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -21304,12 +21304,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9623, 0.74% pixels differ \u00b7 Dark: SSIM 0.9424, 0.79% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9951, 0.23% pixels differ \u00b7 Dark: SSIM 0.9925, 0.27% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9672, 0.51% pixels differ \u00b7 Dark: SSIM 0.9484, 0.52% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -21451,12 +21451,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9785, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9785, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -21598,12 +21598,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9859, 0.22% pixels differ \u00b7 Dark: SSIM 0.9669, 0.24% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9985, 0.04% pixels differ \u00b7 Dark: SSIM 0.9967, 0.05% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9859, 0.22% pixels differ \u00b7 Dark: SSIM 0.9669, 0.24% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9985, 0.04% pixels differ \u00b7 Dark: SSIM 0.9967, 0.05% pixels differ"
         }
       }
     }
@@ -21745,12 +21745,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9866, 0.15% pixels differ \u00b7 Dark: SSIM 0.9700, 0.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9904, 0.15% pixels differ \u00b7 Dark: SSIM 0.9897, 0.15% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9866, 0.15% pixels differ \u00b7 Dark: SSIM 0.9700, 0.17% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9904, 0.15% pixels differ \u00b7 Dark: SSIM 0.9897, 0.15% pixels differ"
         }
       }
     }
@@ -21892,12 +21892,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9965, 0.00% pixels differ \u00b7 Dark: SSIM 0.9795, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9965, 0.00% pixels differ \u00b7 Dark: SSIM 0.9795, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -22040,11 +22040,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9818, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9818, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -22187,11 +22187,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9934, 0.06% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9959, 0.06% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9964, 0.00% pixels differ \u00b7 Dark: SSIM 0.9934, 0.06% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9959, 0.06% pixels differ"
         }
       }
     }
@@ -22334,11 +22334,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9932, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9932, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -22480,12 +22480,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9900, 0.14% pixels differ \u00b7 Dark: SSIM 0.9722, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9934, 0.14% pixels differ \u00b7 Dark: SSIM 0.9924, 0.14% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9900, 0.14% pixels differ \u00b7 Dark: SSIM 0.9722, 0.14% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9934, 0.14% pixels differ \u00b7 Dark: SSIM 0.9924, 0.14% pixels differ"
         }
       }
     }
@@ -22628,11 +22628,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9840, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9999, 0.00% pixels differ \u00b7 Dark: SSIM 0.9840, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -22775,11 +22775,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9841, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9841, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -22922,11 +22922,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9837, 1.02% pixels differ \u00b7 Dark: SSIM 0.9706, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9874, 1.02% pixels differ \u00b7 Dark: SSIM 0.9900, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9837, 1.02% pixels differ \u00b7 Dark: SSIM 0.9706, 0.01% pixels differ"
+          "review": "Light: SSIM 0.9874, 1.02% pixels differ \u00b7 Dark: SSIM 0.9900, 0.01% pixels differ"
         }
       }
     }
@@ -23068,12 +23068,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9945, 0.04% pixels differ \u00b7 Dark: SSIM 0.9767, 0.05% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9945, 0.04% pixels differ \u00b7 Dark: SSIM 0.9767, 0.05% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -23215,12 +23215,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9944, 0.04% pixels differ \u00b7 Dark: SSIM 0.9771, 0.05% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9944, 0.04% pixels differ \u00b7 Dark: SSIM 0.9771, 0.05% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -23363,11 +23363,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9981, 0.00% pixels differ \u00b7 Dark: SSIM 0.9805, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9981, 0.00% pixels differ \u00b7 Dark: SSIM 0.9805, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -23509,12 +23509,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9962, 0.01% pixels differ \u00b7 Dark: SSIM 0.9797, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9962, 0.01% pixels differ \u00b7 Dark: SSIM 0.9797, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -23656,12 +23656,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9943, 0.05% pixels differ \u00b7 Dark: SSIM 0.9785, 0.07% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9981, 0.05% pixels differ \u00b7 Dark: SSIM 0.9965, 0.07% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.00% pixels differ \u00b7 Dark: SSIM 0.9804, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -23804,11 +23804,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9709, 0.54% pixels differ \u00b7 Dark: SSIM 0.9577, 0.49% pixels differ"
+          "review": "Light: SSIM 0.9784, 0.47% pixels differ \u00b7 Dark: SSIM 0.9766, 0.50% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9709, 0.54% pixels differ \u00b7 Dark: SSIM 0.9577, 0.49% pixels differ"
+          "review": "Light: SSIM 0.9784, 0.47% pixels differ \u00b7 Dark: SSIM 0.9766, 0.50% pixels differ"
         }
       }
     }
@@ -23951,11 +23951,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9964, 0.02% pixels differ \u00b7 Dark: SSIM 0.9808, 0.03% pixels differ"
+          "review": "Light: SSIM 0.9999, 0.02% pixels differ \u00b7 Dark: SSIM 0.9985, 0.03% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9964, 0.02% pixels differ \u00b7 Dark: SSIM 0.9808, 0.03% pixels differ"
+          "review": "Light: SSIM 0.9999, 0.02% pixels differ \u00b7 Dark: SSIM 0.9985, 0.03% pixels differ"
         }
       }
     }
@@ -24097,12 +24097,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9945, 0.09% pixels differ \u00b7 Dark: SSIM 0.9798, 0.11% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9979, 0.09% pixels differ \u00b7 Dark: SSIM 0.9963, 0.11% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9966, 0.00% pixels differ \u00b7 Dark: SSIM 0.9820, 0.01% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -24244,12 +24244,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9954, 0.02% pixels differ \u00b7 Dark: SSIM 0.9797, 0.03% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9973, 0.02% pixels differ \u00b7 Dark: SSIM 0.9962, 0.02% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9954, 0.02% pixels differ \u00b7 Dark: SSIM 0.9797, 0.03% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9973, 0.02% pixels differ \u00b7 Dark: SSIM 0.9962, 0.02% pixels differ"
         }
       }
     }
@@ -24391,12 +24391,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.25% pixels differ \u00b7 Dark: SSIM 0.9669, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9844, 0.26% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9888, 0.25% pixels differ \u00b7 Dark: SSIM 0.9669, 0.26% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9926, 0.25% pixels differ \u00b7 Dark: SSIM 0.9844, 0.26% pixels differ"
         }
       }
     }
@@ -24538,12 +24538,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9786, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -24686,11 +24686,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9661, 0.81% pixels differ \u00b7 Dark: SSIM 0.9614, 3.59% pixels differ"
+          "review": "Light: SSIM 0.9952, 0.01% pixels differ \u00b7 Dark: SSIM 0.9744, 3.05% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9661, 0.81% pixels differ \u00b7 Dark: SSIM 0.9614, 3.59% pixels differ"
+          "review": "Light: SSIM 0.9952, 0.01% pixels differ \u00b7 Dark: SSIM 0.9744, 3.05% pixels differ"
         }
       }
     }
@@ -24832,12 +24832,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9783, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9963, 0.00% pixels differ \u00b7 Dark: SSIM 0.9782, 0.01% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9985, 0.01% pixels differ"
         }
       }
     }
@@ -24980,11 +24980,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9930, 0.26% pixels differ \u00b7 Dark: SSIM 0.9802, 0.27% pixels differ"
+          "review": "Light: SSIM 0.9965, 0.26% pixels differ \u00b7 Dark: SSIM 0.9976, 0.27% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9930, 0.26% pixels differ \u00b7 Dark: SSIM 0.9802, 0.27% pixels differ"
+          "review": "Light: SSIM 0.9965, 0.26% pixels differ \u00b7 Dark: SSIM 0.9976, 0.27% pixels differ"
         }
       }
     }
@@ -25127,11 +25127,11 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9837, 0.14% pixels differ \u00b7 Dark: SSIM 0.7420, 29.69% pixels differ"
+          "review": "Light: SSIM 0.9898, 0.14% pixels differ \u00b7 Dark: SSIM 0.7642, 29.69% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: SSIM 0.9890, 0.00% pixels differ \u00b7 Dark: SSIM 0.7472, 29.54% pixels differ"
+          "review": "Light: SSIM 0.9950, 0.00% pixels differ \u00b7 Dark: SSIM 0.7695, 29.54% pixels differ"
         }
       }
     }
@@ -25273,12 +25273,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9956, 0.01% pixels differ \u00b7 Dark: SSIM 0.9787, 0.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9990, 0.01% pixels differ \u00b7 Dark: SSIM 0.9976, 0.01% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9956, 0.01% pixels differ \u00b7 Dark: SSIM 0.9787, 0.02% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9990, 0.01% pixels differ \u00b7 Dark: SSIM 0.9976, 0.01% pixels differ"
         }
       }
     }
