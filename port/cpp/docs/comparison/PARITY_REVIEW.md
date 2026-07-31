@@ -664,6 +664,27 @@ this port never had ANY shape-level self-inset anywhere. Not fixed at the shape 
 this pass, and the shared layer is the wrong home per the retraction above); the header comments are still
 wrong and worth a follow-up correction so a future reader doesn't re-derive the same incorrect premise.
 
+**`borderless`'s OUTER edges also confirm zero inset** (not just the pink/red interior seam above): the
+top edge (title bar -> pink), left/right edges (window frame -> pink), all measured bit-identical between
+MAUI and cpp at `captures/windows/{maui,cpp}/borderless_light.png`, zero blended pixels. This was the
+load-bearing claim behind the `thickness > 0` gate and it is now confirmed two independent ways, not one.
+
+**UNVERIFIED: `radio_template_from_style` (StrokeThickness=0.5) is a real, unresolved risk.** At 0.5 the
+extra 0.5 DIP inset is proportionally the largest of any tested case (the stroke's own thickness), but its
+rendered stroke/fill color is only 1-3 levels off the page background (244,244,244 vs 243,242,241) — an
+8-bit color depth too coarse to resolve a sub-pixel alpha shift this small; the centroid technique that
+settled T=1/5/10 and T=0 is inconclusive here by measurement floor, not by finding "no effect". This page
+is currently green (0.06%/0.16%). Do not assume the fix is neutral here; recapture and check first.
+
+**Expect the change to move roughly 15 pages, not 3.** Every Border with a nonzero stroke goes through this
+code path: `alignment` (5), `border_alignment`, `border_clip_playground` (slider), `border_layout` (5),
+`border_playground` (5, slider), `border_resize_content` (8), `border_stroke` (1/5/10), `border_styles`,
+`borderless` (0, expected unaffected), `carousel` (2), `containers` (2), `custom_swipe_item_view`,
+`invalidate_shadow_host` (4), `radio_template_from_style` (0.5, see above), `swipe_view_shadow` (3),
+`varied_size_selector`. Read the next board pass expecting broad movement across this list, not just the
+three pages this task targeted — an unmoved page outside {`borderless`, `shapes`} would itself be a signal
+worth checking, and a moved page inside this list is the fix working, not a new regression to chase.
+
 ---
 
 ## TASK 1 SOLVED (2026-07-31): the dark/light background delta is a MISSING CONTENT LAYER
