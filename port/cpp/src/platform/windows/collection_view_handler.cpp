@@ -355,6 +355,14 @@ namespace
         return winui::Media::SolidColorBrush{winrt::Windows::UI::Color{255, r, g, b}};
     }
 
+    // Alpha-carrying variant. Several WinUI theme colours this file mirrors are deliberately TRANSLUCENT
+    // (ControlAltFillColorSecondary is #06000000 light / #19000000 dark), and compositing them down to an
+    // opaque RGB loses the whole point -- what shows THROUGH them.
+    winui::Media::SolidColorBrush alpha_brush(std::uint8_t a, std::uint8_t r, std::uint8_t g, std::uint8_t b)
+    {
+        return winui::Media::SolidColorBrush{winrt::Windows::UI::Color{a, r, g, b}};
+    }
+
     winui::Media::SolidColorBrush selection_accent_brush(bool dark)
     {
         return dark ? solid_brush(76, 194, 255) : solid_brush(0, 103, 192);
@@ -538,14 +546,27 @@ namespace
             // within the +/-0.5px quantisation of an integer ink bbox. Per parity ruling 11 the render
             // wins; the XAML sibling is what makes 16 the principled reading of that measurement.
             glyph.FontSize(16);
-            glyph.Foreground(solid_brush(255, 255, 255));
+            // ListViewItemCheckBrush -> TextOnAccentFillColorPrimaryBrush (generic.xaml:1778), whose colour
+            // is theme-dependent and INVERTS: #FFFFFF light (:7552) but #000000 DARK (:1973). The hardcoded
+            // white was right in light and wrong in dark. Confirmed on the render: inside MAUI's dark
+            // checked square the darkest pixel is (10,27,35) -- black ink antialiased over the accent --
+            // while the port's darkest was the bare accent (76,194,255) with a near-white (242,250,255)
+            // glyph on top.
+            glyph.Foreground(dark ? solid_brush(0, 0, 0) : solid_brush(255, 255, 255));
             glyph.HorizontalAlignment(winui::HorizontalAlignment::Center);
             glyph.VerticalAlignment(winui::VerticalAlignment::Center);
             box.Child(glyph);
         }
         else
         {
-            box.Background(dark ? solid_brush(32, 32, 32) : solid_brush(253, 253, 253));
+            // ListViewItemCheckBoxBrush -> ControlAltFillColorSecondaryBrush (generic.xaml:1779), which is a
+            // TRANSLUCENT black wash -- #19000000 dark (:1990), #06000000 light (:7569) -- NOT an opaque
+            // fill. The opaque (32,32,32)/(253,253,253) hid what MAUI lets show through: MAUI's content
+            // starts UNDER the square (see k_selection_checkbox_content_inset), so on an unchecked row the
+            // label's leading "I" is legible through the box. Measured inside MAUI's unchecked square:
+            // darkest (26,26,26) light / brightest (230,230,230) dark -- text ink either way -- against the
+            // port's flat 251-253 / 32-33.
+            box.Background(dark ? alpha_brush(0x19, 0, 0, 0) : alpha_brush(0x06, 0, 0, 0));
             box.BorderBrush(dark ? solid_brush(157, 157, 157) : solid_brush(135, 135, 135));
             box.BorderThickness(winui::Thickness{1, 1, 1, 1});
         }
