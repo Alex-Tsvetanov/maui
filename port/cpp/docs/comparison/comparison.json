@@ -6164,11 +6164,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9838, 0.61% pixels differ \u00b7 Dark: SSIM 0.9841, 0.62% pixels differ"
+          "review": "Light: SSIM 0.9973, 0.07% pixels differ \u00b7 Dark: SSIM 0.9973, 0.07% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9845, 0.60% pixels differ \u00b7 Dark: SSIM 0.9848, 0.61% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       }
     }

@@ -8432,11 +8432,11 @@ ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9838, 0.61% pixels differ · Dark: SSIM 0.9841, 0.62% pixels differ
+Light: SSIM 0.9973, 0.07% pixels differ · Dark: SSIM 0.9973, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9845, 0.60% pixels differ · Dark: SSIM 0.9848, 0.61% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 43. Device — 🟢/🟢
 <sub>device</sub>

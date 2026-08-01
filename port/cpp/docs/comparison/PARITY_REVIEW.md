@@ -2275,7 +2275,7 @@ was taken against a MAUI capture that has since been replaced. Ruling 6 exists p
 this, and it is now applied after every import — but the two commit messages above were written
 before the correction and should be read with this note.
 
-## The REAL, pre-existing `date_picker` defect (green, but the board's worst page)
+## RETRACTED: the `date_picker` "8px defect" was a MIDNIGHT DATE ROLLOVER, not a port bug
 
 0.61% light / 0.62% dark, SSIM 0.9838/0.9841 — passing, but nearest the 0.98 bar of any page. Two
 distinct differences, both long-standing and neither caused by recent work:
@@ -2289,3 +2289,28 @@ distinct differences, both long-standing and neither caused by recent work:
 Three gradient rows (blue y133-163, green y196-226, blue y259-289) plus a grey band at y747-759 carry
 essentially all 4,996 differing pixels. Whoever picks this up should start from the DatePicker's own
 width measurement rather than the border handler — the border geometry is proven identical.
+
+### Retraction detail (the section above is superseded)
+
+The "gradient box is 8px too wide" and "MAUI renders inner detail the port does not" findings were
+BOTH artifacts of the two columns being captured on different calendar days. A DatePicker shows
+today's date: MAUI's baseline read `8/1/2026`, the port's `7/31/2026`. `7/31/2026` is a wider string,
+which is the entire 8px, and the "inner detail at x34/x37" was simply different digit glyphs.
+
+Recapturing BOTH columns in ONE run settles it — the guest clock read 2026-08-01 04:54 +03:00:
+
+```
+same-run date_picker light diff : 4996 px -> 606 px
+maui coloured span              : x21-116 (w96)
+cpp  coloured span              : x21-116 (w96)   <- identical
+```
+
+Scored: `date_picker` cpp 0.61%/SSIM 0.9838 -> **0.07%/0.9973** (both themes); the xaml column is now
+**1.0000/0.00%**. `time_picker` likewise 0.05%/0.06%, xaml 1.0000. The page was never defective.
+
+**The general hazard, worth remembering:** any page rendering a live date or time is only comparable
+when both columns come from the SAME run. A board assembled from captures spanning midnight will show
+a stable, plausible, entirely fake diff on those pages — and it looks exactly like a layout bug,
+because a different date string really is a different width. Three separate wrong conclusions were
+drawn from this one artifact (a border regression that never happened, an 8px measure bug, and
+missing inner detail) before anyone simply cropped the region and read the numbers on screen.
