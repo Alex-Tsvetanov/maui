@@ -2205,3 +2205,48 @@ Per **parity ruling 11** (render wins) the port follows the shipped revision, do
 measure path were NOT touched — they were never at fault. Result: `image` windows
 **5.44% / SSIM 0.967 (yellow) -> 0.00% / SSIM 0.9993 (green)**, light and dark, `cpp` and `xaml`; band
 rows 700-791 now read green=50301 / row700=626 / row790=435 in all three columns, identical.
+
+---
+
+## RULING REQUESTED (ruling 3): MAUI drops the `context_flyout` 🆒 FontImageSource; the port renders it
+
+**The port is arguably the CORRECT one here, so this is not something to "fix" without a ruling.**
+
+Both the shared twin (`port/maui-reference/pages/context_flyout.xaml:22-26`) and the code-first page
+(`context_flyout_page.hpp:259-262`) author the same element:
+
+```xml
+<Image MaximumHeightRequest="200" MaximumWidthRequest="200">
+  <Image.Source>
+    <FontImageSource Glyph="🆒" FontFamily="Arial" Color="MediumPurple" Size="50" />
+  </Image.Source>
+</Image>
+```
+
+MAUI renders NOTHING for it — the row collapses. The port renders it correctly. Measured:
+
+| column | Bing WebView starts | 🆒 glyph |
+|---|---|---|
+| maui | y=234 | absent (0 px) |
+| cpp  | y=434 | 6,472 px, y229-537 |
+
+exactly the 200px `MaximumHeightRequest`. The port's rasterization is demonstrably right — guest diag
+says `family='Arial' glyph_bytes=4 size=50.0 bounds=52.78x52.78 px=55x55 ink=1114` with
+`peak=[216 112 147 255]`, i.e. BGRA for **MediumPurple**, precisely what the markup asks for.
+
+Why MAUI drops it is NOT established. The most likely mechanism is that its Win2D rasterization of
+this emoji throws and `FontImageSourceService.Windows.cs:47-51` LOGS AND RETHROWS, so the image
+source fails and the Image gets no source at all. The port deliberately swallows and degrades there
+(documented deviation — a rethrow would kill the gallery mid-capture), which is why it survives and
+renders. That is a hypothesis, not a finding: it cannot be confirmed without instrumenting MAUI.
+
+**This is exactly ruling 3's shape** — a new MAUI-side imperfection not covered by rulings 2/7/8/9/10.
+Per that ruling it is flagged here and NOT acted on. Making the port drop a glyph it renders correctly,
+purely to reproduce a MAUI defect, would mean deliberately breaking a working feature; that is the
+user's call, not an implementer's.
+
+**It does not affect the board either way.** `context_flyout` cannot go green regardless: with the
+200px offset removed by translation, the page drops 59.88% -> 3.49% over the overlapping region, but
+the **Bing band alone still differs by 22.76%** because both columns load live `https://bing.com`
+seconds apart. That is ~13% of the frame against a 1.0% bar. The page is genuinely unscoreable and
+the standing exemption is correct — now with a number behind it rather than an assumption.
