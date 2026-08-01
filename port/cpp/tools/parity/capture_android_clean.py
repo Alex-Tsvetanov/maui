@@ -7,12 +7,17 @@ read DIFFERENT keys, and BOTH are now sent on every launch:
     MauiReference  -> MAUI_THEME=Light|Dark   (App.xaml.cs:40, sets UserAppTheme)
     cpp / xaml     -> MAUI_APPEARANCE=light|dark (MauiHostActivity.java:70 -> set_platform_app_theme)
 
-BOTH THEMES ARE SUPPORTED (--theme light|dark). This used to be light-only, described as "matching the
-legacy convention" — but it was never a convention, it was a gap on two counts. (1) The output filename
-hard-coded "_light", and (2) the launch hard-coded MAUI_THEME=Light and sent NO appearance extra at all,
-so the cpp/xaml columns were never actually told a theme and simply fell through to their light default.
-Nothing downstream was refusing dark: build_comparison_json.py's THEMES loop is platform-independent and
-has always looked for android <key>_dark.png; the slot read null only because no such file was written.
+BOTH THEMES ARE SUPPORTED HERE NOW (--theme light|dark), but READ THIS FIRST: this script is NOT the
+script the board's Android columns are actually captured with, and its old "Android parity is LIGHT-ONLY
+(the board's android dark slot is null)" header was FLATLY WRONG. Verified against comparison.json: the
+android dark slot is fully populated and scored (e.g. absolute_layout "Dark: SSIM 0.9948, 0.64%"). The
+board has had an Android dark column for a long time.
+
+What actually produces it: the SHELL scripts, which have supported dark all along via MAUI_APPEARANCE —
+build_android_apphost.sh (appearance="${MAUI_APPEARANCE:-light}", suffix "_${appearance}", passes
+--es MAUI_APPEARANCE) and capture_all_csharp_android.sh (MAUI_APPEARANCE=dark -> --es MAUI_THEME Dark).
+Prefer those for board work; they also use a 4s settle, and mixing this script's 1.8s default into one
+board manufactures scrollbar diff on every scrollable page.
 
 --system-night additionally flips the DEVICE into night mode for the pass and restores it afterwards.
 The intent extra themes the MAUI/port UI; it does NOT theme Android's own chrome (status bar, nav bar,
@@ -50,9 +55,9 @@ COMP_CAP = os.path.join(CPP, "docs", "comparison", "captures", "android")
 APPS = {
     "maui": {"pkg": "dev.mauicpp.mauireference",
              "out": lambda k, th: os.path.join(REF_CAP, f"{k}_{th}.png")},
-    "cpp": {"pkg": "com.maui_cpp.gallery",
+    "cpp": {"pkg": "dev.mauicpp.apphost",
             "out": lambda k, th: os.path.join(COMP_CAP, "cpp", f"{k}_{th}.png")},
-    "xaml": {"pkg": "com.maui_cpp.gallery_xaml",
+    "xaml": {"pkg": "dev.mauicpp.apphost.xaml",
              "out": lambda k, th: os.path.join(COMP_CAP, "xaml", f"{k}_{th}.png")},
 }
 
