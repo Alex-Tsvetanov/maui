@@ -66,7 +66,8 @@ $sdkOut = & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSSc
 $wasdk = ($sdkOut | Select-String '^WINAPPSDK=(.+)$').Matches.Groups[1].Value
 $generated = ($sdkOut | Select-String '^WINUI_GENERATED=(.+)$').Matches.Groups[1].Value
 $win2d = ($sdkOut | Select-String '^WIN2D=(.+)$').Matches.Groups[1].Value
-if (-not $wasdk -or -not $generated -or -not $win2d) { $sdkOut | ForEach-Object { Write-Host "   $_" }; throw "provision_winui_sdk.ps1 did not report all three paths" }
+$webview2 = ($sdkOut | Select-String '^WEBVIEW2=(.+)$').Matches.Groups[1].Value
+if (-not $wasdk -or -not $generated -or -not $win2d -or -not $webview2) { $sdkOut | ForEach-Object { Write-Host "   $_" }; throw "provision_winui_sdk.ps1 did not report all four paths" }
 
 $env:VCPKG_ROOT = "C:\vcpkg"
 $cmakeArgs = @(
@@ -83,6 +84,7 @@ $cmakeArgs = @(
     "-DMAUI_WINAPPSDK=$wasdk",
     "-DMAUI_WINUI_GENERATED=$generated",
     "-DMAUI_WIN2D=$win2d",
+    "-DMAUI_WEBVIEW2=$webview2",
     "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 )
 Info ("cmake " + ($cmakeArgs -join " "))

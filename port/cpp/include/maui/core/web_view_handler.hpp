@@ -108,6 +108,28 @@ namespace maui::core
         // (unset => "null", the platform's errored/void-script value).
         move_only_function<std::string(const std::string& script)> eval_result_provider;
 
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native
+        // Microsoft.UI.Xaml.Controls.WebView2 (defined in src/platform/windows/web_view_handler.cpp).
+        // Selected by MAUI_PLATFORM_WINDOWS, which is PUBLIC on maui_core for that backend only, so every
+        // TU of a given build sees exactly one backend's overrides and the layout stays ODR-consistent
+        // (progress_bar_platform's identical block). WebView2 IS a Control, so IsEnabled and the rest
+        // reach it directly with no wrapper.
+        //
+        // update_background is overridden to REMAP, not to push: WebViewHandler.cs:29 replaces the
+        // generic ViewHandler background mapping with MapBackground on Windows only, so a WebView2 gets
+        // DefaultBackgroundColor rather than Control.Background. update_flow_direction is deliberately
+        // NOT overridden — WebViewHandler.Windows.MapFlowDirection (:329-334) is an explicit no-op, which
+        // is exactly view_platform_base's mirror-only body. shadow/clip/transform/semantics keep the base
+        // mirrors (the progress_bar/image precedent). No new DATA fields, so this does not change the
+        // struct's layout on non-Windows builds.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
+
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the WKWebView (defined in
         // src/platform/apple_shared/web_view_handler.mm). is_enabled keeps the base mirror — an AppKit

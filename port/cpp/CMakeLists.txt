@@ -672,6 +672,14 @@ else()
       check_box_handler
       radio_button_handler
       switch_handler
+      # (W22 web_view / G5 hybrid_web_view) a real Microsoft.UI.Xaml.Controls.WebView2 each -- the type
+      # WebViewHandler.Windows.cs and HybridWebViewHandler.Windows.cs both create. Needs NO new
+      # dependency: the WebView2 XAML control is in the already-generated winrt/Microsoft.UI.Xaml.
+      # Controls.h projection and CoreWebView2 in winrt/Microsoft.Web.WebView2.Core.h, both produced by
+      # tools/parity/windows/provision_winui_sdk.ps1. It DOES need the two native DLLs beside the exe --
+      # see the MAUI_WEBVIEW2 block further down. Mirrors the android swaps at :635-636 / :642-643.
+      web_view_handler
+      hybrid_web_view_handler
       # (W1-11 chrome) the REAL clip push (a Microsoft.UI.Composition geometric clip) -- see
       # src/platform/windows/view_chrome_ops.cpp's header. tool_tip/context_flyout stay no-ops here.
       view_chrome_ops)
@@ -959,6 +967,41 @@ if(MAUI_BACKEND STREQUAL "windows")
     message(FATAL_ERROR "Microsoft.Graphics.Canvas.dll not found for ABI ${MAUI_TARGET_ABI} under "
                         "MAUI_WIN2D='${MAUI_WIN2D}'. Configure through "
                         "tools/parity/windows/configure_port_windows.ps1, which restores it.")
+  endif()
+  # WebView2 (web_view_handler / hybrid_web_view_handler). NOTHING new is restored and nothing is linked:
+  # provision_winui_sdk.ps1 has always restored Microsoft.Web.WebView2 (its restore-loop comment explains
+  # why -- cppwinrt cannot resolve Microsoft.UI.Xaml.Controls.IWebView2's CoreWebView2 property type
+  # without it), so the projection headers already exist and WebView2, like Win2D above, is pure WinRT
+  # activated at runtime. Only the package PATH is new (WEBVIEW2= from that script).
+  #
+  # Two native DLLs must sit beside the exe, and neither is in the WindowsAppRuntime framework package
+  # (verified on the parity guest: `dir /s Microsoft.WindowsAppRuntime.1.7_..._arm64__8wekyb3d8bbwe |
+  # findstr /i webview2` returns nothing). MAUI's own unpackaged reference app deploys them app-local,
+  # which is the empirical proof:
+  #   Microsoft.Web.WebView2.Core.dll (runtimes/<rid>/native_uap/) -- the WinRT implementation. C++/WinRT
+  #     activates Microsoft.Web.WebView2.Core.* through the same name-trimming LoadLibrary fallback the
+  #     Win2D note above documents, so it probes exactly this file name in the app directory.
+  #   WebView2Loader.dll (runtimes/<rid>/native/) -- loaded in turn by the above to reach the installed
+  #     Evergreen runtime.
+  # Microsoft.Web.WebView2.Core.Projection.dll, which the C# app also deploys, is the .NET projection; a
+  # C++/WinRT app never loads it. Without these two, EnsureCoreWebView2Async fails at ACTIVATION and both
+  # web pages render exactly as they did with no handler at all -- the silent "the fix didn't work" mode
+  # the Win2D block above fails CONFIGURE to avoid. Same treatment.
+  if(MAUI_WEBVIEW2)
+    foreach(rid IN LISTS _maui_wasdk_rids)
+      if(EXISTS "${MAUI_WEBVIEW2}/runtimes/${rid}/native_uap/Microsoft.Web.WebView2.Core.dll")
+        set(MAUI_WEBVIEW2_CORE_DLL "${MAUI_WEBVIEW2}/runtimes/${rid}/native_uap/Microsoft.Web.WebView2.Core.dll"
+            CACHE FILEPATH "WebView2 WinRT implementation DLL to deploy beside a maui executable" FORCE)
+        set(MAUI_WEBVIEW2_LOADER_DLL "${MAUI_WEBVIEW2}/runtimes/${rid}/native/WebView2Loader.dll"
+            CACHE FILEPATH "WebView2 loader DLL to deploy beside a maui executable" FORCE)
+        break()
+      endif()
+    endforeach()
+  endif()
+  if(NOT MAUI_WEBVIEW2_CORE_DLL OR NOT EXISTS "${MAUI_WEBVIEW2_LOADER_DLL}")
+    message(FATAL_ERROR "WebView2 runtime DLLs not found for ABI ${MAUI_TARGET_ABI} under "
+                        "MAUI_WEBVIEW2='${MAUI_WEBVIEW2}'. Configure through "
+                        "tools/parity/windows/configure_port_windows.ps1, which restores them.")
   endif()
   # WindowsApp.lib is the WinRT API surface; the bootstrap lib is the unpackaged-activation shim.
   # d2d1.lib is the Windows SDK's Direct2D (NOT a new external dependency, nothing added to vcpkg.json):

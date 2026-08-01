@@ -135,6 +135,24 @@ function(maui_add_app name)
     add_custom_command(TARGET ${name} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different "${MAUI_WIN2D_DLL}" "$<TARGET_FILE_DIR:${name}>"
       COMMENT "Copying Microsoft.Graphics.Canvas.dll (Win2D) next to ${name}")
+    # WebView2's two native DLLs, beside the exe for the same reason Win2D's is and with the same quiet
+    # failure mode: C++/WinRT activates Microsoft.Web.WebView2.Core.* by probing Microsoft.Web.WebView2.
+    # Core.dll on the default search path, and that DLL in turn loads WebView2Loader.dll from the same
+    # directory to reach the installed Evergreen runtime. Miss either and EnsureCoreWebView2Async fails at
+    # activation: web_view/hybrid_web_view render nothing and the board looks exactly as it did before the
+    # handlers existed. Fail the CONFIGURE instead. (See the framework CMakeLists.txt WebView2 block for
+    # why neither DLL comes from the WindowsAppRuntime framework package.)
+    # NOTE: WebView2 creates its user-data folder as <exe>.WebView2 NEXT TO THE EXE, so the deploy
+    # directory has to be WRITABLE -- a new environmental dependency the port did not previously have.
+    if(NOT MAUI_WEBVIEW2_CORE_DLL OR NOT MAUI_WEBVIEW2_LOADER_DLL)
+      message(FATAL_ERROR "MAUI_WEBVIEW2_CORE_DLL / MAUI_WEBVIEW2_LOADER_DLL are not set; configure the "
+                          "framework for MAUI_BACKEND=windows through "
+                          "tools/parity/windows/configure_port_windows.ps1")
+    endif()
+    add_custom_command(TARGET ${name} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              "${MAUI_WEBVIEW2_CORE_DLL}" "${MAUI_WEBVIEW2_LOADER_DLL}" "$<TARGET_FILE_DIR:${name}>"
+      COMMENT "Copying the WebView2 runtime DLLs next to ${name}")
     if(ARG_RESOURCES)
       add_custom_command(TARGET ${name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARG_RESOURCES}

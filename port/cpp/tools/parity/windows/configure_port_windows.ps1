@@ -80,10 +80,12 @@ $sdkOut | ForEach-Object { Write-Host "   $_" }
 $wasdk = ($sdkOut | Select-String '^WINAPPSDK=(.+)$').Matches.Groups[1].Value
 $generated = ($sdkOut | Select-String '^WINUI_GENERATED=(.+)$').Matches.Groups[1].Value
 $win2d = ($sdkOut | Select-String '^WIN2D=(.+)$').Matches.Groups[1].Value
-if (-not $wasdk -or -not $generated -or -not $win2d) { throw "provision_winui_sdk.ps1 did not report all three paths" }
+$webview2 = ($sdkOut | Select-String '^WEBVIEW2=(.+)$').Matches.Groups[1].Value
+if (-not $wasdk -or -not $generated -or -not $win2d -or -not $webview2) { throw "provision_winui_sdk.ps1 did not report all four paths" }
 Info "WindowsAppSDK: $wasdk"
 Info "projection   : $generated"
 Info "Win2D        : $win2d"
+Info "WebView2     : $webview2"
 
 $env:VCPKG_ROOT = "C:\vcpkg"
 Info "configuring (vcpkg builds gtest/benchmark/pugixml first; this is the slow part)"
@@ -104,6 +106,7 @@ $cmakeArgs = @(
     "-DMAUI_WINAPPSDK=$wasdk",
     "-DMAUI_WINUI_GENERATED=$generated",
     "-DMAUI_WIN2D=$win2d",
+    "-DMAUI_WEBVIEW2=$webview2",
     "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 )
 Info ("cmake " + ($cmakeArgs -join " "))

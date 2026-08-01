@@ -114,6 +114,18 @@ namespace maui::controls
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
 #endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: the WebMessageReceived registration on_connect_handler produced, so
+        // on_disconnect_handler — and ~hybrid_web_view_platform, if disconnect never runs — can revoke
+        // EXACTLY what it registered. Its lambda captures the HANDLER, which must not outlive it (see
+        // button_handler.hpp's click_token, which states the same rule). Stored as int64
+        // (winrt::event_token's underlying type) rather than the WinRT type so this cross-platform header
+        // never has to see the C++/WinRT projection. CoreWebView2Initialized needs NO field: it is
+        // one-shot and self-revokes through the shared_ptr<event_token> idiom check_box_handler.cpp uses.
+        // The generic-IView pushes are deliberately NOT overridden here — see the partial's header.
+        std::int64_t web_message_token = 0;
+#endif
     };
 
     class hybrid_web_view_handler

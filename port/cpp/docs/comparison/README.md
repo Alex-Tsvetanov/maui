@@ -7802,9 +7802,9 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 169 | 169 |
+| 🟢 Match | 171 | 171 |
 | 🟡 Minor | 0 | 0 |
-| 🔴 Major | 3 | 3 |
+| 🔴 Major | 1 | 1 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -8327,11 +8327,11 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.5644, 42.33% pixels differ · Dark: SSIM 0.5741, 45.72% pixels differ
+Light: SSIM 0.3720, 59.88% pixels differ · Dark: SSIM 0.3950, 56.81% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.5644, 42.33% pixels differ · Dark: SSIM 0.5741, 45.72% pixels differ
+Light: SSIM 0.3734, 59.66% pixels differ · Dark: SSIM 0.4058, 56.29% pixels differ
 
 ### 36. Controls Stack — 🟢/🟢
 <sub>controls_stack</sub>
@@ -8963,20 +8963,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 78. Hybrid Web View — 🔴/🔴
+### 78. Hybrid Web View — 🟢/🟢
 <sub>hybrid_web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/windows/cpp/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/windows/xaml/hybrid_web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/hybrid_web_view_dark.png" /></td></tr></table>
 
 ports HybridWebViewPage.xaml (+ HybridWebViewPage.xaml.cs)
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9581, 2.09% pixels differ · Dark: SSIM 0.5255, 63.21% pixels differ
+Light: SSIM 0.9985, 0.21% pixels differ · Dark: SSIM 0.9988, 0.19% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9581, 2.09% pixels differ · Dark: SSIM 0.5255, 63.21% pixels differ
+Light: SSIM 0.9985, 0.21% pixels differ · Dark: SSIM 0.9988, 0.19% pixels differ
 
 ### 79. Image — 🟢/🟢
 <sub>image</sub>
@@ -10358,20 +10358,20 @@ Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 1.0000, 0.01% pixels diffe
 
 Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 1.0000, 0.01% pixels differ
 
-### 171. Web View — 🔴/🔴
+### 171. Web View — 🟢/🟢
 <sub>web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/web_view_light.png" /></td><td><img width="300px" src="captures/windows/cpp/web_view_light.png" /></td><td><img width="300px" src="captures/windows/xaml/web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/web_view_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/web_view_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/web_view_dark.png" /></td></tr></table>
 
 a self-contained demo page for the W1-08 web_view vertical: a web_view loading a STATIC html_web_view_source (no network), back/forward/reload buttons over the handler-pushed CanGoBack/CanGoForward read-onlys, an &amp;quot;Eval 1+1&amp;quot; button driving t
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9898, 0.14% pixels differ · Dark: SSIM 0.7657, 29.68% pixels differ
+Light: SSIM 0.9893, 0.33% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9950, 0.00% pixels differ · Dark: SSIM 0.7710, 29.53% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9893, 0.33% pixels differ
 
 ### 172. Z Index — 🟢/🟢
 <sub>z_index</sub>

@@ -10,8 +10,9 @@
     MAUI_WINUI_GENERATED the winrt/*.h projection headers produced by running cppwinrt.exe over that
                          package's .winmd files plus the installed Windows SDK metadata
 
-  This script produces both, idempotently, and prints them as two machine-readable lines the caller
-  parses (WINAPPSDK= / WINUI_GENERATED=). configure_port_windows.ps1 calls it.
+  This script produces both, idempotently, and prints them as machine-readable lines the caller parses
+  (WINAPPSDK= / WINUI_GENERATED= / WIN2D= / WEBVIEW2= -- the last two are restored package roots whose
+  native DLLs get deployed beside an exe). configure_port_windows.ps1 calls it.
 
   It does NOT touch the MSVC environment: cppwinrt.exe and nuget.exe are plain executables, so this can
   run before or after vcvarsall without interacting with it.
@@ -114,3 +115,10 @@ if ((Test-Path (Join-Path $generated "winrt\Microsoft.UI.Xaml.Controls.h")) -and
 Write-Output ("WINAPPSDK=" + ($wasdk -replace '\\','/'))
 Write-Output ("WINUI_GENERATED=" + ($generated -replace '\\','/'))
 Write-Output ("WIN2D=" + ($win2d -replace '\\','/'))
+# The Microsoft.Web.WebView2 package was ALREADY being restored (see the comment above the restore loop:
+# cppwinrt cannot resolve Microsoft.UI.Xaml.Controls.IWebView2's CoreWebView2 property type without it) --
+# it just was not reported. web_view_handler / hybrid_web_view_handler now also need its two NATIVE DLLs
+# beside the exe, so the path has to reach CMake. The VERSION matters: the deployed implementation DLL
+# must match the projection headers cppwinrt generated from THIS package's winmd, and the guest has three
+# WebView2 versions restored side by side, so a glob would be a coin flip.
+Write-Output ("WEBVIEW2=" + ($webview2 -replace '\\','/'))

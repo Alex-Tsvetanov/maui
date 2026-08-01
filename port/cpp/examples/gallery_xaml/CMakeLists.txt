@@ -26,6 +26,27 @@ set(GALLERY_XAML_RESOURCES
     ${GALLERY_DIR}/resources/photo.jpg
     ${GALLERY_DIR}/resources/settings.png)
 
+# web_view.xaml uses Source="welcome.html", a RELATIVE url. On WinUI 3, MauiWebView.LoadUrl serves a
+# relative source out of the app's OWN directory through SetVirtualHostNameToFolderMapping("appdir",
+# AppContext.BaseDirectory) and rebases it to https://appdir/welcome.html -- so the canonical
+# Resources/Raw asset has to land next to the exe or WebView2 renders its 404 error page instead of the
+# Welcome content. The android xaml lane stages it for the same reason
+# (tools/parity/build_android_apphost_xaml.sh), which is why Android's xaml column renders it today.
+#
+# WINDOWS ONLY, deliberately: the shared list would also copy it into the iOS/macOS bundles, and those
+# maui baseline captures are stale (they show a BLANK WebView), so a newly-rendering iOS xaml column
+# would score as a regression against a baseline that is not real MAUI. Lift the guard when
+# port/maui-reference/captures/ios/ is refreshed.
+if(MAUI_BACKEND STREQUAL "windows")
+  # port/cpp/examples/gallery -> port/maui-reference (an in-tree build only, like the e2e.py generator
+  # below; MSVC implies bytes-mode codegen, which already requires the port tree).
+  set(MAUI_WELCOME_HTML ${GALLERY_DIR}/../../../maui-reference/app/Resources/Raw/welcome.html)
+  if(NOT EXISTS ${MAUI_WELCOME_HTML})
+    message(FATAL_ERROR "web_view.xaml needs ${MAUI_WELCOME_HTML} staged beside the exe; it is missing.")
+  endif()
+  list(APPEND GALLERY_XAML_RESOURCES ${MAUI_WELCOME_HTML})
+endif()
+
 # One translation unit per page (Views/<name>.xaml.cpp, each owning its #embed). Configure-time glob: a new
 # twin (added via tools/gen_pages.py) needs a re-configure to be picked up — same convention as the gallery.
 #
