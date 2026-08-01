@@ -1,5 +1,12 @@
-# Ephemeral E2E runner output: timestamped run dirs + local machine config.
+# Ephemeral E2E runner output: timestamped run dirs.
 # The canonical, committed comparison assets live in captures/ + comparison.json + README.md.
 [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*/
-config/local.toml
-config/windows.toml
+
+# config/local.toml and config/windows.toml USED to be ignored here as "local machine config". They are
+# not. Every path in them is either repo-relative on the host or absolute on the GUEST
+# (C:/Users/Testings-VM/..., /Users/testinguser/...), so neither file contains anything specific to the
+# Mac driving the run — only the VM identities, which are part of the lab setup being reproduced.
+# Ignoring them meant a fresh clone could not run the board at all until somebody hand-copied the
+# .example files, and windows.toml had in fact drifted to be BYTE-IDENTICAL to windows.example.toml,
+# so the rule was protecting a duplicate. Both live configs are tracked now, so cloning this repo onto
+# another Mac with the VMs already set up is enough to run every platform.
