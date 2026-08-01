@@ -32,11 +32,32 @@ NUM = re.compile(r'Light: SSIM ([\d.]+), ([\d.]+)% .* Dark: SSIM ([\d.]+), ([\d.
 # scores 0.000%; in dark 255-vs-32 is 223 and every pixel counts. One rectangle, one threshold, a
 # 200x apparent asymmetry -- the port has been getting a free pass in light on a rectangle it does
 # not draw at all.
-# AND A PORTED WEBVIEW WOULD NOT FIX IT: painting the rect white was tested against all three
-# historical MAUI states -- it makes two of them green-or-close and turns the third from 0.012% into
-# 29.543%. Same class as hybrid_web_view, whose ground-truth dark capture is a WebView2 "can't be
-# found" error page. Excluded on the DARK column; do not re-litigate without new run-to-run data.
-VOLATILE = {"context_flyout", "hybrid_web_view", "web_view"}
+# The paragraph above ended "do not re-litigate without new run-to-run data". That data now exists,
+# and it FALSIFIES the exclusion for both WebView pages, so they are de-listed (2026-08-01).
+#
+# What was actually wrong: the old claim was "a ported WebView would not fix it", tested by PAINTING
+# THE RECT WHITE. That is not a ported WebView -- it is a stand-in for one, and it can only ever match
+# whichever MAUI state happens to be white. A REAL Microsoft.UI.Xaml.Controls.WebView2 was ported
+# (src/platform/windows/{web_view,hybrid_web_view}_handler.cpp) and both pages went green on both
+# themes and both columns:
+#     web_view         0.14%/29.68% -> 0.33%/0.00%
+#     hybrid_web_view  2.09%/63.21% -> 0.21%/0.19%
+# Two real handlers had simply never been written -- MAUI_WINDOWS_SWAPS listed neither unit, so the
+# build kept the headless partials, which create no native view at all.
+#
+# The THREE-STATE alternation described above is real but is a SETTLE artifact, not an unmatched
+# target: at --settle 5 all six web_view cells (maui/cpp/xaml x light/dark) render identical content
+# (mean 253.20, 177 grey levels) and every port/theme pair scores green. hybrid_web_view is
+# byte-stable at both settles (242.17, 239 levels) -- it makes no network round trip. MAUI was still
+# observed flipping at the default 1.0s settle (a fresh maui/web_view_dark came back blank white,
+# 255.00/1 level, ~5 minutes after a frozen capture with content), so raising the settle for
+# WebView2-hosting pages is the durable fix; the scores above are at the STANDARD protocol settle.
+#
+# context_flyout STAYS excluded, and for a different reason than these two ever had: it hosts a
+# WebView on https://bing.com (examples/gallery/pages/context_flyout_page.hpp), i.e. genuinely live
+# external content that differs between two captures taken seconds apart. It is the user's explicit
+# standing exemption.
+VOLATILE = {"context_flyout"}
 
 rows = {}
 for p in json.load(open(path)):
