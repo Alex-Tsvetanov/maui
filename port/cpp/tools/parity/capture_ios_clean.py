@@ -19,6 +19,7 @@ Does NOT build or install — `ninja` the gallery / `dotnet build` MauiReference
   python3 capture_ios_clean.py --app maui --themes light,dark            # all shared pages
 """
 import argparse
+from capture_guard import is_splash  # reject .NET startup-splash frames: see capture_guard.py
 from device_state import clear_ios, pin_ios  # fixed status bar: see device_state.py
 import os
 import shutil
@@ -105,8 +106,34 @@ def main():
             else:
                 print(f"  WARN: screenshot failed after retries: {key} {theme}")
                 continue
+            # A screenshot can succeed and still be the WRONG THING: a .NET app that has not finished
+            # starting shows the purple ".NET" splash. That is not a degraded frame, it is a frame of a
+            # different screen, and it scores as an enormous port defect on a page the port may render
+            # perfectly. 18 such frames are committed in this very directory from one earlier run
+            # (contiguous: clipping..empty_view_swap), all captured while three other platforms were
+            # building on the same host — the failure is LOAD-dependent, so no fixed settle fixes it.
+            # Re-launch and wait longer, escalating; drop the frame rather than bank a known-bad one.
             shutil.copyfile(stage, out)
             os.remove(stage)
+            if is_splash(out):
+                banked = False
+                for extra in (4.0, 8.0, 16.0):
+                    print(f"  ~ splash on {key} {theme} — relaunching, +{extra:.0f}s settle")
+                    launch(spec, key, theme)
+                    time.sleep(args.settle + extra)
+                    r = subprocess.run(["xcrun", "simctl", "io", UDID, "screenshot", "--type=png", stage],
+                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    if r.returncode != 0 or not os.path.exists(stage):
+                        continue
+                    shutil.copyfile(stage, out)
+                    os.remove(stage)
+                    if not is_splash(out):
+                        banked = True
+                        break
+                if not banked:
+                    os.remove(out)
+                    print(f"  ! DROPPED (still splash after retries): {key} {theme}")
+                    continue
             n += 1
             print(f"[{n}] {args.app} {theme} {key} -> {os.path.relpath(out, PORT)}")
     # Restore the simulator's real status bar. Leaving it pinned is harmless for captures but
