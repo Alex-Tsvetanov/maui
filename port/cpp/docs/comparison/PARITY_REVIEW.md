@@ -2250,3 +2250,42 @@ user's call, not an implementer's.
 the **Bing band alone still differs by 22.76%** because both columns load live `https://bing.com`
 seconds apart. That is ~13% of the frame against a 1.0% bar. The page is genuinely unscoreable and
 the standing exemption is correct — now with a number behind it rather than an assumption.
+
+---
+
+## CORRECTION: the border RenderTransform did NOT regress `date_picker`
+
+Two commits on this branch (`dbd5657d31`, `65591f8c95`) state that `date_picker` regressed from SSIM
+0.9974 to 0.9838 "under the border RenderTransform change". **That attribution is wrong.** Measured
+directly against the pre-change capture (`a54f91a896~1`):
+
+```
+port BEFORE the border fix  vs  port NOW :     0 px changed
+port BEFORE                 vs  maui     : 4996 px
+port NOW                    vs  maui     : 4996 px
+```
+
+The port's render of this page is BYTE-IDENTICAL before and after every commit in that batch. The
+gradient box measures x21-124 (w104) in both, with the same solid pixels at x34/x37. Nothing the
+border change did touched this page.
+
+What actually moved was the MAUI reference capture. Early in this session `import_run_captures.py`
+was rewriting files under `captures/windows/maui/` before that hazard was noticed; the 0.9974 reading
+was taken against a MAUI capture that has since been replaced. Ruling 6 exists precisely to stop
+this, and it is now applied after every import — but the two commit messages above were written
+before the correction and should be read with this note.
+
+## The REAL, pre-existing `date_picker` defect (green, but the board's worst page)
+
+0.61% light / 0.62% dark, SSIM 0.9838/0.9841 — passing, but nearest the 0.98 bar of any page. Two
+distinct differences, both long-standing and neither caused by recent work:
+
+1. **The gradient box is 8px too wide.** MAUI paints x21-116 (w96); the port paints x21-124 (w104).
+   Same left edge, so this is a WIDTH/measure difference, not a position one.
+2. **MAUI renders inner detail the port does not.** At y=148 MAUI reads (0,0,163) at x34 and
+   (0,0,73) at x37 — dark pixels antialiased over the blue, i.e. real content inside the box — while
+   the port is flat (0,0,255) across the whole span.
+
+Three gradient rows (blue y133-163, green y196-226, blue y259-289) plus a grey band at y747-759 carry
+essentially all 4,996 differing pixels. Whoever picks this up should start from the DatePicker's own
+width measurement rather than the border handler — the border geometry is proven identical.
