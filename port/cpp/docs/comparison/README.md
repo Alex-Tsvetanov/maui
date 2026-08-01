@@ -7832,11 +7832,11 @@ ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9872, 0.50% pixels differ · Dark: SSIM 0.9910, 0.30% pixels differ
+Light: SSIM 0.9918, 0.26% pixels differ · Dark: SSIM 0.9876, 0.48% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9920, 0.26% pixels differ · Dark: SSIM 0.9884, 0.44% pixels differ
+Light: SSIM 0.9910, 0.30% pixels differ · Dark: SSIM 0.9859, 0.57% pixels differ
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -8237,11 +8237,11 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9963, 0.20% pixels differ · Dark: SSIM 0.9967, 0.19% pixels differ
+Light: SSIM 0.9983, 0.10% pixels differ · Dark: SSIM 0.9987, 0.09% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9963, 0.20% pixels differ · Dark: SSIM 0.9967, 0.19% pixels differ
+Light: SSIM 0.9983, 0.10% pixels differ · Dark: SSIM 0.9987, 0.09% pixels differ
 
 ### 30. Clipping — 🟢/🟢
 <sub>clipping</sub>
@@ -8327,11 +8327,11 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.3720, 59.88% pixels differ · Dark: SSIM 0.3950, 56.81% pixels differ
+Light: SSIM 0.4796, 60.15% pixels differ · Dark: SSIM 0.3898, 55.81% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.3734, 59.66% pixels differ · Dark: SSIM 0.4058, 56.29% pixels differ
+Light: SSIM 0.4581, 62.33% pixels differ · Dark: SSIM 0.3824, 56.83% pixels differ
 
 ### 36. Controls Stack — 🟢/🟢
 <sub>controls_stack</sub>
@@ -8346,7 +8346,7 @@ Light: SSIM 0.9983, 0.01% pixels differ · Dark: SSIM 0.9986, 0.01% pixels diffe
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9982, 0.02% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
+Light: SSIM 0.9982, 0.02% pixels differ · Dark: SSIM 0.9987, 0.00% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
