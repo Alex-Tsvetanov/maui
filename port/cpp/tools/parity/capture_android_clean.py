@@ -39,6 +39,8 @@ import subprocess
 import sys
 import time
 
+from device_state import clear_android, pin_android  # fixed status bar: see device_state.py
+
 SERIAL = os.environ.get("MAUI_ANDROID_SERIAL", "emulator-5554")
 ADB = os.environ.get("MAUI_ADB", "adb")
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -118,6 +120,7 @@ def main():
     args = ap.parse_args()
 
     spec = APPS[args.app]
+    pin_android(SERIAL)  # full-screen captures include the status bar; pin it
     restore_night = None
     if args.system_night:
         cur = adb("shell", "cmd", "uimode", "night", capture_output=True, text=True).stdout.strip()
@@ -175,6 +178,7 @@ def main():
         adb("shell", "cmd", "uimode", "night", restore_night,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print(f"  uimode night restored -> {restore_night}")
+    clear_android(SERIAL)
     print(f"ANDROID_CAPTURE_DONE ({n} shots, theme={args.theme})")
 
 

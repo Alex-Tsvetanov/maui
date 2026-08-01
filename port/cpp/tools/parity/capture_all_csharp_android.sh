@@ -58,6 +58,11 @@ mkdir -p "${out_dir}"
 # ResolveValue("MAUI_THEME") == "Dark" ? Dark : Light) — NOT the system uimode. So MAUI_APPEARANCE=dark
 # passes `--es MAUI_THEME Dark` on each launch and writes the _dark suffix; light passes nothing (the default).
 appearance="${MAUI_APPEARANCE:-light}"
+# Pin the emulator's chrome BEFORE any capture: Android screencaps are full-screen, so the status bar
+# clock/battery/signal and any notification icon land inside every frame and would score as a per-page
+# diff the port never caused. Restored by the trap below. See tools/parity/device_state.py.
+python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
+trap 'python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
 suffix="_${appearance}"
 theme_extra=()

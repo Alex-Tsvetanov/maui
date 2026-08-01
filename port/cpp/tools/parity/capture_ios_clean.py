@@ -19,6 +19,7 @@ Does NOT build or install — `ninja` the gallery / `dotnet build` MauiReference
   python3 capture_ios_clean.py --app maui --themes light,dark            # all shared pages
 """
 import argparse
+from device_state import clear_ios, pin_ios  # fixed status bar: see device_state.py
 import os
 import shutil
 import subprocess
@@ -73,6 +74,12 @@ def main():
     themes = [t.strip() for t in args.themes.split(",") if t.strip()]
     keys = [k.strip() for k in args.only.split(",") if k.strip()] or all_keys()
 
+    # Pin the status bar for the WHOLE run. iOS captures are full-screen, so the clock, battery and
+    # signal bars sit inside every frame; unpinned they differ between the reference pass and the port
+    # pass and score as a diff on every single page. Pinned to the SAME values by both, they cancel.
+    # Pinning THIS udid specifically (the one this script drives) — see device_state._ios_udid.
+    pin_ios(UDID)
+
     # Warm-up: bring the bundle to foreground ONCE so subsequent same-app relaunches
     # don't trigger the SpringBoard back-to-app overlay. Discard this frame.
     launch(spec, keys[0], themes[0])
@@ -102,6 +109,10 @@ def main():
             os.remove(stage)
             n += 1
             print(f"[{n}] {args.app} {theme} {key} -> {os.path.relpath(out, PORT)}")
+    # Restore the simulator's real status bar. Leaving it pinned is harmless for captures but
+    # confusing for anyone using the sim afterwards, and a pin left on across a REBOOT would silently
+    # expire, so pin/clear is kept per-run rather than assumed sticky.
+    clear_ios(UDID)
     print(f"CLEAN_CAPTURE_DONE ({n} shots)")
 
 
