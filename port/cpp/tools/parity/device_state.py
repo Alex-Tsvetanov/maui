@@ -16,7 +16,9 @@ neither needs pinning. That asymmetry is why this module only implements iOS and
 WHAT IT PINS
 ------------
   clock         9:41 on both platforms (Apple's canonical keynote time; arbitrary but FIXED)
-  battery       100%, charged/unplugged — no charging bolt, no low-battery colour change
+  battery       100% and NOT charging on both — iOS "discharging", Android plugged=false.
+                iOS "charged" was rejected: it draws a charging bolt. simctl accepts only
+                charging|charged|discharging — "unplugged" is not a value (it failed loudly).
   wifi          shown, full bars
   cellular      shown, full bars, no data-type glyph
   notifications hidden (Android) — an arriving notification icon is a silent per-page diff
@@ -73,10 +75,10 @@ def pin_ios(udid: str | None = None) -> str:
               "--dataNetwork", "wifi",
               "--wifiMode", "active", "--wifiBars", "3",
               "--cellularMode", "active", "--cellularBars", "4",
-              "--batteryState", "charged", "--batteryLevel", "100"])
+              "--batteryState", "discharging", "--batteryLevel", "100"])
     if r.returncode != 0:
         raise SystemExit(f"simctl status_bar override failed: {r.stderr.strip()}")
-    print(f"  iOS {dev}: status bar pinned (clock {CLOCK_IOS}, full bars, 100% charged)")
+    print(f"  iOS {dev}: status bar pinned (clock {CLOCK_IOS}, full bars, 100% discharging)")
     return dev
 
 
