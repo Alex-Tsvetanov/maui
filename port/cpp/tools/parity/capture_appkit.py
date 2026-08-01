@@ -90,8 +90,19 @@ def main():
         else:
             keys.append(args[i]); i += 1
     if not keys:
+        # The canonical shared-XAML page set. This USED to glob examples/gallery_xaml/Views/*.xaml, which
+        # has held ZERO .xaml files since the 2026-07-05 restructure moved the pages to
+        # port/maui-reference/pages/ (ruling 6). The stale glob did not error — it returned an empty list,
+        # so running this script with no explicit keys printed "pages=0 ... done." and exited 0 having
+        # captured NOTHING. A silent no-op that reports success is worse than a crash: it left both AppKit
+        # columns looking merely "not captured yet" rather than "your capture command does nothing".
+        pages = os.path.join(ROOT, "..", "maui-reference", "pages")
         keys = sorted(os.path.splitext(os.path.basename(f))[0]
-                      for f in glob.glob(os.path.join(ROOT, "examples", "gallery_xaml", "Views", "*.xaml")))
+                      for f in glob.glob(os.path.join(pages, "*.xaml"))
+                      if not os.path.basename(f).startswith("gap_"))
+        if not keys:
+            raise SystemExit(f"no pages found under {os.path.normpath(pages)} — refusing to report "
+                             f"success having captured nothing")
     print(f"appkit capture theme={theme} pages={len(keys)} (dry_run={dry_run})")
     if dry_run:
         for key in keys:
