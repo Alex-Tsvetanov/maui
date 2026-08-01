@@ -2,9 +2,23 @@
 """WS-E android capture — fresh MauiReference (and cpp/xaml) baseline via adb intent extras.
 
 Android `am start` does NOT propagate process env vars, so the page/theme are passed as INTENT EXTRAS
-(--es MAUI_COMPARE_PAGE <key> --es MAUI_THEME Light) which MauiReference's App.xaml.cs reads on ANDROID
-(Platform.CurrentActivity.Intent.GetStringExtra). Android parity is LIGHT-ONLY (the board's android
-dark slot is null), matching the legacy convention.
+which each app reads on ANDROID (Platform.CurrentActivity.Intent.GetStringExtra). The two app families
+read DIFFERENT keys, and BOTH are now sent on every launch:
+    MauiReference  -> MAUI_THEME=Light|Dark   (App.xaml.cs:40, sets UserAppTheme)
+    cpp / xaml     -> MAUI_APPEARANCE=light|dark (MauiHostActivity.java:70 -> set_platform_app_theme)
+
+BOTH THEMES ARE SUPPORTED (--theme light|dark). This used to be light-only, described as "matching the
+legacy convention" — but it was never a convention, it was a gap on two counts. (1) The output filename
+hard-coded "_light", and (2) the launch hard-coded MAUI_THEME=Light and sent NO appearance extra at all,
+so the cpp/xaml columns were never actually told a theme and simply fell through to their light default.
+Nothing downstream was refusing dark: build_comparison_json.py's THEMES loop is platform-independent and
+has always looked for android <key>_dark.png; the slot read null only because no such file was written.
+
+--system-night additionally flips the DEVICE into night mode for the pass and restores it afterwards.
+The intent extra themes the MAUI/port UI; it does NOT theme Android's own chrome (status bar, nav bar,
+system dialogs). Setting night mode makes that chrome match, which is what a real dark-mode user sees
+and what every other platform's dark capture already shows. A second dark-only emulator also works —
+set MAUI_ANDROID_SERIAL — but is not required, since the night setting is restorable.
 
 Per-page determinism mirrors capture_all_csharp_android.sh: force-stop + wait the process gone, clear
 logcat, `am start -W` (blocks to first frame), poll the Displayed/Resumed barrier, dismiss any ANR
@@ -29,13 +43,17 @@ PAGES = os.path.join(PORT, "maui-reference", "pages")
 REF_CAP = os.path.join(PORT, "maui-reference", "captures", "android")
 COMP_CAP = os.path.join(CPP, "docs", "comparison", "captures", "android")
 
+# `out` is now theme-parameterised. It used to hard-code "_light", which is the whole reason this
+# board has never had an Android dark column: build_comparison_json.py ALREADY iterates both themes for
+# android (its THEMES loop is platform-independent), so the dark slot read null purely because no
+# <key>_dark.png file had ever been written — not because anything refused to score it.
 APPS = {
     "maui": {"pkg": "dev.mauicpp.mauireference",
-             "out": lambda k: os.path.join(REF_CAP, f"{k}_light.png")},
+             "out": lambda k, th: os.path.join(REF_CAP, f"{k}_{th}.png")},
     "cpp": {"pkg": "com.maui_cpp.gallery",
-            "out": lambda k: os.path.join(COMP_CAP, "cpp", f"{k}_light.png")},
+            "out": lambda k, th: os.path.join(COMP_CAP, "cpp", f"{k}_{th}.png")},
     "xaml": {"pkg": "com.maui_cpp.gallery_xaml",
-             "out": lambda k: os.path.join(COMP_CAP, "xaml", f"{k}_light.png")},
+             "out": lambda k, th: os.path.join(COMP_CAP, "xaml", f"{k}_{th}.png")},
 }
 
 
@@ -82,9 +100,28 @@ def main():
     ap.add_argument("--app", required=True, choices=list(APPS))
     ap.add_argument("--only", default="")
     ap.add_argument("--settle", type=float, default=1.8)
+    # Default stays "light" so every existing invocation behaves exactly as before.
+    ap.add_argument("--theme", default="light", choices=("light", "dark"),
+                    help="app theme for this pass; also drives the output filename suffix")
+    # The apps take their theme as an intent extra (see the launch below), which themes the MAUI/port UI
+    # but NOT Android's own chrome — status bar, nav bar, system dialogs. --system-night additionally
+    # flips the DEVICE into night mode so that chrome matches, which is what a real dark-mode user sees
+    # and what the other platforms' dark captures already show. It is a device-global setting, so it is
+    # restored on exit; run the light and dark passes separately rather than interleaving them.
+    ap.add_argument("--system-night", action="store_true",
+                    help="also set the emulator UI mode to night for this pass, and restore it after")
     args = ap.parse_args()
 
     spec = APPS[args.app]
+    restore_night = None
+    if args.system_night:
+        cur = adb("shell", "cmd", "uimode", "night", capture_output=True, text=True).stdout.strip()
+        restore_night = "yes" if "yes" in cur.lower() else "no"
+        want = "yes" if args.theme == "dark" else "no"
+        adb("shell", "cmd", "uimode", "night", want,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"  uimode night -> {want} (was {restore_night}; will restore)")
+        time.sleep(1.5)  # let the system settle before the first launch
     pkg = spec["pkg"]
     component = resolve_component(pkg)
     keys = [k.strip() for k in args.only.split(",") if k.strip()] or all_keys()
@@ -92,6 +129,8 @@ def main():
 
     # warm-up (absorb cold-start/JIT)
     adb("shell", "am", "start", "-W", "-n", component, "--es", page_env, keys[0],
+        "--es", "MAUI_THEME", "Dark" if args.theme == "dark" else "Light",
+        "--es", "MAUI_APPEARANCE", args.theme,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(2.0)
     adb("shell", "am", "force-stop", pkg, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -101,14 +140,21 @@ def main():
         adb("shell", "am", "force-stop", pkg, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         wait_gone(pkg)
         adb("logcat", "-c", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        # BOTH theme extras are sent, every time. The two app families read DIFFERENT keys and each
+        # ignores the other's: MauiReference reads MAUI_THEME (App.xaml.cs:40 -> UserAppTheme), while the
+        # C++ apphost reads MAUI_APPEARANCE (MauiHostActivity.java:70 -> set_platform_app_theme). The old
+        # code sent only MAUI_THEME=Light, so the cpp/xaml columns received NO appearance at all and fell
+        # through to their light default — they were never actually being told a theme.
         adb("shell", "am", "start", "-W", "-n", component,
-            "--es", page_env, key, "--es", "MAUI_THEME", "Light",
+            "--es", page_env, key,
+            "--es", "MAUI_THEME", "Dark" if args.theme == "dark" else "Light",
+            "--es", "MAUI_APPEARANCE", args.theme,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         wait_ready(pkg)
         adb("shell", "am", "broadcast", "-a", "android.intent.action.CLOSE_SYSTEM_DIALOGS",
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(args.settle)
-        out = spec["out"](key)
+        out = spec["out"](key, args.theme)
         os.makedirs(os.path.dirname(out), exist_ok=True)
         png = adb("exec-out", "screencap", "-p", capture_output=True).stdout
         if not png or len(png) < 1000:
@@ -118,7 +164,13 @@ def main():
             fh.write(png)
         n += 1
         print(f"[{n}] {args.app} {key} -> {os.path.relpath(out, PORT)} ({len(png)}B)")
-    print(f"ANDROID_CAPTURE_DONE ({n} shots)")
+    if restore_night is not None:
+        # Restore the DEVICE-GLOBAL night setting we changed. Leaving an emulator in night mode would
+        # silently darken the NEXT light pass and read as a port regression.
+        adb("shell", "cmd", "uimode", "night", restore_night,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"  uimode night restored -> {restore_night}")
+    print(f"ANDROID_CAPTURE_DONE ({n} shots, theme={args.theme})")
 
 
 if __name__ == "__main__":
