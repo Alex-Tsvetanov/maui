@@ -387,6 +387,12 @@ def load_scenario(scenarios_dir: Path, tag: str) -> dict:
         s = tomllib.loads(f.read_text())
         s.setdefault("steps", [{"name": "initial"}])
         s.setdefault("themes", ["light"])
+        # Optional per-scenario `settle = <seconds>`, overriding --settle for THIS tag only. Added for
+        # WebView2-hosting pages: MauiWebView.LoadUrl awaits EnsureCoreWebView2Async() (which spawns
+        # msedgewebview2.exe) before assigning Source, so a 1.0s settle races browser init and MAUI's
+        # OWN column has been observed rendering a blank surface on some runs. Measured: at 5s all six
+        # web_view cells (maui/cpp/xaml x light/dark) render identical content, where at 1.0s they do
+        # not. Scoped per-page so the other ~170 pages keep the fast default.
         return s
     return {"tag": tag, "themes": ["light"], "steps": [{"name": "initial"}]}
 
@@ -474,6 +480,9 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
     for tag in tags:
         scenario = load_scenario(scenarios_dir, tag)
         themes = themes_override or scenario["themes"]
+        # Per-scenario settle wins over the global --settle, but only UPWARD: an explicit --settle
+        # higher than the scenario's is honoured, so a slow-guest run is never silently sped up.
+        tag_settle = max(float(scenario.get("settle", settle)), settle)
         for col in columns_for(env, tag, twin_keys):
             ccfg = env.columns[col]
             if ccfg.get("_missing"):
@@ -513,7 +522,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 if pid is None:
                     print(f"  ! {tag}/{col}/{theme}: launch failed: {res.get('error')}")
                     continue
-                time.sleep(settle)
+                time.sleep(tag_settle)
                 # With `present`, we activate + set an explicit rect right before EACH shot and capture that
                 # exact rect — no window-id call in between (a System Events query there steals key focus back
                 # and greys the traffic lights). Otherwise, resolve the window rect once up front.
@@ -525,7 +534,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 try:
                     for step in scenario["steps"]:
                         driver.run_action(step)
-                        time.sleep(settle)
+                        time.sleep(tag_settle)
                         n += 1
                         if env.present:
                             # `or bounds` HERE WAS THE WORST BUG IN THIS RUNNER. shoot_presented returns

@@ -1,0 +1,23 @@
+# web_view — no interaction, but a LONGER SETTLE than the board default.
+#
+# WHY: MauiWebView.LoadUrl awaits EnsureCoreWebView2Async(), which spawns msedgewebview2.exe, BEFORE
+# assigning Source. At the 1.0s default the screenshot races that browser init, and it is MAUI's OWN
+# reference column that loses the race — its 1008x240 content rect has been captured blank-white as
+# well as fully rendered, minutes apart, with no MAUI-side change. A ground truth that alternates
+# cannot be matched by any port change, which is why these two pages were once written off as
+# inherently volatile.
+#
+# MEASURED: at 5s all six web_view cells (maui / cpp / xaml x light / dark) render identical content
+# (mean 253.20, 177 grey levels). hybrid_web_view is byte-stable at both settles — it makes no network
+# round trip — but carries the same WebView2 init, so it gets the same treatment rather than relying
+# on that.
+#
+# Scoped per-page deliberately: the other ~170 pages keep the 1.0s default, so this costs ~8s of board
+# time, not ~170 x 4s. run_comparison.py takes max(scenario settle, --settle), so an explicit higher
+# --settle on a slow guest still wins.
+tag = "web_view"
+themes = ["light", "dark"]
+settle = 5.0
+
+[[steps]]
+name = "initial"          # no action -> settle + screenshot
