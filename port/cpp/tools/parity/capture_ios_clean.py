@@ -20,7 +20,7 @@ Does NOT build or install — `ninja` the gallery / `dotnet build` MauiReference
 """
 import argparse
 from capture_guard import is_splash  # reject .NET startup-splash frames: see capture_guard.py
-from device_state import clear_ios, pin_ios  # fixed status bar: see device_state.py
+from device_state import clear_ios, pin_ios, set_ios_theme  # fixed status bar + system appearance
 import os
 import shutil
 import subprocess
@@ -55,10 +55,14 @@ def all_keys():
                   if f.endswith(".xaml") and not f.startswith("gap_"))
 
 
-def launch(spec, key, theme):
+def launch(spec, key, theme, system_theme: bool):
     env = dict(os.environ)
     env[f"SIMCTL_CHILD_{spec['page']}"] = key
-    env[f"SIMCTL_CHILD_{spec['theme']}"] = spec["theme_val"](theme)
+    # Under system_theme the SIMULATOR's appearance is the source and the per-app env var is deliberately
+    # NOT set: MAUI_APPEARANCE / MAUI_THEME both map to UserAppTheme, which OVERRIDES the OS, so setting
+    # one would mean the capture proves the override works rather than that the app follows the system.
+    if not system_theme:
+        env[f"SIMCTL_CHILD_{spec['theme']}"] = spec["theme_val"](theme)
     subprocess.run(["xcrun", "simctl", "launch", "--terminate-running-process", UDID, spec["bundle"]],
                    env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
 
@@ -69,7 +73,11 @@ def main():
     ap.add_argument("--themes", default="light,dark")
     ap.add_argument("--only", default="")
     ap.add_argument("--settle", type=float, default=4.0)
+    ap.add_argument("--app-theme-env", action="store_true",
+                    help="legacy: force the theme with the per-app env var instead of the SIMULATOR's "
+                         "system appearance. Off by default — the board measures system-wide theming.")
     args = ap.parse_args()
+    system_theme = not args.app_theme_env
 
     spec = APPS[args.app]
     themes = [t.strip() for t in args.themes.split(",") if t.strip()]
@@ -80,18 +88,26 @@ def main():
     # pass and score as a diff on every single page. Pinned to the SAME values by both, they cancel.
     # Pinning THIS udid specifically (the one this script drives) — see device_state._ios_udid.
     pin_ios(UDID)
-
-    # Warm-up: bring the bundle to foreground ONCE so subsequent same-app relaunches
-    # don't trigger the SpringBoard back-to-app overlay. Discard this frame.
-    launch(spec, keys[0], themes[0])
-    time.sleep(args.settle + 2.0)
+    restore_appearance = None
 
     n = 0
-    for key in keys:
-        for theme in themes:
+    # THEME OUTERMOST. It used to be the inner loop, which was free when the theme was an env var handed
+    # to each launch. Under system_theme it is a property of the SIMULATOR, so the inner ordering would
+    # flip the device appearance once per page — ~364 flips on a full board — instead of once per theme.
+    for theme in themes:
+        if system_theme:
+            previous = set_ios_theme(theme, UDID)
+            if restore_appearance is None:
+                restore_appearance = previous  # only the FIRST pass records the pre-run state
+        # Warm-up: bring the bundle to foreground ONCE so subsequent same-app relaunches
+        # don't trigger the SpringBoard back-to-app overlay. Discard this frame. Re-done per theme
+        # because the appearance change itself can put SpringBoard in front.
+        launch(spec, keys[0], theme, system_theme)
+        time.sleep(args.settle + 2.0)
+        for key in keys:
             out = spec["out"](key, theme)
             os.makedirs(os.path.dirname(out), exist_ok=True)
-            launch(spec, key, theme)
+            launch(spec, key, theme, system_theme)
             time.sleep(args.settle)
             # simctl (a subprocess) can't write into ~/Documents (macOS TCC), so screenshot to a
             # /tmp staging path, then copy into the repo with Python file I/O (which is permitted).
@@ -119,7 +135,7 @@ def main():
                 banked = False
                 for extra in (4.0, 8.0, 16.0):
                     print(f"  ~ splash on {key} {theme} — relaunching, +{extra:.0f}s settle")
-                    launch(spec, key, theme)
+                    launch(spec, key, theme, system_theme)
                     time.sleep(args.settle + extra)
                     r = subprocess.run(["xcrun", "simctl", "io", UDID, "screenshot", "--type=png", stage],
                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -136,6 +152,11 @@ def main():
                     continue
             n += 1
             print(f"[{n}] {args.app} {theme} {key} -> {os.path.relpath(out, PORT)}")
+    # Put the simulator's appearance back where we found it — same reasoning as the status-bar restore
+    # below, plus: the NEXT run's "previous" reading would otherwise record our leftover value as the
+    # device's real pre-run state.
+    if restore_appearance:
+        set_ios_theme(restore_appearance, UDID)
     # Restore the simulator's real status bar. Leaving it pinned is harmless for captures but
     # confusing for anyone using the sim afterwards, and a pin left on across a REBOOT would silently
     # expire, so pin/clear is kept per-run rather than assumed sticky.

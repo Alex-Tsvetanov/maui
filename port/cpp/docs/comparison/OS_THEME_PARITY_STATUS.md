@@ -20,7 +20,20 @@ OS-light / no-env case only on AppKit; Catalyst never, in either theme.
 |---|---|
 | (a) `maui-reference/app/App.xaml.cs` sets `UserAppTheme` only when `MAUI_THEME` is present | **done** |
 | (b) `tools/parity/device_state.py` OS-theme setters, read-back verified, returning the previous value | **done** |
-| (c) wire the setters into every capture path; stop passing the per-column theme env | *in progress* |
+| (c) wire the setters into every capture path; stop passing the per-column theme env | *in progress — runner lanes + iOS done, Android left* |
+
+### (c) progress
+
+| lane | path | state |
+|---|---|---|
+| Catalyst / AppKit / Windows | `run_comparison.py` `capture.system_theme = true` | done — theme hoisted to the outermost loop (one flip per theme instead of ~1000), restore on the normal and abort paths |
+| iOS | `capture_ios_clean.py` (default; `--app-theme-env` restores the old behaviour) | done — theme hoisted outermost, appearance + status bar both restored |
+| Android | `build_android_apphost*.sh`, `capture_all_csharp_android.sh` | **not yet** |
+
+`capture_ios_clean.py --app cpp --only app_theme_binding --themes light,dark` renders light under
+OS-light (bg mean 249.4) and dark under OS-dark (5.0), and both frames are **0 px different** from the
+committed env-driven ones — the switch to OS-driven capture is a no-op on the output, which is the
+result to want: it says the port already followed the OS and the existing iOS baseline is sound.
 
 ### (b) — verified per lane
 
