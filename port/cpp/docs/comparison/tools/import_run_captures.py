@@ -10,7 +10,10 @@ import sys, os, glob, json, shutil
 run = sys.argv[1].rstrip("/")
 platform = sys.argv[2] if len(sys.argv) > 2 else "maccatalyst"
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # docs/comparison
-COL_TO_FW = {"maui_xaml": "maui", "cpp": "cpp", "cpp_xaml": "xaml"}
+# The AppKit columns keep their names as framework dirs (captures/maccatalyst/appkit_{cpp,xaml}) — that is
+# already the canonical layout build_comparison_json.py declares for maccatalyst, so no rename is wanted.
+COL_TO_FW = {"maui_xaml": "maui", "cpp": "cpp", "cpp_xaml": "xaml",
+             "appkit_cpp": "appkit_cpp", "appkit_xaml": "appkit_xaml"}
 
 def initial_frame(tag, col, theme):
     """The col's PNG whose sidecar theme==theme and step=='initial' (fallback: first matching theme)."""

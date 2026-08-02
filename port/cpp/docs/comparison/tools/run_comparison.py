@@ -248,7 +248,12 @@ class Env:
             return
         src = str(local) + ("/" if local.is_dir() else "")
         dst = f"{self.hostspec}:{remote}" + ("/" if local.is_dir() else "")
-        subprocess.run(["rsync", "-a", "--delete", "-e", "ssh -o BatchMode=yes", src, dst], check=True)
+        # Skip CMake's build scratch. A .app bundle never contains either name, so this is safe for every
+        # column; it matters for the AppKit columns, whose artifact is a CMake TARGET DIRECTORY rather than
+        # a bundle — the object files sitting beside the binary dominate it (measured: gallery_xaml 732M ->
+        # 96M, gallery 86M -> 56M). Deploying those over SSH once per run is pure cost.
+        subprocess.run(["rsync", "-a", "--delete", "--exclude", "CMakeFiles", "--exclude",
+                        "cmake_install.cmake", "-e", "ssh -o BatchMode=yes", src, dst], check=True)
 
     def pull(self, remote: str, local: Path) -> bool:
         local.parent.mkdir(parents=True, exist_ok=True)
@@ -401,7 +406,10 @@ def load_scenario(scenarios_dir: Path, tag: str) -> dict:
 def columns_for(env: Env, tag: str, twin_keys: set[str] | None) -> list[str]:
     cols = []
     for col in env.columns:
-        if col == "cpp" and twin_keys is not None and tag not in twin_keys:
+        # Every BUILDER column, not just "cpp": appkit_cpp is the same code-first gallery on the apple
+        # backend, so a non-twin page makes it fall back to value_controls and bank that under the wrong
+        # key — the exact wrong-page fallback this guard exists to prevent.
+        if col in ("cpp", "appkit_cpp") and twin_keys is not None and tag not in twin_keys:
             continue  # builder_twin:false — no code-first page (would capture a wrong-page fallback)
         cols.append(col)
     return cols

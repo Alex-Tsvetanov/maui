@@ -130,7 +130,59 @@ def _clear_saved_state(bundle: str) -> str | None:
     return bid
 
 
+def _launch_plain_executable(a) -> int:
+    """Launch a PLAIN UNIX EXECUTABLE (the AppKit galleries), which `open` cannot start.
+
+    `open` resolves its argument through LaunchServices, which has no handler for a bare Mach-O — on this
+    VM it hands the file to Terminal.app, so `open -g -n <exe>` returns 0 having started a TERMINAL, and
+    the pgrep-diff below then waits 10s for a process that will never appear under that name.
+
+    Two things the `open` path gets for free and this one must do explicitly:
+      cwd  — the apple-backend gallery resolves from_file() asset paths (dotnet_bot.png, oasis.jpg, …)
+             against the CWD, and maui_add_app copies those assets next to the binary. Without cwd every
+             image page renders empty.
+      env  — `open --env` REPLACES the environment; Popen inherits ours, so start from os.environ and
+             overlay the --env pairs (the agent's own PATH etc. must survive for the app to run).
+
+    Output goes to a log file, never DEVNULL and never an inherited fd: host_run writes its "[host_run]
+    mounted app window" trace to stderr, which is the only evidence available when a launch silently
+    fails — and an inherited SSH pipe would keep the connection open past the agent's exit, hanging the
+    caller's 120s timeout.
+    """
+    exe = a.bundle
+    if os.path.isdir(exe):  # a deployed build directory: the binary inside is named after the process
+        exe = os.path.join(exe, a.proc)
+    if not os.path.isfile(exe) or not os.access(exe, os.X_OK):
+        return _emit(ok=False, error=f"not an executable: {exe}")
+    env = dict(os.environ)
+    for kv in a.env or []:
+        key, _, value = kv.partition("=")
+        env[key] = value
+    log_path = f"/tmp/maui_e2e_{a.proc}.log"
+    try:
+        with open(log_path, "wb") as log:
+            proc = subprocess.Popen([exe], cwd=os.path.dirname(exe), env=env,
+                                    stdout=log, stderr=subprocess.STDOUT,
+                                    start_new_session=True)  # survive the agent's exit
+    except OSError as exc:
+        return _emit(ok=False, error=f"exec failed: {exc}")
+    time.sleep(0.5)  # long enough for an immediate crash (bad dylib, missing asset) to be visible
+    if proc.poll() is not None:
+        tail = ""
+        try:
+            with open(log_path, "r", errors="replace") as log:
+                tail = log.read()[-400:]
+        except OSError:
+            pass
+        return _emit(ok=False, error=f"process exited immediately (rc={proc.returncode})", stderr=tail)
+    return _emit(pid=proc.pid, launched="exec", log=log_path)
+
+
 def cmd_launch(a) -> int:
+    # A plain executable cannot go through `open` (see _launch_plain_executable). Branch on the artifact
+    # shape, NOT on the column name, so the .app path below is untouched for every existing column.
+    if not a.bundle.endswith(".app"):
+        return _launch_plain_executable(a)
     # `open -g -n --env ...`: background (no focus theft), new instance. Find the new pid by diffing
     # pgrep before/after (mirrors e2e.py::_launch_background).
     cleared = _clear_saved_state(a.bundle)

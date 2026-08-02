@@ -76,3 +76,69 @@ driver = "coordinate"       # → "cpp_devflow" (+ devflow_port) after rebuildin
 
 [environments.macos-arm64.capture]
 reboot_before_run = true
+
+# --- AppKit (native NSView) columns -------------------------------------------------------------------
+# The SAME VM, a separate environment, because AppKit needs a capture contract Catalyst does not: no
+# `present`, and a 480x752 frame instead of 1024x800. Run it with `--env macos-appkit`; NEVER concurrently
+# with macos-arm64 — the two share one desktop and one <staging>/scratch/shot.png.
+#
+# WHY present = false (measured on this VM, not assumed):
+#   System Events reports ZERO windows for the apple-backend gallery — before and after `set frontmost`.
+#   The same binary on the host Mac reports 1. `present` works by driving `set position/size of window 1`
+#   through System Events, so on this VM it fails every retry, self-heals, and DROPS every frame. Quartz
+#   sees the window perfectly (1 layer-0 window, 480x752 at x=516), which is exactly what the present=false
+#   path uses: window-id -> shot --window <id>. Captured that way the frame is also strictly CLEANER than
+#   the old host-side `screencapture -R` crop — no window shadow, no desktop bleed at the rounded corners.
+# Capturing BY WINDOW ID also means the window's position stops mattering, so nothing here has to fight
+# host_run.mm's hard-coded 480x720 content size.
+[environments.macos-appkit]
+os = "macos"
+platform = "maccatalyst"                 # same board platform -> captures/maccatalyst/appkit_{cpp,xaml}/
+
+[environments.macos-appkit.connection]
+host = "Testings-Virtual-Machine.local"
+user = "testinguser"
+connect_timeout_seconds = 10
+
+[environments.macos-appkit.display]
+width = 1512
+height = 864
+
+[environments.macos-appkit.staging]
+root = "/Users/testinguser/maui-comparison"
+
+[environments.macos-appkit.tools]
+python3       = "/usr/bin/python3"
+cliclick      = "/opt/homebrew/bin/cliclick"
+displayplacer = "/opt/homebrew/bin/displayplacer"
+screencapture = "/usr/sbin/screencapture"
+open          = "/usr/bin/open"
+
+# The artifacts are CMake target DIRECTORIES, not .app bundles — the apple preset emits plain executables
+# with their assets alongside. vm_agent_macos.cmd_launch branches on the missing `.app` suffix and execs
+# the binary directly with cwd set (assets resolve against CWD); Env.deploy excludes the CMake scratch.
+[environments.macos-appkit.columns.appkit_cpp]
+artifact  = "port/cpp/examples/build-apple/gallery"
+process   = "gallery"
+page_env  = "MAUI_SAMPLE_PAGE"
+theme_env = "MAUI_APPEARANCE"
+theme_light = "light"
+theme_dark  = "dark"
+driver = "coordinate"
+
+[environments.macos-appkit.columns.appkit_xaml]
+artifact  = "port/cpp/examples/build-apple/gallery_xaml"
+process   = "gallery_xaml"
+page_env  = "MAUI_SAMPLE_PAGE"
+theme_env = "MAUI_APPEARANCE"
+theme_light = "light"
+theme_dark  = "dark"
+driver = "coordinate"
+
+[environments.macos-appkit.capture]
+reboot_before_run = false
+present  = false
+# LOAD-BEARING even with present = false: the +/-4px drop guard compares every pulled PNG against this
+# geometry unconditionally, so leaving it at the 1024x800 default would delete all 4 frames of a smoke run
+# and every frame of a full one. x/y are unused on this path (capture is by window id).
+geometry = { x = 0, y = 0, w = 480, h = 752 }
