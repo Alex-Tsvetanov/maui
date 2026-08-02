@@ -34,12 +34,25 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        // Parity-comparison theme toggle: MAUI_THEME=Dark|Light forces the app appearance so captures match
-        // light-vs-light and dark-vs-dark against the C++ galleries (default: Light). Read here (not in the
-        // ctor) so Platform.CurrentActivity + its intent extras exist — same reliable point as the page key.
-        UserAppTheme = ResolveValue("MAUI_THEME") == "Dark"
-            ? Microsoft.Maui.ApplicationModel.AppTheme.Dark
-            : Microsoft.Maui.ApplicationModel.AppTheme.Light;
+        // Parity-comparison theme toggle: MAUI_THEME=Dark|Light forces the app appearance. It is an OVERRIDE,
+        // and ONLY an override — unset means FOLLOW THE SYSTEM THEME, which is what UserAppTheme.Unspecified
+        // means to MAUI (RequestedTheme falls through to PlatformAppTheme = AppInfo.RequestedTheme).
+        //
+        // This used to assign Light whenever MAUI_THEME was absent, which made the reference column ignore the
+        // OS exactly as the C++ galleries did before 2a3a4eb090. With both sides pinned by an env var, the
+        // board could never answer the only question that matters here: does each framework follow the
+        // SYSTEM-WIDE theme? Leaving it Unspecified lets a system-light and a system-dark capture pass be
+        // genuinely comparable, because both columns are then reading the same source the OS exposes.
+        //
+        // Read here (not in the ctor) so Platform.CurrentActivity + its intent extras exist — same reliable
+        // point as the page key.
+        var themeOverride = ResolveValue("MAUI_THEME");
+        if (!string.IsNullOrEmpty(themeOverride))
+        {
+            UserAppTheme = themeOverride == "Dark"
+                ? Microsoft.Maui.ApplicationModel.AppTheme.Dark
+                : Microsoft.Maui.ApplicationModel.AppTheme.Light;
+        }
         var key = ResolveValue("MAUI_COMPARE_PAGE") ?? "controls_stack";
         var page = PageDispatch.Create(key);
         var window = new Window(page);
