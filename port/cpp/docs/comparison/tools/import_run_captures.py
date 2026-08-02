@@ -32,9 +32,25 @@ def initial_frame(tag, col, theme):
     return best
 
 copied, missing = 0, []
-tags = sorted({p.split("/")[-4] for p in glob.glob(f"{run}/*/{platform}/maui_xaml/*.png")})
+# Discover tags AND columns from whatever the run actually produced. This used to glob the maui_xaml
+# column specifically, which silently imported NOTHING for any run without one — the macos-appkit env has
+# only appkit_cpp/appkit_xaml, so a full 718-frame sweep reported "imported 0 captures for 0 pages" and
+# exited 0. A no-op that reports success is the worst failure mode this tree has: it reads as "nothing
+# changed" rather than "your import does nothing".
+frames = glob.glob(f"{run}/*/{platform}/*/*.png")
+tags = sorted({p.split("/")[-4] for p in frames})
+present_cols = {p.split("/")[-2] for p in frames}
+if not tags:
+    raise SystemExit(f"no {platform} frames under {run} — refusing to report success having imported "
+                     f"nothing (looked for {run}/<tag>/{platform}/<column>/*.png)")
+unknown = present_cols - set(COL_TO_FW)
+if unknown:
+    raise SystemExit(f"run contains column(s) with no COL_TO_FW mapping: {sorted(unknown)} — add them "
+                     f"rather than silently dropping their frames")
 for tag in tags:
     for col, fw in COL_TO_FW.items():
+        if col not in present_cols:
+            continue  # not part of THIS run's env (e.g. no maui_xaml in the appkit env)
         for theme in ("light", "dark"):
             src = initial_frame(tag, col, theme)
             dst = os.path.join(HERE, "captures", platform, fw, f"{tag}_{theme}.png")
@@ -42,8 +58,9 @@ for tag in tags:
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 shutil.copyfile(src, dst)
                 copied += 1
-            elif col != "cpp":  # cpp legitimately absent for non-twin pages
+            elif col not in ("cpp", "appkit_cpp"):  # builder columns are absent for non-twin pages
                 missing.append(f"{tag}/{fw}/{theme}")
-print(f"imported {copied} captures for {len(tags)} pages into captures/{platform}/{{maui,cpp,xaml}}/")
+print(f"imported {copied} captures for {len(tags)} pages into "
+      f"captures/{platform}/{{{','.join(sorted(COL_TO_FW[c] for c in present_cols))}}}/")
 if missing:
-    print(f"  {len(missing)} missing (non-cpp): {missing[:12]}{' …' if len(missing) > 12 else ''}")
+    print(f"  {len(missing)} missing (non-builder): {missing[:12]}{' …' if len(missing) > 12 else ''}")
