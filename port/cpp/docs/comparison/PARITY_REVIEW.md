@@ -2314,3 +2314,49 @@ a stable, plausible, entirely fake diff on those pages — and it looks exactly 
 because a different date string really is a different width. Three separate wrong conclusions were
 drawn from this one artifact (a border regression that never happened, an 8px measure bug, and
 missing inner detail) before anyone simply cropped the region and read the numbers on screen.
+
+---
+
+## BLOCKER: the MAUI Android reference cannot render DARK — its dark column is not ground truth
+
+Measured, with the capture script's own component
+(`dev.mauicpp.mauireference/crc64f234786c1765579a.MainActivity`), force-stopping between launches:
+
+```
+MAUI_THEME=Light  -> body mean 137.7
+MAUI_THEME=Dark   -> body mean 139.3      <- no theme change whatsoever
+port (cpp/xaml)   -> light 136.1, dark 81.1   <- a real theme change
+```
+
+The intent extra reaches the app (the sibling `MAUI_COMPARE_PAGE` extra, read on the same line of the
+same `CreateWindow`, correctly selects the page), but `UserAppTheme = Dark` produces no visible change.
+`Platforms/Android/Resources/` contains only `values/` — there is no `values-night/` — though the
+activity config itself looks standard (`Maui.SplashTheme`, `ConfigChanges.UiMode` present). Root cause
+not yet isolated.
+
+**Why this surfaced only now, and why the old green was false.** The Android C++ columns were never
+sent an appearance at all (the old path passed only `MAUI_THEME`, which the C++ apphost does not read —
+it reads `MAUI_APPEARANCE`), so BOTH columns rendered light and the dark slot scored green by
+coincidence: light-vs-light. Sending the appearance correctly made the port render genuinely dark,
+which exposed that the reference does not.
+
+**So the current Android dark result — 166 red of 172 — is NOT a port regression.** It is the port
+rendering dark correctly against a reference that renders light. Reading those reds as port defects
+would be exactly backwards: on this axis the port is right and the ground truth is broken. Android dark
+cannot be meaningfully scored until the reference app renders dark.
+
+## AppKit is captured but NOT pixel-scored, by design — it cannot fill 🟢/🟡/🔴 cells
+
+`capture_appkit.py`'s own header states the intent: AppKit "can't pixel-match MAUI/Catalyst (different
+UI framework — NSViews vs UIKit)", so the requirement there is COMPLETENESS — every element specified
+in the code/XAML must be PRESENT, and `appkit_cpp` must not differ from `appkit_xaml`.
+
+Confirmed in the data: `comparison.json`'s maccatalyst entry carries `pixel` and `pixel_xaml` only —
+there is no `pixel_appkit*` key — and `pixel_score.py` contains no appkit handling at all. The two
+AppKit columns appear as screenshots in the board and are reviewed, not scored.
+
+Consequence for the requested summary table: a per-platform 🟢/🟡/🔴/⬛/⏳ count can only be built from
+pixel-scored columns, so the macOS row must mean CATALYST. AppKit's two columns are a separate
+completeness dimension and would need their own metric (element presence, and cpp-vs-xaml agreement)
+before they could contribute counts. Inventing 🟢/🟡/🔴 numbers for them would fabricate a
+pixel-parity claim the capture path explicitly disclaims.
