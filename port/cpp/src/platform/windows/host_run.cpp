@@ -171,6 +171,30 @@ namespace
                 return;
             }
 
+            // (1a) THE OS THEME INTO THE APP, before (1b) pushes the app's theme back down to XAML.
+            //
+            //      Windows is the one backend with NO OS-theme source: essentials_app_info has no windows
+            //      partial (CMake gives it the HEADLESS fake, which answers `unspecified`), so the ctor seed
+            //      that Application.cs:61 performs — platform_app_theme_ = AppInfo.RequestedTheme — reads
+            //      "don't know" here and every other lane's fix passes Windows by. Without this, an app that
+            //      never sets a theme would sit on {AppThemeBinding}'s Light slot on a dark-mode desktop.
+            //
+            //      Reading Application.Current().RequestedTheme() is what AppInfo.windows.cs:61-71 does. It
+            //      is read BEFORE (1b) writes it, so it still holds the system value rather than our own.
+            //      The `unspecified` guard keeps this from overwriting a theme somebody already pushed, and
+            //      makes the whole block a no-op the day a real windows app_info partial lands — which is
+            //      the honest remaining gap: AppInfo::requested_theme() still answers `unspecified` on
+            //      Windows for any caller other than this one.
+            if (application->platform_app_theme() == maui::core::app_theme::unspecified)
+            {
+                if (const auto current = winui::Application::Current())
+                {
+                    application->set_platform_app_theme(current.RequestedTheme() == winui::ApplicationTheme::Dark
+                                                            ? maui::core::app_theme::dark
+                                                            : maui::core::app_theme::light);
+                }
+            }
+
             // (1b) The APPLICATION theme, set here and nowhere else: Application.RequestedTheme may only
             //      be assigned before the first window exists, and mount_window below is what creates it.
             //      This slot is the only point where both are true - the app has been built (so

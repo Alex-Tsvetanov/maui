@@ -7,6 +7,7 @@
 #include "maui/controls/window.hpp"
 #include "maui/core/app_theme.hpp"
 #include "maui/core/i_window.hpp"
+#include "maui/essentials/app_info.hpp" // AppInfo.RequestedTheme — the OS theme the ctor seeds from
 
 namespace maui::controls
 {
@@ -19,6 +20,27 @@ namespace maui::controls
     application::application()
     {
         current_ = this;
+        // THE APP THEME STARTS FROM THE OS — Application.cs:61, verbatim:
+        //     _platformAppTheme = AppInfo.RequestedTheme;
+        //     _lastAppTheme = _platformAppTheme;
+        //
+        // This line was MISSING, and its absence is the root of an env-var-vs-OS theme split that reached
+        // every backend. Without it platform_app_theme_ stayed `unspecified` for the whole process life
+        // unless something called set_platform_app_theme, so an app that did not was permanently on the
+        // light branch: {AppThemeBinding} resolves Unspecified to its LIGHT slot (AppThemeBinding.GetValue),
+        // while the native window — left at overrideUserInterfaceStyle=Unspecified / NSAppearance=nil /
+        // ElementTheme::Default — kept following the OS. Light port-drawn content, dark native controls.
+        //
+        // MEASURED on a Mac in Dark mode, AppKit gallery, MAUI_APPEARANCE unset, page app_theme_binding:
+        // white page, green "…green in light mode, and red in dark mode" text, orange LightPrimaryColor —
+        // i.e. the light slot throughout, on a dark desktop, on a page that states its own expected result.
+        //
+        // The galleries hid this from the board because they seeded the theme from MAUI_APPEARANCE and
+        // defaulted it to `light` when unset, so a capture never exercised the unseeded path. Fixing it here
+        // rather than per-backend is what makes the OS the single source: the four hosts already push
+        // requested_theme() into their native window, so once this agrees with the OS, both layers do.
+        platform_app_theme_ = maui::application_model::app_info::requested_theme();
+        last_app_theme_ = platform_app_theme_;
     }
 
     application::~application()
@@ -105,6 +127,24 @@ namespace maui::controls
         }
         platform_app_theme_ = value;
         trigger_theme_changed();
+    }
+
+    void application::theme_changed()
+    {
+        // C# IApplication.ThemeChanged (Application.cs:567) is one line — `PlatformAppTheme =
+        // AppInfo.RequestedTheme;` — re-reading the OS rather than trusting a pushed value.
+        const maui::core::app_theme os_theme = maui::application_model::app_info::requested_theme();
+        if (os_theme == maui::core::app_theme::unspecified)
+        {
+            // DEVIATION, deliberate: C#'s AppInfo always answers, so this branch is dead there. The port
+            // still has stub app_info partials on android + windows that answer `unspecified` while the
+            // backend DOES know the theme and pushed it through set_platform_app_theme. Assigning the stub's
+            // answer would erase a known theme, which is strictly worse than keeping it — so an "I don't
+            // know" read leaves platform_app_theme_ alone and only re-triggers, the pre-existing behaviour.
+            trigger_theme_changed();
+            return;
+        }
+        set_platform_app_theme(os_theme);
     }
 
     void application::trigger_theme_changed()

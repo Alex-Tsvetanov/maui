@@ -16,7 +16,7 @@
 #include "maui/ui.hpp"
 
 #include "maui/controls/content_page.hpp"
-#include "maui/core/app_theme.hpp" // MAUI_APPEARANCE -> set_platform_app_theme (parity column consistency)
+#include "maui/core/app_theme.hpp"   // MAUI_APPEARANCE -> set_platform_app_theme (parity column consistency)
 #include "maui/xaml/xaml_loader.hpp" // xaml_load_options — thread the application into the page loads
 
 #include "Views/gallery_pages.hpp"
@@ -33,8 +33,8 @@ namespace
     // Runtime page string -> compile-time page factory. MAUI_SAMPLE_PAGE matches the parity tooling's
     // SIMCTL_CHILD_MAUI_SAMPLE_PAGE; MAUI_XAML_TWIN is accepted as an alias (the name the old gallery used for
     // its runtime-loaded twin column). An unknown name falls back to value_controls — the gallery default.
-    [[nodiscard]] std::unique_ptr<maui::controls::content_page>
-    make_selected_page(const maui::xaml::xaml_load_options& options)
+    [[nodiscard]] std::unique_ptr<maui::controls::content_page> make_selected_page(
+        const maui::xaml::xaml_load_options& options)
     {
         const char* env = std::getenv("MAUI_SAMPLE_PAGE");
         if (env == nullptr || std::strlen(env) == 0)
@@ -62,13 +62,15 @@ class gallery_xaml_app final : public ui::app
 public:
     gallery_xaml_app()
     {
-        // Seed the cross-platform app theme from MAUI_APPEARANCE BEFORE mounting, exactly like the builder
-        // gallery — so the C++&XAML parity column shares one appearance with the C++ and MAUI columns
-        // (default light; "dark" selects dark). Without this, ui::app just follows the system trait and the
-        // two C++ galleries can disagree.
-        const char* const appearance = std::getenv("MAUI_APPEARANCE");
-        const bool dark = appearance != nullptr && std::strcmp(appearance, "dark") == 0;
-        set_platform_app_theme(dark ? maui::core::app_theme::dark : maui::core::app_theme::light);
+        // MAUI_APPEARANCE OVERRIDES the OS theme; unset means FOLLOW IT — same contract as the builder
+        // gallery (examples/gallery/main.cpp), so the two C++ columns still share one appearance whether the
+        // harness pins it or not. UserAppTheme is MAUI's own override knob; PlatformAppTheme was seeded from
+        // AppInfo.RequestedTheme by the application ctor.
+        if (const char* const appearance = std::getenv("MAUI_APPEARANCE"); appearance != nullptr)
+        {
+            set_user_app_theme(std::strcmp(appearance, "dark") == 0 ? maui::core::app_theme::dark
+                                                                    : maui::core::app_theme::light);
+        }
 
         // Thread THIS application into the loader (the port's explicit Application.Current): with it,
         // {AppThemeBinding} resolves against the requested theme seeded above AND re-applies on every

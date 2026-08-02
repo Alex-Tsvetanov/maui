@@ -11,7 +11,10 @@
 #include "maui/core/app_theme.hpp"
 #include "maui/core/i_application.hpp"
 #include "maui/core/i_window.hpp"
+#include "maui/essentials/app_info.hpp"
 #include "maui/graphics/rect.hpp"
+
+#include "src/platform/headless/essentials_appmodel_fakes.hpp" // headless_app_info: a settable OS theme
 
 #include <vector>
 
@@ -327,6 +330,42 @@ namespace
 
         app.set_user_app_theme(maui::core::app_theme::light);
         EXPECT_EQ(app.requested_theme(), maui::core::app_theme::light); // user overrides platform
+    }
+
+    // The OS theme reaches the app WITHOUT anyone pushing it — Application.cs:61 seeds PlatformAppTheme from
+    // AppInfo.RequestedTheme in the ctor. Regression test: that line was missing from the port, so
+    // platform_app_theme_ stayed `unspecified` for the process lifetime unless a backend called
+    // set_platform_app_theme. An app that did not — every app built on ui::app — therefore rendered its
+    // {AppThemeBinding}s on the LIGHT slot (AppThemeBinding.GetValue defaults Unspecified to Light) on a
+    // dark-mode OS, while its native controls, left on the system appearance, rendered dark.
+    TEST(application_theme, ctor_seeds_the_platform_theme_from_the_os)
+    {
+        auto os = std::make_shared<maui::application_model::headless_app_info>();
+        os->set_requested_theme(maui::core::app_theme::dark);
+        maui::application_model::app_info::set_current(os);
+        {
+            maui::controls::application app; // nothing below pushes a theme — the OS is the only source
+            EXPECT_EQ(app.platform_app_theme(), maui::core::app_theme::dark);
+            EXPECT_EQ(app.requested_theme(), maui::core::app_theme::dark);
+
+            // An explicit UserAppTheme still wins (RequestedTheme's precedence) and leaves the OS value be.
+            app.set_user_app_theme(maui::core::app_theme::light);
+            EXPECT_EQ(app.requested_theme(), maui::core::app_theme::light);
+            EXPECT_EQ(app.platform_app_theme(), maui::core::app_theme::dark);
+
+            // ThemeChanged RE-READS the OS (Application.cs:567) rather than trusting a previously pushed value.
+            os->set_requested_theme(maui::core::app_theme::light);
+            static_cast<maui::core::i_application&>(app).theme_changed();
+            EXPECT_EQ(app.platform_app_theme(), maui::core::app_theme::light);
+
+            // ...but the documented deviation: an `unspecified` read is "I don't know", not "no theme", so it
+            // must NOT erase what a stub-app_info backend (android/windows today) pushed for itself.
+            app.set_platform_app_theme(maui::core::app_theme::dark);
+            os->set_requested_theme(maui::core::app_theme::unspecified);
+            static_cast<maui::core::i_application&>(app).theme_changed();
+            EXPECT_EQ(app.platform_app_theme(), maui::core::app_theme::dark);
+        }
+        maui::application_model::app_info::set_current(nullptr); // never leak the fake into a sibling test
     }
 
     TEST(application_theme, theme_changed_fires_once_on_a_real_change)

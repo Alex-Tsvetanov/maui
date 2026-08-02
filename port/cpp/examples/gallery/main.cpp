@@ -111,13 +111,20 @@ class gallery_app final : public maui::controls::application
 public:
     gallery_app() : page_(make_selected_page())
     {
-        // Appearance: seed the CROSS-PLATFORM application theme from MAUI_APPEARANCE BEFORE the tree mounts, so
-        // theme-reactive pages (e.g. shape_app_theme) read the correct slot at attach. set_platform_app_theme
-        // also fires requested_theme_changed so a subscribed page re-applies. The framework's run_app reads
-        // requested_theme() after boot and forces the native window's interface style to match (parity dark).
-        const char* const appearance = std::getenv("MAUI_APPEARANCE");
-        const bool dark = appearance != nullptr && std::strcmp(appearance, "dark") == 0;
-        set_platform_app_theme(dark ? maui::core::app_theme::dark : maui::core::app_theme::light);
+        // Appearance: MAUI_APPEARANCE OVERRIDES the OS theme; unset means FOLLOW IT. UserAppTheme is exactly
+        // MAUI's knob for "the app forces a theme" (RequestedTheme = UserAppTheme when set, else
+        // PlatformAppTheme), and the application ctor already seeded PlatformAppTheme from
+        // AppInfo.RequestedTheme — so this needs to do nothing at all in the unset case.
+        //
+        // It used to call set_platform_app_theme(dark ? dark : light), which forced LIGHT whenever the env
+        // var was absent. That impersonated the platform, and it is why a board capture could never catch the
+        // framework bug fixed in application.cpp: every capture sets MAUI_APPEARANCE, so the unseeded path
+        // this harness is supposed to exercise was the one path it never took.
+        if (const char* const appearance = std::getenv("MAUI_APPEARANCE"); appearance != nullptr)
+        {
+            set_user_app_theme(std::strcmp(appearance, "dark") == 0 ? maui::core::app_theme::dark
+                                                                    : maui::core::app_theme::light);
+        }
 
         window_.set_title("MAUI C++ — gallery");
         window_.set_content(page_->root()); // window holds a non-owning back-pointer to the page root

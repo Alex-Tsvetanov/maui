@@ -58,11 +58,19 @@ public final class MauiHostActivity extends Activity {
         if (pageKey == null || pageKey.isEmpty()) {
             pageKey = "value_controls";
         }
-        // MAUI_APPEARANCE=light|dark drives the app theme; forward the intent extra (am start can't set env).
-        String appearance = getIntent() != null ? getIntent().getStringExtra("MAUI_APPEARANCE") : null;
-        if (appearance == null) {
-            appearance = "light";
-        }
+        // THE APP THEME COMES FROM THE DEVICE — Configuration.uiMode, exactly as AppInfo.RequestedTheme
+        // reads it (AppInfo.android.cs:45-57) and exactly as the C++ apphost's MauiHostActivity now does.
+        //
+        // This read the MAUI_APPEARANCE intent extra until now, which is the same defect fixed on the C++
+        // host: the extra paints the port's OWN surfaces (the root + window background below) while every
+        // Android-theme-resolved default — text colour above all — keeps its light-mode value, so a dark
+        // page rendered near-black text on a near-black background. It was masked here only because
+        // build_android_apphost_xaml.sh sets DEVICE night mode *and* passes the extra, so the two sources
+        // happened to agree; that script's comment already claimed this file read uiMode, and it did not.
+        final int nightFlags = getResources().getConfiguration().uiMode
+            & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        final String appearance =
+            nightFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES ? "dark" : "light";
         View root = nativeMount(pageKey, appearance);
         if (root != null) {
             // Theme-aware content-root surface (MAUI's page bg: white light / #121212 dark) so transparent

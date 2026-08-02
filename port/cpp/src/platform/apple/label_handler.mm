@@ -252,7 +252,15 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_label(platform->native).textColor = maui::platform::apple::to_ns_color(view.text_color());
+            // Unset TextColor -> NSColor.textColor: dynamic (black in Aqua, white in DarkAqua), so the
+            // label follows the window appearance instead of the port's opaque-black default sentinel.
+            //
+            // NOT NSColor.labelColor, the obvious UIColor.labelColor twin: AppKit's labelColor is black at
+            // 85% ALPHA, which renders (39,39,39) on white. Measured — it moved every light frame off pure
+            // black, and MAUI's own label_light draws (0,0,0) on both Catalyst and iOS. textColor is
+            // opaque, so it fixes dark without touching light.
+            NSColor* const explicit_color = maui::platform::apple::explicit_text_color_or_nil(view);
+            as_label(platform->native).textColor = explicit_color != nil ? explicit_color : NSColor.textColor;
         }
     }
 

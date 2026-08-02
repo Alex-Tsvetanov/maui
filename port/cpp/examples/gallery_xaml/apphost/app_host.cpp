@@ -411,7 +411,9 @@ extern "C" JNIEXPORT jobject JNICALL Java_dev_mauicpp_apphost_xaml_MauiHostActiv
     android::set_app_context(env->NewGlobalRef(activity));
 
     const std::string key = to_utf8(env, page_key);
-    // Dark from the forwarded MAUI_APPEARANCE intent extra (env var is the fallback the gallery mains use).
+    // Dark from the DEVICE theme the Activity read (Configuration.uiMode — see MauiHostActivity.onCreate).
+    // The MAUI_APPEARANCE fallback below is only reachable when Java hands over an empty string, which the
+    // Activity no longer does; kept for a VM-less/direct-JNI caller rather than as the normal path.
     std::string appear = to_utf8(env, appearance);
     if (appear.empty())
     {

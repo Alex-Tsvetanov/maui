@@ -126,8 +126,9 @@ namespace maui::controls
             return user_app_theme_;
         }
         void set_user_app_theme(maui::core::app_theme value);
-        // The OS theme (set by the platform; the port's stand-in for AppInfo.RequestedTheme — a backend
-        // pushes it here, then calls theme_changed()).
+        // The OS theme. SEEDED IN THE CTOR from AppInfo.RequestedTheme (Application.cs:61), so an app that
+        // never touches the theme API already follows the OS. This setter stays for backends whose app_info
+        // partial cannot answer yet (android/windows) and push the value they do have.
         [[nodiscard]] maui::core::app_theme platform_app_theme() const
         {
             return platform_app_theme_;
@@ -138,15 +139,11 @@ namespace maui::controls
         {
             return user_app_theme_ != maui::core::app_theme::unspecified ? user_app_theme_ : platform_app_theme_;
         }
-        // IApplication.ThemeChanged: the platform notifies the app the OS theme changed. C#'s ThemeChanged()
-        // is parameterless — it sets PlatformAppTheme = AppInfo.RequestedTheme (re-reads the OS theme). The
-        // port has no AppInfo singleton, so the backend pushes the OS theme via set_platform_app_theme first;
-        // theme_changed() re-triggers from the current platform theme (RequestedThemeChanged fires on a real
-        // change). Parameterless, satisfying i_application.
-        void theme_changed() override
-        {
-            trigger_theme_changed();
-        }
+        // IApplication.ThemeChanged: the platform notifies the app the OS theme changed. Parameterless, like
+        // C#'s — it RE-READS AppInfo.RequestedTheme into PlatformAppTheme (Application.cs:567). See the
+        // definition for the one documented deviation (a stub partial's `unspecified` must not erase a theme
+        // the backend pushed).
+        void theme_changed() override;
         // Application.RequestedThemeChanged — fired (with the new RequestedTheme) when the effective theme
         // actually changes (Application.TriggerThemeChangedActual: only on a real change, re-entrancy-guarded).
         maui::core::event<maui::core::app_theme> requested_theme_changed;

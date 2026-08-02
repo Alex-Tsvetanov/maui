@@ -76,7 +76,10 @@ namespace
             [button setAttributedTitle:[[NSAttributedString alloc] initWithString:button.title]];
             return;
         }
-        NSColor* const foreground = to_ns_color(view.text_color());
+        // Same unset-color discrimination as map_text_color below (and button_handler's): an explicit
+        // TextColor wins, else the system title color rather than the port's opaque-black default.
+        NSColor* const explicit_color = maui::platform::apple::explicit_text_color_or_nil(view);
+        NSColor* const foreground = explicit_color != nil ? explicit_color : NSColor.controlTextColor;
         NSAttributedString* const attributed =
             maui::platform::apple::kern_attributed(button.title, spacing, foreground);
         [button setAttributedTitle:attributed != nil ? attributed
@@ -219,7 +222,9 @@ namespace maui::core
         if (platform != nullptr)
         {
             NSButton* const button = as_button(platform->native);
-            button.contentTintColor = to_ns_color(view.text_color());
+            // nil contentTintColor = the system default, which follows the appearance (button_handler does
+            // the same); the port's default-constructed TextColor is opaque black and must not be painted.
+            button.contentTintColor = maui::platform::apple::explicit_text_color_or_nil(view);
             // A kerned (attributed) title carries its own color, so re-apply it.
             refresh_radio_title_formatting(button, view);
         }

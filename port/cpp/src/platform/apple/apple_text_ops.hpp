@@ -27,7 +27,8 @@
 #include <utility>
 #include <vector>
 
-#include "apple_conversions.hpp" // to_ns_color / to_ns_font (the run-builder reuses to_ns_color)
+#include "apple_conversions.hpp"         // to_ns_color / to_ns_font (the run-builder reuses to_ns_color)
+#include "maui/core/bindable_object.hpp" // is_property_set — explicit-vs-unset TextColor discrimination
 #include "maui/core/font.hpp"
 #include "maui/core/label_run.hpp"
 #include "maui/core/text_decorations.hpp"
@@ -257,5 +258,26 @@ namespace maui::platform::apple
             [attributed appendAttributedString:piece];
         }
         return attributed;
+    }
+
+    // The view's TextColor when it was EXPLICITLY set, nil otherwise — so the caller can fall back to the
+    // SYSTEM color, which is what adapts to light/dark.
+    //
+    // C# ITextElement.TextColor is a `Color?` that defaults to null, and every UpdateTextColor maps null to
+    // the platform's dynamic default. The port models TextColor as a non-nullable value type whose
+    // default-constructed value is opaque BLACK, so `to_ns_color(view.text_color())` on an untouched view
+    // silently paints black — indistinguishable from an explicit TextColor="Black", and INVISIBLE on a dark
+    // background. MEASURED: the AppKit gallery rendered app_theme_binding's headings at (0,0,0) on a
+    // (36,40,43) page, while MAUI's Catalyst column draws them at (234,234,234).
+    //
+    // The iOS lane already discriminates this way (ios/label_handler.mm map_text_color — the chat-bubble
+    // cell bug), and so does this backend's button_handler; label/entry/editor/search_bar/radio_button did
+    // not, which is why this now lives in the shared header instead of being copied a sixth time. Each
+    // caller supplies its OWN fallback because AppKit's defaults differ per control class (labelColor,
+    // textColor, controlTextColor).
+    template <class View> inline NSColor* explicit_text_color_or_nil(const View& view)
+    {
+        const auto* const bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        return bindable != nullptr && bindable->is_property_set("text_color") ? to_ns_color(view.text_color()) : nil;
     }
 } // namespace maui::platform::apple

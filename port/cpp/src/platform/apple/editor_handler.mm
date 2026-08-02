@@ -454,7 +454,10 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_text_view(platform->native).textColor = to_ns_color(view.text_color());
+            // Unset TextColor -> NSColor.textColor (the dynamic control-content color), not the port's
+            // opaque-black default sentinel — see explicit_text_color_or_nil in apple_text_ops.hpp.
+            NSColor* const explicit_color = maui::platform::apple::explicit_text_color_or_nil(view);
+            as_text_view(platform->native).textColor = explicit_color != nil ? explicit_color : NSColor.textColor;
         }
     }
 
