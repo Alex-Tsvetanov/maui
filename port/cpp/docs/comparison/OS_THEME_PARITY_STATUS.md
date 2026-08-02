@@ -20,7 +20,12 @@ OS-light / no-env case only on AppKit; Catalyst never, in either theme.
 |---|---|
 | (a) `maui-reference/app/App.xaml.cs` sets `UserAppTheme` only when `MAUI_THEME` is present | **done** |
 | (b) `tools/parity/device_state.py` OS-theme setters, read-back verified, returning the previous value | **done** |
-| (c) wire the setters into every capture path; stop passing the per-column theme env | *in progress — runner lanes + iOS done, Android left* |
+| (c) wire the setters into every capture path; stop passing the per-column theme env | **done** |
+
+**Phase 0 is complete and every mechanism is measured, not assumed.** The last open assumption — that
+MAUI *itself* follows the device theme once `UserAppTheme` is left Unspecified — is now confirmed on
+Android with the rebuilt APK and no `MAUI_THEME` extra: device-dark renders the page at body mean 21.2
+(red dark-slot text, teal DarkPrimaryColor), device-light at 251.9.
 
 ### (c) progress
 
@@ -28,7 +33,7 @@ OS-light / no-env case only on AppKit; Catalyst never, in either theme.
 |---|---|---|
 | Catalyst / AppKit / Windows | `run_comparison.py` `capture.system_theme = true` | done — theme hoisted to the outermost loop (one flip per theme instead of ~1000), restore on the normal and abort paths |
 | iOS | `capture_ios_clean.py` (default; `--app-theme-env` restores the old behaviour) | done — theme hoisted outermost, appearance + status bar both restored |
-| Android | `build_android_apphost*.sh`, `capture_all_csharp_android.sh` | **not yet** |
+| Android | `build_android_apphost*.sh`, `capture_all_csharp_android.sh` | done — theme extras dropped from both columns; night mode restored to the value found, not forced to light |
 
 `capture_ios_clean.py --app cpp --only app_theme_binding --themes light,dark` renders light under
 OS-light (bg mean 249.4) and dark under OS-dark (5.0), and both frames are **0 px different** from the
@@ -60,7 +65,20 @@ Order: iOS → macOS Catalyst → macOS AppKit → Android → Windows. Never in
 starve the VMs and bank stale or splash frames. AppKit runs `--env macos-appkit`, never concurrently
 with `macos-arm64` (one desktop, one `scratch/shot.png`).
 
-Not started.
+**BLOCKED on macOS (Catalyst + AppKit).** The VM's display no longer offers a 1512-wide mode — UTM
+regenerates the guest's mode list when its window is resized, and every remaining mode is HiDPI, so
+captures come back at 2x (960x1504 where the AppKit baseline is 480x752). A failed `set-resolution` is
+now FATAL rather than a warning, so this aborts instead of burning a run. Resolve by either restoring
+the UTM window to its former size (cheap — existing baselines stay valid) or re-pinning
+`[environments.*.display]` to a mode that exists (rebaselines both macOS platforms, and Catalyst's
+scenario tap calibration is keyed to width 1512).
+
+iOS, Android and Windows are unblocked.
+
+**Rebuild before capturing:** the MauiReference APK/app must be rebuilt anywhere the App.xaml.cs change
+has not landed — an older binary still forces Light when no `MAUI_THEME` extra is present, so a dark
+pass renders LIGHT and reads as an enormous regression. Android's is rebuilt and installed
+(2026-08-03); iOS/Catalyst/Windows references are NOT yet.
 
 ## Phase 2 — rebuild the board · Phase 3 — commit and push · Phase 4 — drive every cell to 100%
 
