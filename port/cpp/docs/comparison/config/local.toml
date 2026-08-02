@@ -76,6 +76,10 @@ driver = "coordinate"       # → "cpp_devflow" (+ devflow_port) after rebuildin
 
 [environments.macos-arm64.capture]
 reboot_before_run = true
+# Drive the VM's OWN appearance rather than handing each column MAUI_APPEARANCE / MAUI_THEME. Those map to
+# UserAppTheme on both sides and OVERRIDE the OS, so a run that sets them can only ever prove the override
+# works — never that either framework follows the system theme. See OS_THEME_PARITY_STATUS.md.
+system_theme = true
 
 # --- AppKit (native NSView) columns -------------------------------------------------------------------
 # The SAME VM, a separate environment, because AppKit needs a capture contract Catalyst does not: no
@@ -142,3 +146,4 @@ present  = false
 # geometry unconditionally, so leaving it at the 1024x800 default would delete all 4 frames of a smoke run
 # and every frame of a full one. x/y are unused on this path (capture is by window id).
 geometry = { x = 0, y = 0, w = 480, h = 752 }
+system_theme = true   # drive the GUEST's theme, not a per-column env override

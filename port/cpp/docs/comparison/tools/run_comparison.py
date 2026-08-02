@@ -147,6 +147,12 @@ class Env:
         # windows with bogus geometry that aren't AX-enumerable, which the in-run resolution self-heal can't
         # always fix. Off by default (adds ~1min); needs passwordless `sudo reboot` on the VM.
         self.reboot_before_run = cap.get("reboot_before_run", False)
+        # Drive the GUEST MACHINE's theme instead of handing each column a theme env var. This is what
+        # makes a light-vs-dark board mean anything now that both frameworks read the OS: MAUI_APPEARANCE
+        # and MAUI_THEME both map to UserAppTheme, which OVERRIDES the OS, so a run that sets them proves
+        # only that the override works. Off by default so an existing config behaves exactly as before.
+        self.system_theme = cap.get("system_theme", False)
+        self._os_theme_restore: str | None = None  # the guest's theme before we touched it
         self.columns = cfg["columns"]
         # Default python differs: a Windows guest has no /usr/bin/python3. `py -3` (the PEP 397 launcher
         # shipped with python.org installs) is the most reliable invocation over a non-interactive SSH
@@ -162,6 +168,38 @@ class Env:
         self.session1 = None
         self.apps_remote = posixpath.join(self.staging, "apps")
         self.scratch = posixpath.join(self.staging, "scratch")
+
+    # -- system-wide theme --------------------------------------------------
+    def set_os_theme(self, theme: str) -> None:
+        """Set the GUEST's system theme and confirm it applied; remember the original for restore_os_theme."""
+        sys.path.insert(0, str(REPO / "port/cpp/tools/parity"))
+        from device_state import set_macos_theme, set_windows_theme  # noqa: PLC0415
+
+        setter = set_windows_theme if self.is_windows else set_macos_theme
+        host, user = self.cfg["connection"]["host"], self.cfg["connection"]["user"]
+        previous = setter(theme, host, user)
+        if self._os_theme_restore is None:
+            self._os_theme_restore = previous  # only the FIRST call records the pre-run state
+
+    def restore_os_theme(self) -> None:
+        """Put the guest's theme back. Safe to call when nothing was ever set."""
+        if self._os_theme_restore is None:
+            return
+        try:
+            self.set_os_theme_raw(self._os_theme_restore)
+            print(f"[{self.name}] system theme restored to {self._os_theme_restore}")
+        except Exception as exc:  # never let a restore failure mask the run's own result
+            print(f"[{self.name}] ! could not restore the system theme to "
+                  f"{self._os_theme_restore}: {exc}")
+        finally:
+            self._os_theme_restore = None
+
+    def set_os_theme_raw(self, theme: str) -> None:
+        sys.path.insert(0, str(REPO / "port/cpp/tools/parity"))
+        from device_state import set_macos_theme, set_windows_theme  # noqa: PLC0415
+
+        setter = set_windows_theme if self.is_windows else set_macos_theme
+        setter(theme, self.cfg["connection"]["host"], self.cfg["connection"]["user"])
 
     # -- ssh plumbing -------------------------------------------------------
     def _ssh(self) -> list[str]:
@@ -453,7 +491,23 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
     if env.display:
         r = env.agent("set-resolution", env.display["width"], env.display["height"])
         if not r.get("ok"):
-            print(f"  ! set-resolution: {r.get('error') or r.get('stderr')}")
+            # FATAL, not a warning. Every frame's geometry — the present rect, the scenario tap
+            # calibration, and the +/-4px size guard — is derived from this resolution, so a run that
+            # continues past a failed set is a run whose every frame is either dropped or wrong.
+            #
+            # Measured: after the VM's UTM window was resized, the 1512-wide mode this config pins stopped
+            # existing (UTM regenerates the mode list on resize, and the remaining modes were all HiDPI).
+            # set-resolution failed, this printed one easily-missed line, and the run went on to capture 8
+            # frames at 960x1504 — exactly 2x the expected 480x752 — every one of which the size guard then
+            # dropped. The guard did its job; the run should never have got that far.
+            raise SystemExit(
+                f"[{env.name}] set-resolution to {env.display['width']}x{env.display['height']} FAILED: "
+                f"{r.get('error') or r.get('stderr')}\n"
+                f"  available: {r.get('available')}\n"
+                f"  Every frame's geometry depends on this, so the run is aborted rather than capturing a\n"
+                f"  board at the wrong size. Either restore the guest's display mode (resizing the UTM\n"
+                f"  window regenerates the mode list) or re-pin [environments.{env.name}.display] to a mode\n"
+                f"  that exists — note that changing it rebaselines this platform's frames.")
 
     # Deploy each column's artifact once. A column may instead declare `artifact_remote`: a path that
     # ALREADY exists on the guest, which is then used as-is with no deploy. That is the case for a column
@@ -485,21 +539,42 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
     remote_shot = posixpath.join(env.scratch, "shot.png")
     frames: dict[tuple, dict] = {}  # (tag, column, n) -> {theme, step, local}
     failed_frames: list[str] = []   # frames dropped as un-presentable (see shoot_presented)
+    # THEME IS THE OUTERMOST LOOP, deliberately. It used to be the innermost (tag -> column -> theme),
+    # which was free while the theme was just an env var handed to each launch. It is not free now: with
+    # system_theme the theme is a property of the whole MACHINE, so the innermost ordering would flip the
+    # OS appearance once per frame — ~1000 flips, each an SSH round trip plus a settle, roughly 40 minutes
+    # of pure switching on a full board. Outermost makes it exactly one flip per theme per run.
+    #
+    # Frame numbering is UNCHANGED by the reorder: n was `theme_index * steps + step_index + 1` implicitly
+    # (a per-column counter incremented across themes then steps), and is now computed as exactly that.
+    # It has to stay stable because score() pairs a column's frame with the reference's by (tag, column, n).
+    scenarios = {tag: load_scenario(scenarios_dir, tag) for tag in tags}
+    all_themes: list[str] = []
     for tag in tags:
-        scenario = load_scenario(scenarios_dir, tag)
-        themes = themes_override or scenario["themes"]
-        # Per-scenario settle wins over the global --settle, but only UPWARD: an explicit --settle
-        # higher than the scenario's is honoured, so a slow-guest run is never silently sped up.
-        tag_settle = max(float(scenario.get("settle", settle)), settle)
-        for col in columns_for(env, tag, twin_keys):
-            ccfg = env.columns[col]
-            if ccfg.get("_missing"):
-                continue
-            driver = make_driver(env, col, ccfg)
-            n = 0
-            for theme in themes:
-                theme_val = ccfg[f"theme_{theme}"]
-                launch_env = [f"{ccfg['page_env']}={tag}", f"{ccfg['theme_env']}={theme_val}",
+        for t in (themes_override or scenarios[tag]["themes"]):
+            if t not in all_themes:
+                all_themes.append(t)
+
+    for theme_index, theme in enumerate(all_themes):
+        if env.system_theme:
+            # Set the MACHINE's theme and prove it took. A theme that silently failed to apply produces a
+            # whole pass of wrong-theme frames that pass every other check — see device_state.set_macos_theme
+            # for the `defaults`-shaped version of exactly that failure.
+            env.set_os_theme(theme)
+        for tag in tags:
+            scenario = scenarios[tag]
+            if theme not in (themes_override or scenario["themes"]):
+                continue  # this page does not ask for this theme
+            # Per-scenario settle wins over the global --settle, but only UPWARD: an explicit --settle
+            # higher than the scenario's is honoured, so a slow-guest run is never silently sped up.
+            tag_settle = max(float(scenario.get("settle", settle)), settle)
+            for col in columns_for(env, tag, twin_keys):
+                ccfg = env.columns[col]
+                if ccfg.get("_missing"):
+                    continue
+                driver = make_driver(env, col, ccfg)
+                n = theme_index * len(scenario["steps"])
+                launch_env = [f"{ccfg['page_env']}={tag}",
                               "MAUI_CAPTURE_TINT_NORMAL=1",
                               # In-process WinUI keyboard-focus-visual suppression (PARITY_REVIEW.md
                               # "Focus-visual suppression" section) -- consumed only by App.xaml.cs's
@@ -518,6 +593,13 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 # the HOST sets it, so an ordinary board run does not write a .bgra per font source per
                 # page. Kept because looking at the bitmap is what finally settled the `image` page after
                 # five wrong hypotheses; the guest path must be writable by the app process.
+                # The per-column theme override. Passed ONLY when the machine's own theme is not driving
+                # the run: it maps to UserAppTheme on both sides (MAUI_APPEARANCE -> the galleries,
+                # MAUI_THEME -> MauiReference), which OVERRIDES the OS by design — so passing it under
+                # system_theme would defeat the very thing the run is trying to measure. The knob stays
+                # supported for a targeted one-off; the board just stops using it.
+                if not env.system_theme:
+                    launch_env.append(f"{ccfg['theme_env']}={ccfg[f'theme_{theme}']}")
                 if os.environ.get("MAUI_FONT_GLYPH_DUMP"):
                     launch_env.append(f"MAUI_FONT_GLYPH_DUMP={os.environ['MAUI_FONT_GLYPH_DUMP']}")
                 if ccfg.get("driver") == "cpp_devflow" and ccfg.get("devflow_port"):
@@ -611,6 +693,10 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
         print(f"\n  !! {len(failed_frames)} frame(s) DROPPED (window never presented) — these pages are\n     NOT refreshed; re-run --only <pages> once the VM session is healthy:")
         for f in failed_frames:
             print(f"       {f}")
+
+    # Put the guest's appearance back before anything else can fail — a machine left in the run's theme is
+    # confusing for whoever uses it next, and silently changes what the NEXT run's "previous" value records.
+    env.restore_os_theme()
 
     if env.session1 is not None:
         # Always tear down: a leaked agent keeps the guest port AND its scheduled task, so the next run
@@ -715,6 +801,11 @@ def main(argv=None) -> int:
             summary = run_env(env, tags, scenarios_dir, run_root,
                               args.settle, twin_keys, commit, themes_override)
         finally:
+            # Same reasoning as the agent teardown below: run_env restores the guest's appearance on its
+            # normal path, and this covers the abort paths. Leaving a machine in the run's theme is both
+            # confusing for the next human to use it and corrupting for the next run, whose "previous"
+            # reading would record the leftover value as the pre-run state.
+            env.restore_os_theme()
             # run_env stops the session-1 agent on its normal path; this covers the abort paths (a
             # SystemExit from an unpresentable window, Ctrl-C, a scoring error). A leaked agent holds the
             # guest port and its scheduled task, which breaks the NEXT run with a stale-token failure.

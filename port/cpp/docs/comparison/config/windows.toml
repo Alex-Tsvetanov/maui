@@ -62,7 +62,7 @@ reboot_before_run = false       # true → `shutdown /r /t 0 /f` then wait for S
 # scenario taps in that strip would land off-screen and silently miss. x=128 is (1280-1024)/2,
 # i.e. exactly centred.
 geometry = { x = 128, y = 0, w = 1024, h = 800 }
-
+system_theme = true   # drive the GUEST's theme, not a per-column env override
 [environments.windows-x64.staging]
 root = "C:/Users/Testings-VM/maui-comparison"   # forward slashes are fine and avoid quoting pain
 
