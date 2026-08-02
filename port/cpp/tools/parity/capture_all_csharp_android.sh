@@ -62,7 +62,25 @@ appearance="${MAUI_APPEARANCE:-light}"
 # clock/battery/signal and any notification icon land inside every frame and would score as a per-page
 # diff the port never caused. Restored by the trap below. See tools/parity/device_state.py.
 python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
-trap 'python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
+# SYSTEM NIGHT MODE for the dark pass. MauiReference's UserAppTheme=Dark (set from the MAUI_THEME intent
+# extra in App.xaml.cs CreateWindow) DOES NOT WORK on Android — measured, with the extra provably
+# arriving: body mean 137.7 light vs 139.3 "dark", i.e. no theme change at all, while the C++ columns go
+# 136.1 -> 81.1. The device uiMode does work: with `cmd uimode night yes` the same page renders 84.6.
+# So Android dark for the MAUI column comes from the DEVICE, not the app.
+#
+# Safe to change for this column alone, verified rather than assumed: the port's status bar is
+# BYTE-IDENTICAL under system-light and system-night (0 differing pixels over the strip), because the app
+# renders that region itself. So flipping night mode does not invalidate the already-captured cpp/xaml
+# columns, and only the MAUI column needs recapturing.
+#
+# Restored by the trap below alongside demo mode — an emulator left in night mode would silently darken
+# the next LIGHT pass and read as a port regression.
+if [[ "${MAUI_APPEARANCE:-light}" == "dark" ]]; then
+  "${maui_adb}" -s "${maui_serial}" shell cmd uimode night yes > /dev/null 2>&1 || true
+  sleep 2
+fi
+trap '"${maui_adb}" -s "${maui_serial}" shell cmd uimode night no > /dev/null 2>&1 || true;
+      python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
 suffix="_${appearance}"
 theme_extra=()
