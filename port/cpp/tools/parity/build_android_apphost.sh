@@ -70,11 +70,13 @@ python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
 # port's own surfaces dark while every theme-resolved native default stayed light, which is how the port
 # ended up drawing near-black text (8,8,8) on a near-black page. One mechanism for both columns: the MAUI
 # reference already takes its dark from the device, and now so does the port. Restored by the trap.
-if [[ "${MAUI_APPEARANCE:-light}" == "dark" ]]; then
-  "${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night yes > /dev/null 2>&1 || true
-  sleep 2
-fi
-trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night no > /dev/null 2>&1 || true;
+# Record the device's CURRENT night mode so the trap restores what we found rather than forcing light —
+# an emulator that was already dark would otherwise be silently flipped by running a capture.
+maui_night_before="$("${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no)"
+"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night \
+  "$([[ "${MAUI_APPEARANCE:-light}" == "dark" ]] && echo yes || echo no)" > /dev/null 2>&1 || true
+sleep 2
+trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night "${maui_night_before}" > /dev/null 2>&1 || true;
       python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
 # Canonical layout ALWAYS suffixes the theme: captures/android/cpp/<key>_<theme>.png. Android is
@@ -273,7 +275,7 @@ echo "[apphost] adb install -r..." >&2
 # its frame. (Cheap: one launch + force-stop.)
 echo "[apphost] post-install warm-up launch..." >&2
 "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
-  --es MAUI_SAMPLE_PAGE "label" --es MAUI_APPEARANCE "${appearance}" > /dev/null 2>&1 || true
+  --es MAUI_SAMPLE_PAGE "label" > /dev/null 2>&1 || true
 sleep 2
 "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
 
@@ -340,7 +342,7 @@ capture_one() {
   "${maui_adb}" -s "${maui_serial}" logcat -c > /dev/null 2>&1 || true
   # (c) Launch with -W (blocks to first frame) and then poll for this launch's Displayed marker.
   "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
-    --es MAUI_SAMPLE_PAGE "${key}" --es MAUI_APPEARANCE "${appearance}" > /dev/null
+    --es MAUI_SAMPLE_PAGE "${key}" > /dev/null
   wait_displayed || echo "[apphost] WARNING: never saw Displayed for ${key}; capturing anyway" >&2
   # Dismiss the transient "System UI isn't responding" ANR dialog that can overlay the page during the
   # build/install/launch load burst. Use the CLOSE_SYSTEM_DIALOGS broadcast, NOT keyevent BACK — BACK would

@@ -54,9 +54,9 @@ echo "[csharp-android] component: ${component}" >&2
 out_dir="${cpp_root}/docs/comparison/captures/android/maui"
 mkdir -p "${out_dir}"
 
-# Theme: MauiReference forces its appearance from the MAUI_THEME intent extra (App.xaml.cs: UserAppTheme =
-# ResolveValue("MAUI_THEME") == "Dark" ? Dark : Light) — NOT the system uimode. So MAUI_APPEARANCE=dark
-# passes `--es MAUI_THEME Dark` on each launch and writes the _dark suffix; light passes nothing (the default).
+# Theme: the DEVICE's night mode drives both columns. MAUI_APPEARANCE here selects which system theme the
+# pass runs under (and the output suffix) — it is no longer handed to the app. App.xaml.cs leaves
+# UserAppTheme Unspecified unless a MAUI_THEME extra is present, so MauiReference follows the device.
 appearance="${MAUI_APPEARANCE:-light}"
 # Pin the emulator's chrome BEFORE any capture: Android screencaps are full-screen, so the status bar
 # clock/battery/signal and any notification icon land inside every frame and would score as a per-page
@@ -75,16 +75,22 @@ python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
 #
 # Restored by the trap below alongside demo mode — an emulator left in night mode would silently darken
 # the next LIGHT pass and read as a port regression.
-if [[ "${MAUI_APPEARANCE:-light}" == "dark" ]]; then
-  "${maui_adb}" -s "${maui_serial}" shell cmd uimode night yes > /dev/null 2>&1 || true
-  sleep 2
-fi
-trap '"${maui_adb}" -s "${maui_serial}" shell cmd uimode night no > /dev/null 2>&1 || true;
+# Record the device's CURRENT night mode so the trap restores what we found rather than forcing light —
+# an emulator that was already dark would otherwise be silently flipped by running a capture.
+maui_night_before="$("${maui_adb}" -s "${maui_serial}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no)"
+"${maui_adb}" -s "${maui_serial}" shell cmd uimode night \
+  "$([[ "${MAUI_APPEARANCE:-light}" == "dark" ]] && echo yes || echo no)" > /dev/null 2>&1 || true
+sleep 2
+trap '"${maui_adb}" -s "${maui_serial}" shell cmd uimode night "${maui_night_before}" > /dev/null 2>&1 || true;
       python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
 suffix="_${appearance}"
+# NO MAUI_THEME EXTRA. It used to pass `--es MAUI_THEME Dark` on the dark pass, which sets UserAppTheme
+# and therefore OVERRIDES the device theme — so the reference column proved only that the override works,
+# never that MAUI follows the system. App.xaml.cs now leaves UserAppTheme Unspecified when the extra is
+# absent, so the device's `cmd uimode night` (set just above, restored by the trap) is the single source
+# for BOTH columns. Set the extra by hand for a targeted one-off; the board does not.
 theme_extra=()
-[[ "${appearance}" == "dark" ]] && theme_extra=(--es MAUI_THEME Dark)
 
 wait_process_gone() {
   for _ in $(seq 1 40); do # ~10s ceiling

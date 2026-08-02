@@ -54,11 +54,13 @@ appearance="${MAUI_APPEARANCE:-light}"
 # surfaces dark while every theme-resolved native default stayed light, which is how the port drew
 # near-black text on a near-black page. Same mechanism the MAUI reference uses. Restored by the trap.
 python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
-if [[ "${appearance}" == "dark" ]]; then
-  "${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night yes > /dev/null 2>&1 || true
-  sleep 2
-fi
-trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night no > /dev/null 2>&1 || true;
+# Record the device's CURRENT night mode so the trap restores what we found rather than forcing light —
+# an emulator that was already dark would otherwise be silently flipped by running a capture.
+maui_night_before="$("${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no)"
+"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night \
+  "$([[ "${appearance}" == "dark" ]] && echo yes || echo no)" > /dev/null 2>&1 || true
+sleep 2
+trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night "${maui_night_before}" > /dev/null 2>&1 || true;
       python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
 # Canonical layout ALWAYS suffixes the theme: captures/android/xaml/<key>_<theme>.png.
 suffix="_${appearance}"
@@ -264,7 +266,7 @@ echo "[apphost-xaml] adb install -r..." >&2
 # that eats it (the wave-15 deterministic-capture discipline).
 echo "[apphost-xaml] post-install warm-up launch..." >&2
 "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
-  --es MAUI_SAMPLE_PAGE "value_controls" --es MAUI_APPEARANCE "${appearance}" > /dev/null 2>&1 || true
+  --es MAUI_SAMPLE_PAGE "value_controls" > /dev/null 2>&1 || true
 sleep 2
 "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
 
@@ -310,7 +312,7 @@ capture_one() {
   "${maui_adb}" -s "${maui_serial}" logcat -c > /dev/null 2>&1 || true
   # (c) Launch with -W and poll for this launch's Displayed marker.
   "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
-    --es MAUI_SAMPLE_PAGE "${key}" --es MAUI_APPEARANCE "${appearance}" > /dev/null
+    --es MAUI_SAMPLE_PAGE "${key}" > /dev/null
   wait_displayed || echo "[apphost-xaml] WARNING: never saw Displayed for ${key}; capturing anyway" >&2
   # Dismiss any transient ANR dialog via CLOSE_SYSTEM_DIALOGS (NOT keyevent BACK — BACK would close us).
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true
