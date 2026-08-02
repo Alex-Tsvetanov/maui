@@ -133,6 +133,55 @@ MODELS = [
 ]
 
 
+# Board-wide roll-up, rendered ABOVE the collapsed per-platform sections. Deliberately built from the
+# SAME counts() the per-section tables use, so a cell here cannot drift from the section it summarises —
+# the two are the same call with the same arguments, not two implementations of the same idea.
+#
+# HTML rather than a markdown table: the spec calls for one merged title spanning each model's five
+# status columns, and GFM tables cannot span cells. This file already emits <table> for the screenshot
+# grids, so the style is consistent.
+#
+# SCOPE, stated in the table itself rather than left implicit:
+#   - the macOS row is MAC CATALYST. The two AppKit columns are captured and shown, but are NOT
+#     pixel-scored — capture_appkit.py's own header says AppKit "can't pixel-match MAUI/Catalyst
+#     (different UI framework)", its requirement being element completeness plus cpp-vs-xaml agreement.
+#     comparison.json carries no pixel_appkit* key and pixel_score.py has no appkit path. Emitting
+#     counts for it would assert a parity claim the capture path explicitly disclaims.
+#   - Android DARK is currently not comparable: the MAUI reference renders light for both
+#     MAUI_THEME=Light and =Dark (measured 137.7 vs 139.3 body mean) while the port renders genuinely
+#     dark, so android's reds are the port being right against a broken ground truth. See
+#     PARITY_REVIEW.md. The counts are shown unaltered — annotating is honest, silently excluding or
+#     re-weighting them would not be.
+def board_summary_table(pages):
+    rows = []
+    totals = {key: {k: 0 for k in ("green", "yellow", "red", "blank", "none")} for key, _ in MODELS}
+    for plat, display, _fws, _is_mac in PLATFORMS:
+        cells = []
+        for key, _label in MODELS:
+            c = counts(pages, plat, key)
+            for k in totals[key]:
+                totals[key][k] += c[k]
+            cells += [c["green"], c["yellow"], c["red"], c["blank"], c["none"]]
+        rows.append((display, cells))
+
+    head = ("<table>\n"
+            "<tr><th rowspan=\"2\">Platform</th>"
+            + "".join(f'<th colspan="5">{label}</th>' for _key, label in MODELS)
+            + "</tr>\n<tr>"
+            + ("<th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th>" * len(MODELS))
+            + "</tr>")
+    body = "".join(
+        "\n<tr><td>" + d + "</td>" + "".join(f"<td>{v}</td>" for v in cells) + "</tr>"
+        for d, cells in rows)
+    tcells = []
+    for key, _ in MODELS:
+        t = totals[key]
+        tcells += [t["green"], t["yellow"], t["red"], t["blank"], t["none"]]
+    total = ("\n<tr><td><strong>Total</strong></td>"
+             + "".join(f"<td><strong>{v}</strong></td>" for v in tcells) + "</tr>")
+    return head + body + total + "\n</table>"
+
+
 def summary_table(pages, plat, n):
     cols = [(label, counts(pages, plat, key)) for key, label in MODELS]
     out = ["| Classification | " + " | ".join(l for l, _ in cols) + " |",
@@ -205,6 +254,18 @@ def main():
         "`tools/gen_readme.py` — do not edit by hand.",
         "",
     ]
+    out.append(board_summary_table(pages))
+    out.append("")
+    out.append("_macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are "
+               "captured and shown per page but are not pixel-scored — AppKit is a different UI "
+               "framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element "
+               "completeness plus cpp-vs-xaml agreement, not a parity score._")
+    out.append("")
+    out.append("_Android **dark** is not currently comparable: the MAUI reference renders light under "
+               "both `MAUI_THEME=Light` and `=Dark` (measured body mean 137.7 vs 139.3) while the port "
+               "renders genuinely dark, so Android's reds are the port being correct against a broken "
+               "ground truth rather than a port defect. See `PARITY_REVIEW.md`._")
+    out.append("")
     for plat, display, fws, _is_mac in PLATFORMS:
         out.append(section(pages, plat, display, fws, n))
         out.append("")
