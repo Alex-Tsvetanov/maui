@@ -1931,9 +1931,12 @@ endif()
 # now lives as a pure-C++ example in the standalone examples/ project (examples/gallery/), consuming the
 # framework as an external package — no .mm, no platform code in the user-facing app. It keeps the bundle id
 # dev.maui-cpp.ios-gallery so the iOS parity tooling launches it unchanged. The parity dark/light native
-# interface style now flows from MAUI_APPEARANCE -> application::set_platform_app_theme ->
-# application::requested_theme(), which the framework's iOS/macOS run_app (src/platform/{ios,apple}/host_run.mm)
-# reads after boot to force the native window's interface style. Build + run: examples/README.md and the
+# interface style flows from MAUI_APPEARANCE -> application::set_user_app_theme -> requested_theme(), which
+# the framework's iOS/macOS run_app (src/platform/{ios,apple}/host_run.mm) reads after boot to force the
+# native window's interface style. MAUI_APPEARANCE is an OVERRIDE (UserAppTheme), not the source: with it
+# unset the app follows the OS, because the application ctor seeds PlatformAppTheme from
+# AppInfo.RequestedTheme (Application.cs:61). It used to call set_platform_app_theme and default to `light`,
+# which made every gallery ignore a dark-mode desktop. Build + run: examples/README.md and the
 # command at the top of tools/parity/capture_all.py.
 
 # ======================================================================

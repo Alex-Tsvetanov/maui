@@ -15,9 +15,9 @@ backends; only the build helper (`cmake/maui_add_app.cmake`) is platform-aware.
 - **collection_view** — a list built from an `observable_collection` and a `data_template` cell recipe.
 - **custom_drawing** — a `graphics_view` rendering an `i_drawable` that paints shapes and text.
 - **gallery** — the full runnable demo gallery (~178 pages from `gallery/pages/`). It selects ONE page at
-  runtime from the `MAUI_SAMPLE_PAGE` env var (default `value_controls`) and the theme from `MAUI_APPEARANCE`
-  (`dark`|`light`), still 100% pure C++ — the framework's iOS/macOS `run_app` forces the native interface
-  style from the app theme. Its iOS bundle id is `dev.maui-cpp.ios-gallery` (the parity tooling launches it).
+  runtime from the `MAUI_SAMPLE_PAGE` env var (default `value_controls`). `MAUI_APPEARANCE` (`dark`|`light`)
+  OVERRIDES the theme; leave it unset and the app follows the OS, like any MAUI app. Still 100% pure C++ —
+  the framework's iOS/macOS `run_app` forces the native interface style from the app theme. Its iOS bundle id is `dev.maui-cpp.ios-gallery` (the parity tooling launches it).
   Run a page: `MAUI_SAMPLE_PAGE=pickers ./examples/build/gallery/gallery` (macOS/headless), or on the sim
   `SIMCTL_CHILD_MAUI_SAMPLE_PAGE=pickers xcrun simctl launch booted dev.maui-cpp.ios-gallery`.
 
