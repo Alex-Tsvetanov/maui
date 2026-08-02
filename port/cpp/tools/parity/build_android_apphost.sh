@@ -65,7 +65,17 @@ appearance="${MAUI_APPEARANCE:-light}"
 # clock/battery/signal and any notification icon land inside every frame and would score as a per-page
 # diff the port never caused. Restored by the trap below. See tools/parity/device_state.py.
 python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
-trap 'python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
+# DEVICE night mode drives the port's theme now. MauiHostActivity reads
+# Configuration.uiMode (UI_MODE_NIGHT_MASK), not the MAUI_APPEARANCE intent extra — the extra painted the
+# port's own surfaces dark while every theme-resolved native default stayed light, which is how the port
+# ended up drawing near-black text (8,8,8) on a near-black page. One mechanism for both columns: the MAUI
+# reference already takes its dark from the device, and now so does the port. Restored by the trap.
+if [[ "${MAUI_APPEARANCE:-light}" == "dark" ]]; then
+  "${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night yes > /dev/null 2>&1 || true
+  sleep 2
+fi
+trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night no > /dev/null 2>&1 || true;
+      python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
 # Canonical layout ALWAYS suffixes the theme: captures/android/cpp/<key>_<theme>.png. Android is
 # captured single-theme (light) on the board, but keep the theme in the name for the layout convention.

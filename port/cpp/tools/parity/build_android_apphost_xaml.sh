@@ -49,6 +49,17 @@ done
 
 appearance="${MAUI_APPEARANCE:-light}"
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
+# Pin the emulator's chrome, and drive the theme from DEVICE night mode. MauiHostActivity now reads
+# Configuration.uiMode rather than the MAUI_APPEARANCE intent extra: the extra painted the port's own
+# surfaces dark while every theme-resolved native default stayed light, which is how the port drew
+# near-black text on a near-black page. Same mechanism the MAUI reference uses. Restored by the trap.
+python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
+if [[ "${appearance}" == "dark" ]]; then
+  "${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night yes > /dev/null 2>&1 || true
+  sleep 2
+fi
+trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night no > /dev/null 2>&1 || true;
+      python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
 # Canonical layout ALWAYS suffixes the theme: captures/android/xaml/<key>_<theme>.png.
 suffix="_${appearance}"
 

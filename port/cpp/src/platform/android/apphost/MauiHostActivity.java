@@ -52,24 +52,50 @@ public final class MauiHostActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Match MAUI's status-bar colorization for a pixel-accurate top bar (parity C1/C3): MauiReference's
-        // Maui.MainTheme sets colorPrimaryDark = #BDBDBD (no values-night, so both themes), which Android uses
-        // as android:statusBarColor — a light-gray bar with dark icons. This bare app_process host otherwise
-        // leaves the default white/translucent bar (~#F0F0F3). Set both the color and the light-status-bar
-        // flag (dark icons over the light bar) so the top bar matches MAUI in light AND dark.
+        // THE APP THEME COMES FROM THE DEVICE, exactly as it does for a real MAUI app.
+        //
+        // This used to read the MAUI_APPEARANCE intent extra and drive the theme from it. That was wrong,
+        // and wrong in a way that only a dark capture could show: the extra painted the port's OWN surfaces
+        // dark (root + window background below) while the ANDROID THEME stayed light, so every native
+        // default that resolves from the theme kept its light-mode value. The visible result was
+        // near-black text (8,8,8) on the near-black page (18,18,18) — measured across the board, e.g.
+        // label/templated_view/formatted_text all paint the port's default text at (8,8,8) where MAUI
+        // paints (184,184,184). label_handler.cpp is NOT at fault: it deliberately leaves the TextView's
+        // theme ColorStateList untouched when TextColor is unset (mirroring MAUI's UpdateTextColor no-op
+        // on null, and preserving disabled-state dimming). Its unstated assumption — that the Android
+        // theme agrees with the app's appearance — is what an env-var-driven theme broke.
+        //
+        // Reading Configuration.uiMode fixes the whole class at once rather than per control: text,
+        // status-bar icons, dividers, disabled states and every other theme-resolved default now follow
+        // the same source. It is also what MAUI itself does, which is why setting device night mode was
+        // what finally made the MAUI reference render dark.
+        //
+        // Capture implication: a dark capture must now set DEVICE night mode (`adb shell cmd uimode night
+        // yes`) for the port exactly as it already does for the MAUI reference — one mechanism for both
+        // columns instead of two that can disagree.
+        final int nightFlags = getResources().getConfiguration().uiMode
+            & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+        final boolean isDark = nightFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        final String appearance = isDark ? "dark" : "light";
+
+        // The status bar is DELIBERATELY light-gray in BOTH themes, and this is not an oversight.
+        // MauiReference's Maui.MainTheme sets colorPrimaryDark = #BDBDBD and ships NO values-night, so
+        // Android uses that as android:statusBarColor in dark mode too — MAUI genuinely renders a
+        // light-gray bar with dark icons whatever the app theme is. Matching that is the parity target.
+        //
+        // I briefly "fixed" this to follow isDark, on the reasoning that light chrome in dark mode must be
+        // a bug. It is not, and the change was a REGRESSION: it left label_dark at 6.33% diff, the entire
+        // residual being the status-bar strip (MAUI 189,189,189 vs the port's 18,18,18). The comment that
+        // was here already said "no values-night, so both themes" — it was correct and I overrode it.
+        // Verify against captures/android/maui/*_dark.png before changing this again.
         getWindow().setStatusBarColor(0xFFBDBDBD);
         android.view.View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
             decorView.getSystemUiVisibility() | android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+
         String pageKey = getIntent() != null ? getIntent().getStringExtra("MAUI_SAMPLE_PAGE") : null;
         if (pageKey == null || pageKey.isEmpty()) {
             pageKey = "label";
-        }
-        // MAUI_APPEARANCE=light|dark drives the app theme (AppThemeBinding). `am start` cannot set the
-        // process env, so forward the intent extra into the native call (getenv is empty under a launch).
-        String appearance = getIntent() != null ? getIntent().getStringExtra("MAUI_APPEARANCE") : null;
-        if (appearance == null) {
-            appearance = "light";
         }
         View root = nativeMount(pageKey, appearance);
         if (root != null) {
