@@ -1855,11 +1855,11 @@ ports RadioButtonBorder.xaml A self-contained, code-first demo of RadioButton bo
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9258, 5.76% pixels differ · Dark: SSIM 0.9091, 5.76% pixels differ
+Light: SSIM 0.9259, 5.76% pixels differ · Dark: SSIM 0.9092, 5.76% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9258, 5.76% pixels differ · Dark: SSIM 0.9091, 5.76% pixels differ
+Light: SSIM 0.9259, 5.76% pixels differ · Dark: SSIM 0.9092, 5.76% pixels differ
 
 ### 123. Radio Button Content — 🟡/🟡
 <sub>radio_button_content</sub>
@@ -1870,11 +1870,11 @@ ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the Ra
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9631, 1.85% pixels differ · Dark: SSIM 0.9641, 1.68% pixels differ
+Light: SSIM 0.9762, 1.35% pixels differ · Dark: SSIM 0.9774, 1.18% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9631, 1.85% pixels differ · Dark: SSIM 0.9641, 1.68% pixels differ
+Light: SSIM 0.9762, 1.35% pixels differ · Dark: SSIM 0.9774, 1.18% pixels differ
 
 ### 124. Radio Button Group — 🟢/🟢
 <sub>radio_button_group</sub>
@@ -1915,11 +1915,11 @@ ports RadioButtonGroupGalleryPage.xaml A self-contained, code-first demo of Radi
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9164, 3.43% pixels differ · Dark: SSIM 0.9151, 3.43% pixels differ
+Light: SSIM 0.9404, 2.31% pixels differ · Dark: SSIM 0.9385, 2.31% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9164, 3.43% pixels differ · Dark: SSIM 0.9151, 3.43% pixels differ
+Light: SSIM 0.9404, 2.31% pixels differ · Dark: SSIM 0.9385, 2.31% pixels differ
 
 ### 127. Radio Content Properties — 🟡/🟡
 <sub>radio_content_properties</sub>
@@ -1930,11 +1930,11 @@ ports ContentProperties.xaml A self-contained, code-first demo of how RadioButto
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9599, 1.75% pixels differ · Dark: SSIM 0.9604, 1.70% pixels differ
+Light: SSIM 0.9697, 1.31% pixels differ · Dark: SSIM 0.9698, 1.26% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9599, 1.75% pixels differ · Dark: SSIM 0.9604, 1.70% pixels differ
+Light: SSIM 0.9697, 1.31% pixels differ · Dark: SSIM 0.9698, 1.26% pixels differ
 
 ### 128. Radio Template From Style — 🟢/🟢
 <sub>radio_template_from_style</sub>

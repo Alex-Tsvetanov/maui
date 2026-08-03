@@ -244,7 +244,18 @@ namespace maui::core
         // scale, and what distinguishes this from the ring-geometry bug fixed above it. 14/2 = 7 per side
         // leaves the ring its full 21pt. The HORIZONTAL pad stays 8 (Border Padding=6 + Grid Padding=2).
         const CGFloat template_vpad = 7;
-        const CGFloat template_hpad = 8;
+        // 7, CALIBRATED TO THE SHIPPED RENDER (ruling 11) rather than to Border(6) + Grid(2) = 8. The
+        // declared 8 is what the template says; 8 is not what MAUI draws. MEASURED on
+        // radio_button_group_gallery_light @3x, with the page's own padding controlled for: the plain
+        // Labels on that page start at x=50/51 in BOTH columns — identical, so the page layout is not the
+        // variable — while the reference's ring ink starts at x=69 and the port's at x=72. A uniform 1pt
+        // excess inside the control, and it moved every glyph of the row with it: 90% of that page's
+        // residual diff sat in the text region, not the ring gutter.
+        //
+        // The same 8-vs-7 disagreement as template_vpad above, and diagnosed the same way — by measuring a
+        // control-independent element first to rule out the page. Not tuned blind: the previous constants
+        // in this file (chrome=16, ring-floor=16) were, and each missed.
+        const CGFloat template_hpad = 7;
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         button.imageEdgeInsets = UIEdgeInsetsMake(0, -gap / 2, 0, gap / 2);
         button.titleEdgeInsets = UIEdgeInsetsMake(0, gap / 2, 0, -gap / 2);
