@@ -97,11 +97,34 @@ All four pages improved substantially; none reached green, so the board did not 
    comparison: that page's Option 2 (fill only) is 35.0pt in both columns, Option 1 (same fill +
    `BorderWidth=4`) is 45.0pt reference vs 27.0pt port — and 27 = 35 − 2×4 exactly.
 
-**Still open, and deliberately not guessed at:** a bordered radio measures 43.0pt in the port against
-45.0pt in the reference. 43 = 35 + 2×4 is exactly what the template arithmetic predicts, so MAUI is
-growing by 5pt per side for a 4pt border and the extra 1pt is unexplained. Also unexplained: the
-horizontal chrome is 7pt as shipped where `Border(6) + Grid(2)` declares 8 — the same 8-vs-7
-disagreement as the vertical chrome.
+**Still open, and deliberately not guessed at.** All four rows of `radio_button_border`, measured with
+the non-white band method (the reliable one — see the lesson below):
+
+| row | MAUI | port |
+|---|---|---|
+| Opt 1 — `BorderWidth=4` + fill | 45.0pt | 43.0pt |
+| Opt 2 — fill only | 35.0pt | 35.0pt |
+| Opt 3 — neither | 21.0pt | 21.0pt |
+| Opt 4 — `BorderWidth=4`, no fill | 44.3pt | 43.0pt |
+
+Opt 3 reading 21.0pt in both is the interpretive key: with no background there is no box to see, so that
+figure is the RING, not the layout row. The visible box in Opt 2 (35pt) is the background extent, i.e.
+the control's layout box.
+
+So a 4pt border grows the control 35 → 45, **+10pt**, where the port now adds +8 (= 2×4, exactly the
+template arithmetic: ring 21 + 2×Grid.Padding(2) + 2×Border.Padding(6) + 2×stroke(4) = 45 explains the
+BORDERED case exactly, yet the same formula predicts 37 for the unbordered case where the render is 35).
+
+One hypothesis IS ruled out by the data: if MAUI's stroke straddled the box edge, the overhang would be
+w/2 = 2pt per side and the ink would be 47pt. It is 45, so the overhang is 1pt per side and does not
+scale with w — at least at w=4.
+
+**Not fixed, on purpose.** `+2×(w+1)` fits this measurement, and the corpus has no second RadioButton
+border width to validate it (`styles.xaml`'s `BorderWidth="2"` is on a Button). Fitting a formula to a
+single data point is precisely the blind calibration that misfired twice in this file already. The same
+unexplained +1pt appears in the horizontal chrome — 7pt as shipped where `Border(6) + Grid(2)` declares
+8 — and two +1pt discrepancies in one control look like one mechanism worth finding, not two constants
+worth nudging.
 
 **A measurement lesson worth keeping.** Two methods disagreed on that 2pt: a colour-classified vertical
 slice said the heights matched, a non-white band scan said 45 vs 43. The slice was wrong — its "white"
