@@ -75,6 +75,38 @@ scenario tap calibration is keyed to width 1512).
 
 iOS, Android and Windows are unblocked.
 
+### Windows — DONE (2026-08-03), and it FOUND SOMETHING
+
+1085 frames, 0 drops, and exactly **two** OS theme switches plus a restore for the whole board — the
+outermost-theme-loop design doing its job (the inner ordering would have been ~1000 switches).
+
+Windows **171/0/1 → 168/2/2** on both columns. **This is not a port regression.** The MAUI reference was
+rebuilt, and under system-driven theming *real MAUI renders differently — and correctly* where the
+forced override had been rendering wrong:
+
+`radio_button_content`, dark, the ControlTemplate'd RadioButton:
+
+| | rendering |
+|---|---|
+| MAUI **before** (`UserAppTheme = Dark` via the env override) | a WHITE box, an invisible grey dot, **no text at all** |
+| MAUI **now** (system dark, `UserAppTheme` Unspecified) | dark box, visible radio, its text shown |
+| the **port**, now | the WHITE box — i.e. it replicates MAUI's OLD, BROKEN behaviour |
+
+So `UserAppTheme = Dark` never propagated into that ControlTemplate's resources on Windows, while the
+system theme does. The board had been comparing the port against a reference that was itself wrong, and
+scoring the pair as a match. Three cells moved for this reason:
+
+| page | delta | |
+|---|---|---|
+| `radio_button_content` | dark 8.53% | **new red** — the templated-RadioButton gap above |
+| `containers` | dark 7.49% | new yellow |
+| `hybrid_web_view` | light 2.07% | new yellow |
+
+`context_flyout` stays red in both columns: live external content, explicitly exempt.
+
+These three are Phase 4 work — genuine port gaps that only system-wide theming could reveal, because
+both sides were previously pinned by an override that masked them.
+
 ### iOS — DONE (2026-08-03)
 
 All three columns recaptured under system-wide light and dark: 182+182 each, 0 drops, 0 splash frames.
