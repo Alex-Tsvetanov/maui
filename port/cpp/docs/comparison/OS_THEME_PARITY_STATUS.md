@@ -107,12 +107,40 @@ unaffected.
 `app_host.cpp` does prefer it over the legacy path — both hosts, verified. So the mechanism is present
 and the bug is not a missing call.
 
-**Untested hypothesis, stated as such:** the helper returns a height excluding only the TOP inset,
-because `getCurrentWindowMetrics().getWindowInsets()` is not fully populated at mount time — the
-comment there asserts it is "timing-safe … valid at mount time", and that claim is what should be
-tested first, by logging the returned value on device against `getBounds().height()` and the two insets.
-The 4px/1px stroke deltas are a separate, smaller matter (the shape-deflate family) and should not be
-conflated with this.
+**HYPOTHESIS TESTED AND DISPROVED (2026-08-03).** A temporary probe in
+`MauiHostActivity.usableContentHeightPx()`, on the live emulator, logged:
+
+```
+bounds=2340  systemBars(top=136, bottom=66)  statusBars=136  navBars=66  caption=0  displayCutout=136
+```
+
+The helper is correct and timing-safe: it returns 2138 = 2340 − 136 − 66, subtracting BOTH insets at
+mount time. The comment's claim holds. (Probe reverted; the file is unmodified.)
+
+**The top inset is also right, and that was my second wrong guess.** `statusBars()` reads 136 because
+the emulator reports a 136px display cutout — and the status bar really is 136px tall in the capture
+(grey #BDBDBD from y0 to y≈136). Top-anchored pages confirm it: `label` and `button` place first ink at
+y=249 in BOTH columns.
+
+**So the discrepancy is at the BOTTOM.** Solving the centring both ways against the measured box
+centres:
+
+| | top inset | bottom inset | predicted centre | measured |
+|---|---|---|---|---|
+| port | 136 | 66 (nav bar) | 1205 | 1204.5 ✓ |
+| MAUI | 136 | **~137** | 1169.5 | 1169.5 ✓ |
+
+MAUI reserves ~137px at the bottom where the port reserves 66 — roughly the navigation bar *doubled*,
+or equivalently the same inset it applies at the top. The nav bar is visually identical in both frames
+(black from y≈2276), so this is reserved layout space, not painted chrome.
+
+**Next measurement, not a fix:** get MAUI's content bottom DIRECTLY rather than by inference — a page
+with `VerticalOptions="End"` pins B without solving an equation. Two inferred quantities (T and B) from
+one measured centre is one equation in two unknowns; the table above only works because the top inset
+was independently confirmed.
+
+The 4px box / 1px stroke deltas are a separate, smaller matter (the shape-deflate family) and should
+not be conflated with this.
 
 ### Phase 4 — the iOS radio family (2026-08-03)
 
