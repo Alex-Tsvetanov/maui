@@ -75,6 +75,31 @@ scenario tap calibration is keyed to width 1512).
 
 iOS, Android and Windows are unblocked.
 
+### Phase 4 — `ios/image`: the port does not composite animated-GIF frames
+
+`ios/image` is light **3.91%** / dark **0.13%**, and the asymmetry is misleading: the affected element
+is a GIF whose own canvas is BLACK, so in dark mode the defect is invisible against a dark page and
+scores ~0. It is equally wrong in both themes.
+
+Scanning every dark box in the light frames, all match except one:
+
+| | box | height |
+|---|---|---|
+| MAUI | y2301-2621 | **321px** |
+| port | y2501-2621 | **121px** |
+
+Same bottom edge, port 200px shorter, and everything above and below matches exactly — so the layout is
+right and the IMAGE is short. The port also renders no heart where MAUI shows one mid-animation.
+
+`animated_heart.gif` is 400×300 with **16 frames**. GIF frames carry PARTIAL rects that must be
+composited onto the previous frame; rendering one in isolation yields exactly this — a fraction of the
+canvas, no subject. That is the root cause to confirm.
+
+NOT a capture flake, checked: re-captured both columns and the score was identical to two decimals,
+with the files verifiably rewritten (mtime + `git status`). Deterministic, therefore real.
+
+Fixing it means frame compositing in the image decoder — substantial, and worth scoping before starting.
+
 ### Phase 4 — NEXT LEAD: Android centred content sits 34px low (the `border*` family)
 
 The `border*` pages are the largest remaining yellow family — 7 cells across Android, iOS and Catalyst
