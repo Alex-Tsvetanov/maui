@@ -223,7 +223,13 @@ namespace maui::core
         // deprecated in the UIButtonConfiguration era but remain functional + correct for this image+title
         // layout on a Custom button (the same tolerated deprecation as button_handler.mm's contentEdgeInsets),
         // and a configuration would lose the per-state Normal/Selected ring images this fallback relies on.
-        const CGFloat gap = 8;
+        // 6 = the DefaultTemplate Grid's ColumnSpacing (RadioButton.cs:536), NOT a tuned number. It was 8,
+        // and that single constant produced BOTH residual offsets on the radio pages, because it feeds the
+        // left inset as well (template_hpad + gap/2): the ring sat 1pt right of the reference and the
+        // ring-to-text gap ran 2pt wide. MEASURED on radio_button_group_gallery_light @3x — reference ring
+        // x69-131 with a 7.67pt gap, port x72-134 with 9.67pt. Dropping to the oracle's 6 moves the left
+        // inset 12 -> 11 (ring 1pt left) and closes the gap by 2pt, which is exactly the delta measured.
+        const CGFloat gap = 6;
         // MAUI's RadioButton DefaultTemplate wraps the indicator+content in a Border(Padding=6) > Grid
         // (Padding=2), giving every radio ~8pt of fixed chrome padding on EACH side (top/bottom AND
         // left/right) — so a native-default radio is both taller and wider than a bare UIButton. The port
