@@ -4840,12 +4840,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9878, 0.56% pixels differ \u00b7 Dark: SSIM 0.9115, 7.49% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9878, 0.56% pixels differ \u00b7 Dark: SSIM 0.9883, 0.52% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9878, 0.56% pixels differ \u00b7 Dark: SSIM 0.9115, 7.49% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9878, 0.56% pixels differ \u00b7 Dark: SSIM 0.9883, 0.52% pixels differ"
         }
       }
     }
@@ -11455,12 +11455,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9575, 2.07% pixels differ \u00b7 Dark: SSIM 0.9988, 0.19% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9985, 0.21% pixels differ \u00b7 Dark: SSIM 0.9988, 0.19% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9575, 2.07% pixels differ \u00b7 Dark: SSIM 0.9988, 0.19% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9985, 0.21% pixels differ \u00b7 Dark: SSIM 0.9988, 0.19% pixels differ"
         }
       }
     }
@@ -18070,12 +18070,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.8984, 8.53% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.8984, 8.53% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       }
     }

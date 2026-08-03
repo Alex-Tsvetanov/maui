@@ -19,6 +19,7 @@
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/radial_gradient_paint.hpp"
 #include "maui/graphics/solid_paint.hpp"
+#include "maui/graphics/system_background_paint.hpp" // the legacy Frame's theme-aware default fill
 #include "winui_interop.hpp"
 
 namespace
@@ -92,6 +93,44 @@ namespace maui::platform::windows
             brush.RadiusY(radial->radius());
             brush.GradientOrigin(brush.Center());
             return brush;
+        }
+        // The legacy Frame's default fill. controls/frame.cpp injects a system_background_paint marker
+        // when the developer sets no Background, and each backend is expected to resolve it to the
+        // platform's DYNAMIC system background — ios_visual_ops.hpp, apple_visual_ops.hpp and
+        // android_visual_ops.hpp all carry that branch. Windows never got one, so it fell through to the
+        // marker's static value, which is an opaque WHITE light-mode fallback
+        // (graphics/system_background_paint.cpp). The result was a Frame painted white in BOTH themes.
+        //
+        // Invisible until the board started capturing the OS theme: MAUI's own Windows oracle is the
+        // compatibility FrameRenderer, which fills SystemAltHighColor — a THEME-AWARE WinUI system colour
+        // (Compatibility/Handlers/Windows/FrameRenderer.cs:113) — and UserAppTheme does NOT drive WinUI's
+        // theme dictionaries. So under the old forced-override capture the REFERENCE was white too and
+        // the pair scored as a match; under a real system-dark desktop MAUI turns black and the port did
+        // not. Measured on radio_button_content_dark: reference (0,0,0), port (255,255,255) at (500,245),
+        // whiting out the card and hiding its white label text entirely.
+        //
+        // Checked BEFORE the solid fallthrough below because system_background_paint DERIVES solid_paint,
+        // so the fallthrough would otherwise swallow it. One producer exists repo-wide (frame.cpp), so
+        // this cannot leak into any other Windows control.
+        if (dynamic_cast<const maui::graphics::system_background_paint*>(&paint) != nullptr)
+        {
+            const auto app = winui::Application::Current();
+            if (app != nullptr)
+            {
+                const auto key = winrt::box_value(winrt::hstring{L"SystemAltHighColor"});
+                if (app.Resources().HasKey(key))
+                {
+                    return winui::Media::SolidColorBrush{
+                        winrt::unbox_value<winrt::Windows::UI::Color>(app.Resources().Lookup(key))};
+                }
+                // A miss is a live path, not a defect: the oracle reads the RENDERER element's dictionary,
+                // which is a different lookup root than Application.Current.Resources. Fall back to the two
+                // known SystemAltHighColor values, keyed off the app theme host_run.cpp seeded from the OS.
+                const bool dark = app.RequestedTheme() == winui::ApplicationTheme::Dark;
+                return winui::Media::SolidColorBrush{
+                    maui::platform::windows::to_ui_color(dark ? maui::graphics::color(0.0F, 0.0F, 0.0F, 1.0F)
+                                                              : maui::graphics::color(1.0F, 1.0F, 1.0F, 1.0F))};
+            }
         }
         // Everything else resolves through the base contract's background_color(), which solid_paint,
         // pattern_paint and the system paint all implement. That is C#'s fallback too.

@@ -8,8 +8,8 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <tr><td>iOS</td><td>162</td><td>10</td><td>0</td><td>0</td><td>0</td><td>162</td><td>10</td><td>0</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>163</td><td>7</td><td>2</td><td>0</td><td>0</td><td>163</td><td>7</td><td>2</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>160</td><td>10</td><td>2</td><td>0</td><td>0</td><td>160</td><td>10</td><td>2</td><td>0</td><td>0</td></tr>
-<tr><td>Windows</td><td>168</td><td>2</td><td>2</td><td>0</td><td>0</td><td>168</td><td>2</td><td>2</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>653</strong></td><td><strong>29</strong></td><td><strong>6</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>653</strong></td><td><strong>29</strong></td><td><strong>6</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td>Windows</td><td>171</td><td>0</td><td>1</td><td>0</td><td>0</td><td>171</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>656</strong></td><td><strong>27</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>656</strong></td><td><strong>27</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -7816,9 +7816,9 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 168 | 168 |
-| 🟡 Minor | 2 | 2 |
-| 🔴 Major | 2 | 2 |
+| 🟢 Match | 171 | 171 |
+| 🟡 Minor | 0 | 0 |
+| 🔴 Major | 1 | 1 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -8302,20 +8302,20 @@ Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 1.0000, 0.01% pixels diffe
 
 Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 1.0000, 0.01% pixels differ
 
-### 33. Containers — 🟡/🟡
+### 33. Containers — 🟢/🟢
 <sub>containers</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/containers_light.png" /></td><td><img width="300px" src="captures/windows/cpp/containers_light.png" /></td><td><img width="300px" src="captures/windows/xaml/containers_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/containers_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/containers_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/containers_dark.png" /></td></tr></table>
 
 a self-contained demo page for the W1-07 container set: a scroll_view hosting a vertical stack of content-hosting containers — a border-framed label (stroke + dashed outline + rounded shape), a legacy frame (BorderColor/CornerRadius/HasShad
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9878, 0.56% pixels differ · Dark: SSIM 0.9115, 7.49% pixels differ
+Light: SSIM 0.9878, 0.56% pixels differ · Dark: SSIM 0.9883, 0.52% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9878, 0.56% pixels differ · Dark: SSIM 0.9115, 7.49% pixels differ
+Light: SSIM 0.9878, 0.56% pixels differ · Dark: SSIM 0.9883, 0.52% pixels differ
 
 ### 34. Content View — 🟢/🟢
 <sub>content_view</sub>
@@ -8977,20 +8977,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 78. Hybrid Web View — 🟡/🟡
+### 78. Hybrid Web View — 🟢/🟢
 <sub>hybrid_web_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/windows/cpp/hybrid_web_view_light.png" /></td><td><img width="300px" src="captures/windows/xaml/hybrid_web_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/hybrid_web_view_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/hybrid_web_view_dark.png" /></td></tr></table>
 
 ports HybridWebViewPage.xaml (+ HybridWebViewPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9575, 2.07% pixels differ · Dark: SSIM 0.9988, 0.19% pixels differ
+Light: SSIM 0.9985, 0.21% pixels differ · Dark: SSIM 0.9988, 0.19% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9575, 2.07% pixels differ · Dark: SSIM 0.9988, 0.19% pixels differ
+Light: SSIM 0.9985, 0.21% pixels differ · Dark: SSIM 0.9988, 0.19% pixels differ
 
 ### 79. Image — 🟢/🟢
 <sub>image</sub>
@@ -9652,20 +9652,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 123. Radio Button Content — 🔴/🔴
+### 123. Radio Button Content — 🟢/🟢
 <sub>radio_button_content</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/radio_button_content_light.png" /></td><td><img width="300px" src="captures/windows/cpp/radio_button_content_light.png" /></td><td><img width="300px" src="captures/windows/xaml/radio_button_content_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/radio_button_content_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/radio_button_content_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/radio_button_content_dark.png" /></td></tr></table>
 
 ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the RadioButton.Content surface
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.8984, 8.53% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.8984, 8.53% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 124. Radio Button Group — 🟢/🟢
 <sub>radio_button_group</sub>
