@@ -26,6 +26,7 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 COMP = os.path.normpath(os.path.join(HERE, ".."))
 JSON = os.path.join(COMP, "comparison.json")
+MEASUREMENTS = os.path.join(COMP, "measurements.json")   # written by measure_size.py / measure_runtime.py
 README = os.path.join(COMP, "README.md")
 PLACEHOLDER = "_placeholder.png"
 IMG_W = "300px"
@@ -192,7 +193,99 @@ def summary_table(pages, plat, n):
     return "\n".join(out)
 
 
-def page_section(i, p, plat, fws):
+# --------------------------------------------------------------------------- cost measurements
+# Size / memory / startup, from measurements.json. Separate from comparison.json on purpose: parity
+# is the CONTROL CONDITION for these numbers (same pixels, same widgets → a cost difference is
+# attributable to the implementation strategy), so the two are recorded independently and only
+# joined here. See PREDICTIONS.md for the pre-registered hypotheses these tables answer.
+
+# Which board section a measurement lane belongs under. A lane with no mapping is still listed in
+# the global table; it just gets no per-page glyphs.
+LANE_PLATFORM = {"macos-arm64": "maccatalyst", "macos-appkit": "maccatalyst", "windows-x64": "windows"}
+
+
+def load_measurements():
+    try:
+        with open(MEASUREMENTS, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
+def mb(n):
+    return f"{n / 2**20:.1f} MB"
+
+
+def size_table(meas):
+    """Artifact size per lane per column, with the build configuration ALWAYS shown.
+
+    The build-config column is not decoration. A Debug managed build measured against an optimized
+    native one (or the reverse — which is the current state) is a strawman, so no headline ratio is
+    printed unless both sides of a lane are release-grade."""
+    sizes = meas.get("size") or {}
+    if not sizes:
+        return ""
+    rows, provisional = [], False
+    for lane, cols in sizes.items():
+        for col, r in cols.items():
+            if r.get("remote_only"):
+                rows.append(f"| {lane} | `{col}` | — | — | — | _built on the guest; not measured from "
+                            f"the host_ |")
+                continue
+            if not r.get("exists"):
+                rows.append(f"| {lane} | `{col}` | — | — | — | _artifact missing_ |")
+                continue
+            if not r.get("release_grade"):
+                provisional = True
+            stripped = r.get("total_bytes_stripped")
+            main = r.get("main_binary") or {}
+            sym = main.get("linkedit_bytes") or 0
+            rows.append(
+                f"| {lane} | `{col}` | {mb(r['total_bytes'])} | "
+                f"{mb(stripped) if stripped else '—'} | "
+                f"{r['build_config']}{'' if r.get('release_grade') else ' ⚠'} | "
+                f"{('symbols ' + mb(sym)) if sym else ''} |")
+    if not rows:
+        return ""
+    out = ["<details>", "<summary><h2>Artifact size — click to expand</h2></summary>", "",
+           "Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. "
+           "`Stripped` is a *measured* `strip -S -x` of the main binary, not an estimate — the raw "
+           "on-disk figure for a native build is mostly debug information.", ""]
+    if provisional:
+        out += ["> **⚠ PROVISIONAL — no ratio may be quoted from this table yet.** Rows marked ⚠ are "
+                "not release-grade: the managed reference is a `Debug` build and the native builds "
+                "have an empty `CMAKE_BUILD_TYPE` (no `-O`, no `NDEBUG`). Comparing them is a "
+                "strawman in *both* directions. H1 stays open until both sides are rebuilt "
+                "release-grade (managed: `-c Release` + trimming + AOT; native: "
+                "`CMAKE_BUILD_TYPE=Release` + strip).", ""]
+    out += ["| Lane | Column | On disk | Stripped | Build config | Notes |",
+            "| --- | --- | --- | --- | --- | --- |", *rows, "", "</details>"]
+    return "\n".join(out)
+
+
+def page_metrics(meas, plat, name):
+    """The `{measurements}` suffix on a page's `###` header — RSS and startup, native vs managed.
+
+    Returns "" when nothing has been measured for this page, so the header degrades to exactly the
+    parity glyphs it had before. Written by measure_runtime.py as
+    measurements["runtime"][lane][page][column] = {"rss_bytes": …, "startup_ms": …}."""
+    runtime = (meas.get("runtime") or {})
+    lane = next((l for l, p in LANE_PLATFORM.items() if p == plat and l in runtime), None)
+    if not lane:
+        return ""
+    page = (runtime[lane].get(name) or {})
+    cpp, maui = page.get("cpp") or {}, page.get("maui_xaml") or {}
+    if not cpp and not maui:
+        return ""
+    bits = []
+    if cpp.get("rss_bytes") or maui.get("rss_bytes"):
+        bits.append(f"RAM {mb(cpp.get('rss_bytes', 0))}/{mb(maui.get('rss_bytes', 0))}")
+    if cpp.get("startup_ms") or maui.get("startup_ms"):
+        bits.append(f"start {cpp.get('startup_ms', 0):.0f}/{maui.get('startup_ms', 0):.0f} ms")
+    return ("  ·  " + "  ·  ".join(bits)) if bits else ""
+
+
+def page_section(i, p, plat, fws, meas=None):
     """One gallery page: a `###` subheader (title + sonnet/gemini emoji combo), the screenshot
     table, then a `####` subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score)."""
     page = p["platforms"][plat]
@@ -200,7 +293,8 @@ def page_section(i, p, plat, fws):
     # The compact header glyph is now the deterministic pixel score (C1/C3 over C2/C4); AI review removed.
     combo = f"{EMOJI.get((page.get('pixel') or {}).get('status'), '⏳')}/{EMOJI.get((page.get('pixel_xaml') or {}).get('status'), '⏳')}"
 
-    out = [f"### {i}. {esc(p['title'])} — {combo}", f"<sub>{esc(p['name'])}</sub>", ""]
+    out = [f"### {i}. {esc(p['title'])} — {combo}{page_metrics(meas or {}, plat, p['name'])}",
+           f"<sub>{esc(p['name'])}</sub>", ""]
     out.append(preview_table(sc, fws))
     out.append("")
     if p["description"]:
@@ -220,7 +314,7 @@ def page_section(i, p, plat, fws):
     return "\n".join(out).rstrip()
 
 
-def section(pages, plat, display, fws, n):
+def section(pages, plat, display, fws, n, meas=None):
     """One collapsible platform section: intro + summary counts + one subheader per page."""
     out = ["<details>", f"<summary><h2>{display} ({n} examples) — click to expand</h2></summary>", ""]
     out.append(NOTES[plat])
@@ -231,7 +325,7 @@ def section(pages, plat, display, fws, n):
     out.append(summary_table(pages, plat, n))
     out.append("")
     for i, p in enumerate(pages, 1):
-        out.append(page_section(i, p, plat, fws))
+        out.append(page_section(i, p, plat, fws, meas))
         out.append("")
     out.append("</details>")
     return "\n".join(out)
@@ -240,6 +334,7 @@ def section(pages, plat, display, fws, n):
 
 def main():
     pages = json.load(open(JSON, encoding="utf-8"))
+    meas = load_measurements()
     n = len(pages)
     out = [
         "# .NET MAUI C++ port — visual parity comparison",
@@ -252,6 +347,13 @@ def main():
         "subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's "
         "own status emoji and holding its review prose. Generated from `comparison.json` by "
         "`tools/gen_readme.py` — do not edit by hand.",
+        "",
+        "**Cost of the implementation strategy.** Parity is the *control condition* for the size, "
+        "memory and startup numbers below: both columns drive the same native widgets and produce the "
+        "same pixels, so a cost difference is attributable to the implementation strategy rather than "
+        "to one side doing less work. The hypotheses these tables test were registered **before** any "
+        "number existed — see `PREDICTIONS.md`. Sizes come from `tools/measure_size.py`; per-page "
+        "memory/startup glyphs in a page header read `RAM cpp/maui` and `start cpp/maui`.",
         "",
     ]
     out.append(board_summary_table(pages))
@@ -266,8 +368,12 @@ def main():
                "renders genuinely dark, so Android's reds are the port being correct against a broken "
                "ground truth rather than a port defect. See `PARITY_REVIEW.md`._")
     out.append("")
+    tbl = size_table(meas)
+    if tbl:
+        out.append(tbl)
+        out.append("")
     for plat, display, fws, _is_mac in PLATFORMS:
-        out.append(section(pages, plat, display, fws, n))
+        out.append(section(pages, plat, display, fws, n, meas))
         out.append("")
     text = "\n".join(out).rstrip("\n") + "\n"
     open(README, "w", encoding="utf-8").write(text)

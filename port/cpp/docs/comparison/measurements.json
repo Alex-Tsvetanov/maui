@@ -1,0 +1,153 @@
+{
+ "size": {
+  "macos-arm64": {
+   "maui_xaml": {
+    "artifact": "port/maui-reference/app/bin/Release/net10.0-maccatalyst/maccatalyst-arm64/MauiReference.app",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "path segment",
+    "config_file": "local.toml",
+    "total_bytes": 82472838,
+    "file_count": 166,
+    "buckets": {
+     "resources": 810659,
+     "other": 9506963,
+     "code": 65913120,
+     "managed": 6242096
+    },
+    "main_binary": {
+     "name": "MauiReference",
+     "bytes": 65913120,
+     "linkedit_bytes": 33325056,
+     "stripped_bytes": 33018528
+    },
+    "total_bytes_stripped": 49578246
+   },
+   "cpp": {
+    "artifact": "port/cpp/examples/build-maccatalyst-release/gallery/gallery.app",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 9589554,
+    "file_count": 12,
+    "buckets": {
+     "resources": 531242,
+     "code": 9058312
+    },
+    "main_binary": {
+     "name": "gallery",
+     "bytes": 9058312,
+     "linkedit_bytes": 901120,
+     "stripped_bytes": 9058312
+    },
+    "total_bytes_stripped": 9589554
+   },
+   "cpp_xaml": {
+    "artifact": "port/cpp/examples/build-maccatalyst-release/gallery_xaml/gallery_xaml.app",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 23205188,
+    "file_count": 12,
+    "buckets": {
+     "resources": 531220,
+     "code": 22673968
+    },
+    "main_binary": {
+     "name": "gallery_xaml",
+     "bytes": 22673968,
+     "linkedit_bytes": 7045120,
+     "stripped_bytes": 22673968
+    },
+    "total_bytes_stripped": 23205188
+   }
+  },
+  "macos-appkit": {
+   "appkit_cpp": {
+    "artifact": "port/cpp/examples/build-apple-release/gallery",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 9421513,
+    "file_count": 11,
+    "buckets": {
+     "resources": 529857,
+     "code": 8891656
+    },
+    "main_binary": {
+     "name": "gallery",
+     "bytes": 8891656,
+     "linkedit_bytes": 901120,
+     "stripped_bytes": 8891656
+    },
+    "total_bytes_stripped": 9421513
+   },
+   "appkit_xaml": {
+    "artifact": "port/cpp/examples/build-apple-release/gallery_xaml",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 23004193,
+    "file_count": 11,
+    "buckets": {
+     "code": 22474336,
+     "resources": 529857
+    },
+    "main_binary": {
+     "name": "gallery_xaml",
+     "bytes": 22474336,
+     "linkedit_bytes": 7045120,
+     "stripped_bytes": 22474336
+    },
+    "total_bytes_stripped": 23004193
+   }
+  },
+  "windows-x64": {
+   "maui_xaml": {
+    "artifact": "C:/maui-src/maui-reference/app/bin/Debug/net10.0-windows10.0.19041.0/win-arm64",
+    "exists": false,
+    "remote_only": true,
+    "note": "built on the guest — needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "build_config": "unknown",
+    "release_grade": false,
+    "build_config_detected_from": "n/a (remote)",
+    "config_file": "windows.toml"
+   },
+   "cpp": {
+    "artifact": "C:/maui-src/cpp/examples/build-win/gallery",
+    "exists": false,
+    "remote_only": true,
+    "note": "built on the guest — needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "build_config": "unknown",
+    "release_grade": false,
+    "build_config_detected_from": "n/a (remote)",
+    "config_file": "windows.toml"
+   },
+   "cpp_xaml": {
+    "artifact": "C:/maui-src/cpp/examples/build-win/gallery_xaml",
+    "exists": false,
+    "remote_only": true,
+    "note": "built on the guest — needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "build_config": "unknown",
+    "release_grade": false,
+    "build_config_detected_from": "n/a (remote)",
+    "config_file": "windows.toml"
+   }
+  }
+ },
+ "size_measured_at": "2026-08-03T20:08:10Z"
+}

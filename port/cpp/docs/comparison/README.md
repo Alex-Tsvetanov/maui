@@ -2,6 +2,8 @@
 
 Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **macOS** (Mac Catalyst + AppKit) and **Android**. Each section is collapsible and holds a discrepancy-count summary, then one subheader per page titled with a `{Sonnet}/{Gemini}` status-emoji combo (🟢 match / 🟡 minor / 🔴 major / ⬛ blank / ⏳ unreviewed). Under each page: the MAUI / C++ / C++&amp;XAML renders (light over dark; missing captures show a placeholder), then a subsubheader per review model (Sonnet, Gemini, Pixel-Perfect Score) titled with that model's own status emoji and holding its review prose. Generated from `comparison.json` by `tools/gen_readme.py` — do not edit by hand.
 
+**Cost of the implementation strategy.** Parity is the *control condition* for the size, memory and startup numbers below: both columns drive the same native widgets and produce the same pixels, so a cost difference is attributable to the implementation strategy rather than to one side doing less work. The hypotheses these tables test were registered **before** any number existed — see `PREDICTIONS.md`. Sizes come from `tools/measure_size.py`; per-page memory/startup glyphs in a page header read `RAM cpp/maui` and `start cpp/maui`.
+
 <table>
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
@@ -15,6 +17,24 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
 
 _Android **dark** is not currently comparable: the MAUI reference renders light under both `MAUI_THEME=Light` and `=Dark` (measured body mean 137.7 vs 139.3) while the port renders genuinely dark, so Android's reds are the port being correct against a broken ground truth rather than a port defect. See `PARITY_REVIEW.md`._
+
+<details>
+<summary><h2>Artifact size — click to expand</h2></summary>
+
+Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Stripped` is a *measured* `strip -S -x` of the main binary, not an estimate — the raw on-disk figure for a native build is mostly debug information.
+
+| Lane | Column | On disk | Stripped | Build config | Notes |
+| --- | --- | --- | --- | --- | --- |
+| macos-arm64 | `maui_xaml` | 78.7 MB | 47.3 MB | Release | symbols 31.8 MB |
+| macos-arm64 | `cpp` | 9.1 MB | 9.1 MB | Release | symbols 0.9 MB |
+| macos-arm64 | `cpp_xaml` | 22.1 MB | 22.1 MB | Release | symbols 6.7 MB |
+| macos-appkit | `appkit_cpp` | 9.0 MB | 9.0 MB | Release | symbols 0.9 MB |
+| macos-appkit | `appkit_xaml` | 21.9 MB | 21.9 MB | Release | symbols 6.7 MB |
+| windows-x64 | `maui_xaml` | — | — | — | _built on the guest; not measured from the host_ |
+| windows-x64 | `cpp` | — | — | — | _built on the guest; not measured from the host_ |
+| windows-x64 | `cpp_xaml` | — | — | — | _built on the guest; not measured from the host_ |
+
+</details>
 
 <details>
 <summary><h2>iOS (172 examples) — click to expand</h2></summary>

@@ -19,8 +19,17 @@ user = "testinguser"                     # will silently break DNS. ssh key alre
 connect_timeout_seconds = 10
 
 [environments.macos-arm64.display]       # requirement 4: set the VM display resolution explicitly
-width = 1512
-height = 864   # VM default (1512x864); present pins the window at x=128 so scenario taps still align
+# The guest's resolution is NOT settable from inside the VM: displayplacer reports success and the
+# display reads back unchanged (measured — requested [1504,846], set [1504,846], actual [3840,2160]).
+# UTM drives the guest resolution from its HOST WINDOW SIZE, which is also why the mode list changes
+# whenever that window is resized. So this value must MATCH what the guest currently reports, or
+# set-resolution fails and (correctly) aborts the run.
+#
+# It barely matters for capture: `present` pins each window to an explicit 1024x800 rect and captures
+# THAT, so the display only has to be large enough to contain it. The scenario tap calibration is
+# likewise unaffected — the board runs with an empty scenarios dir, so no coordinate taps ever fire.
+width = 3840
+height = 2160
 
 # No external window-pinning: Mac Catalyst windows can't be repositioned externally (AX reports
 # position/size as unsettable — kAXErrorAttributeUnsupported; System Events hits the same layer). Instead
@@ -46,6 +55,7 @@ open          = "/usr/bin/open"
 #   maui_xaml → the C# MauiReference.app;  cpp/cpp_xaml → gallery / gallery_xaml Catalyst .app bundles.
 [environments.macos-arm64.columns.maui_xaml]
 artifact  = "port/maui-reference/app/bin/Debug/net10.0-maccatalyst/maccatalyst-arm64/MauiReference.app"
+artifact_release = "port/maui-reference/app/bin/Release/net10.0-maccatalyst/maccatalyst-arm64/MauiReference.app"
 process   = "MauiReference"
 page_env  = "MAUI_COMPARE_PAGE"
 theme_env = "MAUI_THEME"
@@ -56,6 +66,7 @@ devflow_cli = "maui"        # path to the `maui` global tool on the VM (needs it
 
 [environments.macos-arm64.columns.cpp]
 artifact  = "port/cpp/examples/build-maccatalyst/gallery/gallery.app"
+artifact_release = "port/cpp/examples/build-maccatalyst-release/gallery/gallery.app"
 process   = "gallery"
 page_env  = "MAUI_SAMPLE_PAGE"
 theme_env = "MAUI_APPEARANCE"
@@ -67,6 +78,7 @@ driver = "coordinate"
 
 [environments.macos-arm64.columns.cpp_xaml]
 artifact  = "port/cpp/examples/build-maccatalyst/gallery_xaml/gallery_xaml.app"
+artifact_release = "port/cpp/examples/build-maccatalyst-release/gallery_xaml/gallery_xaml.app"
 process   = "gallery_xaml"
 page_env  = "MAUI_SAMPLE_PAGE"
 theme_env = "MAUI_APPEARANCE"
@@ -105,8 +117,17 @@ user = "testinguser"
 connect_timeout_seconds = 10
 
 [environments.macos-appkit.display]
-width = 1512
-height = 864
+# The guest's resolution is NOT settable from inside the VM: displayplacer reports success and the
+# display reads back unchanged (measured — requested [1504,846], set [1504,846], actual [3840,2160]).
+# UTM drives the guest resolution from its HOST WINDOW SIZE, which is also why the mode list changes
+# whenever that window is resized. So this value must MATCH what the guest currently reports, or
+# set-resolution fails and (correctly) aborts the run.
+#
+# It barely matters for capture: `present` pins each window to an explicit 1024x800 rect and captures
+# THAT, so the display only has to be large enough to contain it. The scenario tap calibration is
+# likewise unaffected — the board runs with an empty scenarios dir, so no coordinate taps ever fire.
+width = 3840
+height = 2160
 
 [environments.macos-appkit.staging]
 root = "/Users/testinguser/maui-comparison"
@@ -123,6 +144,7 @@ open          = "/usr/bin/open"
 # the binary directly with cwd set (assets resolve against CWD); Env.deploy excludes the CMake scratch.
 [environments.macos-appkit.columns.appkit_cpp]
 artifact  = "port/cpp/examples/build-apple/gallery"
+artifact_release = "port/cpp/examples/build-apple-release/gallery"
 process   = "gallery"
 page_env  = "MAUI_SAMPLE_PAGE"
 theme_env = "MAUI_APPEARANCE"
@@ -132,6 +154,7 @@ driver = "coordinate"
 
 [environments.macos-appkit.columns.appkit_xaml]
 artifact  = "port/cpp/examples/build-apple/gallery_xaml"
+artifact_release = "port/cpp/examples/build-apple-release/gallery_xaml"
 process   = "gallery_xaml"
 page_env  = "MAUI_SAMPLE_PAGE"
 theme_env = "MAUI_APPEARANCE"
