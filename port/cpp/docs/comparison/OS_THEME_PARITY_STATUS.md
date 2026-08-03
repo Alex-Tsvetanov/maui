@@ -153,12 +153,28 @@ sits at 952, which is 35px ABOVE the centre of that same area. So MAUI is not ce
 full content area on that page, and the divergence is in MAUI's layout of this specific page, not in the
 port's insets.
 
-Where to look next: what makes `border` different from `borderless` for MAUI — a single centred
-`Border` with `HeightRequest` versus a `*,*` Grid that fills. Per the per-view safe-area note
-(`cpp-safe-area-per-view`), MAUI applies safe-area insets PER VIEW rather than per page, so a
-non-filling child may receive a different arrange rect than a filling one. That is a hypothesis, not a
-conclusion — and given three wrong ones here already, it needs a direct measurement on a third page
-shaped like `border` before any code moves.
+**FOURTH HYPOTHESIS ALSO DISPROVED.** "A non-filling child gets a different arrange rect" predicts that
+every vertically-centred page is off. It is not: on Android `animation` and `basic_swipe` — both
+`VerticalOptions="Center"` — score **0.00%, SSIM 1.0000**, and `borderless`, `border_layout` and
+`adaptive_collection` are green too. Only `border` diverges.
+
+**Narrowed to a single page, with the port behaving correctly.** Measuring the full box (fill + stroke,
+not just the red stroke):
+
+| | box ink | height | centre |
+|---|---|---|---|
+| MAUI | y951-1388 | 438px | 1169.5 |
+| port | y985-1424 | 440px | 1204.5 |
+
+Sizes agree to 2px (the shape-deflate residual). The content area is [136, 2273] with centre 1204.5 —
+the port's box centre exactly. MAUI places its box 35px ABOVE the centre of the area it demonstrably
+lays out into.
+
+`border` is the only page in the corpus whose ContentPage child is BOTH non-filling and page-level, so
+there is no second instance to generalise from. Four hypotheses have now been tested and disproved here
+with zero code changed, and each would have modified correct code. **Recommendation: leave it.** One
+page at 3.55% is not worth a fifth speculative change to shared layout code; revisit only if a second
+page with this shape appears, which would give the second data point every attempt so far has lacked.
 
 The 4px box / 1px stroke deltas are a separate, smaller matter (the shape-deflate family) and should
 not be conflated with this.
