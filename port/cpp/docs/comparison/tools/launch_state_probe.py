@@ -68,7 +68,7 @@ def main() -> int:
         env.deploy(local, remote); ccfg["_remote"] = remote
 
     if env.is_windows:
-        sys.path.insert(0, str(REPO / "port/cpp/tools/parity/windows"))
+        sys.path.insert(0, str(REPO / "port/cpp/tools/parity/lib/windows"))
         from session1 import Session1Agent  # noqa: PLC0415
         s1 = Session1Agent(env.cfg["connection"]["host"], env.cfg["connection"]["user"],
                            staging=env.cfg["staging"]["root"], python=env.python3)

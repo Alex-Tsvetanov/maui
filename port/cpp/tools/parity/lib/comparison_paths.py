@@ -33,7 +33,7 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # port/cpp/docs/comparison
-COMP = os.path.normpath(os.path.join(HERE, "..", "..", "docs", "comparison"))
+COMP = os.path.normpath(os.path.join(HERE, "..", "..", "..", "docs", "comparison"))
 CAPTURES = os.path.join(COMP, "captures")
 COMPARISON_JSON = os.path.join(COMP, "comparison.json")
 PAGE_KEYS = os.path.join(HERE, "page_keys.txt")
@@ -89,14 +89,21 @@ def review_slot(model: str, framework: str) -> str:
     cpp is the canonical column the user-owned gen_readme.py already renders, so it keeps the bare slot
     name (`sonnet` / `gemini`); xaml gets a `_xaml`-suffixed sibling slot so cpp and xaml are reviewed
     and stored SEPARATELY without touching the template.
+
+    `twin` and `appkit` are the two comparisons that have no MAUI side at all, added for review.py:
+      twin   = cpp vs xaml — SAME renderer, so any difference is a markup/loader faithfulness bug.
+      appkit = appkit_cpp vs appkit_xaml — STRUCTURAL only (NSViews can never pixel-match UIKit; the
+               requirement is element PRESENCE and the two columns agreeing with each other), and
+               deliberately kept out of the board's pixel-parity tallies.
     """
     if model not in MODELS:
         raise ValueError(f"unknown model {model!r} (expected one of {MODELS})")
     if framework == "cpp":
         return model
-    if framework == "xaml":
-        return f"{model}_xaml"
-    raise ValueError(f"framework {framework!r} is not reviewable (expected cpp or xaml)")
+    if framework in ("xaml", "twin", "appkit"):
+        return f"{model}_{framework}"
+    raise ValueError(f"framework {framework!r} is not reviewable "
+                     f"(expected cpp, xaml, twin or appkit)")
 
 
 def load_keys() -> list[str]:
@@ -206,6 +213,8 @@ def selfcheck() -> list[str]:
     check_slot("gemini", "cpp", "gemini")
     check_slot("sonnet", "xaml", "sonnet_xaml")
     check_slot("gemini", "xaml", "gemini_xaml")
+    check_slot("gemini", "twin", "gemini_twin")
+    check_slot("gemini", "appkit", "gemini_appkit")
 
     def check_norm(inp, expected):
         got = normalize_status(inp)

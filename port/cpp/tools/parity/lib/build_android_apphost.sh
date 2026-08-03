@@ -38,7 +38,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cpp_root="$(cd "${script_dir}/../.." && pwd)" # port/cpp
+cpp_root="$(cd "${script_dir}/../../.." && pwd)" # port/cpp
 # Reuse the SDK-resolve / AVD-boot / keyed-staging machinery the testhost lane already proved.
 # shellcheck source=../android-emu-lib.sh
 source "${cpp_root}/tools/android-emu-lib.sh"
@@ -334,6 +334,8 @@ wait_displayed() {
 capture_one() {
   local key="$1"
   echo "[apphost] launch ${key} (${appearance})..." >&2
+  local _parity_t0=${SECONDS}
+  echo "@@PARITY BEGIN ${key} cpp ${appearance}"
   # (a) Kill the prior instance and WAIT for its process — and thus its on-screen frame — to be gone, so a
   #     screencap can never capture the previous page (the wave-15 dispatch-offset root cause).
   "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
@@ -358,6 +360,7 @@ capture_one() {
   # Measured on the emulator: the bar is still faintly present at 1.5s and completely gone by 4s.
   sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
+  echo "@@PARITY END ${key} cpp ${appearance} $((SECONDS - _parity_t0))"
   echo "[apphost] wrote ${out_dir}/${key}${suffix}.png" >&2
 }
 

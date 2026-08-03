@@ -40,7 +40,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-CPP = HERE.parent.parent                      # port/cpp
+CPP = HERE.parents[2]                         # port/cpp
 PORT = CPP.parent                             # port
 sys.path.insert(0, str(HERE))
 from capture_guard import splash_verdict      # noqa: E402

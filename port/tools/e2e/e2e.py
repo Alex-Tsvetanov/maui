@@ -783,7 +783,7 @@ def cmd_pixel(args: argparse.Namespace) -> int:
         print(f"error: `pixel` needs Pillow + numpy ({exc})")
         return 2
 
-    sys.path.insert(0, os.path.join(CPP, "tools", "parity"))
+    sys.path.insert(0, os.path.join(CPP, "tools", "parity", "lib"))
     import pixel_score  # the shared implementation (deleted in P4 once fully absorbed)
 
     pages = json.load(open(COMP_JSON, encoding="utf-8"))
@@ -828,7 +828,7 @@ def cmd_consistency(args: argparse.Namespace) -> int:
         print(f"error: `consistency` needs Pillow + numpy ({exc})")
         return 2
 
-    sys.path.insert(0, os.path.join(CPP, "tools", "parity"))
+    sys.path.insert(0, os.path.join(CPP, "tools", "parity", "lib"))
     import pixel_score
 
     pages = json.load(open(COMP_JSON, encoding="utf-8"))

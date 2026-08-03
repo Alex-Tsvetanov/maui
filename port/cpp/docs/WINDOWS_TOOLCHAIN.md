@@ -48,7 +48,7 @@ the source, the config, and the toolchain file so it cannot quietly become "the 
 Verified on this machine (macOS arm64 → Windows x64):
 
 ```
-$ tools/parity/windows/build_smoke.sh
+$ tools/parity/lib/windows/build_smoke.sh
 [smoke] built …/build/windows-smoke/maui_smoke.exe
 …/maui_smoke.exe: PE32+ executable (GUI) x86-64, for MS Windows      # real PE, 0 warnings
 ```
@@ -74,7 +74,7 @@ mingw-w64 GCC 15.2 accepts `-std=c++23` and the library features the port uses (
 
 ## 2b. The core cross-build found two real portability bugs
 
-`tools/parity/windows/build_core_check.sh` cross-compiles the port's **platform-independent half**
+`tools/parity/lib/windows/build_core_check.sh` cross-compiles the port's **platform-independent half**
 (graphics, core, controls, layouts, hosting + the headless handler mirrors — 347 sources) for Windows and
 links `core_probe.cpp` against it. `--syntax-only` is the fast portability gate; the full run archives
 `libmaui_core_win.a` and produces a **runnable, self-checking** `maui_core_probe.exe`.
@@ -113,7 +113,7 @@ Run in an **elevated** PowerShell on the guest:
 .\provision_guest.ps1 -PublicKey (Get-Content C:\host_key.pub) -WithBuildTools   # + MSVC/WinUI lane
 ```
 
-(`tools/parity/windows/provision_guest.ps1`, idempotent.) It handles four things that each cause a
+(`tools/parity/lib/windows/provision_guest.ps1`, idempotent.) It handles four things that each cause a
 confusing, non-obvious failure if missed:
 
 1. **OpenSSH Server** + TCP/22, key auth, `BatchMode=yes` friendly.
@@ -183,7 +183,7 @@ is **session 1**. `EnumWindows`, `SendInput` and `PrintWindow` are all **per-ses
 macOS has no equivalent (`open -g` reaches the user's Aqua session), which is why `vm_agent_macos.py`
 needs nothing like this.
 
-**The fix** (`tools/parity/windows/session1.py` + the agent's `serve` subcommand):
+**The fix** (`tools/parity/lib/windows/session1.py` + the agent's `serve` subcommand):
 
 ```
 host                                    guest
@@ -225,10 +225,10 @@ otherwise presents as "the guest is broken".
 
 ```bash
 # on the dev machine, from port/cpp
-tools/parity/windows/build_smoke.sh                       # cross-build the Win32 smoke exe
-tools/parity/windows/build_core_check.sh                  # cross-build the core + the self-checking probe
+tools/parity/lib/windows/build_smoke.sh                       # cross-build the Win32 smoke exe
+tools/parity/lib/windows/build_core_check.sh                  # cross-build the core + the self-checking probe
 
-python3 tools/parity/windows/vm_smoke.py \
+python3 tools/parity/lib/windows/vm_smoke.py \
         --host <vm-hostname> --user <vm-user>             # deploy + drive + verify, step by step
 ```
 
@@ -284,7 +284,7 @@ what is still mirror-only, is below.
   but VS Build Tools shipped only the cross compilers `Hostarm64\x64`, `Hostarm64\x86` and
   `Hostarm64\arm` — the last being **ARM32** (`VC.Tools.ARM`), which is the one people select by mistake.
   The native toolset is `Microsoft.VisualStudio.Component.VC.Tools.ARM64` (+ `...ARM64EC`);
-  `tools/parity/windows/install_arm64_toolset.ps1` adds it non-interactively and is idempotent. This
+  `tools/parity/lib/windows/install_arm64_toolset.ps1` adds it non-interactively and is idempotent. This
   matters because the MAUI reference board on this machine is native arm64: a score across two ABIs
   compares two rendering paths, not parity.
 * **`setup.exe modify` rejects `--wait`** (that flag belongs to `vs_installer.exe`) and answers 87

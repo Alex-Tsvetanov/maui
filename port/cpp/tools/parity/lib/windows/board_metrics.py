@@ -7,7 +7,7 @@ actually converging. Usage: board.py [comparison.json] ; --json for machine outp
 """
 import json, pathlib, re, statistics, sys
 
-DEFAULT = pathlib.Path(__file__).resolve().parents[3] / 'docs' / 'comparison' / 'comparison.json'
+DEFAULT = pathlib.Path(__file__).resolve().parents[4] / 'docs' / 'comparison' / 'comparison.json'
 path = next((a for a in sys.argv[1:] if not a.startswith('-')), DEFAULT)
 NUM = re.compile(r'Light: SSIM ([\d.]+), ([\d.]+)% .* Dark: SSIM ([\d.]+), ([\d.]+)%')
 

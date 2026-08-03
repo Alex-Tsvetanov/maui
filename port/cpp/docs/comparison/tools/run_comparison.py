@@ -48,7 +48,7 @@ GUEST_AGENTS = {
 }
 MANIFEST = REPO / "port/maui-reference/pages/manifest.json"
 
-sys.path.insert(0, str(REPO / "port/cpp/tools/parity"))
+sys.path.insert(0, str(REPO / "port/cpp/tools/parity/lib"))
 import pixel_score  # noqa: E402  reuse score_theme()/classify()
 
 # Status thresholds (from pixel_score.classify): SSIM>=0.98 & diff<=1% green; >=0.90 & <=8% yellow.
@@ -172,7 +172,7 @@ class Env:
     # -- system-wide theme --------------------------------------------------
     def set_os_theme(self, theme: str) -> None:
         """Set the GUEST's system theme and confirm it applied; remember the original for restore_os_theme."""
-        sys.path.insert(0, str(REPO / "port/cpp/tools/parity"))
+        sys.path.insert(0, str(REPO / "port/cpp/tools/parity/lib"))
         from device_state import set_macos_theme, set_windows_theme  # noqa: PLC0415
 
         setter = set_windows_theme if self.is_windows else set_macos_theme
@@ -195,7 +195,7 @@ class Env:
             self._os_theme_restore = None
 
     def set_os_theme_raw(self, theme: str) -> None:
-        sys.path.insert(0, str(REPO / "port/cpp/tools/parity"))
+        sys.path.insert(0, str(REPO / "port/cpp/tools/parity/lib"))
         from device_state import set_macos_theme, set_windows_theme  # noqa: PLC0415
 
         setter = set_windows_theme if self.is_windows else set_macos_theme
@@ -470,7 +470,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
         # are per-session. Every agent call from here on goes through an agent running in session 1.
         # Started ONCE per run rather than per call -- `schtasks /run` costs ~1-2s, which across a
         # multi-page board would dominate the wall clock.
-        sys.path.insert(0, str(REPO / "port/cpp/tools/parity/windows"))
+        sys.path.insert(0, str(REPO / "port/cpp/tools/parity/lib/windows"))
         from session1 import Session1Agent  # noqa: PLC0415  optional, Windows-only dependency
         s1 = Session1Agent(env.cfg["connection"]["host"], env.cfg["connection"]["user"],
                            staging=env.cfg["staging"]["root"], python=env.python3)
@@ -573,6 +573,12 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 if ccfg.get("_missing"):
                     continue
                 driver = make_driver(env, col, ccfg)
+                # Machine-readable per-example progress. tools/parity/recapture.py wraps this runner and
+                # cannot know an example STARTED from the existing "  tag/col/theme <step> -> …" line —
+                # that only prints once the first frame has already landed. These two markers bracket the
+                # whole (tag, column, theme) unit so the wrapper can time it and announce it up front.
+                print(f"@@PARITY BEGIN {tag} {col} {theme}", flush=True)
+                unit_started = time.time()
                 n = theme_index * len(scenario["steps"])
                 launch_env = [f"{ccfg['page_env']}={tag}",
                               "MAUI_CAPTURE_TINT_NORMAL=1",
@@ -624,7 +630,13 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 try:
                     for step in scenario["steps"]:
                         driver.run_action(step)
-                        time.sleep(tag_settle)
+                        # Per-STEP settle. Read ONLY from the step, defaulting to tag_settle, so any
+                        # scenario without it behaves exactly as before (the max(scenario, --settle)
+                        # rule above still governs those — web_view's 5s is never silently sped up).
+                        # It exists for the GIF bursts tools/parity/recapture.py generates for the
+                        # animated pages: a dozen frames a few hundred ms apart, in the SAME pass that
+                        # takes the `initial` still, instead of a second deploy at a lower --settle.
+                        time.sleep(float(step.get("settle", tag_settle)))
                         n += 1
                         if env.present:
                             # `or bounds` HERE WAS THE WORST BUG IN THIS RUNNER. shoot_presented returns
@@ -686,6 +698,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 finally:
                     env.agent("stop", pid)
                     time.sleep(0.3)
+                    print(f"@@PARITY END {tag} {col} {theme} {time.time() - unit_started:.1f}", flush=True)
 
     if failed_frames:
         # Loud + non-optional: a sweep that silently omits frames looks identical to a clean one, and
@@ -760,8 +773,11 @@ def main(argv=None) -> int:
     ap.add_argument("--scenarios", default=str(COMP / "scenarios"), help="scenarios dir")
     ap.add_argument("--settle", type=float, default=1.0, help="seconds to settle after each action")
     ap.add_argument("--themes", help="comma-separated theme override for ALL tags, e.g. 'light,dark'")
+    ap.add_argument("--columns", help="comma-separated column subset (default: every column the env "
+                                      "declares). An env left with NO selected column is skipped.")
     ap.add_argument("--plan", action="store_true", help="validate config/scenarios and print the plan; no SSH")
     args = ap.parse_args(argv)
+    columns_filter = {c.strip() for c in args.columns.split(",") if c.strip()} if args.columns else None
     themes_override = [t.strip() for t in args.themes.split(",")] if args.themes else None
 
     cfg = tomllib.loads(Path(args.config).read_text())
@@ -779,10 +795,18 @@ def main(argv=None) -> int:
     env_names = args.env.split(",") if args.env else list(cfg["environments"])
     scenarios_dir = Path(args.scenarios)
 
+    def make_env(name: str) -> Env:
+        """Env for `name`, with --columns applied. The filter is applied HERE rather than in
+        columns_for() so `--plan` prints the columns the run will actually use."""
+        env = Env(name, cfg["environments"][name])
+        if columns_filter is not None:
+            env.columns = {c: v for c, v in env.columns.items() if c in columns_filter}
+        return env
+
     if args.plan:
         print(f"plan: {len(tags)} tag(s) x envs {env_names}")
         for name in env_names:
-            env = Env(name, cfg["environments"][name])
+            env = make_env(name)
             print(f"  env {name}: platform={env.platform} columns={list(env.columns)} host={env.hostspec}")
         custom = [t for t in tags if (scenarios_dir / f"{t}.toml").is_file()]
         print(f"  {len(custom)} tag(s) have a scenario file; the rest get one idle screenshot: {custom[:20]}")
@@ -796,7 +820,10 @@ def main(argv=None) -> int:
 
     all_summaries = {}
     for name in env_names:
-        env = Env(name, cfg["environments"][name])
+        env = make_env(name)
+        if not env.columns:
+            print(f"[{name}] no selected column in this env — skipping")
+            continue
         try:
             summary = run_env(env, tags, scenarios_dir, run_root,
                               args.settle, twin_keys, commit, themes_override)

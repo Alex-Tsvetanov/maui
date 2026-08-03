@@ -27,7 +27,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cpp_root="$(cd "${script_dir}/../.." && pwd)" # port/cpp
+cpp_root="$(cd "${script_dir}/../../.." && pwd)" # port/cpp
 # shellcheck source=../android-emu-lib.sh
 source "${cpp_root}/tools/android-emu-lib.sh"
 # AndroidX AppCompat + Google Material linking, shared with build_android_apphost.sh.
@@ -305,6 +305,8 @@ wait_displayed() {
 capture_one() {
   local key="$1"
   echo "[apphost-xaml] launch ${key} (${appearance})..." >&2
+  local _parity_t0=${SECONDS}
+  echo "@@PARITY BEGIN ${key} xaml ${appearance}"
   # (a) Kill the prior instance and WAIT for its process/frame to be gone.
   "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
   wait_process_gone || echo "[apphost-xaml] WARNING: ${pkg} still alive after force-stop (${key})" >&2
@@ -321,6 +323,7 @@ capture_one() {
   # Android's FADING SCROLLBARS — see the long note in build_android_apphost.sh.
   sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
+  echo "@@PARITY END ${key} xaml ${appearance} $((SECONDS - _parity_t0))"
   echo "[apphost-xaml] wrote ${out_dir}/${key}${suffix}.png" >&2
 }
 

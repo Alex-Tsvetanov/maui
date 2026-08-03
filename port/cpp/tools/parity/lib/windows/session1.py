@@ -398,7 +398,7 @@ def _free_local_port() -> int:
 def main(argv=None) -> int:
     from pathlib import Path
     here = Path(__file__).resolve().parent
-    default_agent = here.parents[2] / "docs/comparison/tools/vm_agent_windows.py"
+    default_agent = here.parents[3] / "docs/comparison/tools/vm_agent_windows.py"
 
     ap = argparse.ArgumentParser(description="Drive the Windows guest agent in session 1")
     ap.add_argument("--host", required=True)

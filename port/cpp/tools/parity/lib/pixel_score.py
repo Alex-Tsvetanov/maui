@@ -37,7 +37,7 @@ import numpy as np
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CPP_ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
+CPP_ROOT = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 COMP = os.path.join(CPP_ROOT, "docs", "comparison")
 JSON = os.path.join(COMP, "comparison.json")
 

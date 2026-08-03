@@ -12,7 +12,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cpp_root="$(cd "${script_dir}/../../.." && pwd)"   # port/cpp
+cpp_root="$(cd "${script_dir}/../../../.." && pwd)"   # port/cpp
 out_dir="${cpp_root}/build/windows-smoke"
 
 while [[ $# -gt 0 ]]; do

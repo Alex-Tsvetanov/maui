@@ -28,7 +28,7 @@ import re
 import sys
 
 HERE = pathlib.Path(__file__).resolve()
-WINDOWS_SRC = HERE.parents[3] / "src" / "platform" / "windows"
+WINDOWS_SRC = HERE.parents[4] / "src" / "platform" / "windows"
 
 # member call -> the header that must be included for it to be more than a forward declaration.
 # Keep each entry justified by a real failure or a real base-class relationship; speculative entries

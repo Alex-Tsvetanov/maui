@@ -66,7 +66,7 @@ CPP = COMPARISON.parents[1]              # …/port/cpp   (parent is docs/, not 
 REPO = COMPARISON.parents[3]             # …/maui       (same arithmetic measure_size.py uses)
 OUT = COMPARISON / "measurements.json"
 
-sys.path.insert(0, str(CPP / "tools" / "parity"))
+sys.path.insert(0, str(CPP / "tools" / "parity" / "lib"))
 from capture_guard import splash_verdict  # noqa: E402
 
 FLAT_STD = 1.0          # a uniform launch/blank screen has essentially no variance

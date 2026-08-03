@@ -34,7 +34,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cpp_root="$(cd "${script_dir}/../.." && pwd)"
+cpp_root="$(cd "${script_dir}/../../.." && pwd)"
 
 # --- resolve adb + serial via the shared emu lib (same machinery the C++ android tools use) ---
 # shellcheck source=/dev/null
@@ -119,6 +119,8 @@ wait_displayed() {
 
 capture_one() {
   local key="$1"
+  local _parity_t0=${SECONDS}
+  echo "@@PARITY BEGIN ${key} maui ${appearance}"
   # (a) Kill the prior instance and WAIT for its frame to be gone so screencap can't grab the previous page.
   "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
   wait_process_gone || echo "[csharp-android] WARNING: ${pkg} still alive after force-stop (${key})" >&2
@@ -136,6 +138,7 @@ capture_one() {
   # scrollbar is still faintly visible at this step's old 1.5s and completely gone by 4s.)
   sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
+  echo "@@PARITY END ${key} maui ${appearance} $((SECONDS - _parity_t0))"
   echo "[csharp-android] wrote ${out_dir}/${key}${suffix}.png ($(stat -f%z "${out_dir}/${key}${suffix}.png" 2>/dev/null || echo 0)B)" >&2
 }
 

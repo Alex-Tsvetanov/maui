@@ -36,7 +36,7 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 COMP = os.path.normpath(os.path.join(HERE, ".."))
 JSON = os.path.join(COMP, "comparison.json")
-KEYS_FILE = os.path.normpath(os.path.join(COMP, "..", "..", "tools", "parity", "page_keys.txt"))
+KEYS_FILE = os.path.normpath(os.path.join(COMP, "..", "..", "tools", "parity", "lib", "page_keys.txt"))
 
 THEMES = ("light", "dark")
 PLATFORM_FW = {
@@ -106,7 +106,11 @@ def main():
             # `pixel_score --only <page>` -> gen_readme, so a SCOPED publish rebuilt the json without the
             # scores and then only put ONE page's back — wiping the other 171 pages' verdicts and shrinking
             # the README by ~20KB with no error. Anything this script cannot recompute, it must carry over.
-            for slot in ("sonnet_xaml", "gemini_xaml", "pixel", "pixel_xaml"):
+            # `gemini_twin` / `gemini_appkit` are tools/parity/review.py's two MAUI-less comparisons
+            # (cpp-vs-xaml, and the structural AppKit check). Like the scores above they cannot be
+            # recomputed here, so they must be carried over or a board rebuild silently wipes them.
+            for slot in ("sonnet_xaml", "gemini_xaml", "gemini_twin", "gemini_appkit",
+                         "pixel", "pixel_xaml"):
                 if op.get(slot):
                     entry[slot] = op[slot]
             page["platforms"][plat] = entry

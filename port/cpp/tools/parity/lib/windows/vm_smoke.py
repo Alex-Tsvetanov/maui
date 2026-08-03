@@ -35,7 +35,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from session1 import Session1Agent  # noqa: E402  the session-1 transport (see its module docstring)
 
 HERE = Path(__file__).resolve().parent
-CPP_ROOT = HERE.parents[2]                                   # port/cpp
+CPP_ROOT = HERE.parents[3]                                   # port/cpp
 AGENT = CPP_ROOT / "docs/comparison/tools/vm_agent_windows.py"
 DEFAULT_EXE = CPP_ROOT / "build/windows-smoke/maui_smoke.exe"
 

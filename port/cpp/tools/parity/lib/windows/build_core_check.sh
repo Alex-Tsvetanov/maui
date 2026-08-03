@@ -19,7 +19,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cpp_root="$(cd "${script_dir}/../../.." && pwd)"   # port/cpp
+cpp_root="$(cd "${script_dir}/../../../.." && pwd)"   # port/cpp
 out_dir="${cpp_root}/build/windows-core"
 jobs="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)"
 syntax_only=0
