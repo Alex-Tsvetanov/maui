@@ -75,6 +75,45 @@ scenario tap calibration is keyed to width 1512).
 
 iOS, Android and Windows are unblocked.
 
+### Phase 4 — NEXT LEAD: Android centred content sits 34px low (the `border*` family)
+
+The `border*` pages are the largest remaining yellow family — 7 cells across Android, iOS and Catalyst
+(`android/border` 3.55%, `android/border_stroke` 3.07%, `maccatalyst/border_stroke` 2.02%,
+`android/border_clip_playground` 2.02%, `ios/border_clip_playground` 1.81%,
+`android/border_resize_content` 1.71%, `android/border_playground` 1.65%).
+
+MEASURED on `android/border_light` — a page that is a single `Border` with `VerticalOptions="Center"`:
+
+| | MAUI | port |
+|---|---|---|
+| box | y952-1387 (436px), x157-922 | y985-1424 (440px), x155-924 |
+| stroke at mid-height | 13px | 14px |
+| box centre y | 1169.5 | 1204.5 |
+
+The port's box is 34px LOW, 4px larger on each axis, with a 1px thicker stroke.
+
+**The centring arithmetic identifies the mechanism.** Top-anchored pages are unaffected — `label` and
+`button` match at *exactly* +0 top and +0 bottom — and the navigation bar is pixel-identical in both
+frames (black from y≈2276). Given content top 64 and nav-bar top 2276:
+
+* centre of [64, **2275**] = **1169.5** — MAUI's box centre, exactly
+* centre of [64, **2340**] = 1202 — the port's, within rounding of 1204.5
+
+So the port's available height appears to include the bottom navigation bar, where MAUI's excludes it.
+Only centred and bottom-anchored content can show this, which is why the rest of the Android board is
+unaffected.
+
+**Where it is NOT.** `MauiHostActivity.usableContentHeightPx()` does subtract both insets, and
+`app_host.cpp` does prefer it over the legacy path — both hosts, verified. So the mechanism is present
+and the bug is not a missing call.
+
+**Untested hypothesis, stated as such:** the helper returns a height excluding only the TOP inset,
+because `getCurrentWindowMetrics().getWindowInsets()` is not fully populated at mount time — the
+comment there asserts it is "timing-safe … valid at mount time", and that claim is what should be
+tested first, by logging the returned value on device against `getBounds().height()` and the two insets.
+The 4px/1px stroke deltas are a separate, smaller matter (the shape-deflate family) and should not be
+conflated with this.
+
 ### Phase 4 — the iOS radio family (2026-08-03)
 
 Four defects found and fixed, each root-caused from the oracle or from a controlled on-page comparison.
