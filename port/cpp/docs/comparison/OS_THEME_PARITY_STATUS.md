@@ -91,14 +91,26 @@ Scanning every dark box in the light frames, all match except one:
 Same bottom edge, port 200px shorter, and everything above and below matches exactly — so the layout is
 right and the IMAGE is short. The port also renders no heart where MAUI shows one mid-animation.
 
-`animated_heart.gif` is 400×300 with **16 frames**. GIF frames carry PARTIAL rects that must be
-composited onto the previous frame; rendering one in isolation yields exactly this — a fraction of the
-canvas, no subject. That is the root cause to confirm.
+**CORRECTION — "the port does not composite GIF frames" was stated too confidently.** The asset does use
+partial frames (inspected: frame 0 is the full 400×300 canvas, frames 1-15 are ~44×46 rects around
+(183,127)), but the oracle does not composite them either. `ImageAnimationHelper.ToConsistentImageArray`
+(`src/Core/src/ImageSources/iOS/ImageAnimationHelper.cs:113-130`) only repeats frames by
+`delay/gcd` to fit GIF per-frame durations into UIImage's single `duration` — it is about TIME, not
+size — and `image_source_services.mm:215-250` ports that faithfully, `CGImageSourceCreateImageAtIndex`
+per frame and all. So the decode is not obviously divergent and a "composite the frames" fix would be
+aimed at behaviour MAUI does not have.
 
-NOT a capture flake, checked: re-captured both columns and the score was identical to two decimals,
-with the files verifiably rewritten (mtime + `git status`). Deterministic, therefore real.
+What IS established:
 
-Fixing it means frame compositing in the image decoder — substantial, and worth scoping before starting.
+* the asset's frames really are partial rects (inspected directly)
+* the port's render is DETERMINISTIC — re-captured both columns, score identical to two decimals, files
+  verifiably rewritten. A GIF actually animating would almost certainly land on a different phase, so
+  the port's image appears not to be animating while MAUI's is (MAUI shows the heart mid-animation)
+* the port's decode faithfully mirrors the oracle's algorithm
+
+Next step is on-device, not more source reading: log each decoded frame's `CGImageGetWidth/Height` and
+whether `UIImageView.startAnimating` is ever reached. Whether ImageIO hands back the partial rect or a
+composited canvas is an ImageIO behaviour question that source comparison cannot settle.
 
 ### Phase 4 — NEXT LEAD: Android centred content sits 34px low (the `border*` family)
 
