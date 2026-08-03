@@ -75,6 +75,39 @@ scenario tap calibration is keyed to width 1512).
 
 iOS, Android and Windows are unblocked.
 
+### Phase 4 — the iOS radio family (2026-08-03)
+
+Four defects found and fixed, each root-caused from the oracle or from a controlled on-page comparison.
+All four pages improved substantially; none reached green, so the board did not move.
+
+| page | before | after |
+|---|---|---|
+| `radio_button_border` | 5.70% | **2.76%** |
+| `radio_button_group_gallery` | 3.97% | **2.31%** |
+| `radio_content_properties` | 2.05% | **1.31%** |
+| `radio_button_content` | 2.09% | **1.35%** |
+
+1. **Indicator was an SF symbol at its natural size** — ~16.7pt/1.33pt stroke vs the oracle's 21pt/2pt
+   (`RadioButton.cs:546-556`). Now drawn.
+2. **The button's image slot was 2pt too short**, clipping even a correct indicator. `get_desired_size`
+   used 14pt total vertical chrome while `contentEdgeInsets` spent 16. Found by measuring BOTH axes —
+   23.0pt wide × 19.0pt tall is anisotropic, which proves a clip rather than a scale.
+3. **`gap` was 8, the template's `ColumnSpacing` is 6** (`RadioButton.cs:536`).
+4. **`BorderWidth` grows the control; the port shrank the fill inward.** Isolated by a controlled
+   comparison: that page's Option 2 (fill only) is 35.0pt in both columns, Option 1 (same fill +
+   `BorderWidth=4`) is 45.0pt reference vs 27.0pt port — and 27 = 35 − 2×4 exactly.
+
+**Still open, and deliberately not guessed at:** a bordered radio measures 43.0pt in the port against
+45.0pt in the reference. 43 = 35 + 2×4 is exactly what the template arithmetic predicts, so MAUI is
+growing by 5pt per side for a 4pt border and the extra 1pt is unexplained. Also unexplained: the
+horizontal chrome is 7pt as shipped where `Border(6) + Grid(2)` declares 8 — the same 8-vs-7
+disagreement as the vertical chrome.
+
+**A measurement lesson worth keeping.** Two methods disagreed on that 2pt: a colour-classified vertical
+slice said the heights matched, a non-white band scan said 45 vs 43. The slice was wrong — its "white"
+test required >240 on all channels, so it silently discarded the antialiased edge pixels. When two
+measurements disagree, zoom in on the pixels; do not pick the one that suits the story.
+
 ### Windows — DONE (2026-08-03), and it FOUND SOMETHING
 
 1085 frames, 0 drops, and exactly **two** OS theme switches plus a restore for the whole board — the
