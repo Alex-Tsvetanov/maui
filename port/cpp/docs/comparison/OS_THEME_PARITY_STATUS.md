@@ -134,10 +134,31 @@ MAUI reserves ~137px at the bottom where the port reserves 66 — roughly the na
 or equivalently the same inset it applies at the top. The nav bar is visually identical in both frames
 (black from y≈2276), so this is reserved layout space, not painted chrome.
 
-**Next measurement, not a fix:** get MAUI's content bottom DIRECTLY rather than by inference — a page
-with `VerticalOptions="End"` pins B without solving an equation. Two inferred quantities (T and B) from
-one measured centre is one equation in two unknowns; the table above only works because the top inset
-was independently confirmed.
+**THAT INFERENCE IS ALSO DISPROVED (2026-08-03).** `borderless` pins the content area directly — it is a
+two-row `*,*` Grid whose cells are FILLED Borders, so the cell edges are the content bounds with nothing
+to solve for:
+
+```
+maui  pink(top cell) y136-1204   red(bottom cell) y1205-2273   -> content [136, 2273], height 2138
+cpp   pink(top cell) y136-1204   red(bottom cell) y1205-2273   -> content [136, 2273], height 2138
+```
+
+**Identical**, and exactly the 2138 that `usableContentHeightPx()` returns. So the port's content area is
+correct, MAUI uses the same one, and the whole inset theory — top, bottom, and helper alike — is
+exonerated. Three hypotheses tested, three disproved.
+
+**What is actually true on the `border` page:** centring in the now-KNOWN area [136, 2273] predicts a box
+top of 985 for the port's 440px box — and the port measures 985. The port centres correctly. MAUI's box
+sits at 952, which is 35px ABOVE the centre of that same area. So MAUI is not centring the box in the
+full content area on that page, and the divergence is in MAUI's layout of this specific page, not in the
+port's insets.
+
+Where to look next: what makes `border` different from `borderless` for MAUI — a single centred
+`Border` with `HeightRequest` versus a `*,*` Grid that fills. Per the per-view safe-area note
+(`cpp-safe-area-per-view`), MAUI applies safe-area insets PER VIEW rather than per page, so a
+non-filling child may receive a different arrange rect than a filling one. That is a hypothesis, not a
+conclusion — and given three wrong ones here already, it needs a direct measurement on a third page
+shaped like `border` before any code moves.
 
 The 4px box / 1px stroke deltas are a separate, smaller matter (the shape-deflate family) and should
 not be conflated with this.
