@@ -121,7 +121,7 @@
     "artifact": "C:/maui-src/maui-reference/app/bin/Debug/net10.0-windows10.0.19041.0/win-arm64",
     "exists": false,
     "remote_only": true,
-    "note": "built on the guest — needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "note": "built on the guest \u2014 needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
     "build_config": "unknown",
     "release_grade": false,
     "build_config_detected_from": "n/a (remote)",
@@ -131,7 +131,7 @@
     "artifact": "C:/maui-src/cpp/examples/build-win/gallery",
     "exists": false,
     "remote_only": true,
-    "note": "built on the guest — needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "note": "built on the guest \u2014 needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
     "build_config": "unknown",
     "release_grade": false,
     "build_config_detected_from": "n/a (remote)",
@@ -141,7 +141,7 @@
     "artifact": "C:/maui-src/cpp/examples/build-win/gallery_xaml",
     "exists": false,
     "remote_only": true,
-    "note": "built on the guest — needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "note": "built on the guest \u2014 needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
     "build_config": "unknown",
     "release_grade": false,
     "build_config_detected_from": "n/a (remote)",
@@ -149,5 +149,75 @@
    }
   }
  },
- "size_measured_at": "2026-08-03T20:08:10Z"
+ "size_measured_at": "2026-08-03T20:08:10Z",
+ "ttff": {
+  "android": {
+   "maui_xaml": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 5,
+    "misses": 0,
+    "samples_s": [
+     1.578,
+     1.648,
+     1.528,
+     1.543,
+     1.589
+    ],
+    "poll_resolution_s": 0.28,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 1.528,
+    "median_s": 1.578,
+    "p95_s": 1.589,
+    "max_s": 1.648
+   },
+   "cpp": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 5,
+    "misses": 0,
+    "samples_s": [
+     1.337,
+     1.469,
+     1.631,
+     2.298,
+     1.482
+    ],
+    "poll_resolution_s": 0.298,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 1.337,
+    "median_s": 1.482,
+    "p95_s": 1.631,
+    "max_s": 2.298
+   },
+   "cpp_xaml": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 5,
+    "misses": 0,
+    "samples_s": [
+     1.439,
+     1.417,
+     1.29,
+     1.301,
+     1.336
+    ],
+    "poll_resolution_s": 0.289,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 1.29,
+    "median_s": 1.336,
+    "p95_s": 1.417,
+    "max_s": 1.439
+   }
+  }
+ },
+ "ttff_meta": {
+  "definition": "launch -> first captured frame that is not the launch/blank screen (PREDICTIONS.md validity requirements); window-exists deliberately NOT used",
+  "reps": 5,
+  "page": "label",
+  "start_kind": "cold"
+ }
 }
