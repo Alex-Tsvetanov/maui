@@ -148,11 +148,71 @@ namespace maui::core
         // state (a white box once the tint is the dynamic label color), which MAUI's templated radio has
         // no analog for. A custom button still tints the template SF-symbol indicators via tintColor.
         UIButton* const button = [UIButton buttonWithType:UIButtonTypeCustom];
-        // The DefaultTemplate's indicator pair, as SF symbols riding UIButton's state machinery: the
-        // empty ring while unselected, the filled ring while selected (the CheckedIndicator's opacity
-        // flip, collapsed onto UIButton.selected).
-        [button setImage:[UIImage systemImageNamed:@"circle"] forState:UIControlStateNormal];
-        [button setImage:[UIImage systemImageNamed:@"smallcircle.filled.circle"] forState:UIControlStateSelected];
+        // The DefaultTemplate's indicator pair, DRAWN to the oracle's exact geometry rather than borrowed
+        // from SF Symbols. RadioButton.cs:546-556 specifies the outer Ellipse as WidthRequest =
+        // HeightRequest = 21 with StrokeThickness = 2, and the CheckedIndicator (:558-566) as an 11pt
+        // filled Ellipse whose opacity flips 0 -> 1 on check.
+        //
+        // This USED to be [UIImage systemImageNamed:@"circle"] / @"smallcircle.filled.circle", which is
+        // close enough to look right and wrong enough to never score green: an SF symbol renders at its
+        // own natural size, not the requested one. MEASURED on radio_button_group_gallery_light (iOS @3x):
+        // the reference ring is 63px tall with a 6px stroke (21.0pt / 2.0pt — the oracle's numbers exactly)
+        // while the port drew 51px with a 4px stroke (17.0pt / 1.33pt). That 4pt shortfall is what kept
+        // seven cells non-green across iOS and Catalyst.
+        //
+        // Drawn with UIGraphicsImageRenderer at the requested point size so the geometry is exact and
+        // resolution-independent, and rendered as a TEMPLATE image so the existing tintColor path
+        // (map_text_color below, and the DefaultTemplate's theme-aware stroke) still colours it.
+        const CGFloat ring_diameter = 21;  // RadioButton.cs:552-553
+        const CGFloat ring_stroke = 2;     // RadioButton.cs:554
+        const CGFloat check_diameter = 11; // RadioButton.cs:562-563
+        // The canvas is the ring PLUS one stroke width, and the path's bounding box is the full 21pt: a
+        // centred stroke then straddles that path, spending its outer half in the extra margin instead of
+        // being clipped at the canvas edge. Drawing the path INSET by stroke/2 inside a 21pt canvas —
+        // the arithmetically tidy reading of "21pt with a 2pt stroke" — measured 57px against the
+        // reference's 63px @3x, because the solid ink tracks the PATH diameter (19pt there) and the
+        // stroke's outer half antialiases away. Sizing the path itself to 21pt is what reproduces the
+        // reference's ink.
+        const CGFloat canvas = ring_diameter;
+        const CGRect ring_rect =
+            CGRectInset(CGRectMake(0, 0, ring_diameter, ring_diameter), ring_stroke / 2, ring_stroke / 2);
+        UIGraphicsImageRenderer* const renderer =
+            [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(canvas, canvas)];
+
+        // The ring alone: stroked on the INSET rect so the 2pt stroke sits inside the 21pt box (UIKit
+        // strokes centred on the path, so a full-bounds circle would bleed 1pt out on every side and
+        // measure 23pt).
+        UIImage* const unchecked = [renderer imageWithActions:^(UIGraphicsImageRendererContext* ctx) {
+          (void)ctx;
+          UIBezierPath* const ring = [UIBezierPath bezierPathWithOvalInRect:ring_rect];
+          ring.lineWidth = ring_stroke;
+          [UIColor.labelColor setStroke];
+          [ring stroke];
+        }];
+        // The ring PLUS the filled 11pt check mark, centred — the CheckedIndicator at opacity 1.
+        UIImage* const checked = [renderer imageWithActions:^(UIGraphicsImageRendererContext* ctx) {
+          (void)ctx;
+          UIBezierPath* const ring = [UIBezierPath bezierPathWithOvalInRect:ring_rect];
+          ring.lineWidth = ring_stroke;
+          [UIColor.labelColor setStroke];
+          [ring stroke];
+          const CGFloat inset = (canvas - check_diameter) / 2;
+          UIBezierPath* const mark =
+              [UIBezierPath bezierPathWithOvalInRect:CGRectMake(inset, inset, check_diameter, check_diameter)];
+          [UIColor.labelColor setFill];
+          [mark fill];
+        }];
+        [button setImage:[unchecked imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]
+                forState:UIControlStateNormal];
+        [button setImage:[checked imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]
+                forState:UIControlStateSelected];
+        // Center, NOT the default scale-to-fill: UIButton fits its image into the content box, and with
+        // the template chrome insets below that box is slightly under 21pt — so the exactly-sized image
+        // was being scaled down to ~0.905 and landed at 19pt with a 1.81pt stroke. MEASURED: the drawn
+        // image is right (2.0pt stroke) while the RENDER was 57px instead of the reference's 63px @3x, so
+        // the defect was the button resizing the indicator, not the geometry. Centering pins it at its
+        // natural 21pt.
+        button.imageView.contentMode = UIViewContentModeCenter;
         // MAUI's DefaultTemplate renders the indicator + content as a LEFT-aligned row with a gap between
         // the ring and the label; a plain UIButton centers its content and butts the title flush against the
         // image. Left-align the content, then open a `gap` between the indicator and the title via the
@@ -170,7 +230,14 @@ namespace maui::core
         // renders the radio natively (no template), so fold that chrome into contentEdgeInsets (which feeds
         // sizeThatFits) on both axes to match the ref's row height AND the inter-item gap in a horizontal
         // stack; without the horizontal pad the port's radios pack ~8pt tighter than MAUI's.
-        const CGFloat template_vpad = 8;
+        // 7, not 8, and it must stay in step with get_desired_size's `chrome` below. That function sizes the
+        // row as max(21pt ring, text) + 14 — 14pt of TOTAL vertical chrome, calibrated against the shipped
+        // render. Insetting 8 top AND bottom spends 16, so the image slot came out at 35 - 16 = 19pt and
+        // clipped the indicator to exactly that. MEASURED: the ring rendered 23.0pt WIDE (the full drawn
+        // canvas) by 19.0pt TALL — anisotropic, which is what proves it was a vertical clip rather than a
+        // scale, and what distinguishes this from the ring-geometry bug fixed above it. 14/2 = 7 per side
+        // leaves the ring its full 21pt. The HORIZONTAL pad stays 8 (Border Padding=6 + Grid Padding=2).
+        const CGFloat template_vpad = 7;
         const CGFloat template_hpad = 8;
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         button.imageEdgeInsets = UIEdgeInsetsMake(0, -gap / 2, 0, gap / 2);
