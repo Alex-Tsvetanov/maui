@@ -108,9 +108,28 @@ What IS established:
   the port's image appears not to be animating while MAUI's is (MAUI shows the heart mid-animation)
 * the port's decode faithfully mirrors the oracle's algorithm
 
-Next step is on-device, not more source reading: log each decoded frame's `CGImageGetWidth/Height` and
-whether `UIImageView.startAnimating` is ever reached. Whether ImageIO hands back the partial rect or a
-composited canvas is an ImageIO behaviour question that source comparison cannot settle.
+**ON-DEVICE PROBE SETTLES IT: the decode is CORRECT and the GIF theory is dead.** Instrumenting
+`animated_image_from_source` and reading the simulator log:
+
+```
+MauiGifProbe frame 0 size 400x300
+MauiGifProbe frame 1 size 400x300
+... all 16 frames 400x300
+```
+
+ImageIO returns every frame as the **full, already-composited canvas** — the partial rects visible in
+the file never reach the port. So there is no compositing bug, no partial-frame bug, and nothing to fix
+in the image decoder. (Probe reverted; the file is unmodified.)
+
+**What remains is a 200px LAYOUT offset of that one cell.** MAUI's GIF canvas starts at y2301 and shows
+the heart (y2520 = `(252,205,64)`); the port's starts at y2501 with white above it. Both extend past the
+screen bottom, so both are clipped, and everything above y2301 matches pixel-for-pixel.
+
+**STOPPING, same as `android/border`.** Two theories tested and killed on this page — animation-phase
+noise (disproved by a byte-identical re-capture) and GIF frame compositing (disproved by the oracle and
+then by the device). One page at 3.91%, whose remaining symptom is a single element sitting 200px low
+with no second instance to compare against, does not justify further speculative work on shared image
+or layout code.
 
 ### Phase 4 — NEXT LEAD: Android centred content sits 34px low (the `border*` family)
 
