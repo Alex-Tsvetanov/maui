@@ -451,6 +451,28 @@ namespace maui::core
             result.height = std::max<double>(k_ring_pt, std::ceil(wrapped.size.height)) + k_chrome_pt;
 #endif
         }
+        // BorderWidth GROWS the control on both axes; it does not eat into it. The DefaultTemplate's Border
+        // wraps the Grid, so its StrokeThickness adds OUTSIDE the padded content — total = content +
+        // 2*padding + 2*stroke. The port draws the stroke on the layer instead (layer.borderWidth, which is
+        // painted INSIDE the view bounds and contributes nothing to the measured size), so a bordered radio
+        // came out the same height as an unbordered one and its background was squeezed inward by the
+        // stroke rather than the row growing around it.
+        //
+        // MEASURED on radio_button_border_light @3x, the two yellow rows isolating the variable — Option 2
+        // (BackgroundColor only) is 35.0pt in BOTH columns, while Option 1 (the same fill plus
+        // BorderWidth=4) is 45.0pt in the reference and 27.0pt in the port. 27 = 35 - 2*4 exactly: the fill
+        // inset by the stroke on each side, where MAUI instead grew the row to 35 + 2*4. That one page held
+        // 5.76% differing and did not move for any of the three indicator fixes before this, because the
+        // indicator was never its problem.
+        //
+        // Clamp negatives to 0, matching C#'s `BorderWidth < 0 ? 0 : BorderWidth` (the same guard
+        // button_handler.mm applies to stroke_thickness).
+        if (const auto* const vv = virtual_view())
+        {
+            const double border_width = vv->stroke_thickness() > 0 ? vv->stroke_thickness() : 0.0;
+            result.width += 2 * border_width;
+            result.height += 2 * border_width;
+        }
         return result;
     }
 

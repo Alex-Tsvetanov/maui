@@ -1855,11 +1855,11 @@ ports RadioButtonBorder.xaml A self-contained, code-first demo of RadioButton bo
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9259, 5.76% pixels differ · Dark: SSIM 0.9092, 5.76% pixels differ
+Light: SSIM 0.9451, 2.76% pixels differ · Dark: SSIM 0.9415, 2.76% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9259, 5.76% pixels differ · Dark: SSIM 0.9092, 5.76% pixels differ
+Light: SSIM 0.9451, 2.76% pixels differ · Dark: SSIM 0.9415, 2.76% pixels differ
 
 ### 123. Radio Button Content — 🟡/🟡
 <sub>radio_button_content</sub>
