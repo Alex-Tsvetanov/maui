@@ -44,6 +44,13 @@ WIN_VM_USER="${WIN_VM_USER:-Testings-VM}"
 IOS_UDID="${IOS_UDID:-C4926671-2FA7-428E-B4A4-480692EE742B}"
 ANDROID_SERIAL="${ANDROID_SERIAL:-emulator-5554}"
 
+# UNBUFFERED PYTHON, or the progress display is a lie. Python block-buffers stdout when it is a file
+# rather than a TTY, so every capture tool's per-page prints sat in a 4 KB buffer and the step log
+# stayed 0 bytes for the whole run: the terminal showed "still running … last:" with nothing after it
+# while frames were landing on disk normally. Measured on the iOS maui lane — 6 minutes in, log empty,
+# 364 PNGs written. This one line is what makes the "▸ <page>" output work at all.
+export PYTHONUNBUFFERED=1
+
 export VCPKG_ROOT="${VCPKG_ROOT:-$HOME/vcpkg}"
 export ANDROID_HOME="${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}"
 export PATH="/opt/homebrew/bin:$PATH:$ANDROID_HOME/platform-tools"
@@ -185,6 +192,13 @@ ensure_ios_sim() {
     sleep 3
     (( i == 60 )) && { log "         !! simulator did not boot within 3min"; return 1; }
   done
+  # `simctl boot` boots the DEVICE but never opens Simulator.app, so the run is invisible even though
+  # it is working. Open the UI so it can be watched on a second screen. Screenshots come from the
+  # device framebuffer via `simctl io`, not from the host screen, so the window is purely for viewing
+  # and cannot affect what is captured. SHOW_UI=0 to keep it headless.
+  if [[ "${SHOW_UI:-1}" == "1" ]]; then
+    open -a Simulator 2>/dev/null && log "         Simulator.app opened (watch the run here)"
+  fi
   # Booted != ready to serve screenshots. Poll until a screenshot actually succeeds.
   for i in $(seq 1 40); do
     xcrun simctl io "$IOS_UDID" screenshot --type=png /tmp/_iosready.png >/dev/null 2>&1 && {
@@ -196,7 +210,15 @@ ensure_ios_sim() {
 
 ensure_android_emulator() {
   if [[ "$(adb -s "$ANDROID_SERIAL" get-state 2>/dev/null)" == "device" ]]; then
-    log "         Android emulator already running"; return 0
+    log "         Android emulator already running"
+    # A pre-existing emulator may have been started with -no-window, in which case there is nothing to
+    # look at and no way to attach a UI to it — it has to be restarted. Say so instead of leaving the
+    # user waiting for a window that will never appear.
+    if pgrep -fl "qemu-system" 2>/dev/null | grep -q -- "-no-window"; then
+      log "         !! that emulator is HEADLESS (-no-window): its run cannot be watched."
+      log "            to see it, stop it and let this script start it:  adb -s $ANDROID_SERIAL emu kill"
+    fi
+    return 0
   fi
   local avd="${MAUI_AVD:-maui-test}"
   log "         starting Android emulator '$avd' (headless-safe, detached)"
