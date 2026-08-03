@@ -55,6 +55,32 @@ ts()  { date '+%Y-%m-%d %H:%M:%S'; }
 log() { printf '%s | %s\n' "$(ts)" "$*" | tee -a "$MAIN_LOG"; }
 hr()  { printf '%s | %s\n' "$(ts)" "────────────────────────────────────────────────────────────" | tee -a "$MAIN_LOG"; }
 
+# Pull the page/example currently being captured out of a step's log. Each tool announces progress in
+# its own shape, so this normalises all of them to a bare page key:
+#
+#   run_comparison.py            "  border_playground/cpp/light initial   -> border_playground/..."
+#   capture_ios_clean.py         "[37] cpp light border_playground -> ..."
+#   build_android_apphost.sh     "[apphost] launch border_playground (light)..."
+#   capture_all_csharp_android.sh"[csharp-android] wrote /…/border_playground_light.png (12345B)"
+#   measure_runtime.py           "  android/cpp rep 3/5: 1.482s"
+#
+# Without this the terminal shows one heartbeat a minute during a 172-page sweep and you cannot tell a
+# working run from a wedged one — which is the whole reason this script exists.
+example_lines() {
+  # ALL progress lines so far, normalised to one page key each. run_step prints only the ones it has
+  # not shown yet, so nothing is skipped when several pages finish between two polls — sampling the
+  # LAST line (the first cut of this) silently dropped pages on fast steps.
+  # NOTE the '#' delimiters: these patterns contain (light|dark), and using '|' as the sed delimiter
+  # ends the pattern at the alternation. That mistake made this print nothing at all.
+  local f="$1"
+  grep -aE '^\[[0-9]+\] |^\[apphost\] launch |^\[csharp-android\] wrote |^  [a-z0-9_]+/[a-z_]+/(light|dark) |rep [0-9]+/[0-9]+:' "$f" 2>/dev/null | sed -E \
+    -e 's#^\[apphost\] launch ([^ ]+) .*#\1#' \
+    -e 's#^\[csharp-android\] wrote .*/([A-Za-z0-9_]+)_(light|dark)\.png.*#\1 (\2)#' \
+    -e 's#^\[[0-9]+\] ([a-z_]+) (light|dark) ([A-Za-z0-9_]+) .*#\3 (\1/\2)#' \
+    -e 's#^ *([a-z]+/[a-z_]+) rep ([0-9]+/[0-9]+).*#\1 rep \2#' \
+    -e 's#^  ([^/]+)/([a-z_]+)/(light|dark) .*#\1 (\2/\3)#'
+}
+
 # run_step <timeout_seconds> <name> <command...>
 # Runs the command with its own log file, a heartbeat, and a hard timeout. Never aborts the script.
 run_step() {
@@ -72,12 +98,20 @@ run_step() {
 
   "$@" > "$step_log" 2>&1 &
   local pid=$!
-  # Heartbeat + timeout. Poll rather than `timeout(1)`: coreutils' timeout is not on a stock macOS.
-  local waited=0
+  # Heartbeat + live example + timeout. Poll rather than `timeout(1)`: coreutils' timeout is not on a
+  # stock macOS. The example line prints ONLY when the page changes, so a 172-page sweep produces 172
+  # lines rather than one every poll — enough to watch, not enough to drown the heartbeat.
+  local waited=0 seen=0 printed=0 cur="" prev=""
   while kill -0 "$pid" 2>/dev/null; do
-    sleep 10; waited=$((waited + 10))
+    sleep 5; waited=$((waited + 5))
+    while IFS= read -r cur; do
+      [[ -z "$cur" || "$cur" == "$prev" ]] && continue
+      seen=$((seen + 1)); prev="$cur"
+      log "         ▸ [$seen] $cur"
+    done < <(example_lines "$step_log" | tail -n "+$((printed + 1))")
+    printed=$(example_lines "$step_log" | wc -l | tr -d ' ')
     if (( waited % 60 == 0 )); then
-      log "         ... still running (${waited}s / ${timeout_s}s)  last: $(tail -n 1 "$step_log" 2>/dev/null | cut -c1-100)"
+      log "         ... still running (${waited}s / ${timeout_s}s)$([[ -n "$prev" ]] && echo "  on: $prev")  last: $(tail -n 1 "$step_log" 2>/dev/null | cut -c1-80)"
     fi
     if (( waited >= timeout_s )); then
       log "         !! TIMEOUT after ${waited}s — killing PID $pid and its children"
@@ -315,6 +349,10 @@ rebuild_board() {
 }
 
 # ---------------------------------------------------------------- main
+# Sourcing this file defines the helpers WITHOUT running anything, so current_example / run_step can
+# be exercised against real tool output in a test. `RECAPTURE_LIB=1 source recapture_all.sh`.
+[[ "${RECAPTURE_LIB:-0}" == "1" ]] && return 0 2>/dev/null
+
 ALL_LANES=(ios catalyst appkit android windows)
 if (( $# > 0 )); then LANES_TO_RUN=("$@"); else read -r -a LANES_TO_RUN <<< "${LANES:-${ALL_LANES[*]}}"; fi
 
