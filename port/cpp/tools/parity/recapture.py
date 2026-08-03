@@ -61,6 +61,7 @@ import tempfile
 import threading
 import time
 import tomllib
+import traceback
 from datetime import datetime
 from pathlib import Path
 
@@ -108,7 +109,6 @@ MAC_VM = os.environ.get("MAC_VM_USER", "testinguser") + "@" + \
     os.environ.get("MAC_VM_HOST", "Testings-Virtual-Machine.local")
 IOS_UDID = os.environ.get("MAUI_SIM_UDID", "C4926671-2FA7-428E-B4A4-480692EE742B")
 ANDROID_SERIAL = os.environ.get("MAUI_ANDROID_SERIAL", "emulator-5554")
-ANDROID_HOME = os.environ.get("ANDROID_HOME", "/opt/homebrew/share/android-commandlinetools")
 DEFAULT_TIMEOUT = int(os.environ.get("PARITY_STEP_TIMEOUT", "5400"))
 
 FAILED: list[str] = []
@@ -273,8 +273,32 @@ def ensure_ios_sim(visible: bool) -> bool:
     return False
 
 
+def android_sdk_root() -> str | None:
+    """The first candidate root that actually HAS platform-tools/adb.
+
+    Deliberately not `which adb`, and deliberately not trusting $ANDROID_HOME on its own: this machine
+    has an Android-Studio-shaped ~/Library/Android/sdk with no platform-tools in it, and tools that
+    took the env var at its word died on a path that does not exist. Same probe order, and the same
+    MAUI_ANDROID_SDK_ROOT override, as tools/android-emu-lib.sh — the two must agree or the Python
+    lane and the shell capture scripts would drive different SDKs.
+    """
+    for candidate in (os.environ.get("MAUI_ANDROID_SDK_ROOT"), os.environ.get("ANDROID_HOME"),
+                      os.environ.get("ANDROID_SDK_ROOT"),
+                      "/opt/homebrew/share/android-commandlinetools",
+                      str(Path.home() / "Library" / "Android" / "sdk")):
+        if candidate and os.access(os.path.join(candidate, "platform-tools", "adb"), os.X_OK):
+            return candidate
+    return None
+
+
 def ensure_android_emulator(visible: bool) -> bool:
-    adb = shutil.which("adb") or f"{ANDROID_HOME}/platform-tools/adb"
+    root = android_sdk_root()
+    if root is None:
+        fail("android: no SDK with platform-tools/adb found "
+             "(looked at $MAUI_ANDROID_SDK_ROOT, $ANDROID_HOME, $ANDROID_SDK_ROOT, "
+             "/opt/homebrew/share/android-commandlinetools, ~/Library/Android/sdk)")
+        return False
+    adb = os.path.join(root, "platform-tools", "adb")
     state = subprocess.run([adb, "-s", ANDROID_SERIAL, "get-state"],
                            capture_output=True, text=True).stdout.strip()
     if state == "device":
@@ -287,7 +311,12 @@ def ensure_android_emulator(visible: bool) -> bool:
                     f"To see it: adb -s {ANDROID_SERIAL} emu kill, then re-run.")
         return True
     avd = os.environ.get("MAUI_AVD", "maui-test")
-    args = [f"{ANDROID_HOME}/emulator/emulator", "-avd", avd, "-no-snapshot-save", "-no-boot-anim"]
+    emulator = os.path.join(root, "emulator", "emulator")
+    if not os.access(emulator, os.X_OK):
+        fail(f"android: {root} has adb but no emulator binary at {emulator} — "
+             f"start the '{avd}' AVD yourself, or install the emulator package in that SDK")
+        return False
+    args = [emulator, "-avd", avd, "-no-snapshot-save", "-no-boot-anim"]
     if not visible:
         args.append("-no-window")
     log(f"      starting Android emulator '{avd}'{'' if visible else ' (headless)'}")
@@ -689,11 +718,22 @@ def main(argv=None) -> int:
               f"themes={themes} examples={len(examples)}")
         return 0
 
-    # The toolchain env every lane needs (cmake/vcpkg, the SDK the android scripts resolve, and the
-    # Homebrew dotnet). Set as DEFAULTS — an explicit value in the caller's environment always wins.
+    # The toolchain env every lane needs (cmake/vcpkg, the Android SDK, the Homebrew dotnet).
     os.environ.setdefault("VCPKG_ROOT", str(Path.home() / "vcpkg"))
-    os.environ.setdefault("ANDROID_HOME", ANDROID_HOME)
-    os.environ["PATH"] = f"/opt/homebrew/bin:{os.environ['PATH']}:{ANDROID_HOME}/platform-tools"
+    # ANDROID_HOME is CORRECTED rather than defaulted. A pointing-at-nothing value is worse than an
+    # absent one: an Android-Studio-shaped ~/Library/Android/sdk with no platform-tools in it is a real
+    # configuration on this machine, and honouring it would send every android step to a path that does
+    # not exist. android_sdk_root() picks the first root that actually has adb.
+    sdk = android_sdk_root()
+    if sdk:
+        if os.environ.get("ANDROID_HOME") not in (None, sdk):
+            log(f"note: ANDROID_HOME={os.environ['ANDROID_HOME']} has no platform-tools/adb — "
+                f"using {sdk} (same probe order as tools/android-emu-lib.sh)")
+        os.environ["ANDROID_HOME"] = sdk
+        # Children resolve `adb` off PATH (lib/capture_android.py) — put the WORKING one first.
+        os.environ["PATH"] = f"{sdk}/platform-tools:/opt/homebrew/bin:{os.environ['PATH']}"
+    else:
+        os.environ["PATH"] = f"/opt/homebrew/bin:{os.environ['PATH']}"
 
     started = time.time()
     log(f"RECAPTURE {RUN_ID} — platforms={platforms} frameworks={frameworks} themes={themes} "
@@ -704,15 +744,24 @@ def main(argv=None) -> int:
     # Strictly sequential. The macOS VM's Catalyst and AppKit lanes share ONE guest agent and ONE
     # scratch shot.png; two runs at once destroy each other's frames.
     for platform in platforms:
-        if platform == "ios":
-            lane_ios(frameworks, themes, examples, visible, a.skip_build, a.settle, a.gif_secs)
-        elif platform == "android":
-            lane_android(frameworks, themes, examples, visible, a.gif_secs)
-        else:
-            if platform == "macos" and not a.skip_build:
-                build("catalyst", frameworks)     # no-op unless cpp / cpp_xaml is selected
-                build("appkit", frameworks)
-            lane_vm(platform, frameworks, themes, examples, a.settle, a.gif_frames, a.gif_interval)
+        # A lane that throws must not cost you the other three — that is the whole point of a run this
+        # long, and an unhandled exception in the FIRST lane (a missing SDK, an unreachable VM) would
+        # otherwise abandon a multi-hour job seconds after it started.
+        try:
+            if platform == "ios":
+                lane_ios(frameworks, themes, examples, visible, a.skip_build, a.settle, a.gif_secs)
+            elif platform == "android":
+                lane_android(frameworks, themes, examples, visible, a.gif_secs)
+            else:
+                if platform == "macos" and not a.skip_build:
+                    build("catalyst", frameworks)     # no-op unless cpp / cpp_xaml is selected
+                    build("appkit", frameworks)
+                lane_vm(platform, frameworks, themes, examples, a.settle, a.gif_frames, a.gif_interval)
+        except KeyboardInterrupt:
+            raise
+        except Exception as exc:
+            fail(f"{platform}: lane aborted — {type(exc).__name__}: {exc}")
+            traceback.print_exc()
 
     if not a.no_measure:
         measure(platforms)
