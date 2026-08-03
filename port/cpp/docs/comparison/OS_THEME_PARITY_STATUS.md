@@ -75,6 +75,38 @@ scenario tap calibration is keyed to width 1512).
 
 iOS, Android and Windows are unblocked.
 
+### Android — DONE (2026-08-03)
+
+All three columns recaptured under system-wide light and dark: maui 172+172, cpp 174+174, xaml 196+196.
+
+**The switch to OS-driven theming is a no-op on the output**, which is the result to want. Of ~1084
+frames only 10 differ from HEAD, and of those:
+
+| frames | cause |
+|---|---|
+| `date_picker`, `pickers`, `clip_views` (both themes, ≤0.10%) | the midnight date rollover — the rendered date string, not the port. Why all three columns must be captured in ONE session. |
+| 2 × `gap_*` at 0 px | metadata-only rewrite |
+| `xaml/image_dark` at 66% | **a broken frame in the COMMITTED board, now repaired** |
+
+Dropping `--es MAUI_THEME Dark` changed nothing at all, which empirically confirms the long-standing
+note that `UserAppTheme = Dark` was a no-op on Android: the device night mode was already doing 100% of
+the work. The column was OS-driven by accident; it is now OS-driven by design.
+
+Score effect: Android xaml 159/10/3 → **160/10/2** (board xaml total 655/27/6 → **656/27/5**), entirely
+from the repaired `image` frame.
+
+**KNOWN NONDETERMINISM — the `image` page.** Its `UriSource` is a NETWORK image, so a capture can land
+before it loads; the layout then collapses upward and ~66% of pixels differ. This is not theoretical:
+the committed `xaml/image_dark` was carrying such a failure, and a fresh capture of `cpp/image_light`
+reproduced it once before succeeding on retry. All six Android `image` frames are now verified loaded
+(UriSource band > 5000 distinct colours). Re-check that band after any `image` recapture.
+
+**Board scoring is a SEPARATE step.** `build_comparison_json.py` CARRIES OVER pixel scores; it cannot
+compute them. The chain is import → build_comparison_json → `pixel_score.py --platform <p>` →
+gen_readme. Skipping the scorer produces a byte-identical board and a cheerful success line while the
+verdicts stay stale — which is exactly what happened here until the repaired `image` page was still
+reading "61.63% pixels differ".
+
 **Rebuild before capturing:** the MauiReference APK/app must be rebuilt anywhere the App.xaml.cs change
 has not landed — an older binary still forces Light when no `MAUI_THEME` extra is present, so a dark
 pass renders LIGHT and reads as an enormous regression. Android's is rebuilt and installed
