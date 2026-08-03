@@ -5,11 +5,11 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <table>
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
-<tr><td>iOS</td><td>161</td><td>11</td><td>0</td><td>0</td><td>0</td><td>162</td><td>10</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>iOS</td><td>162</td><td>10</td><td>0</td><td>0</td><td>0</td><td>162</td><td>10</td><td>0</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>163</td><td>7</td><td>2</td><td>0</td><td>0</td><td>163</td><td>7</td><td>2</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>160</td><td>10</td><td>2</td><td>0</td><td>0</td><td>160</td><td>10</td><td>2</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>171</td><td>0</td><td>1</td><td>0</td><td>0</td><td>171</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>655</strong></td><td><strong>28</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>656</strong></td><td><strong>27</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>656</strong></td><td><strong>27</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>656</strong></td><td><strong>27</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -25,8 +25,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 161 | 162 |
-| 🟡 Minor | 11 | 10 |
+| 🟢 Match | 162 | 162 |
+| 🟡 Minor | 10 | 10 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -475,11 +475,11 @@ compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror th
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9938, 0.18% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9938, 0.18% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 31. Collectionview — 🟢/🟢
 <sub>collectionview</sub>
@@ -511,16 +511,16 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 33. Containers — 🟡/🟢
+### 33. Containers — 🟢/🟢
 <sub>containers</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/containers_light.png" /></td><td><img width="300px" src="captures/ios/cpp/containers_light.png" /></td><td><img width="300px" src="captures/ios/xaml/containers_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/containers_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/containers_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/containers_dark.png" /></td></tr></table>
 
 a self-contained demo page for the W1-07 container set: a scroll_view hosting a vertical stack of content-hosting containers — a border-framed label (stroke + dashed outline + rounded shape), a legacy frame (BorderColor/CornerRadius/HasShad
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9930, 0.41% pixels differ · Dark: SSIM 0.9629, 1.06% pixels differ
+Light: SSIM 0.9930, 0.41% pixels differ · Dark: SSIM 0.9901, 0.40% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -655,11 +655,11 @@ ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9920, 0.43% pixels differ · Dark: SSIM 0.9918, 0.43% pixels differ
+Light: SSIM 0.9916, 0.45% pixels differ · Dark: SSIM 0.9914, 0.45% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9943, 0.36% pixels differ · Dark: SSIM 0.9941, 0.36% pixels differ
+Light: SSIM 0.9940, 0.38% pixels differ · Dark: SSIM 0.9939, 0.38% pixels differ
 
 ### 43. Device — 🟢/🟢
 <sub>device</sub>
@@ -1750,7 +1750,7 @@ a self-contained demo page for the W1-06 picker set: picker, date_picker and tim
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9949, 0.20% pixels differ · Dark: SSIM 0.9949, 0.20% pixels differ
+Light: SSIM 0.9956, 0.18% pixels differ · Dark: SSIM 0.9955, 0.18% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 

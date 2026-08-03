@@ -75,6 +75,34 @@ scenario tap calibration is keyed to width 1512).
 
 iOS, Android and Windows are unblocked.
 
+### iOS — DONE (2026-08-03)
+
+All three columns recaptured under system-wide light and dark: 182+182 each, 0 drops, 0 splash frames.
+Prerequisite: MauiReference rebuilt for iOS **and** `gallery_xaml` rebuilt — the latter was stale from
+the previous evening and predated the theme fix, so that column would have captured old behaviour.
+
+Result: iOS cpp **161/11/0 → 162/10/0**, xaml 162/10/0 unchanged. **Zero reds.**
+
+**A MISSING TOOL WAS THE REAL FIND.** The reference captures live in two roots —
+`port/maui-reference/captures/<platform>/` (fresh, what the capture tools write) and
+`docs/comparison/captures/<platform>/maui/` (what the scoring tools read) — and NOTHING copied between
+them. A full 364-frame reference sweep had just run and the board's column was still the 2-day-old set,
+so the port would have been scored against a reference captured under a *different theme mechanism*.
+`tools/parity/promote_reference_captures.py` is that importer; it refuses to promote a splash frame, a
+blank frame, or an empty source directory.
+
+Two capture flakes were caught and repaired before scoring, both would have read as port regressions:
+
+| frame | symptom | cause |
+|---|---|---|
+| `cpp` + `xaml` `image_light` | 65.19% differ | the `UriSource` NETWORK image again — same flake as Android |
+| `xaml/border_stroke_dark` | 33.15% differ | frame rendered **entirely black** (body mean 0.0) |
+
+A full sweep of all 1092 iOS frames for flat / wrong-theme / splash found 45 suspicious, of which only
+**6 were also changed vs HEAD** — the other 39 are pre-existing flat pages that match their reference.
+Cross-checking suspicion against "did this frame actually change" is what keeps a verification pass from
+reporting 45 fictional regressions.
+
 ### Android — DONE (2026-08-03)
 
 All three columns recaptured under system-wide light and dark: maui 172+172, cpp 174+174, xaml 196+196.

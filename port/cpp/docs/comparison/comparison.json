@@ -4292,11 +4292,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9938, 0.18% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9938, 0.18% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
         }
       },
       "maccatalyst": {
@@ -4732,8 +4732,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9930, 0.41% pixels differ \u00b7 Dark: SSIM 0.9629, 1.06% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9930, 0.41% pixels differ \u00b7 Dark: SSIM 0.9901, 0.40% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -6056,11 +6056,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9920, 0.43% pixels differ \u00b7 Dark: SSIM 0.9918, 0.43% pixels differ"
+          "review": "Light: SSIM 0.9916, 0.45% pixels differ \u00b7 Dark: SSIM 0.9914, 0.45% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9943, 0.36% pixels differ \u00b7 Dark: SSIM 0.9941, 0.36% pixels differ"
+          "review": "Light: SSIM 0.9940, 0.38% pixels differ \u00b7 Dark: SSIM 0.9939, 0.38% pixels differ"
         }
       },
       "maccatalyst": {
@@ -16787,7 +16787,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9949, 0.20% pixels differ \u00b7 Dark: SSIM 0.9949, 0.20% pixels differ"
+          "review": "Light: SSIM 0.9956, 0.18% pixels differ \u00b7 Dark: SSIM 0.9955, 0.18% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
