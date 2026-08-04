@@ -357,9 +357,14 @@ def ensure_ios_sim(visible: bool) -> bool:
         log(f"      booting iOS simulator {IOS_UDID}")
         subprocess.run(["xcrun", "simctl", "boot", IOS_UDID], capture_output=True)
     if visible:
-        # Cosmetic ONLY on iOS: shots come from the device framebuffer via `simctl io`, never the host
-        # screen, so the window cannot affect what is captured.
-        subprocess.run(["open", "-a", "Simulator"], capture_output=True)
+        # `-g` = open in the BACKGROUND: show the window without raising it over the operator's work.
+        # Cosmetic ONLY on iOS in both senses — shots come from the device framebuffer via `simctl io`
+        # and touches go through idb's companion socket to CoreSimulator, so neither the window nor its
+        # focus is in any capture path. A plain `open -a Simulator` took the foreground once per lane,
+        # which is the same class of problem as the host-cursor injection this lane just removed: a
+        # capture run must never take over the machine it runs on. If it costs nothing to be visible,
+        # it must also cost nothing to be ignored.
+        subprocess.run(["open", "-g", "-a", "Simulator"], capture_output=True)
     for _ in range(40):   # booted != able to serve screenshots
         r = subprocess.run(["xcrun", "simctl", "io", IOS_UDID, "screenshot", "--type=png",
                             "/tmp/_iosready.png"], capture_output=True)

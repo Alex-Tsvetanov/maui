@@ -21,17 +21,25 @@ reason it is not three lines of `simctl`:
     on a page the port may render perfectly).
   * INTERACTION: `simctl` has NO input-injection subcommand at all (read its full subcommand list), so
     a page that only changes under a tap/swipe/keystroke is otherwise photographed at rest. Touches go
-    in through the Simulator's own WINDOW — see "Driving the device" below.
+    in through `idb` — see "Driving the device" below.
 
 DRIVING THE DEVICE (scenario steps)
 -----------------------------------
 `run_steps()` replays a page's step dicts against the device — before the still, and DURING the GIF
-recording. Touches are injected HOST-SIDE: `cliclick` posts real mouse/key events onto the Simulator
-WINDOW, which forwards them to the device. The alternatives were measured on this machine, not assumed:
+recording. Touches are injected with **idb** (`idb ui tap/swipe/text`), which speaks to the simulator's
+own HID layer over the companion socket. THE HOST POINTER IS NEVER TOUCHED, and that is a hard
+requirement, not a nicety: this lane previously drove the Simulator WINDOW with `cliclick` plus an
+`osascript … activate`, so a board run seized the cursor and the foreground app for its whole duration
+— the machine could not be used while it ran, and any stray user click landed mid-gesture and corrupted
+a frame. Every sibling lane already met that bar (Android injects through `adb shell input`, and the
+macOS/Windows guests run their agent over SSH, so the cursor that moves belongs to the VM). Measured
+here: three `idb ui tap`s took the cpp gallery's `button` readout 0 -> 3 with the host cursor at
+(512,393) before AND after, and no app changed focus.
+
+The alternatives were measured on this machine, not assumed:
 
   * `xcrun simctl` — no input subcommand of any kind (read its full subcommand list). A dead end.
-  * `idb` (`idb ui tap/swipe/text`) — the robust, window-free path, but NOT installed (`which idb` ->
-    not found), and its Xcode-26 support is unverified. This is the upgrade if the window path rots.
+  * `cliclick` on the Simulator window — works, but costs the operator the machine (above). Gone.
   * the port's own DevFlow HTTP agent (docs/DEVFLOW_PROTOCOL.md) — reachable (a simulator process
     shares the host's 127.0.0.1), but it exists ONLY in the C++ galleries; the MAUI reference column
     has no agent. Driving 2 of 3 columns makes every scenario page a guaranteed FALSE RED, so it
@@ -39,25 +47,28 @@ WINDOW, which forwards them to the device. The alternatives were measured on thi
     Grid answers `found:true, activated:false`.)
   * an XCUITest runner — a signed test host per app; the heaviest option for the smallest gain.
 
-cliclick is the only zero-install path that is APP-AGNOSTIC, which is the entire requirement: all three
-columns must receive the identical gesture or the comparison means nothing. Verified on this machine —
-the C++ gallery's `button` page went Taps: 0 -> 1, the MAUI reference's first button lit its pressed
-state under a held drag, `scroll_view` scrolled under a swipe, and `t:abc` landed glyphs in `entry`.
+idb is APP-AGNOSTIC, which is the entire requirement: all three columns must receive the identical
+gesture or the comparison means nothing.
 
-GEOMETRY (measured — do NOT guess an inset): the Simulator window is not the device screen. On Xcode 26
-the window (412x884 pt here) is a 52pt title bar + the drawn device bezel + the screen, and the user's
-window scale (~0.90) shrinks the screen inside it, so no fixed inset survives. The screen rect is read
-at RUNTIME from the Accessibility tree: the window child whose SUBROLE is `iOSContentGroup` IS the
-screen (measured 363x789 pt at (1578,138) for a 1206x2622 framebuffer — aspect 0.4601 vs 0.45996).
-Everything maps through that rect, so a moved, rescaled or different-sized device still lands correctly.
-An early "uniform 5pt border" model looked perfectly plausible and tapped the WRONG ROW — the class of
-bug in `cpp-capture-fabricates-plausible-data`, which is why every mapped point is bounds-checked.
+GEOMETRY — there is none to resolve. idb addresses the DEVICE, so there is no window rect, no bezel, no
+window scale and no Accessibility tree in the path. MEASURED: the whole proof above ran with the
+Simulator NOT frontmost and never activated. Inferred but NOT measured (the companion talks to
+CoreSimulator, not to Simulator.app, so window state should be irrelevant): that it also works with the
+window closed or on another Space — untested because quitting Simulator.app shuts the device down.
+What DOES matter is the unit:
 
-Interaction REQUIRES the Simulator window open and frontmost (`recapture.py --visible yes`; the
-"cosmetic ONLY on iOS" note there stops being true for scenario pages) plus Accessibility permission
-for this process. Both are checked and a failure RAISES — the lane already turns that into one failed
-page, whereas a silent no-op reproduces the very bug this exists to fix: 12 byte-identical burst frames
-from a page nobody ever touched.
+  **idb ui speaks POINTS; `simctl io screenshot` writes PIXELS.** On this device that is a factor of
+  3.0 (402x874 points, 1206x2622 pixels), and it is the single most likely source of a tap that lands
+  on the wrong widget. So this module works in POINTS end to end — one unit space, no conversion to get
+  wrong — and reads the size from `idb describe` per device rather than pinning 402x874, because the
+  next device is another size. A coordinate read off a board PNG is a PIXEL and must be divided by the
+  density before it can be used here; prefer a 0..1 fraction, which needs no such arithmetic and is the
+  only form that means the same thing on every lane.
+
+A failure RAISES — the lane already turns that into one failed page, whereas a silent no-op reproduces
+the very bug this exists to fix: 12 byte-identical burst frames from a page nobody ever touched. idb
+itself will NOT do that for us: a tap at (99999,99999) and a zero-length swipe both exit 0, so the
+bounds and zero-length guards below are load-bearing, not decorative.
 
 Apps (bundle + env contract):
   maui -> dev.mauicpp.mauireference     MAUI_COMPARE_PAGE -> port/maui-reference/captures/ios/<key>_<theme>.png
@@ -67,10 +78,10 @@ Apps (bundle + env contract):
 Does NOT build or install.
 """
 import json
+import math
 import os
 import shutil
 import signal
-import struct
 import subprocess
 import tempfile
 import time
@@ -138,28 +149,24 @@ def _screenshot(stage: str, udid: str) -> bool:
 
 
 # --------------------------------------------------------------------------- interaction
-CLICLICK = os.environ.get("MAUI_PARITY_CLICLICK", "cliclick")
+# fb-idb's client. NOT resolved off PATH first: pipx puts it in ~/.local/bin, which a non-login shell
+# does not have, and it must run under python 3.11 — 3.14 crashes it (asyncio.get_event_loop) and 3.9
+# cannot install it (dataclass slots). The pipx venv shebang pins the right interpreter, so addressing
+# the binary by path is also what keeps the interpreter right.
+IDB = os.environ.get("MAUI_PARITY_IDB", os.path.expanduser("~/.local/bin/idb"))
+IDB_INSTALL = ("brew install idb-companion && pipx install --python python3.11 fb-idb "
+               "(or point MAUI_PARITY_IDB at an existing client)")
 
-# The window child that IS the device screen. `subrole`, not `description` — description reads "group".
-# The window is picked BY DEVICE NAME, never `window 1`: with two simulators open, `window 1` can be the
-# other device — taps would land there while `simctl` screenshots keep coming from UDID, and the frame
-# banked would be a perfectly sharp picture of an untouched page.
-AX_SCREEN = ('tell application "System Events" to tell process "Simulator" to get {position, size} of '
-             '(first UI element of (first window whose name starts with "%s") whose subrole is '
-             '"iOSContentGroup")')
-AX_FRONT = 'tell application "System Events" to get name of first process whose frontmost is true'
-
-# A gesture STARTING within this many device pixels of an edge is an OS gesture, not app input: left =
-# back, top = Notification Center, bottom = home/app switcher. 60px is ~20pt on a 3x screen. A step that
-# really means to pull the shade sets `edge = true`; everything else is rejected, because the frame it
-# would produce (a half-open Notification Center over the page) is plausible enough to survive review.
-# What this does NOT cover, and no constant can: the STATUS BAR / Dynamic Island band is far taller
-# than 60px (roughly the top ~55-60pt, i.e. ~170px at 3x — device-dependent, not measured here), so a
-# point below the margin can still be on system chrome rather than on the page. swipe_refresh's
-# `at = [700, 120]` is exactly that: legal here, but ~40pt down, which on this device is inside the
-# island. A pull origin has to clear it — one more reason to author fractions off the board still.
-EDGE_PX = 60
-SWIPE_MOVES = 8            # dm: waypoints; enough for UIScrollView to see a velocity, cheap to emit
+# A gesture STARTING within this many POINTS of an edge is an OS gesture, not app input: left = back,
+# top = Notification Center, bottom = home/app switcher. 20pt is the 60px this was measured at on a 3x
+# screen. A step that really means to pull the shade sets `edge = true`; everything else is rejected,
+# because the frame it would produce (a half-open Notification Center over the page) is plausible enough
+# to survive review. What this does NOT cover, and no constant can: the STATUS BAR / Dynamic Island band
+# is far taller than the margin (roughly the top ~55-60pt), so a point below it can still be on system
+# chrome rather than on the page. A pull origin has to clear that band — one more reason to author
+# fractions against the board still rather than guessing a y.
+EDGE_PT = 20
+SWIPE_MOVES = 8            # touch points along the line; enough for UIScrollView to see a velocity
 STEP_SETTLE = 0.6          # let the UI react before the next step / the shot
 
 # The axis form of a drag/swipe, byte-identical to run_comparison.SWIPE_DIRECTIONS and
@@ -168,8 +175,8 @@ STEP_SETTLE = 0.6          # let the UI react before the next step / the shot
 # exactly what happened while this module implemented a SMALLER verb set than the files it is fed.
 _SWIPE_DIRECTIONS = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 # The shared vocabulary's default distance is 300px at the desktop lanes' 1024x800 capture geometry.
-# On a 1206x2622 framebuffer that is a ninth of the screen, so — exactly like the Android lane — the
-# default is a FRACTION of the axis, which is the same board-scale flick on any device.
+# On an 874pt-tall screen that is a third of it, so — exactly like the Android lane — the default is a
+# FRACTION of the axis, which is the same board-scale flick on any device.
 _SWIPE_FRACTION = 0.25
 # A touch screen has no pointer, so there is nothing to park and nothing to leave hovering. Reported,
 # never substituted: a tap is a DIFFERENT gesture and would manufacture a pressed/activated state a
@@ -178,97 +185,91 @@ _HOVER_SKIP = ("hover: iOS is a touch screen with no pointer to park — and a t
                "gesture, not a substitute")
 
 
-def _osa(script: str) -> str:
-    r = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
-    return r.stdout.strip()
+_POINTS: dict[str, tuple[int, int]] = {}
+_CONNECTED: set[str] = set()
 
 
-def _name_from_devices(devices: dict, udid: str) -> str:
-    """The device's name out of `simctl list devices -j` (a runtime -> [device] map)."""
-    for runtime in devices.get("devices", {}).values():
-        for dev in runtime:
-            if dev.get("udid") == udid:
-                return dev["name"]
-    raise RuntimeError(f"simulator {udid} is not in `simctl list devices`")
+def idb_bin() -> str:
+    """The idb client, or an actionable RuntimeError. Never falls back to a no-op."""
+    tool = IDB if os.access(IDB, os.X_OK) else shutil.which(os.path.basename(IDB))
+    if tool is None:
+        raise RuntimeError(f"idb not found at {IDB!r} and not on PATH — install it: {IDB_INSTALL}")
+    return tool
 
 
-_NAMES: dict[str, str] = {}
-_SIZES: dict[str, tuple[int, int]] = {}
+def _idb(*args: str, timeout: float = 60.0) -> subprocess.CompletedProcess:
+    return subprocess.run([idb_bin(), *args], capture_output=True, text=True, timeout=timeout)
 
 
-def device_name(udid: str = UDID) -> str:
-    if udid not in _NAMES:
-        out = subprocess.run(["xcrun", "simctl", "list", "devices", "-j"],
-                             capture_output=True, text=True).stdout
-        _NAMES[udid] = _name_from_devices(json.loads(out or "{}"), udid)
-    return _NAMES[udid]
+def connect(udid: str = UDID) -> None:
+    """Attach a companion to `udid`. Once per run — spawning one per step would cost ~a second each.
+
+    Reconnecting an already-connected target is measured to exit 0, so the cache is an optimisation,
+    not a correctness crutch."""
+    if udid in _CONNECTED:
+        return
+    r = _idb("connect", udid)
+    if r.returncode != 0:
+        raise RuntimeError(f"`idb connect {udid}` failed (rc={r.returncode}): "
+                           f"{(r.stderr or r.stdout).strip()[:300]}")
+    _CONNECTED.add(udid)
 
 
-def screen_rect(udid: str = UDID) -> tuple[float, float, float, float]:
-    """The device screen's rect in host screen points, from the Simulator's AX tree. Raises if absent."""
-    out = _osa(AX_SCREEN % device_name(udid))
-    try:
-        x, y, w, h = (float(v) for v in out.split(", "))
-    except ValueError:
-        raise RuntimeError(
-            f"no Simulator window for {device_name(udid)!r} to drive: the AX 'iOSContentGroup' element "
-            "was not found. Open the Simulator window (recapture.py --visible yes) and grant this "
-            "process Accessibility permission (System Settings > Privacy & Security > Accessibility). "
-            f"osascript said: {out!r}"
-        ) from None
-    return x, y, w, h
+def device_points(udid: str = UDID) -> tuple[int, int]:
+    """The screen size in POINTS — the unit `idb ui` takes, and the unit this module works in.
 
-
-def device_size(udid: str = UDID) -> tuple[int, int]:
-    """The framebuffer size in pixels — the unit scenario coordinates are authored in.
-
-    Cached: it cannot change during a run, and the uncached form would shell a `simctl io screenshot`
-    at every driven page — including from inside capture_gif's live `recordVideo`.
-    """
-    if udid not in _SIZES:
-        stage = os.path.join(tempfile.gettempdir(), "parity_ios_calibrate.png")
-        if not _screenshot(stage, udid):
-            raise RuntimeError("could not screenshot the device to calibrate interaction coordinates")
-        with open(stage, "rb") as f:
-            _SIZES[udid] = struct.unpack(">II", f.read(24)[16:24])   # PNG IHDR
-        os.remove(stage)
-    return _SIZES[udid]
+    Cached: it cannot change during a run, and the uncached form would shell out at every driven page,
+    including from inside capture_gif's live `recordVideo`. NO DEFAULT on failure: a hardcoded 402x874
+    would drive the next device at the wrong scale while reporting success, which is exactly the
+    fabricate-plausible-data failure this lane keeps re-learning."""
+    if udid not in _POINTS:
+        connect(udid)
+        r = _idb("describe", "--udid", udid, "--json")
+        try:
+            dim = json.loads(r.stdout)["screen_dimensions"]
+            _POINTS[udid] = (int(dim["width_points"]), int(dim["height_points"]))
+        except (ValueError, KeyError, TypeError):
+            raise RuntimeError(
+                f"could not read the point size of {udid} from `idb describe --json` (rc={r.returncode}): "
+                f"{(r.stderr or r.stdout).strip()[:300]}") from None
+    return _POINTS[udid]
 
 
 def _scale(v: float, span: int) -> int:
-    """One axis: |v| <= 1 is a FRACTION of `span`, anything larger is already device pixels."""
+    """One axis: |v| <= 1 is a FRACTION of `span`, anything larger is already device points."""
     return round(v * span) if abs(v) <= 1.0 else round(v)
 
 
-def to_pixels(at, shot: tuple[int, int]) -> tuple[int, int]:
-    """Resolve a scenario `at`/`to` pair to DEVICE PIXELS. See the COORDINATE SPACE note in plan().
+def to_points(at, size: tuple[int, int]) -> tuple[int, int]:
+    """Resolve a scenario `at`/`to` pair to DEVICE POINTS. See the COORDINATE SPACE note in plan().
 
     Same rule and same rejection as capture_android.to_pixels — deliberately, because both lanes read
-    the SAME scenario files and a second contract would mean a coordinate that lands in two places."""
+    the SAME scenario files and a second contract would mean a coordinate that lands in two places.
+    (Only the ABSOLUTE unit differs, and it has to: Android's injector takes pixels, idb takes points.)
+    """
     if (not isinstance(at, (list, tuple)) or len(at) != 2
             or not all(isinstance(v, (int, float)) for v in at)):
         # Every coordinate in the module funnels through here, so this is the one place that has to
         # turn a malformed/missing `at` into the ValueError the callers are documented to raise — a
         # bare KeyError/TypeError out of a step reads as a crash, not as a scenario authoring error.
-        raise ValueError(f"at/to must be [x, y] (fractions of the screen, or device pixels), got {at!r}")
+        raise ValueError(f"at/to must be [x, y] (fractions of the screen, or device points), got {at!r}")
     x, y = float(at[0]), float(at[1])
     frac = [abs(v) <= 1.0 for v in (x, y)]
     if any(frac) and not all(frac):
         raise ValueError(f"mixed coordinate {list(at)!r}: both values must be fractions (<=1.0) or "
-                         f"both device pixels — a mixed pair would scale one axis and not the other")
-    return _scale(x, shot[0]), _scale(y, shot[1])
+                         f"both device points — a mixed pair would scale one axis and not the other")
+    return _scale(x, size[0]), _scale(y, size[1])
 
 
-def plan(steps: list[dict], rect: tuple[float, float, float, float],
-         shot: tuple[int, int]) -> list[tuple[list[str], float]]:
-    """Translate step dicts into (cliclick argv-tail, sleep-after) pairs. Pure — the self-check drives it.
+def plan(steps: list[dict], size: tuple[int, int]) -> list[tuple[list[str], float]]:
+    """Translate step dicts into (`idb ui` argv-tail, sleep-after) pairs. Pure — the self-check drives it.
 
     A step is the same dict shape the other lanes take:
         {"name": "initial", "settle": 0.25}                         no action -> hold, then shoot
         {"action": "click"|"tap", "at": [x, y]}                     tap
         {"action": "swipe"|"drag", "at": [x, y], "to": [x, y], "duration": 0.35, "steps": 20}
-        {"action": "swipe"|"drag", "at": [x, y], "direction": "left", "distance": 600}
-        {"action": "scroll", "at": [x, y], "dy": -400}              the VM lanes' wheel step, as a drag
+        {"action": "swipe"|"drag", "at": [x, y], "direction": "left", "distance": 0.5}
+        {"action": "scroll", "at": [x, y], "dy": -0.4}              the VM lanes' wheel step, as a drag
         {"action": "type", "text": "abc"}                           into whatever has focus
         {"action": "hover", "at": [x, y]}                           SKIPPED — no pointer on glass
         {"action": "wait", "duration": 1.0}                         hold for an animation
@@ -283,50 +284,46 @@ def plan(steps: list[dict], rect: tuple[float, float, float, float],
     COORDINATE SPACE — `at` / `to`, and the `dx`/`dy`/`distance` scalars:
       * A pair whose |x| and |y| are BOTH <= 1.0 is a FRACTION of the screen (0,0 = top-left,
         1,1 = bottom-right). PREFER THIS FORM — it is the only one that means the same thing on this
-        1206x2622 framebuffer, on a 1080x2340 emulator and in a 1024x800 desktop window, i.e. the only
+        402x874 point surface, on a 1080x2340 emulator and in a 1024x800 desktop window, i.e. the only
         one a single scenario file can use to drive every lane. Mixed pairs are a hard error.
-      * Anything larger is ABSOLUTE DEVICE PIXELS as seen in the captured PNG — the coordinates you
-        read straight off the board image, not points and not host-screen pixels.
-      Fractions resolve against the FRAMEBUFFER, then map through `rect` like any other pixel. That is
-      the same host point as scaling by `rect` directly (the mapping is linear: rx + f*px_w*sx ==
-      rx + f*rw), and it keeps the EDGE_PX guard and the end clamp in the units they were measured in.
+      * Anything larger is ABSOLUTE DEVICE POINTS, the unit `idb ui` takes. NOT the pixels you read off
+        a board PNG: this device is 3x, so a pixel read off the image has to be divided by the density
+        first. (recapture.device_scenarios refuses absolute scenarios on device lanes outright, so in
+        practice only the fractional form ever reaches this lane — which is the point.)
+      Fractions resolve against the POINT size from `idb describe`, so the EDGE_PT guard and the end
+      clamp stay in the one unit everything here is expressed in.
     """
-    rx, ry, rw, rh = rect
-    px_w, px_h = shot
-    sx, sy = rw / px_w, rh / px_h
-    if abs(sx - sy) / sx > 0.01:
-        # The screen rect and the framebuffer disagree on aspect: a rotated device, the wrong window, or
-        # a Simulator layout this mapping does not understand. Every tap would be off; refuse to guess.
-        raise RuntimeError(f"screen rect {rect} does not match framebuffer {shot} (scale {sx:.4f} vs {sy:.4f})")
+    w, h = size
 
     def start_point(at, edge: bool) -> tuple[int, int]:
-        """A gesture's FIRST point, in device pixels: strict. An off-screen or edge start is a bug,
+        """A gesture's FIRST point, in device points: strict. An off-screen or edge start is a bug,
         never a clamp — it decides what the gesture touches."""
-        x, y = to_pixels(at, shot)
-        margin = 0 if edge else EDGE_PX
-        if not (margin <= x <= px_w - margin and margin <= y <= px_h - margin):
+        x, y = to_points(at, size)
+        margin = 0 if edge else EDGE_PT
+        if not (margin <= x <= w - margin and margin <= y <= h - margin):
             raise ValueError(f"step point {list(at)} -> ({x},{y}) is outside the drivable area of a "
-                             f"{px_w}x{px_h} screen (edge margin {margin}px)")
+                             f"{w}x{h} point screen (edge margin {margin}pt)")
         return x, y
 
     def end_point(x, y) -> tuple[int, int]:
-        """A drag's END, in device pixels: CLAMPED, because a finger cannot leave the glass. A `dy`
+        """A drag's END, in device points: CLAMPED, because a finger cannot leave the glass. A `dy`
         that overshoots the screen is a normal way to say "scroll as far as this drag goes", not an
         authoring error."""
-        return min(max(round(x), 0), px_w), min(max(round(y), 0), px_h)
-
-    def host(x, y) -> tuple[float, float]:
-        """Device pixel -> host screen point, through the AX-measured screen rect."""
-        return rx + x * sx, ry + y * sy
+        return min(max(round(x), 0), w), min(max(round(y), 0), h)
 
     def drag(p0, p1, seconds, moves) -> list[str]:
-        (x0, y0), (x1, y1) = host(*p0), host(*p1)
-        ms = max(1, int(seconds * 1000 / moves))
-        cmds = [f"m:{x0:.0f},{y0:.0f}", f"dd:{x0:.0f},{y0:.0f}"]
-        for i in range(1, moves + 1):
-            cmds += [f"w:{ms}", f"dm:{x0 + (x1 - x0) * i / moves:.0f},"
-                                f"{y0 + (y1 - y0) * i / moves:.0f}"]
-        return cmds + [f"du:{x1:.0f},{y1:.0f}"]
+        """`idb ui swipe` interpolates for us; `--delta` is the SPACING between the touch points it
+        synthesises, so the scenario's `steps` (a COUNT, as the desktop agents mean it) becomes
+        length/steps. Floored at 1 — a delta of 0 has no defined point list.
+
+        UNIT CAVEAT: idb's help calls delta "pixels" while x/y are points, and that was not measured.
+        If it really is pixels, a 3x device gets ~3x MORE intermediate touch points than `steps` asked
+        for — which errs the safe way (a CarouselView pages on the intermediate moves, so more of them
+        helps). The self-check pins the ARGV; it does not pin the resulting touch-point count."""
+        (x0, y0), (x1, y1) = p0, p1
+        delta = max(1, round(math.hypot(x1 - x0, y1 - y0) / moves))
+        return ["swipe", str(x0), str(y0), str(x1), str(y1),
+                "--duration", f"{seconds:g}", "--delta", str(delta)]
 
     out: list[tuple[list[str], float]] = []
     for step in steps:
@@ -340,20 +337,23 @@ def plan(steps: list[dict], rect: tuple[float, float, float, float],
             # looks like a page which declined to react.
             out.append(([], hold))
         elif action in ("click", "tap"):
-            x, y = host(*start_point(step.get("at"), bool(step.get("edge"))))
-            out.append(([f"c:{x:.0f},{y:.0f}"], hold))
+            x, y = start_point(step.get("at"), bool(step.get("edge")))
+            out.append((["tap", str(x), str(y)], hold))
         elif action in ("swipe", "scroll", "drag"):
             x0, y0 = start_point(step.get("at"), bool(step.get("edge")))
             if action == "scroll":
-                # `scroll` is the VM lanes' wheel step; on glass the same intent IS a drag by (dx, dy)
-                # — the finger moves the way the wheel moves the content, so the sign convention
-                # carries over. dx/dy scale per axis by the same |v| <= 1 rule as a coordinate pair.
+                # `scroll` is the VM lanes' wheel step; on glass the same intent IS a drag by (dx, dy).
+                # SIGN, spelled out because it is the easy one to invert: a NEGATIVE dy means the finger
+                # travels UP the glass (the end y is smaller), which drags the content up and reveals
+                # the rows BELOW — the same thing a negative wheel delta does on the desktop lanes, and
+                # byte-identical to capture_android's `y2 = y + _scale(dy, h)`.
+                # dx/dy scale per axis by the same |v| <= 1 rule as a coordinate pair.
                 if "dy" not in step:
                     raise ValueError(f"step {step.get('name', action)!r}: scroll needs dy (device "
-                                     f"pixels, or a fraction of the height)")
-                x1, y1 = x0 + _scale(float(step.get("dx", 0)), px_w), y0 + _scale(float(step["dy"]), px_h)
+                                     f"points, or a fraction of the height)")
+                x1, y1 = x0 + _scale(float(step.get("dx", 0)), w), y0 + _scale(float(step["dy"]), h)
             elif "to" in step:
-                x1, y1 = to_pixels(step["to"], shot)
+                x1, y1 = to_points(step["to"], size)
             else:
                 # The axis form. Missing/unknown `direction` used to be a bare KeyError on step["to"];
                 # this module's contract is ValueError for a malformed step, and the callers rely on it.
@@ -363,31 +363,38 @@ def plan(steps: list[dict], rect: tuple[float, float, float, float],
                                      f"direction = one of {sorted(_SWIPE_DIRECTIONS)} "
                                      f"(got {step.get('direction')!r})")
                 dx, dy = _SWIPE_DIRECTIONS[direction]
-                span = px_w if dx else px_h
+                span = w if dx else h
                 dist = _scale(float(step["distance"]), span) if "distance" in step \
                     else round(_SWIPE_FRACTION * span)
                 x1, y1 = x0 + dx * dist, y0 + dy * dist
             x1, y1 = end_point(x1, y1)
             if (x1, y1) == (x0, y0):
-                # Press-hold-release at ONE point is a click. cliclick would run it, report success, and
-                # the frame would come back identical — the silent no-op this whole section exists to
-                # prevent, wearing a different hat. Every sibling lane raises here too.
+                # Press-hold-release at ONE point is a click. MEASURED: `idb ui swipe 200 200 200 200`
+                # exits 0, so idb would run it, report success, and the frame would come back identical
+                # — the silent no-op this whole section exists to prevent, wearing a different hat.
+                # Every sibling lane raises here too.
                 raise ValueError(f"step {step.get('name', action)!r}: zero-length {action} at "
-                                 f"({x0},{y0}) is a click, not a pan (clamped to the {px_w}x{px_h} "
-                                 f"screen?)")
-            moves = max(2, int(step.get("steps", SWIPE_MOVES)))   # <2 presses and releases at one point
+                                 f"({x0},{y0}) is a click, not a pan (clamped to the {w}x{h} "
+                                 f"point screen?)")
+            moves = max(2, int(step.get("steps", SWIPE_MOVES)))   # <2 collapses the line to its ends
             out.append((drag((x0, y0), (x1, y1), float(step.get("duration", 0.35)), moves), hold))
         elif action == "type":
-            # Goes to the FOCUSED field, so a `type` step almost always follows a `click` on it. iOS
-            # autocapitalization applies to the keystrokes exactly as it would to a human: "abc" lands
-            # as "Abc" in a default Entry. Author the expected text, or set the field's Keyboard.
-            # Measured: the text also lands MARKED (autocorrect-highlighted) and uncommitted — the
-            # `entry` page showed "Abc" highlighted with its LENGTH readout still 0. A scenario that
-            # needs the committed value has to dismiss the candidate; the tool for that is cliclick's
-            # `kp:return`, which is deliberately NOT wired here until a page actually needs it.
+            # Goes to the FOCUSED field, so a `type` step almost always follows a `click` on it. No
+            # shell filter, and do NOT copy capture_android's `_TEXT_SAFE` regex here: that guard exists
+            # because `adb shell input` goes through a REMOTE SHELL that eats metacharacters, while idb
+            # is exec'd as an argv list with no shell in the path, so the string arrives verbatim. The
+            # one hostile shape left is a LEADING "--", which idb's argparse rejects with a nonzero exit
+            # — run_steps raises on that, so it is a loud failure, not the silent-no-op class.
+            # What DOES transform it is the iOS keyboard itself, identically for any injector:
+            # autocapitalization applies exactly as it would to a human ("abc" lands as "Abc" in a
+            # default Entry — author the expected text, or set the field's Keyboard), and the text lands
+            # MARKED (autocorrect-highlighted) and uncommitted: the `entry` page showed "Abc"
+            # highlighted with its LENGTH readout still 0. A scenario that needs the committed value has
+            # to dismiss the candidate; the tool for that is `idb ui key <code>`, deliberately NOT wired
+            # here until a page actually needs it.
             if "text" not in step:
                 raise ValueError(f"step {step.get('name', action)!r}: type needs text = \"…\"")
-            out.append(([f"t:{step['text']}"], hold))
+            out.append((["text", str(step["text"])], hold))
         elif action == "wait":
             out.append(([], float(step.get("duration", step.get("settle", 1.0)))))
         else:
@@ -413,51 +420,23 @@ def run_steps(steps: list[dict] | None, udid: str = UDID) -> None:
     """
     if not steps:
         return
-    # DISABLED BY DEFAULT — this path drives the HOST's pointer, and that is not an acceptable cost.
-    # cliclick posts real mouse events onto the Simulator window and osascript activates it, so a
-    # capture run seizes the cursor and the foreground app for its whole duration: the machine cannot
-    # be used while the board runs, and any stray user click lands in the middle of a gesture and
-    # corrupts the frame. Every other lane already avoids this — Android injects through `adb shell
-    # input` (no pointer at all), and the macOS/Windows guests run their agent over SSH so the cursor
-    # that moves is the VM's, not the operator's. iOS must reach the same bar before it is re-enabled.
-    #
-    # The two acceptable replacements, in preference order:
-    #   1. idb — `brew install idb-companion && pipx install fb-idb`, then `idb ui tap/swipe/text`.
-    #      HID injection straight into the simulator: app-agnostic (all three columns get the same
-    #      gesture, which is what keeps a scenario from manufacturing a red), device-point coordinates
-    #      so no window geometry to resolve, and no cursor or focus involvement whatsoever.
-    #   2. DevFlow on both frameworks — Microsoft's agent + CLI for maui_xaml, the port's in-app HTTP
-    #      agent for cpp/cpp_xaml. In-process, so also cursor-free, but it needs the port's /tap
-    #      widened past its i_button dynamic_cast plus new /swipe, /scroll and /text routes, and the
-    #      MauiReference app does not host an agent yet.
-    if os.environ.get("MAUI_PARITY_IOS_HOST_CURSOR") != "1":
-        raise RuntimeError(
-            "iOS interaction is disabled: the only implemented path drives the HOST pointer and "
-            "steals focus, making the machine unusable for the length of a run. Install idb "
-            "(`brew install idb-companion && pipx install fb-idb`) and switch this lane to `idb ui`, "
-            "or route it through DevFlow on both frameworks. Set MAUI_PARITY_IOS_HOST_CURSOR=1 only "
-            "for a deliberate, attended experiment on a machine you are not using.")
-    tool = shutil.which(CLICLICK)
-    if tool is None:
-        raise RuntimeError(f"{CLICLICK!r} not found — `brew install cliclick` (or set MAUI_PARITY_CLICLICK)")
-    commands = plan(steps, screen_rect(udid), device_size(udid))
-
-    _osa('tell application "Simulator" to activate')
-    time.sleep(0.6)
-    front = _osa(AX_FRONT)
-    if front != "Simulator":
-        # Every coordinate is a SCREEN coordinate: if some other window is in front, the clicks land in
-        # it. Refusing is not just about a bad capture — it is about not poking the user's other apps.
-        raise RuntimeError(f"Simulator did not come to the front (frontmost is {front!r}); not injecting")
+    # NOTHING here touches the host: no cursor is moved, no app is activated, nothing is brought to the
+    # front. The Simulator window need not even be open. That is the point — see the module docstring.
+    connect(udid)                                   # once per run, not per step
+    commands = plan(steps, device_points(udid))
 
     # zip, so each emitted command is reported against the STEP that produced it: a step which emits
     # nothing is either an idle marker or a skipped hover, and those must not look alike in the log.
     for step, (cmds, after) in zip(steps, commands, strict=True):
         if cmds:
-            # -r puts the pointer back where the user left it; -w is cliclick's inter-event pause.
-            r = subprocess.run([tool, "-r", "-w", "20", *cmds], capture_output=True, text=True)
+            # `--udid` last: idb's argparse takes options after positionals, and appending keeps plan()
+            # pure (device-free, so the self-check can assert its argv without a simulator).
+            # Bounded so a wedged companion can never outlive the recording it is driving.
+            r = _idb("ui", *cmds, "--udid", udid,
+                     timeout=float(step.get("duration", 0.35)) + 30)
             if r.returncode != 0:
-                raise RuntimeError(f"cliclick {cmds} failed: {r.stderr.strip()[:200]}")
+                raise RuntimeError(f"idb ui {' '.join(cmds)} failed (rc={r.returncode}): "
+                                   f"{(r.stderr or r.stdout).strip()[:200]}")
         name = step.get("name", step.get("action", "?"))
         print(f"      step {name}: {step_status(step, cmds)}", flush=True)
         time.sleep(after)
@@ -510,6 +489,11 @@ def capture_gif(app: str, key: str, theme: str, settle: float, record_secs: floa
     mp4 = os.path.join(tempfile.gettempdir(), f"parity_{app}_{key}_{theme}.mp4")
     launch(app, key, udid)
     time.sleep(settle)
+    if steps:
+        # Spawn the companion and read the point size BEFORE the camera rolls: both are cached, so this
+        # is free on every later page, and it keeps a first-page companion spawn out of the recording
+        # window (where it would eat a chunk of `record_secs` on one arbitrary page).
+        device_points(udid)
     proc = subprocess.Popen(["xcrun", "simctl", "io", udid, "recordVideo", "--codec=h264", "--force", mp4],
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     t0 = time.monotonic()
@@ -536,147 +520,160 @@ def capture_gif(app: str, key: str, theme: str, settle: float, record_secs: floa
 
 if __name__ == "__main__":
     # `python3 lib/capture_ios.py` — the coordinate mapping, checked against MEASURED values so a
-    # regression is caught without a device. RECT/SHOT are the real numbers read off this machine
-    # (Xcode 26, iPhone17-265, window scale ~0.90), and (600,558) is the `button` page's "Clicked"
-    # button, which was verified to bump the C++ gallery's readout from Taps: 0 to Taps: 1 when
-    # clicked at screen (1759,306) — the value asserted below.
-    RECT, SHOT = (1578.0, 138.0, 363.0, 789.0), (1206, 2622)
+    # regression is caught without a device. POINTS is the real size `idb describe` reports for this
+    # machine's device (iPhone17-265, iOS 26.5: 402x874 points behind a 1206x2622 framebuffer at
+    # density 3.0), which is the unit `idb ui` takes. (200,186) is the `button` page's "Clicked" button
+    # — the same widget the old host-cursor path hit at pixel (600,558); 600/3, 558/3.
+    POINTS = (402, 874)
 
-    assert plan([{"action": "click", "at": [600, 558]}], RECT, SHOT) == [(["c:1759,306"], STEP_SETTLE)]
-    assert plan([{"name": "initial"}], RECT, SHOT) == [([], 0.0)]              # no action -> settle only
-    assert plan([{"name": "gif01", "settle": 0.25}], RECT, SHOT) == [([], 0.25)]
-    assert plan([{"action": "type", "text": "abc"}], RECT, SHOT) == [(["t:abc"], STEP_SETTLE)]
-    assert plan([{"action": "wait", "duration": 2.0}], RECT, SHOT) == [([], 2.0)]
+    assert plan([{"action": "click", "at": [200, 186]}], POINTS) == [(["tap", "200", "186"], STEP_SETTLE)]
+    assert plan([{"action": "tap", "at": [200, 186]}], POINTS)[0][0] == ["tap", "200", "186"]
+    assert plan([{"name": "initial"}], POINTS) == [([], 0.0)]                  # no action -> settle only
+    assert plan([{"name": "gif01", "settle": 0.25}], POINTS) == [([], 0.25)]
+    assert plan([{"action": "type", "text": "abc"}], POINTS) == [(["text", "abc"], STEP_SETTLE)]
+    assert plan([{"action": "wait", "duration": 2.0}], POINTS) == [([], 2.0)]
 
-    swipe, = plan([{"action": "swipe", "at": [600, 1900], "to": [600, 800], "duration": 0.4}], RECT, SHOT)
-    assert swipe[0][:2] == ["m:1759,710", "dd:1759,710"], swipe
-    assert swipe[0][-1] == "du:1759,379", swipe
-    assert swipe[0].count("w:50") == SWIPE_MOVES, swipe                        # 0.4s / 8 moves = 50ms
+    # A pan: one `idb ui swipe`, in points, with the duration in SECONDS (measured: `--duration 2` takes
+    # ~2.4s wall, so it is not milliseconds — at 0.35s a millisecond reading would stall the recording
+    # window for 350 SECONDS per step). `--delta` is the spacing between synthesised touch points:
+    # 367pt of travel over the default 8 -> 46.
+    swipe, = plan([{"action": "swipe", "at": [0.5, 0.72], "to": [0.5, 0.3], "duration": 0.4}], POINTS)
+    assert swipe == (["swipe", "201", "629", "201", "262", "--duration", "0.4", "--delta", "46"],
+                     STEP_SETTLE), swipe
 
-    # `scroll` is a relative drag, and its END clamps to the glass instead of failing.
-    assert plan([{"action": "scroll", "at": [600, 1900], "dy": -1100, "duration": 0.4}],
-                RECT, SHOT)[0][0] == swipe[0]
-    assert plan([{"action": "scroll", "at": [600, 1900], "dy": -9999}], RECT, SHOT)[0][0][-1] == "du:1759,138"
+    # `scroll` is a relative drag. NEGATIVE dy = the finger travels UP = the content moves up = lower
+    # rows are revealed, exactly as on the other three lanes; and its END clamps to the glass instead
+    # of failing, because a drag off the edge is a SHORTER drag, not an authoring error.
+    assert plan([{"action": "scroll", "at": [0.5, 0.72], "dy": -0.42, "duration": 0.4}],
+                POINTS)[0][0] == swipe[0]
+    assert plan([{"action": "scroll", "at": [0.5, 0.72], "dy": -9999}], POINTS)[0][0][:5] == \
+        ["swipe", "201", "629", "201", "0"]
+    assert plan([{"action": "scroll", "at": [0.5, 0.4], "dy": 0.3}], POINTS)[0][0][4] == "612", \
+        "positive dy must move the finger DOWN"                         # 350 + round(0.3*874) = 612
 
     # ---- the shared vocabulary, which this module used to implement only a subset of.
     # `drag` IS `swipe` on glass: same argv, or scenarios/swipe_refresh.toml cannot run here at all.
-    assert plan([{"action": "drag", "at": [600, 1900], "to": [600, 800], "duration": 0.4}],
-                RECT, SHOT)[0][0] == swipe[0]
+    assert plan([{"action": "drag", "at": [0.5, 0.72], "to": [0.5, 0.3], "duration": 0.4}],
+                POINTS)[0][0] == swipe[0]
     # The direction/distance form (scenarios/carousel_page.toml), and its 0.25-of-the-axis default.
-    assert plan([{"action": "swipe", "at": [600, 1900], "direction": "up", "distance": 1100,
-                  "duration": 0.4}], RECT, SHOT)[0][0] == swipe[0]
-    left, = plan([{"action": "swipe", "at": [600, 1900], "direction": "left"}], RECT, SHOT)
-    assert left[0][-1] == "du:1668,710", left     # default 0.25 * 1206 = 302px left of x=600
-    # `steps` is the desktop agents' move-event count, honoured (a CarouselView pages on the moves in
-    # between) and floored at 2 — one move would press and release at a single point.
-    assert sum(c.startswith("dm:") for c in
-               plan([{"action": "drag", "at": [600, 1900], "to": [600, 800], "steps": 20}],
-                    RECT, SHOT)[0][0]) == 20
-    assert sum(c.startswith("dm:") for c in
-               plan([{"action": "drag", "at": [600, 1900], "to": [600, 800], "steps": 1}],
-                    RECT, SHOT)[0][0]) == 2
+    assert plan([{"action": "swipe", "at": [0.5, 0.72], "direction": "up", "distance": 367,
+                  "duration": 0.4}], POINTS)[0][0] == swipe[0]
+    left, = plan([{"action": "swipe", "at": [0.5, 0.72], "direction": "left"}], POINTS)
+    assert left[0][:5] == ["swipe", "201", "629", "101", "629"], left   # 0.25 * 402 = 100pt left of 201
+    # `steps` is the desktop agents' MOVE-EVENT COUNT. idb interpolates by spacing rather than by count,
+    # so it arrives as `--delta = length / steps`: honoured, not ignored, because a CarouselView pages
+    # on the intermediate moves and carousel_page.toml asks for 20 of them (swipe_refresh for 24).
+    # Floored at 2 — 1 would collapse the line to its two endpoints.
+    assert plan([{"action": "drag", "at": [0.5, 0.72], "to": [0.5, 0.3], "steps": 20}],
+                POINTS)[0][0][-1] == "18", "367 / 20"
+    assert plan([{"action": "drag", "at": [0.5, 0.72], "to": [0.5, 0.3], "steps": 1}],
+                POINTS)[0][0][-1] == "184", "floored to 2: 367 / 2"
     # hover: emitted as nothing at all, NOT as a tap — and reported, since the log line is the only
     # record that the step existed. A hover silently turned into a tap would fake a pressed state.
-    hover = {"action": "hover", "at": [600, 558]}
-    assert plan([hover], RECT, SHOT) == [([], STEP_SETTLE)]
+    hover = {"action": "hover", "at": [200, 186]}
+    assert plan([hover], POINTS) == [([], STEP_SETTLE)]
     assert step_status(hover, []).startswith("SKIPPED"), step_status(hover, [])
     assert step_status({"name": "initial"}, []) == "idle"
-    assert step_status({"action": "click", "at": [600, 558]}, ["c:1759,306"]) == "ok"
+    assert step_status({"action": "click", "at": [200, 186]}, ["tap", "200", "186"]) == "ok"
 
     # FRACTIONS are the portable authoring form: a fraction must resolve to the identical gesture as
-    # the device pixels it names. This is what lets ONE scenario file drive iOS, Android and both VMs.
-    assert to_pixels([0.5, 0.2], SHOT) == (603, 524)
-    assert to_pixels([603, 524], SHOT) == (603, 524)      # >1 is already device pixels
-    assert to_pixels([1.0, 1.0], SHOT) == SHOT            # the 1.0 boundary is a fraction
-    assert plan([{"action": "click", "at": [0.5, 0.2]}], RECT, SHOT) == \
-        plan([{"action": "click", "at": [603, 524]}], RECT, SHOT)
-    # ...and the scalars scale on their own axis by the same rule: 0.72*2622 = 1888, 0.42*2622 = 1101.
-    assert plan([{"action": "scroll", "at": [0.5, 0.72], "dy": -0.42}], RECT, SHOT) == \
-        plan([{"action": "scroll", "at": [603, 1888], "dy": -1101}], RECT, SHOT)
-    for mixed in ([0.5, 300], [300, 0.5]):                # one axis scaled, one not
+    # the device points it names. This is what lets ONE scenario file drive iOS, Android and both VMs.
+    # NOTE the unit trap: absolute here is POINTS, so a coordinate read off a board PNG (pixels) must
+    # be divided by the 3.0 density first. recapture.device_scenarios refuses absolute scenarios on
+    # device lanes outright, which is why this is a footnote and not a live hazard.
+    assert to_points([0.5, 0.2], POINTS) == (201, 175)
+    assert to_points([201, 175], POINTS) == (201, 175)      # >1 is already device points
+    assert to_points([1.0, 1.0], POINTS) == POINTS          # the 1.0 boundary is a fraction
+    assert plan([{"action": "click", "at": [0.5, 0.2]}], POINTS) == \
+        plan([{"action": "click", "at": [201, 175]}], POINTS)
+    for mixed in ([0.5, 300], [300, 0.5]):                  # one axis scaled, one not
         try:
-            plan([{"action": "click", "at": mixed}], RECT, SHOT)
+            plan([{"action": "click", "at": mixed}], POINTS)
             raise AssertionError(f"mixed coordinate {mixed} was accepted")
         except ValueError:
             pass
 
-    # A drag that goes nowhere is a CLICK, and every sibling lane raises on it. Both shapes: authored
+    # A drag that goes nowhere is a CLICK, and every sibling lane raises on it — idb does NOT: a
+    # measured `idb ui swipe 200 200 200 200` exits 0 and changes no pixel. Both shapes: authored
     # zero-length, and clamped-to-nothing (which needs `edge` to get a start point on the boundary).
-    for nowhere in ({"action": "drag", "at": [600, 1900], "to": [600, 1900]},
-                    {"action": "swipe", "at": [600, 0], "edge": True, "direction": "up"},
-                    {"action": "scroll", "at": [600, 1900], "dy": 0}):
+    for nowhere in ({"action": "drag", "at": [0.5, 0.72], "to": [0.5, 0.72]},
+                    {"action": "swipe", "at": [0.5, 0.0], "edge": True, "direction": "up"},
+                    {"action": "scroll", "at": [0.5, 0.72], "dy": 0}):
         try:
-            plan([nowhere], RECT, SHOT)
+            plan([nowhere], POINTS)
             raise AssertionError(f"zero-length gesture {nowhere!r} was accepted")
         except ValueError:
             pass
     try:
-        plan([{"action": "swipe", "at": [600, 1900], "direction": "sideways"}], RECT, SHOT)
+        plan([{"action": "swipe", "at": [0.5, 0.72], "direction": "sideways"}], POINTS)
         raise AssertionError("expected an unknown-direction rejection")
     except ValueError:
         pass
     try:
-        plan([{"action": "swipe", "at": [600, 1900]}], RECT, SHOT)   # no `to`, no `direction`
+        plan([{"action": "swipe", "at": [0.5, 0.72]}], POINTS)   # no `to`, no `direction`
         raise AssertionError("expected a ValueError, not a bare KeyError")
     except ValueError:
         pass
     for shapeless in ({"action": "click"},                                  # no `at` at all
-                      {"action": "drag", "at": [600], "to": [600, 800]},    # not a pair
-                      {"action": "scroll", "at": [600, 1900]},              # no dy
+                      {"action": "drag", "at": [200], "to": [200, 300]},    # not a pair
+                      {"action": "scroll", "at": [0.5, 0.72]},              # no dy
                       {"action": "type"}):                                  # no text
         try:
-            plan([shapeless], RECT, SHOT)
+            plan([shapeless], POINTS)
             raise AssertionError(f"malformed coordinate {shapeless!r} was accepted")
         except ValueError:
             pass
 
-    for bad, why in [({"action": "click", "at": [600, 10]}, "top edge -> Notification Center"),
-                     ({"action": "click", "at": [600, 2620]}, "bottom edge -> home gesture"),
-                     ({"action": "click", "at": [20, 900]}, "left edge -> back gesture"),
-                     ({"action": "click", "at": [600, 9999]}, "off screen")]:
+    for bad, why in [({"action": "click", "at": [200, 5]}, "top edge -> Notification Center"),
+                     ({"action": "click", "at": [200, 870]}, "bottom edge -> home gesture"),
+                     ({"action": "click", "at": [8, 300]}, "left edge -> back gesture"),
+                     ({"action": "click", "at": [200, 9999]}, "off screen")]:
         try:
-            plan([bad], RECT, SHOT)
+            plan([bad], POINTS)
             raise AssertionError(f"expected a rejection: {why}")
         except ValueError:
             pass
-    assert plan([{"action": "click", "at": [600, 10], "edge": True}], RECT, SHOT)   # opt-in still allowed
-
-    fake = {"devices": {"com.apple.CoreSimulator.SimRuntime.iOS-26-5":
-                        [{"udid": "OTHER", "name": "iPad"}, {"udid": UDID, "name": "iPhone17-265"}]}}
-    assert _name_from_devices(fake, UDID) == "iPhone17-265"      # picks the window to drive, not window 1
-    try:
-        _name_from_devices(fake, "NOPE")
-        raise AssertionError("expected an unknown-udid rejection")
-    except RuntimeError:
-        pass
+    assert plan([{"action": "click", "at": [200, 5], "edge": True}], POINTS)   # opt-in still allowed
 
     try:
-        plan([{"action": "pinch"}], RECT, SHOT)
+        plan([{"action": "pinch"}], POINTS)
         raise AssertionError("expected unknown-action rejection")
     except ValueError:
         pass
+
+    # The idb client is resolved BY PATH (pipx installs outside a non-login shell's PATH) and its
+    # absence must name the install, not surface as "did nothing and reported success".
+    _real_idb = IDB
     try:
-        plan([{"action": "click", "at": [1, 1]}], RECT, (2622, 1206))   # landscape shot vs portrait rect
-        raise AssertionError("expected an aspect-mismatch rejection")
-    except RuntimeError:
-        pass
+        IDB = "/nonexistent/idb-xyzzy"
+        try:
+            idb_bin()
+            raise AssertionError("a missing idb was accepted")
+        except RuntimeError as exc:
+            assert "brew install idb-companion" in str(exc), exc
+    finally:
+        IDB = _real_idb
 
     # EVERY checked-in scenario, replayed through plan() — the real files, not fixtures. These are read
     # by four lanes, and this one used to implement a strictly SMALLER verb set than the vocabulary they
     # are authored in: `drag` raised "unknown scenario action" (swipe_refresh) and the direction form
     # raised a bare KeyError (carousel_page), so two pages could never be driven on iOS at all. A
     # scenario that the shared vocabulary accepts must never again be un-runnable here without this
-    # failing. NOTE what it does NOT prove: the older files carry Mac-calibrated absolute pixels that
-    # happen to fit a 1206x2622 framebuffer, so they plan a valid gesture at the WRONG pixel — only a
-    # fraction is portable, and only a real capture proves a hit.
+    # failing. The surface is deliberately OVERSIZED (the old framebuffer numbers): three of these files
+    # still carry Mac-calibrated absolute coordinates, which a device lane refuses upstream
+    # (recapture.device_scenarios) — planning them here keeps `click`/`type`/`scroll` inside the verb
+    # guard without pretending those numbers would ever be replayed. NOTE what it does NOT prove: an
+    # absolute coordinate that fits still names the WRONG spot — only a fraction is portable, and only
+    # a real capture proves a hit.
     import tomllib
+    BIG = (1206, 2622)
     scenarios = os.path.join(CPP, "docs", "comparison", "scenarios")
     broken = []
     for name in sorted(f for f in os.listdir(scenarios) if f.endswith(".toml")):
         with open(os.path.join(scenarios, name), "rb") as fh:
             steps = tomllib.load(fh).get("steps", [])
         try:
-            print(f"  {name}: {len(plan(steps, RECT, SHOT))} step(s) planned")
+            print(f"  {name}: {len(plan(steps, BIG))} step(s) planned")
         except Exception as exc:                              # noqa: BLE001 — report all, not the first
             broken.append(f"{name}: {type(exc).__name__}: {exc}")
             print(f"  {name}: FAILED — {type(exc).__name__}: {exc}")

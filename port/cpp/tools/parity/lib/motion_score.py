@@ -1,0 +1,433 @@
+#!/usr/bin/env python3
+"""Frame-by-frame, FULL-RESOLUTION scoring for the board's animated pages — the GIF parity number.
+
+pixel_score.full_res() deliberately scores an animated cell from its sibling PNG, because the board's
+GIF is 400px wide (gif.py `_SCALE`) while the still is the lane's real capture size: scoring the
+downscale throws away most of the pixels and inflates SSIM. The consequence was that an animated page
+was judged on ONE resting frame and its MOTION was never compared at all — a port that arrives at the
+right end state through the wrong intermediate frames scored green. This module closes that: it scores
+every frame of the sequence at full resolution and reports worst-frame and mean SSIM. The 400px GIF
+stays a human-viewable artifact; no number is ever computed from it.
+
+WHERE THE FRAMES COME FROM, AND THE TRADE-OFF THAT PICKS THAT SOURCE
+--------------------------------------------------------------------
+The full-res frames of a VM lane live in the RUN DIRECTORY the E2E runner wrote —
+`docs/comparison/<YYYY-MM-DD-HH_MM_SS>/<key>/<platform>/<column>/NNNN.png` plus an `NNNN.json`
+sidecar carrying `theme`, `step`, `commit`, `captured_at`. `captures/` holds only the published
+at-rest still and the 400px GIF. So there are exactly two places the score could come from:
+
+  (a) the run dir — full res, available the moment a capture finishes, but per-run, gitignored
+      (docs/comparison/.gitignore), and eventually deleted: the score cannot be RECOMPUTED later.
+  (b) publish the full-res frames into captures/ — reproducible forever, at the cost of roughly
+      14 animated pages x 3 columns x 2 themes x 13 frames x 4 platforms ~= 4000 more PNGs in the tree.
+
+**This module takes (a).** (b) buys reproducibility of a number that is already durable: the score is
+written into comparison.json, which IS committed, together with the run id, the run's commit and the
+capture date — so the number survives the frames and stays auditable. Thousands of large binaries in
+git to re-derive a value already recorded is a bad trade. The cost of (a) is real and is stated
+rather than hidden: a cell can only be motion-scored while its run directory still exists.
+
+The failure mode is therefore explicit everywhere. When the frames are not available this module NEVER
+returns a bare still score — it returns the still score carrying a `detail` string that SAYS "NOT
+motion-scored" and why. A single-still number wearing a motion label is the one outcome this file
+exists to prevent.
+
+WHICH FRAMES: exactly the ones the GIF was built from. `recapture.burst_frames` is imported rather
+than reimplemented, so the number always describes the sequence a human can actually look at.
+
+WHICH RUN: the newest run directory that (1) holds both columns' frames for this cell AND (2) whose
+frames include the byte-identical twin of the still currently published in captures/. Rule (2) is the
+staleness guard, and it is deliberately mtime-free — a git checkout rewrites every mtime, so a
+timestamp test would refuse everything on a fresh clone. import_run_captures.py publishes with
+shutil.copyfile, so the run that produced the board's capture is the run whose bytes match it. A newer
+run that did not produce the board's still (e.g. the AppKit-only lane, or one whose import was refused)
+is skipped rather than silently paired against a still it never made.
+
+PAIRING: BY STEP NAME, never by index. Both columns of one run are driven from the SAME scenario file
+(recapture.seed_scenarios + write_gif_scenarios write one dir per lane, shared by every column), so
+the step names are a real join key — including the runner's generated `step{n}` names, which are a
+function of the theme and step index only and so agree across columns of the same run. Index pairing
+would silently re-align the whole tail of a sequence when one column drops a frame, which is exactly
+the "wrong score that looks right" this tool must not produce. Frames with no partner are NOT scored
+and their count is reported. If NOTHING pairs, the cell is refused, not scored on an empty set.
+
+NOT EVERY PLATFORM CAN BE MOTION-SCORED TODAY. Only the VM lanes (maccatalyst, windows) keep full-res
+per-step frames. `capture_ios.capture_gif` deletes its mp4 after the ffmpeg conversion, and
+`capture_android.capture_gif` writes its burst into a `tempfile.TemporaryDirectory` — both discard the
+full-res frames, so iOS and Android animated cells get the labelled "NOT motion-scored" fallback. Those
+two functions are the change that would enable them; it is outside this file's scope.
+
+Self-check (no device, no run dir, no board writes):  python3 tools/parity/lib/motion_score.py
+"""
+from __future__ import annotations
+
+import glob
+import json
+import os
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))          # tools/parity, for recapture.py
+
+# recapture.py is a script, but its module level is only constants + path math (verified: no mkdir, no
+# device call), so importing it is free and keeps ONE definition of "which frames make the GIF".
+from recapture import ANIMATED, burst_frames  # noqa: E402
+
+COMP = HERE.parents[2] / "docs" / "comparison"   # lib -> parity -> tools -> port/cpp
+
+# board framework directory (captures/<platform>/<fw>/) -> the runner column that fed it. The inverse
+# of recapture.COL_TO_DIR; kept as its own literal because pixel_score speaks in framework dirs.
+FW_TO_COL = {"maui": "maui_xaml", "cpp": "cpp", "xaml": "cpp_xaml",
+             "appkit_cpp": "appkit_cpp", "appkit_xaml": "appkit_xaml"}
+
+# A column "moved" if this share of its own pixels changed between its first frame and some later one,
+# and is "frozen" below the lower bound. The gap between the two is deliberate: it keeps a page whose
+# animation is a couple of hundred pixels of spinner out of BOTH buckets rather than forcing a verdict
+# on it. Both measured numbers are printed in the review, so a false positive is arguable from the
+# text alone instead of from a constant nobody can see.
+MOVED_PCT = 1.0
+FROZEN_PCT = 0.2
+# How far back to look for the run that produced the board's capture. Run dirs accumulate for weeks;
+# without a bound, a cell whose run was deleted would read every surviving run's frames to prove it.
+MAX_RUNS_SCANNED = 20
+
+
+def _compare(path_a: str, path_b: str, crop_top: int) -> dict:
+    """One frame pair -> {"ssim", "diff_pct"}. Deferred import: pixel_score imports THIS module at
+    top level, so importing it back at ours would be a cycle."""
+    import pixel_score  # noqa: PLC0415  see docstring
+
+    ia, ib = pixel_score.load_pair(path_a, path_b)
+    return pixel_score.score_images(ia, ib, crop_top)
+
+
+def _shots(unit_dir: Path, theme: str) -> list[tuple[str, str, dict]]:
+    """(step, png, sidecar) for EVERY frame this unit captured in `theme`, in capture order.
+
+    Everything, not just the GIF's frames: the published-still match below has to be able to see the
+    at-rest frame, which burst_frames drops on an undriven page."""
+    out = []
+    for sidecar in sorted(unit_dir.glob("*.json")):     # NNNN.json: sorted IS capture order
+        try:
+            meta = json.loads(sidecar.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        png = sidecar.with_suffix(".png")
+        if meta.get("theme") == theme and png.exists():
+            out.append((str(meta.get("step") or ""), str(png), meta))
+    return out
+
+
+def _is_published_run(published: str, shots) -> bool:
+    """Did THIS run produce the still currently published for this cell? (byte identity)
+
+    import_run_captures.py copies with shutil.copyfile, so the run behind the board is the run holding
+    a byte-identical frame. mtimes are not used on purpose — `git checkout` rewrites them all."""
+    if not published or not os.path.isfile(published):
+        return False
+    size = os.path.getsize(published)
+    want = None
+    for _step, png, _meta in shots:
+        if os.path.getsize(png) != size:
+            continue                                    # cheap reject before reading megabytes
+        if want is None:
+            want = Path(published).read_bytes()
+        if Path(png).read_bytes() == want:
+            return True
+    return False
+
+
+def _pair(shots_a, shots_b) -> list[tuple[str, str, str]]:
+    """Join two columns' frames by step name -> [(step, png_a, png_b)] in column A's capture order.
+
+    Keyed by (name, Nth occurrence of that name) so a scenario that REUSES a step name — which
+    import_run_captures.at_rest_steps documents as legal — pairs its repeats in order instead of
+    collapsing them onto one frame. A frame whose sidecar carries NO step name is dropped rather than
+    keyed on "": every such frame would share one key and pair by ordinal, which is index pairing
+    wearing a step name's clothes. Dropped frames surface in the caller's unpaired count."""
+    def keyed(shots):
+        seen, out = {}, {}
+        for step, png in shots:
+            if not step:
+                continue
+            n = seen.get(step, 0)
+            seen[step] = n + 1
+            out[(step, n)] = png
+        return out
+
+    ka, kb = keyed(shots_a), keyed(shots_b)
+    return [(k[0], ka[k], kb[k]) for k in ka if k in kb]   # dict order == capture order
+
+
+def _self_motion(pngs: list[str], crop_top: int) -> float:
+    """How much a column moved ON ITS OWN: the largest share of pixels that differ between its first
+    frame and any later one. This is the ONLY measurement that separates "both columns are static and
+    identical" (fine) from "MAUI animates and the port is frozen" (the finding this tool exists for) —
+    a frame-vs-frame SSIM between the two columns cannot tell those apart when the motion is small."""
+    if len(pngs) < 2:
+        return 0.0
+    return max(_compare(pngs[0], p, crop_top)["diff_pct"] for p in pngs[1:])
+
+
+def _run_dirs(comp: Path, plat_dir: str, key: str) -> list[Path]:
+    """Run directories that captured this page on this platform, NEWEST FIRST."""
+    runs = sorted(comp.glob("20??-??-??-*"), key=lambda p: p.name, reverse=True)
+    return [r for r in runs if (r / key / plat_dir).is_dir()][:MAX_RUNS_SCANNED]
+
+
+def find_frames(key, plat_dir, fw_dir, theme, published_maui, published_other, comp=COMP):
+    """The newest run holding BOTH columns' frames for this cell behind the published stills.
+
+    -> (run_dir, shots_maui, shots_other, why_not). Exactly one of run_dir / why_not is set."""
+    col_m, col_o = FW_TO_COL["maui"], FW_TO_COL.get(fw_dir, fw_dir)
+    saw_frames = False
+    scanned = _run_dirs(comp, plat_dir, key)
+    for run in scanned:
+        dm, do = run / key / plat_dir / col_m, run / key / plat_dir / col_o
+        if not (dm.is_dir() and do.is_dir()):
+            continue
+        sm, so = _shots(dm, theme), _shots(do, theme)
+        if not (sm and so):
+            continue
+        saw_frames = True
+        # BOTH columns must be the ones behind the board, not just one: a mixed pairing would compare
+        # two different runs' builds and report the difference as a port bug.
+        if _is_published_run(published_maui, sm) and _is_published_run(published_other, so):
+            return run, sm, so, None
+    if saw_frames:
+        # The scan window is named, because "I did not find it" and "I stopped looking" are different
+        # claims and this file's whole point is that no failure reads as something it is not.
+        capped = " (the newest %d were scanned)" % MAX_RUNS_SCANNED if len(scanned) == MAX_RUNS_SCANNED else ""
+        return None, None, None, (f"no run directory holds the frames behind the CURRENTLY PUBLISHED "
+                                  f"stills for both columns{capped} — their frames do not match "
+                                  f"captures/ byte-for-byte, so re-capture this page")
+    return None, None, None, (f"no run directory under docs/comparison/ has {theme} frames for both "
+                              f"columns of this cell (run dirs are per-run and gitignored; iOS and "
+                              f"Android keep no run dir at all)")
+
+
+def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_label=None):
+    """The motion score for one (page, platform, framework, theme), shaped for pixel_score.classify.
+
+    Returns the same {"ssim", "diff_pct"} contract classify() already reads — with `ssim`/`diff_pct`
+    set to the WORST frame, so the existing thresholds judge the worst moment rather than an average
+    that a long static tail can hide — plus:
+      detail    the review sentence (mean/worst/per-frame diffs/frame counts/provenance)
+      mismatch  True when one column moved and the other did not; pixel_score forces RED on it
+
+    `still` is the single-frame score pixel_score already computed. It is returned UNCHANGED except
+    for a `detail` that says the page was NOT motion-scored whenever the frames are unavailable, and
+    None stays None (a cell with no comparable pair is blank, exactly as before)."""
+    label = fw_label or fw_dir
+
+    def not_scored(why):
+        if still is None:
+            return None
+        # "single frame" rather than "still": on a cell whose PNG is missing, full_res() leaves
+        # pixel_score scoring the 400px GIF, and calling that a still would misstate it twice over.
+        return dict(still, detail=f"SSIM {still['ssim']:.4f}, {still['diff_pct']:.2f}% pixels differ "
+                                  f"(single frame only) — NOT motion-scored: {why}")
+
+    pub_m = str(comp / "captures" / plat_dir / "maui" / f"{key}_{theme}.png")
+    pub_o = str(comp / "captures" / plat_dir / fw_dir / f"{key}_{theme}.png")
+    run, shots_m, shots_o, why = find_frames(key, plat_dir, fw_dir, theme, pub_m, pub_o, comp)
+    if run is None:
+        return not_scored(why)
+
+    # The GIF's own frames, in the GIF's own order, via the GIF's own selector.
+    dm = run / key / plat_dir / FW_TO_COL["maui"]
+    do = run / key / plat_dir / FW_TO_COL.get(fw_dir, fw_dir)
+    burst_m = {p: s for s, p, _ in shots_m}
+    burst_o = {p: s for s, p, _ in shots_o}
+    sel_m = [(burst_m.get(p, ""), p) for p in burst_frames(dm, theme)]
+    sel_o = [(burst_o.get(p, ""), p) for p in burst_frames(do, theme)]
+    pairs = _pair(sel_m, sel_o)
+    if not pairs:
+        return not_scored(f"run {run.name} has {len(sel_m)} MAUI and {len(sel_o)} {label} frames but "
+                          f"NO step name occurs in both, so nothing can be paired — a comparison by "
+                          f"frame index would be a guess. Re-capture this page")
+
+    scores = [_compare(a, b, crop_top) for _step, a, b in pairs]
+    ssims = [s["ssim"] for s in scores]
+    worst_i = min(range(len(ssims)), key=lambda i: ssims[i])
+    mean_ssim = sum(ssims) / len(ssims)
+    # Self-motion is measured over each column's OWN FULL sequence, never over the paired intersection.
+    # Pairing drops any frame whose step has no partner, so measuring motion there goes blind in exactly
+    # the case this detector exists for: if the port froze and dropped frames, the survivors are the
+    # ones that matched, and the intersection can look calm on both sides while the raw sequences do
+    # not. The pairing is for COMPARING the columns; motion is a property of one column alone.
+    move_m = _self_motion([p for _s, p in sel_m], crop_top)
+    move_o = _self_motion([p for _s, p in sel_o], crop_top)
+    mismatch = ((move_m >= MOVED_PCT and move_o <= FROZEN_PCT) or
+                (move_o >= MOVED_PCT and move_m <= FROZEN_PCT))
+    # NEITHER column moved on a page the board calls animated. That is not parity — it is the original
+    # bug: a page nobody managed to drive, whose GIF is N copies of one frame. Two frozen columns match
+    # each other perfectly and would otherwise score a confident green, which is precisely the
+    # "did nothing, reported success" outcome this whole pass exists to make impossible. It cannot be
+    # graded from SSIM, because the SSIM is 1.0 — it has to be its own verdict.
+    both_frozen = move_m <= FROZEN_PCT and move_o <= FROZEN_PCT
+
+    meta = shots_m[0][2]
+    prov = (f"run {run.name}, commit {meta.get('commit', '?')}, "
+            f"{str(meta.get('captured_at', '?'))[:10]}")
+    dropped = (len(sel_m) - len(pairs)) + (len(sel_o) - len(pairs))
+    unpaired = (f"; {dropped} frame(s) had no partner and were NOT scored" if dropped else "")
+    per_frame = "/".join(f"{s['diff_pct']:.2f}" for s in scores)
+    detail = (f"MOTION {len(pairs)} frames paired by step ({prov}){unpaired} — "
+              f"worst SSIM {ssims[worst_i]:.4f} at frame {worst_i + 1} '{pairs[worst_i][0]}' "
+              f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
+              f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.2f}% vs {label} {move_o:.2f}%")
+    if mismatch:
+        still_side, moved_side = ("MAUI", label) if move_m <= FROZEN_PCT else (label, "MAUI")
+        # FIRST in the string and in caps, because this is the finding the whole pass exists to make.
+        # A page where one column animates and the other is frozen can still score a high per-frame
+        # SSIM (a spinner is a few hundred pixels), so it must not be left to the number to reveal.
+        detail = (f"!! MOTION MISMATCH: {moved_side} ANIMATES and {still_side} IS FROZEN "
+                  f"({max(move_m, move_o):.2f}% vs {min(move_m, move_o):.2f}% of its own pixels change "
+                  f"across the sequence) — the end state may match while the animation does not. "
+                  f"{detail}")
+    elif both_frozen:
+        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {FROZEN_PCT:.2f}% "
+                  f"of its own pixels across the sequence ({move_m:.2f}% vs {move_o:.2f}%), on a page "
+                  f"the board treats as ANIMATED. The two columns agree perfectly because both are "
+                  f"still — this scores no motion parity at all. Either the page needs a scenario "
+                  f"step to drive it, or its interaction is not reachable on this lane. {detail}")
+    # Only what a caller USES: pixel_score writes {status, review} into the slot, so every number is
+    # carried by `detail` (the review sentence) rather than duplicated into keys nothing reads back.
+    return {"ssim": round(ssims[worst_i], 4), "diff_pct": round(scores[worst_i]["diff_pct"], 2),
+            "detail": detail, "mismatch": mismatch, "both_frozen": both_frozen}
+
+
+# --------------------------------------------------------------------------- self-check
+def _selftest() -> int:
+    """python3 lib/motion_score.py — synthetic frame sequences, no device and no board writes.
+
+    Drives score_cell itself (not its helpers) so a future rewrite of the selection rule is checked
+    rather than the internals it happens to use today."""
+    import shutil  # noqa: PLC0415  selftest-only
+    import tempfile  # noqa: PLC0415
+
+    from PIL import Image  # noqa: PLC0415
+
+    ok = True
+
+    def check(what, got, want):
+        nonlocal ok
+        if got != want:
+            print(f"  FAIL {what}: got {got!r}, want {want!r}")
+            ok = False
+
+    def frame(path, boxes):
+        """A 120x160 white page with black boxes at `boxes` — big enough for the 11x11 SSIM window."""
+        im = Image.new("RGB", (120, 160), "white")
+        for x, y in boxes:
+            for dx in range(20):
+                for dy in range(20):
+                    im.putpixel((x + dx, y + dy), (0, 0, 0))
+        im.save(path)
+
+    def unit(run, key, col, theme, frames):
+        """frames: [(step, [boxes])] -> the runner's NNNN.png + NNNN.json pairs."""
+        d = run / key / "maccatalyst" / col
+        d.mkdir(parents=True, exist_ok=True)
+        for n, (step, boxes) in enumerate(frames, 1):
+            frame(d / f"{n:04d}.png", boxes)
+            (d / f"{n:04d}.json").write_text(json.dumps(
+                {"theme": theme, "step": step, "frame": n, "commit": "deadbeef",
+                 "captured_at": "2026-08-05T00:00:00+03:00"}))
+        return d
+
+    def publish(comp, key, fw, theme, src):
+        dst = comp / "captures" / "maccatalyst" / fw / f"{key}_{theme}.png"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dst)
+
+    STILL = {"ssim": 1.0, "diff_pct": 0.0}
+    # An UNDRIVEN animated page: burst_frames drops the `initial` frame and keeps the gifNN burst.
+    def seq(offsets):
+        return [("initial", [(10, 10)])] + [(f"gif{i:02d}", [(x, 10)]) for i, x in enumerate(offsets, 1)]
+
+    with tempfile.TemporaryDirectory() as tmp:
+        comp = Path(tmp)
+        run = comp / "2026-08-05-10_00_00"
+
+        # (1) IDENTICAL sequences: both animate the same way -> perfect score, no mismatch.
+        moving = seq([10, 40, 70])
+        dm = unit(run, "same", "maui_xaml", "light", moving)
+        do = unit(run, "same", "cpp", "light", moving)
+        publish(comp, "same", "maui", "light", dm / "0001.png")
+        publish(comp, "same", "cpp", "light", do / "0001.png")
+        r = score_cell("same", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("identical: frames scored", "MOTION 3 frames" in r["detail"], True)
+        check("identical: worst SSIM", r["ssim"], 1.0)
+        check("identical: no mismatch", r["mismatch"], False)
+
+        # (2) ONE COLUMN STATIC — the finding this tool exists for. MAUI animates, the port is frozen
+        #     on its first frame, and the mismatch must be flagged loudly, not left to the SSIM.
+        dm = unit(run, "frozen", "maui_xaml", "light", moving)
+        do = unit(run, "frozen", "cpp", "light", seq([10, 10, 10]))
+        publish(comp, "frozen", "maui", "light", dm / "0001.png")
+        publish(comp, "frozen", "cpp", "light", do / "0001.png")
+        r = score_cell("frozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("frozen column: flagged", r["mismatch"], True)
+        check("frozen column: says so first", r["detail"].startswith("!! MOTION MISMATCH"), True)
+        # Both percentages must be IN THE TEXT, so a forced red can be argued from the review alone.
+        check("frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
+        check("frozen column: prints the port's own motion", "vs cpp 0.00%" in r["detail"], True)
+
+        # (3) SHIFTED: both animate, but the port's box sits 8px lower throughout. Real difference,
+        #     NOT a mismatch — both columns moved, so the loud flag must stay off.
+        dm = unit(run, "shift", "maui_xaml", "light", moving)
+        do = unit(run, "shift", "cpp", "light",
+                  [("initial", [(10, 18)])] + [(f"gif{i:02d}", [(x, 18)]) for i, x in enumerate([10, 40, 70], 1)])
+        publish(comp, "shift", "maui", "light", dm / "0001.png")
+        publish(comp, "shift", "cpp", "light", do / "0001.png")
+        r = score_cell("shift", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("shifted: not a mismatch", r["mismatch"], False)
+        check("shifted: worst SSIM below green", r["ssim"] < 0.98, True)
+
+        # (4) DIFFERENT LENGTHS: the port dropped gif03. The two surviving pairs are scored, the
+        #     orphan is reported — never re-aligned onto gif02 the way index pairing would.
+        dm = unit(run, "short", "maui_xaml", "light", moving)
+        do = unit(run, "short", "cpp", "light", seq([10, 40]))
+        publish(comp, "short", "maui", "light", dm / "0001.png")
+        publish(comp, "short", "cpp", "light", do / "0001.png")
+        r = score_cell("short", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("unequal lengths: only pairs scored", "MOTION 2 frames" in r["detail"], True)
+        check("unequal lengths: orphan reported", "1 frame(s) had no partner" in r["detail"], True)
+
+        # (5) NO STEP NAME IN COMMON: refuse. Scoring "0 frames" or falling back to the still without
+        #     saying so are both the silent-wrong-number failure this file is written against.
+        dm = unit(run, "alien", "maui_xaml", "light", moving)
+        do = unit(run, "alien", "cpp", "light",
+                  [("initial", [(10, 10)])] + [(f"other{i:02d}", [(x, 10)]) for i, x in enumerate([10, 40, 70], 1)])
+        publish(comp, "alien", "maui", "light", dm / "0001.png")
+        publish(comp, "alien", "cpp", "light", do / "0001.png")
+        r = score_cell("alien", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("no common step: NOT motion-scored", "NOT motion-scored" in r["detail"], True)
+        check("no common step: keeps the still number", (r["ssim"], r["diff_pct"]), (1.0, 0.0))
+        check("no common step: claims no motion number", "MOTION" in r["detail"], False)
+
+        # (6) NO RUN DIR AT ALL — iOS and Android every time. Labelled fallback, never a bare number.
+        r = score_cell("absent", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("no run dir: labelled", "NOT motion-scored" in r["detail"], True)
+        check("no run dir: keeps the still", r["ssim"], 1.0)
+        check("no run dir: no comparable pair stays blank",
+              score_cell("absent", "maccatalyst", "cpp", "light", 0, None, comp), None)
+
+        # (7) STALENESS: the frames are there, but captures/ holds a DIFFERENT still — that run is not
+        #     the one behind the board, so pairing them would score two unrelated builds.
+        dm = unit(run, "stale", "maui_xaml", "light", moving)
+        do = unit(run, "stale", "cpp", "light", moving)
+        publish(comp, "stale", "maui", "light", dm / "0001.png")
+        frame(comp / "captures" / "maccatalyst" / "cpp" / "stale_light.png", [(90, 90)])
+        r = score_cell("stale", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("stale run: refused", "CURRENTLY PUBLISHED" in r["detail"], True)
+
+    print("motion_score selftest:", "OK" if ok else "FAILED")
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(_selftest())

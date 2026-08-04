@@ -19,6 +19,13 @@ uniform-window average (via an integral image, not a naive global mean) per Wang
 on grayscale luma. Also reports diff_pct: the percentage of pixels whose per-channel max absolute
 difference exceeds a visibility threshold (25/255) — a blunter, more intuitive companion number.
 
+**Animated pages are scored FRAME BY FRAME**, at full resolution, by lib/motion_score.py — worst-frame
+and mean SSIM across the sequence, so a port that reaches the right END state through the wrong
+intermediate frames is caught. The worst frame supplies the {ssim, diff_pct} the thresholds below judge.
+When the frames are unavailable (they live in the per-run, gitignored run directory — see that module's
+header for why that source was chosen, and why iOS/Android cannot be motion-scored yet) the cell keeps
+its single-still number and the review SAYS "NOT motion-scored"; it never passes a still off as motion.
+
 Mismatched image dimensions are resized (LANCZOS) to the smaller common size before comparing — a
 known limitation: this is a global comparison, not a registered/aligned diff, so a uniform outer-inset
 shift (exempt per parity policy) can still show up as a nonzero diff_pct/SSIM<1. Missing screenshots
@@ -35,6 +42,8 @@ import os
 
 import numpy as np
 from PIL import Image
+
+import motion_score
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CPP_ROOT = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
@@ -89,21 +98,15 @@ def load_pair(path_a, path_b):
     return ia, ib
 
 
-def score_theme(maui_path, other_path, crop_top=0):
-    """One (page, platform, theme) MAUI-vs-<framework> score, or None if either file is missing.
+def score_images(ia, ib, crop_top=0):
+    """Two same-size PIL Images -> {"ssim", "diff_pct"}. Split out of score_theme so motion_score can
+    score a pair of RUN-DIRECTORY frames through exactly this code rather than a second copy of it.
 
     crop_top: rows to drop from the TOP of both images before comparing — used on Android to exclude the
     system STATUS BAR (clock/battery/wifi), which differs between captures purely because they were shot at
     different times, not because of any port rendering (the same capture-chrome exemption the iOS harness
     inset gets under ruling 2). Measured: the status bar occupies rows 0..~135 and differs on 100% of pages;
     the page content below it aligns. Both hosts run NoActionBar, so there is no app title bar to keep."""
-    if not maui_path or not other_path:
-        return None
-    abs_maui = os.path.join(COMP, maui_path)
-    abs_other = os.path.join(COMP, other_path)
-    if not (os.path.isfile(abs_maui) and os.path.isfile(abs_other)):
-        return None
-    ia, ib = load_pair(abs_maui, abs_other)
     if crop_top > 0:
         w, h = ia.size
         if h > crop_top:
@@ -113,6 +116,17 @@ def score_theme(maui_path, other_path, crop_top=0):
     diff_pct = float(np.mean(np.max(np.abs(a_rgb - b_rgb), axis=-1) > DIFF_THRESHOLD) * 100)
     s = ssim(to_luma(ia), to_luma(ib))
     return {"ssim": round(s, 4), "diff_pct": round(diff_pct, 2)}
+
+
+def score_theme(maui_path, other_path, crop_top=0):
+    """One (page, platform, theme) MAUI-vs-<framework> score, or None if either file is missing."""
+    if not maui_path or not other_path:
+        return None
+    abs_maui = os.path.join(COMP, maui_path)
+    abs_other = os.path.join(COMP, other_path)
+    if not (os.path.isfile(abs_maui) and os.path.isfile(abs_other)):
+        return None
+    return score_images(*load_pair(abs_maui, abs_other), crop_top)
 
 
 def full_res(rel_path):
@@ -144,11 +158,28 @@ def classify(theme_scores):
         status = "yellow"
     else:
         status = "red"
+    # One column ANIMATES and the other is FROZEN is a parity failure by definition, and the per-frame
+    # SSIM cannot be trusted to expose it — a spinner is a few hundred pixels, so a frozen port can
+    # still score 0.99 on every frame. So the verdict is forced rather than inferred; motion_score puts
+    # both self-motion percentages in the review text, so a forced red is arguable from that one line.
+    if any(v.get("mismatch") for v in have.values()):
+        status = "red"
+    # NEITHER column moved, on a page the board calls animated. Two frozen columns are byte-identical,
+    # so this arrives as a perfect score — the single most misleading green the board can produce, and
+    # exactly the state the whole interaction pass exists to eliminate. It is capped at yellow rather
+    # than forced red because it is not evidence of a PORT defect: it says the page was never driven
+    # (no scenario, or an interaction this lane cannot reach). Yellow puts it in front of a human
+    # without accusing the port of something the capture never tested.
+    if any(v.get("both_frozen") for v in have.values()) and status == "green":
+        status = "yellow"
     parts = []
     for t in THEMES:
         v = theme_scores.get(t)
         if v is not None:
-            parts.append(f"{t.capitalize()}: SSIM {v['ssim']:.4f}, {v['diff_pct']:.2f}% pixels differ")
+            # `detail` is motion_score's sentence (a frame-by-frame score, or the still number plus the
+            # reason it could NOT be motion-scored). Absent on the ~158 non-animated pages.
+            parts.append(f"{t.capitalize()}: " + (v.get("detail") or
+                         f"SSIM {v['ssim']:.4f}, {v['diff_pct']:.2f}% pixels differ"))
         elif t in theme_scores:
             parts.append(f"{t.capitalize()}: no comparable pair")
     review = " · ".join(parts)
@@ -169,6 +200,7 @@ def main():
     # per port/CLAUDE.md "Parity comparison policy" §5: cpp -> "pixel" (comparisons 1/3), xaml ->
     # "pixel_xaml" (comparisons 2/4). Mirrors comparison_paths.review_slot()'s cpp->bare/xaml->_xaml.
     SLOTS = [("cpp", "pixel"), ("xaml", "pixel_xaml")]
+    FW_LABEL = {"cpp": "C++", "xaml": "C++ & XAML"}   # how the motion review names the port column
 
     scored = 0
     for page in pages:
@@ -183,9 +215,17 @@ def main():
             themes = THEMES  # Android is now captured in both light + dark (like iOS/macOS)
             for fw, slot in SLOTS:
                 other = sc.get(fw, {})
-                crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_theme)
+                crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_images)
                 theme_scores = {t: score_theme(full_res(maui.get(t)), full_res(other.get(t)), crop_top)
                                 for t in themes}
+                if page["name"] in motion_score.ANIMATED:
+                    # The trigger is the ANIMATED set, not "captures/ holds a .gif": a page whose GIF
+                    # assembly FAILED is still an animated page, and the run frames can still score its
+                    # motion. Every score here either becomes a frame-by-frame number or keeps the
+                    # still one carrying the reason it could not — never a silent single-frame verdict.
+                    theme_scores = {t: motion_score.score_cell(page["name"], plat, fw, t, crop_top, v,
+                                                               fw_label=FW_LABEL[fw])
+                                    for t, v in theme_scores.items()}
                 status, review = classify(theme_scores)
                 platform[slot] = {"status": status, "review": review}
                 scored += 1
