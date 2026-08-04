@@ -81,13 +81,28 @@ COMP = HERE.parents[2] / "docs" / "comparison"   # lib -> parity -> tools -> por
 FW_TO_COL = {"maui": "maui_xaml", "cpp": "cpp", "xaml": "cpp_xaml",
              "appkit_cpp": "appkit_cpp", "appkit_xaml": "appkit_xaml"}
 
-# A column "moved" if this share of its own pixels changed between its first frame and some later one,
-# and is "frozen" below the lower bound. The gap between the two is deliberate: it keeps a page whose
-# animation is a couple of hundred pixels of spinner out of BOTH buckets rather than forcing a verdict
-# on it. Both measured numbers are printed in the review, so a false positive is arguable from the
-# text alone instead of from a constant nobody can see.
-MOVED_PCT = 1.0
-FROZEN_PCT = 0.2
+# A column "moved" if at least this MANY of its own pixels changed between its first frame and some
+# later one, and is "frozen" below the lower bound. The gap between the two is deliberate: it keeps a
+# page whose animation is a marginal number of pixels out of BOTH buckets rather than forcing a verdict
+# on it. Both measured numbers are printed in the review, so a false positive is arguable from the text
+# alone instead of from a constant nobody can see.
+#
+# COUNTS, NOT PERCENTAGES, and that correction is load-bearing. These were percentages of the frame,
+# which silently means "a higher-resolution screen must animate MORE to count as animating" — exactly
+# backwards. It produced a measured false verdict: iOS activity_indicator, whose GIF holds 46 DISTINCT
+# frames of a visibly spinning indicator, moved 0.13% of a 1206x2622 framebuffer and so fell under a
+# 0.2% "frozen" bound, and the page was reported as "!! NOTHING MOVED" and forced yellow.
+#
+# The same spinner is the same object on every lane; only the pixel grid under it changes. In counts
+# the two measured cases separate cleanly, where as percentages they do not:
+#     maccatalyst, genuinely frozen (animations pinned):  0.03% of   819k =   246 px
+#     iOS, visibly animating spinner:                     0.13% of 3.16M =  4100 px
+# 246 vs 4100 is a 16x gap; 0.03% vs 0.13% is 4x with no safe line between them. The bounds below sit
+# in that gap with room on both sides. A count still is not perfectly scale-free — a 3x device draws
+# the same widget with ~9x the pixels — but it errs in the SAFE direction: a denser screen makes real
+# motion easier to detect, not harder.
+MOVED_PX = 2000
+FROZEN_PX = 800
 # How far back to look for the run that produced the board's capture. Run dirs accumulate for weeks;
 # without a bound, a cell whose run was deleted would read every surviving run's frames to prove it.
 MAX_RUNS_SCANNED = 20
@@ -160,14 +175,35 @@ def _pair(shots_a, shots_b) -> list[tuple[str, str, str]]:
     return [(k[0], ka[k], kb[k]) for k in ka if k in kb]   # dict order == capture order
 
 
-def _self_motion(pngs: list[str], crop_top: int) -> float:
-    """How much a column moved ON ITS OWN: the largest share of pixels that differ between its first
-    frame and any later one. This is the ONLY measurement that separates "both columns are static and
-    identical" (fine) from "MAUI animates and the port is frozen" (the finding this tool exists for) —
-    a frame-vs-frame SSIM between the two columns cannot tell those apart when the motion is small."""
+def _self_motion(pngs: list[str], crop_top: int) -> tuple[float, int]:
+    """How much a column moved ON ITS OWN -> (percent, PIXEL COUNT) of the largest change between its
+    first frame and any later one.
+
+    This is the ONLY measurement that separates "both columns are static and identical" (fine) from
+    "MAUI animates and the port is frozen" (the finding this tool exists for) — a frame-vs-frame SSIM
+    between the two columns cannot tell those apart when the motion is small.
+
+    The COUNT is what the verdict is taken on (see MOVED_PX/FROZEN_PX); the percent is carried only so
+    the review text can quote both, since a percent is what a human reading a diff expects to see."""
     if len(pngs) < 2:
-        return 0.0
-    return max(_compare(pngs[0], p, crop_top)["diff_pct"] for p in pngs[1:])
+        return 0.0, 0
+    best_pct, best_px = 0.0, 0
+    for p in pngs[1:]:
+        s = _compare(pngs[0], p, crop_top)
+        px = int(round(s["diff_pct"] / 100.0 * _pixel_count(pngs[0], crop_top)))
+        if px > best_px:
+            best_pct, best_px = s["diff_pct"], px
+    return best_pct, best_px
+
+
+def _pixel_count(png: str, crop_top: int) -> int:
+    """Comparable pixels in a frame — the area the diff percentage is a percentage OF, so the two
+    agree by construction. crop_top is excluded for the same reason score_images excludes it."""
+    from PIL import Image  # noqa: PLC0415  keeps module import free of PIL for --plan/--selftest
+
+    with Image.open(png) as im:
+        w, h = im.size
+    return w * max(0, h - crop_top)
 
 
 def _run_dirs(comp: Path, plat_dir: str, key: str) -> list[Path]:
@@ -257,16 +293,16 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # the case this detector exists for: if the port froze and dropped frames, the survivors are the
     # ones that matched, and the intersection can look calm on both sides while the raw sequences do
     # not. The pairing is for COMPARING the columns; motion is a property of one column alone.
-    move_m = _self_motion([p for _s, p in sel_m], crop_top)
-    move_o = _self_motion([p for _s, p in sel_o], crop_top)
-    mismatch = ((move_m >= MOVED_PCT and move_o <= FROZEN_PCT) or
-                (move_o >= MOVED_PCT and move_m <= FROZEN_PCT))
+    move_m, px_m = _self_motion([p for _s, p in sel_m], crop_top)
+    move_o, px_o = _self_motion([p for _s, p in sel_o], crop_top)
+    mismatch = ((px_m >= MOVED_PX and px_o <= FROZEN_PX) or
+                (px_o >= MOVED_PX and px_m <= FROZEN_PX))
     # NEITHER column moved on a page the board calls animated. That is not parity — it is the original
     # bug: a page nobody managed to drive, whose GIF is N copies of one frame. Two frozen columns match
     # each other perfectly and would otherwise score a confident green, which is precisely the
     # "did nothing, reported success" outcome this whole pass exists to make impossible. It cannot be
     # graded from SSIM, because the SSIM is 1.0 — it has to be its own verdict.
-    both_frozen = move_m <= FROZEN_PCT and move_o <= FROZEN_PCT
+    both_frozen = px_m <= FROZEN_PX and px_o <= FROZEN_PX
 
     meta = shots_m[0][2]
     prov = (f"run {run.name}, commit {meta.get('commit', '?')}, "
@@ -277,19 +313,20 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     detail = (f"MOTION {len(pairs)} frames paired by step ({prov}){unpaired} — "
               f"worst SSIM {ssims[worst_i]:.4f} at frame {worst_i + 1} '{pairs[worst_i][0]}' "
               f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
-              f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.2f}% vs {label} {move_o:.2f}%")
+              f"per-frame diff% {per_frame}; self-motion MAUI {px_m} px ({move_m:.2f}%) vs "
+              f"{label} {px_o} px ({move_o:.2f}%)")
     if mismatch:
-        still_side, moved_side = ("MAUI", label) if move_m <= FROZEN_PCT else (label, "MAUI")
+        still_side, moved_side = ("MAUI", label) if px_m <= FROZEN_PX else (label, "MAUI")
         # FIRST in the string and in caps, because this is the finding the whole pass exists to make.
         # A page where one column animates and the other is frozen can still score a high per-frame
         # SSIM (a spinner is a few hundred pixels), so it must not be left to the number to reveal.
         detail = (f"!! MOTION MISMATCH: {moved_side} ANIMATES and {still_side} IS FROZEN "
-                  f"({max(move_m, move_o):.2f}% vs {min(move_m, move_o):.2f}% of its own pixels change "
+                  f"({max(px_m, px_o)} px vs {min(px_m, px_o)} px of its own change "
                   f"across the sequence) — the end state may match while the animation does not. "
                   f"{detail}")
     elif both_frozen:
-        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {FROZEN_PCT:.2f}% "
-                  f"of its own pixels across the sequence ({move_m:.2f}% vs {move_o:.2f}%), on a page "
+        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {FROZEN_PX} "
+                  f"pixels across the sequence ({px_m} px vs {px_o} px), on a page "
                   f"the board treats as ANIMATED. The two columns agree perfectly because both are "
                   f"still — this scores no motion parity at all. Either the page needs a scenario "
                   f"step to drive it, or its interaction is not reachable on this lane. {detail}")
@@ -318,12 +355,23 @@ def _selftest() -> int:
             print(f"  FAIL {what}: got {got!r}, want {want!r}")
             ok = False
 
+    BOX = 50   # 50x50 = 2500 px, and the size is LOAD-BEARING, not arbitrary.
+
     def frame(path, boxes):
-        """A 120x160 white page with black boxes at `boxes` — big enough for the 11x11 SSIM window."""
-        im = Image.new("RGB", (120, 160), "white")
+        """A 240x320 white page with BOXxBOX black boxes at `boxes` — big enough for the 11x11 SSIM
+        window, and big enough to clear MOVED_PX.
+
+        The verdict thresholds are absolute PIXEL COUNTS (see MOVED_PX/FROZEN_PX), because a
+        percentage of the frame means "a higher-resolution screen must animate more to count", which
+        is backwards. That makes this box a real parameter of the test rather than a drawing choice:
+        a box moving between two non-overlapping positions changes 2*BOX^2 = 5000 px, comfortably
+        over MOVED_PX, while a column that keeps its box changes 0. At the original 20x20 the moving
+        column changed 800 px, read as FROZEN, and every "one column moved" assertion here failed —
+        the test was measuring the box size, not the detector."""
+        im = Image.new("RGB", (240, 320), "white")
         for x, y in boxes:
-            for dx in range(20):
-                for dy in range(20):
+            for dx in range(BOX):
+                for dy in range(BOX):
                     im.putpixel((x + dx, y + dy), (0, 0, 0))
         im.save(path)
 
@@ -372,9 +420,11 @@ def _selftest() -> int:
         r = score_cell("frozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("frozen column: flagged", r["mismatch"], True)
         check("frozen column: says so first", r["detail"].startswith("!! MOTION MISMATCH"), True)
-        # Both percentages must be IN THE TEXT, so a forced red can be argued from the review alone.
+        # Both measurements must be IN THE TEXT, so a forced red can be argued from the review alone.
+        # Asserted as PIXELS (with the percent alongside) because pixels are what the verdict is taken
+        # on — quoting only a percentage would hide the number that actually decided the outcome.
         check("frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
-        check("frozen column: prints the port's own motion", "vs cpp 0.00%" in r["detail"], True)
+        check("frozen column: prints the port's own motion", "vs cpp 0 px (0.00%)" in r["detail"], True)
 
         # (3) SHIFTED: both animate, but the port's box sits 8px lower throughout. Real difference,
         #     NOT a mismatch — both columns moved, so the loud flag must stay off.

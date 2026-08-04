@@ -70,6 +70,27 @@ the very bug this exists to fix: 12 byte-identical burst frames from a page nobo
 itself will NOT do that for us: a tap at (99999,99999) and a zero-length swipe both exit 0, so the
 bounds and zero-length guards below are load-bearing, not decorative.
 
+RUN-DIRECTORY EVIDENCE (the full-resolution frames motion_score.py scores)
+--------------------------------------------------------------------------
+The board's PNG + 400px GIF are the human artifacts and they still land exactly where they always did.
+On top of them, `capture_still`/`capture_gif` optionally bank FULL-RESOLUTION frames + sidecars into a
+run unit — the same evidence the VM lanes leave, in the same shape (motion_score._shots,
+recapture.burst_frames, run_comparison.py's sidecar):
+
+    <comp>/<RUN>/<key>/ios/<column>/NNNN.png  +  NNNN.json
+        {tag, platform, column, theme, step, frame, commit, captured_at}
+
+Without it an animated iOS page could only ever be judged on ONE resting frame; `motion_score` says so
+out loud ("NOT motion-scored … iOS and Android keep no run dir at all") rather than reporting a still
+as motion. Nothing here relocates an output: the run dir is ADDITIONAL, and a caller that passes no
+`run_unit` gets byte-identically the old behavior.
+
+Two contracts this lane has to meet, both easy to break silently:
+  * the banked `initial` frame is a BYTE COPY of the published still (motion_score._is_published_run
+    accepts a run only if it holds a byte-identical twin of what captures/ shows) — see `_bank`;
+  * every frame carries a MEANINGFUL step name, because motion_score._pair joins the columns by name
+    and drops nameless frames on purpose — see `frame_step` for why that name is a TIMESTAMP.
+
 Apps (bundle + env contract):
   maui -> dev.mauicpp.mauireference     MAUI_COMPARE_PAGE -> port/maui-reference/captures/ios/<key>_<theme>.png
   cpp  -> dev.maui-cpp.ios-gallery      MAUI_SAMPLE_PAGE  -> docs/comparison/captures/ios/cpp/<key>_<theme>.png
@@ -85,6 +106,7 @@ import signal
 import subprocess
 import tempfile
 import time
+from datetime import datetime
 
 import gif as gifmod
 from capture_guard import is_splash
@@ -442,12 +464,163 @@ def run_steps(steps: list[dict] | None, udid: str = UDID) -> None:
         time.sleep(after)
 
 
+# --------------------------------------------------------------------------- run-dir evidence
+# This module's app key -> the RUNNER's column name, which is what the run dir and the sidecar speak
+# (motion_score.FW_TO_COL maps the board's framework dirs maui/cpp/xaml back onto these). Derived from
+# `app` so a caller cannot mismatch the two; still overridable, since the column is the contract.
+_COLUMN = {"maui": "maui_xaml", "cpp": "cpp", "xaml": "cpp_xaml"}
+# How many full-res frames one recording contributes. 12 = the VM lanes' --gif-frames default, so an
+# iOS sequence is scored over the same number of moments as a maccatalyst one. It is a COUNT, not a
+# rate: the sample spacing below is derived from it, so a longer --gif-secs samples further apart
+# rather than banking proportionally more megabytes.
+MOTION_FRAMES = 12
+
+_COMMIT: list[str] = []
+
+
+def _commit() -> str:
+    """The run's commit for the sidecar — byte-identical in form to run_comparison.git_commit()."""
+    if not _COMMIT:
+        r = subprocess.run(["git", "-C", CPP, "rev-parse", "--short", "HEAD"],
+                           capture_output=True, text=True)
+        _COMMIT.append(r.stdout.strip() or "unknown")
+    return _COMMIT[0]
+
+
+def frame_step(i: int, record_secs: float) -> str:
+    """The step name of the i-th (0-based) frame extracted from a recording: its OFFSET IN
+    MILLISECONDS from the moment the recorder started. Pure — the self-check drives it.
+
+    WHY A TIMESTAMP, AND NOT AN INDEX. motion_score._pair joins the two columns BY STEP NAME exactly
+    so that it can never join by index; a frame numbered and then called a name would defeat that in
+    one line, because a column that dropped a frame would silently re-align its entire tail. A VM lane
+    has real named scenario steps to join on. A `simctl io recordVideo` mp4 has none — it is one
+    continuous video — so this lane has to supply a key that MEANS something. Elapsed time does: both
+    columns start recording at the same point of the same code path (launch -> settle -> record ->
+    0.5s -> the same scenario steps), so "1333 ms after the recorder started" is the same moment of
+    the same scenario in either column, and it stays that moment however many frames either produced.
+
+    This is deliberately NOT the "both recorded for the same nominal duration, so the k-th of K
+    evenly-spaced samples is the same NORMALIZED moment" rule. Normalizing by duration makes every
+    name a function of how long that recording happened to run, so a column whose steps overran would
+    have its whole sequence silently re-timed against the other's — and it then needs a bolted-on
+    equal-duration check to stay honest. An ABSOLUTE offset needs no equal-duration assumption at all,
+    so there is nothing to check and nothing to forget to check: a recording that ran short simply
+    stops producing names, its partner's extra frames pair with nothing, and motion_score reports them
+    as unpaired (or refuses the cell outright when the overlap is empty). The same is true the other
+    way: an overrun keeps sampling at the same spacing, so its extra frames are honestly named for the
+    moments they were taken at. The guard IS the key.
+
+    WHAT IT DOES NOT BUY — stated here because the number is otherwise easy to misread: the anchor is
+    the RECORDER's start, not the animation's. On a free-running page (activity_indicator's spinner)
+    the phase is set by app launch, so two columns can both be correct and still show a different
+    spinner angle at the same offset, and the per-frame SSIM is coarse there. The load-bearing
+    measurement on such a page is motion_score's per-column SELF-motion — "did this column move at
+    all", the frozen-vs-animating finding — which needs no alignment between columns.
+
+    THE `gif` PREFIX IS LOAD-BEARING, not decoration: recapture.burst_frames treats a `gif*` step as a
+    burst frame, which is what keeps the temporally-distant `initial` still (a different launch, a
+    different recording) out of the scored sequence and out of the self-motion anchor — exactly as on
+    the VM lanes, whose burst steps are also named gifNN.
+    """
+    return f"gif{round(i * 1000.0 * record_secs / MOTION_FRAMES):05d}"
+
+
+def _unit_dir(run_unit, app: str, column: str | None) -> tuple[str, str]:
+    """(directory, column) for a run unit, or a loud rejection.
+
+    The contract is `<comp>/<RUN>/<key>/ios/<column>/`, so the directory's own name IS the column.
+    Checking that turns the one likely wiring mistake — handing this the run ROOT, or another lane's
+    unit — into an error instead of a pile of frames nothing will ever pair."""
+    col = column or _COLUMN[app]
+    unit = str(run_unit)
+    if os.path.basename(os.path.normpath(unit)) != col:
+        raise ValueError(f"run_unit {unit!r} is not column {col!r}'s own directory — the contract is "
+                         f"<comp>/<RUN>/<key>/ios/<column>/, not the run root")
+    os.makedirs(unit, exist_ok=True)
+    return unit, col
+
+
+def _next_frame_no(unit: str) -> int:
+    """The next NNNN in this unit. Both THEMES share one unit dir (the sidecar carries the theme, and
+    motion_score._shots filters on it), and on iOS theme is the OUTER loop — so numbering continues
+    across the theme flip and across the still/GIF pass rather than restarting and overwriting."""
+    used = [int(n[:4]) for n in os.listdir(unit)
+            if len(n) == 8 and n.endswith(".png") and n[:4].isdigit()]
+    return max(used, default=0) + 1
+
+
+def _sidecar(unit: str, n: int, col: str, key: str, theme: str, step: str) -> None:
+    """NNNN.json beside NNNN.png — the shape run_comparison.py writes, which is the shape
+    motion_score._shots / recapture.burst_frames read."""
+    with open(os.path.join(unit, f"{n:04d}.json"), "w") as fh:
+        json.dump({"tag": key, "platform": "ios", "column": col, "theme": theme, "step": step,
+                   "frame": n, "commit": _commit(),
+                   "captured_at": datetime.now().astimezone().isoformat()}, fh, indent=2)
+
+
+def _bank(run_unit, app: str, column: str | None, key: str, theme: str, png: str, step: str) -> str:
+    """Copy an already-published PNG into the run unit as the next frame. Returns its path.
+
+    THE BYTES ARE COPIED — the frame is never re-shot. motion_score._is_published_run accepts a run
+    only if it holds a byte-identical twin of the still captures/ currently shows, so a second
+    screenshot of the same screen (same page, one JPEG-of-a-JPEG's worth of difference) would leave
+    every iOS cell refused with "their frames do not match captures/ byte-for-byte"."""
+    unit, col = _unit_dir(run_unit, app, column)
+    n = _next_frame_no(unit)
+    dst = os.path.join(unit, f"{n:04d}.png")
+    shutil.copyfile(png, dst)
+    _sidecar(unit, n, col, key, theme, step)
+    return dst
+
+
+def _bank_recording(run_unit, app: str, column: str | None, key: str, theme: str,
+                    mp4: str, record_secs: float) -> int:
+    """Bank MOTION_FRAMES full-resolution frames out of the recording the GIF was just built from.
+
+    THE SAME mp4, decoded again — never a second recording (which would be a different animation) and
+    never a downscale. That is the entire point: gif.py renders the human-viewable GIF at 400px wide
+    (`_SCALE`), which throws away most of the pixels a score needs, while `simctl io recordVideo`
+    writes at the device framebuffer resolution the still is captured at.
+
+    ffmpeg's `fps` filter emits output frame i at t = i/fps, which is the fixed grid `frame_step`
+    names; the rate is derived from record_secs so the count stays ~MOTION_FRAMES whatever --gif-secs
+    is. RAISES if the extraction produced nothing — a page that banked a GIF and no frames would
+    otherwise read on the board as motion-scored-and-fine."""
+    unit, col = _unit_dir(run_unit, app, column)
+    first = _next_frame_no(unit)
+    fps = MOTION_FRAMES / max(record_secs, 0.1)
+    r = subprocess.run(["ffmpeg", "-y", "-i", mp4, "-vf", f"fps={fps:g}",
+                        "-start_number", str(first), os.path.join(unit, "%04d.png")],
+                       capture_output=True, text=True)
+    n = first
+    while os.path.exists(os.path.join(unit, f"{n:04d}.png")):
+        _sidecar(unit, n, col, key, theme, frame_step(n - first, record_secs))
+        n += 1
+    made = n - first
+    if r.returncode != 0 or made == 0:
+        raise RuntimeError(f"ffmpeg banked {made} full-res frame(s) from {mp4} (rc={r.returncode}): "
+                           f"{r.stderr.strip()[-300:]}")
+    return made
+
+
 def capture_still(app: str, key: str, theme: str, settle: float, udid: str = UDID,
-                  steps: list[dict] | None = None) -> str | None:
-    """Launch + settle + screenshot. Returns the written path, or None if the frame was DROPPED."""
+                  steps: list[dict] | None = None, run_unit=None, column: str | None = None) -> str | None:
+    """Launch + settle + screenshot. Returns the written path, or None if the frame was DROPPED.
+
+    `run_unit` (a `<comp>/<RUN>/<key>/ios/<column>/` path) additionally banks the PUBLISHED bytes
+    there as this unit's `initial` frame; None keeps the pre-run-dir behavior exactly."""
     out = out_path(app, key, theme, "png")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     stage = os.path.join(tempfile.gettempdir(), f"parity_{app}_{key}_{theme}.png")
+
+    def keep(published: str) -> str:
+        """Both return paths funnel through here — the splash retry publishes its own frame, and a
+        run dir that recorded only the first attempt would be banking a picture of a splash screen."""
+        if run_unit is not None:
+            _bank(run_unit, app, column, key, theme, published, "initial")
+        return published
+
     launch(app, key, udid)
     time.sleep(settle)
     run_steps(steps, udid)
@@ -456,7 +629,7 @@ def capture_still(app: str, key: str, theme: str, settle: float, udid: str = UDI
     shutil.copyfile(stage, out)
     os.remove(stage)
     if not is_splash(out):
-        return out
+        return keep(out)
     for extra in (4.0, 8.0, 16.0):
         launch(app, key, udid)
         time.sleep(settle + extra)
@@ -466,13 +639,14 @@ def capture_still(app: str, key: str, theme: str, settle: float, udid: str = UDI
         shutil.copyfile(stage, out)
         os.remove(stage)
         if not is_splash(out):
-            return out
+            return keep(out)
     os.remove(out)   # still a splash — drop it rather than bank a known-bad frame
     return None
 
 
 def capture_gif(app: str, key: str, theme: str, settle: float, record_secs: float = 4.0,
-                udid: str = UDID, steps: list[dict] | None = None) -> str | None:
+                udid: str = UDID, steps: list[dict] | None = None,
+                run_unit=None, column: str | None = None) -> str | None:
     """Record a short mp4 and convert it to a paletted GIF — for pages a single still cannot represent.
 
     The GIF is not a nicety: comparison_paths.find_capture() and build_comparison_json.py both prefer
@@ -482,6 +656,10 @@ def capture_gif(app: str, key: str, theme: str, settle: float, record_secs: floa
     `steps` run INSIDE the recording window — a page that only moves when poked has to be poked while
     the camera is rolling, or the GIF is `record_secs` of a still page (which is exactly how 13 pages
     ended up with 12 byte-identical frames and no GIF at all).
+
+    `run_unit` ALSO banks MOTION_FRAMES full-resolution frames out of that same recording, named by
+    their millisecond offset (see `frame_step`) so motion_score can pair the columns by step name and
+    score the animation instead of one resting frame. None keeps the pre-run-dir behavior exactly.
     """
     gif = out_path(app, key, theme, "gif")
     os.makedirs(os.path.dirname(gif), exist_ok=True)
@@ -512,9 +690,19 @@ def capture_gif(app: str, key: str, theme: str, settle: float, record_secs: floa
             proc.wait(timeout=20)
         except subprocess.TimeoutExpired:
             proc.kill()
-    ok = gifmod.video_to_gif(mp4, gif)
-    if os.path.exists(mp4):
-        os.remove(mp4)
+    try:
+        ok = gifmod.video_to_gif(mp4, gif)
+        if run_unit is not None:
+            # AFTER the GIF, so the board artifact is on disk before anything else can fail — and
+            # unconditionally, because a recording that gif.py rejected as motionless is exactly the
+            # case motion_score's "NOTHING MOVED" verdict exists to report, and it needs the frames.
+            n = _bank_recording(run_unit, app, column, key, theme, mp4, record_secs)
+            print(f"      run-dir: {n} full-res frame(s) banked", flush=True)
+    finally:
+        # finally, not a straight line: a failed extraction must not leave the mp4 for the next page's
+        # recording to inherit (simctl writes to a per-page path, but --force overwrites blindly).
+        if os.path.exists(mp4):
+            os.remove(mp4)
     return gif if ok else None
 
 
@@ -653,6 +841,82 @@ if __name__ == "__main__":
             assert "brew install idb-companion" in str(exc), exc
     finally:
         IDB = _real_idb
+
+    # ---- RUN-DIR EVIDENCE. The naming rule and the byte-identity rule, checked against the REAL
+    # consumers (motion_score, recapture.burst_frames) rather than against a restatement of them.
+    # The grid: frame i sits at i * record_secs / MOTION_FRAMES, named in milliseconds.
+    assert frame_step(0, 4.0) == "gif00000", frame_step(0, 4.0)
+    assert frame_step(1, 4.0) == "gif00333", frame_step(1, 4.0)
+    assert frame_step(3, 4.0) == "gif01000", frame_step(3, 4.0)
+    assert frame_step(MOTION_FRAMES - 1, 4.0) == "gif03667"
+    # THE property that makes the key duration-free: the same moment gets the same NAME out of two
+    # recordings of different length, so the columns pair on when a frame was taken and never on
+    # which frame it happened to be. (Normalized-by-duration naming gets this exactly wrong: it would
+    # call 2000ms-of-4s and 4000ms-of-8s the same frame.)
+    assert frame_step(2, 4.0) == frame_step(1, 8.0) == "gif00667"
+    assert frame_step(6, 4.0) != frame_step(6, 8.0)
+    # An overrun keeps the SAME spacing past record_secs — honest names, not a re-timed sequence.
+    assert frame_step(MOTION_FRAMES + 3, 4.0) == "gif05000"
+
+    import motion_score  # the actual reader of everything banked below
+    from recapture import burst_frames
+
+    with tempfile.TemporaryDirectory() as tmp:
+        board = os.path.join(tmp, "board.png")
+        with open(board, "wb") as fh:
+            fh.write(b"\x89PNG\r\n\x1a\n published-still bytes")
+        unit = os.path.join(tmp, "2026-08-05-00_00_00", "demo", "ios", "cpp")
+
+        # A run unit that is not the column's own directory is refused, not filled with orphan frames.
+        for wrong in (os.path.dirname(unit), os.path.join(tmp, "run", "demo", "ios", "maui_xaml")):
+            try:
+                _bank(wrong, "cpp", None, "demo", "light", board, "initial")
+                raise AssertionError(f"run_unit {wrong!r} was accepted for column 'cpp'")
+            except ValueError:
+                pass
+
+        # The still: byte-identical, which is the ONLY thing _is_published_run accepts.
+        first = _bank(unit, "cpp", None, "demo", "light", board, "initial")
+        assert os.path.basename(first) == "0001.png", first
+        assert open(first, "rb").read() == open(board, "rb").read()
+        meta = json.load(open(os.path.join(unit, "0001.json")))
+        assert set(meta) == {"tag", "platform", "column", "theme", "step", "frame", "commit",
+                             "captured_at"}, sorted(meta)
+        assert (meta["tag"], meta["platform"], meta["column"], meta["theme"], meta["step"],
+                meta["frame"]) == ("demo", "ios", "cpp", "light", "initial", 1)
+        assert _COLUMN["xaml"] == "cpp_xaml" == motion_score.FW_TO_COL["xaml"]   # board dir -> column
+
+        # The recording's frames, as _bank_recording would number them, plus a DARK frame: both themes
+        # share one unit dir, so numbering has to continue rather than restart onto 0001.
+        for i in range(3):
+            shutil.copyfile(board, os.path.join(unit, f"{_next_frame_no(unit):04d}.png"))
+            _sidecar(unit, _next_frame_no(unit) - 1, "cpp", "demo", "light", frame_step(i, 4.0))
+        dark = _bank(unit, "cpp", None, "demo", "dark", board, "initial")
+        assert os.path.basename(dark) == "0005.png", dark
+
+        # _shots/burst_frames take a Path; this module is os.path-based end to end, so the conversion
+        # happens here rather than dragging pathlib through the capture code.
+        import pathlib
+        shots = motion_score._shots(pathlib.Path(unit), "light")
+        assert [s for s, _, _ in shots] == ["initial", "gif00000", "gif00333", "gif00667"], shots
+        assert motion_score._is_published_run(board, shots), "published still not found in the run"
+        with open(os.path.join(tmp, "other.png"), "wb") as fh:
+            fh.write(b"\x89PNG\r\n\x1a\n a DIFFERENT still")
+        assert not motion_score._is_published_run(os.path.join(tmp, "other.png"), shots), \
+            "a run that did not produce the published still must be refused"
+
+        # The `gif` prefix, and why it is not cosmetic: burst_frames must drop the temporally-distant
+        # `initial` frame (a separate launch and a separate recording) from the scored sequence, or it
+        # anchors motion_score's self-motion — the frozen-vs-animating detector — on a frame from
+        # another session. Same rule the VM lanes get.
+        assert [os.path.basename(p) for p in burst_frames(pathlib.Path(unit), "light")] == \
+            ["0002.png", "0003.png", "0004.png"]
+        assert [os.path.basename(p) for p in burst_frames(pathlib.Path(unit), "dark")] == []
+        # Every banked frame carries a name, so none is dropped by _pair (which discards nameless
+        # frames rather than keying them all on "" and pairing by ordinal).
+        assert all(s for s, _, _ in shots)
+        paired = motion_score._pair([(s, p) for s, p, _ in shots], [(s, p) for s, p, _ in shots])
+        assert len(paired) == len(shots), paired
 
     # EVERY checked-in scenario, replayed through plan() — the real files, not fixtures. These are read
     # by four lanes, and this one used to implement a strictly SMALLER verb set than the vocabulary they

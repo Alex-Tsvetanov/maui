@@ -65,6 +65,14 @@ This matters beyond looks — find_capture() and build_comparison_json.py both p
 lane therefore DELETES the old GIF before recording: a missing GIF falls back to the fresh still,
 which is honest; a stale GIF is a lie.
 
+EVERY LANE ALSO LEAVES A RUN DIRECTORY, and an animated page is therefore scored frame by frame on
+every platform (lib/motion_score.py) rather than judged on one resting frame. The VM lanes get theirs
+from the E2E runner; the two device lanes write RUN_DIR here, in the same layout and the same stamp
+format — see run_unit() for what the frame names mean on a lane whose recording has no steps in it.
+This is ADDITIONAL evidence: every board path stays exactly where it was. Run dirs are gitignored,
+per-run, and NOTHING prunes them (84 present as of this change) — deleting one destroys the only
+frames a score can be recomputed from, so no policy is added here.
+
 AFTERWARDS (unless --no-measure) the board is rebuilt and re-measured for the platforms you captured:
 comparison.json -> pixel scores -> artifact sizes -> time-to-first-frame -> README.
 
@@ -142,6 +150,25 @@ DROP_STREAK_LIMIT = int(os.environ.get("PARITY_DROP_STREAK", "9"))
 FAILED: list[str] = []
 LOG_DIR = COMP / "_recapture_logs"
 RUN_ID = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+
+# --- the RUN DIRECTORY of the two device lanes: the full-resolution, per-step frames a motion score
+# is computed from (lib/motion_score.py). Same stamp format and same layout the E2E runner already
+# writes for the VM lanes (tools/run_comparison.py: `%Y-%m-%d-%H_%M_%S`, then
+# <run>/<tag>/<platform>/<column>/NNNN.png + NNNN.json), REUSED rather than reinvented: motion_score
+# globs `20??-??-??-*` and orders the hits by NAME, so a second convention would not merely look
+# different — `_` sorts after every digit, so `2026-08-05-010229` would rank as older than every
+# runner dir and "the newest run" would stop meaning what it says.
+# ONE dir per invocation, shared by both device lanes (their frames differ by <platform>).
+# The name is computed here but the directory is NOT created here: lib/motion_score.py imports this
+# module for ANIMATED/burst_frames and records "no mkdir at module level" as why that is free, and
+# --plan/--selftest must not leave an empty run dir behind in a tree nothing prunes.
+RUN_DIR = COMP / datetime.now().strftime("%Y-%m-%d-%H_%M_%S")
+# The keyword each capture module takes its destination through. They differ, and deliberately so:
+# lib/capture_ios.py takes the UNIT directory and refuses one whose name is not the column it was
+# asked to shoot, while lib/capture_android.py takes the run ROOT and derives <key>/android/<column>/
+# from the app it already has. Each lane below speaks its own module's contract — a
+# lowest-common-denominator argument invented here would be a third contract to keep in step with two.
+IOS_RUN_KW, ANDROID_RUN_KW = "run_unit", "run_dir"
 
 
 # --------------------------------------------------------------------------- logging
@@ -536,6 +563,83 @@ def ios_install(frameworks: list[str]) -> None:
         run_step(f"ios: install {fw}", ["xcrun", "simctl", "install", IOS_UDID, str(app)], timeout=900)
 
 
+# --------------------------------------------------------------------------- run directory
+def run_unit(key: str, plat_dir: str, column: str, root: Path | None = None) -> Path:
+    """<run>/<tag>/<plat_dir>/<column>/ — where ONE (page, platform, column) unit's frames go.
+
+    `column` is the RUNNER column (maui_xaml / cpp / cpp_xaml), NOT the capture-directory name
+    (maui / cpp / xaml) that IOS_APP and ANDROID_SCRIPT hand out, and which is sitting in a
+    conveniently-named local at both call sites. motion_score.find_frames resolves the board's
+    framework dir through FW_TO_COL and looks the frames up under the runner column, so passing
+    `app` here writes a full run directory nobody ever reads while every animated cell goes on
+    reporting "no run directory" — a lane that looks wired and scores nothing. The selftest pins the
+    three parts of this path for exactly that reason.
+
+    WHY THE FRAMES OF A DEVICE LANE CAN BE PAIRED AT ALL — the assumption this file is the one that
+    guarantees. A VM run's frames are discrete named scenario steps, and motion_score._pair joins the
+    columns BY NAME precisely so that a dropped frame cannot re-align the tail of a sequence. A device
+    recording has no step boundaries: iOS is one continuous `simctl io recordVideo` mp4, Android a
+    `screencap` burst whose scenario runs on a concurrent thread. Naming those frames by capture index
+    would be index pairing wearing a name. So both modules name a frame for its NORMALIZED MOMENT —
+    its offset into the recording (capture_ios.frame_step) or its nominal sample of a stated schedule
+    (capture_android.step_name) — which is a real join key ONLY IF the two columns recorded the same
+    page for the same length of time. THEY DO, and this is where that is decided: the loops below hand
+    every column of a page ONE `gif_secs` (and one `frame_count`) straight off the one argv, so the
+    k-th sample is the same moment of the same animation in each column. A caller that ever recorded
+    two columns of one page for different durations would make those names a lie.
+    GAP, stated rather than hidden: the sidecar shape (tag/platform/column/theme/step/frame/commit/
+    captured_at) carries no duration, so nothing downstream can DERIVE that refusal from a frame. Both
+    modules mitigate it in the only place they can — the step name itself carries the schedule
+    (`gif01@4s/12f`) or the millisecond offset — so two unequal recordings mostly fail to pair rather
+    than pair wrongly, and the residue surfaces as motion_score's unpaired-frame count.
+    """
+    d = (root or RUN_DIR) / key / plat_dir / column
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def accepts_run_kw(lane: str, kw: str, *fns) -> bool:
+    """Do this lane's capture functions take the run-directory destination? Asked ONCE per lane.
+
+    The parameter lives in lib/capture_ios.py / lib/capture_android.py. If it is absent or renamed,
+    this file must not crash on page 1 of 1032 — but it must not shrug either: the run dir would stay
+    empty and every animated cell would keep the "NOT motion-scored" label with nothing saying why.
+    So it costs one named failed step and the lane captures on, board stills and GIFs unaffected.
+    """
+    import inspect  # noqa: PLC0415  one-off tolerance probe
+
+    missing = [f"{fn.__module__}.{fn.__name__}" for fn in fns
+               if kw not in inspect.signature(fn).parameters]
+    if missing:
+        fail(f"{lane}: {', '.join(missing)} take no `{kw}=` parameter, so this lane writes NO run "
+             f"directory and its animated pages CANNOT be motion-scored (lib/motion_score.py). "
+             f"The board stills and GIFs are unaffected.")
+        return False
+    return True
+
+
+def ios_run_kw(key: str, column: str, ok: bool) -> dict:
+    """The unit destination for one iOS capture call — or nothing, when the module cannot take one.
+
+    Evaluated lazily rather than per lane, so a lane that cannot be scored also never creates the
+    empty run directory that would advertise frames it does not hold."""
+    return {IOS_RUN_KW: run_unit(key, "ios", column)} if ok else {}
+
+
+def android_run_kw(ok: bool) -> dict:
+    """The run ROOT for one Android capture call. capture_android.write_run_unit builds
+    <key>/android/<column>/ from the app it is already given; handing it the unit as well would state
+    the same fact twice and let the two disagree.
+
+    NOTE the Android lane does NOT seed its own `initial` frame from here even though its still is
+    shot by a shell script with no run-dir hook (lib/build_android_apphost*.sh): write_run_unit copies
+    the PUBLISHED still into the unit itself, which is what satisfies motion_score._is_published_run,
+    and it does so in the same write as the burst. Adding a second copy here would put a lone
+    provenance frame in the unit on the paths where that function bails out — a newer run that
+    matches the board still but can pair nothing, shadowing the older complete run underneath it."""
+    return {ANDROID_RUN_KW: str(RUN_DIR)} if ok else {}
+
+
 # --------------------------------------------------------------------------- lanes
 def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs) -> None:
     log("=== LANE ios")
@@ -550,6 +654,8 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
     # WHAT THIS LANE WILL DRIVE, resolved once (the scenarios cannot change mid-run) so an unusable
     # one is reported by name ONCE rather than at every column x theme.
     scen = device_scenarios("ios", examples)
+    # Whether this lane can leave a run directory behind — asked once, before the first page.
+    unit_ok = accepts_run_kw("ios", IOS_RUN_KW, capture_ios.capture_still, capture_ios.capture_gif)
     capture_ios.pin()
     unset = object()
     restore = unset      # sentinel, NOT `or`: a device with no appearance set reads back falsy, and
@@ -565,20 +671,28 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
                 for key in examples:
                     kind = kind_for("ios", key)
                     steps = scen.get(key)          # None for the ~155 unscripted pages: touch nothing
+                    # ANIMATED pages only. pixel_score calls motion_score.score_cell for exactly the
+                    # ANIMATED set, so a still page's unit would be ~1000 PNGs per run duplicating
+                    # bytes captures/ already holds — in a tree nothing prunes. `kind` IS that set
+                    # (kind_for), so this cannot drift out of step with what gets scored.
+                    want_unit = unit_ok and kind == "png+gif"
                     t0 = begin("ios", fw, theme, key, kind)
                     try:
                         # NOTE the lane difference (see the module docstring): capture_still drives and
                         # THEN shoots straight to the board path, so on iOS a driven page's canonical
-                        # still is the REACTED frame — there is no run dir here for the at-rest one to
-                        # be published from. That is the same state all three iOS columns get.
-                        out = capture_ios.capture_still(app, key, theme, settle, steps=steps)
+                        # still is the REACTED frame — the run dir records that same frame rather than
+                        # an at-rest one it never took. That is the same state all three iOS columns
+                        # get. `run_unit` is the ADDITIONAL evidence copy; the board path is unchanged.
+                        out = capture_ios.capture_still(app, key, theme, settle, steps=steps,
+                                                        **ios_run_kw(key, fw, want_unit))
                         if kind == "png+gif":
                             # Both, deliberately: the GIF is what the board renders, the still keeps a
                             # frame for anything that only reads PNGs. The steps run INSIDE the
                             # recording window — a page that only moves when poked has to be poked
                             # while the camera is running.
                             out = capture_ios.capture_gif(app, key, theme, settle, gif_secs,
-                                                          steps=steps) or out
+                                                          steps=steps,
+                                                          **ios_run_kw(key, fw, want_unit)) or out
                     except Exception as exc:      # one bad page must not cost the other 171
                         fail(f"ios/{fw}/{theme}/{key}: {exc}")
                         end("ios", fw, theme, key, kind, t0, "ERROR")
@@ -628,6 +742,7 @@ def android_gifs(frameworks, theme, animated, gif_secs, gif_frames, scen) -> Non
     import capture_android
     import device_state
 
+    unit_ok = accepts_run_kw("android", ANDROID_RUN_KW, capture_android.capture_gif)
     prev = capture_android.set_theme(theme)
     prev_anim = capture_android.animations()   # restore what we found, not a guess at what it was
     # PIN THE STATUS BAR, exactly as the still pass does. Its exit trap has already un-pinned it, so a
@@ -646,7 +761,8 @@ def android_gifs(frameworks, theme, animated, gif_secs, gif_frames, scen) -> Non
                     # steps run on a background thread INSIDE the burst (see capture_android
                     # .capture_gif), so the frames straddle the gesture instead of following it.
                     out = capture_android.capture_gif(app, key, theme, secs=gif_secs,
-                                                      frame_count=gif_frames, steps=scen.get(key))
+                                                      frame_count=gif_frames, steps=scen.get(key),
+                                                      **android_run_kw(unit_ok))
                 except Exception as exc:
                     fail(f"android/{fw}/{theme}/{key}: gif: {exc}")
                     end("android", fw, theme, key, "gif", t0, "ERROR")
@@ -982,7 +1098,13 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
         # import on rc!=0 threw away a complete light theme plus ~80% of dark on BOTH VM lanes — six
         # hours of captures left in the run directory and never published. import_run_captures.py
         # copies each tag's `initial` frame per theme and simply reports the ones that are absent.
-        runs = sorted(COMP.glob("20??-??-??-*"), key=lambda p2: p2.stat().st_mtime)
+        # …and only run dirs that hold frames FOR THIS LANE'S PLATFORM. Same invocation, the device
+        # lanes now write a run dir of their own (RUN_DIR) whose units are `*/ios` and `*/android`;
+        # without this filter a runner that died before creating its own would hand THAT one to
+        # import_run_captures. A partially-captured runner run still matches — it has <tag>/<plat>/ —
+        # so the deliberate import-anyway path below is untouched.
+        runs = sorted((r for r in COMP.glob("20??-??-??-*") if next(r.glob(f"*/{plat_dir}"), None)),
+                      key=lambda p2: p2.stat().st_mtime)
         if not runs:
             fail(f"{platform}/{lane}: the runner produced no run directory")
             continue
@@ -1283,6 +1405,71 @@ def selftest() -> int:
     for fn, needle, want in ((lane_ios, "steps=steps", 2), (android_gifs, "steps=scen.get(key)", 1)):
         assert inspect.getsource(fn).count(needle) == want, (fn.__name__, needle, want)
 
+    # --- the RUN DIRECTORY the device lanes leave for lib/motion_score.py. Same shape of check and
+    # for the same reason: a dropped destination type-checks, runs, logs success, writes no evidence,
+    # and every animated cell keeps reporting the "no run directory" string it reports today — so the
+    # only thing that can catch it without a device is that the call site says so.
+    for fn, needle, want in ((lane_ios, "**ios_run_kw(key, fw, want_unit)", 2),
+                             (android_gifs, "**android_run_kw(unit_ok)", 1)):
+        assert inspect.getsource(fn).count(needle) == want, (fn.__name__, needle, want)
+    # …each preceded by ONE tolerance probe, asked before the lane captures anything.
+    for fn, want in ((lane_ios, 'accepts_run_kw("ios", IOS_RUN_KW'),
+                     (android_gifs, 'accepts_run_kw("android", ANDROID_RUN_KW')):
+        assert inspect.getsource(fn).count(want) == 1, (fn.__name__, want)
+    # The keywords are the two capture modules' OWN, and they are not the same word; this file must
+    # not drift into a house name for either. (A soft check on purpose — see the tolerance block
+    # below: the run is designed to survive their absence, so this must not be a hard failure.)
+    for kw, fn in ((IOS_RUN_KW, capture_ios.capture_gif), (ANDROID_RUN_KW, capture_android.capture_gif)):
+        if kw not in inspect.signature(fn).parameters:
+            print(f"  NOTE {fn.__module__}.{fn.__name__} has no `{kw}=` yet — the device lanes will "
+                  f"capture normally and report that they cannot be motion-scored")
+
+    # The tolerance path. The keyword is added by two SIBLING changes to the capture modules; until
+    # (and if) they land, this file must neither crash on page 1 of 1032 nor go quiet — an empty run
+    # dir and an unexplained "NOT motion-scored" on every animated cell is the worse outcome.
+    failed_before, seen = len(FAILED), []
+    sys.modules[__name__].log = seen.append                          # type: ignore[attr-defined]
+    try:
+        assert accepts_run_kw("probe", IOS_RUN_KW, lambda app, key: None) is False
+        # …and the lane then passes NOTHING and captures on, rather than crashing or creating a run
+        # directory it will never write a frame into.
+        assert ios_run_kw("animation", "cpp", False) == {} and android_run_kw(False) == {}
+    finally:
+        sys.modules[__name__].log = real_log                          # type: ignore[attr-defined]
+    assert len(FAILED) - failed_before == 1 and IOS_RUN_KW in FAILED[-1], FAILED[failed_before:]
+    del FAILED[failed_before:]      # a selftest must not inflate the run's exit code
+
+    # The unit path itself. The column must be the RUNNER column (maui_xaml/cpp/cpp_xaml); both call
+    # sites have the CAPTURE-dir name (maui/cpp/xaml) in a local called `app`, and using it would be
+    # invisible everywhere else in this file.
+    unit_root = Path(tempfile.mkdtemp())
+    try:
+        for plat_dir in ("ios", "android"):
+            for fw in FRAMEWORKS:
+                got = run_unit("animation", plat_dir, fw, unit_root)
+                assert got.parts[-3:] == ("animation", plat_dir, fw), got
+                assert got.relative_to(unit_root).parts[0] == "animation", got   # <run>/<tag>/… first
+                assert got.is_dir(), got
+        # …and that the real one is named the way motion_score._run_dirs globs AND ORDERS: `20??-??-??-*`
+        # sorted by NAME. The runner's stamp is the only format that sorts correctly against itself.
+        assert RUN_DIR.parent == COMP, RUN_DIR
+        assert datetime.strptime(RUN_DIR.name, "%Y-%m-%d-%H_%M_%S"), RUN_DIR.name
+        # A real runner stamp out of this tree, so the ORDERING claim is pinned and not just the
+        # format: a same-day `%H%M%S` name compares LESS than this one and would rank as older.
+        assert RUN_DIR.name > "2026-08-04-18_42_46", RUN_DIR.name
+        assert not RUN_DIR.exists(), f"{RUN_DIR} was created by a --selftest/--plan run"
+
+        # …and that "the framework IS the column" — the assumption both device lanes pass `fw` on.
+        # A device lane has no VM_LANES row to look a column up in: it hands the framework name
+        # straight through, which is only right because the board's framework DIRECTORY maps back to
+        # exactly that column. Read out of motion_score's own table, in the direction it reads it.
+        import motion_score  # noqa: PLC0415  selftest-only; it imports THIS module at its top level
+
+        for fw in FRAMEWORKS:
+            assert motion_score.FW_TO_COL[COL_TO_DIR[fw]] == fw, fw
+    finally:
+        shutil.rmtree(unit_root, ignore_errors=True)
+
     seen = []
     sys.modules[__name__].log = seen.append                          # type: ignore[attr-defined]
     try:
@@ -1294,7 +1481,8 @@ def selftest() -> int:
         sys.modules[__name__].log = real_log    # type: ignore[attr-defined]
     assert len(seen) == 4 and "framework=cpp_xaml theme=light example=button" in seen[0], seen
     assert "no END" in seen[1] and "(exited)" in seen[3], seen
-    print("recapture selftest: mapping + markers + scenarios + coordinate gates + gif burst OK")
+    print("recapture selftest: mapping + markers + scenarios + coordinate gates + gif burst + "
+          "device-lane run dir OK")
     return 0
 
 

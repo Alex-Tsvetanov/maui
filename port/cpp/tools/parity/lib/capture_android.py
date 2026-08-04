@@ -22,15 +22,23 @@ frame. `capture_gif(steps=…)` drives the page while the burst shoots it.
 The per-page determinism mirrors the shell scripts exactly — force-stop, wait for the process to be
 GONE, clear logcat, `am start -W`, poll for THIS launch's Displayed marker, dismiss any ANR dialog —
 because a recording that starts on the previous page's frame is worse than no recording.
+
+The burst is also the lane's MOTION-SCORING EVIDENCE, when `capture_gif(run_dir=…)` asks for it — see
+the "run-unit evidence" section below for the shape, the step-naming scheme, and the equal-duration
+assumption that scheme both encodes and enforces.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import threading
 import time
+from datetime import datetime
+from pathlib import Path
 
 import gif as gifmod
 from device_state import set_android_theme
@@ -43,11 +51,18 @@ COMP_CAP = os.path.join(CPP, "docs", "comparison", "captures", "android")
 
 # package + page-extra per column. MauiReference reads MAUI_COMPARE_PAGE, the C++ app hosts read
 # MAUI_SAMPLE_PAGE; both theme extras are sent every time (each family ignores the other's).
+# `dir` is the board's captures/android/<dir>/ folder; `col` is the RUNNER column the same cell is
+# called in a run directory (motion_score.FW_TO_COL is the same mapping read the other way round —
+# note xaml -> cpp_xaml, which is the one that does not simply repeat itself).
 APPS = {
-    "maui": {"pkg": "dev.mauicpp.mauireference", "page": "MAUI_COMPARE_PAGE", "dir": "maui"},
-    "cpp": {"pkg": "dev.mauicpp.apphost", "page": "MAUI_SAMPLE_PAGE", "dir": "cpp"},
-    "xaml": {"pkg": "dev.mauicpp.apphost.xaml", "page": "MAUI_SAMPLE_PAGE", "dir": "xaml"},
+    "maui": {"pkg": "dev.mauicpp.mauireference", "page": "MAUI_COMPARE_PAGE",
+             "dir": "maui", "col": "maui_xaml"},
+    "cpp": {"pkg": "dev.mauicpp.apphost", "page": "MAUI_SAMPLE_PAGE",
+            "dir": "cpp", "col": "cpp"},
+    "xaml": {"pkg": "dev.mauicpp.apphost.xaml", "page": "MAUI_SAMPLE_PAGE",
+             "dir": "xaml", "col": "cpp_xaml"},
 }
+COLUMNS = {spec["col"] for spec in APPS.values()}
 
 
 def adb(*args, **kw):
@@ -56,6 +71,123 @@ def adb(*args, **kw):
 
 def out_path(app: str, key: str, theme: str) -> str:
     return os.path.join(COMP_CAP, APPS[app]["dir"], f"{key}_{theme}.gif")
+
+
+def still_path(app: str, key: str, theme: str) -> str:
+    """The board PNG the STILL pass published for this cell (the shell scripts next to this file)."""
+    return os.path.join(COMP_CAP, APPS[app]["dir"], f"{key}_{theme}.png")
+
+
+# ------------------------------------------------------------- run-unit evidence (motion scoring)
+# The board kept only the published still and the 400px GIF; this burst went into a TemporaryDirectory
+# and vanished with it. motion_score.py scores an animated page FRAME BY FRAME at full resolution, and
+# the only thing it can read is a RUN DIRECTORY — so `capture_gif(run_dir=…)` now also drops the burst
+# there, in exactly the shape run_comparison.py writes on the VM lanes:
+#
+#     <run_dir>/<key>/android/<column>/NNNN.png  +  NNNN.json {tag, platform, column, theme, step,
+#                                                              frame, commit, captured_at}
+#
+# STEP NAMES, AND WHY THEY ARE NOT AN INDEX WEARING A NAME
+# --------------------------------------------------------
+# motion_score._pair joins the two columns BY STEP NAME precisely so that a dropped frame cannot
+# silently re-align the tail of a sequence onto earlier moments. A VM step name is a discrete scenario
+# step; an Android burst has NO step boundaries at all — `screencap` shoots on a fixed schedule while
+# the scenario (if any) runs on a concurrent thread. What the two columns do share is that schedule:
+# the same page, the same scenario, `frame_count` samples over the same nominal `secs`. So the k-th
+# sample is the same NOMINAL MOMENT in both columns, and THAT — not its position in the surviving
+# list — is what the name encodes: a screencap that comes back short leaves a GAP in the names rather
+# than promoting every later frame to an earlier moment.
+#
+# NOMINAL is the honest word, and it is this scheme's ceiling. `interval = secs/(frame_count-1)` is the
+# REQUESTED schedule; each screencap costs ~0.13s of its own, and that drift does not accumulate
+# identically in the MAUI app and in the port. The name pins the schedule the two columns were ASKED to
+# share, never a measured timestamp. Frames that are nominally the same moment can therefore be tens of
+# milliseconds apart in wall clock — which is why the number this produces is a frame-by-frame parity
+# signal, not a timing measurement.
+#
+# THE EQUAL-DURATION ASSUMPTION IS ENFORCED, NOT ASSUMED. `secs` and `frame_count` are IN every name,
+# so two recordings made with different geometry produce DISJOINT name sets: _pair returns nothing and
+# score_cell refuses the cell with its existing "NO step name occurs in both … a comparison by frame
+# index would be a guess. Re-capture this page". All-or-nothing, with no edit to motion_score — an
+# elapsed-milliseconds name would still pair the t=0 frame and score a confident single-frame "motion".
+#
+# The `gif` PREFIX is load-bearing too: recapture.burst_frames treats a unit whose steps are all
+# `initial`/`gif*` as UNDRIVEN and drops the at-rest frame from the burst. That is exactly right here.
+# Frame 0001 is a BYTE COPY of the still the board published, which came from a different launch
+# entirely (the still pass, with the animation scales pinned to 0). It is in the unit only as
+# motion_score._is_published_run's provenance witness — the byte-identical twin that proves these
+# frames belong to the run behind the board — and must never be scored as a frame of this recording.
+# Its sidecar carries THIS pass's commit/captured_at while its pixels are the still pass's; the step
+# name `initial` is what says so.
+RUN_PLAT_DIR = "android"          # the <plat_dir> segment motion_score looks under
+
+
+def _git_commit() -> str:
+    r = subprocess.run(["git", "-C", CPP, "rev-parse", "--short", "HEAD"],
+                       capture_output=True, text=True)
+    return r.stdout.strip() or "unknown"
+
+
+def step_name(sample: int, secs: float, frame_count: int) -> str:
+    """The name of the `sample`-th (1-based) burst sample of a `frame_count`-over-`secs` recording."""
+    return f"gif{sample:02d}@{secs:g}s/{frame_count}f"
+
+
+def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
+                   samples: list[tuple[int, str]], secs: float, frame_count: int) -> str:
+    """Persist one (page, column, theme) burst as the run unit motion_score.py reads. Returns its path.
+
+    `samples` is [(nominal sample number, png path)] — see the naming note above; the number, never the
+    list position, is what becomes the step name. `run_dir` is the run ROOT, because motion_score pairs
+    two columns that must live under ONE run.
+    """
+    if column not in COLUMNS:
+        # A column nothing recognises writes frames no scorer will ever look for: the page would read
+        # as "no run directory" forever, which is precisely the silent nothing this lane must not do.
+        raise ValueError(f"unknown runner column {column!r}: expected one of {sorted(COLUMNS)}")
+    unit = Path(run_dir) / key / RUN_PLAT_DIR / column
+    unit.mkdir(parents=True, exist_ok=True)
+
+    # A RE-CAPTURE of this cell into the SAME run supersedes the earlier attempt. Without this both
+    # attempts' frames would sit in the unit, and _pair (keyed by name + Nth occurrence) would pair
+    # column A's first attempt against column B's — which may be different attempts of the two. Only
+    # THIS theme is cleared: light and dark share the unit dir and _shots tells them apart by sidecar.
+    highest = 0
+    for sidecar in sorted(unit.glob("*.json")):
+        try:
+            same_theme = json.loads(sidecar.read_text()).get("theme") == theme
+        except (OSError, json.JSONDecodeError):
+            same_theme = False                  # unreadable: leave it, but never reuse its number
+        if same_theme:
+            sidecar.with_suffix(".png").unlink(missing_ok=True)
+            sidecar.unlink()
+        elif sidecar.stem.isdigit():
+            highest = max(highest, int(sidecar.stem))
+
+    commit, when = _git_commit(), datetime.now().astimezone().isoformat()
+    n = highest
+
+    def put(src: str, step: str) -> None:
+        nonlocal n
+        n += 1                                  # NNNN, zero-padded: lexical order IS capture order
+        shutil.copyfile(src, unit / f"{n:04d}.png")
+        (unit / f"{n:04d}.json").write_text(json.dumps(
+            {"tag": key, "platform": RUN_PLAT_DIR, "column": column, "theme": theme,
+             "step": step, "frame": n, "commit": commit, "captured_at": when}, indent=2))
+
+    still = still_path(app, key, theme)
+    if os.path.isfile(still):
+        put(still, "initial")                   # the provenance witness — copied bytes, not a shot
+    else:
+        # Not fatal — the GIF is still a valid board artifact — but the unit cannot prove which run the
+        # board's still came from, so motion_score will refuse it. Say that here rather than let it
+        # surface hours later as an unexplained "frames do not match captures/ byte-for-byte".
+        print(f"      !! {key} ({app}/{theme}): no published still at {still} — run unit written "
+              f"WITHOUT its provenance frame, so this cell stays NOT motion-scored until the still "
+              f"pass runs", flush=True)
+    for sample, png in samples:
+        put(png, step_name(sample, secs, frame_count))
+    return str(unit)
 
 
 def _component(pkg: str) -> str:
@@ -297,7 +429,8 @@ def run_steps(steps, size: tuple[int, int] | None = None) -> list[str]:
 
 
 def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float = 2.0,
-                frame_count: int = 12, steps: list[dict] | None = None) -> str | None:
+                frame_count: int = 12, steps: list[dict] | None = None,
+                run_dir: str | None = None, column: str | None = None) -> str | None:
     """Launch the page and record `secs` of it. Returns the GIF path, or None if nothing usable.
 
     `steps` are the page's scenario steps (see run_steps). They run on a background thread started
@@ -305,7 +438,14 @@ def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float
     instantaneous, so it lands in the first frame or two and the rest of the burst records whatever it
     set off; a drag is an `input swipe` that BLOCKS for its whole duration, so running the steps ahead
     of the burst would record only the resting end state — the twelve-identical-frames outcome the
-    burst exists to avoid. There is deliberately no before/during switch to get wrong."""
+    burst exists to avoid. There is deliberately no before/during switch to get wrong.
+
+    `run_dir` is the run ROOT (docs/comparison/<YYYY-MM-DD-HH_MM_SS>): give it, and the full-resolution
+    burst is ALSO kept as <run_dir>/<key>/android/<column>/NNNN.png + sidecars — the evidence
+    motion_score.py needs to score this page frame by frame instead of from one resting still. `column`
+    is the RUNNER column (maui_xaml/cpp/cpp_xaml) and defaults from `app`. With `run_dir` None (the
+    default) NOTHING changes: the burst lives and dies in the TemporaryDirectory, exactly as before,
+    and the GIF is the only artifact either way."""
     spec = APPS[app]
     pkg = spec["pkg"]
     out = out_path(app, key, theme)
@@ -331,6 +471,7 @@ def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float
     # ~0.13s per shot here, fast enough to catch a spinner moving, and it is the same path the still
     # pass already trusts.
     frames = []
+    moments: list[int] = []      # each kept frame's NOMINAL sample number — see the run-unit note
     interval = max(0.0, secs / max(frame_count - 1, 1))
     statuses: list[str] = []
     # Resolve the display HERE, on the main thread: an emulator that cannot answer `wm size` is a lane
@@ -348,6 +489,7 @@ def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float
                 with open(f, "wb") as fh:
                     fh.write(png)
                 frames.append(f)
+                moments.append(i + 1)         # 1-based, and of the SCHEDULE, not of `frames`
             time.sleep(interval)
         if driver:
             # A step thread that outlives this call would inject into the NEXT page's app — a phantom
@@ -364,6 +506,32 @@ def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float
                 print(f"      !! {key} ({app}/{theme}): interaction failed — GIF dropped (the page "
                       f"never reacted, so its frames would misreport it as static)", flush=True)
                 return None
+        # PERSIST THE EVIDENCE — deliberately AFTER the two drops above and BEFORE the GIF.
+        #
+        # After the drops, because both of them mean the frames misreport the page: a failed step
+        # photographs a page that never reacted, and a thread that outlived the burst was still
+        # gesturing while the last frames were taken. Neither leaves a run unit at all, so
+        # motion_score.find_frames reports the honest "no run directory has frames for both columns"
+        # instead of scoring a capture failure as a parity finding.
+        #
+        # Before the GIF, and INDEPENDENT of its verdict, because gifmod deletes a GIF whose frames are
+        # all identical — and "nothing moved" is a FINDING, not an absence. That is motion_score's
+        # `both_frozen` verdict, and its mismatch check needs the frozen column's frames to state it.
+        # Persisting only when a GIF survived would delete exactly the evidence for the one result this
+        # pass exists to surface: MAUI animates, the port is frozen.
+        #
+        # Under 2 usable frames is the exception: _self_motion returns 0.0 for a single frame, so a
+        # unit of one would read as a rock-solid "FROZEN" and could force a red on what is really a
+        # screencap failure. Same threshold frames_to_gif already refuses at; write nothing, say so.
+        if run_dir:
+            if len(frames) < 2:
+                print(f"      !! {key} ({app}/{theme}): only {len(frames)} usable frame(s) from a "
+                      f"{frame_count}-frame burst — NO run unit written (a one-frame sequence would "
+                      f"score as FROZEN and blame the port for a failed screencap)", flush=True)
+            else:
+                unit = write_run_unit(run_dir, column or APPS[app]["col"], app, key, theme,
+                                      list(zip(moments, frames)), secs, frame_count)
+                print(f"      frames {len(frames)}/{frame_count} + still -> {unit}", flush=True)
         # frames_to_gif refuses a single frame, and _ffmpeg deletes a GIF whose frames are all
         # identical — so a page that genuinely does not move ends up with its still and no GIF.
         ok = gifmod.frames_to_gif(frames, out, fps=max(1, min(10, round(1 / max(interval, 0.1)))))
@@ -446,5 +614,115 @@ def _selftest() -> None:
     print("capture_android selftest: coordinate scaling + adb argv OK")
 
 
+def _run_unit_selftest() -> None:
+    """Device-free check that the unit this module WRITES is the one motion_score.py READS.
+
+    Asserted against the real reader (motion_score.score_cell), never against key names copied out of
+    it: the defect being guarded is a contract drift that leaves every Android animated page silently
+    back on "NOT motion-scored", which no test of our own field names would notice."""
+    global COMP_CAP                                    # noqa: PLW0603  redirected to a scratch board
+
+    import shutil as _shutil  # noqa: PLC0415  selftest-only
+    import tempfile as _tempfile  # noqa: PLC0415
+
+    import motion_score  # noqa: PLC0415  pulls pixel_score/recapture — the real readers
+    from PIL import Image  # noqa: PLC0415
+
+    def png(path, x):
+        """A 120x160 white page with a 20x20 black box at x — big enough for the 11x11 SSIM window."""
+        im = Image.new("RGB", (120, 160), "white")
+        for dx in range(20):
+            for dy in range(20):
+                im.putpixel((x + dx, 10 + dy), (0, 0, 0))
+        im.save(path)
+        return str(path)
+
+    STILL = {"ssim": 1.0, "diff_pct": 0.0}
+    real_cap = COMP_CAP
+    with _tempfile.TemporaryDirectory() as tmp:
+        comp = Path(tmp)
+        run = comp / "2026-08-05-01_02_29"             # the run-dir name shape motion_score globs for
+        shots = comp / "shots"
+        shots.mkdir()
+        COMP_CAP = str(comp / "captures" / RUN_PLAT_DIR)     # where a "published" still lives
+        try:
+            def publish(app, key, theme, x):
+                p = Path(still_path(app, key, theme))
+                p.parent.mkdir(parents=True, exist_ok=True)
+                return png(p, x)
+
+            def unit(app, key, theme, samples, frame_count=3, secs=3.0):
+                return write_run_unit(str(run), APPS[app]["col"], app, key, theme,
+                                      [(n, png(shots / f"{key}_{app}_{theme}_{n}.png", x))
+                                       for n, x in samples], secs, frame_count)
+
+            # (1) HAPPY PATH — two equal recordings pair, and the copied-in still is NOT scored as a
+            #     frame of the burst (4 frames written, 3 paired).
+            publish("maui", "same", "light", 10)
+            publish("cpp", "same", "light", 10)
+            um = unit("maui", "same", "light", [(1, 10), (2, 40), (3, 70)])
+            unit("cpp", "same", "light", [(1, 10), (2, 40), (3, 70)])
+            r = motion_score.score_cell("same", RUN_PLAT_DIR, "cpp", "light", 0, STILL, comp)
+            assert "MOTION 3 frames paired by step" in r["detail"], r["detail"]
+            assert "NOT motion-scored" not in r["detail"], r["detail"]
+            assert (r["ssim"], r["mismatch"], r["both_frozen"]) == (1.0, False, False), r
+            # …and the published-still bytes really are in the unit, which is what let it be found.
+            assert Path(um, "0001.png").read_bytes() == \
+                Path(still_path("maui", "same", "light")).read_bytes()
+            assert json.loads(Path(um, "0001.json").read_text())["step"] == "initial"
+
+            # (2) A DROPPED SCREENCAP LEAVES A GAP, not a shift. cpp misses sample 2, so its surviving
+            #     frame 3 must pair with MAUI's frame 3 (identical -> SSIM 1.0). Index pairing would
+            #     put it against MAUI's frame 2 and score a difference that never happened.
+            publish("maui", "gap", "light", 10)
+            publish("cpp", "gap", "light", 10)
+            unit("maui", "gap", "light", [(1, 10), (2, 40), (3, 70)])
+            unit("cpp", "gap", "light", [(1, 10), (3, 70)])
+            r = motion_score.score_cell("gap", RUN_PLAT_DIR, "cpp", "light", 0, STILL, comp)
+            assert "MOTION 2 frames" in r["detail"] and r["ssim"] == 1.0, r["detail"]
+            assert "1 frame(s) had no partner" in r["detail"], r["detail"]
+
+            # (3) UNEQUAL RECORDINGS REFUSE. Same three samples, but cpp recorded a 12-frame burst:
+            #     the k-th sample is no longer the same nominal moment, the names are disjoint, and
+            #     the cell must fall back to the labelled still rather than pair anything.
+            publish("maui", "geom", "light", 10)
+            publish("cpp", "geom", "light", 10)
+            unit("maui", "geom", "light", [(1, 10), (2, 40), (3, 70)], frame_count=3)
+            unit("cpp", "geom", "light", [(1, 10), (2, 40), (3, 70)], frame_count=12)
+            r = motion_score.score_cell("geom", RUN_PLAT_DIR, "cpp", "light", 0, STILL, comp)
+            assert "NO step name occurs in both" in r["detail"], r["detail"]
+            assert "MOTION" not in r["detail"] and (r["ssim"], r["diff_pct"]) == (1.0, 0.0), r
+
+            # (4) BOTH THEMES SHARE ONE UNIT DIR, and a re-capture REPLACES its own theme only.
+            publish("cpp", "themes", "light", 10)
+            publish("cpp", "themes", "dark", 10)
+            u = Path(unit("cpp", "themes", "light", [(1, 10), (2, 40)]))
+            unit("cpp", "themes", "dark", [(1, 10), (2, 40)])
+            assert sorted(p.name for p in u.glob("*.png")) == \
+                ["0001.png", "0002.png", "0003.png", "0004.png", "0005.png", "0006.png"]
+            unit("cpp", "themes", "light", [(1, 10), (2, 40), (3, 70)])   # re-capture, same run
+            themes = [json.loads(p.read_text())["theme"] for p in sorted(u.glob("*.json"))]
+            assert themes.count("light") == 4 and themes.count("dark") == 3, themes
+
+            # (5) NO PUBLISHED STILL: the burst is still kept (it is real), but the provenance frame
+            #     cannot be, and nothing pretends otherwise.
+            u = Path(unit("cpp", "orphan", "light", [(1, 10), (2, 40)]))
+            steps = [json.loads(p.read_text())["step"] for p in sorted(u.glob("*.json"))]
+            assert steps == [step_name(1, 3.0, 3), step_name(2, 3.0, 3)], steps
+
+            # (6) An unknown column would write frames no scorer ever looks for.
+            try:
+                write_run_unit(str(run), "cpp_appkit_typo", "cpp", "x", "light", [], 3.0, 3)
+                raise AssertionError("unknown column was accepted")
+            except ValueError:
+                pass
+        finally:
+            COMP_CAP = real_cap
+            _shutil.rmtree(shots, ignore_errors=True)
+    print(f"capture_android selftest: run unit reads back through motion_score "
+          f"(steps {step_name(1, 4.0, 12)} … {step_name(12, 4.0, 12)}) OK")
+
+
 if __name__ == "__main__":
     _selftest()
+    _run_unit_selftest()
