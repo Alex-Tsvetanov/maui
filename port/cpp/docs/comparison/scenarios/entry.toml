@@ -1,8 +1,8 @@
 # Scenario for the `entry` page: focus the first field, type text, capture the typed state.
 #
-# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1280-WIDE DISPLAY (e.g. 1280x800). Window is
+# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1512-WIDE DISPLAY (1512x950). Window is
 # 1024 pt wide, centered, pinned to the top (y_origin = 30) -> centered controls at screen x = width/2 =
-# 640; y measured from the fixed top. Verified: this focuses the first Entry ("Type here…") and types
+# 756; y measured from the fixed top. Verified: this focuses the first Entry ("Type here…") and types
 # into it. Re-calibrate if you change the display width or the gallery window size.
 
 tag = "entry"
@@ -15,7 +15,7 @@ name = "initial"
 [[steps]]
 name = "focus-field"
 action = "click"
-at = [640, 111]           # the first Entry ("Type here…")
+at = [756, 111]           # the first Entry ("Type here…")
 
 [[steps]]
 name = "typed"

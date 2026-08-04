@@ -1,7 +1,7 @@
 # Scenario for the `scroll_view` page: capture top, scroll down, capture the scrolled state.
 #
-# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1280-WIDE DISPLAY (e.g. 1280x800). Window is
-# 1024 pt wide, centered, pinned to the top -> centered content at screen x = width/2 = 640. Scroll is
+# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1512-WIDE DISPLAY (1512x950). Window is
+# 1024 pt wide, centered, pinned to the top -> centered content at screen x = width/2 = 756. Scroll is
 # forgiving: any point over the list works. `dy` is pixels; negative scrolls the content up (reveals
 # lower rows). Verified: scrolls the 40-row list from Row 0 down to ~Row 25-30, updating "Scrolled to:".
 
@@ -15,5 +15,5 @@ name = "top"
 [[steps]]
 name = "scrolled-down"
 action = "scroll"
-at = [640, 400]           # over the list body (centered, mid-window)
+at = [756, 400]           # over the list body (centered, mid-window)
 dy = -400

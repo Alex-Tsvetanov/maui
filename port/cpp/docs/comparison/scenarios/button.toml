@@ -1,9 +1,9 @@
 # Scenario for the `button` page: capture idle, tap the counter button, capture the reacted state.
 #
-# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1280-WIDE DISPLAY (e.g. 1280x800).
+# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1512-WIDE DISPLAY (1512x950).
 # Geometry model (measured on the C++ gallery, Mac Catalyst): the window is 1024 pt wide, horizontally
 # centered, pinned to the top (y_origin = 30). So centered controls sit at screen x = display_width/2
-# = 640, and control y is measured from the fixed top (resolution-independent). Verified: this taps the
+# = 756, and control y is measured from the fixed top (resolution-independent). Verified: this taps the
 # "Clicked" button, which bumps the "Taps:" readout (0 -> 1).
 #
 # Re-calibrate if you change the display WIDTH (x = width/2) or the gallery window size. `automation_id`
@@ -20,5 +20,5 @@ name = "initial"          # no action -> settle + screenshot
 [[steps]]
 name = "after-tap"
 action = "click"
-at = [640, 171]           # the "Clicked" button (3rd row) -> bumps the "Taps:" readout
+at = [756, 171]           # the "Clicked" button (3rd row) -> bumps the "Taps:" readout
 automation_id = "clicked_button"   # used by the DevFlow driver if present; ignored by coordinates

@@ -47,8 +47,13 @@ user = "Testings-VM"
 connect_timeout_seconds = 10
 
 [environments.windows-x64.display]
-width = 1280
-height = 800
+# Must match what the guest actually reports (verified 2026-08-04: VideoModeDescription = 1512x949,
+# DPI 96 = 100% scaling, so window pixels are screen pixels and the captured board is unaffected by
+# the resolution change). Unlike the macOS lanes there is no HiDPI twin to fall into here: Windows
+# keeps display scaling as a SEPARATE setting that does not follow a resolution change, and captures
+# are physical pixels regardless.
+width = 1512
+height = 949
 
 [environments.windows-x64.capture]
 present = true                  # foreground + pin the window to an explicit rect before each shot
@@ -56,12 +61,13 @@ present = true                  # foreground + pin the window to an explicit rec
 # so a capture cannot be occluded by another window and does not need focus. That removes the whole
 # class of "photographed the wrong window" failures the macOS lane had to engineer around.
 reboot_before_run = false       # true → `shutdown /r /t 0 /f` then wait for SSH (needs an admin user)
-# Pinned rather than left to the runner's macOS-oriented default of y=30. On a 1280x800 guest
-# screen an 800-tall window at y=30 hangs 30px below the bottom edge: PrintWindow still captures
-# it in full (it reads the window's own backing store), but SendInput uses SCREEN coordinates, so
-# scenario taps in that strip would land off-screen and silently miss. x=128 is (1280-1024)/2,
-# i.e. exactly centred.
-geometry = { x = 128, y = 0, w = 1024, h = 800 }
+# Pinned rather than left to the runner's macOS-oriented default of y=30. y=0 is a holdover from the
+# old 1280x800 guest, where an 800-tall window at y=30 hung 30px below the bottom edge: PrintWindow
+# still captures it in full (it reads the window's own backing store), but SendInput uses SCREEN
+# coordinates, so scenario taps in that strip would land off-screen and silently miss. At 1512x949
+# there is room for y=30, but y=0 is kept — it is equally valid and changing it changes nothing about
+# what is captured. x=244 is (1512-1024)/2, i.e. exactly centred (was 128, centred for 1280).
+geometry = { x = 244, y = 0, w = 1024, h = 800 }
 system_theme = true   # drive the GUEST's theme, not a per-column env override
 [environments.windows-x64.staging]
 root = "C:/Users/Testings-VM/maui-comparison"   # forward slashes are fine and avoid quoting pain

@@ -51,17 +51,25 @@ def cmd_set_resolution(a) -> int:
     # wrong resolution), fall back to ANY same-WIDTH mode (the scenario x-calibration only needs the width),
     # preferring the height closest to the request. Read back + return the ACTUAL current mode so the caller
     # can trust the geometry. Fail loudly if no same-width mode exists.
+    #
+    # ONLY 1x MODES ARE ELIGIBLE. UTM offers most sizes TWICE — plain and `scaling:on` (HiDPI/Retina) — and
+    # the HiDPI twin captures at 2x: on a 1512x950 HiDPI guest, `screencapture -R 0,0,1024,800` returns a
+    # 2048x1600 PNG (measured), which the runner's +/-4px size guard then drops, every frame. The twins are
+    # indistinguishable by (w, h), so matching on size alone can select the 2x one, and a readback that
+    # compares only (w, h) still calls that a success. Hence: consider unscaled modes only, ask for
+    # `scaling:off` explicitly, and reject a HiDPI landing in the readback.
     import re
     listing = subprocess.run([DISPLAYPLACER, "list"], capture_output=True, text=True).stdout
     disp_id = None
-    modes = []  # (w, h) available on the main display
+    modes = []       # (w, h) available on the main display at 1x — the only ones we may select
+    hidpi = []       # (w, h) offered as scaling:on; kept solely to explain a failure
     for line in listing.splitlines():
         s = line.strip()
         if s.lower().startswith("persistent screen id:") and disp_id is None:
             disp_id = s.split(":", 1)[1].strip()
         m = re.search(r"res:(\d+)x(\d+)", s)
         if m and "mode" in s:
-            modes.append((int(m.group(1)), int(m.group(2))))
+            (hidpi if "scaling:on" in s else modes).append((int(m.group(1)), int(m.group(2))))
     if not disp_id:
         return _emit(ok=False, error="no display id from `displayplacer list`", raw=listing[:400])
     want = (a.width, a.height)
@@ -70,7 +78,13 @@ def cmd_set_resolution(a) -> int:
     else:
         same_w = sorted((h for (w, h) in modes if w == a.width), key=lambda h: abs(h - a.height))
         if not same_w:
-            return _emit(ok=False, error=f"no {a.width}-wide mode available", available=sorted(set(modes)))
+            # Name the HiDPI case explicitly: "no 1x mode at this size" is a different problem from
+            # "this size does not exist", and only the former is fixed by resizing the UTM window.
+            twins = sorted(set(m for m in hidpi if m[0] == a.width))
+            why = (f"no 1x mode at {a.width} wide — it exists ONLY as HiDPI {twins}, which captures at 2x "
+                   f"and would get every frame dropped by the size guard" if twins
+                   else f"no {a.width}-wide mode available")
+            return _emit(ok=False, error=why, available=sorted(set(modes)), hidpi_only=twins)
         target = (a.width, same_w[0])
     # Toggle through a different mode first, THEN set the target. Re-setting the CURRENT mode is a no-op and
     # does NOT re-sync a WindowServer that got confused about display geometry (seen after a UTM window resize
@@ -81,17 +95,26 @@ def cmd_set_resolution(a) -> int:
         scratch = max(others, key=lambda m: abs(m[0] - target[0]) + abs(m[1] - target[1]))
         subprocess.run([DISPLAYPLACER, f"id:{disp_id} res:{scratch[0]}x{scratch[1]}"], capture_output=True, text=True)
         time.sleep(1.0)
-    subprocess.run([DISPLAYPLACER, f"id:{disp_id} res:{target[0]}x{target[1]}"], capture_output=True, text=True)
+    subprocess.run([DISPLAYPLACER, f"id:{disp_id} res:{target[0]}x{target[1]} scaling:off"],
+                   capture_output=True, text=True)
     time.sleep(1.0)
     cur = subprocess.run([DISPLAYPLACER, "list"], capture_output=True, text=True).stdout
-    actual = None
+    actual, actual_hidpi = None, False
     for s in cur.splitlines():
         if "current mode" in s.lower():
             m = re.search(r"res:(\d+)x(\d+)", s)
             if m:
                 actual = [int(m.group(1)), int(m.group(2))]
-    ok = actual == list(target)
-    return _emit(ok=ok, display=disp_id, requested=[a.width, a.height], set=list(target), actual=actual)
+                actual_hidpi = "scaling:on" in s
+    ok = actual == list(target) and not actual_hidpi
+    err = None
+    if actual != list(target):
+        err = f"display did not switch to {target[0]}x{target[1]} (it is {actual})"
+    elif actual_hidpi:
+        err = (f"display is {actual[0]}x{actual[1]} but HiDPI (scaling:on): captures come back at 2x and "
+               f"every frame would be dropped by the size guard")
+    return _emit(ok=ok, error=err, display=disp_id, requested=[a.width, a.height], set=list(target),
+                 actual=actual, hidpi=actual_hidpi)
 
 
 def cmd_clean(a) -> int:

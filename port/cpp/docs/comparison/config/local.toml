@@ -19,23 +19,31 @@ user = "testinguser"                     # will silently break DNS. ssh key alre
 connect_timeout_seconds = 10
 
 [environments.macos-arm64.display]       # requirement 4: set the VM display resolution explicitly
-# The guest's resolution is NOT settable from inside the VM: displayplacer reports success and the
-# display reads back unchanged (measured — requested [1504,846], set [1504,846], actual [3840,2160]).
-# UTM drives the guest resolution from its HOST WINDOW SIZE, which is also why the mode list changes
-# whenever that window is resized. So this value must MATCH what the guest currently reports, or
-# set-resolution fails and (correctly) aborts the run.
+# displayplacer CAN switch the guest between modes UTM currently offers (verified: 3840x2160 ->
+# 1280x804 -> 1512x950 all took). What it CANNOT do is conjure a mode that is not on offer, and UTM
+# regenerates the mode list from its HOST WINDOW SIZE — so after the UTM window is resized, a value
+# pinned here may no longer exist, set-resolution fails, and the run (correctly) aborts.
 #
-# It barely matters for capture: `present` pins each window to an explicit 1024x800 rect and captures
-# THAT, so the display only has to be large enough to contain it. The scenario tap calibration is
-# likewise unaffected — the board runs with an empty scenarios dir, so no coordinate taps ever fire.
-width = 3840
-height = 2160
+# MUST BE A 1x MODE. UTM lists most sizes twice, plain and `scaling:on` (HiDPI); the HiDPI twin
+# captures at 2x, so a 1024x800 present comes back as a 2048x1600 PNG and the +/-4px size guard drops
+# every frame. 1512x950 is UTM's unscaled twin of the 1512x949 HiDPI mode a 14" host window produces
+# — same window, 1px taller, 1x. cmd_set_resolution now filters to unscaled modes and rejects a HiDPI
+# landing, so a mistake here fails loudly at preflight instead of after two hours of dropped frames.
+#
+# The exact size barely matters for capture: `present` pins each window to an explicit 1024x800 rect
+# and captures THAT, so the display only has to be large enough to contain it (800 + the y=30 origin
+# fits in 950). The scenario tap calibration is likewise unaffected — the board runs with an empty
+# scenarios dir, so no coordinate taps ever fire.
+width = 1512
+height = 950
 
 # No external window-pinning: Mac Catalyst windows can't be repositioned externally (AX reports
 # position/size as unsettable — kAXErrorAttributeUnsupported; System Events hits the same layer). Instead
 # the window CENTERS deterministically for the display size (x_origin = (width-1024)/2, y=30 fixed), so
-# fixing the resolution above fixes the geometry — centered controls sit at screen x = width/2 = 640,
-# which the seed scenarios are calibrated to. For geometry-independent taps, use the DevFlow
+# fixing the resolution above fixes the geometry — centered controls sit at screen x = width/2, which is
+# 756 at the 1512 pinned above (it was 640 when this guest ran at 1280 wide; any seed scenario carrying
+# hard-coded x coordinates is calibrated to a width and must be re-checked when this changes — the board
+# itself is unaffected, it runs with an empty scenarios dir). For geometry-independent taps, use the DevFlow
 # `automation_id` path (tap by name, no coordinates). See tools/README_e2e.md.
 
 [environments.macos-arm64.staging]
@@ -117,17 +125,12 @@ user = "testinguser"
 connect_timeout_seconds = 10
 
 [environments.macos-appkit.display]
-# The guest's resolution is NOT settable from inside the VM: displayplacer reports success and the
-# display reads back unchanged (measured — requested [1504,846], set [1504,846], actual [3840,2160]).
-# UTM drives the guest resolution from its HOST WINDOW SIZE, which is also why the mode list changes
-# whenever that window is resized. So this value must MATCH what the guest currently reports, or
-# set-resolution fails and (correctly) aborts the run.
-#
-# It barely matters for capture: `present` pins each window to an explicit 1024x800 rect and captures
-# THAT, so the display only has to be large enough to contain it. The scenario tap calibration is
-# likewise unaffected — the board runs with an empty scenarios dir, so no coordinate taps ever fire.
-width = 3840
-height = 2160
+# Same 1x rule as macos-arm64 above — see that block for why HiDPI modes are disqualified. This lane
+# is MORE exposed to it, not less: it captures by window id rather than by rect, and its windows are
+# 480x752, so a HiDPI guest yields 960x1504 — which is exactly the frame size the incident recorded
+# at run_comparison.py:501 produced, every one of them dropped.
+width = 1512
+height = 950
 
 [environments.macos-appkit.staging]
 root = "/Users/testinguser/maui-comparison"
