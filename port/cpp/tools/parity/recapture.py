@@ -729,6 +729,11 @@ def main(argv=None) -> int:
                     help="capture with whatever is already built (iOS/macOS; the Android scripts "
                          "always build their own APK)")
     ap.add_argument("--no-measure", action="store_true", help="capture only; skip the board re-measure")
+    ap.add_argument("--measure-only", action="store_true",
+                    help="skip capturing and ONLY re-measure the board. Use this to finish two lanes "
+                         "that were captured in parallel: the measure phase rewrites comparison.json, "
+                         "measurements.json and README.md, so two concurrent runs would clobber each "
+                         "other's scores. Capture with --no-measure, then run this once for both.")
     ap.add_argument("--settle", type=float, default=4.0, help="seconds to settle after each launch")
     ap.add_argument("--gif-secs", type=float, default=4.0,
                     help="seconds of motion recorded for an animated page (ios/android)")
@@ -782,7 +787,7 @@ def main(argv=None) -> int:
 
     # Strictly sequential. The macOS VM's Catalyst and AppKit lanes share ONE guest agent and ONE
     # scratch shot.png; two runs at once destroy each other's frames.
-    for platform in platforms:
+    for platform in (() if a.measure_only else platforms):
         # A lane that throws must not cost you the other three — that is the whole point of a run this
         # long, and an unhandled exception in the FIRST lane (a missing SDK, an unreachable VM) would
         # otherwise abandon a multi-hour job seconds after it started.
@@ -802,7 +807,7 @@ def main(argv=None) -> int:
             fail(f"{platform}: lane aborted — {type(exc).__name__}: {exc}")
             traceback.print_exc()
 
-    if not a.no_measure:
+    if not a.no_measure or a.measure_only:
         measure(platforms)
 
     mins, secs = divmod(int(time.time() - started), 60)
