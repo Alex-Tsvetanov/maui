@@ -554,10 +554,17 @@ def android_gifs(frameworks, theme, animated, gif_secs, gif_frames) -> None:
     scripts capture exactly one frame per page — and because their exit trap has already put the
     device's night mode back, so this pass has to set it again for the theme it is recording."""
     import capture_android
+    import device_state
 
     prev = capture_android.set_theme(theme)
     prev_anim = capture_android.animations()   # restore what we found, not a guess at what it was
-    capture_android.set_animations(True)       # the still pass pins these to 0; nothing moves under it
+    # PIN THE STATUS BAR, exactly as the still pass does. Its exit trap has already un-pinned it, so a
+    # live clock/battery/wifi ticks between burst frames — and that alone passes the "frames differ"
+    # test. Measured: of 24 GIFs the first run produced, only activity_indicator moved in the PAGE
+    # (225-262 rows); every other one changed just rows 21-31 at the clock and the wifi icon. A GIF of
+    # a ticking clock is not an animation, it is a still with a bug.
+    device_state.pin_android(capture_android.SERIAL)
+    capture_android.set_animations(True)       # pin_android zeroes them; the recording needs them on
     try:
         for fw in frameworks:
             app = ANDROID_SCRIPT[fw][1]
@@ -578,7 +585,8 @@ def android_gifs(frameworks, theme, animated, gif_secs, gif_frames) -> None:
                 else:
                     end("android", fw, theme, key, "gif", t0, f"-> {Path(out).relative_to(COMP)}")
     finally:
-        capture_android.set_animations(prev_anim)   # exactly as found
+        device_state.clear_android(capture_android.SERIAL)
+        capture_android.set_animations(prev_anim)   # after clear_android, which forces them back to 1
         capture_android.set_theme(prev)
 
 

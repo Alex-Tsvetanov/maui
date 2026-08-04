@@ -115,6 +115,22 @@ def score_theme(maui_path, other_path, crop_top=0):
     return {"ssim": round(s, 4), "diff_pct": round(diff_pct, 2)}
 
 
+def full_res(rel_path):
+    """Score from the PNG even when the board DISPLAYS a GIF.
+
+    An animated page's board cell points at `<key>_<theme>.gif`, which ffmpeg wrote at 400px wide —
+    2.7x smaller in each dimension than the 1080px still beside it. Scoring that downscale throws away
+    6/7 of the pixels and inflates SSIM: activity_indicator scored 0.9942 from its GIF while the
+    equivalent still-vs-still comparison sees the real detail. The GIF stays the thing humans look at;
+    the numbers come from the full-resolution still whenever one exists.
+    """
+    if rel_path and rel_path.endswith(".gif"):
+        png = rel_path[:-4] + ".png"
+        if os.path.isfile(os.path.join(COMP, png)):
+            return png
+    return rel_path
+
+
 def classify(theme_scores):
     """theme_scores: {"light": {...}|None, "dark": {...}|None}. -> ({status}, review text)."""
     have = {t: v for t, v in theme_scores.items() if v is not None}
@@ -168,7 +184,8 @@ def main():
             for fw, slot in SLOTS:
                 other = sc.get(fw, {})
                 crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_theme)
-                theme_scores = {t: score_theme(maui.get(t), other.get(t), crop_top) for t in themes}
+                theme_scores = {t: score_theme(full_res(maui.get(t)), full_res(other.get(t)), crop_top)
+                                for t in themes}
                 status, review = classify(theme_scores)
                 platform[slot] = {"status": status, "review": review}
                 scored += 1
