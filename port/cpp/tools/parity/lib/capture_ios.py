@@ -598,9 +598,60 @@ def _bank_recording(run_unit, app: str, column: str | None, key: str, theme: str
         _sidecar(unit, n, col, key, theme, frame_step(n - first, record_secs))
         n += 1
     made = n - first
-    if r.returncode != 0 or made == 0:
-        raise RuntimeError(f"ffmpeg banked {made} full-res frame(s) from {mp4} (rc={r.returncode}): "
-                           f"{r.stderr.strip()[-300:]}")
+    if made >= 2:
+        return made
+    # AN EMPTY RECORDING IS EVIDENCE, NOT AN ERROR — and treating it as one threw the finding away.
+    # `simctl io recordVideo` writes an mp4 with NO ENCODED FRAMES when nothing on screen changes
+    # (H.264 emits on change), so a page that does not animate yields video:0KiB and ffmpeg extracts
+    # nothing. Measured on the first full animated sweep: 37 of 84 units raised here, and the pages
+    # that raised were EXACTLY the ones that do not animate — activity_indicator and carousel_page,
+    # the only two that move, were the only two absent from the failure list.
+    #
+    # Raising lost precisely the information the scorer exists to report: those pages ended up with no
+    # frames, so they read "NOT motion-scored" instead of "!! NOTHING MOVED". A burst always produces
+    # frames whether or not anything moves — identical ones on a static page, which is the honest
+    # answer — so it is the right source when the recording declines to give any. Same conclusion the
+    # Android lane reached about `adb shell screenrecord`, which returns a 1-frame mp4 on this
+    # emulator; that lane has used a screencap burst ever since.
+    for stale in range(first, n):
+        os.remove(os.path.join(unit, f"{stale:04d}.png"))            # a lone frame cannot be scored
+        os.remove(os.path.join(unit, f"{stale:04d}.json"))
+    return _bank_burst(run_unit, app, column, key, theme, record_secs, udid=UDID,
+                       why=f"recording held {made} frame(s) (rc={r.returncode})")
+
+
+def _bank_burst(run_unit, app: str, column: str | None, key: str, theme: str, record_secs: float,
+                udid: str, why: str) -> int:
+    """MOTION_FRAMES screenshots over the same window the recording covered — the fallback source.
+
+    Named on the SAME millisecond grid `frame_step` gives the recording path, so a page captured by
+    burst on one column and by recording on the other still pairs: both name a frame for the moment it
+    was taken, not for its position in a list. The interval is wall-clock, so a slow shot pushes later
+    frames late; that is honest drift, and it is bounded by naming each frame from its OWN measured
+    offset rather than from the nominal schedule."""
+    unit, col = _unit_dir(run_unit, app, column)
+    first = _next_frame_no(unit)
+    step = max(record_secs, 0.1) / MOTION_FRAMES
+    t0, made = time.monotonic(), 0
+    for i in range(MOTION_FRAMES):
+        due = t0 + i * step
+        slack = due - time.monotonic()
+        if slack > 0:
+            time.sleep(slack)
+        stage = os.path.join(tempfile.gettempdir(), f"parity_burst_{app}_{key}_{theme}.png")
+        r = subprocess.run(["xcrun", "simctl", "io", udid, "screenshot", "--type=png", stage],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            continue                       # a dropped shot leaves a GAP in the grid, never a shift
+        n = first + made
+        shutil.copyfile(stage, os.path.join(unit, f"{n:04d}.png"))
+        os.remove(stage)
+        _sidecar(unit, n, col, key, theme,
+                 frame_step(round((time.monotonic() - t0) / step), record_secs))
+        made += 1
+    if made < 2:
+        raise RuntimeError(f"iOS burst fallback banked {made} frame(s) for {key}/{theme} ({why}) — "
+                           f"a sequence of fewer than two frames cannot be scored for motion")
     return made
 
 
