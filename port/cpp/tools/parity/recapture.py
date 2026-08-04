@@ -192,7 +192,10 @@ def run_step(name: str, cmd: list[str], env: dict | None = None,
 
     watcher = threading.Thread(target=watchdog, daemon=True)
     watcher.start()
-    with step_log.open("w") as fh:
+    # LINE-buffered: the whole point of a per-step log is that it can be tailed WHILE the step runs.
+    # With the default 8KB block buffer the file sits at 0 bytes through a multi-minute deploy phase,
+    # which reads exactly like a wedged step — and that is the failure mode this tool exists to expose.
+    with step_log.open("w", buffering=1) as fh:
         for line in p.stdout:
             last_output[0] = time.time()
             fh.write(line)
@@ -406,19 +409,28 @@ def mac_vm_reboot_and_settle() -> None:
     """LOAD-BEARING for Catalyst: without a clean WindowServer the app windows are not AX-enumerable
     and `present` drops nearly every frame (58 of 62, measured). Bounded by hand because the runner's
     own reboot_before_run has hung for 1h34m with 0 frames captured."""
+    def boottime() -> str:
+        return subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", MAC_VM,
+                               "sysctl -n kern.boottime"], capture_output=True, text=True).stdout.strip()
+
+    # WAIT FOR THE BOOT TIME TO CHANGE, not for SSH to answer. `sudo reboot` returns immediately and
+    # sshd stays up for several more seconds, so "ssh answered" is true of the DYING session: measured,
+    # this reported "VM back after ~25s" a full 90 seconds before the machine actually came up, and
+    # everything done next — the keep-awake, the capture — ran against a system on its way down. The
+    # caffeinate died with it and the guest locked itself 20 minutes later, exactly as before.
+    before = boottime()
     log("      rebooting the macOS VM (bounded wait)")
     subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", MAC_VM, "sudo reboot"],
                    capture_output=True)
-    time.sleep(25)
+    time.sleep(20)
     for i in range(60):
-        r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", MAC_VM, "echo up"],
-                           capture_output=True, text=True)
-        if "up" in r.stdout:
-            log(f"      VM back after ~{25 + i * 5}s")
+        now = boottime()
+        if now and now != before:
+            log(f"      VM rebooted after ~{20 + i * 5}s (kern.boottime changed)")
             break
         time.sleep(5)
     else:
-        fail("macos: VM did not return from reboot within 5min")
+        fail(f"macos: kern.boottime never changed from {before!r} — the VM did not reboot")
         return
     for i in range(30):   # sshd is up long before the GUI session; capturing early = blank frames
         who = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", MAC_VM,
