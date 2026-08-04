@@ -186,24 +186,24 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/activity_indicator_light.png",
-            "dark": "captures/maccatalyst/maui/activity_indicator_dark.png"
+            "light": "captures/maccatalyst/maui/activity_indicator_light.gif",
+            "dark": "captures/maccatalyst/maui/activity_indicator_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/activity_indicator_light.png",
-            "dark": "captures/maccatalyst/cpp/activity_indicator_dark.png"
+            "light": "captures/maccatalyst/cpp/activity_indicator_light.gif",
+            "dark": "captures/maccatalyst/cpp/activity_indicator_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/activity_indicator_light.png",
-            "dark": "captures/maccatalyst/xaml/activity_indicator_dark.png"
+            "light": "captures/maccatalyst/xaml/activity_indicator_light.gif",
+            "dark": "captures/maccatalyst/xaml/activity_indicator_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/activity_indicator_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/activity_indicator_dark.gif"
+            "dark": "captures/maccatalyst/appkit_cpp/activity_indicator_dark.png"
           },
           "appkit_xaml": {
             "light": "captures/maccatalyst/appkit_xaml/activity_indicator_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/activity_indicator_dark.gif"
+            "dark": "captures/maccatalyst/appkit_xaml/activity_indicator_dark.png"
           }
         },
         "sonnet": {
@@ -220,11 +220,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9973, 0.11% pixels differ"
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9961, 0.15% pixels differ"
+          "review": "Light: SSIM 0.9963, 0.13% pixels differ \u00b7 Dark: SSIM 0.9964, 0.12% pixels differ"
         }
       },
       "android": {
@@ -779,19 +779,19 @@
           },
           "cpp": {
             "light": "captures/maccatalyst/cpp/animation_light.png",
-            "dark": "captures/maccatalyst/cpp/animation_dark.png"
+            "dark": "captures/maccatalyst/cpp/animation_dark.gif"
           },
           "xaml": {
             "light": "captures/maccatalyst/xaml/animation_light.png",
             "dark": "captures/maccatalyst/xaml/animation_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/animation_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/animation_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/animation_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/animation_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/animation_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/animation_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/animation_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/animation_dark.png"
           }
         },
         "sonnet": {
@@ -1252,8 +1252,8 @@
           "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9966, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9966, 0.12% pixels differ \u00b7 Dark: SSIM 0.9919, 1.07% pixels differ"
         }
       },
       "android": {
@@ -3126,24 +3126,24 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/carousel_page_light.png",
+            "light": "captures/maccatalyst/maui/carousel_page_light.gif",
             "dark": "captures/maccatalyst/maui/carousel_page_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/carousel_page_light.png",
-            "dark": "captures/maccatalyst/cpp/carousel_page_dark.png"
+            "light": "captures/maccatalyst/cpp/carousel_page_light.gif",
+            "dark": "captures/maccatalyst/cpp/carousel_page_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/carousel_page_light.png",
-            "dark": "captures/maccatalyst/xaml/carousel_page_dark.png"
+            "light": "captures/maccatalyst/xaml/carousel_page_light.gif",
+            "dark": "captures/maccatalyst/xaml/carousel_page_dark.gif"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/carousel_page_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/carousel_page_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/carousel_page_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/carousel_page_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/carousel_page_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/carousel_page_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/carousel_page_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/carousel_page_dark.png"
           }
         },
         "sonnet": {
@@ -3579,12 +3579,12 @@
             "dark": "captures/maccatalyst/xaml/chrome_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/chrome_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/chrome_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/chrome_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/chrome_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/chrome_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/chrome_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/chrome_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/chrome_dark.png"
           }
         },
         "sonnet": {
@@ -3747,12 +3747,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.8853, 9.55% pixels differ"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.8841, 9.58% pixels differ"
         }
       },
       "android": {
@@ -5070,12 +5070,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.6983, 25.54% pixels differ \u00b7 Dark: SSIM 0.9187, 3.30% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9185, 3.35% pixels differ \u00b7 Dark: SSIM 0.9185, 3.34% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.6970, 25.57% pixels differ \u00b7 Dark: SSIM 0.9154, 3.38% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9157, 3.41% pixels differ \u00b7 Dark: SSIM 0.9158, 3.41% pixels differ"
         }
       },
       "android": {
@@ -5222,7 +5222,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9949, 0.15% pixels differ \u00b7 Dark: SSIM 0.9949, 0.16% pixels differ"
+          "review": "Light: SSIM 0.9949, 0.15% pixels differ \u00b7 Dark: SSIM 0.9948, 0.16% pixels differ"
         }
       },
       "android": {
@@ -7254,12 +7254,12 @@
             "dark": "captures/maccatalyst/xaml/empty_view_load_simulate_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/empty_view_load_simulate_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/empty_view_load_simulate_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/empty_view_load_simulate_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/empty_view_load_simulate_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/empty_view_load_simulate_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/empty_view_load_simulate_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/empty_view_load_simulate_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/empty_view_load_simulate_dark.png"
           }
         },
         "sonnet": {
@@ -9459,12 +9459,12 @@
             "dark": "captures/maccatalyst/xaml/gestures_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/gestures_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/gestures_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/gestures_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/gestures_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/gestures_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/gestures_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/gestures_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/gestures_dark.png"
           }
         },
         "sonnet": {
@@ -9481,7 +9481,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9962, 0.14% pixels differ \u00b7 Dark: SSIM 0.9962, 0.14% pixels differ"
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -10657,11 +10657,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9786, 0.53% pixels differ \u00b7 Dark: SSIM 0.9774, 0.72% pixels differ"
+          "review": "Light: SSIM 0.9802, 0.52% pixels differ \u00b7 Dark: SSIM 0.9790, 0.71% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9773, 0.56% pixels differ \u00b7 Dark: SSIM 0.9762, 0.76% pixels differ"
+          "review": "Light: SSIM 0.9789, 0.55% pixels differ \u00b7 Dark: SSIM 0.9778, 0.74% pixels differ"
         }
       },
       "android": {
@@ -10951,11 +10951,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9952, 0.23% pixels differ \u00b7 Dark: SSIM 0.9932, 0.28% pixels differ"
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9940, 0.26% pixels differ \u00b7 Dark: SSIM 0.9920, 0.31% pixels differ"
+          "review": "Light: SSIM 0.9966, 0.12% pixels differ \u00b7 Dark: SSIM 0.9967, 0.11% pixels differ"
         }
       },
       "android": {
@@ -11980,11 +11980,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9950, 0.18% pixels differ \u00b7 Dark: SSIM 0.9950, 0.20% pixels differ"
+          "review": "Light: SSIM 0.9967, 0.15% pixels differ \u00b7 Dark: SSIM 0.9967, 0.16% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9938, 0.22% pixels differ \u00b7 Dark: SSIM 0.9937, 0.23% pixels differ"
+          "review": "Light: SSIM 0.9954, 0.18% pixels differ \u00b7 Dark: SSIM 0.9954, 0.19% pixels differ"
         }
       },
       "android": {
@@ -12546,12 +12546,12 @@
             "dark": "captures/maccatalyst/xaml/ios_blur_effect_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/ios_blur_effect_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/ios_blur_effect_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/ios_blur_effect_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/ios_blur_effect_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/ios_blur_effect_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/ios_blur_effect_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/ios_blur_effect_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/ios_blur_effect_dark.png"
           }
         },
         "sonnet": {
@@ -13134,12 +13134,12 @@
             "dark": "captures/maccatalyst/xaml/ios_pan_gesture_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/ios_pan_gesture_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/ios_pan_gesture_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/ios_pan_gesture_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/ios_pan_gesture_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/ios_pan_gesture_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/ios_pan_gesture_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/ios_pan_gesture_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/ios_pan_gesture_dark.png"
           }
         },
         "sonnet": {
@@ -14016,12 +14016,12 @@
             "dark": "captures/maccatalyst/xaml/ios_swipe_transition_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/ios_swipe_transition_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/ios_swipe_transition_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/ios_swipe_transition_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/ios_swipe_transition_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/ios_swipe_transition_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/ios_swipe_transition_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/ios_swipe_transition_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/ios_swipe_transition_dark.png"
           }
         },
         "sonnet": {
@@ -16074,12 +16074,12 @@
             "dark": "captures/maccatalyst/xaml/pan_gesture_events_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/pan_gesture_events_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/pan_gesture_events_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/pan_gesture_events_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/pan_gesture_events_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/pan_gesture_events_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/pan_gesture_events_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/pan_gesture_events_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/pan_gesture_events_dark.png"
           }
         },
         "sonnet": {
@@ -16389,12 +16389,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9094, 3.45% pixels differ \u00b7 Dark: SSIM 0.9294, 3.56% pixels differ"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9082, 3.49% pixels differ \u00b7 Dark: SSIM 0.9282, 3.59% pixels differ"
         }
       },
       "android": {
@@ -16831,7 +16831,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9957, 0.16% pixels differ \u00b7 Dark: SSIM 0.9957, 0.17% pixels differ"
+          "review": "Light: SSIM 0.9962, 0.15% pixels differ \u00b7 Dark: SSIM 0.9962, 0.16% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -16956,12 +16956,12 @@
             "dark": "captures/maccatalyst/xaml/pointer_gesture_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/pointer_gesture_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/pointer_gesture_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/pointer_gesture_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/pointer_gesture_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/pointer_gesture_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/pointer_gesture_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/pointer_gesture_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/pointer_gesture_dark.png"
           }
         },
         "sonnet": {
@@ -17859,12 +17859,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.8861, 5.60% pixels differ \u00b7 Dark: SSIM 0.8787, 5.46% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9411, 3.19% pixels differ \u00b7 Dark: SSIM 0.9450, 3.59% pixels differ"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8848, 5.63% pixels differ \u00b7 Dark: SSIM 0.8775, 5.49% pixels differ"
+          "status": "yellow",
+          "review": "Light: SSIM 0.9398, 3.22% pixels differ \u00b7 Dark: SSIM 0.9438, 3.62% pixels differ"
         }
       },
       "android": {
@@ -18007,11 +18007,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9861, 0.48% pixels differ \u00b7 Dark: SSIM 0.9861, 0.57% pixels differ"
+          "review": "Light: SSIM 0.9907, 0.38% pixels differ \u00b7 Dark: SSIM 0.9904, 0.46% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9848, 0.51% pixels differ \u00b7 Dark: SSIM 0.9848, 0.60% pixels differ"
+          "review": "Light: SSIM 0.9894, 0.41% pixels differ \u00b7 Dark: SSIM 0.9892, 0.49% pixels differ"
         }
       },
       "android": {
@@ -18154,11 +18154,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9912, 0.29% pixels differ \u00b7 Dark: SSIM 0.9911, 0.33% pixels differ"
+          "review": "Light: SSIM 0.9947, 0.22% pixels differ \u00b7 Dark: SSIM 0.9945, 0.26% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9900, 0.32% pixels differ \u00b7 Dark: SSIM 0.9898, 0.36% pixels differ"
+          "review": "Light: SSIM 0.9934, 0.25% pixels differ \u00b7 Dark: SSIM 0.9932, 0.29% pixels differ"
         }
       },
       "android": {
@@ -18301,11 +18301,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9911, 0.29% pixels differ \u00b7 Dark: SSIM 0.9911, 0.34% pixels differ"
+          "review": "Light: SSIM 0.9947, 0.22% pixels differ \u00b7 Dark: SSIM 0.9946, 0.26% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9899, 0.33% pixels differ \u00b7 Dark: SSIM 0.9898, 0.38% pixels differ"
+          "review": "Light: SSIM 0.9934, 0.25% pixels differ \u00b7 Dark: SSIM 0.9933, 0.30% pixels differ"
         }
       },
       "android": {
@@ -18448,11 +18448,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9613, 1.42% pixels differ \u00b7 Dark: SSIM 0.9593, 1.68% pixels differ"
+          "review": "Light: SSIM 0.9750, 1.07% pixels differ \u00b7 Dark: SSIM 0.9724, 1.31% pixels differ"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9600, 1.45% pixels differ \u00b7 Dark: SSIM 0.9581, 1.72% pixels differ"
+          "review": "Light: SSIM 0.9737, 1.10% pixels differ \u00b7 Dark: SSIM 0.9711, 1.35% pixels differ"
         }
       },
       "android": {
@@ -18594,12 +18594,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9596, 1.98% pixels differ \u00b7 Dark: SSIM 0.9607, 2.20% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9843, 0.70% pixels differ \u00b7 Dark: SSIM 0.9871, 0.64% pixels differ"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9584, 2.01% pixels differ \u00b7 Dark: SSIM 0.9594, 2.23% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9830, 0.73% pixels differ \u00b7 Dark: SSIM 0.9859, 0.67% pixels differ"
         }
       },
       "android": {
@@ -19330,11 +19330,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9924, 0.26% pixels differ \u00b7 Dark: SSIM 0.9949, 0.20% pixels differ"
+          "review": "Light: SSIM 0.9955, 0.19% pixels differ \u00b7 Dark: SSIM 0.9961, 0.17% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9911, 0.29% pixels differ \u00b7 Dark: SSIM 0.9936, 0.23% pixels differ"
+          "review": "Light: SSIM 0.9942, 0.23% pixels differ \u00b7 Dark: SSIM 0.9949, 0.20% pixels differ"
         }
       },
       "android": {
@@ -19922,7 +19922,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9965, 0.11% pixels differ"
         }
       },
       "android": {
@@ -21954,12 +21954,12 @@
             "dark": "captures/maccatalyst/xaml/swipe_gesture_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/swipe_gesture_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/swipe_gesture_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/swipe_gesture_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/swipe_gesture_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/swipe_gesture_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/swipe_gesture_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/swipe_gesture_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/swipe_gesture_dark.png"
           }
         },
         "sonnet": {
@@ -22101,12 +22101,12 @@
             "dark": "captures/maccatalyst/xaml/swipe_item_position_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/swipe_item_position_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/swipe_item_position_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/swipe_item_position_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/swipe_item_position_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/swipe_item_position_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/swipe_item_position_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/swipe_item_position_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/swipe_item_position_dark.png"
           }
         },
         "sonnet": {
@@ -22269,12 +22269,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.7397, 23.02% pixels differ \u00b7 Dark: SSIM 0.6414, 23.86% pixels differ"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.7384, 23.05% pixels differ \u00b7 Dark: SSIM 0.6401, 23.89% pixels differ"
         }
       },
       "android": {
@@ -22395,12 +22395,12 @@
             "dark": "captures/maccatalyst/xaml/swipe_refresh_dark.png"
           },
           "appkit_cpp": {
-            "light": "captures/maccatalyst/appkit_cpp/swipe_refresh_light.gif",
-            "dark": "captures/maccatalyst/appkit_cpp/swipe_refresh_dark.gif"
+            "light": "captures/maccatalyst/appkit_cpp/swipe_refresh_light.png",
+            "dark": "captures/maccatalyst/appkit_cpp/swipe_refresh_dark.png"
           },
           "appkit_xaml": {
-            "light": "captures/maccatalyst/appkit_xaml/swipe_refresh_light.gif",
-            "dark": "captures/maccatalyst/appkit_xaml/swipe_refresh_dark.gif"
+            "light": "captures/maccatalyst/appkit_xaml/swipe_refresh_light.png",
+            "dark": "captures/maccatalyst/appkit_xaml/swipe_refresh_dark.png"
           }
         },
         "sonnet": {
