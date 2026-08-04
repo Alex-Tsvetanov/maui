@@ -61,7 +61,7 @@ appearance="${MAUI_APPEARANCE:-light}"
 # Pin the emulator's chrome BEFORE any capture: Android screencaps are full-screen, so the status bar
 # clock/battery/signal and any notification icon land inside every frame and would score as a per-page
 # diff the port never caused. Restored by the trap below. See tools/parity/device_state.py.
-python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
+python3 "${script_dir}/device_state.py" --android >&2 || true
 # SYSTEM NIGHT MODE for the dark pass. MauiReference's UserAppTheme=Dark (set from the MAUI_THEME intent
 # extra in App.xaml.cs CreateWindow) DOES NOT WORK on Android — measured, with the extra provably
 # arriving: body mean 137.7 light vs 139.3 "dark", i.e. no theme change at all, while the C++ columns go
@@ -82,7 +82,7 @@ maui_night_before="$("${maui_adb}" -s "${maui_serial}" shell cmd uimode night 2>
   "$([[ "${MAUI_APPEARANCE:-light}" == "dark" ]] && echo yes || echo no)" > /dev/null 2>&1 || true
 sleep 2
 trap '"${maui_adb}" -s "${maui_serial}" shell cmd uimode night "${maui_night_before}" > /dev/null 2>&1 || true;
-      python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
+      python3 "${script_dir}/device_state.py" --android --clear >&2 || true' EXIT
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
 suffix="_${appearance}"
 # NO MAUI_THEME EXTRA. It used to pass `--es MAUI_THEME Dark` on the dark pass, which sets UserAppTheme

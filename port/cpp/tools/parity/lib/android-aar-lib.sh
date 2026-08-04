@@ -17,10 +17,15 @@
 # The caller must also pass --auto-add-overlay and --java <gendir> to aapt2 link, and add every
 # <gendir>/**/R.java to its javac source list.
 
+# This file's OWN directory. The deps list and the stager are its siblings, so resolving them from
+# here survives the tree moving; rebuilding the path out of ${cpp_root} did not — the move into lib/
+# left it pointing one directory up and killed both C++ Android columns for a whole board run.
+maui_aar_lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 maui_android_aar_prepare() {
   local cache="$1"
-  local deps="${cpp_root}/tools/parity/android_aar_deps.txt"
-  local stage="${cpp_root}/tools/parity/android_aar_stage.py"
+  local deps="${maui_aar_lib_dir}/android_aar_deps.txt"
+  local stage="${maui_aar_lib_dir}/android_aar_stage.py"
   [[ -f "${deps}" ]] || maui_die "missing ${deps}"
 
   # Cache stamp: the dep list + the stager + the aapt2 binary. Any change re-stages from scratch.

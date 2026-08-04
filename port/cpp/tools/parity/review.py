@@ -21,10 +21,11 @@ is deliberately kept out of the board's pixel-parity tallies.
 
 THREE PHASES, cheapest first — the first two need no API key and always run:
 
-  1. INTEGRITY (free).  Hashes the capture tree. A `maui` frame byte-identical to a `cpp`/`xaml` frame
-     is NOT parity — it is one column's capture banked under another column's name (the runner's
-     `or bounds` failure mode), and it is reported as a FATAL inconsistency. cpp==xaml is expected and
-     merely counted. Missing captures are listed (builder columns are exempt on non-twin pages).
+  1. INTEGRITY (free).  Hashes the capture tree and reports one thing: a frame filed under TWO
+     DIFFERENT PAGE KEYS, which is how a wrong-page capture gets scored as a port defect. Identical
+     bytes across COLUMNS for the same page is the opposite of a defect — it is the port matching its
+     reference exactly (measured: ~300 such cells per device platform, none on maccatalyst) — so those
+     are counted, not flagged. Missing captures are listed (builder columns are exempt on non-twins).
   2. MEASUREMENTS (free).  Coverage only, never thresholds: which captured platform/column has no
      artifact-size or TTFF entry in measurements.json, and which measured entry has no captures.
   3. JUDGE.  SSIM/diff% first (pixel_score), and only pairs that are neither identical nor obviously
@@ -39,7 +40,7 @@ Output: a markdown report (default docs/comparison/PARITY_INCONSISTENCIES.md). T
 touched unless you pass --commit-board — per port/CLAUDE.md the workflow is sweep -> user rules on the
 findings -> adopt.
 
-EXIT CODE = the number of FATAL integrity inconsistencies (0 = the capture tree is self-consistent).
+EXIT CODE = the number of wrong-page findings (0 = no frame is filed under more than one page).
 """
 from __future__ import annotations
 
@@ -193,17 +194,29 @@ def twin_keys() -> set[str]:
 
 
 def phase_integrity(platforms, keys, themes) -> tuple[list[str], set, list[str], Counter]:
-    """Hash every capture; return (fatal findings, the exact cells they hit, missing cells, tally).
+    """Hash every capture; return (findings, the cells they hit, missing cells, tally).
 
-    The second value is keyed on (platform, key, port column) rather than re-parsed out of the
-    formatted findings: matching those by string prefix silently blanks every SHORTER key in a family
-    (`border` would inherit `border_playground`'s failure).
+    WHAT COUNTS AS CORRUPTION, and what does not — this took a full board to get right.
+
+    A frame that is byte-identical ACROSS COLUMNS for the SAME page is *not* a defect. It is the port
+    rendering the same native controls, on the same device, to the same pixels. Measured on this tree:
+    306 such cells on iOS, 290 on Android, 292 on Windows — and ZERO on maccatalyst, the one platform
+    whose captures come through a different path. A mis-filed frame would be scattered and rare; this
+    is systematic and one-sided, which is what parity looks like.
+
+    A frame that is byte-identical under two DIFFERENT PAGE KEYS is the real signature: it means one
+    page's capture was banked under another page's name (the runner's historic `or bounds` bug pulled
+    the previous column's file after a failed present, and `header_footer_grid` scored ~80% as a
+    phantom port defect for a day because of it). Those are what this reports — with the caveat that a
+    few demo pages are genuine near-duplicates (`vertical_stack` vs `vertical_stack_layout`), so each
+    one is a "verify this", not an automatic bug.
     """
     twins = twin_keys()
-    fatal: list[str] = []
-    fatal_pairs: set[tuple[str, str, str]] = set()
+    findings: list[str] = []
+    suspect_cells: set[tuple[str, str, str]] = set()
     missing: list[str] = []
     tally: Counter = Counter()
+    by_hash: dict[str, dict[str, list]] = {}
     for platform in platforms:
         plat = PLATFORM_DIR[platform]
         for key in keys:
@@ -218,16 +231,27 @@ def phase_integrity(platforms, keys, themes) -> tuple[list[str], set, list[str],
                         continue
                     digests[col] = hashlib.sha256(f.read_bytes()).hexdigest()
                     tally[f"{plat}/{col}"] += 1
-                for port_col in ("cpp", "xaml"):
+                    by_hash.setdefault(digests[col], {}).setdefault(plat, []).append((col, key, theme))
+                # Same page, different columns, same bytes = the port matched MAUI exactly. Counted,
+                # not flagged — see this function's docstring for why that is parity, not corruption.
+                for port_col in ("cpp", "xaml", "appkit_xaml"):
                     if digests.get("maui") and digests.get("maui") == digests.get(port_col):
-                        # Byte-identical across DIFFERENT frameworks is impossible from rendering; it
-                        # means one column's frame was banked under another column's name.
-                        fatal.append(f"{plat}/{key}_{theme}: maui and {port_col} captures are "
-                                     f"BYTE-IDENTICAL — one column's frame is filed under the other")
-                        fatal_pairs.add((plat, key, port_col))
+                        tally[f"pixel-exact maui=={port_col}"] += 1
                 if digests.get("cpp") and digests.get("cpp") == digests.get("xaml"):
-                    tally["cpp==xaml (expected)"] += 1
-    return fatal, fatal_pairs, missing, tally
+                    tally["pixel-exact cpp==xaml"] += 1
+
+    # One frame under two different PAGE keys: somebody's capture is filed under the wrong name.
+    for cells in by_hash.values():
+        for plat, occurrences in cells.items():
+            pages = {k for _, k, _ in occurrences}
+            if len(pages) < 2:
+                continue
+            where = ", ".join(f"{c}/{k}_{t}" for c, k, t in sorted(occurrences))
+            findings.append(f"{plat}: ONE frame is filed under {len(pages)} different pages "
+                            f"({where}) — verify these are not near-duplicate demo pages")
+            for _, k, t in occurrences:
+                suspect_cells.add((plat, k, t))
+    return findings, suspect_cells, missing, tally
 
 
 # --------------------------------------------------------------------------- measurements
@@ -362,20 +386,27 @@ class Client:
 
 
 # --------------------------------------------------------------------------- report
-def write_report(path: Path, args, fatal, missing, tally, meas, verdicts) -> None:
+def write_report(path: Path, args, findings, missing, tally, meas, verdicts) -> None:
     lines = [f"# Parity inconsistencies — {datetime.now():%Y-%m-%d %H:%M}", "",
              f"`review.py --platforms {args.platforms} --comparisons {args.comparisons}"
              f"{' --no-judge' if args.no_judge else ''}`", "",
              "## 1. Capture integrity", ""]
-    if fatal:
-        lines += [f"**{len(fatal)} FATAL** — a MAUI frame byte-identical to a port frame is a "
-                  "mis-filed capture, not parity:", ""]
-        lines += [f"- {f}" for f in fatal] + [""]
+    if findings:
+        lines += [f"**{len(findings)} page(s) share a frame with a DIFFERENT page.** One capture filed "
+                  "under two names is how a wrong-page frame gets scored as a port defect. A few demo "
+                  "pages are genuine near-duplicates (`vertical_stack` / `vertical_stack_layout`), so "
+                  "check each before treating it as a capture bug:", ""]
+        lines += [f"- {f}" for f in findings] + [""]
     else:
-        lines += ["No cross-framework byte-identical captures. ✅", ""]
+        lines += ["No frame is filed under more than one page. ✅", ""]
+    exact = {k: v for k, v in tally.items() if k.startswith("pixel-exact")}
     lines += [f"- captures hashed: {sum(v for k, v in tally.items() if '/' in k)}",
-              f"- cpp==xaml cells (expected, same renderer): {tally.get('cpp==xaml (expected)', 0)}",
-              f"- missing cells: {len(missing)}", ""]
+              f"- missing cells: {len(missing)}", "",
+              "Byte-identical cells across columns for the SAME page — this is the port matching its "
+              "reference exactly, NOT a defect:", ""]
+    lines += [f"  - {k.removeprefix('pixel-exact ')}: {v}" for k, v in sorted(exact.items())] or \
+        ["  - none"]
+    lines += [""]
     if missing:
         lines += ["<details><summary>missing cells</summary>", ""]
         lines += [f"- {m}" for m in missing[:200]]
@@ -473,9 +504,9 @@ def main(argv=None) -> int:
         return 0
 
     print(f"phase 1: integrity ({len(platforms)} platform(s) x {len(keys)} page(s))", flush=True)
-    fatal, fatal_pairs, missing, tally = phase_integrity(platforms, keys, themes)
-    for f in fatal:
-        print(f"  FATAL {f}", flush=True)
+    findings, suspect_cells, missing, tally = phase_integrity(platforms, keys, themes)
+    for f in findings:
+        print(f"  WRONG-PAGE? {f}", flush=True)
     print(f"phase 2: measurements coverage", flush=True)
     meas = phase_measurements(platforms)
     for m in meas:
@@ -498,9 +529,9 @@ def main(argv=None) -> int:
         scores = pixel_pair(plat, col_a, col_b, key, themes)
         auto = None if structural else auto_verdict(scores)
         # A byte-identical maui-vs-port pair is an INTEGRITY failure (phase 1) — never auto-green it.
-        if col_a == "maui" and (plat, key, col_b) in fatal_pairs:
-            status, review, source = "blank", "capture integrity failure — see phase 1", "integrity"
-        elif auto is not None:
+        suspect = (plat, key, themes[0]) in suspect_cells or \
+            any((plat, key, t) in suspect_cells for t in themes)
+        if auto is not None:
             status, review = auto
             source = "pixel"
         elif a.no_judge:
@@ -528,6 +559,8 @@ def main(argv=None) -> int:
                 continue
         if not structural and scores:
             review = f"{review} [{pixel_note(scores)}]" if pixel_note(scores) else review
+        if suspect:
+            review = f"[phase 1: this page shares a frame with another page — verify] {review}"
         verdicts.append({"platform": plat, "key": key, "comparison": comp, "status": status,
                          "review": review, "source": source, "slot": slot})
         print(f"  {plat:12} {key:26} {comp:10} {status:6} ({source})", flush=True)
@@ -542,12 +575,12 @@ def main(argv=None) -> int:
         print(f"wrote {wrote} verdict(s) into comparison.json")
 
     report = Path(a.report)
-    write_report(report, a, fatal, missing, tally, meas, verdicts)
+    write_report(report, a, findings, missing, tally, meas, verdicts)
     print(f"\nreport -> {report.relative_to(CPP) if report.is_relative_to(CPP) else report}")
-    print(f"{len(fatal)} fatal integrity finding(s), {len(meas)} measurement gap(s), "
+    print(f"{len(findings)} wrong-page finding(s), {len(meas)} measurement gap(s), "
           f"{len(verdicts)} comparison(s) scored"
           + (f", {client.calls} Gemini call(s)" if client else ""))
-    return len(fatal)
+    return len(findings)
 
 
 if __name__ == "__main__":

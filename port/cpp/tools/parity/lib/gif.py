@@ -28,10 +28,43 @@ def drop_stale(gif_path: str) -> None:
         os.remove(gif_path)
 
 
+def _distinct_frames(gif_path: str) -> int:
+    """How many DIFFERENT frames the GIF actually holds."""
+    try:
+        from PIL import Image
+    except ImportError:                      # pragma: no cover - PIL ships with the scoring tools
+        return 2                             # cannot check; assume it is fine rather than delete work
+    seen = set()
+    try:
+        with Image.open(gif_path) as im:
+            while True:
+                seen.add(im.convert("RGB").tobytes())
+                im.seek(im.tell() + 1)
+    except EOFError:
+        pass
+    except Exception:
+        return 0
+    return len(seen)
+
+
 def _ffmpeg(args: list[str], out: str) -> bool:
+    """Run ffmpeg and KEEP the output only if it is a real animation.
+
+    ffmpeg creates its output file before it knows whether it can encode anything, so a failed
+    conversion leaves a 0-BYTE .gif behind — and since the board prefers .gif over .png, that empty
+    file then shadows a perfectly good still and takes pixel_score.py down with an
+    UnidentifiedImageError. Measured: one Android board pass wrote 84 of them. So on any failure, and
+    on a "GIF" that turns out to be a single repeated frame, the file is DELETED: no GIF means the
+    fresh still is used, which is the honest outcome.
+    """
     os.makedirs(os.path.dirname(out), exist_ok=True)
     r = subprocess.run(["ffmpeg", "-y", *args, out], capture_output=True, text=True)
-    return r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 0
+    ok = r.returncode == 0 and os.path.exists(out) and os.path.getsize(out) > 0
+    if ok and _distinct_frames(out) < 2:
+        ok = False                           # nothing moved — a still wearing an animation's name
+    if not ok and os.path.exists(out):
+        os.remove(out)
+    return ok
 
 
 def video_to_gif(video: str, out: str, fps: int = 12) -> bool:

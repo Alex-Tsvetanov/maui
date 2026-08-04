@@ -7,11 +7,11 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <table>
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
-<tr><td>iOS</td><td>162</td><td>10</td><td>0</td><td>0</td><td>0</td><td>162</td><td>10</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>iOS</td><td>159</td><td>12</td><td>1</td><td>0</td><td>0</td><td>160</td><td>11</td><td>1</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>163</td><td>7</td><td>2</td><td>0</td><td>0</td><td>163</td><td>7</td><td>2</td><td>0</td><td>0</td></tr>
-<tr><td>Android</td><td>160</td><td>10</td><td>2</td><td>0</td><td>0</td><td>160</td><td>10</td><td>2</td><td>0</td><td>0</td></tr>
-<tr><td>Windows</td><td>171</td><td>0</td><td>1</td><td>0</td><td>0</td><td>171</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>656</strong></td><td><strong>27</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>656</strong></td><td><strong>27</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td>Android</td><td>159</td><td>11</td><td>2</td><td>0</td><td>0</td><td>159</td><td>11</td><td>2</td><td>0</td><td>0</td></tr>
+<tr><td>Windows</td><td>170</td><td>0</td><td>2</td><td>0</td><td>0</td><td>170</td><td>0</td><td>2</td><td>0</td><td>0</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>651</strong></td><td><strong>30</strong></td><td><strong>7</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>652</strong></td><td><strong>29</strong></td><td><strong>7</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -45,9 +45,9 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 162 | 162 |
-| 🟡 Minor | 10 | 10 |
-| 🔴 Major | 0 | 0 |
+| 🟢 Match | 159 | 160 |
+| 🟡 Minor | 12 | 11 |
+| 🔴 Major | 1 | 1 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -66,20 +66,20 @@ Light: SSIM 0.9915, 0.58% pixels differ · Dark: SSIM 0.9913, 0.58% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 2. Activity Indicator — 🟢/🟡
+### 2. Activity Indicator — 🟡/🟡
 <sub>activity_indicator</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/activity_indicator_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/activity_indicator_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/activity_indicator_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/activity_indicator_dark.gif" /></td></tr></table>
 
 ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9974, 0.14% pixels differ · Dark: SSIM 0.9985, 0.08% pixels differ
+Light: SSIM 0.9528, 1.76% pixels differ · Dark: SSIM 0.9518, 1.76% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9575, 1.57% pixels differ · Dark: SSIM 0.9566, 1.57% pixels differ
+Light: SSIM 0.9529, 1.75% pixels differ · Dark: SSIM 0.9517, 1.75% pixels differ
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -135,11 +135,11 @@ ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9503, 2.09% pixels differ · Dark: SSIM 0.9485, 2.11% pixels differ
+Light: SSIM 0.9380, 2.32% pixels differ · Dark: SSIM 0.9341, 2.37% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9486, 2.13% pixels differ · Dark: SSIM 0.9450, 2.16% pixels differ
+Light: SSIM 0.9380, 2.32% pixels differ · Dark: SSIM 0.9341, 2.37% pixels differ
 
 ### 7. App Theme Binding — 🟢/🟢
 <sub>app_theme_binding</sub>
@@ -366,7 +366,7 @@ Light: SSIM 0.9816, 0.98% pixels differ · Dark: SSIM 0.9816, 0.98% pixels diffe
 
 Light: SSIM 0.9816, 0.98% pixels differ · Dark: SSIM 0.9816, 0.98% pixels differ
 
-### 22. Carousel Page — 🟡/🟢
+### 22. Carousel Page — 🟡/🟡
 <sub>carousel_page</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/carousel_page_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/carousel_page_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/carousel_page_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/carousel_page_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/carousel_page_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/carousel_page_dark.gif" /></td></tr></table>
@@ -375,11 +375,11 @@ Carousel Page
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9758, 0.63% pixels differ · Dark: SSIM 0.9755, 0.63% pixels differ
+Light: SSIM 0.9207, 2.53% pixels differ · Dark: SSIM 0.9222, 2.73% pixels differ
 
-#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9853, 0.40% pixels differ · Dark: SSIM 0.9845, 0.41% pixels differ
+Light: SSIM 0.9207, 2.53% pixels differ · Dark: SSIM 0.9222, 2.73% pixels differ
 
 ### 23. Chat Example — 🟢/🟢
 <sub>chat_example</sub>
@@ -420,11 +420,11 @@ a self-contained demo page for the W1-11 window-chrome family: page toolbar item
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9984, 0.08% pixels differ · Dark: SSIM 0.9986, 0.07% pixels differ
+Light: SSIM 0.9967, 0.13% pixels differ · Dark: SSIM 0.9968, 0.12% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9992, 0.06% pixels differ · Dark: SSIM 0.9987, 0.07% pixels differ
+Light: SSIM 0.9967, 0.13% pixels differ · Dark: SSIM 0.9968, 0.12% pixels differ
 
 ### 26. Clip — 🟢/🟢
 <sub>clip</sub>
@@ -480,7 +480,7 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9991, 0.04% pixels differ · Dark: SSIM 0.9990, 0.04% pixels differ
+Light: SSIM 0.9984, 0.09% pixels differ · Dark: SSIM 0.9990, 0.04% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -495,11 +495,11 @@ compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror th
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9938, 0.18% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9938, 0.18% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 31. Collectionview — 🟢/🟢
 <sub>collectionview</sub>
@@ -589,7 +589,7 @@ Light: SSIM 0.9960, 0.17% pixels differ · Dark: SSIM 0.9954, 0.18% pixels diffe
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9960, 0.17% pixels differ · Dark: SSIM 0.9954, 0.18% pixels differ
+Light: SSIM 0.9960, 0.17% pixels differ · Dark: SSIM 0.9955, 0.17% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -600,22 +600,22 @@ ports CustomLayoutPage.xaml (+ CustomLayoutPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9935, 0.21% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 38. Custom Size Swipe — 🟢/🟢
+### 38. Custom Size Swipe — 🟡/🟢
 <sub>custom_size_swipe</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/ios/cpp/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/ios/xaml/custom_size_swipe_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/custom_size_swipe_dark.png" /></td></tr></table>
 
 ports CustomSizeSwipeViewGallery.xaml (+ .xaml.cs) The MAUI CustomSizeSwipeViewGallery is a single SwipeView whose Left / Right / Top item collections each reveal CUSTOM-SIZED content: a SwipeItemView wrapping a Grid/StackLayout with an exp
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9705, 5.82% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -675,11 +675,11 @@ ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9916, 0.45% pixels differ · Dark: SSIM 0.9914, 0.45% pixels differ
+Light: SSIM 0.9881, 0.71% pixels differ · Dark: SSIM 0.9915, 0.45% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9940, 0.38% pixels differ · Dark: SSIM 0.9939, 0.38% pixels differ
+Light: SSIM 0.9940, 0.37% pixels differ · Dark: SSIM 0.9939, 0.38% pixels differ
 
 ### 43. Device — 🟢/🟢
 <sub>device</sub>
@@ -795,11 +795,11 @@ ports EmptyViewGalleries/EmptyViewLoadSimulateGallery.xaml (+ EmptyViewLoadSimul
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9983, 0.10% pixels differ · Dark: SSIM 0.9982, 0.10% pixels differ
+Light: SSIM 0.9960, 0.15% pixels differ · Dark: SSIM 0.9958, 0.15% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9990, 0.07% pixels differ · Dark: SSIM 0.9989, 0.07% pixels differ
+Light: SSIM 0.9960, 0.15% pixels differ · Dark: SSIM 0.9958, 0.15% pixels differ
 
 ### 51. Empty View Null — 🟢/🟢
 <sub>empty_view_null</sub>
@@ -1020,11 +1020,11 @@ ports GesturesPage.xaml (+ .xaml.cs) The MAUI GesturesPage.xaml is a *gallery na
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9975, 0.11% pixels differ · Dark: SSIM 0.9974, 0.11% pixels differ
+Light: SSIM 0.9958, 0.26% pixels differ · Dark: SSIM 0.9955, 0.26% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9997, 0.07% pixels differ · Dark: SSIM 0.9997, 0.07% pixels differ
+Light: SSIM 0.9958, 0.26% pixels differ · Dark: SSIM 0.9955, 0.26% pixels differ
 
 ### 66. Gradient — 🟢/🟢
 <sub>gradient</sub>
@@ -1221,20 +1221,20 @@ Light: SSIM 0.9883, 0.50% pixels differ · Dark: SSIM 0.9881, 0.50% pixels diffe
 
 Light: SSIM 0.9883, 0.50% pixels differ · Dark: SSIM 0.9881, 0.50% pixels differ
 
-### 79. Image — 🟡/🟡
+### 79. Image — 🔴/🔴
 <sub>image</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/image_light.png" /></td><td><img width="300px" src="captures/ios/cpp/image_light.png" /></td><td><img width="300px" src="captures/ios/xaml/image_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/image_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/image_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/image_dark.png" /></td></tr></table>
 
 ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9582, 3.91% pixels differ · Dark: SSIM 0.9983, 0.13% pixels differ
+Light: SSIM 0.5240, 65.19% pixels differ · Dark: SSIM 0.9983, 0.13% pixels differ
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9582, 3.91% pixels differ · Dark: SSIM 0.9983, 0.13% pixels differ
+Light: SSIM 0.5240, 65.19% pixels differ · Dark: SSIM 0.9983, 0.13% pixels differ
 
 ### 80. Image Button — 🟢/🟢
 <sub>image_button</sub>
@@ -1275,11 +1275,11 @@ a self-contained demo page for the W1-05 input-control set: editor, search_bar, 
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9922, 0.37% pixels differ · Dark: SSIM 0.9922, 0.37% pixels differ
+Light: SSIM 0.9964, 0.19% pixels differ · Dark: SSIM 0.9963, 0.19% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9922, 0.37% pixels differ · Dark: SSIM 0.9922, 0.37% pixels differ
+Light: SSIM 0.9964, 0.19% pixels differ · Dark: SSIM 0.9963, 0.19% pixels differ
 
 ### 83. Input Transparent — 🟢/🟢
 <sub>input_transparent</sub>
@@ -1329,17 +1329,17 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.13% pixels diffe
 ### 86. Ios Blur Effect — 🟢/🟢
 <sub>ios_blur_effect</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_dark.gif" /></td></tr></table>
 
 ports iOSBlurEffectPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/PlatformSpecifics/iOS/iOSBlurEffectPage.xaml + .xaml.cs): an Image (Source=&amp;quot;oasis.jpg&amp;quot;) carrying the iOSSpecific VisualElement.BlurEffect knob (XAML seeds it to Extr
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9958, 0.34% pixels differ · Dark: SSIM 0.9959, 0.34% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9958, 0.34% pixels differ · Dark: SSIM 0.9957, 0.34% pixels differ
 
 ### 87. Ios Date Picker — 🟢/🟢
 <sub>ios_date_picker</sub>
@@ -1395,11 +1395,11 @@ ports iOSPanGestureRecognizerPage.xaml (+ .xaml.cs) The C# iOSPanGestureRecogniz
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9983, 0.10% pixels differ · Dark: SSIM 0.9982, 0.10% pixels differ
+Light: SSIM 0.9960, 0.43% pixels differ · Dark: SSIM 0.9957, 0.43% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9990, 0.07% pixels differ · Dark: SSIM 0.9989, 0.07% pixels differ
+Light: SSIM 0.9960, 0.43% pixels differ · Dark: SSIM 0.9957, 0.43% pixels differ
 
 ### 91. Ios Picker — 🟢/🟢
 <sub>ios_picker</sub>
@@ -1485,11 +1485,11 @@ ports iOSSwipeViewTransitionModePage.xaml (+ .xaml.cs) The C# iOSSwipeViewTransi
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9956, 0.23% pixels differ · Dark: SSIM 0.9953, 0.24% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9956, 0.23% pixels differ · Dark: SSIM 0.9953, 0.24% pixels differ
 
 ### 97. Ios Time Picker — 🟢/🟢
 <sub>ios_time_picker</sub>
@@ -1695,11 +1695,11 @@ ports PanGestureEventsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PanG
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9983, 0.08% pixels differ · Dark: SSIM 0.9995, 0.05% pixels differ
+Light: SSIM 0.9976, 0.11% pixels differ · Dark: SSIM 0.9963, 0.13% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9945, 0.25% pixels differ · Dark: SSIM 0.9950, 0.24% pixels differ
+Light: SSIM 0.9940, 0.28% pixels differ · Dark: SSIM 0.9924, 0.30% pixels differ
 
 ### 111. Path Aspect Gallery — 🟢/🟢
 <sub>path_aspect_gallery</sub>
@@ -1785,11 +1785,11 @@ ports PointerGestureGalleryPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Po
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9997, 0.07% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9958, 0.15% pixels differ · Dark: SSIM 0.9954, 0.16% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9997, 0.07% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9958, 0.15% pixels differ · Dark: SSIM 0.9954, 0.16% pixels differ
 
 ### 117. Polygon Gallery — 🟢/🟢
 <sub>polygon_gallery</sub>
@@ -1905,11 +1905,11 @@ ports RadioButtonGroupGallery.xaml A self-contained, code-first demo of the Radi
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9840, 0.63% pixels differ · Dark: SSIM 0.9841, 0.63% pixels differ
+Light: SSIM 0.9926, 0.28% pixels differ · Dark: SSIM 0.9924, 0.28% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9840, 0.63% pixels differ · Dark: SSIM 0.9841, 0.63% pixels differ
+Light: SSIM 0.9926, 0.28% pixels differ · Dark: SSIM 0.9924, 0.28% pixels differ
 
 ### 125. Radio Button Group Binding — 🟢/🟢
 <sub>radio_button_group_binding</sub>
@@ -1920,11 +1920,11 @@ ports RadioButtonGroupBindingGallery.xaml A code-first demo of binding the Radio
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9840, 0.63% pixels differ · Dark: SSIM 0.9841, 0.63% pixels differ
+Light: SSIM 0.9926, 0.28% pixels differ · Dark: SSIM 0.9924, 0.28% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9840, 0.63% pixels differ · Dark: SSIM 0.9841, 0.63% pixels differ
+Light: SSIM 0.9926, 0.28% pixels differ · Dark: SSIM 0.9924, 0.28% pixels differ
 
 ### 126. Radio Button Group Gallery — 🟡/🟡
 <sub>radio_button_group_gallery</sub>
@@ -2025,11 +2025,11 @@ ports ScatteredRadioButtonGallery.xaml A code-first demo that radio buttons DON&
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9836, 0.70% pixels differ · Dark: SSIM 0.9867, 0.51% pixels differ
+Light: SSIM 0.9930, 0.27% pixels differ · Dark: SSIM 0.9949, 0.16% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9836, 0.70% pixels differ · Dark: SSIM 0.9867, 0.51% pixels differ
+Light: SSIM 0.9930, 0.27% pixels differ · Dark: SSIM 0.9949, 0.16% pixels differ
 
 ### 133. Scroll Mode Test — 🟢/🟢
 <sub>scroll_mode_test</sub>
@@ -2295,11 +2295,11 @@ ports SwipeViewGestureRecognizerGallery.xaml (+ .xaml.cs) The MAUI SwipeViewGest
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9983, 0.10% pixels differ · Dark: SSIM 0.9982, 0.10% pixels differ
+Light: SSIM 0.9960, 0.15% pixels differ · Dark: SSIM 0.9957, 0.15% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9990, 0.07% pixels differ · Dark: SSIM 0.9989, 0.07% pixels differ
+Light: SSIM 0.9960, 0.15% pixels differ · Dark: SSIM 0.9957, 0.15% pixels differ
 
 ### 151. Swipe Item Position — 🟢/🟢
 <sub>swipe_item_position</sub>
@@ -2310,11 +2310,11 @@ ports SwipeItemPositionGallery.xaml A code-first port of the MAUI SwipeView sub-
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9984, 0.08% pixels differ · Dark: SSIM 0.9995, 0.06% pixels differ
+Light: SSIM 0.9926, 0.25% pixels differ · Dark: SSIM 0.9912, 0.26% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9947, 0.19% pixels differ · Dark: SSIM 0.9939, 0.20% pixels differ
+Light: SSIM 0.9926, 0.25% pixels differ · Dark: SSIM 0.9912, 0.26% pixels differ
 
 ### 152. Swipe Item Size — 🟢/🟢
 <sub>swipe_item_size</sub>
@@ -2331,20 +2331,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 153. Swipe Refresh — 🟢/🟢
+### 153. Swipe Refresh — 🟡/🟡
 <sub>swipe_refresh</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_refresh_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_refresh_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_refresh_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_refresh_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_refresh_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_refresh_dark.gif" /></td></tr></table>
 
 a self-contained demo page for the W2-20 swipe + refresh controls: a refresh_view wrapping a swipe_view (which itself wraps a labeled row), with a readout label reflecting the latest interaction
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9948, 0.21% pixels differ · Dark: SSIM 0.9961, 0.15% pixels differ
+Light: SSIM 0.9694, 0.85% pixels differ · Dark: SSIM 0.9666, 0.85% pixels differ
 
-#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9953, 0.19% pixels differ · Dark: SSIM 0.9958, 0.17% pixels differ
+Light: SSIM 0.9694, 0.85% pixels differ · Dark: SSIM 0.9666, 0.85% pixels differ
 
 ### 154. Swipe Threshold — 🟢/🟢
 <sub>swipe_threshold</sub>
@@ -2666,17 +2666,17 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 2. Activity Indicator — 🟢/🟢
 <sub>activity_indicator</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_dark.gif" /></td></tr></table>
 
 ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9975, 0.10% pixels differ · Dark: SSIM 0.9973, 0.11% pixels differ
+Light: SSIM 0.9978, 0.09% pixels differ · Dark: SSIM 0.9973, 0.11% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9963, 0.13% pixels differ · Dark: SSIM 0.9961, 0.15% pixels differ
+Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9961, 0.15% pixels differ
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -2726,7 +2726,7 @@ Light: SSIM 0.9957, 0.30% pixels differ · Dark: SSIM 0.9963, 0.25% pixels diffe
 ### 6. Animation — 🟢/🟢
 <sub>animation</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/animation_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/animation_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/animation_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/animation_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/animation_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/animation_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/animation_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/animation_dark.gif" /></td></tr></table>
 
 ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
@@ -2966,7 +2966,7 @@ Light: SSIM 0.9892, 0.40% pixels differ · Dark: SSIM 0.9893, 0.40% pixels diffe
 ### 22. Carousel Page — 🟢/🟢
 <sub>carousel_page</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_page_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_page_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_page_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/carousel_page_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_page_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/carousel_page_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/carousel_page_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/carousel_page_dark.gif" /></td></tr></table>
 
 Carousel Page
 
@@ -3011,7 +3011,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 25. Chrome — 🟢/🟢
 <sub>chrome</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/chrome_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/chrome_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/chrome_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/chrome_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/chrome_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/chrome_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/chrome_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/chrome_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/chrome_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/chrome_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/chrome_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/chrome_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/chrome_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/chrome_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/chrome_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/chrome_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/chrome_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/chrome_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/chrome_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/chrome_dark.gif" /></td></tr></table>
 
 a self-contained demo page for the W1-11 window-chrome family: page toolbar items (primary + secondary), a menu bar (File menu with items, a separator and a sub-menu), a context flyout (right-click menu) on a button, and a tooltip — all wir
 
@@ -3386,7 +3386,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 50. Empty View Load Simulate — 🟢/🟢
 <sub>empty_view_load_simulate</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/empty_view_load_simulate_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_load_simulate_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_load_simulate_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_load_simulate_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_load_simulate_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/empty_view_load_simulate_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_load_simulate_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_load_simulate_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_load_simulate_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_load_simulate_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/empty_view_load_simulate_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_load_simulate_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_load_simulate_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_load_simulate_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_load_simulate_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/empty_view_load_simulate_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/empty_view_load_simulate_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/empty_view_load_simulate_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/empty_view_load_simulate_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/empty_view_load_simulate_dark.gif" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewLoadSimulateGallery.xaml (+ EmptyViewLoadSimulateGallery.xaml.cs)
 
@@ -3611,7 +3611,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 65. Gestures — 🟢/🟢
 <sub>gestures</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/gestures_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/gestures_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gestures_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/gestures_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/gestures_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/gestures_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/gestures_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/gestures_dark.gif" /></td></tr></table>
 
 ports GesturesPage.xaml (+ .xaml.cs) The MAUI GesturesPage.xaml is a *gallery navigation* page: a CollectionView listing gesture-demo sections that the shell navigates into
 
@@ -3926,7 +3926,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9956, 0.11% pixels diffe
 ### 86. Ios Blur Effect — 🟢/🟢
 <sub>ios_blur_effect</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_blur_effect_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_blur_effect_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_blur_effect_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_blur_effect_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_blur_effect_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_blur_effect_dark.gif" /></td></tr></table>
 
 ports iOSBlurEffectPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/PlatformSpecifics/iOS/iOSBlurEffectPage.xaml + .xaml.cs): an Image (Source=&amp;quot;oasis.jpg&amp;quot;) carrying the iOSSpecific VisualElement.BlurEffect knob (XAML seeds it to Extr
 
@@ -3986,7 +3986,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 90. Ios Pan Gesture — 🟢/🟢
 <sub>ios_pan_gesture</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_pan_gesture_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_pan_gesture_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_pan_gesture_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_pan_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_pan_gesture_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_pan_gesture_dark.gif" /></td></tr></table>
 
 ports iOSPanGestureRecognizerPage.xaml (+ .xaml.cs) The C# iOSPanGestureRecognizerPage is a StackLayout with: a bold message Label (_messageLabel), a &amp;quot;Toggle Simultaneous Gesture Recognition&amp;quot; Button, and a grouped ListView of employees whos
 
@@ -4076,7 +4076,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 96. Ios Swipe Transition — 🟢/🟢
 <sub>ios_swipe_transition</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_swipe_transition_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_swipe_transition_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_swipe_transition_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_swipe_transition_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_swipe_transition_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_swipe_transition_dark.gif" /></td></tr></table>
 
 ports iOSSwipeViewTransitionModePage.xaml (+ .xaml.cs) The C# iOSSwipeViewTransitionModePage is a StackLayout with: a horizontal row holding a &amp;quot;SwipeTransitionMode:&amp;quot; Label + an EnumPicker over the SwipeTransitionMode enum (Reveal / Drag, Se
 
@@ -4286,7 +4286,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 110. Pan Gesture Events — 🟢/🟢
 <sub>pan_gesture_events</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pan_gesture_events_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pan_gesture_events_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pan_gesture_events_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pan_gesture_events_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pan_gesture_events_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pan_gesture_events_dark.gif" /></td></tr></table>
 
 ports PanGestureEventsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PanGestureEventsGallery)
 
@@ -4376,7 +4376,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 116. Pointer Gesture — 🟢/🟢
 <sub>pointer_gesture</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/pointer_gesture_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/pointer_gesture_dark.gif" /></td></tr></table>
 
 ports PointerGestureGalleryPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PointerGestureGalleryPage)
 
@@ -4886,7 +4886,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 150. Swipe Gesture — 🟢/🟢
 <sub>swipe_gesture</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_gesture_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_gesture_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_gesture_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_gesture_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_gesture_dark.gif" /></td></tr></table>
 
 ports SwipeViewGestureRecognizerGallery.xaml (+ .xaml.cs) The MAUI SwipeViewGestureRecognizerGallery is a CollectionView of &amp;quot;message&amp;quot; rows; each row&amp;#x27;s DataTemplate is a SwipeView wired three ways, proving gesture recognizers AND swipe-item
 
@@ -4901,7 +4901,7 @@ Light: SSIM 0.9966, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 151. Swipe Item Position — 🟢/🟢
 <sub>swipe_item_position</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_item_position_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_item_position_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_item_position_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_item_position_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_item_position_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_item_position_dark.gif" /></td></tr></table>
 
 ports SwipeItemPositionGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/SwipeItemPositionGallery.xaml: a 2-row Grid (Auto / *) with a Picker on top and one SwipeView below that carries TWO S
 
@@ -4931,7 +4931,7 @@ Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels diffe
 ### 153. Swipe Refresh — 🟢/🟢
 <sub>swipe_refresh</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_refresh_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_refresh_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_refresh_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_refresh_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/swipe_refresh_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/swipe_refresh_dark.gif" /></td></tr></table>
 
 a self-contained demo page for the W2-20 swipe + refresh controls: a refresh_view wrapping a swipe_view (which itself wraps a labeled row), with a readout label reflecting the latest interaction
 
@@ -5239,8 +5239,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 160 | 160 |
-| 🟡 Minor | 10 | 10 |
+| 🟢 Match | 159 | 159 |
+| 🟡 Minor | 11 | 11 |
 | 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -5260,20 +5260,20 @@ Light: SSIM 0.9903, 0.63% pixels differ · Dark: SSIM 0.9948, 0.64% pixels diffe
 
 Light: SSIM 0.9999, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 2. Activity Indicator — 🟢/🟢
+### 2. Activity Indicator — 🟡/🟡
 <sub>activity_indicator</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/activity_indicator_light.png" /></td><td><img width="300px" src="captures/android/cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/android/xaml/activity_indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/android/cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/android/xaml/activity_indicator_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/android/cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/android/xaml/activity_indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/android/cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/android/xaml/activity_indicator_dark.png" /></td></tr></table>
 
 ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9985, 0.09% pixels differ · Dark: SSIM 0.9984, 0.10% pixels differ
+Light: SSIM 0.9676, 2.42% pixels differ · Dark: SSIM 0.9984, 0.10% pixels differ
 
-#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9985, 0.09% pixels differ · Dark: SSIM 0.9984, 0.10% pixels differ
+Light: SSIM 0.9676, 2.42% pixels differ · Dark: SSIM 0.9984, 0.10% pixels differ
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -5434,11 +5434,11 @@ a faithful reproduction of the maui-compare &amp;quot;border&amp;quot; demo (Com
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9592, 3.55% pixels differ · Dark: SSIM 0.9626, 3.31% pixels differ
+Light: SSIM 0.9592, 3.55% pixels differ · Dark: SSIM 0.9626, 3.30% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9592, 3.55% pixels differ · Dark: SSIM 0.9626, 3.31% pixels differ
+Light: SSIM 0.9592, 3.55% pixels differ · Dark: SSIM 0.9626, 3.30% pixels differ
 
 ### 14. Border Clip Playground — 🟡/🟡
 <sub>border_clip_playground</sub>
@@ -5494,11 +5494,11 @@ ports BorderResizeContent.xaml A self-contained, code-first demo that resizes a 
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9787, 1.66% pixels differ · Dark: SSIM 0.9749, 1.71% pixels differ
+Light: SSIM 0.9785, 1.67% pixels differ · Dark: SSIM 0.9748, 1.72% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9732, 3.48% pixels differ · Dark: SSIM 0.9561, 3.55% pixels differ
+Light: SSIM 0.9730, 3.49% pixels differ · Dark: SSIM 0.9560, 3.55% pixels differ
 
 ### 18. Border Stroke — 🟡/🟡
 <sub>border_stroke</sub>
@@ -5509,11 +5509,11 @@ ports BorderStroke.xaml (+ BorderStroke.xaml.cs) A self-contained, code-first de
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9302, 3.04% pixels differ · Dark: SSIM 0.9447, 3.07% pixels differ
+Light: SSIM 0.9297, 3.00% pixels differ · Dark: SSIM 0.9439, 3.03% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9302, 3.04% pixels differ · Dark: SSIM 0.9447, 3.07% pixels differ
+Light: SSIM 0.9297, 3.00% pixels differ · Dark: SSIM 0.9439, 3.03% pixels differ
 
 ### 19. Borderless — 🟢/🟢
 <sub>borderless</sub>
@@ -5599,7 +5599,7 @@ ports CheckBoxPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical s
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9985, 0.09% pixels differ · Dark: SSIM 0.9986, 0.09% pixels differ
+Light: SSIM 0.9984, 0.09% pixels differ · Dark: SSIM 0.9986, 0.09% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -5659,11 +5659,11 @@ ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.x
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9999, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9999, 0.00% pixels differ
 
 ### 29. Clip Views — 🟡/🟡
 <sub>clip_views</sub>
@@ -5674,11 +5674,11 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9862, 0.58% pixels differ · Dark: SSIM 0.9768, 0.64% pixels differ
+Light: SSIM 0.9860, 0.58% pixels differ · Dark: SSIM 0.9767, 0.64% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9862, 0.58% pixels differ · Dark: SSIM 0.9768, 0.64% pixels differ
+Light: SSIM 0.9860, 0.58% pixels differ · Dark: SSIM 0.9767, 0.64% pixels differ
 
 ### 30. Clipping — 🟢/🟢
 <sub>clipping</sub>
@@ -5689,11 +5689,11 @@ compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror th
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9878, 0.54% pixels differ · Dark: SSIM 0.9884, 0.56% pixels differ
+Light: SSIM 0.9877, 0.54% pixels differ · Dark: SSIM 0.9884, 0.56% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9878, 0.54% pixels differ · Dark: SSIM 0.9884, 0.56% pixels differ
+Light: SSIM 0.9877, 0.54% pixels differ · Dark: SSIM 0.9884, 0.56% pixels differ
 
 ### 31. Collectionview — 🟢/🟢
 <sub>collectionview</sub>
@@ -5869,11 +5869,11 @@ ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9945, 0.63% pixels differ · Dark: SSIM 0.9688, 0.81% pixels differ
+Light: SSIM 0.9932, 0.68% pixels differ · Dark: SSIM 0.9675, 0.86% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9945, 0.63% pixels differ · Dark: SSIM 0.9688, 0.81% pixels differ
+Light: SSIM 0.9932, 0.68% pixels differ · Dark: SSIM 0.9675, 0.86% pixels differ
 
 ### 43. Device — 🟢/🟢
 <sub>device</sub>
@@ -6379,11 +6379,11 @@ ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPag
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9946, 0.23% pixels differ · Dark: SSIM 0.9956, 0.23% pixels differ
+Light: SSIM 0.9944, 0.24% pixels differ · Dark: SSIM 0.9954, 0.24% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9946, 0.23% pixels differ · Dark: SSIM 0.9956, 0.23% pixels differ
+Light: SSIM 0.9944, 0.24% pixels differ · Dark: SSIM 0.9954, 0.24% pixels differ
 
 ### 77. Horizontal Stack — 🟢/🟢
 <sub>horizontal_stack</sub>
@@ -6424,11 +6424,11 @@ ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9986, 0.02% pixels differ · Dark: SSIM 0.9983, 0.04% pixels differ
+Light: SSIM 0.9992, 0.00% pixels differ · Dark: SSIM 0.9992, 0.02% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9986, 0.02% pixels differ · Dark: SSIM 0.9983, 0.04% pixels differ
+Light: SSIM 0.9992, 0.00% pixels differ · Dark: SSIM 0.9992, 0.02% pixels differ
 
 ### 80. Image Button — 🟢/🟢
 <sub>image_button</sub>
@@ -6439,11 +6439,11 @@ ports ImageButtonPage.xaml (+ ImageButtonPage.xaml.cs) A self-contained, code-fi
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9926, 0.43% pixels differ · Dark: SSIM 0.9856, 0.97% pixels differ
+Light: SSIM 0.9925, 0.45% pixels differ · Dark: SSIM 0.9854, 0.99% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9926, 0.43% pixels differ · Dark: SSIM 0.9856, 0.97% pixels differ
+Light: SSIM 0.9925, 0.45% pixels differ · Dark: SSIM 0.9854, 0.99% pixels differ
 
 ### 81. Indicator — 🟢/🟢
 <sub>indicator</sub>
@@ -6484,11 +6484,11 @@ ports InputTransparentPage.xaml (Maui.Controls.Sample.Pages.InputTransparentPage
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9996, 0.05% pixels differ · Dark: SSIM 0.9998, 0.10% pixels differ
+Light: SSIM 0.9996, 0.05% pixels differ · Dark: SSIM 0.9996, 0.10% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9996, 0.05% pixels differ · Dark: SSIM 0.9998, 0.10% pixels differ
+Light: SSIM 0.9996, 0.05% pixels differ · Dark: SSIM 0.9996, 0.10% pixels differ
 
 ### 84. Invalidate Brush — 🟢/🟢
 <sub>invalidate_brush</sub>
@@ -6529,11 +6529,11 @@ ports iOSBlurEffectPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/Platf
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9760, 0.48% pixels differ · Dark: SSIM 0.9709, 0.60% pixels differ
+Light: SSIM 0.9758, 0.48% pixels differ · Dark: SSIM 0.9708, 0.60% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9760, 0.48% pixels differ · Dark: SSIM 0.9709, 0.60% pixels differ
+Light: SSIM 0.9758, 0.48% pixels differ · Dark: SSIM 0.9708, 0.60% pixels differ
 
 ### 87. Ios Date Picker — 🟢/🟢
 <sub>ios_date_picker</sub>
@@ -6739,11 +6739,11 @@ ports LabelPage.xaml (+ LabelPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9865, 0.62% pixels differ · Dark: SSIM 0.9861, 0.65% pixels differ
+Light: SSIM 0.9865, 0.61% pixels differ · Dark: SSIM 0.9861, 0.65% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9865, 0.62% pixels differ · Dark: SSIM 0.9861, 0.65% pixels differ
+Light: SSIM 0.9865, 0.61% pixels differ · Dark: SSIM 0.9861, 0.65% pixels differ
 
 ### 101. Layout Is Enabled — 🟡/🟡
 <sub>layout_is_enabled</sub>
@@ -6949,11 +6949,11 @@ ports PickerPage.xaml (+ PickerPage.xaml.cs) A self-contained, code-first demo p
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9900, 0.29% pixels differ · Dark: SSIM 0.9871, 0.42% pixels differ
+Light: SSIM 0.9901, 0.29% pixels differ · Dark: SSIM 0.9872, 0.42% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9900, 0.29% pixels differ · Dark: SSIM 0.9871, 0.42% pixels differ
+Light: SSIM 0.9901, 0.29% pixels differ · Dark: SSIM 0.9872, 0.42% pixels differ
 
 ### 115. Pickers — 🟢/🟢
 <sub>pickers</sub>
@@ -6964,11 +6964,11 @@ a self-contained demo page for the W1-06 picker set: picker, date_picker and tim
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9944, 0.21% pixels differ · Dark: SSIM 0.9942, 0.23% pixels differ
+Light: SSIM 0.9942, 0.22% pixels differ · Dark: SSIM 0.9941, 0.24% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9998, 0.01% pixels differ · Dark: SSIM 0.9998, 0.01% pixels differ
+Light: SSIM 0.9997, 0.01% pixels differ · Dark: SSIM 0.9997, 0.02% pixels differ
 
 ### 116. Pointer Gesture — 🟢/🟢
 <sub>pointer_gesture</sub>
@@ -6994,11 +6994,11 @@ ports PolygonGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9990, 0.04% pixels differ · Dark: SSIM 0.9988, 0.04% pixels differ
+Light: SSIM 0.9989, 0.04% pixels differ · Dark: SSIM 0.9988, 0.04% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9990, 0.04% pixels differ · Dark: SSIM 0.9988, 0.04% pixels differ
+Light: SSIM 0.9989, 0.04% pixels differ · Dark: SSIM 0.9988, 0.04% pixels differ
 
 ### 118. Polyline Gallery — 🟢/🟢
 <sub>polyline_gallery</sub>
@@ -7069,11 +7069,11 @@ ports RadioButtonBorder.xaml A self-contained, code-first demo of RadioButton bo
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.10% pixels differ · Dark: SSIM 0.9969, 0.13% pixels differ
+Light: SSIM 0.9999, 0.10% pixels differ · Dark: SSIM 0.9969, 0.13% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.10% pixels differ · Dark: SSIM 0.9969, 0.13% pixels differ
+Light: SSIM 0.9999, 0.10% pixels differ · Dark: SSIM 0.9969, 0.13% pixels differ
 
 ### 123. Radio Button Content — 🟢/🟢
 <sub>radio_button_content</sub>
@@ -7084,11 +7084,11 @@ ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the Ra
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9911, 0.27% pixels differ · Dark: SSIM 0.9971, 0.18% pixels differ
+Light: SSIM 0.9911, 0.27% pixels differ · Dark: SSIM 0.9970, 0.18% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9911, 0.27% pixels differ · Dark: SSIM 0.9971, 0.18% pixels differ
+Light: SSIM 0.9911, 0.27% pixels differ · Dark: SSIM 0.9970, 0.18% pixels differ
 
 ### 124. Radio Button Group — 🟢/🟢
 <sub>radio_button_group</sub>
@@ -7099,11 +7099,11 @@ ports RadioButtonGroupGallery.xaml A self-contained, code-first demo of the Radi
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9988, 0.15% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9987, 0.15% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9988, 0.15% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9987, 0.15% pixels differ
 
 ### 125. Radio Button Group Binding — 🟢/🟢
 <sub>radio_button_group_binding</sub>
@@ -7129,11 +7129,11 @@ ports RadioButtonGroupGalleryPage.xaml A self-contained, code-first demo of Radi
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9966, 0.42% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9966, 0.41% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9966, 0.42% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9966, 0.41% pixels differ
 
 ### 127. Radio Content Properties — 🟢/🟢
 <sub>radio_content_properties</sub>
@@ -7249,11 +7249,11 @@ ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 0.9999, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 0.9999, 0.00% pixels differ
 
 ### 135. Scroll View — 🟢/🟢
 <sub>scroll_view</sub>
@@ -7324,11 +7324,11 @@ ports SemanticsPage.xaml (+ SemanticsPage.xaml.cs) The C# SemanticsPage is an ac
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9989, 0.27% pixels differ · Dark: SSIM 0.9989, 0.04% pixels differ
+Light: SSIM 0.9988, 0.26% pixels differ · Dark: SSIM 0.9988, 0.04% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9989, 0.27% pixels differ · Dark: SSIM 0.9989, 0.04% pixels differ
+Light: SSIM 0.9988, 0.26% pixels differ · Dark: SSIM 0.9988, 0.04% pixels differ
 
 ### 140. Shadow Playground — 🟢/🟢
 <sub>shadow_playground</sub>
@@ -7399,11 +7399,11 @@ ports SliderPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9925, 0.03% pixels differ · Dark: SSIM 0.9963, 0.07% pixels differ
+Light: SSIM 0.9925, 0.03% pixels differ · Dark: SSIM 0.9964, 0.07% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9925, 0.03% pixels differ · Dark: SSIM 0.9963, 0.07% pixels differ
+Light: SSIM 0.9925, 0.03% pixels differ · Dark: SSIM 0.9964, 0.07% pixels differ
 
 ### 145. Some Empty Groups — 🟢/🟢
 <sub>some_empty_groups</sub>
@@ -7549,11 +7549,11 @@ ports HorizontalSwipeThresholdGallery.xaml (+ .xaml.cs) The MAUI HorizontalSwipe
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9999, 0.01% pixels differ · Dark: SSIM 0.9999, 0.01% pixels differ
+Light: SSIM 0.9997, 0.01% pixels differ · Dark: SSIM 0.9999, 0.01% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9999, 0.01% pixels differ · Dark: SSIM 0.9999, 0.01% pixels differ
+Light: SSIM 0.9997, 0.01% pixels differ · Dark: SSIM 0.9999, 0.01% pixels differ
 
 ### 155. Swipe View Margin — 🟢/🟢
 <sub>swipe_view_margin</sub>
@@ -7594,11 +7594,11 @@ ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9975, 0.35% pixels differ · Dark: SSIM 0.9985, 0.51% pixels differ
+Light: SSIM 0.9974, 0.35% pixels differ · Dark: SSIM 0.9985, 0.51% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9975, 0.35% pixels differ · Dark: SSIM 0.9985, 0.51% pixels differ
+Light: SSIM 0.9974, 0.35% pixels differ · Dark: SSIM 0.9985, 0.51% pixels differ
 
 ### 158. Switch Grouping — 🟢/🟢
 <sub>switch_grouping</sub>
@@ -7836,9 +7836,9 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 171 | 171 |
+| 🟢 Match | 170 | 170 |
 | 🟡 Minor | 0 | 0 |
-| 🔴 Major | 1 | 1 |
+| 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -7866,11 +7866,11 @@ ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9884, 0.44% pixels differ · Dark: SSIM 0.9837, 0.66% pixels differ
+Light: SSIM 0.9898, 0.36% pixels differ · Dark: SSIM 0.9910, 0.31% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9851, 0.59% pixels differ · Dark: SSIM 0.9890, 0.41% pixels differ
+Light: SSIM 0.9830, 0.66% pixels differ · Dark: SSIM 0.9906, 0.33% pixels differ
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -8361,11 +8361,11 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.6843, 39.74% pixels differ · Dark: SSIM 0.4944, 64.20% pixels differ
+Light: SSIM 0.5947, 30.91% pixels differ · Dark: SSIM 0.4747, 58.03% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.7238, 40.38% pixels differ · Dark: SSIM 0.4889, 64.17% pixels differ
+Light: SSIM 0.5947, 30.92% pixels differ · Dark: SSIM 0.4747, 58.03% pixels differ
 
 ### 36. Controls Stack — 🟢/🟢
 <sub>controls_stack</sub>
@@ -8376,11 +8376,11 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9978, 0.03% pixels differ · Dark: SSIM 0.9985, 0.01% pixels differ
+Light: SSIM 0.9976, 0.03% pixels differ · Dark: SSIM 0.9979, 0.02% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9983, 0.02% pixels differ · Dark: SSIM 0.9983, 0.01% pixels differ
+Light: SSIM 0.9979, 0.02% pixels differ · Dark: SSIM 0.9980, 0.02% pixels differ
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -8502,20 +8502,20 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 45. Drag Drop — 🟢/🟢
+### 45. Drag Drop — 🔴/🔴
 <sub>drag_drop</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/drag_drop_light.png" /></td><td><img width="300px" src="captures/windows/cpp/drag_drop_light.png" /></td><td><img width="300px" src="captures/windows/xaml/drag_drop_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/drag_drop_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/drag_drop_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/drag_drop_dark.png" /></td></tr></table>
 
 ports DragAndDropBetweenLayouts.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.DragAndDropBetweenLayouts)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.8101, 17.84% pixels differ
 
-#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.8101, 17.84% pixels differ
 
 ### 46. Editor — 🟢/🟢
 <sub>editor</sub>
@@ -9021,11 +9021,11 @@ ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9993, 0.00% pixels differ · Dark: SSIM 0.9993, 0.00% pixels differ
+Light: SSIM 0.9980, 0.03% pixels differ · Dark: SSIM 0.9980, 0.03% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9993, 0.00% pixels differ · Dark: SSIM 0.9993, 0.00% pixels differ
+Light: SSIM 0.9980, 0.03% pixels differ · Dark: SSIM 0.9980, 0.03% pixels differ
 
 ### 80. Image Button — 🟢/🟢
 <sub>image_button</sub>
@@ -9561,7 +9561,7 @@ a self-contained demo page for the W1-06 picker set: picker, date_picker and tim
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9976, 0.09% pixels differ · Dark: SSIM 0.9977, 0.09% pixels differ
+Light: SSIM 0.9976, 0.09% pixels differ · Dark: SSIM 0.9976, 0.09% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -10401,7 +10401,7 @@ a self-contained demo page for the W1-08 web_view vertical: a web_view loading a
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9893, 0.33% pixels differ · Dark: SSIM 0.9959, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9959, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 

@@ -53,7 +53,7 @@ appearance="${MAUI_APPEARANCE:-light}"
 # Configuration.uiMode rather than the MAUI_APPEARANCE intent extra: the extra painted the port's own
 # surfaces dark while every theme-resolved native default stayed light, which is how the port drew
 # near-black text on a near-black page. Same mechanism the MAUI reference uses. Restored by the trap.
-python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android >&2 || true
+python3 "${script_dir}/device_state.py" --android >&2 || true
 # Record the device's CURRENT night mode so the trap restores what we found rather than forcing light —
 # an emulator that was already dark would otherwise be silently flipped by running a capture.
 maui_night_before="$("${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no)"
@@ -61,7 +61,7 @@ maui_night_before="$("${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell
   "$([[ "${appearance}" == "dark" ]] && echo yes || echo no)" > /dev/null 2>&1 || true
 sleep 2
 trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night "${maui_night_before}" > /dev/null 2>&1 || true;
-      python3 "$(dirname "${BASH_SOURCE[0]}")/device_state.py" --android --clear >&2 || true' EXIT
+      python3 "${script_dir}/device_state.py" --android --clear >&2 || true' EXIT
 # Canonical layout ALWAYS suffixes the theme: captures/android/xaml/<key>_<theme>.png.
 suffix="_${appearance}"
 

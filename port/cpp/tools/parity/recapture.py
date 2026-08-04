@@ -33,8 +33,10 @@ agent and ONE scratch shot.png, so concurrent runs overwrite each other's frames
 ANIMATED PAGES (the keys in ANIMATED) get a still AND a GIF, on every platform — each lane records
 the motion the way its capture path allows:
   ios      `simctl io recordVideo` -> ffmpeg (smooth video, --gif-secs long)
-  android  `adb shell screenrecord` -> pull -> ffmpeg (same, in its own pass: the still-pass scripts
-           capture exactly one frame per page and restore the device's night mode when they exit)
+  android  a burst of `screencap` stills in its own pass, which also has to turn the device's
+           ANIMATION SCALES back on: the still pass pins them to 0 for determinism, and nothing moves
+           under that pin. (screenrecord is not used — this emulator returns a 1-frame mp4 with no
+           timebase, which ffmpeg turns into zero output frames.)
   macos    a BURST of --gif-frames stills --gif-interval apart, assembled into a slideshow GIF. The
   windows  burst rides along in the same runner pass as the still (run_comparison.py honours a
            per-STEP `settle`), so it costs shots, not a second deploy.
@@ -109,7 +111,9 @@ MAC_VM = os.environ.get("MAC_VM_USER", "testinguser") + "@" + \
     os.environ.get("MAC_VM_HOST", "Testings-Virtual-Machine.local")
 IOS_UDID = os.environ.get("MAUI_SIM_UDID", "C4926671-2FA7-428E-B4A4-480692EE742B")
 ANDROID_SERIAL = os.environ.get("MAUI_ANDROID_SERIAL", "emulator-5554")
-DEFAULT_TIMEOUT = int(os.environ.get("PARITY_STEP_TIMEOUT", "5400"))
+# Seconds of SILENCE that mean a step is wedged rather than slow. Not a runtime budget: the VM
+# sweeps legitimately run for hours, and every step here reports each page as it finishes.
+IDLE_TIMEOUT = int(os.environ.get("PARITY_IDLE_TIMEOUT", "900"))
 
 FAILED: list[str] = []
 LOG_DIR = COMP / "_recapture_logs"
@@ -139,13 +143,22 @@ def fail(what: str) -> None:
 
 # --------------------------------------------------------------------------- child processes
 def run_step(name: str, cmd: list[str], env: dict | None = None,
-             timeout: int = DEFAULT_TIMEOUT, on_line=None) -> int:
+             timeout: int = IDLE_TIMEOUT, on_line=None) -> int:
     """Run a child, tee its output to a per-step log, hand every line to `on_line`.
 
     PYTHONUNBUFFERED is forced: Python block-buffers stdout when it is a pipe, which turned the whole
     per-page progress display into a lie once already (6 minutes in, log empty, 364 PNGs on disk).
-    The timeout is a hard kill — individual steps here have hung for over an hour with nothing on
-    stdout (a VM reboot that never returned, an agent waiting on a window that never appeared).
+
+    `timeout` is an IDLE timeout — seconds with NO output — not a deadline for the whole step. A
+    deadline cannot be chosen: the step that motivated one is a 172-page VM sweep whose honest runtime
+    is 5-6 hours, and a fixed 3h cap killed both VM lanes mid-board after they had already captured a
+    complete light theme. Silence is what actually distinguishes a wedged step (a VM reboot that never
+    returns, an agent waiting on a window that will never appear) from a slow one, and every step here
+    narrates itself page by page.
+
+    The kill is TERM to the process GROUP first — run_comparison.py has `finally` handlers that stop
+    the guest agent and restore the guest's theme, and a leaked agent breaks the NEXT run — escalating
+    to KILL only if it is still there 20s later.
     """
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     slug = "".join(c if c.isalnum() else "-" for c in name)[:60]
@@ -155,24 +168,40 @@ def run_step(name: str, cmd: list[str], env: dict | None = None,
     log(f"--- {name}   (log {step_log.name})")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=e, text=True,
                          bufsize=1, start_new_session=True)
-    # Kill the GROUP: these steps are wrappers around ssh/cmake/adb, and killing only the wrapper
-    # leaves the child holding the guest agent that the next lane then fails to start.
-    killer = threading.Timer(timeout, lambda: os.killpg(p.pid, 9))
-    killer.start()
-    try:
-        with step_log.open("w") as fh:
-            for line in p.stdout:
-                fh.write(line)
-                line = line.rstrip()
-                if on_line is not None:
-                    on_line(line)
-                elif "!" in line:
-                    log(f"      {line[:160]}")   # drops/warnings stay visible on the terminal
-    finally:
-        killer.cancel()
+    last_output = [time.time()]
+    stalled = threading.Event()
+
+    def watchdog():
+        while p.poll() is None:
+            if time.time() - last_output[0] > timeout:
+                stalled.set()
+                log(f"      !! no output for {timeout}s — terminating '{name}'")
+                for sig, wait in ((15, 20), (9, 0)):
+                    try:
+                        os.killpg(p.pid, sig)
+                    except ProcessLookupError:
+                        return
+                    if not wait or p.poll() is not None:
+                        return
+                    time.sleep(wait)
+                return
+            time.sleep(15)
+
+    watcher = threading.Thread(target=watchdog, daemon=True)
+    watcher.start()
+    with step_log.open("w") as fh:
+        for line in p.stdout:
+            last_output[0] = time.time()
+            fh.write(line)
+            line = line.rstrip()
+            if on_line is not None:
+                on_line(line)
+            elif "!" in line:
+                log(f"      {line[:160]}")   # drops/warnings stay visible on the terminal
     rc = p.wait()
     if rc != 0:
-        fail(f"{name} (rc={rc}, see {step_log})")
+        why = f"STALLED >{timeout}s" if stalled.is_set() else f"rc={rc}"
+        fail(f"{name} ({why}, see {step_log})")
     return rc
 
 
@@ -456,7 +485,7 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
                  timeout=600)
 
 
-def lane_android(frameworks, themes, examples, visible, gif_secs) -> None:
+def lane_android(frameworks, themes, examples, visible, gif_secs, gif_frames) -> None:
     log("=== LANE android")
     if not ensure_android_emulator(visible):
         return
@@ -470,23 +499,26 @@ def lane_android(frameworks, themes, examples, visible, gif_secs) -> None:
                      env={"MAUI_APPEARANCE": theme}, on_line=reader)
             reader.close("(script exited)")   # type: ignore[attr-defined]
         if animated:
-            android_gifs(frameworks, theme, animated, gif_secs)
+            android_gifs(frameworks, theme, animated, gif_secs, gif_frames)
 
 
-def android_gifs(frameworks, theme, animated, gif_secs) -> None:
+def android_gifs(frameworks, theme, animated, gif_secs, gif_frames) -> None:
     """screenrecord pass for the animated pages. Separate from the still pass because the shell
     scripts capture exactly one frame per page — and because their exit trap has already put the
     device's night mode back, so this pass has to set it again for the theme it is recording."""
     import capture_android
 
     prev = capture_android.set_theme(theme)
+    prev_anim = capture_android.animations()   # restore what we found, not a guess at what it was
+    capture_android.set_animations(True)       # the still pass pins these to 0; nothing moves under it
     try:
         for fw in frameworks:
             app = ANDROID_SCRIPT[fw][1]
             for key in animated:
                 t0 = begin("android", fw, theme, key, "gif")
                 try:
-                    out = capture_android.capture_gif(app, key, theme, secs=gif_secs)
+                    out = capture_android.capture_gif(app, key, theme, secs=gif_secs,
+                                                     frame_count=gif_frames)
                 except Exception as exc:
                     fail(f"android/{fw}/{theme}/{key}: gif: {exc}")
                     end("android", fw, theme, key, "gif", t0, "ERROR")
@@ -499,6 +531,7 @@ def android_gifs(frameworks, theme, animated, gif_secs) -> None:
                 else:
                     end("android", fw, theme, key, "gif", t0, f"-> {Path(out).relative_to(COMP)}")
     finally:
+        capture_android.set_animations(prev_anim)   # exactly as found
         capture_android.set_theme(prev)
 
 
@@ -574,14 +607,20 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
             "--columns", ",".join(columns), "--themes", ",".join(themes),
             "--only", ",".join(examples), "--settle", str(settle),
             "--scenarios", str(scen_dir),
-        ], on_line=reader, timeout=int(os.environ.get("PARITY_VM_TIMEOUT", "10800")))
+        ], on_line=reader, timeout=int(os.environ.get("PARITY_VM_IDLE_TIMEOUT", "1800")))
         reader.close("(runner exited)")   # type: ignore[attr-defined]
-        if rc != 0:
-            continue
+        # IMPORT EVEN WHEN THE CAPTURE STEP FAILED. The runner writes frames incrementally and loops
+        # theme-OUTERMOST, so a lane that dies partway has still finished whole themes. Skipping the
+        # import on rc!=0 threw away a complete light theme plus ~80% of dark on BOTH VM lanes — six
+        # hours of captures left in the run directory and never published. import_run_captures.py
+        # copies each tag's `initial` frame per theme and simply reports the ones that are absent.
         runs = sorted(COMP.glob("20??-??-??-*"), key=lambda p2: p2.stat().st_mtime)
         if not runs:
             fail(f"{platform}/{lane}: the runner produced no run directory")
             continue
+        if rc != 0:
+            log(f"      capture step failed — importing the {rc and 'partial ' or ''}frames it did "
+                f"produce from {runs[-1].name}")
         run_step(f"{platform}/{lane}: import run into canonical captures",
                  [sys.executable, str(CTOOLS / "import_run_captures.py"), str(runs[-1]), plat_dir],
                  timeout=900)
@@ -751,7 +790,7 @@ def main(argv=None) -> int:
             if platform == "ios":
                 lane_ios(frameworks, themes, examples, visible, a.skip_build, a.settle, a.gif_secs)
             elif platform == "android":
-                lane_android(frameworks, themes, examples, visible, a.gif_secs)
+                lane_android(frameworks, themes, examples, visible, a.gif_secs, a.gif_frames)
             else:
                 if platform == "macos" and not a.skip_build:
                     build("catalyst", frameworks)     # no-op unless cpp / cpp_xaml is selected
