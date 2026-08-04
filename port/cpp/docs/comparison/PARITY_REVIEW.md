@@ -2360,3 +2360,35 @@ pixel-scored columns, so the macOS row must mean CATALYST. AppKit's two columns 
 completeness dimension and would need their own metric (element presence, and cpp-vs-xaml agreement)
 before they could contribute counts. Inventing 🟢/🟡/🔴 numbers for them would fabricate a
 pixel-parity claim the capture path explicitly disclaims.
+
+## ✅ Cross-column identical captures are PIXEL-PERFECT PARITY, not a defect (2026-08-04)
+
+`check_capture_integrity.py` exits 1 on the committed tree with 395 "CROSS-COLUMN" findings. **They are
+not a data-integrity failure.** An earlier note here claimed the board tallies were uncitable; that was
+wrong and is retracted.
+
+**Evidence that these are independent captures, not one file copied into three slots:**
+
+* **mtimes differ per column, in capture-run order.** `ios/box_view_light.png`: maui `08-01 18:43:38`,
+  cpp `08-03 16:35:09`, xaml `08-03 17:09:09` — three separate passes. A propagated frame would land at
+  one moment, not spread across two days.
+* **light and dark still differ** in every one of the 172 cross-column cases (ios 45, android 69,
+  windows 58 pages; **0** with `light == dark`). The real 2026 incident this check was written for had
+  `cpp/{light,dark}` and `maui/dark` all one file — that signature is absent.
+* Byte-identical output **is achievable here**: same simulator/emulator, same `screencapture`, same
+  resolution, frozen status-bar clock (9:41), deterministic PNG encoder. Identical pixels ⇒ identical
+  bytes. My earlier "two independent processes cannot produce byte-identical PNGs" was simply false for
+  this pipeline.
+* **maccatalyst has 0** — consistent, because a Catalyst window capture carries live menu-bar chrome
+  and a window shadow, so it can never be byte-stable.
+
+**So the board tallies stand**: ios 162/10/0, maccatalyst 163/7/2, android 160/10/2, windows 171/0/1.
+The duplicates are the strongest possible parity result — the port's output is *literally the same
+bytes* as MAUI's on 172 page/platform combinations.
+
+**Action on the tool, not on the data:** `check_capture_integrity.py`'s cross-column rule was written
+before the port could hit pixel-perfection, and it now produces false positives that will only grow.
+It should be narrowed to the signature that is actually always wrong — cross-column identity **combined
+with** `light == dark` in a column, or with a mismatch against the run manifest — rather than
+cross-column identity alone. Until then its non-zero exit on this tree is expected, and that is worth a
+line in its docstring so the next reader does not repeat this mistake.

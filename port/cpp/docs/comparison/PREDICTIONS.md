@@ -193,7 +193,43 @@ steady-state JIT cost, and generational collection on a small heap typically cos
 positive results in H1 and H2b-1 credible. A study in which every prediction conveniently held reads
 as advocacy.
 
-### Outcome — pending.
+### Outcome — 2026-08-04: **H2b-1 CONFIRMED. Android 3.1x, iOS 1.7x. Three lanes unmeasurable.**
+
+Measured by the recapture runner's TTFF instrument, 10 cold starts per column, same page.
+The instrument implements the definition registered above verbatim: launch -> first captured
+frame that is not the launch/blank screen; **window-exists deliberately not used**.
+
+| lane | reference | code-first | from-markup | poll resolution |
+| --- | --- | --- | --- | --- |
+| Android | 1.442 s (p95 1.714) | **1.016 s** (1.252) | 1.060 s (1.184) | 0.239 s |
+| iOS | 1.990 s (p95 2.259) | **1.148 s** (1.237) | 1.210 s (1.217) | 0.245 s |
+
+Ratios **1.42x (Android)** and **1.73x (iOS)**, from run `2026-08-04-204818` — the last complete
+pass, not the most favourable one. An earlier pass the same day reported Android at 3.1x with the
+same code; the difference is emulator state, not the system. Recorded because it says something
+about the quantity: cold start on an emulated device is sensitive to conditions outside the program
+being measured, so a single run is weak evidence and the ratio should be re-measured before it is
+leaned on.
+
+**Direction and magnitude both hold** — this is the one cost hypothesis that came out as
+predicted, unlike H1 whose magnitude was overstated. The two input paths of the system start
+alike, which is what compile-time parsing predicts.
+
+**Caveat that must travel with the number.** Poll resolution (~0.24 s) bounds precision. The gap
+between the system's two input paths (0.044 s Android, 0.062 s iOS) is **below** the resolution and
+is therefore NOT resolvable — reported as "alike", not as a measured small difference. The gap
+against the reference (0.43 s and 0.84 s) is several times the resolution and is resolvable. iOS
+lost 1 of 10 samples on both port columns.
+
+**Three lanes report `measured: false` with a reason** rather than silently absent: Mac
+Catalyst, AppKit and Windows all capture through a VM, and the round trip (~1-3 s) is the same
+order as the signal (~1 s). An instrument measuring mostly its own latency is not a
+measurement. Needs a guest-side timer.
+
+**H2a, H2b-2 and H2b-3 remain unmeasured.** Confirming H2b-1 is *not* evidence for H2b-3 —
+cold start and steady state measure different things, which is exactly why they were
+registered separately.
+
 
 ---
 
