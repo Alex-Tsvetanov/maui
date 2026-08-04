@@ -10,3 +10,10 @@
 # .example files, and windows.toml had in fact drifted to be BYTE-IDENTICAL to windows.example.toml,
 # so the rule was protecting a duplicate. Both live configs are tracked now, so cloning this repo onto
 # another Mac with the VMs already set up is enough to run every platform.
+
+# Сурови дневници от recapture.py — стотици мегабайти, регенерируеми, и в голямата
+# си част повторения (един безобиден стек от d8/R8, повторен ~1177 пъти на файл).
+# Подбраният комплект за дипломната работа СЕ комитва — той е доказателственият
+# път за числата в Раздел VI и не се възстановява от нищо.
+_recapture_logs/*
+!_recapture_logs/thesis-bundle-*/

@@ -1,0 +1,361 @@
+{
+ "size": {
+  "macos-arm64": {
+   "maui_xaml": {
+    "artifact": "port/maui-reference/app/bin/Release/net10.0-maccatalyst/maccatalyst-arm64/MauiReference.app",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "path segment",
+    "config_file": "local.toml",
+    "total_bytes": 82472838,
+    "file_count": 166,
+    "buckets": {
+     "resources": 810659,
+     "other": 9506963,
+     "code": 65913120,
+     "managed": 6242096
+    },
+    "main_binary": {
+     "name": "MauiReference",
+     "bytes": 65913120,
+     "linkedit_bytes": 33325056,
+     "stripped_bytes": 33018528
+    },
+    "total_bytes_stripped": 49578246
+   },
+   "cpp": {
+    "artifact": "port/cpp/examples/build-maccatalyst-release/gallery/gallery.app",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 9589554,
+    "file_count": 12,
+    "buckets": {
+     "resources": 531242,
+     "code": 9058312
+    },
+    "main_binary": {
+     "name": "gallery",
+     "bytes": 9058312,
+     "linkedit_bytes": 901120,
+     "stripped_bytes": 9058312
+    },
+    "total_bytes_stripped": 9589554
+   },
+   "cpp_xaml": {
+    "artifact": "port/cpp/examples/build-maccatalyst-release/gallery_xaml/gallery_xaml.app",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 23205188,
+    "file_count": 12,
+    "buckets": {
+     "resources": 531220,
+     "code": 22673968
+    },
+    "main_binary": {
+     "name": "gallery_xaml",
+     "bytes": 22673968,
+     "linkedit_bytes": 7045120,
+     "stripped_bytes": 22673968
+    },
+    "total_bytes_stripped": 23205188
+   }
+  },
+  "macos-appkit": {
+   "appkit_cpp": {
+    "artifact": "port/cpp/examples/build-apple-release/gallery",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 9421513,
+    "file_count": 11,
+    "buckets": {
+     "resources": 529857,
+     "code": 8891656
+    },
+    "main_binary": {
+     "name": "gallery",
+     "bytes": 8891656,
+     "linkedit_bytes": 901120,
+     "stripped_bytes": 8891656
+    },
+    "total_bytes_stripped": 9421513
+   },
+   "appkit_xaml": {
+    "artifact": "port/cpp/examples/build-apple-release/gallery_xaml",
+    "artifact_key": "artifact_release",
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "local.toml",
+    "total_bytes": 23004193,
+    "file_count": 11,
+    "buckets": {
+     "code": 22474336,
+     "resources": 529857
+    },
+    "main_binary": {
+     "name": "gallery_xaml",
+     "bytes": 22474336,
+     "linkedit_bytes": 7045120,
+     "stripped_bytes": 22474336
+    },
+    "total_bytes_stripped": 23004193
+   }
+  },
+  "windows-x64": {
+   "maui_xaml": {
+    "artifact": "C:/maui-src/maui-reference/app/bin/Debug/net10.0-windows10.0.19041.0/win-arm64",
+    "exists": false,
+    "remote_only": true,
+    "note": "built on the guest \u2014 needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "build_config": "unknown",
+    "release_grade": false,
+    "build_config_detected_from": "n/a (remote)",
+    "config_file": "windows.toml"
+   },
+   "cpp": {
+    "artifact": "C:/maui-src/cpp/examples/build-win/gallery",
+    "exists": false,
+    "remote_only": true,
+    "note": "built on the guest \u2014 needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "build_config": "unknown",
+    "release_grade": false,
+    "build_config_detected_from": "n/a (remote)",
+    "config_file": "windows.toml"
+   },
+   "cpp_xaml": {
+    "artifact": "C:/maui-src/cpp/examples/build-win/gallery_xaml",
+    "exists": false,
+    "remote_only": true,
+    "note": "built on the guest \u2014 needs guest-side measurement over SSH (host `artifact` is a source path, not the built artifact)",
+    "build_config": "unknown",
+    "release_grade": false,
+    "build_config_detected_from": "n/a (remote)",
+    "config_file": "windows.toml"
+   }
+  }
+ },
+ "size_measured_at": "2026-08-04T17:51:14Z",
+ "ttff": {
+  "android": {
+   "maui_xaml": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 10,
+    "misses": 0,
+    "samples_s": [
+     2.728,
+     1.356,
+     1.372,
+     1.329,
+     1.513,
+     1.539,
+     1.354,
+     1.569,
+     1.714,
+     1.33
+    ],
+    "poll_resolution_s": 0.228,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 1.329,
+    "median_s": 1.442,
+    "p95_s": 1.714,
+    "max_s": 2.728
+   },
+   "cpp": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 10,
+    "misses": 0,
+    "samples_s": [
+     1.252,
+     0.935,
+     1.274,
+     1.064,
+     1.057,
+     0.86,
+     0.829,
+     0.976,
+     1.205,
+     0.939
+    ],
+    "poll_resolution_s": 0.239,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 0.829,
+    "median_s": 1.016,
+    "p95_s": 1.252,
+    "max_s": 1.274
+   },
+   "cpp_xaml": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 10,
+    "misses": 0,
+    "samples_s": [
+     1.419,
+     1.062,
+     0.933,
+     1.059,
+     1.052,
+     0.982,
+     1.184,
+     1.138,
+     1.14,
+     0.944
+    ],
+    "poll_resolution_s": 0.233,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 0.933,
+    "median_s": 1.06,
+    "p95_s": 1.184,
+    "max_s": 1.419
+   }
+  },
+  "ios": {
+   "maui_xaml": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 10,
+    "misses": 0,
+    "samples_s": [
+     2.822,
+     1.4,
+     2.259,
+     1.992,
+     1.896,
+     2.118,
+     1.36,
+     1.987,
+     2.115,
+     1.959
+    ],
+    "poll_resolution_s": 0.245,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 1.36,
+    "median_s": 1.99,
+    "p95_s": 2.259,
+    "max_s": 2.822
+   },
+   "cpp": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 9,
+    "misses": 1,
+    "samples_s": [
+     1.111,
+     1.237,
+     1.249,
+     1.148,
+     1.214,
+     1.128,
+     1.196,
+     1.039,
+     1.037
+    ],
+    "poll_resolution_s": 0.239,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 1.037,
+    "median_s": 1.148,
+    "p95_s": 1.237,
+    "max_s": 1.249,
+    "miss_reasons": [
+     "no content frame within 30s (last state: unchanged)"
+    ]
+   },
+   "cpp_xaml": {
+    "measured": true,
+    "start_kind": "cold",
+    "page": "label",
+    "n": 9,
+    "misses": 1,
+    "samples_s": [
+     1.17,
+     1.092,
+     1.201,
+     1.359,
+     1.21,
+     1.195,
+     1.212,
+     1.217,
+     1.216
+    ],
+    "poll_resolution_s": 0.238,
+    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
+    "min_s": 1.092,
+    "median_s": 1.21,
+    "p95_s": 1.217,
+    "max_s": 1.359,
+    "miss_reasons": [
+     "no content frame within 30s (last state: unchanged)"
+    ]
+   }
+  },
+  "maccatalyst": {
+   "maui_xaml": {
+    "measured": false,
+    "reason": "capture path is SSH -> screencapture -> scp (~1-3 s per sample); TTFF is ~1 s, so instrument resolution matches the signal. Needs a guest-side timer."
+   },
+   "cpp": {
+    "measured": false,
+    "reason": "capture path is SSH -> screencapture -> scp (~1-3 s per sample); TTFF is ~1 s, so instrument resolution matches the signal. Needs a guest-side timer."
+   },
+   "cpp_xaml": {
+    "measured": false,
+    "reason": "capture path is SSH -> screencapture -> scp (~1-3 s per sample); TTFF is ~1 s, so instrument resolution matches the signal. Needs a guest-side timer."
+   }
+  },
+  "appkit": {
+   "maui_xaml": {
+    "measured": false,
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+   },
+   "cpp": {
+    "measured": false,
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+   },
+   "cpp_xaml": {
+    "measured": false,
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+   }
+  },
+  "windows": {
+   "maui_xaml": {
+    "measured": false,
+    "reason": "app builds and runs on the guest; host-side polling measures transport, not startup."
+   },
+   "cpp": {
+    "measured": false,
+    "reason": "app builds and runs on the guest; host-side polling measures transport, not startup."
+   },
+   "cpp_xaml": {
+    "measured": false,
+    "reason": "app builds and runs on the guest; host-side polling measures transport, not startup."
+   }
+  }
+ },
+ "ttff_meta": {
+  "definition": "launch -> first captured frame that is not the launch/blank screen (PREDICTIONS.md validity requirements); window-exists deliberately NOT used",
+  "reps": 10,
+  "page": "label",
+  "start_kind": "cold"
+ }
+}
