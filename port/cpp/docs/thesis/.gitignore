@@ -1,0 +1,18 @@
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Регенерируеми — НЕ се комитват (tools/gen_tex.py ги възстановява от борда):
+# build/     — изходен PDF + помощните файлове на latexmk
+# generated/ — таблиците, извлечени от comparison.json / measurements.json
+# evidence/  — 4816 СИМВОЛНИ ВРЪЗКИ към captures/, безсмислени извън тази машина
+# (git не поддържа коментар СЛЕД шаблон на същия ред — затова са отделни редове)
+build/
+generated/
+evidence/

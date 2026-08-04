@@ -1,0 +1,169 @@
+% Литературни източници.
+%
+% ВНИМАНИЕ: тук са само записи, чиито данни са проверени. Не се попълват по памет.
+% Всеки запис в първата секция е сверен по DOI/издателска страница; там, където
+% нещо е останало непотвърдено, това е ЗАПИСАНО до записа, а не премълчано.
+%
+% ============================================================================
+% НАУЧНИ ПУБЛИКАЦИИ (задължителни за литературния обзор при ОКС „Магистър“)
+% ============================================================================
+
+% Проблемът за оракула — теоретичната рамка на цялата работа. Именно липсата на
+% оракул прави коректността на графичен интерфейс трудна за проверка; методиката в
+% Раздел V доставя такъв оракул. Цитира се в Увода, §I.4 и Раздел V.
+@article{barr2015oracle,
+  author  = {Barr, Earl T. and Harman, Mark and McMinn, Phil and Shahbaz, Muzammil and Yoo, Shin},
+  title   = {The Oracle Problem in Software Testing: A Survey},
+  journal = {IEEE Transactions on Software Engineering},
+  volume  = {41},
+  number  = {5},
+  pages   = {507--525},
+  year    = {2015},
+  doi     = {10.1109/TSE.2014.2372785}
+}
+
+% Мярката за структурно сходство — количественото оценяване в §5.4 стъпва на нея.
+@article{wang2004ssim,
+  author  = {Wang, Zhou and Bovik, Alan C. and Sheikh, Hamid R. and Simoncelli, Eero P.},
+  title   = {Image Quality Assessment: From Error Visibility to Structural Similarity},
+  journal = {IEEE Transactions on Image Processing},
+  volume  = {13},
+  number  = {4},
+  pages   = {600--612},
+  year    = {2004},
+  doi     = {10.1109/TIP.2003.819861}
+}
+
+% Емпирично измерване на режийните разходи на многоплатформените рамки — прекият
+% предшественик на Раздел VI. Тяхната мярка е „мостът“ към платформените API;
+% настоящата работа мери друго (размер/памет/старт при доказана еквивалентност).
+@article{biornhansen2020overhead,
+  author  = {Bi{\o}rn-Hansen, Andreas and Rieger, Christoph and Gr{\o}nli, Tor-Morten
+             and Majchrzak, Tim A. and Ghinea, Gheorghita},
+  title   = {An empirical investigation of performance overhead in cross-platform
+             mobile development frameworks},
+  journal = {Empirical Software Engineering},
+  volume  = {25},
+  number  = {4},
+  pages   = {2997--3040},
+  year    = {2020},
+  doi     = {10.1007/s10664-020-09827-6}
+}
+
+% Предварителната регистрация на хипотези като изследователска практика —
+% методологичната обосновка на PREDICTIONS.md (§5.6).
+% ЗА ПРОВЕРКА преди предаване: номер на том/статия (DOI е сверен).
+@article{ernst2023registered,
+  author  = {Ernst, Neil A. and Baldassarre, Maria Teresa},
+  title   = {Registered Reports in Software Engineering},
+  journal = {Empirical Software Engineering},
+  year    = {2023},
+  doi     = {10.1007/s10664-022-10277-5},
+  volume  = {28},
+  number  = {2},
+  pages   = {55},
+}
+
+% Автоматизирано визуално тестване на графичен интерфейс — индустриален случай.
+% Пълният списък автори и страниците сверени 2026-08-04 (DOI + оглавлението на A-TEST'17).
+@inproceedings{garousi2017vgt,
+  author    = {Garousi, Vahid and I{\c{s}}{\i}k, {\.I}hsan Berk and Boyraz, Ahmet Zeki
+               and Afzal, Wasif and Baydan, Berker and Yola{\c{c}}an, Burak
+               and {\c{C}}a{\u{g}}lar, Adem and {\c{C}}aylak, Se{\c{c}}kin
+               and Herkilo{\u{g}}lu, Kadir},
+  title     = {Comparing automated visual {GUI} testing tools: an industrial case study},
+  booktitle = {Proceedings of the 8th ACM SIGSOFT International Workshop on Automated
+               Software Testing (A-TEST)},
+  address   = {Paderborn, Germany},
+  pages     = {21--28},
+  year      = {2017},
+  doi       = {10.1145/3121245.3121250}
+}
+
+% ============================================================================
+% ПЪРВОИЗТОЧНИЦИ И ДОКУМЕНТАЦИЯ
+% ============================================================================
+
+@misc{maui_docs,
+  author       = {{Microsoft}},
+  title        = {{.NET} Multi-platform App {UI} (.{NET} {MAUI}) documentation},
+  howpublished = {\url{https://learn.microsoft.com/dotnet/maui/}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{maui_repo,
+  author       = {{Microsoft}},
+  title        = {dotnet/maui --- {.NET MAUI} source repository},
+  howpublished = {\url{https://github.com/dotnet/maui}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{maui_handlers,
+  author       = {{Microsoft}},
+  title        = {Handlers --- {.NET MAUI}},
+  howpublished = {\url{https://learn.microsoft.com/dotnet/maui/user-interface/handlers/}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{iso_cpp23,
+  author       = {{International Organization for Standardization}},
+  title        = {{ISO/IEC 14882:2024} --- Programming languages --- {C++}},
+  howpublished = {ISO, Geneva, Switzerland},
+  year         = {2024}
+}
+
+@misc{cppreference,
+  author       = {{cppreference.com}},
+  title        = {{C++} reference},
+  howpublished = {\url{https://en.cppreference.com/w/cpp}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{flutter_docs,
+  author       = {{Google}},
+  title        = {Flutter documentation},
+  howpublished = {\url{https://docs.flutter.dev/}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{qt_docs,
+  author       = {{The Qt Company}},
+  title        = {{Qt} Documentation},
+  howpublished = {\url{https://doc.qt.io/}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{avalonia_docs,
+  author       = {{AvaloniaUI}},
+  title        = {{Avalonia UI} Documentation},
+  howpublished = {\url{https://docs.avaloniaui.net/}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{reactnative_docs,
+  author       = {{Meta Platforms}},
+  title        = {{React Native} Documentation},
+  howpublished = {\url{https://reactnative.dev/docs/getting-started}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{uikit_docs,
+  author       = {{Apple}},
+  title        = {{UIKit} --- Apple Developer Documentation},
+  howpublished = {\url{https://developer.apple.com/documentation/uikit}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{android_views,
+  author       = {{Google}},
+  title        = {Views --- Android Developers},
+  howpublished = {\url{https://developer.android.com/reference/android/view/View}},
+  note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{winui_docs,
+  author       = {{Microsoft}},
+  title        = {{WinUI 3} --- Windows App {SDK}},
+  howpublished = {\url{https://learn.microsoft.com/windows/apps/winui/winui3/}},
+  note         = {посетен на 4 август 2026 г.}
+}
