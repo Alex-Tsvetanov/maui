@@ -124,8 +124,27 @@ RUN_ID = datetime.now().strftime("%Y-%m-%d-%H%M%S")
 
 
 # --------------------------------------------------------------------------- logging
+_RUN_LOG = None
+
+
 def log(msg: str) -> None:
-    print(f"{datetime.now():%H:%M:%S} | {msg}", flush=True)
+    """Print to the terminal AND append to <RUN_ID>.log.
+
+    The per-example timeline used to exist only on stdout, so closing the terminal lost the entire
+    history of a multi-hour run — and nothing outside that terminal could tell whether the run was
+    progressing. The file is line-buffered and append-only, so `tail -f` works and a monitor can read
+    it without touching the run.
+    """
+    global _RUN_LOG
+    line = f"{datetime.now():%H:%M:%S} | {msg}"
+    print(line, flush=True)
+    try:
+        if _RUN_LOG is None:
+            LOG_DIR.mkdir(parents=True, exist_ok=True)
+            _RUN_LOG = (LOG_DIR / f"{RUN_ID}.log").open("a", buffering=1)
+        _RUN_LOG.write(line + "\n")
+    except OSError:
+        pass          # a logging failure must never take down a capture run
 
 
 def begin(platform: str, framework: str, theme: str, example: str, kind: str) -> float:
