@@ -413,6 +413,30 @@ def run_steps(steps: list[dict] | None, udid: str = UDID) -> None:
     """
     if not steps:
         return
+    # DISABLED BY DEFAULT — this path drives the HOST's pointer, and that is not an acceptable cost.
+    # cliclick posts real mouse events onto the Simulator window and osascript activates it, so a
+    # capture run seizes the cursor and the foreground app for its whole duration: the machine cannot
+    # be used while the board runs, and any stray user click lands in the middle of a gesture and
+    # corrupts the frame. Every other lane already avoids this — Android injects through `adb shell
+    # input` (no pointer at all), and the macOS/Windows guests run their agent over SSH so the cursor
+    # that moves is the VM's, not the operator's. iOS must reach the same bar before it is re-enabled.
+    #
+    # The two acceptable replacements, in preference order:
+    #   1. idb — `brew install idb-companion && pipx install fb-idb`, then `idb ui tap/swipe/text`.
+    #      HID injection straight into the simulator: app-agnostic (all three columns get the same
+    #      gesture, which is what keeps a scenario from manufacturing a red), device-point coordinates
+    #      so no window geometry to resolve, and no cursor or focus involvement whatsoever.
+    #   2. DevFlow on both frameworks — Microsoft's agent + CLI for maui_xaml, the port's in-app HTTP
+    #      agent for cpp/cpp_xaml. In-process, so also cursor-free, but it needs the port's /tap
+    #      widened past its i_button dynamic_cast plus new /swipe, /scroll and /text routes, and the
+    #      MauiReference app does not host an agent yet.
+    if os.environ.get("MAUI_PARITY_IOS_HOST_CURSOR") != "1":
+        raise RuntimeError(
+            "iOS interaction is disabled: the only implemented path drives the HOST pointer and "
+            "steals focus, making the machine unusable for the length of a run. Install idb "
+            "(`brew install idb-companion && pipx install fb-idb`) and switch this lane to `idb ui`, "
+            "or route it through DevFlow on both frameworks. Set MAUI_PARITY_IOS_HOST_CURSOR=1 only "
+            "for a deliberate, attended experiment on a machine you are not using.")
     tool = shutil.which(CLICLICK)
     if tool is None:
         raise RuntimeError(f"{CLICLICK!r} not found — `brew install cliclick` (or set MAUI_PARITY_CLICLICK)")
