@@ -114,6 +114,9 @@ ANDROID_SERIAL = os.environ.get("MAUI_ANDROID_SERIAL", "emulator-5554")
 # Seconds of SILENCE that mean a step is wedged rather than slow. Not a runtime budget: the VM
 # sweeps legitimately run for hours, and every step here reports each page as it finishes.
 IDLE_TIMEOUT = int(os.environ.get("PARITY_IDLE_TIMEOUT", "900"))
+# Consecutive (page, column, theme) units that captured NOTHING before the lane is declared
+# wedged. 9 = three whole pages across three columns — well past a one-off bad frame.
+DROP_STREAK_LIMIT = int(os.environ.get("PARITY_DROP_STREAK", "9"))
 
 FAILED: list[str] = []
 LOG_DIR = COMP / "_recapture_logs"
@@ -195,7 +198,15 @@ def run_step(name: str, cmd: list[str], env: dict | None = None,
             fh.write(line)
             line = line.rstrip()
             if on_line is not None:
-                on_line(line)
+                if on_line(line):
+                    # The handler decided the step is producing garbage rather than progress. The
+                    # idle watchdog cannot see this: a lane dropping every frame is NOISY, not silent.
+                    log(f"      !! aborting '{name}' — the handler reported it is not capturing")
+                    try:
+                        os.killpg(p.pid, 15)
+                    except ProcessLookupError:
+                        pass
+                    break
             elif "!" in line:
                 log(f"      {line[:160]}")   # drops/warnings stay visible on the terminal
     rc = p.wait()
@@ -211,7 +222,7 @@ def marker_reader(platform: str, fw_of_column: dict[str, str], example_kind):
     The runner and the Android scripts emit these; without them we could only learn an example had
     started once its first frame LANDED, which is not "print before every example".
     """
-    state: dict = {"open": None, "t0": 0.0}
+    state: dict = {"open": None, "t0": 0.0, "dropped_streak": 0, "dropped_here": False}
 
     def close(status: str = "") -> None:
         if state["open"] is None:
@@ -220,7 +231,8 @@ def marker_reader(platform: str, fw_of_column: dict[str, str], example_kind):
         end(platform, fw, theme, key, kind, state["t0"], status)
         state["open"] = None
 
-    def on_line(line: str) -> None:
+    def on_line(line: str) -> bool:
+        """Returns True to ask run_step to abort the whole step."""
         if line.startswith("@@PARITY "):
             parts = line.split()
             phase, key, col, theme = parts[1], parts[2], parts[3], parts[4]
@@ -230,10 +242,24 @@ def marker_reader(platform: str, fw_of_column: dict[str, str], example_kind):
                 close("(no END — step failed)")   # a launch failure skips the END marker
                 state["t0"] = begin(platform, fw, theme, key, kind)
                 state["open"] = (key, fw, theme, kind)
+                state["dropped_here"] = False
             else:
                 close()
+                # A wedged guest still narrates: it announces every page and drops every frame, at
+                # full speed, for hours. Consecutive all-dropped units are the signal. Measured: the
+                # guest locked its screen 20 minutes in and the next 40 pages x 3 columns all dropped
+                # while the run looked healthy.
+                state["dropped_streak"] = state["dropped_streak"] + 1 if state["dropped_here"] else 0
+                if state["dropped_streak"] >= DROP_STREAK_LIMIT:
+                    log(f"      !! {state['dropped_streak']} consecutive units captured NOTHING — "
+                        f"the guest is wedged (a locked screen has no window to present)")
+                    return True
+        elif "DROPPED" in line:
+            state["dropped_here"] = True
+            log(f"      {line[:160]}")
         elif "!" in line:
             log(f"      {line[:160]}")
+        return False
 
     on_line.close = close   # type: ignore[attr-defined]
     return on_line
@@ -399,8 +425,29 @@ def mac_vm_reboot_and_settle() -> None:
                               "stat -f%Su /dev/console"], capture_output=True, text=True).stdout.strip()
         if who and who != "root":
             log(f"      console session up ({who}) after ~{i * 10}s")
+            mac_vm_keep_awake()
             return
         time.sleep(10)
+
+
+def mac_vm_keep_awake() -> None:
+    """Stop the guest locking its screen mid-sweep.
+
+    A LOCKED screen has no AX-enumerable windows, so `present` fails and EVERY frame is dropped —
+    while the run keeps going at full speed producing nothing. Measured: the guest locked itself 20
+    minutes after boot and the next 40 pages x 3 columns all dropped. `pmset` was already set to never
+    sleep; it is the screen LOCK (idle) that does it, and it cannot be undone over SSH — only the
+    reboot's autologin clears it, which is exactly why the first 20 minutes worked.
+
+    So: never let it start. idleTime 0 disables the screensaver, and `caffeinate -u` asserts USER
+    activity, which keeps the idle timer from ever reaching the lock threshold. The caffeinate is
+    bounded (24h) so a crashed run cannot leave the guest pinned awake forever.
+    """
+    subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", MAC_VM,
+                    "defaults -currentHost write com.apple.screensaver idleTime 0; "
+                    "pkill -f 'caffeinate -disu' ; "
+                    "nohup caffeinate -disu -t 86400 >/dev/null 2>&1 & exit 0"], capture_output=True)
+    log("      guest kept awake (screensaver off + caffeinate -disu)")
 
 
 # --------------------------------------------------------------------------- builds
@@ -593,6 +640,8 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
             mac_vm_clean()
             if lane == "catalyst":
                 mac_vm_reboot_and_settle()
+            else:
+                mac_vm_keep_awake()   # AppKit does not reboot; it inherits a hours-old session
         # Scenarios dir per lane: empty (one idle shot per page) except for the animated pages, which
         # get a generated burst scenario. Regenerated each lane so a stale one can't leak in.
         scen_dir = LOG_DIR / f"scenarios-{RUN_ID}-{lane}"
