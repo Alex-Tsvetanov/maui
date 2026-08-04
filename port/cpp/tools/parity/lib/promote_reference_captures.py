@@ -61,7 +61,7 @@ def main() -> int:
         raise SystemExit(f"{src_dir} holds NO frames — refusing to report success having promoted "
                          f"nothing (run the reference capture first)")
 
-    rejected, changed, same = [], 0, 0
+    rejected, changed, same, gifs, dropped = [], 0, 0, 0, 0
     for src in frames:
         is_splash, frac, dom = splash_verdict(str(src))
         if is_splash:
@@ -70,15 +70,44 @@ def main() -> int:
         dst = dst_dir / src.name
         if dst.exists() and filecmp.cmp(src, dst, shallow=False):
             same += 1
-            continue
-        changed += 1
-        if not a.dry_run:
-            dst_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(src, dst)
+        else:
+            changed += 1
+            if not a.dry_run:
+                dst_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(src, dst)
+
+        # NOT inside the else: the GIF is promoted whether or not the STILL changed. An animated page
+        # is captured still-first, and the still is the at-rest frame — identical between two runs on
+        # any page that comes to rest the same way, which is most of them. Gating the GIF on the still
+        # having changed therefore skips exactly the pages this exists for. Measured: the first version
+        # of this fix sat after a `continue` and promoted 0 GIFs across all 364 iOS frames.
+        #
+        # The GIF beside the still, promoted with it — and REMOVED with it when the fresh capture has
+        # none. This glob was .png-only, which quietly made the MAUI column of every animated page a
+        # LIE: find_capture() prefers a .gif over a .png, so the board kept whatever GIF an older run
+        # had left while both port columns received fresh ones. Measured on iOS carousel_page: the
+        # freshly captured reference GIF held 33 frames / 16 distinct — MAUI paged the carousel exactly
+        # as the port did — while the board still showed a 1-frame GIF from a previous run. The motion
+        # scorer reads that as "port ANIMATES, MAUI FROZEN" and forces a red, so a harness gap would
+        # have been published as a port defect on every animated page at once.
+        #
+        # The delete arm matters just as much: a page whose fresh recording was discarded (nothing
+        # moved) must not keep an older GIF, or the board shows motion the current build never
+        # produced. Same rule as gif.drop_stale — a missing GIF falls back to the fresh still, which is
+        # honest; a stale one is not.
+        src_gif, dst_gif = src.with_suffix(".gif"), dst.with_suffix(".gif")
+        if src_gif.exists():
+            gifs += 1
+            if not a.dry_run:
+                shutil.copyfile(src_gif, dst_gif)
+        elif dst_gif.exists():
+            dropped += 1
+            if not a.dry_run:
+                dst_gif.unlink()
 
     verb = "would promote" if a.dry_run else "promoted"
     print(f"{a.platform}: {len(frames)} reference frame(s); {verb} {changed}, unchanged {same}, "
-          f"rejected {len(rejected)}")
+          f"rejected {len(rejected)}; GIFs {verb} {gifs}, stale GIFs dropped {dropped}")
     for r in rejected:
         print(f"  ! REJECTED {r}")
     if rejected:
