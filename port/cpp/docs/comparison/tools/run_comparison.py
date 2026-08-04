@@ -336,24 +336,224 @@ class Env:
         return {"ok": False, "error": f"no JSON from agent (rc={rc})", "stderr": stderr.strip()[:400]}
 
 
+# --------------------------------------------------------------------------- step payloads
+# Pure validation for the interaction verbs, kept out of the drivers so `--selftest` can exercise it
+# without a guest.
+#
+# A malformed step MUST raise here. Nothing downstream will catch it: the guest agent's argparse would
+# reject the call, run_action historically discarded the agent's reply, and the run would sail on and
+# capture a frame IDENTICAL to the previous one — which is indistinguishable from a page that
+# legitimately does not react. That is the exact failure the interaction vocabulary was added to fix
+# (13 "animated" pages producing 12 byte-identical burst frames), so loud beats plausible.
+
+SWIPE_DIRECTIONS = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
+DEFAULT_SWIPE_DISTANCE = 300  # px — a board-scale flick at the 1024x800 capture geometry
+
+
+def _step_id(step: dict) -> str:
+    return f"scenario step {step.get('name', '?')!r} (action {step.get('action')!r})"
+
+
+# COORDINATE SPACE. A pair whose |x| AND |y| are both <= 1.0 is a FRACTION of the capture rect;
+# anything larger is absolute screen pixels. The fractional form is the portable one and the one to
+# author: the capture rect sits at screen (128, 30) on the macOS lane and (244, 0) on Windows and
+# fills the whole display on Android, so an absolute number means three different things while
+# `[0.5, 0.15]` means the same place on all of them. capture_android._scale already implements
+# exactly this rule for the Android lane, which reads THE SAME scenario files — the code below
+# mirrors it deliberately rather than inventing a second contract for the desktop lanes.
+def _scale(v: float, span: int) -> int:
+    """One axis: |v| <= 1 is a FRACTION of `span`, anything larger is already pixels."""
+    return round(v * span) if abs(v) <= 1.0 else round(v)
+
+
+def _resolve(step: dict, key: str, rect: dict | None) -> list[int]:
+    """`step[key]` as [x, y] absolute SCREEN pixels. Shape errors and a mixed pair raise."""
+    pt = step.get(key)
+    if (not isinstance(pt, (list, tuple)) or len(pt) != 2
+            or not all(isinstance(v, (int, float)) for v in pt)):
+        raise ValueError(f"{_step_id(step)}: {key} must be [x, y] — a 0..1 fraction of the capture "
+                         f"rect (preferred) or absolute screen pixels, got {pt!r}")
+    x, y = float(pt[0]), float(pt[1])
+    frac = [abs(v) <= 1.0 for v in (x, y)]
+    if any(frac) and not all(frac):
+        # Hard error on every lane: half-scaling a pair would put the point somewhere no author ever
+        # meant, and it would still be a plausible-looking on-screen coordinate.
+        raise ValueError(f"{_step_id(step)}: mixed coordinate {list(pt)!r} — both values must be "
+                         f"fractions (<=1.0) or both pixels; a mixed pair would scale one axis and "
+                         f"not the other")
+    if not any(frac):
+        # round(), not int(): the guests' _drag_points rounds too, and int() truncates toward zero, so a
+        # negative float coordinate would land one pixel apart on the host and the guest.
+        return [round(x), round(y)]
+    if rect is None:
+        raise ValueError(f"{_step_id(step)}: {key} = {list(pt)!r} is a fraction, but no capture rect "
+                         f"was supplied, so there is nothing to scale it against")
+    # ORIGIN INCLUDED. A fraction is a fraction OF THE RECT, not of the display: 0,0 is its top-left
+    # and 1,1 its bottom-right, so the two lanes' different window origins cancel out.
+    return [rect["x"] + _scale(x, rect["w"]), rect["y"] + _scale(y, rect["h"])]
+
+
+def _clamp(pt: list[int], rect: dict | None) -> list[int]:
+    """A point pinned inside `rect`. An unknown rect (None) clamps to nothing and returns it as-is."""
+    if rect is None:
+        return pt
+    return [max(rect["x"], min(rect["x"] + rect["w"] - 1, pt[0])),
+            max(rect["y"], min(rect["y"] + rect["h"] - 1, pt[1]))]
+
+
+def step_point(step: dict, key: str = "at", rect: dict | None = None) -> list[int]:
+    """The point a step ACTS AT, as [x, y] absolute screen pixels, or ValueError.
+
+    Enforces the START rule: with a known rect the point must be INSIDE it. A click/hover/drag that
+    starts outside the captured window acts on the desktop or on another app — it does nothing the
+    board can see, the agent reports ok, and the frame comes back identical to the previous one,
+    which is indistinguishable from a page that does not react. Raised rather than refused because
+    it is an offline-detectable AUTHORING error: `--selftest` resolves every checked-in scenario
+    against both lanes' rects, so this can never first surface three hours into a run.
+
+    (`rect=None` — the runner could not establish a capture rect — skips the check and accepts only
+    absolute coordinates. The drivers refuse coordinate steps outright in that state; the default
+    exists for callers that only want the shape validation, e.g. scenarios/_selftest.py.)"""
+    pt = _resolve(step, key, rect)
+    if rect is not None and not (rect["x"] <= pt[0] < rect["x"] + rect["w"]
+                                 and rect["y"] <= pt[1] < rect["y"] + rect["h"]):
+        raise ValueError(f"{_step_id(step)}: {key} resolves to {pt}, outside the "
+                         f"{rect['w']}x{rect['h']} capture rect at ({rect['x']}, {rect['y']}) — the "
+                         f"gesture would land on the desktop, not on the page. Author a 0..1 "
+                         f"fraction of the rect instead of pixels of one lane's screen")
+    return pt
+
+
+def drag_endpoints(step: dict, rect: dict | None = None) -> tuple[list[int], list[int]]:
+    """(start, end) for a drag/swipe step, from either authoring form; ValueError if malformed.
+
+        explicit:  at = [x1, y1]   to = [x2, y2]
+        axis:      at = [x1, y1]   direction = "up"|"down"|"left"|"right"   distance = <px|fraction>
+
+    The axis form is what a swipe usually wants — it makes "along one axis" mechanical instead of
+    something the author has to get right by hand.
+
+    THE END IS CLAMPED, THE START IS REJECTED. An unbounded end is not merely off-target on macOS, it
+    is CORRUPTING: cliclick reads a leading minus as a RELATIVE offset (absolute negatives need an
+    `=` prefix), so `at = [300, 400] direction = "left" distance = 600` emitted `du:-300,400` and
+    released the button 450px left of the press — a gesture no control ever saw. Clamping is also
+    what a real finger does: a drag running off the glass is a SHORTER drag. Only the start is an
+    authoring error, because it alone decides what the gesture touches. Same split as
+    capture_android.input_argv, which already clamps this way."""
+    start = step_point(step, "at", rect)
+    if "to" in step:
+        end = _resolve(step, "to", rect)     # clamped below, not rejected
+    else:
+        direction = str(step.get("direction", "")).lower()
+        if direction not in SWIPE_DIRECTIONS:
+            raise ValueError(f"{_step_id(step)}: needs either to = [x, y] or direction = one of "
+                             f"{sorted(SWIPE_DIRECTIONS)} (got direction={step.get('direction')!r})")
+        distance = step.get("distance", DEFAULT_SWIPE_DISTANCE)
+        if not isinstance(distance, (int, float)) or distance <= 0:
+            raise ValueError(f"{_step_id(step)}: distance must be a positive number of pixels (or a "
+                             f"0..1 fraction of the axis), got {distance!r}")
+        dx, dy = SWIPE_DIRECTIONS[direction]
+        if rect is not None:
+            # Same fraction rule as the coordinate pair, on whichever axis the swipe runs along —
+            # otherwise a scenario could author `at` portably and its distance only in one lane's px.
+            distance = _scale(float(distance), rect["w"] if dx else rect["h"])
+        end = [start[0] + round(dx * distance), start[1] + round(dy * distance)]
+    end = _clamp(end, rect)
+    if end == start:
+        # A zero-length drag passes every shape check above and is then a press-hold-release at one
+        # point — a CLICK. It runs, the agent reports ok, and the frame comes back identical: the
+        # silent no-op this whole module comment is about, wearing a different hat.
+        raise ValueError(f"{_step_id(step)}: zero-length drag ({start} -> {end}) is a click, not a "
+                         f"pan (a fractional `distance` with no capture rect, or an end clamped back "
+                         f"onto the start?)")
+    return start, end
+
+
+def drag_options(step: dict) -> list[str]:
+    """The optional --steps / --duration knobs of a drag/swipe step, as agent argv."""
+    opts: list[str] = []
+    if "steps" in step:
+        v = step["steps"]
+        if not isinstance(v, int) or v <= 0:
+            raise ValueError(f"{_step_id(step)}: steps must be a positive integer, got {v!r}")
+        opts += ["--steps", str(v)]
+    if "duration" in step:
+        v = step["duration"]
+        if not isinstance(v, (int, float)) or v <= 0:
+            raise ValueError(f"{_step_id(step)}: duration must be a positive number of seconds, "
+                             f"got {v!r}")
+        opts += ["--duration", str(float(v))]
+    return opts
+
+
 # --------------------------------------------------------------------------- drivers
+# Every verb that needs a coordinate, i.e. everything but the idle step and `type` (which goes to
+# whatever has focus). Listed once so the no-rect guard below cannot drift from the dispatch table.
+COORDINATE_ACTIONS = ("click", "scroll", "hover", "drag", "swipe")
+
+
 class CoordinateDriver:
-    """Absolute-coordinate interaction via the guest agent (cliclick). The default."""
+    """Coordinate interaction via the guest agent (cliclick / SendInput). The default.
 
-    def __init__(self, env: Env):
+    `rect` is the CAPTURE RECT in screen pixels, {x, y, w, h}: the surface a 0..1 fractional
+    coordinate is a fraction of, and the box a step's start point must be inside. run_env hands it
+    over — with `present` it is the rect the runner pins before every shot, otherwise the bounds
+    `window-id` reported. None means the runner could not establish one, which is not a coordinate
+    space at all, so every coordinate verb is REFUSED rather than aimed at a guess."""
+
+    def __init__(self, env: Env, rect: dict | None = None):
         self.env = env
+        self.rect = rect
 
-    def run_action(self, step: dict) -> None:
+    def _agent(self, subcmd: str, *args) -> str | None:
+        """Call the guest agent; None on success, else the one-line reason it refused.
+
+        run_action used to discard the agent's reply entirely, so a step the guest could not perform
+        (bad argv, no window, cliclick not installed) looked EXACTLY like a step that ran: the next
+        frame comes back identical, which is indistinguishable from a page that does not react.
+        Printing it was only half the fix — the frame was still captured, written under the refused
+        step's name, scored and published, and never appeared in the end-of-run dropped list. The
+        reason is RETURNED so run_env can drop that frame. Still not raised: a refused step is a real
+        finding to read in the log, but aborting a five-hour board run over one costs far more."""
+        r = self.env.agent(subcmd, *args)
+        if r.get("ok", True):
+            return None
+        why = f"agent {subcmd} refused the step: {r.get('error') or r.get('stderr') or r}"
+        print(f"      ! {why}")
+        return why
+
+    def run_action(self, step: dict) -> str | None:
+        """Perform one step. None when it ran; otherwise the reason it did not, and the caller drops
+        the frame that reason belongs to. Only THAT frame — the unit's later steps still run, and
+        their frames are scored against a reference column that did act, so a divergence shows up as
+        a red rather than as a quiet pass."""
         action = step.get("action")
         if not action:
-            return
+            return None   # the idle screenshot ~155 of the board's pages want: no agent call at all
+        if action in COORDINATE_ACTIONS and self.rect is None:
+            return (f"{_step_id(step)}: no capture rect, so a coordinate resolves against nothing "
+                    f"(present = false and `window-id` reported no bounds?)")
         if action == "click":
-            self.env.agent("click", *step["at"])
+            return self._agent("click", *step_point(step, "at", self.rect))
         elif action == "type":
-            self.env.agent("type", step["text"])
+            text = step.get("text")
+            if not isinstance(text, str):
+                raise ValueError(f"{_step_id(step)}: text must be a string, got {text!r}")
+            return self._agent("type", text)
         elif action == "scroll":
-            x, y = step["at"]
-            self.env.agent("scroll", x, y, step["dy"])
+            x, y = step_point(step, "at", self.rect)
+            dy = step.get("dy")
+            if not isinstance(dy, int) or dy == 0:
+                raise ValueError(f"{_step_id(step)}: dy must be a NON-ZERO integer pixel delta "
+                                 f"(0 scrolls nothing and banks a duplicate frame), got {dy!r}")
+            return self._agent("scroll", x, y, dy)
+        elif action == "hover":
+            return self._agent("hover", *step_point(step, "at", self.rect))
+        elif action in ("drag", "swipe"):
+            # Both map to the guest's like-named subcommand, which is ONE implementation there too —
+            # swipe differs only in defaulting to a faster, shorter gesture.
+            start, end = drag_endpoints(step, self.rect)
+            return self._agent(action, *start, *end, *drag_options(step))
         else:
             raise ValueError(f"unknown scenario action: {action!r}")
 
@@ -364,40 +564,52 @@ class MauiDevFlowDriver(CoordinateDriver):
     EXPERIMENTAL: DevFlow's CLI surface changes between releases. Any DevFlow call that fails falls
     back to the coordinate path, so scenarios that use `at = [x, y]` (no automation_id) work today
     regardless of whether DevFlow is set up on the VM.
+
+    TAP IS THE ONLY VERB THIS OVERRIDES. The guard below is `action == "click"`, so type/scroll and
+    every pointer verb (hover/drag/swipe) go straight to CoordinateDriver — DevFlow has no
+    element-relative equivalent for them, and inventing one would mean two calibrations to keep in
+    sync. An `automation_id` on a non-click step is simply ignored, exactly as it is by the
+    coordinate driver.
     """
 
-    def __init__(self, env: Env, column_cfg: dict):
-        super().__init__(env)
+    def __init__(self, env: Env, column_cfg: dict, rect: dict | None = None):
+        super().__init__(env, rect)
         self.cli = column_cfg.get("devflow_cli", "maui")
 
-    def run_action(self, step: dict) -> None:
+    def run_action(self, step: dict) -> str | None:
         if step.get("action") == "click" and step.get("automation_id"):
             try:
                 r = self.env.ssh_run([self.cli, "devflow", "agent", "interact", "tap",
                                       "--automationid", step["automation_id"]], timeout=60)
                 if r.returncode == 0:
-                    return
+                    return None
                 print(f"      maui-devflow tap failed (rc={r.returncode}); using coordinates")
             except Exception as e:
                 print(f"      maui-devflow tap error ({e}); using coordinates")
-        super().run_action(step)
+        return super().run_action(step)
 
 
 class HttpDevFlowDriver(CoordinateDriver):
     """cpp / cpp_xaml columns: tap-by-automationId via the C++ port's in-app DevFlow agent.
 
     The agent (port/cpp/src/devflow) exposes JSON-over-HTTP on 127.0.0.1:<MAUI_DEVFLOW_PORT> — see
-    port/cpp/docs/DEVFLOW_PROTOCOL.md. It only implements tap (v1), so type/scroll and coordinate taps
-    fall back to cliclick. The app must be built with -DMAUI_DEVFLOW=ON and launched with
+    port/cpp/docs/DEVFLOW_PROTOCOL.md. It only implements tap (v1), so type/scroll, the pointer verbs
+    (hover/drag/swipe) and coordinate taps all fall back to the coordinate driver — same reasoning as
+    MauiDevFlowDriver above. The app must be built with -DMAUI_DEVFLOW=ON and launched with
     MAUI_DEVFLOW_PORT set (the runner does this when a column's driver is "cpp_devflow"). Requests are
     issued with the VM's curl over SSH, so no persistent port-forward is needed.
+
+    Every failure path falls through to the coordinate driver, which then needs the step's `at` — a
+    scenario that gives an `automation_id` and NO coordinate has nothing to fall back to and raises.
+    No checked-in scenario uses automation_id yet, so that is latent rather than live; author both
+    until the DevFlow path is the primary one.
     """
 
-    def __init__(self, env: Env, column_cfg: dict):
-        super().__init__(env)
+    def __init__(self, env: Env, column_cfg: dict, rect: dict | None = None):
+        super().__init__(env, rect)
         self.port = column_cfg.get("devflow_port")
 
-    def run_action(self, step: dict) -> None:
+    def run_action(self, step: dict) -> str | None:
         aid = step.get("automation_id")
         if step.get("action") == "click" and aid and self.port:
             body = json.dumps({"automation_id": aid})
@@ -405,24 +617,78 @@ class HttpDevFlowDriver(CoordinateDriver):
                 r = self.env.ssh_run(["/usr/bin/curl", "-s", "-X", "POST",
                                       f"http://127.0.0.1:{self.port}/tap", "-d", body], timeout=60)
                 resp = json.loads(r.stdout.strip() or "{}")
-                if r.returncode == 0 and resp.get("found"):
-                    return
-                print(f"      cpp-devflow tap miss ({r.stdout.strip()[:80]}); using coordinates")
+                # BOTH flags, not just `found`. Per docs/DEVFLOW_PROTOCOL.md, v1 only ACTIVATES
+                # buttons: a tap on any non-i_button target answers found:true, activated:false —
+                # a matched element that was never clicked. Returning on `found` alone reported that
+                # no-op as a completed tap and skipped the coordinate fallback that would have done
+                # the real thing, so the frame banked the page in its untouched state.
+                if r.returncode == 0 and resp.get("found") and resp.get("activated"):
+                    return None
+                why = ("found but NOT activated (not an i_button — v1 only clicks buttons)"
+                       if resp.get("found") else f"miss ({r.stdout.strip()[:80]})")
+                print(f"      cpp-devflow tap {why}; using coordinates")
             except Exception as e:
                 print(f"      cpp-devflow tap error ({e}); using coordinates")
-        super().run_action(step)
+        return super().run_action(step)
 
 
-def make_driver(env: Env, column: str, column_cfg: dict):
+def make_driver(env: Env, column: str, column_cfg: dict, rect: dict | None = None):
     driver = column_cfg.get("driver", "coordinate")
     if driver == "maui_devflow":
-        return MauiDevFlowDriver(env, column_cfg)
+        return MauiDevFlowDriver(env, column_cfg, rect)
     if driver == "cpp_devflow":
-        return HttpDevFlowDriver(env, column_cfg)
-    return CoordinateDriver(env)
+        return HttpDevFlowDriver(env, column_cfg, rect)
+    return CoordinateDriver(env, rect)
 
 
 # --------------------------------------------------------------------------- scenarios
+#
+# SCENARIO TOML SYNTAX (port/cpp/docs/comparison/scenarios/<tag>.toml)
+# ------------------------------------------------------------------
+# A file is OPTIONAL. Without one the tag gets exactly one idle screenshot, which is what ~165 of the
+# board's pages want. With one, every [[steps]] entry is "do the action, settle, capture a frame".
+#
+#     tag = "swipe_view"
+#     themes = ["light", "dark"]     # default ["light"]
+#     settle = 2.0                   # optional, per-tag; --settle still wins if it is HIGHER
+#
+#     [[steps]]
+#     name = "initial"               # no `action` -> settle + screenshot (the default step)
+#
+# COORDINATES ARE A 0..1 FRACTION OF THE CAPTURE RECT when |x| and |y| are BOTH <= 1.0, and absolute
+# screen pixels otherwise (a MIXED pair is an error). Author the fraction: the same rect sits at
+# screen (128, 30) on the macOS lane, (244, 0) on Windows, and fills the display on Android, so one
+# absolute number means three different places while `[0.5, 0.15]` means one. `distance` follows the
+# same rule on whichever axis the swipe runs along. The older checked-in scenarios still carry
+# absolute pixels calibrated for the 1024x800 present rect (see their header comments for the
+# geometry model); both forms resolve here, and a start point outside the rect is rejected either way.
+#
+#   click   at = [x, y]                       [automation_id = "..."]  # used by the DevFlow drivers
+#   type    text = "MAUI"                     # types into whatever currently has focus
+#   scroll  at = [x, y]   dy = -400           # pixels; negative reveals content further down
+#   hover   at = [x, y]                       # park the pointer there and LEAVE it (PointerOver,
+#                                             #   PointerGestureRecognizer entered/moved, tooltips)
+#   drag    at = [x1, y1]  to = [x2, y2]      # press, MOVE through interpolated points, release
+#           [steps = 10]   [duration = 0.35]  #   steps = move events (>=2); duration = seconds, a
+#                                             #   FLOOR not a target (the agent emits the real one)
+#   swipe   at = [x, y]   direction = "left"  # a fast drag along ONE axis; same guest code path as
+#           [distance = 300] [steps] [duration]  #   drag, only the defaults differ
+#   swipe   at = [x1, y1]  to = [x2, y2]      # ...or give a swipe explicit endpoints, like drag
+#
+# Keep duration/steps above ~0.02s PER MOVE. Below that both OSes coalesce the move events, the
+# intermediate motion collapses, and the gesture degenerates back toward a click — the defaults
+# (drag 0.35/10, swipe 0.12/6) are both ~20-35ms per move. The agent emits the measured `elapsed`
+# so a too-fast gesture is visible in the run log rather than only in a suspiciously identical frame.
+#
+# `direction` is one of up/down/left/right and also works on `drag`. A malformed step (missing `at`,
+# a zero `dy`, an unknown direction, a zero-length drag) RAISES — it does not quietly do nothing,
+# because a step that does nothing banks a frame identical to the previous one, which is exactly what
+# the old "13 animated pages, 12 identical frames" bug looked like.
+#
+# POINTER STATE IS MACHINE-GLOBAL. hover/drag/swipe leave the pointer where they finished, and it
+# stays there across the app relaunch between columns — so a hover highlight can bleed into the NEXT
+# unit's `initial` frame, which the reference column may not have. End a pointer-moving scenario with
+# a hover to a neutral point (a blank area of the window) rather than relying on a reset.
 def load_scenario(scenarios_dir: Path, tag: str) -> dict:
     """The tag's scenario, or a one-step default (single idle screenshot) when absent."""
     f = scenarios_dir / f"{tag}.toml"
@@ -538,7 +804,8 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
 
     remote_shot = posixpath.join(env.scratch, "shot.png")
     frames: dict[tuple, dict] = {}  # (tag, column, n) -> {theme, step, local}
-    failed_frames: list[str] = []   # frames dropped as un-presentable (see shoot_presented)
+    failed_frames: list[str] = []   # every frame NOT published: unpresentable (see shoot_presented),
+                                    # wrong size, un-pullable, or driven by a step the guest refused
     # THEME IS THE OUTERMOST LOOP, deliberately. It used to be the innermost (tag -> column -> theme),
     # which was free while the theme was just an env var handed to each launch. It is not free now: with
     # system_theme the theme is a property of the whole MACHINE, so the innermost ordering would flip the
@@ -572,7 +839,6 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 ccfg = env.columns[col]
                 if ccfg.get("_missing"):
                     continue
-                driver = make_driver(env, col, ccfg)
                 # Machine-readable per-example progress. tools/parity/recapture.py wraps this runner and
                 # cannot know an example STARTED from the existing "  tag/col/theme <step> -> …" line —
                 # that only prints once the first frame has already landed. These two markers bracket the
@@ -627,9 +893,34 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                 if not env.present:
                     win = env.agent("window-id", pid, "--proc", ccfg["process"])
                     win_id, win_rect, bounds = win.get("id"), win.get("rect"), win.get("bounds")
+                # THE SURFACE a scenario coordinate is resolved against: a 0..1 fraction is a fraction
+                # OF THIS RECT, and a step's start point must be inside it. With `present` the runner
+                # PINS the window to env.geom before every shot, so that IS the rect by construction.
+                # Without it the window sits wherever the app opened it and geom's x/y are nominal
+                # (the appkit lane configures 0,0 for a window that opens at x=516 — its own config
+                # comment says x/y are unused there), so the bounds `window-id` just reported are the
+                # only honest answer. Its own local, never aliased to `bounds`: that one is reassigned
+                # per shot below, and the coordinate space must not drift mid-unit.
+                surface = g if env.present else (
+                    {"x": bounds[0], "y": bounds[1], "w": bounds[2], "h": bounds[3]}
+                    if isinstance(bounds, (list, tuple)) and len(bounds) == 4 else None)
+                driver = make_driver(env, col, ccfg, surface)
                 try:
                     for step in scenario["steps"]:
-                        driver.run_action(step)
+                        refused = driver.run_action(step)
+                        # Every step consumes a frame number whether or not it banks a frame: score()
+                        # pairs a column's frame with the reference's BY NUMBER, so a dropped frame
+                        # must still take its slot or the whole unit shifts against the reference.
+                        n += 1
+                        if refused:
+                            # The step did not run, so the app is still in the PREVIOUS step's state
+                            # and this shot would be published under this step's name — the "did
+                            # nothing, reported success" bug the interaction vocabulary exists to
+                            # prevent. Drop it and name it in the end-of-run block like any other bad
+                            # frame; do not abort, one refused step must not cost a five-hour run.
+                            print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — {refused}")
+                            failed_frames.append(f"{tag}/{col}/{theme}#{n}")
+                            continue
                         # Per-STEP settle. Read ONLY from the step, defaulting to tag_settle, so any
                         # scenario without it behaves exactly as before (the max(scenario, --settle)
                         # rule above still governs those — web_view's 5s is never silently sped up).
@@ -637,7 +928,6 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                         # animated pages: a dozen frames a few hundred ms apart, in the SAME pass that
                         # takes the `initial` still, instead of a second deploy at a lower --settle.
                         time.sleep(float(step.get("settle", tag_settle)))
-                        n += 1
                         if env.present:
                             # `or bounds` HERE WAS THE WORST BUG IN THIS RUNNER. shoot_presented returns
                             # None when it cannot present after the self-heal, and its docstring says to
@@ -667,7 +957,11 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                             env.agent("shot", remote_shot)  # whole-display last resort
                         local = run_root / tag / env.platform / col / f"{n:04d}.png"
                         if not env.pull(remote_shot, local):
-                            print(f"  ! {tag}/{col}/{theme}#{n}: capture pull failed")
+                            # Recorded too: a frame that never reached the host is exactly as absent
+                            # as one that was never captured, and the end-of-run list is what tells
+                            # the operator this page kept its STALE board still.
+                            print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — capture pull failed")
+                            failed_frames.append(f"{tag}/{col}/{theme}#{n}")
                             continue
                         # The window is presented at an EXPLICIT size, so a correct shot is exactly g[w]xg[h].
                         # ANY other size is a failed present, and neither failure looks broken on the board:
@@ -703,7 +997,7 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
     if failed_frames:
         # Loud + non-optional: a sweep that silently omits frames looks identical to a clean one, and
         # the affected pages would keep whatever STALE capture the board already had.
-        print(f"\n  !! {len(failed_frames)} frame(s) DROPPED (window never presented) — these pages are\n     NOT refreshed; re-run --only <pages> once the VM session is healthy:")
+        print(f"\n  !! {len(failed_frames)} frame(s) DROPPED (unpresentable window, wrong size, failed\n     pull, or a refused interaction step) — these pages are NOT refreshed; re-run\n     --only <pages> once the VM session is healthy:")
         for f in failed_frames:
             print(f"       {f}")
 
@@ -765,9 +1059,233 @@ def score(env: Env, tags: list[str], run_root: Path, frames: dict) -> dict:
     return summary
 
 
+def _expect_raises(fn, payload) -> None:
+    try:
+        fn(payload)
+    except ValueError:
+        return
+    raise AssertionError(f"{fn.__name__} accepted malformed step {payload!r} — a step that no-ops "
+                         f"banks a duplicate frame, which is the bug this validation exists to stop")
+
+
+def _selftest() -> int:
+    """Assert-based check of the pure step-payload helpers and both guests' drag interpolation.
+
+    No SSH, no config, no guest: `python3 run_comparison.py --selftest`. Everything here is a pure
+    function precisely so this can run on the dev machine before a five-hour board run does."""
+    assert step_point({"at": [10, 20]}) == [10, 20]
+    assert step_point({"at": (10.9, 20)}) == [11, 20]              # TOML floats are rounded, not refused
+    assert step_point({"at": [-40.9, -2]}) == [-41, -2]            # …the same way the guests round
+    assert step_point({"to": [10, 20]}, "to") == [10, 20]
+    for bad in ({}, {"at": None}, {"at": [10]}, {"at": [1, 2, 3]}, {"at": "10,20"},
+                {"at": [0.5, 300]},                                # MIXED: one axis would scale
+                {"at": [300, 0.5]},
+                {"at": [0.5, 0.5]}):                               # a fraction with nothing to scale by
+        _expect_raises(step_point, bad)
+
+    # THE PORTABLE CONTRACT: |x| and |y| both <= 1.0 is a fraction OF THE CAPTURE RECT, origin
+    # included, so one number means the same place on both lanes. Same rule capture_android._scale
+    # applies to the display — asserted here against the two lanes' real rects (measured from run
+    # sidecars) rather than against a round number, because it is the ORIGIN that used to be missing.
+    MAC = {"x": 128, "y": 30, "w": 1024, "h": 800}
+    WIN = {"x": 244, "y": 0, "w": 1024, "h": 800}
+    assert step_point({"at": [0.5, 0.5]}, "at", MAC) == [640, 430]
+    assert step_point({"at": [0.5, 0.5]}, "at", WIN) == [756, 400]   # …the SAME place on the other lane
+    assert step_point({"at": [0, 0]}, "at", MAC) == [128, 30]        # 0,0 is the rect's top-left
+    assert step_point({"at": [0.999, 0.999]}, "at", MAC) == [1151, 829]
+    assert _resolve({"to": [1, 1]}, "to", MAC) == [1152, 830]       # the 1.0 boundary IS a fraction
+    assert step_point({"at": [756, 171]}, "at", MAC) == [756, 171]  # >1 stays absolute, unshifted
+    # A start outside the rect acts on the desktop, not on the page. Checked against the appkit lane's
+    # 480x752 rect, where the OTHER lanes' absolute calibration is off-window — which is precisely how
+    # an absolute number silently misses when a scenario is reused across lanes.
+    for bad in ({"at": [-0.5, 0.5]},                               # a negative fraction is outside
+                {"at": [2000, 400]},                               # …so is an off-window pixel
+                {"at": [756, 171]}):                               # …and so is a macOS-lane calibration
+        _expect_raises(lambda s: step_point(s, "at", {"x": 0, "y": 0, "w": 480, "h": 752}), bad)
+
+    assert drag_endpoints({"at": [100, 200], "to": [300, 200]}) == ([100, 200], [300, 200])
+    assert drag_endpoints({"at": [100, 200], "direction": "left", "distance": 50}) \
+        == ([100, 200], [50, 200])
+    assert drag_endpoints({"at": [100, 200], "direction": "UP"})[1] \
+        == [100, 200 - DEFAULT_SWIPE_DISTANCE]
+    for bad in ({"at": [100, 200]},                                # neither `to` nor `direction`
+                {"at": [100, 200], "direction": "sideways"},       # not an axis
+                {"at": [100, 200], "direction": "left", "distance": 0},
+                {"at": [100, 200], "to": [100, 200]}):             # zero-length == a click
+        _expect_raises(drag_endpoints, bad)
+
+    # THE cliclick RELATIVE-COORDINATE BUG (the reason the end is clamped): a leading minus means "an
+    # offset from here", so an unbounded end emitted `du:-300,400` and released 450px left of the
+    # press. Clamped, the same step is simply a SHORTER drag that ends on the rect's left edge.
+    assert drag_endpoints({"at": [300, 400], "direction": "left", "distance": 600}) \
+        == ([300, 400], [-300, 400])                               # no rect: nothing to clamp against…
+    assert drag_endpoints({"at": [300, 400], "direction": "left", "distance": 600}, MAC) \
+        == ([300, 400], [128, 400])                                # …with one, pinned to x = rect.x
+    assert drag_endpoints({"at": [0.5, 0.5], "to": [0.1, 0.5]}, MAC) == ([640, 430], [230, 430])
+    assert drag_endpoints({"at": [0.5, 0.5], "direction": "left", "distance": 0.25}, MAC) \
+        == ([640, 430], [384, 430])                                # distance scales on the SAME rule
+    assert drag_endpoints({"at": [0.5, 0.5], "direction": "down", "distance": 0.25}, MAC) \
+        == ([640, 430], [640, 630])                                # …against the axis it runs along
+    # A fractional `distance` with NO rect scales by nothing, so it degenerates to a 0px drag: caught
+    # as the zero-length click it is, never emitted as one.
+    _expect_raises(drag_endpoints, {"at": [300, 400], "direction": "left", "distance": 0.25})
+    for bad in ({"at": [0, 0.5], "direction": "left"},              # already ON the edge it clamps to
+                {"at": [0.5, 0.5], "to": [0.5, 400]}):              # mixed END pair
+        _expect_raises(lambda s: drag_endpoints(s, MAC), bad)
+
+    assert drag_options({}) == []
+    assert drag_options({"steps": 4, "duration": 0.5}) == ["--steps", "4", "--duration", "0.5"]
+    for bad in ({"steps": 0}, {"steps": 2.5}, {"duration": -1}, {"duration": "fast"}):
+        _expect_raises(drag_options, bad)
+
+    # Both agents carry their OWN copy of _drag_points: each is deployed to a guest ALONE and cannot
+    # import a shared module (the same reason _emit and cmd_clean are duplicated between them). Import
+    # both here and assert they agree, so the copies cannot drift silently. vm_agent_windows is
+    # written to import on a non-Windows host (its Win32 handles stay None) partly for exactly this.
+    sys.path.insert(0, str(HERE))
+    import vm_agent_macos  # noqa: PLC0415
+    import vm_agent_windows  # noqa: PLC0415
+
+    for mod in (vm_agent_macos, vm_agent_windows):
+        pts = mod._drag_points(0, 0, 100, 50, 5)
+        assert pts == [(20, 10), (40, 20), (60, 30), (80, 40), (100, 50)], f"{mod.__name__}: {pts}"
+        assert pts[-1] == (100, 50), f"{mod.__name__}: a drag must end ON the release point"
+        # steps < 2 would press and release at ONE point — a click, not a pan. Floored, so a
+        # misconfigured scenario cannot silently degrade into the no-op being fixed.
+        assert len(mod._drag_points(0, 0, 100, 0, 1)) == 2, mod.__name__
+        assert len(mod._drag_points(0, 0, 100, 0, 0)) == 2, mod.__name__
+        # Every intermediate point is strictly between the endpoints, so the pan actually moves.
+        assert all(0 < x < 100 for x, _ in mod._drag_points(0, 0, 100, 0, 8)[:-1]), mod.__name__
+    a = vm_agent_macos._drag_points(13, 91, -40, 220, 7)
+    b = vm_agent_windows._drag_points(13, 91, -40, 220, 7)
+    assert a == b, f"the two agents' _drag_points copies have drifted: {a} != {b}"
+
+    # The guest GESTURE SEQUENCE — press, moves strictly between the endpoints, release ON the target,
+    # pointer put back. This used to be a second copy of each agent's expected argv, stubbed from here;
+    # both agents now stub their OWN OS seam and assert their own sequence (`<agent> selftest`), so this
+    # DELEGATES rather than duplicating. Two files pinning one byte sequence means two edits per change,
+    # and the copy that does not live next to the code is the one that goes stale — which is exactly
+    # what happened when the agents grew the pointer save/restore.
+    import contextlib  # noqa: PLC0415  selftest-only
+    import io  # noqa: PLC0415
+    import types  # noqa: PLC0415  selftest-only (stands in for an ssh_run reply)
+
+    for mod in (vm_agent_macos, vm_agent_windows):
+        with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()):
+            rc = mod.main(["selftest"])
+        assert rc == 0 and json.loads(out.getvalue()).get("ok"), \
+            f"{mod.__name__} selftest FAILED: {out.getvalue().strip()[:400]}"
+
+    # The exact agent argv each verb produces, against a recording stand-in for Env. The three
+    # PRE-EXISTING verbs are pinned first: a regression there silently corrupts a five-hour board run
+    # for the ~165 pages that never asked for an interaction in the first place.
+    class _RecordingEnv:
+        def __init__(self, ok=True, error="cliclick: command not found"):
+            self.calls: list[tuple] = []
+            self.reply = {"ok": ok} if ok else {"ok": False, "error": error}
+
+        def agent(self, subcmd, *args):
+            self.calls.append((subcmd, list(args)))
+            return self.reply
+
+    rec = _RecordingEnv()
+    d = CoordinateDriver(rec, WIN)
+    assert d.run_action({"name": "initial"}) is None                     # no action -> no agent call
+    assert d.run_action({"action": "click", "at": [756, 171]}) is None
+    d.run_action({"action": "type", "text": "MAUI"})
+    d.run_action({"action": "scroll", "at": [756, 400], "dy": -400})
+    d.run_action({"action": "hover", "at": [756, 300]})
+    d.run_action({"action": "drag", "at": [756, 300], "to": [500, 300], "steps": 12})
+    d.run_action({"action": "swipe", "at": [756, 300], "direction": "left", "distance": 200})
+    assert rec.calls == [
+        ("click", [756, 171]),
+        ("type", ["MAUI"]),
+        ("scroll", [756, 400, -400]),
+        ("hover", [756, 300]),
+        ("drag", [756, 300, 500, 300, "--steps", "12"]),
+        ("swipe", [756, 300, 556, 300]),
+    ], rec.calls
+    for bad in ({"action": "pinch", "at": [100, 200]},                   # not in the vocabulary
+                {"action": "scroll", "at": [756, 400], "dy": 0},         # a no-op scroll
+                {"action": "type", "text": None},
+                {"action": "drag", "at": [756, 300]}):                   # no endpoint at all
+        _expect_raises(d.run_action, bad)
+
+    # A REFUSED STEP IS REPORTED, NOT SWALLOWED. run_env drops the frame on this return value; when it
+    # was None the shot was still captured, written under the refused step's name, scored, published,
+    # and left out of the end-of-run dropped list — a no-op wearing a successful step's name.
+    refused = _RecordingEnv(ok=False)
+    with contextlib.redirect_stdout(io.StringIO()):     # it PRINTS the refusal too; not under test here
+        why = CoordinateDriver(refused, WIN).run_action({"action": "click", "at": [756, 171]})
+    assert why and "cliclick" in why, why
+    assert refused.calls == [("click", [756, 171])], refused.calls       # it really was attempted
+
+    # …and with NO capture rect, a coordinate resolves against nothing, so it is refused rather than
+    # aimed at a guess — while the ~155 pages with no scenario (and `type`, which needs no coordinate)
+    # behave exactly as before. Guard order is load-bearing: an idle step must never be refused.
+    blind = _RecordingEnv()
+    nd = CoordinateDriver(blind, None)
+    assert nd.run_action({"name": "initial"}) is None
+    assert nd.run_action({"action": "type", "text": "MAUI"}) is None
+    assert nd.run_action({"action": "click", "at": [756, 171]})          # a reason, not None
+    assert blind.calls == [("type", ["MAUI"])], blind.calls
+
+    # A DEVFLOW TAP COUNTS ONLY WHEN IT WAS *ACTIVATED*, NOT MERELY *FOUND*. Per
+    # docs/DEVFLOW_PROTOCOL.md the in-app agent's v1 only activates i_button targets: a tap on any
+    # other element answers found:true, activated:false — matched, never clicked. Returning on `found`
+    # alone reported that no-op as a completed tap AND skipped the coordinate fallback that would have
+    # done the real thing, so the frame banked the page in its untouched state under the step's name.
+    # BOTH directions are pinned: not-activated must fall through to the coordinate click, and
+    # activated must NOT — without the second case an "always fall through" would pass just as well.
+    class _DevFlowEnv(_RecordingEnv):
+        def __init__(self, resp):
+            super().__init__()
+            self.resp = resp
+
+        def ssh_run(self, argv, timeout=None):
+            return types.SimpleNamespace(returncode=0, stdout=json.dumps(self.resp))
+
+    # The step carries `at` AS WELL AS `automation_id`: the fallback is the coordinate path, and a step
+    # with only an automation_id has nothing to fall back to (the class docstring's latent case, which
+    # the on-disk scan below would catch offline because it dispatches every scenario as coordinates).
+    tap = {"action": "click", "automation_id": "btn", "at": [756, 171]}
+    for resp, expect in (({"found": True, "activated": False}, [("click", [756, 171])]),
+                         ({"found": False}, [("click", [756, 171])]),
+                         ({"found": True, "activated": True}, [])):
+        dfe = _DevFlowEnv(resp)
+        with contextlib.redirect_stdout(io.StringIO()):   # the fallthrough prints its reason
+            assert HttpDevFlowDriver(dfe, {"devflow_port": 8765}, WIN).run_action(tap) is None
+        assert dfe.calls == expect, (resp, dfe.calls)
+
+    # …and every scenario ON DISK must still dispatch, against BOTH lanes' capture rects — the two
+    # read the same files with no per-lane calibration key, so a point that is on-window for one and
+    # off-window for the other is an authoring bug to catch HERE, not three hours into a board run.
+    for f in sorted((COMP / "scenarios").glob("*.toml")):
+        for step in tomllib.loads(f.read_text()).get("steps", []):
+            for lane in (MAC, WIN):
+                CoordinateDriver(_RecordingEnv(), lane).run_action(step)
+
+    # The vocabulary CoordinateDriver dispatches must exist on BOTH guests, or a scenario using a verb
+    # one agent lacks fails only on that platform, mid-run, as a refused step. Asked of the real
+    # argparse table (`<verb> --help` exits 0; an unknown subcommand exits 2) rather than by grepping
+    # the source, so a verb defined in a loop or renamed still answers honestly.
+    for mod in (vm_agent_macos, vm_agent_windows):
+        for verb in ("click", "type", "scroll", "hover", "drag", "swipe"):
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                try:
+                    mod.main([verb, "--help"])
+                    code = 0
+                except SystemExit as e:
+                    code = e.code or 0
+            assert code == 0, f"{mod.__name__} has no `{verb}` subcommand (argparse exit {code})"
+
+    print("selftest OK")
+    return 0
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="E2E visual-comparison runner")
-    ap.add_argument("--config", required=True)
+    ap.add_argument("--config", help="TOML config (required unless --selftest)")
     ap.add_argument("--env", help="comma-separated environment names (default: all in config)")
     ap.add_argument("--only", help="comma-separated tags (default: all manifest pages minus gap_*)")
     ap.add_argument("--scenarios", default=str(COMP / "scenarios"), help="scenarios dir")
@@ -776,7 +1294,14 @@ def main(argv=None) -> int:
     ap.add_argument("--columns", help="comma-separated column subset (default: every column the env "
                                       "declares). An env left with NO selected column is skipped.")
     ap.add_argument("--plan", action="store_true", help="validate config/scenarios and print the plan; no SSH")
+    ap.add_argument("--selftest", action="store_true",
+                    help="run the pure-python step-payload and drag-interpolation asserts and exit "
+                         "(no SSH, no config, no guest)")
     args = ap.parse_args(argv)
+    if args.selftest:
+        return _selftest()
+    if not args.config:
+        ap.error("--config is required")
     columns_filter = {c.strip() for c in args.columns.split(",") if c.strip()} if args.columns else None
     themes_override = [t.strip() for t in args.themes.split(",")] if args.themes else None
 

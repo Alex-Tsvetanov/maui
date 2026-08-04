@@ -30,6 +30,26 @@ agent and ONE scratch shot.png, so concurrent runs overwrite each other's frames
            a no-op there). Both go through docs/comparison/tools/run_comparison.py over SSH.
   windows  the same runner against config/windows.toml; the guest builds its own artifacts.
 
+INTERACTION (every lane): a page with a scenario in docs/comparison/scenarios/ is DRIVEN — tapped,
+typed into, scrolled — instead of being photographed at rest. A page with none gets one idle
+screenshot, as always (~155 of the 172). Two things differ per lane, and neither is cosmetic:
+
+  WHAT THE BOARD PUBLISHES. On the VM lanes the scenario is copied into a per-lane scratch dir (see
+  seed_scenarios), the runner shoots EVERY step, and import_run_captures.py publishes the `initial`
+  one — so driving a page adds frames to the run without changing its canonical still. iOS has no
+  multi-frame run dir: capture_still drives and THEN shoots, so there the board still IS the driven
+  frame. Android is driven in the GIF pass only — its still pass is a shell script with no injection
+  hook at all — so its board PNG stays at rest.
+
+  WHICH COORDINATES ARE PORTABLE. A point whose |x| and |y| are BOTH <= 1.0 is a FRACTION of the
+  target surface (the presented window on a desktop lane, the display on a phone), scaled at
+  execution time by whichever layer knows the real geometry; anything larger is absolute pixels in
+  that surface, and therefore only means what it says on the lane it was calibrated for. So an
+  absolute scenario is seeded only onto a lane whose window actually contains its points
+  (seed_scenarios) and is never sent to a device (device_scenarios) — skipped BY NAME in the log,
+  because a tap that lands on the wrong widget is worse than one that never fires. A mixed pair like
+  [0.5, 300] would scale one axis and not the other: a hard error everywhere.
+
 ANIMATED PAGES (the keys in ANIMATED) get a still AND a GIF, on every platform — each lane records
 the motion the way its capture path allows:
   ios      `simctl io recordVideo` -> ffmpeg (smooth video, --gif-secs long)
@@ -74,6 +94,7 @@ PORT = CPP.parent                          # port
 REPO = PORT.parent
 COMP = CPP / "docs" / "comparison"
 CTOOLS = COMP / "tools"
+SCENARIOS = COMP / "scenarios"             # the AUTHORED interaction scenarios (button, entry, …)
 sys.path.insert(0, str(LIB))
 
 PLATFORMS = ("android", "ios", "macos", "windows")
@@ -521,6 +542,9 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
 
     import capture_ios
 
+    # WHAT THIS LANE WILL DRIVE, resolved once (the scenarios cannot change mid-run) so an unusable
+    # one is reported by name ONCE rather than at every column x theme.
+    scen = device_scenarios("ios", examples)
     capture_ios.pin()
     unset = object()
     restore = unset      # sentinel, NOT `or`: a device with no appearance set reads back falsy, and
@@ -535,13 +559,21 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
                 capture_ios.warmup(app, examples[0], settle)
                 for key in examples:
                     kind = kind_for("ios", key)
+                    steps = scen.get(key)          # None for the ~155 unscripted pages: touch nothing
                     t0 = begin("ios", fw, theme, key, kind)
                     try:
-                        out = capture_ios.capture_still(app, key, theme, settle)
+                        # NOTE the lane difference (see the module docstring): capture_still drives and
+                        # THEN shoots straight to the board path, so on iOS a driven page's canonical
+                        # still is the REACTED frame — there is no run dir here for the at-rest one to
+                        # be published from. That is the same state all three iOS columns get.
+                        out = capture_ios.capture_still(app, key, theme, settle, steps=steps)
                         if kind == "png+gif":
                             # Both, deliberately: the GIF is what the board renders, the still keeps a
-                            # frame for anything that only reads PNGs.
-                            out = capture_ios.capture_gif(app, key, theme, settle, gif_secs) or out
+                            # frame for anything that only reads PNGs. The steps run INSIDE the
+                            # recording window — a page that only moves when poked has to be poked
+                            # while the camera is running.
+                            out = capture_ios.capture_gif(app, key, theme, settle, gif_secs,
+                                                          steps=steps) or out
                     except Exception as exc:      # one bad page must not cost the other 171
                         fail(f"ios/{fw}/{theme}/{key}: {exc}")
                         end("ios", fw, theme, key, kind, t0, "ERROR")
@@ -568,6 +600,10 @@ def lane_android(frameworks, themes, examples, visible, gif_secs, gif_frames) ->
     if not ensure_android_emulator(visible):
         return
     animated = [k for k in examples if k in ANIMATED]
+    # ONLY THE GIF PASS IS DRIVABLE HERE. The still pass below is build_android_apphost*.sh — a shell
+    # pipeline with no injection hook — so `button`/`entry`/`scroll_view` are never driven on Android
+    # and their board PNG stays at rest. Resolved once so the log line is not repeated per theme.
+    scen = device_scenarios("android (GIF pass only — the still pass is a shell script)", animated)
     for theme in themes:
         for fw in frameworks:
             script, column = ANDROID_SCRIPT[fw]
@@ -577,10 +613,10 @@ def lane_android(frameworks, themes, examples, visible, gif_secs, gif_frames) ->
                      env={"MAUI_APPEARANCE": theme}, on_line=reader)
             reader.close("(script exited)")   # type: ignore[attr-defined]
         if animated:
-            android_gifs(frameworks, theme, animated, gif_secs, gif_frames)
+            android_gifs(frameworks, theme, animated, gif_secs, gif_frames, scen)
 
 
-def android_gifs(frameworks, theme, animated, gif_secs, gif_frames) -> None:
+def android_gifs(frameworks, theme, animated, gif_secs, gif_frames, scen) -> None:
     """screenrecord pass for the animated pages. Separate from the still pass because the shell
     scripts capture exactly one frame per page — and because their exit trap has already put the
     device's night mode back, so this pass has to set it again for the theme it is recording."""
@@ -602,8 +638,10 @@ def android_gifs(frameworks, theme, animated, gif_secs, gif_frames) -> None:
             for key in animated:
                 t0 = begin("android", fw, theme, key, "gif")
                 try:
+                    # steps run on a background thread INSIDE the burst (see capture_android
+                    # .capture_gif), so the frames straddle the gesture instead of following it.
                     out = capture_android.capture_gif(app, key, theme, secs=gif_secs,
-                                                     frame_count=gif_frames)
+                                                      frame_count=gif_frames, steps=scen.get(key))
                 except Exception as exc:
                     fail(f"android/{fw}/{theme}/{key}: gif: {exc}")
                     end("android", fw, theme, key, "gif", t0, "ERROR")
@@ -621,8 +659,195 @@ def android_gifs(frameworks, theme, animated, gif_secs, gif_frames) -> None:
         capture_android.set_theme(prev)
 
 
+def _points(step: dict) -> dict[str, list[float]]:
+    """The step's `at`/`to` values that are SHAPED like coordinates, KEYED — `at` is the gesture's
+    start and `to` its end, and the two are not interchangeable to anything downstream.
+
+    Anything malformed is left alone on purpose: run_comparison.step_point and capture_android
+    .input_argv already raise on it, loudly, at the point of use, and scenarios/_selftest.py catches
+    it at authoring time. This module only has to classify what is there.
+    """
+    out = {}
+    for key in ("at", "to"):
+        pt = step.get(key)
+        if (isinstance(pt, (list, tuple)) and len(pt) == 2
+                and all(isinstance(v, (int, float)) for v in pt)):
+            out[key] = [float(pt[0]), float(pt[1])]
+    return out
+
+
+def coordinate_space(steps: list[dict]) -> str:
+    """"fraction" | "absolute" | "none" — which surface a scenario's points are authored in.
+
+    THE PORTABLE AUTHORING CONTRACT, of which capture_android.to_pixels is the reference
+    implementation: a pair whose |x| and |y| are BOTH <= 1.0 is a fraction of the target surface,
+    anything larger is absolute pixels in it, and a MIXED pair is an error rather than a guess —
+    scaling one axis and not the other produces a point nobody authored.
+
+    A scenario is "fraction" only if EVERY pair is one. A single absolute pair pins the whole file to
+    the geometry it was calibrated for, so the conservative classification is the correct one.
+    """
+    space = "none"
+    for step in steps:
+        for pt in _points(step).values():        # start or end: both have to mean the same thing
+            frac = [abs(v) <= 1.0 for v in pt]
+            if any(frac) and not all(frac):
+                raise ValueError(f"step {step.get('name', '?')!r}: mixed coordinate {pt!r} — both "
+                                 f"values must be fractions (<=1.0) or both pixels, never one of each")
+            space = "fraction" if all(frac) and space in ("none", "fraction") else "absolute"
+    return space
+
+
+def skip_scenario(lane: str, key: str, why: str) -> None:
+    """One greppable shape for every un-replayable scenario. Silence here is the whole bug class: a
+    scenario that does not run must cost a log line, not a frame that looks like it reacted."""
+    log(f"      !! SCENARIO SKIPPED {lane}/{key}: {why}")
+
+
+def read_steps(key: str) -> list[dict]:
+    """A page's authored steps, or [] if it has no scenario. Raises on a file the runner would die on."""
+    f = SCENARIOS / f"{key}.toml"
+    return tomllib.loads(f.read_text()).get("steps", []) if f.is_file() else []
+
+
+def lane_geometry(cfg: str, envname: str) -> tuple[bool, dict]:
+    """(present, rect) for a VM lane, out of the SAME config file run_comparison.py will be handed.
+
+    Read rather than hard-coded per lane so a geometry change lands in one place. The defaults mirror
+    run_comparison.Env.__init__; the selftest pins both presented lanes' resolved rects to the numbers
+    scenarios/_selftest.py measured off real run sidecars, so a renamed config key or a drift in these
+    defaults fails there rather than by taps landing somewhere else on the guest.
+    """
+    cap = tomllib.loads((COMP / "config" / cfg).read_text())["environments"][envname].get("capture", {})
+    return cap.get("present", True), {"x": 128, "y": 30, "w": 1024, "h": 800, **cap.get("geometry", {})}
+
+
+def out_of_rect(steps: list[dict], rect: dict) -> str | None:
+    """The first gesture START that lands outside a lane's presented window, phrased as a skip reason.
+
+    The `at` point only, deliberately — and BY NAME, never "the first coordinate in the step": `at` is
+    the start, `to` is the end, and a step carrying only `to` would otherwise be validated as if its
+    end were its start. The start decides what the gesture touches, while an end that runs off the
+    edge is simply a SHORTER drag, which is what a real finger does — the split both capture_ios.plan
+    (strict start, clamped end) and capture_android.input_argv already encode. The strict both-ends
+    check belongs to scenarios/_selftest.py, the AUTHORING gate; this is the execution gate and can
+    afford to be laxer.
+
+    Half-open on the far edge, matching capture_android.input_argv's `0 <= x < w`: a window w px wide
+    ends at x = w-1, so a point AT w is already the first pixel of whatever is next to it.
+    """
+    x0, y0 = rect["x"], rect["y"]
+    x1, y1 = x0 + rect["w"], y0 + rect["h"]
+    for step in steps:
+        start = _points(step).get("at") if step.get("action") else None
+        if start and not (x0 <= start[0] < x1 and y0 <= start[1] < y1):
+            return (f"step {step.get('name', '?')!r} starts at {start}, outside this lane's window "
+                    f"[{x0},{y0} {rect['w']}x{rect['h']}] — those coordinates belong to another lane")
+    return None
+
+
+def seed_scenarios(scen_dir: Path, lane: str, present: bool, rect: dict) -> list[str]:
+    """Start a lane's scenario dir from the AUTHORED scenarios in docs/comparison/scenarios/.
+
+    This dir used to be created EMPTY, and `--scenarios <dir>` is the runner's WHOLE scenario source
+    (its own default is exactly that authored dir), so handing it an empty one silently disabled every
+    authored scenario on the macOS and Windows lanes: `button` was never tapped, `entry` never typed
+    into, `scroll_view` never scrolled, and web_view/hybrid_web_view lost the 5s settle that stops
+    MAUI's own column racing WebView2's init. The pages were photographed at rest and the reacted state
+    the scenario exists to capture was never reached.
+
+    PER-LANE GEOMETRY GATE. One authored dir feeds every VM lane, but the lanes do not share a rect:
+    Catalyst presents at [128,30 1024x800], Windows at [244,0 1024x800], and macos-appkit does not
+    present AT ALL — its 480x752 window sits wherever the WM put it (System Events sees no windows
+    there, so it is captured by Quartz window id instead). An absolute point calibrated for the
+    Catalyst window is a real click somewhere else entirely on AppKit, which is worse than no click:
+    it fabricates a reacted frame nobody can explain. So an absolute scenario is seeded only onto a
+    lane that pins a window CONTAINING its start points; a fractional one is valid everywhere and is
+    always seeded, as is a scenario with no coordinates at all (web_view's settle-only file, whose
+    whole job is the 5s that stops the WebView2 race).
+
+    Only `*.toml` is copied, so a README sitting next to them cannot become a scenario.
+
+    NO THEME REGRESSION, despite what button.toml's `themes = ["light"]` looks like: run_comparison.py's
+    run_env reads `themes_override or scenario["themes"]`, and every lane here passes `--themes`, which
+    IS that override. The authored `themes` only ever applies to a bare runner invocation.
+    """
+    scen_dir.mkdir(parents=True, exist_ok=True)
+    names = []
+    for f in sorted(SCENARIOS.glob("*.toml")):
+        try:
+            steps = tomllib.loads(f.read_text()).get("steps", [])
+            space = coordinate_space(steps)
+        except (tomllib.TOMLDecodeError, ValueError) as exc:
+            # A mixed pair (or a file the runner cannot even parse) is an AUTHORING error, not a lane
+            # mismatch: it is wrong on every lane, so it costs a failed step rather than a skip line.
+            fail(f"scenario {f.name}: {exc}")
+            continue
+        why = None
+        if space == "absolute":
+            why = (out_of_rect(steps, rect) if present else
+                   "absolute screen coordinates, but this lane never PINS its window (present=false) "
+                   "— there is no fixed rect they could be relative to; re-author as 0..1 fractions")
+        if why:
+            skip_scenario(lane, f.stem, why)
+            continue
+        shutil.copy2(f, scen_dir / f.name)
+        names.append(f.stem)
+    return names
+
+
+def device_scenarios(lane: str, examples: list[str]) -> dict[str, list[dict]]:
+    """{page: steps} for the pages a DEVICE lane (ios/android) can actually be driven through.
+
+    Same authored dir seed_scenarios reads — there is one scenario source, not a desktop one and a
+    mobile one. Two kinds of page are dropped rather than replayed:
+
+      * a settle-only scenario (web_view, hybrid_web_view): there is nothing to inject, so the page
+        keeps its single idle screenshot exactly as the ~155 unscripted ones do. Not a skip line —
+        nothing failed.
+      * an ABSOLUTE scenario: those coordinates are calibrated for a 1024x800 desktop window, and a
+        phone display is neither that size nor that shape. capture_android would reject most of them
+        as off-display, but not all — swipe_refresh's y=120 IS on a 1080x2340 screen, inside the
+        status bar, where a downward drag pulls the notification shade instead of the page. So they
+        are refused here, by name, rather than replayed into whatever happens to be under them.
+
+    The fractional form is what makes a scenario portable, and it is the one the device lanes resolve
+    against real device geometry (capture_android.to_pixels, capture_ios.plan).
+    """
+    out: dict[str, list[dict]] = {}
+    skipped: list[str] = []
+    for key in examples:
+        try:
+            steps = read_steps(key)
+            space = coordinate_space(steps)
+        except (tomllib.TOMLDecodeError, ValueError) as exc:
+            fail(f"scenario {key}.toml: {exc}")     # hard everywhere, exactly as on the VM lanes
+            continue
+        if not any(s.get("action") for s in steps):
+            continue                                 # nothing to inject: one idle screenshot, as ever
+        if space == "absolute":
+            skip_scenario(lane, key, "absolute desktop coordinates cannot be replayed on a device "
+                                     "with different geometry; re-author as 0..1 fractions")
+            skipped.append(key)
+            continue
+        out[key] = steps
+    log(f"      scenarios {lane}: driven={sorted(out) or '(none)'} skipped={skipped or '(none)'}")
+    return out
+
+
 def write_gif_scenarios(scen_dir: Path, examples, themes, frames: int, interval: float) -> list[str]:
-    """A scenario per animated page: the `initial` still, then a burst of no-action frames.
+    """Give every animated page a burst of no-action frames, COMPOSED onto whatever it already has.
+
+    With no authored scenario: the `initial` still, then the burst. With one (seeded by
+    seed_scenarios): its steps are kept and the burst is APPENDED AFTER THE LAST of them — the last
+    step is the one that set the page in motion, so the frames that record that motion have to follow
+    it, not replace it. Replacing was the old behavior and it silently disarmed any page that was both
+    animated and driven.
+
+    The compose is a TEXT append, not a parse-and-rewrite: `[[steps]]` is an array-of-tables, so more
+    entries at the end of the file simply extend it. That keeps the authored `themes`, `settle`,
+    `timeout_seconds`, the calibration comments, and any key a later scenario adds — none of which a
+    re-serializer would know to carry, and stdlib has no TOML *writer* to do it with.
 
     The burst rides along in the SAME runner pass as the still — run_comparison.py honours a per-STEP
     `settle`, so the still keeps the full --settle and the burst runs at `interval`. Without that, a
@@ -630,13 +855,58 @@ def write_gif_scenarios(scen_dir: Path, examples, themes, frames: int, interval:
     expensive part, not the shots).
     """
     animated = [k for k in examples if k in ANIMATED]
+    burst = "\n\n".join(f'[[steps]]\nname = "gif{i:02d}"\nsettle = {interval}'
+                        for i in range(1, frames + 1))
     for key in animated:
-        steps = ['[[steps]]\nname = "initial"']
-        steps += [f'[[steps]]\nname = "gif{i:02d}"\nsettle = {interval}' for i in range(1, frames + 1)]
-        (scen_dir / f"{key}.toml").write_text(
+        f = scen_dir / f"{key}.toml"
+        head = f.read_text().rstrip() if f.is_file() else (
             f'# generated by tools/parity/recapture.py — GIF burst for an animated page\n'
-            f'tag = "{key}"\nthemes = {list(themes)!r}\n\n' + "\n\n".join(steps) + "\n")
+            f'tag = "{key}"\nthemes = {list(themes)!r}\n\n[[steps]]\nname = "initial"')
+        f.write_text(f"{head}\n\n"
+                     f"# --- appended by tools/parity/recapture.py: the GIF burst. These follow the LAST\n"
+                     f"# step above, which is the one whose motion they are here to record.\n"
+                     f"{burst}\n")
     return animated
+
+
+def burst_frames(unit_dir: Path, theme: str) -> list[str]:
+    """The PNGs one (tag, column, theme) unit contributes to its GIF, in CAPTURE ORDER. Pure.
+
+    EVERY frame except the one the board publishes as the still. This used to be the opposite — an
+    INCLUSION of steps whose name starts with "gif" — which threw away the ACTION frames, the only
+    ones that differ on a driven page. carousel_page composes to [initial, paged-left, gif01..gif12],
+    so the GIF was handed 12 identical post-settle frames, gif.py correctly deleted it as a
+    non-animation, and the log blamed the encoder. The motion is in the before/after, not in the
+    settle that follows it.
+
+    The at-rest frame is DROPPED rather than led with because it is temporally distant: it is taken
+    after the full --settle while the burst runs at --gif-interval, so on the ~13 animated pages with
+    no authored scenario at all it would read as a stutter at the top of an otherwise even loop.
+    Which frame that is mirrors import_run_captures.initial_frame exactly — the step named `initial`,
+    else the theme's first — so the GIF and the board still can never disagree about what "at rest"
+    was on a given page.
+    """
+    shots: list[tuple[str, str]] = []
+    for sidecar in sorted(unit_dir.glob("*.json")):     # NNNN.json: sorted IS capture order
+        try:
+            meta = json.loads(sidecar.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        png = sidecar.with_suffix(".png")
+        if meta.get("theme") == theme and png.exists():
+            shots.append((str(meta.get("step", "")), str(png)))
+    at_rest = next((i for i, (step, _) in enumerate(shots) if step == "initial"), 0)
+    # DRIVEN pages keep the at-rest frame; UNDRIVEN ones drop it. The stutter rationale above only
+    # holds when every frame is a burst frame taken at --gif-interval. On a page with an action step
+    # the at-rest frame is the only BEFORE: the runner shoots each step after its settle, so by the
+    # time the action frame is taken the transition has already finished and every retained frame is
+    # the same post-action state. Dropping it leaves gif.py nothing to distinguish, so it deletes the
+    # GIF and the log blames the encoder — the exact 12-identical-frames symptom this pass exists to
+    # kill, reproduced on the only pages that actually gesture.
+    driven = any(step and step != "initial" and not step.startswith("gif") for step, _ in shots)
+    if driven:
+        return [png for _, png in shots]
+    return [png for i, (_, png) in enumerate(shots) if i != at_rest]
 
 
 def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, interval: float) -> None:
@@ -647,16 +917,7 @@ def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, in
     for key in animated:
         for col in columns:
             for theme in themes:
-                frames = []
-                for sidecar in sorted((run_dir / key / plat_dir / col).glob("*.json")):
-                    try:
-                        meta = json.loads(sidecar.read_text())
-                    except (OSError, json.JSONDecodeError):
-                        continue
-                    if meta.get("theme") == theme and str(meta.get("step", "")).startswith("gif"):
-                        png = sidecar.with_suffix(".png")
-                        if png.exists():
-                            frames.append(str(png))
+                frames = burst_frames(run_dir / key / plat_dir / col, theme)
                 out = COMP / "captures" / plat_dir / COL_TO_DIR.get(col, col) / f"{key}_{theme}.gif"
                 gifmod.drop_stale(str(out))
                 if gifmod.frames_to_gif(frames, str(out), fps=fps):
@@ -664,6 +925,12 @@ def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, in
                         f"({len(frames)} frames @ {fps}fps)")
                 elif frames:
                     fail(f"{plat_dir}/{col}/{theme}/{key}: gif assembly failed ({len(frames)} frames)")
+                else:
+                    # An animated page whose unit produced NO frame beyond the still. Silence here read
+                    # as "GIF done" for as long as the burst selector was broken, which is the whole
+                    # reason this pass exists — so it costs a failed step, not nothing.
+                    fail(f"{plat_dir}/{col}/{theme}/{key}: no burst frames in the run — nothing to "
+                         f"animate, so the board falls back to the still")
 
 
 def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif_interval) -> None:
@@ -681,12 +948,20 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
                 mac_vm_reboot_and_settle()
             else:
                 mac_vm_keep_awake()   # AppKit does not reboot; it inherits a hours-old session
-        # Scenarios dir per lane: empty (one idle shot per page) except for the animated pages, which
-        # get a generated burst scenario. Regenerated each lane so a stale one can't leak in.
+        # Scenarios dir per lane: SEEDED from the authored scenarios, then the animated pages get their
+        # GIF burst merged on top. A page with neither still gets exactly one idle shot. Regenerated
+        # each lane (rmtree first) so a stale scenario from a previous run cannot leak in.
         scen_dir = LOG_DIR / f"scenarios-{RUN_ID}-{lane}"
         shutil.rmtree(scen_dir, ignore_errors=True)
-        scen_dir.mkdir(parents=True)
+        # The gate needs the lane's REAL rect, so it comes from the config the runner is about to be
+        # handed rather than from a table here that could drift out of step with it.
+        present, rect = lane_geometry(cfg, envname)
+        seeded = seed_scenarios(scen_dir, f"{platform}/{lane}", present, rect)
         animated = write_gif_scenarios(scen_dir, examples, themes, gif_frames, gif_interval)
+        # Say which pages this lane will actually DRIVE. In a five-hour log this one line is how you
+        # confirm the scenarios reached the guest without reading any code.
+        driven = [s for s in seeded if s in examples]
+        log(f"      scenarios: driven={driven or '(none selected)'} gif-burst={animated or '(none)'}")
         fw_of_column = {c: fw for fw, c in cols.items()}
         reader = marker_reader(f"{platform}({lane})", fw_of_column, lambda k: kind_for(platform, k))
         rc = run_step(f"{platform}/{lane}: capture", [
@@ -769,19 +1044,242 @@ def selftest() -> int:
         assert row[5] == "png+gif" and row[6] == COMP / want, row   # animated => GIF on every platform
     assert plan_rows(["ios"], ["cpp"], ["light"], ["button"])[0][5] == "png"
 
+    # --- scenarios. A page with no scenario must still get exactly ONE idle shot, the authored
+    # scenarios must SURVIVE into the lane dir, and the GIF burst must COMPOSE with them.
     scen = Path(tempfile.mkdtemp())
-    animated = write_gif_scenarios(scen, ["button", "animation"], ["light"], 3, 0.25)
-    body = (scen / "animation.toml").read_text()
-    parsed = tomllib.loads(body)
-    shutil.rmtree(scen, ignore_errors=True)
-    assert animated == ["animation"] and not (scen / "button.toml").exists()
-    steps = parsed["steps"]
-    # The still keeps the full --settle (no per-step key); only the burst frames override it.
-    assert steps[0] == {"name": "initial"} and len(steps) == 4, steps
-    assert all(s["settle"] == 0.25 and s["name"].startswith("gif") for s in steps[1:]), steps
+    try:
+        animated = write_gif_scenarios(scen, ["button", "animation"], ["light"], 3, 0.25)
+        steps = tomllib.loads((scen / "animation.toml").read_text())["steps"]
+        assert animated == ["animation"] and not (scen / "button.toml").exists()
+        # The still keeps the full --settle (no per-step key); only the burst frames override it.
+        assert steps[0] == {"name": "initial"} and len(steps) == 4, steps
+        assert all(s["settle"] == 0.25 and s["name"].startswith("gif") for s in steps[1:]), steps
+    finally:
+        shutil.rmtree(scen, ignore_errors=True)
 
-    seen: list[str] = []
-    real_log, sys.modules[__name__].log = log, seen.append          # type: ignore[attr-defined]
+    # --- the portable coordinate contract, which three separate gates below depend on.
+    assert coordinate_space([{"name": "initial"}]) == "none"
+    assert coordinate_space([{"action": "click", "at": [0.5, 0.2]}]) == "fraction"
+    assert coordinate_space([{"action": "click", "at": [756, 171]}]) == "absolute"
+    # one absolute pair pins the WHOLE file to one geometry, wherever in it that pair sits
+    assert coordinate_space([{"action": "click", "at": [0.5, 0.2]},
+                             {"action": "swipe", "at": [0.5, 0.5], "to": [700, 200]}]) == "absolute"
+    for mixed in ([0.5, 300], [300, 0.5]):
+        try:
+            coordinate_space([{"action": "click", "at": mixed}])
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"mixed coordinate {mixed} was accepted — it would scale one axis")
+
+    # --- what the window gate judges, and what it must NOT. `at` is the start and `to` the end; a
+    # step carrying only `to` has no start to judge (the runner rejects it as malformed at the point of
+    # use), and gating it as though its end were one would refuse a scenario for the wrong reason.
+    cat = {"x": 128, "y": 30, "w": 1024, "h": 800}
+    assert out_of_rect([{"action": "click", "at": [200, 100]}], cat) is None
+    assert out_of_rect([{"action": "swipe", "to": [9999, 9999]}], cat) is None          # end-only
+    assert out_of_rect([{"action": "swipe", "at": [200, 100], "to": [9999, 9999]}], cat) is None
+    assert out_of_rect([{"name": "initial", "at": [9999, 9999]}], cat) is None           # no action
+    assert out_of_rect([{"action": "click", "at": [1400, 100]}], cat)                    # off-window
+    # half-open on the far edge, as capture_android.input_argv is: 128+1024 = 1152 is the first pixel
+    # PAST a window whose last column is 1151.
+    assert out_of_rect([{"action": "click", "at": [1151, 829]}], cat) is None
+    assert out_of_rect([{"action": "click", "at": [1152, 100]}], cat)
+    assert out_of_rect([{"action": "click", "at": [200, 830]}], cat)
+
+    # --- the lane rects the gate runs on. These are the numbers scenarios/_selftest.py records as
+    # MEASURED from real run sidecars; pinning them here catches both a renamed config key and a
+    # drift in the defaults duplicated from run_comparison.Env.
+    assert lane_geometry("local.toml", "macos-arm64") == (True, {"x": 128, "y": 30, "w": 1024, "h": 800})
+    assert lane_geometry("windows.toml", "windows-x64") == (True, {"x": 244, "y": 0, "w": 1024, "h": 800})
+    appkit_present, appkit_rect = lane_geometry("local.toml", "macos-appkit")
+    assert appkit_present is False and appkit_rect["w"] == 480, (appkit_present, appkit_rect)
+
+    scen = Path(tempfile.mkdtemp())
+    try:
+        seeded = seed_scenarios(scen, "catalyst", True, {"x": 128, "y": 30, "w": 1024, "h": 800})
+        # (a) the authored scenarios reach the lane dir INTACT. This is the whole defect: the dir was
+        #     seeded EMPTY, so --scenarios pointed the runner at nothing and no page was ever driven.
+        assert "button" in seeded, seeded
+        assert (scen / "button.toml").read_bytes() == (SCENARIOS / "button.toml").read_bytes()
+        # …and still ASK for an interaction on the far side of the copy. Deliberately not pinned to the
+        # exact step list: scenarios are authored freely, only "it drives something" is the invariant.
+        btn = tomllib.loads((scen / "button.toml").read_text())["steps"]
+        assert any(s.get("action") for s in btn), f"button.toml no longer taps anything: {btn}"
+        # The frame the BOARD publishes must be the page AT REST: import_run_captures.py takes the step
+        # named `initial`, else the theme's first frame. An action in that frame republishes a reacted
+        # state as the page's canonical still — a silent board corruption, and the reason this asserts
+        # over the REAL authored dir rather than a fixture (new scenarios land there without touching
+        # this file). Parsing every file here also catches a scenario the runner would die loading.
+        # SCOPE: this is a VM-LANE invariant, and only a VM lane can honour it — it holds because the
+        # runner shoots every step into a run dir and the import picks one out. iOS has no run dir:
+        # capture_still drives and then shoots the single board frame, so there the published still is
+        # the DRIVEN state by construction. Do not "extend" this assertion to the device lanes; it
+        # would be asserting something their capture path cannot express.
+        for f in sorted(SCENARIOS.glob("*.toml")):
+            s = tomllib.loads(f.read_text())["steps"]
+            published = next((st for st in s if st.get("name") == "initial"), s[0])
+            assert not published.get("action"), f"{f.name}: the published frame performs an action"
+
+        # (b) an animated page that ALSO has an authored scenario keeps its actions IN ORDER and gets
+        #     the burst after them, with its own themes/settle untouched.
+        (scen / "animation.toml").write_text(
+            'tag = "animation"\nthemes = ["dark"]\nsettle = 5.0\n\n'
+            '[[steps]]\nname = "initial"\n\n'
+            '[[steps]]\nname = "go"\naction = "click"\nat = [10, 20]\n\n'
+            '[[steps]]\nname = "more"\naction = "scroll"\nat = [10, 20]\ndy = -400\n')
+        animated = write_gif_scenarios(scen, ["button", "animation"], ["light"], 2, 0.25)
+        comp = tomllib.loads((scen / "animation.toml").read_text())
+        assert animated == ["animation"] and comp["themes"] == ["dark"] and comp["settle"] == 5.0, comp
+        assert [s["name"] for s in comp["steps"]] == ["initial", "go", "more", "gif01", "gif02"], comp
+        assert comp["steps"][1] == {"name": "go", "action": "click", "at": [10, 20]}, comp
+        # a non-animated authored page is not rewritten at all
+        assert (scen / "button.toml").read_bytes() == (SCENARIOS / "button.toml").read_bytes()
+    finally:
+        shutil.rmtree(scen, ignore_errors=True)
+
+    # --- (a) which frames a burst contributes. The bug was an INCLUSION of `step` names starting with
+    # "gif", which dropped the action frame — the only one that differs — and left the encoder holding
+    # 12 identical stills. Driven here as a pure function over a fake run tree so the check cannot
+    # touch the real board (assemble_vm_gifs drop_stale()s a live GIF before it writes one).
+    run = Path(tempfile.mkdtemp())
+    try:
+        unit = run / "carousel_page" / "maccatalyst" / "cpp"
+        unit.mkdir(parents=True)
+        for i, (step, theme) in enumerate([("initial", "light"), ("paged-left", "light"),
+                                           ("gif01", "light"), ("initial", "dark")], start=1):
+            (unit / f"{i:04d}.json").write_text(json.dumps({"step": step, "theme": theme}))
+            (unit / f"{i:04d}.png").write_bytes(b"png")
+        # DRIVEN page: every frame is kept, at-rest one included. Keeping only the action frame and
+        # the burst was the second form of the same bug — the runner shoots each step AFTER its
+        # settle, so the transition is over before the action frame is taken and all of them show the
+        # same post-action state. The at-rest frame is the only BEFORE, and without it gif.py sees no
+        # distinct frames, deletes the GIF, and the log blames the encoder.
+        got = [Path(p).name for p in burst_frames(unit, "light")]
+        assert got == ["0001.png", "0002.png", "0003.png"], got
+        assert burst_frames(unit, "dark") == []         # only a still: no burst, and no GIF to claim
+        # Same, with the at-rest step named something other than `initial` (scroll_view names its
+        # first step `top`): still driven, so still every frame.
+        (unit / "0001.json").write_text(json.dumps({"step": "top", "theme": "light"}))
+        assert [Path(p).name for p in burst_frames(unit, "light")] == \
+            ["0001.png", "0002.png", "0003.png"]
+    finally:
+        shutil.rmtree(run, ignore_errors=True)
+
+    # --- (a2) UNDRIVEN animated page: the at-rest frame is still DROPPED. This is the ~13 pages with
+    # no authored scenario, where that frame is taken after the full --settle while the burst runs at
+    # --gif-interval — leading with it reads as a stutter at the top of an otherwise even loop. The
+    # driven/undriven split is the whole point: keep the BEFORE only when something happened after it.
+    run = Path(tempfile.mkdtemp())
+    try:
+        unit = run / "activity_indicator" / "maccatalyst" / "cpp"
+        unit.mkdir(parents=True)
+        for i, step in enumerate(["initial", "gif01", "gif02"], start=1):
+            (unit / f"{i:04d}.json").write_text(json.dumps({"step": step, "theme": "light"}))
+            (unit / f"{i:04d}.png").write_bytes(b"png")
+        got = [Path(p).name for p in burst_frames(unit, "light")]
+        assert got == ["0002.png", "0003.png"], got
+    finally:
+        shutil.rmtree(run, ignore_errors=True)
+
+    # --- (b)+(c) the two gates, over a SYNTHETIC scenario dir: no checked-in scenario is mixed or
+    # off-window today, and these paths must be exercised before one is. Both gates share
+    # coordinate_space, so this also pins the two OUTCOMES apart: a skip is a log line (the page keeps
+    # its honest idle frame), a mixed pair is a failed step (it is wrong on every lane).
+    src, dest, seen = Path(tempfile.mkdtemp()), Path(tempfile.mkdtemp()), []
+    (src / "frac.toml").write_text('tag = "frac"\n[[steps]]\nname = "initial"\n\n'
+                                   '[[steps]]\nname = "tap"\naction = "click"\nat = [0.5, 0.4]\n')
+    (src / "far.toml").write_text('tag = "far"\n[[steps]]\nname = "initial"\n\n'
+                                  '[[steps]]\nname = "tap"\naction = "click"\nat = [1400, 400]\n')
+    # `near` is the case the AppKit rule exists for and the off-window rule cannot catch: absolute, and
+    # numerically INSIDE that lane's 480x752 — but the lane never pins its window, so the number is
+    # relative to nothing and the click lands wherever the WM left it. A gate that only compared
+    # against the rect would seed this and tap a stranger.
+    (src / "near.toml").write_text('tag = "near"\n[[steps]]\nname = "initial"\n\n'
+                                   '[[steps]]\nname = "tap"\naction = "click"\nat = [200, 300]\n')
+    (src / "mixed.toml").write_text('tag = "mixed"\n[[steps]]\nname = "initial"\n\n'
+                                    '[[steps]]\nname = "tap"\naction = "click"\nat = [0.5, 300]\n')
+    (src / "idle.toml").write_text('tag = "idle"\nsettle = 5.0\n[[steps]]\nname = "initial"\n')
+    failed_before = len(FAILED)
+    real_log, real_scen = log, SCENARIOS
+    sys.modules[__name__].log = seen.append                         # type: ignore[attr-defined]
+    sys.modules[__name__].SCENARIOS = src                           # type: ignore[attr-defined]
+    try:
+        # A presented lane keeps what its own window contains; `far` is 1400 > 128+1024 = off-window,
+        # while `near` is inside it and rides along.
+        assert set(seed_scenarios(dest / "catalyst", "catalyst", True,
+                                  {"x": 128, "y": 30, "w": 1024, "h": 800})) == {"frac", "idle", "near"}
+        # An UNPINNED lane (macos-appkit) has no rect at all, so NO absolute scenario is valid there —
+        # not even `near`, which its 480x752 numerically contains.
+        assert set(seed_scenarios(dest / "appkit", "appkit", False, appkit_rect)) == {"frac", "idle"}
+        # and the return value is not a claim: the runner reads the DIR, so that is what must match.
+        assert {p.stem for p in (dest / "catalyst").glob("*.toml")} == {"frac", "idle", "near"}
+        assert {p.stem for p in (dest / "appkit").glob("*.toml")} == {"frac", "idle"}
+        # A device gets fractions only; `idle` is dropped for having nothing to inject, which is not a
+        # skip — it is a page keeping the single idle screenshot all ~155 unscripted ones get.
+        assert set(device_scenarios("ios", ["frac", "far", "near", "mixed", "idle"])) == {"frac"}
+    finally:
+        sys.modules[__name__].log = real_log                        # type: ignore[attr-defined]
+        sys.modules[__name__].SCENARIOS = real_scen                 # type: ignore[attr-defined]
+        shutil.rmtree(src, ignore_errors=True)
+        shutil.rmtree(dest, ignore_errors=True)
+    # Every skip names its lane AND its page: in a five-hour log an anonymous "skipped 1" is no better
+    # than the silence this pass exists to remove.
+    for lane in ("catalyst", "appkit", "ios"):
+        assert any(f"SCENARIO SKIPPED {lane}/far" in ln for ln in seen), (lane, seen)
+    assert len(FAILED) - failed_before == 3, FAILED[failed_before:]   # mixed: 2 seeds + 1 device pass
+    del FAILED[failed_before:]      # a selftest must not inflate the run's exit code
+
+    # …and the same gates over the REAL authored dir, as INVARIANTS rather than a fixed page list, so
+    # they keep meaning while the scenarios are re-authored from absolute to fractional coordinates.
+    failed_before, seen = len(FAILED), []
+    sys.modules[__name__].log = seen.append                         # type: ignore[attr-defined]
+    try:
+        real_seeded = {}
+        for lane, (present, rect) in (("appkit", (appkit_present, appkit_rect)),
+                                      ("catalyst", lane_geometry("local.toml", "macos-arm64")),
+                                      ("windows", lane_geometry("windows.toml", "windows-x64"))):
+            d = Path(tempfile.mkdtemp())
+            try:
+                real_seeded[lane] = set(seed_scenarios(d, lane, present, rect))
+            finally:
+                shutil.rmtree(d, ignore_errors=True)
+        real_device = set(device_scenarios("ios", all_examples()))
+    finally:
+        sys.modules[__name__].log = real_log                        # type: ignore[attr-defined]
+    assert not FAILED[failed_before:], FAILED[failed_before:]    # no authored scenario is malformed
+    for lane, got in real_seeded.items():
+        # a settle-only scenario carries no geometry, so it reaches EVERY lane — web_view's 5s is the
+        # only thing keeping MAUI's own column from racing WebView2's init.
+        assert "web_view" in got, (lane, got)
+    for key in real_seeded["appkit"] | real_device:
+        # the unpinned AppKit window and a phone display share exactly one requirement: nothing
+        # absolute may reach them.
+        assert coordinate_space(read_steps(key)) != "absolute", key
+    assert real_seeded["appkit"] <= real_seeded["catalyst"], real_seeded  # unpinned is the strictest
+
+    # The device wiring itself. `steps=` IS fix (b), and a device-free check cannot drive a simulator —
+    # but it can prove the keyword still exists on the far side, which is the difference between the
+    # injection code being reachable and being dead. These modules only read env vars at import, so
+    # importing them here costs nothing and needs no device. A rename over there would otherwise show
+    # up as a TypeError on the guest, once per page, hours into a sweep.
+    import inspect
+
+    import capture_android
+    import capture_ios
+    for fn in (capture_ios.capture_still, capture_ios.capture_gif, capture_android.capture_gif):
+        assert "steps" in inspect.signature(fn).parameters, f"{fn.__module__}.{fn.__name__}"
+    # …and that this file actually PASSES it. Deliberately a source check, not a behavioural one: the
+    # behaviour needs a booted simulator, and the defect being guarded is precisely a call that
+    # type-checks, runs, logs success and injects nothing. A dropped `steps=` is invisible to every
+    # other assertion here, which is how it survived into a shipped lane once already.
+    # Counted per call site — iOS drives BOTH its still and its GIF, and losing either one is a whole
+    # class of page that quietly goes back to being photographed at rest.
+    for fn, needle, want in ((lane_ios, "steps=steps", 2), (android_gifs, "steps=scen.get(key)", 1)):
+        assert inspect.getsource(fn).count(needle) == want, (fn.__name__, needle, want)
+
+    seen = []
+    sys.modules[__name__].log = seen.append                          # type: ignore[attr-defined]
     try:
         r = marker_reader("ios", {"cpp": "cpp_xaml"}, lambda k: kind_for("ios", k))
         r("@@PARITY BEGIN button cpp light")
@@ -791,7 +1289,7 @@ def selftest() -> int:
         sys.modules[__name__].log = real_log    # type: ignore[attr-defined]
     assert len(seen) == 4 and "framework=cpp_xaml theme=light example=button" in seen[0], seen
     assert "no END" in seen[1] and "(exited)" in seen[3], seen
-    print("recapture selftest: mapping + markers OK")
+    print("recapture selftest: mapping + markers + scenarios + coordinate gates + gif burst OK")
     return 0
 
 
@@ -812,7 +1310,8 @@ def main(argv=None) -> int:
                     help="print every (platform, framework, theme, example) -> output path and exit; "
                          "no device, no build, no capture")
     ap.add_argument("--selftest", action="store_true",
-                    help="device-free check of the column mapping and the progress markers; exits")
+                    help="device-free check of the column mapping, the progress markers and the "
+                         "scenario seed/compose; exits")
     ap.add_argument("--skip-build", action="store_true",
                     help="capture with whatever is already built (iOS/macOS; the Android scripts "
                          "always build their own APK)")
@@ -870,7 +1369,6 @@ def main(argv=None) -> int:
     started = time.time()
     log(f"RECAPTURE {RUN_ID} — platforms={platforms} frameworks={frameworks} themes={themes} "
         f"examples={len(examples)} visible={a.visible}")
-    (LOG_DIR / "empty-scenarios").mkdir(parents=True, exist_ok=True)  # no scenario => one idle shot
     visible = a.visible == "yes"
 
     # Strictly sequential. The macOS VM's Catalyst and AppKit lanes share ONE guest agent and ONE

@@ -4,7 +4,8 @@
 The Windows sibling of vm_agent_macos.py, exposing the SAME subcommands so the host orchestrator
 (run_comparison.py) never changes — the per-OS seam that file's header describes:
 
-    set-resolution | clean | launch | window-id | present | click | type | scroll | shot | stop
+    set-resolution | clean | launch | window-id | present | click | type | scroll |
+    hover | drag | swipe | shot | stop
 
 Each subcommand prints ONE JSON line to stdout: {"ok": bool, ...}. The host parses the last line.
 
@@ -183,6 +184,7 @@ def _declare_prototypes() -> None:
         (user32.GetForegroundWindow, [], hwnd),
         (user32.GetShellWindow, [], hwnd),
         (user32.SetCursorPos, [ci, ci], bo),
+        (user32.GetCursorPos, [ctypes.POINTER(wintypes.POINT)], bo),
         (user32.GetSystemMetrics, [ci], ci),
         (gdi32.CreateCompatibleDC, [hdc], hdc),
         (gdi32.CreateDIBSection, [hdc, ctypes.c_void_p, ui, ctypes.POINTER(ctypes.c_void_p),
@@ -633,19 +635,87 @@ def _send(*inputs: INPUT) -> bool:
     return user32.SendInput(n, arr, ctypes.sizeof(INPUT)) == n
 
 
-def _mouse_to(x: int, y: int) -> None:
-    # SetCursorPos takes physical pixels (we are DPI-aware), which keeps the scenario's absolute
-    # coordinates identical to the ones the macOS agent feeds cliclick.
-    user32.SetCursorPos(int(x), int(y))
+# ---------------------------------------------------------------- pointer hygiene
+#
+# POINTER CONTAMINATION. The cursor is MACHINE-global: it outlives this agent process and the app
+# relaunch between columns. A cursor left sitting on a control keeps that control in its PointerOver
+# visual state for every later frame of every later PAGE, and that reads on the board as a port defect
+# rather than as tooling — the same "plausible but wrong capture" class hazards 1-3 above are about.
+# So every verb that moves the cursor as a MEANS TO AN END puts it back (cmd_hover is the deliberate
+# exception: parking IS the gesture there).
+
+
+def _cursor_pos() -> list[int] | None:
+    """Where the cursor is RIGHT NOW as [x, y] physical pixels, or None.
+
+    Guarded on _IS_WINDOWS rather than a blanket try/except so the module still imports on the dev
+    machine WITHOUT making a genuine on-guest GetCursorPos failure look like "we are off-guest" — a
+    real failure still surfaces, as the None that _restore_pointer reports."""
+    if not _IS_WINDOWS:
+        return None
+    pt = wintypes.POINT()
+    if not user32.GetCursorPos(ctypes.byref(pt)):
+        return None
+    return [int(pt.x), int(pt.y)]
+
+
+def _mouse_to(x: int, y: int) -> tuple[bool, list[int] | None, str]:
+    """Move the cursor to (x, y). Returns (ok, where it ACTUALLY landed, why not).
+
+    SetCursorPos takes physical pixels (we are DPI-aware), which keeps the scenario's absolute
+    coordinates identical to the ones the macOS agent feeds cliclick.
+
+    Its BOOL used to be DISCARDED and every caller defaulted to ok=True, which hid two whole classes
+    of wrong frame: a move that failed outright, and — worse because it "succeeds" — a coordinate
+    outside the virtual desktop, which SetCursorPos CLAMPS to the nearest edge. The click then landed
+    on some other control (or the desktop) and the run banked a perfectly plausible frame. So the
+    landing point is read back and a clamp is a FAILED STEP, which the host prints; `at` carries the
+    real position either way so the log shows how far off the scenario's calibration is."""
+    ok = bool(user32.SetCursorPos(int(x), int(y)))
     time.sleep(0.02)
+    at = _cursor_pos()
+    if not ok:
+        return False, at, f"SetCursorPos({int(x)}, {int(y)}) failed (err {ctypes.get_last_error()})"
+    if at is not None and at != [int(x), int(y)]:
+        return False, at, (f"cursor CLAMPED: asked for {[int(x), int(y)]}, landed on {at} — the "
+                           f"coordinate is outside the virtual desktop, so this step hit the wrong "
+                           f"place and the frame would look legitimate")
+    return True, at, ""
+
+
+def _restore_pointer(saved: list[int] | None) -> bool:
+    """Put the cursor back where `saved` says it was. False if it could not be done — which callers
+    EMIT rather than swallow: an un-restored cursor contaminates every later frame silently.
+
+    Both failure branches say so on stderr. A missing `saved` is the sneakier one: the restore is then
+    skipped ENTIRELY while the gesture still reports ok, i.e. this fix quietly not running — the very
+    shape it exists to eliminate, aimed at itself."""
+    if not saved:
+        print("[agent] cursor NOT restored: GetCursorPos never gave a position to restore TO, so the "
+              "cursor is left wherever this gesture put it", file=sys.stderr)
+        return False
+    ok, _at, err = _mouse_to(saved[0], saved[1])
+    if not ok:
+        print(f"[agent] cursor NOT restored to {saved}: {err}", file=sys.stderr)
+    return ok
 
 
 def cmd_click(a) -> int:
-    _mouse_to(a.x, a.y)
+    """Click at (x, y) and PUT THE CURSOR BACK (see POINTER CONTAMINATION above).
+
+    Windows has no cliclick `-r`, so the save/restore is explicit. The move is checked: a click whose
+    cursor never reached the target presses SOMETHING ELSE, and used to report ok=True."""
+    saved = _cursor_pos()
+    ok, at, err = _mouse_to(a.x, a.y)
+    if not ok:
+        _restore_pointer(saved)
+        return _emit(ok=False, x=a.x, y=a.y, at=at, error=err)
     down = INPUT(type=INPUT_MOUSE, u=_INPUTunion(mi=MOUSEINPUT(0, 0, 0, MOUSEEVENTF_LEFTDOWN, 0, None)))
     up = INPUT(type=INPUT_MOUSE, u=_INPUTunion(mi=MOUSEINPUT(0, 0, 0, MOUSEEVENTF_LEFTUP, 0, None)))
     ok = _send(down, up)
-    return _emit(ok=ok, x=a.x, y=a.y)
+    restored = _restore_pointer(saved)
+    return _emit(ok=ok, x=a.x, y=a.y, at=at, pointer_restored=restored,
+                 error="" if ok else "SendInput click failed")
 
 
 def cmd_type(a) -> int:
@@ -664,11 +734,116 @@ def cmd_type(a) -> int:
     return _emit(ok=ok, text=a.text)
 
 
+def cmd_hover(a) -> int:
+    """Park the pointer at (x, y) and LEAVE it there.
+
+    That is the whole gesture: a hover-reactive page (PointerGestureRecognizer entered/moved, a
+    VisualState PointerOver, a tooltip) only changes while the pointer is inside it, so the pointer
+    must still be there when the shot is taken — which is why this is the ONE verb that deliberately
+    does not restore the cursor (see POINTER CONTAMINATION above; click/scroll/drag all do).
+
+    The flip side, for scenario authors: the pointer is MACHINE-global and survives the app relaunch
+    between columns, so a parked pointer bleeds into every later frame of the run. End a
+    pointer-moving scenario with a hover to a neutral point (see the syntax block in
+    run_comparison.py's load_scenario).
+
+    A hover that did not land is the one thing this verb CAN get wrong, and it used to be unreportable
+    (ok defaulted True): the page then shows no hover state and reads as a port defect."""
+    ok, at, err = _mouse_to(a.x, a.y)
+    return _emit(ok=ok, x=a.x, y=a.y, at=at, error=err)
+
+
+def _drag_points(x1: int, y1: int, x2: int, y2: int, steps: int) -> list[tuple[int, int]]:
+    """The drag's move points: `steps` evenly-spaced positions from just after (x1,y1) up to and
+    INCLUDING (x2,y2). Pure — the runner's --selftest asserts this against the macOS agent's copy.
+
+    Floored at 2 steps deliberately. With 1 step a "drag" is a press and a release at one point, i.e.
+    a CLICK — it runs, it reports ok, and it produces a frame identical to the previous one, which is
+    indistinguishable from a page that simply does not react. That is the exact failure this verb
+    exists to eliminate, so a misconfigured scenario must not be able to degrade into it.
+
+    (Duplicated verbatim in vm_agent_macos.py. Each agent is copied to a guest ALONE, so it cannot
+    import a shared module — the same reason _emit and cmd_clean are duplicated between them.)"""
+    steps = max(2, int(steps))
+    return [(round(x1 + (x2 - x1) * i / steps), round(y1 + (y2 - y1) * i / steps))
+            for i in range(1, steps + 1)]
+
+
+def cmd_drag(a) -> int:
+    """Press at (x1,y1), MOVE through interpolated points, release at (x2,y2). `swipe` is this same
+    function with a faster default duration — one implementation, two names (see main()).
+
+    THE INTERMEDIATE MOVES ARE THE POINT. A LEFTDOWN immediately followed by a LEFTUP is a click as
+    far as XAML's pointer/manipulation pipeline is concerned: no pan, no swipe, no SwipeView reveal —
+    and the resulting frame is identical to the un-driven one, which reads on the board as "the page
+    does not react".
+
+    The moves go through _mouse_to (SetCursorPos), the same primitive cmd_click already relies on to
+    land its clicks: the cursor move synthesizes WM_MOUSEMOVE to the window under it, in the physical
+    pixels this process is DPI-aware in (hazard 1). Known ceiling: SetCursorPos is a cursor-position
+    API, not an injected input event, so a window that reads the raw input stream directly rather than
+    the message queue could miss it. Upgrade path if a WinUI drag turns out not to track: send each
+    move as SendInput MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE, with the coordinates normalised to
+    0..65535 over the virtual screen (GetSystemMetrics SM_XVIRTUALSCREEN..SM_CYVIRTUALSCREEN).
+
+    `duration` is a FLOOR, not a target (_mouse_to's own settle adds to it), so the measured `elapsed`
+    is emitted for calibration."""
+    pts = _drag_points(a.x1, a.y1, a.x2, a.y2, a.steps)
+    per_step = max(0.0, float(a.duration)) / len(pts)
+    started = time.time()
+    down = INPUT(type=INPUT_MOUSE, u=_INPUTunion(mi=MOUSEINPUT(0, 0, 0, MOUSEEVENTF_LEFTDOWN, 0, None)))
+    up = INPUT(type=INPUT_MOUSE, u=_INPUTunion(mi=MOUSEINPUT(0, 0, 0, MOUSEEVENTF_LEFTUP, 0, None)))
+    saved = _cursor_pos()  # read BEFORE the press; the release below lands on the far end
+    fails: list[str] = []
+
+    # The PRESS POINT is checked, unlike before. SetCursorPos succeeds while CLAMPING (see _mouse_to),
+    # so an off-surface x1,y1 pressed the desktop or the wrong control and the drag then "worked" on
+    # nothing — a banked frame identical to the un-driven one, which is what this verb exists to stop.
+    ok, at, err = _mouse_to(a.x1, a.y1)
+    if not ok:
+        _restore_pointer(saved)
+        return _emit(ok=False, gesture=a.gesture, at=at, error=f"press point not reached: {err}")
+    if not _send(down):
+        _restore_pointer(saved)
+        return _emit(ok=False, gesture=a.gesture, error="SendInput LEFTDOWN failed")
+    try:
+        time.sleep(min(per_step, 0.05))  # let the press register before the first move
+        # The FULL list — pts[-1] IS (x2, y2), so this both interpolates and lands on the endpoint.
+        for px, py in pts:
+            moved_ok, _at, moved_err = _mouse_to(px, py)
+            if not moved_ok:
+                fails.append(moved_err)
+            time.sleep(per_step)
+    finally:
+        # ALWAYS release. A button left down is not a dropped step, it is a wedged GUEST: the mouse
+        # stays captured, every later frame of every later page is captured mid-drag, and that reads
+        # on the board as a port defect rather than as tooling — the same shape as the `or bounds`
+        # bug run_comparison.py documents.
+        if not _send(up):
+            fails.append("SendInput LEFTUP failed")
+        # …and only THEN put the cursor back. Restoring before the release would drag the content all
+        # the way home and undo the gesture; restoring after leaves nothing parked on the far end.
+        restored = _restore_pointer(saved)
+    return _emit(ok=not fails, gesture=a.gesture, points=len(pts), to=[a.x2, a.y2],
+                 elapsed=round(time.time() - started, 3), pointer_restored=restored,
+                 error="; ".join(fails)[:400])
+
+
 def cmd_scroll(a) -> int:
     """Wheel-scroll at (x, y). `dy` is in PIXELS for parity with the macOS agent's pixel scroll event;
     it is converted to wheel notches (120 units each, see SCROLL_PIXELS_PER_NOTCH), keeping the sign
-    and always moving at least one notch so a small scenario delta is never a silent no-op."""
-    _mouse_to(a.x, a.y)
+    and always moving at least one notch so a small scenario delta is never a silent no-op.
+
+    The move AIMS the wheel event (WM_MOUSEWHEEL goes to the window under the cursor), so it has to
+    be checked — a refused or clamped move scrolls whatever the cursor already happened to be over —
+    and the cursor is put back afterwards so the scrolled view is not left in a hover state for every
+    later frame (see POINTER CONTAMINATION above)."""
+    saved = _cursor_pos()
+    ok, at, err = _mouse_to(a.x, a.y)
+    if not ok:
+        _restore_pointer(saved)
+        return _emit(ok=False, x=a.x, y=a.y, dy=a.dy, at=at,
+                     error=f"the scroll would have landed wherever the cursor already was: {err}")
     notches = int(a.dy) / float(SCROLL_PIXELS_PER_NOTCH)
     amount = int(notches * WHEEL_DELTA)
     if amount == 0 and a.dy != 0:
@@ -677,7 +852,9 @@ def cmd_scroll(a) -> int:
                u=_INPUTunion(mi=MOUSEINPUT(0, 0, ctypes.c_uint32(amount & 0xFFFFFFFF).value,
                                            MOUSEEVENTF_WHEEL, 0, None)))
     ok = _send(ev)
-    return _emit(ok=ok, x=a.x, y=a.y, dy=a.dy, wheel=amount)
+    restored = _restore_pointer(saved)
+    return _emit(ok=ok, x=a.x, y=a.y, dy=a.dy, wheel=amount, at=at, pointer_restored=restored,
+                 error="" if ok else "SendInput WHEEL failed")
 
 
 def cmd_shot(a) -> int:
@@ -738,6 +915,126 @@ def _capture_screen_rect(x: int, y: int, w: int, h: int, out: str) -> tuple[bool
 def cmd_stop(a) -> int:
     subprocess.run(["taskkill", "/PID", str(a.pid), "/T", "/F"], capture_output=True)
     return _emit(pid=a.pid)
+
+
+# ---------------------------------------------------------------- self-check
+
+
+def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we do not need
+    """Assert the interaction verbs' cursor handling with the Win32 seam stubbed.
+
+    `python vm_agent_windows.py selftest` — runs on the guest AND on the macOS/Linux dev machine (the
+    module already imports off-Windows for exactly this reason; see the _IS_WINDOWS note). Each
+    assertion pins a way this agent can do NOTHING and still report success:
+      * a verb that leaves the cursor parked on the UI (every later frame carries a PointerOver),
+      * SetCursorPos succeeding while CLAMPING an off-surface coordinate to the screen edge,
+      * a drag whose press point was never reached, or whose last move never happened.
+    The stubs are installed and removed under try/finally: `selftest` is reachable through the
+    session-1 `serve` dispatch, so a mid-assertion abort must not leak a patched _mouse_to into a run.
+    """
+    N = argparse.Namespace
+    real_mouse, real_cursor, real_send = _mouse_to, _cursor_pos, _send
+    moves: list[tuple[int, int]] = []
+    flags: list[int] = []
+    checks = 0
+
+    def fake_env(clamp_at=None, send_ok=True, start=(700, 400)):
+        """Patch the OS seam. `clamp_at` is a point SetCursorPos pretends to clamp (lands 1px short),
+        which is the failure that looks like success."""
+        moves.clear()
+        flags.clear()
+
+        def _fake_mouse_to(x, y):
+            moves.append((int(x), int(y)))
+            if clamp_at is not None and (int(x), int(y)) == tuple(clamp_at):
+                landed = [int(x) - 1, int(y)]
+                return False, landed, f"cursor CLAMPED: asked for {[int(x), int(y)]}, landed {landed}"
+            return True, [int(x), int(y)], ""
+
+        def _fake_send(*inputs):
+            flags.append(inputs[0].u.mi.dwFlags)
+            return send_ok
+
+        globals()["_mouse_to"] = _fake_mouse_to
+        globals()["_cursor_pos"] = lambda: list(start) if start else None
+        globals()["_send"] = _fake_send
+
+    def drive(fn, ns, **kw) -> dict:
+        import contextlib  # noqa: PLC0415 — selftest-only
+        import io  # noqa: PLC0415
+        fake_env(**kw)
+        try:
+            with contextlib.redirect_stdout(io.StringIO()) as out:
+                fn(ns)
+        finally:
+            globals()["_mouse_to"] = real_mouse
+            globals()["_cursor_pos"] = real_cursor
+            globals()["_send"] = real_send
+        return json.loads(out.getvalue())
+
+    # (a) POINTER CONTAMINATION — click, scroll and drag all end back at the saved position; hover
+    #     deliberately does not move back, because parking IS the gesture.
+    res = drive(cmd_click, N(x=10, y=20))
+    assert moves == [(10, 20), (700, 400)], f"click must restore the cursor: {moves}"
+    assert res["ok"] and res["pointer_restored"], res
+    checks += 1
+
+    res = drive(cmd_hover, N(x=10, y=20))
+    assert moves == [(10, 20)], f"hover must PARK the cursor and stop — restoring defeats it: {moves}"
+    assert res["ok"] and res["at"] == [10, 20], res
+    checks += 1
+
+    res = drive(cmd_scroll, N(x=10, y=20, dy=-400))
+    assert moves == [(10, 20), (700, 400)], f"scroll must restore the cursor: {moves}"
+    assert res["ok"] and flags == [MOUSEEVENTF_WHEEL] and res["wheel"] < 0, (res, flags)
+    checks += 1
+
+    dns = N(x1=0, y1=0, x2=100, y2=0, steps=4, duration=0.0, gesture="drag")
+    res = drive(cmd_drag, dns)
+    assert moves == [(0, 0), (25, 0), (50, 0), (75, 0), (100, 0), (700, 400)], moves
+    assert flags == [MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP], flags
+    assert res["ok"] and res["pointer_restored"] and res["points"] == 4, res
+    checks += 1
+    # The restore comes AFTER the release: restoring first would drag the content back to the start.
+    assert moves.index((700, 400)) == len(moves) - 1, moves
+    checks += 1
+
+    # (d) a CLAMPED move is a failed step, not a plausible frame. SetCursorPos returns TRUE while
+    #     clamping, which is why the landing point is read back rather than assumed.
+    res = drive(cmd_click, N(x=9999, y=20), clamp_at=(9999, 20))
+    assert not res["ok"] and res["at"] == [9998, 20], res
+    assert flags == [], "a click whose cursor never arrived must not press anything"
+    assert moves[-1] == (700, 400), f"even a refused click must not leave the cursor adrift: {moves}"
+    checks += 1
+
+    res = drive(cmd_hover, N(x=9999, y=20), clamp_at=(9999, 20))
+    assert not res["ok"] and res["error"], f"hover could never report failure before: {res}"
+    checks += 1
+
+    res = drive(cmd_drag, dns, clamp_at=(0, 0))
+    assert not res["ok"] and "press point" in res["error"], res
+    assert flags == [], "a drag whose press point was never reached must not press"
+    checks += 1
+
+    res = drive(cmd_drag, dns, clamp_at=(50, 0))     # a mid-gesture clamp
+    assert not res["ok"] and "CLAMPED" in res["error"], res
+    assert flags == [MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP], f"the press must still be released: {flags}"
+    checks += 1
+
+    res = drive(cmd_scroll, N(x=10, y=20, dy=-400), clamp_at=(10, 20))
+    assert not res["ok"] and flags == [], f"a mis-aimed scroll must not fire the wheel: {res}"
+    checks += 1
+
+    # If the SAVE fails (GetCursorPos refused) there is nothing to restore TO, so the restore is
+    # skipped entirely. That is this fix silently not running, so it must be visible:
+    # `pointer_restored: false` (plus the stderr line _restore_pointer prints), never a bare ok.
+    for fn, ns in ((cmd_click, N(x=10, y=20)), (cmd_scroll, N(x=10, y=20, dy=-400)), (cmd_drag, dns)):
+        res = drive(fn, ns, start=None)
+        assert res["pointer_restored"] is False, (fn.__name__, res)
+        assert moves[-1] != (700, 400), (fn.__name__, moves)
+        checks += 1
+
+    return _emit(selftest="ok", checks=checks)
 
 
 # ---------------------------------------------------------------- session-1 server
@@ -919,11 +1216,34 @@ def main(argv=None) -> int:
     s = sub.add_parser("scroll"); s.add_argument("x", type=int); s.add_argument("y", type=int)
     s.add_argument("dy", type=int); s.set_defaults(fn=cmd_scroll)
 
+    s = sub.add_parser("hover"); s.add_argument("x", type=int); s.add_argument("y", type=int)
+    s.set_defaults(fn=cmd_hover)
+
+    # `drag` and `swipe` are the SAME implementation (cmd_drag) under two names: a swipe is just a
+    # fast drag, so the only thing that differs is the default duration. One code path, so a fix to
+    # the press/move/release sequence can never apply to one gesture and not the other. Defaults are
+    # identical to the macOS agent's, so a scenario drives both platforms the same way.
+    for gesture, default_duration, default_steps in (("drag", 0.35, 10), ("swipe", 0.12, 6)):
+        s = sub.add_parser(gesture)
+        s.add_argument("x1", type=int); s.add_argument("y1", type=int)
+        s.add_argument("x2", type=int); s.add_argument("y2", type=int)
+        s.add_argument("--steps", type=int, default=default_steps,
+                       help="intermediate move events (floored at 2; 1 would be a click)")
+        s.add_argument("--duration", type=float, default=default_duration,
+                       help="seconds spread over the moves; a FLOOR, see the emitted `elapsed`")
+        s.set_defaults(fn=cmd_drag, gesture=gesture)
+
     s = sub.add_parser("shot"); s.add_argument("out"); s.add_argument("--window", type=int, default=0)
     s.add_argument("--rect", default="", help="x,y,w,h region capture (occlusion-prone fallback)")
     s.set_defaults(fn=cmd_shot)
 
     s = sub.add_parser("stop"); s.add_argument("pid", type=int); s.set_defaults(fn=cmd_stop)
+
+    # Runs anywhere (the Win32 seam is stubbed), so it is both a dev-machine pre-flight and the first
+    # thing to run ON a guest when a scenario's frames come back looking un-driven. Mirrors the macOS
+    # agent's `selftest`.
+    s = sub.add_parser("selftest", help="assert the interaction verbs with the Win32 seam stubbed")
+    s.set_defaults(fn=cmd_selftest)
 
     # The session-1 server (see cmd_serve). Not part of the macOS agent's surface: it exists purely to
     # escape Windows Session 0 isolation, so the shared subcommands above stay identical across agents.

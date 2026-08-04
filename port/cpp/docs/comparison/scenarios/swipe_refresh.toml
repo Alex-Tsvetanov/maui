@@ -1,0 +1,58 @@
+# Scenario for the `swipe_refresh` page: capture at rest, then PULL DOWN from the top of the content
+# to trigger the RefreshView's pull-to-refresh.
+#
+# WHY A DRAG AND NOT A SCROLL: a pull-to-refresh is a press-move-release that starts at the scroll
+# origin, not a wheel event. `scroll` cannot express it, which is why this page has sat in ANIMATED
+# producing 12 byte-identical burst frames and a discarded GIF.
+#
+# WHY THIS PAGE IS DRIVABLE AT ALL (the rule that killed 11 of its 13 siblings): the shared XAML twins
+# in port/maui-reference/pages/ deliberately OMIT every GestureRecognizer and Clicked handler, so the
+# maui_xaml GROUND-TRUTH column cannot react to anything an app handler would have driven. The refresh
+# spinner is CONTROL-INTRINSIC — a RefreshView shows its visualizer on pull with no Command bound —
+# so all three columns react or none do. NOTE the same page's SwipeView is NOT drivable: the twin
+# declares only `SwipeView.Content` (the loader has no markup sink for Left/RightItems), so a
+# leftward swipe would reveal nothing on any column. Pull only.
+#
+# COORDINATE SPACE — FRACTIONS of the captured surface (0..1 on both axes), the portable authoring
+# contract every lane implements: run_comparison.step_point scales against the presented window rect,
+# capture_ios against the Simulator screen rect from the Accessibility iOSContentGroup subrole,
+# capture_android against `adb shell wm size`. One number means the SAME RELATIVE POINT on a 1024x800
+# Catalyst window, a 480x752 AppKit window, a 1206x2622 Simulator and a 1080x2340 emulator.
+#
+# THE y START IS LOAD-BEARING HERE, and fractions are what make it safe on every lane at once. Two
+# different hazards sit at the top of the surface, at two different absolute heights:
+#   - macOS: the title bar occupies screen y 30..~62. A downward drag STARTING on it drags the WINDOW
+#     rather than pulling the content, which moves the capture rect and corrupts every remaining frame
+#     of the unit — not just this one.
+#   - Android: the status bar occupies rows 0..~135 of a 2340-tall display. A drag starting there
+#     pulls the notification shade over the app.
+# y = 0.15 clears both (120px into a 800px window, 351px into a 2340px display) while staying close
+# enough to the top that the scroll view is still at its origin — a pull only registers there. The
+# earlier absolute y=120 cleared the macOS bar but landed INSIDE the Android status bar.
+#
+# TO RECALIBRATE: find the pixel you want in any run frame (0001.png), divide by that image's width
+# and height. Do NOT use the "1512-wide display, window centered, x = width/2 = 756" model the older
+# scenarios carry: `present` PINS the window to an explicit rect, so the centering never happens.
+#
+# UNVERIFIED ON DEVICE: whether a synthetic left-mouse drag triggers a pull under Mac Catalyst
+# (UIRefreshControl in a UIScrollView) or WinUI (RefreshContainer). It may not — a mouse drag is not a
+# pan on either. That non-reaction is SYMMETRIC across all three columns (same control, same markup),
+# so it cannot manufacture a red; it would simply leave the GIF as motionless as it is today, which is
+# the finding to report.
+
+tag = "swipe_refresh"
+themes = ["light", "dark"]   # the board sweeps animated pages in both; --themes still overrides
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"          # no action -> settle + screenshot. MUST stay named "initial": that is the
+                          # frame import_run_captures.initial_frame copies to the board still, so the
+                          # board PNG is byte-identical to a no-scenario run.
+
+[[steps]]
+name = "pulled-down"
+action = "drag"
+at = [0.5, 0.15]          # near the top of the content, horizontally mid-surface
+to = [0.5, 0.55]          # 40% of the height down — comfortably past any platform's pull threshold
+steps = 24                # a slow deliberate pull; a fast one reads as a fling and never latches
+duration = 0.6            # 25ms per move — above the ~20ms floor where both OSes coalesce moves
