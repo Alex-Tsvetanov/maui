@@ -593,12 +593,37 @@ def _bank_recording(run_unit, app: str, column: str | None, key: str, theme: str
     r = subprocess.run(["ffmpeg", "-y", "-i", mp4, "-vf", f"fps={fps:g}",
                         "-start_number", str(first), os.path.join(unit, "%04d.png")],
                        capture_output=True, text=True)
+    # DROP LEADING FRAMES THAT ARE NOT THE PAGE. capture_still already refuses a splash frame ("a
+    # screenshot can succeed and still be a picture of the WRONG SCREEN"), but the motion path banked
+    # whatever the recorder caught — and a recording starts right after launch, so on a slow page it
+    # opens on the black pre-draw screen. Measured: ios/cpp/pan_gesture_events dark banked three frames
+    # at mean brightness 0.4 before the UI appeared at 48.5, and the scorer read black -> rendered as
+    # 2,814,930 px of motion (89.02%, worst SSIM 0.1070) against a MAUI column that had settled. That
+    # is a FALSE "MOTION MISMATCH" red — a launch artifact reported as a port defect, which is exactly
+    # the class of lie this pass exists to remove. The settle before recording is already 4s; the fix
+    # is not a longer wait but refusing to score a frame that is not the page.
+    raw = []
     n = first
     while os.path.exists(os.path.join(unit, f"{n:04d}.png")):
-        _sidecar(unit, n, col, key, theme, frame_step(n - first, record_secs))
+        raw.append(os.path.join(unit, f"{n:04d}.png"))
         n += 1
-    made = n - first
+    lead = 0
+    while lead < len(raw) and is_splash(raw[lead]):
+        lead += 1
+    if lead:
+        for p in raw[:lead]:
+            os.remove(p)
+        for i, p in enumerate(raw[lead:]):                 # close the gap: NNNN must stay contiguous
+            os.rename(p, os.path.join(unit, f"{first + i:04d}.png"))
+        raw = [os.path.join(unit, f"{first + i:04d}.png") for i in range(len(raw) - lead)]
+    made = len(raw)
+    for i in range(made):
+        # Named for the moment it was RECORDED at, not its position after trimming: dropping a leading
+        # splash must not re-time the rest of the sequence onto the other column's earlier frames.
+        _sidecar(unit, first + i, col, key, theme, frame_step(lead + i, record_secs))
     if made >= 2:
+        if lead:
+            print(f"      run-dir: dropped {lead} leading splash/pre-draw frame(s) from {key}/{theme}")
         return made
     # AN EMPTY RECORDING IS EVIDENCE, NOT AN ERROR — and treating it as one threw the finding away.
     # `simctl io recordVideo` writes an mp4 with NO ENCODED FRAMES when nothing on screen changes
@@ -643,6 +668,9 @@ def _bank_burst(run_unit, app: str, column: str | None, key: str, theme: str, re
                            capture_output=True, text=True)
         if r.returncode != 0:
             continue                       # a dropped shot leaves a GAP in the grid, never a shift
+        if is_splash(stage):
+            os.remove(stage)               # same rule as the recording path: never score a frame that
+            continue                       # is not the page (see _bank_recording's splash trim)
         n = first + made
         shutil.copyfile(stage, os.path.join(unit, f"{n:04d}.png"))
         os.remove(stage)
