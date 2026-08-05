@@ -870,4 +870,92 @@ namespace
         // the starting view scale multiplies the difference
         EXPECT_DOUBLE_EQ(maui::controls::pinch_scale_delta(1.0, 1.5, 2.0), 2.0);
     }
+
+    // ---- re-entrancy: user code that mutates the collection MID-DISPATCH ----------------------------
+    // C#'s fan-outs walk EnumerableExtensions.GetGesturesFor, whose remark is "The method makes a
+    // defensive copy of the gestures" (`new List<IGestureRecognizer>(gestures)`,
+    // src/Controls/src/Core/EnumerableExtensions.cs:48-56) — so a Tapped/PanUpdated/… handler is free to
+    // add or remove recognizers, and the in-flight gesture still reaches the list as it was at dispatch
+    // time. These are ASan probes for that: without the defensive copy the dispatch walks the live
+    // member vector across user code (reallocated → freed buffer; erased → freed recognizers).
+    //
+    // TEST-MECHANICS TRAP: build these recognizers with `shared_ptr<T>(new T)`, NOT make_shared. A
+    // make_shared block is ONE allocation for the control block + the object, so a surviving weak_ptr
+    // (the "was it really destroyed?" observer below) keeps that allocation mapped — the recognizer is
+    // destroyed but its bytes are never freed, and ASan sees a live region instead of a use-after-free.
+    // A separate control block frees the object the moment the last strong ref goes.
+
+    TEST(gesture_lifetime_test, dispatch_survives_a_recognizer_added_by_a_handler)
+    {
+        test_view view;
+        view.set_handler(std::make_shared<maui::core::button_handler>());
+
+        auto first = std::make_shared<tap_gesture_recognizer>();
+        auto second = std::make_shared<tap_gesture_recognizer>();
+        view.gesture_recognizers().add(first);
+        view.gesture_recognizers().add(second);
+
+        int taps = 0;
+        // Adding grows attached_ past its capacity — the old buffer is freed under the walk.
+        first->tapped.connect([&view, &taps](const tapped_event_args&) {
+            ++taps;
+            view.gesture_recognizers().add(std::make_shared<pan_gesture_recognizer>());
+        });
+        second->tapped.connect([&taps](const tapped_event_args&) { ++taps; });
+
+        view.gesture_manager().synthetic_tap();
+        EXPECT_EQ(taps, 2);                                     // both recognizers of the copy still fire
+        EXPECT_EQ(view.gesture_manager().attached_count(), 3U); // and the addition took effect
+    }
+
+    TEST(gesture_lifetime_test, dispatch_survives_a_collection_cleared_by_a_handler)
+    {
+        test_view view;
+        view.set_handler(std::make_shared<maui::core::button_handler>());
+
+        std::shared_ptr<tap_gesture_recognizer> first(new tap_gesture_recognizer);
+        std::shared_ptr<tap_gesture_recognizer> second(new tap_gesture_recognizer);
+        view.gesture_recognizers().add(first);
+        view.gesture_recognizers().add(second);
+
+        int taps = 0;
+        first->tapped.connect([&view, &taps](const tapped_event_args&) {
+            ++taps;
+            view.gesture_recognizers().clear(); // drops the collection's AND the manager's strong refs
+        });
+        second->tapped.connect([&taps](const tapped_event_args&) { ++taps; });
+
+        const std::weak_ptr<tap_gesture_recognizer> observer = second;
+        first.reset();
+        second.reset(); // the collection + attached_ are now the only owners
+
+        view.gesture_manager().synthetic_tap();
+        EXPECT_EQ(taps, 2); // the second recognizer was in the copy, so it still receives the tap
+        EXPECT_EQ(view.gesture_manager().attached_count(), 0U);
+        EXPECT_TRUE(observer.expired()); // the copy is gone with the dispatch — nothing is kept alive
+    }
+
+    TEST(gesture_lifetime_test, pinch_latch_survives_a_handler_that_drops_the_recognizer)
+    {
+        // PinchGestureRecognizer.SendPinchStarted writes its IsPinching latch AFTER raising PinchUpdated
+        // (pinch_gesture_recognizer.hpp) — C#'s `this` is GC-rooted for the whole body, so the write is
+        // safe there. Here the dispatch's defensive copy is what roots the recognizer across the send.
+        test_view view;
+        view.set_handler(std::make_shared<maui::core::button_handler>());
+
+        std::shared_ptr<pinch_gesture_recognizer> pinch(new pinch_gesture_recognizer);
+        view.gesture_recognizers().add(pinch);
+
+        int updates = 0;
+        pinch->pinch_updated.connect([&view, &updates](const pinch_gesture_updated_event_args&) {
+            ++updates;
+            view.gesture_recognizers().clear();
+        });
+        const std::weak_ptr<pinch_gesture_recognizer> observer = pinch;
+        pinch.reset(); // the collection + attached_ are now the only owners
+
+        view.gesture_manager().synthetic_pinch(gesture_status::started, 1, point(0.5, 0.5));
+        EXPECT_EQ(updates, 1);
+        EXPECT_TRUE(observer.expired());
+    }
 } // namespace

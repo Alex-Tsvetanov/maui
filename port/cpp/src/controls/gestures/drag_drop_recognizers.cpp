@@ -45,17 +45,33 @@ namespace maui::controls
     {
         drag_starting_event_args args;
 
+        // LIFETIME (documented deviation — the shape, not the semantics, differs from C#).
+        // C#'s `SendDragStarting(View element, …)` roots `element` in a GC reference for the whole body,
+        // so its post-Invoke reads (`PropertiesInternal.Add("DragSource", element)` and
+        // `element?.GetStringValue()`, DragGestureRecognizer.cs:120/:133) are safe even when the handler
+        // has torn the view out of the tree. The port receives a raw `element&` and has no way to root it
+        // (element is not enable_shared_from_this, and the platform fan-outs snapshot RECOGNIZERS, not the
+        // sender — src/platform/android/gesture_platform_manager.cpp:331-345), so a DragStarting handler
+        // that destroys its own view would leave every read below dangling. Both reads are therefore taken
+        // BEFORE any user code runs: the address is merely carried, and get_string_value
+        // (src/controls/drag_drop_data.cpp:65-93) is a pure const type-ladder, so precomputing it is
+        // unobservable except for a handler that mutates the SOURCE's own text and then leaves
+        // args.Data.Text unset — C# would copy the post-mutation text, the port copies the pre-mutation
+        // one. The *decision* to use the fallback still runs after the raise, exactly as C# does.
+        std::any source_handle{&sender};
+        std::optional<std::string> source_text = get_string_value(sender);
+
         // DragStartingCommand?.Execute(DragStartingCommandParameter) — no CanExecute gate (see the header).
         if (const std::shared_ptr<i_command>& cmd = drag_starting_command())
         {
             cmd->execute(drag_starting_command_parameter());
         }
-        drag_starting.raise(args);
+        drag_starting.raise(args); // user code — `sender` may be a freed element from here on
 
         // if (!args.Handled) args.Data.PropertiesInternal.Add("DragSource", element);
         if (!args.handled())
         {
-            args.data().properties_internal().set(std::string(drag_source_key), std::any(&sender));
+            args.data().properties_internal().set(std::string(drag_source_key), std::move(source_handle));
         }
 
         // if (args.Cancel || args.Handled) return args;
@@ -71,12 +87,9 @@ namespace maui::controls
         // i_image_source*, not the shared_ptr the package needs); a handler-set Data.Image is unaffected.
 
         // if (String.IsNullOrWhiteSpace(args.Data.Text)) args.Data.Text = element?.GetStringValue();
-        if (is_null_or_white_space(args.data().text()))
+        if (is_null_or_white_space(args.data().text()) && source_text.has_value())
         {
-            if (auto extracted = get_string_value(sender))
-            {
-                args.data().set_text(std::move(extracted));
-            }
+            args.data().set_text(std::move(source_text));
         }
 
         return args;
@@ -108,12 +121,33 @@ namespace maui::controls
             return;
         }
 
+        // LIFETIME (the same documented deviation as send_drag_starting above). C# reads the DragSource
+        // element AFTER raising Drop (DropGestureRecognizer.cs:145 then :155-164) — safe there because
+        // the package's dictionary GC-roots it for the whole method. The port's PropertiesInternal bag
+        // holds a raw `element*` and an element cannot be rooted (it is not shared-owned), so a Drop
+        // handler that destroys the drag source would leave that read dangling. The read is therefore
+        // taken BEFORE any user code runs; get_string_value (src/controls/drag_drop_data.cpp:65-93) is a
+        // pure const type-ladder, so precomputing it is unobservable except for a handler that mutates
+        // the SOURCE's own text during the raise. The *decision* to use the fallback still runs after
+        // the raise, exactly as C# does.
+        bool has_drag_source = false;
+        std::optional<std::string> drag_source_text;
+        if (const auto* stored = args.data().properties_internal().try_get_value(drag_source_key))
+        {
+            if (const auto* const* as_element = std::any_cast<element*>(stored);
+                as_element != nullptr && *as_element != nullptr)
+            {
+                has_drag_source = true;
+                drag_source_text = get_string_value(**as_element);
+            }
+        }
+
         // DropCommand?.Execute(DropCommandParameter) — no CanExecute gate (see the header).
         if (const std::shared_ptr<i_command>& cmd = drop_command())
         {
             cmd->execute(drop_command_parameter());
         }
-        drop.raise(args);
+        drop.raise(args); // user code — no element borrowed by this call may be dereferenced from here on
 
         if (args.handled())
         {
@@ -124,18 +158,10 @@ namespace maui::controls
         std::shared_ptr<maui::core::i_image_source> source_target = data_view.image();
         std::optional<std::string> text = data_view.text();
 
-        // The dropped package's "DragSource" (the element the drag started on) is the text/image fallback.
-        const element* drag_source = nullptr;
-        if (const auto* stored = data_view.properties_internal().try_get_value(drag_source_key))
+        // The dropped package's "DragSource" (the element the drag started on) is the text fallback.
+        if (has_drag_source && is_null_or_white_space(text))
         {
-            if (const auto* const* as_element = std::any_cast<element*>(stored))
-            {
-                drag_source = *as_element;
-            }
-        }
-        if (drag_source != nullptr && is_null_or_white_space(text))
-        {
-            text = get_string_value(*drag_source);
+            text = std::move(drag_source_text);
         }
 
         if (parent == nullptr)

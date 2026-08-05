@@ -204,6 +204,13 @@ namespace maui::controls
         // args.Handled — inject the dropped text/image onto the recognizer's Parent control (the drop
         // target). `parent` is the attached element (C#'s Parent); null skips the injection but still
         // raises drop. See drag_drop_data.hpp for the inject seam + its TimePicker/DatePicker gap.
+        //
+        // LIFETIME: `parent` MUST outlive the call — it is the one element a send_* dereferences after
+        // user code has run, because the injection has to write into a live target (everything else is
+        // read before the raise; see gesture_recognizer.hpp rule 2). Nothing in this layer can root an
+        // element, so this is the caller's contract, the same one `sender` carries everywhere else: a
+        // drop handler that destroys its own drop target is undefined behavior here where C#'s GC would
+        // have kept the object alive to be written to.
         void send_drop(drop_event_args& args, element* parent = nullptr) const;
 
     private:

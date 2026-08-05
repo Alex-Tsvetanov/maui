@@ -186,6 +186,47 @@ namespace maui::controls
         // the ios partial).
         friend struct gesture_arbitration_access;
 
+        // The dispatch spine EVERY synthetic_* runs through — and the reason none of them can touch
+        // `attached_` or `sender_` again once user code has run.
+        //
+        // C#'s bridges fan out over EnumerableExtensions.GetGesturesFor, whose remark reads "The method
+        // makes a defensive copy of the gestures" (`new List<IGestureRecognizer>(gestures)`,
+        // src/Controls/src/Core/EnumerableExtensions.cs:48-56). The port's NATIVE bridges already copy
+        // exactly that way (src/platform/android/gesture_platform_manager.cpp:331-345,
+        // src/platform/windows/gesture_platform_manager.cpp:432-450); this is the same copy for the
+        // cross-platform manager, which used to walk the live member vector instead.
+        //
+        // Why a copy of STRONG refs rather than a per-send liveness check: a Tapped/PanUpdated/… handler
+        // may (a) add a recognizer — `attached_` reallocates and the walked buffer is freed; (b) remove
+        // one — `attached_` erases and the recognizer is freed while its own send_* is still on the
+        // stack, and pinch/drag both write their latch AFTER the raise (PinchGestureRecognizer.IsPinching,
+        // DragGestureRecognizer._isDragActive); or (c) destroy the whole view — the manager is a member
+        // of it, so `this` and both members go with it. Owning the recognizers for the duration of the
+        // call is C#'s GC root spelled in C++: it makes every send_*'s post-raise access to its own state
+        // valid without any send_* knowing about it, and gives the walk memory user code cannot reach.
+        //
+        // `sender` is read ONCE, before any user code: an element is not shared-owned, so the port cannot
+        // root it — no send_* may dereference `sender` after raising (see gesture_recognizer.hpp).
+        //
+        // Snapshot semantics fall out, and match .NET's: a recognizer added mid-dispatch is not observed
+        // until the next gesture; one removed mid-dispatch still receives the in-flight one.
+        template <class Recognizer, class Body> void dispatch(Body&& body)
+        {
+            if (sender_ == nullptr)
+            {
+                return;
+            }
+            element& sender = *sender_;
+            const std::vector<std::shared_ptr<gesture_recognizer>> recognizers = attached_;
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : recognizers)
+            {
+                if (auto* const typed = dynamic_cast<Recognizer*>(recognizer.get()); typed != nullptr)
+                {
+                    body(*typed, sender);
+                }
+            }
+        }
+
         // The backend partial (src/platform/<backend>/gesture_platform_manager.{cpp,mm}): attach /
         // detach the native recognizer(s) for one port recognizer on handler_->native_view().
         // native_state_ is the backend's opaque attachment table (headless leaves it null).

@@ -86,158 +86,125 @@ namespace maui::controls
     }
 
     // ---- synthetic dispatch ----
+    // Every dispatcher below routes through gesture_platform_manager::dispatch<T> (the header), which
+    // hands each body the recognizer and the sender and owns the recognizer for the duration of the
+    // call. Nothing here may reach for `attached_` or `sender_` directly — that is the whole point:
+    // user code raised from a send_* can free either one. See the dispatch<> comment for the C# oracle.
 
     void gesture_platform_manager::synthetic_tap(int number_of_taps, buttons_mask button,
                                                  std::optional<maui::graphics::point> position)
     {
-        if (sender_ == nullptr)
-        {
-            return;
-        }
-        for (const auto& recognizer : attached_)
-        {
-            auto* tap = dynamic_cast<tap_gesture_recognizer*>(recognizer.get());
+        dispatch<tap_gesture_recognizer>([&](tap_gesture_recognizer& tap, element& sender) {
             // The iOS bridge filters: NumberOfTapsRequired must match the native recognizer's count,
             // and the fired button must be within the recognizer's mask (ButtonMaskRequired).
-            if (tap != nullptr && tap->number_of_taps_required() == number_of_taps && contains(tap->buttons(), button))
+            if (tap.number_of_taps_required() == number_of_taps && contains(tap.buttons(), button))
             {
-                tap->send_tapped(*sender_, position);
+                tap.send_tapped(sender, position);
             }
-        }
+        });
     }
 
     void gesture_platform_manager::synthetic_pan(maui::core::gesture_status phase, double total_x, double total_y,
                                                  int touch_points)
     {
         using maui::core::gesture_status;
-        if (sender_ == nullptr)
-        {
-            return;
-        }
-        for (const auto& recognizer : attached_)
-        {
-            auto* pan = dynamic_cast<pan_gesture_recognizer*>(recognizer.get());
-            if (pan == nullptr || pan->touch_points() != touch_points)
+        dispatch<pan_gesture_recognizer>([&](pan_gesture_recognizer& pan, element& sender) {
+            if (pan.touch_points() != touch_points)
             {
-                continue; // the iOS bridge's NumberOfTouches != TouchPoints filter
+                return; // the iOS bridge's NumberOfTouches != TouchPoints filter
             }
             auto& current_id = pan_gesture_recognizer::current_id();
             switch (phase)
             {
                 case gesture_status::started:
-                    pan->send_pan_started(*sender_, current_id.value());
+                    pan.send_pan_started(sender, current_id.value());
                     break;
                 case gesture_status::running:
-                    pan->send_pan(*sender_, total_x, total_y, current_id.value());
+                    pan.send_pan(sender, total_x, total_y, current_id.value());
                     break;
                 case gesture_status::completed:
-                    pan->send_pan_completed(*sender_, current_id.value());
+                    pan.send_pan_completed(sender, current_id.value());
                     current_id.increment();
                     break;
                 case gesture_status::canceled:
-                    pan->send_pan_canceled(*sender_, current_id.value());
+                    pan.send_pan_canceled(sender, current_id.value());
                     current_id.increment();
                     break;
             }
-        }
+        });
     }
 
     void gesture_platform_manager::synthetic_pinch(maui::core::gesture_status phase, double scale,
                                                    maui::graphics::point origin)
     {
         using maui::core::gesture_status;
-        if (sender_ == nullptr)
-        {
-            return;
-        }
-        for (const auto& recognizer : attached_)
-        {
-            auto* pinch = dynamic_cast<i_pinch_gesture_controller*>(recognizer.get());
-            if (pinch == nullptr)
-            {
-                continue;
-            }
+        dispatch<i_pinch_gesture_controller>([&](i_pinch_gesture_controller& pinch, element& sender) {
             switch (phase)
             {
                 case gesture_status::started:
-                    pinch->send_pinch_started(*sender_, origin);
+                    pinch.send_pinch_started(sender, origin);
                     break;
                 case gesture_status::running:
-                    pinch->send_pinch(*sender_, scale, origin);
+                    pinch.send_pinch(sender, scale, origin);
                     break;
                 case gesture_status::completed:
                     // The iOS bridge's Ended case only sends when a pinch is actually in flight.
-                    if (pinch->is_pinching())
+                    if (pinch.is_pinching())
                     {
-                        pinch->send_pinch_ended(*sender_);
+                        pinch.send_pinch_ended(sender);
                     }
                     break;
                 case gesture_status::canceled:
-                    if (pinch->is_pinching())
+                    if (pinch.is_pinching())
                     {
-                        pinch->send_pinch_canceled(*sender_);
+                        pinch.send_pinch_canceled(sender);
                     }
                     break;
             }
-        }
+        });
     }
 
     void gesture_platform_manager::synthetic_swipe(double total_x, double total_y)
     {
-        if (sender_ == nullptr)
-        {
-            return;
-        }
-        for (const auto& recognizer : attached_)
-        {
-            auto* swipe = dynamic_cast<swipe_gesture_recognizer*>(recognizer.get());
-            if (swipe != nullptr)
-            {
-                swipe->send_swipe(*sender_, total_x, total_y);
-                (void)swipe->detect_swipe(*sender_, swipe->direction());
-            }
-        }
+        dispatch<swipe_gesture_recognizer>([&](swipe_gesture_recognizer& swipe, element& sender) {
+            // The only body that sends TWICE in one iteration. Safe because send_swipe raises nothing —
+            // it just stores the running totals (swipe_gesture_recognizer.hpp); `swipe` itself is held by
+            // the dispatch copy either way, but `sender` is not rootable, so if send_swipe ever grows a
+            // raise this second call must be re-examined (gesture_recognizer.hpp, rule 2).
+            swipe.send_swipe(sender, total_x, total_y);
+            (void)swipe.detect_swipe(sender, swipe.direction());
+        });
     }
 
     void gesture_platform_manager::synthetic_pointer(pointer_event_kind kind,
                                                      std::optional<maui::graphics::point> position, buttons_mask button)
     {
-        if (sender_ == nullptr)
-        {
-            return;
-        }
-        for (const auto& recognizer : attached_)
-        {
-            auto* pointer = dynamic_cast<pointer_gesture_recognizer*>(recognizer.get());
-            if (pointer == nullptr)
-            {
-                continue;
-            }
+        dispatch<pointer_gesture_recognizer>([&](pointer_gesture_recognizer& pointer, element& sender) {
             // The iOS bridge filters press events by the recognizer's mask; hover events pass through.
             const bool is_hover = kind == pointer_event_kind::entered || kind == pointer_event_kind::exited ||
                                   kind == pointer_event_kind::moved;
-            if (!is_hover && !contains(pointer->buttons(), button))
+            if (!is_hover && !contains(pointer.buttons(), button))
             {
-                continue;
+                return;
             }
             switch (kind)
             {
                 case pointer_event_kind::entered:
-                    pointer->send_pointer_entered(*sender_, position, button);
+                    pointer.send_pointer_entered(sender, position, button);
                     break;
                 case pointer_event_kind::exited:
-                    pointer->send_pointer_exited(*sender_, position, button);
+                    pointer.send_pointer_exited(sender, position, button);
                     break;
                 case pointer_event_kind::moved:
-                    pointer->send_pointer_moved(*sender_, position, button);
+                    pointer.send_pointer_moved(sender, position, button);
                     break;
                 case pointer_event_kind::pressed:
-                    pointer->send_pointer_pressed(*sender_, position, button);
+                    pointer.send_pointer_pressed(sender, position, button);
                     break;
                 case pointer_event_kind::released:
-                    pointer->send_pointer_released(*sender_, position, button);
+                    pointer.send_pointer_released(sender, position, button);
                     break;
             }
-        }
+        });
     }
 } // namespace maui::controls

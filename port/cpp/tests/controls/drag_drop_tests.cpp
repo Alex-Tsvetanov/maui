@@ -236,6 +236,37 @@ namespace
         EXPECT_TRUE(returned.data().properties_internal().contains_key("DragSource"));
     }
 
+    // LIFETIME. A DragStarting handler is user code and it is allowed to tear the source view down from
+    // inside the send — the platform fan-outs that call this (android
+    // src/platform/android/gesture_platform_manager.cpp:697, windows :565) hold a strong ref to the
+    // RECOGNIZER, never to the sender. C# survives that because SendDragStarting's `View element`
+    // parameter is a GC root for the whole body, so its post-Invoke reads
+    // (DragGestureRecognizer.cs:120 `PropertiesInternal.Add("DragSource", element)`, :133
+    // `element?.GetStringValue()`) still see a live object. The port cannot root a raw `element&`, so it
+    // reads everything it needs off the sender BEFORE running user code; revert that hoist and this test
+    // reads a freed label (heap-use-after-free under the asan-ubsan preset).
+    TEST(drag_gesture_recognizer_test, handler_destroying_the_source_mid_send_is_safe)
+    {
+        drag_gesture_recognizer drag;
+        auto source = std::make_unique<label>();
+        source->set_text("DoomedLabel");
+        label& sender = *source;
+
+        int raised = 0;
+        drag.drag_starting.connect([&](drag_starting_event_args&) {
+            ++raised;
+            source.reset(); // the handler frees its own view while the send is still on the stack
+        });
+
+        const drag_starting_event_args returned = drag.send_drag_starting(sender);
+
+        // The positive witness: a "didn't crash" result is worthless if the handler never ran.
+        ASSERT_EQ(raised, 1);
+        EXPECT_EQ(returned.data().text(), "DoomedLabel")
+            << "the GetStringValue fallback must be the source's text, read while the source was alive";
+        EXPECT_TRUE(returned.data().properties_internal().contains_key("DragSource"));
+    }
+
     TEST(drag_gesture_recognizer_test, drop_completed_fires_once)
     {
         // DragGestureRecognizerTests.DropCompletedCommandFiresOnce, recast onto the event: the
@@ -492,6 +523,26 @@ namespace
         EXPECT_EQ(target.text(), "FromSource");
     }
 
+    TEST(drop_gesture_recognizer_test, drag_source_text_survives_a_handler_that_destroys_the_source)
+    {
+        // LIFETIME probe. C# reads the DragSource element AFTER raising Drop (DropGestureRecognizer.cs
+        // :145 then :155-164) — safe there because the package's dictionary GC-roots it. The port's bag
+        // holds a raw element*, so a Drop handler that destroys the source view leaves that read
+        // dangling; the port therefore takes the read BEFORE user code (see send_drop's LIFETIME note).
+        auto source = std::make_unique<label>();
+        source->set_text("FromSource");
+
+        data_package package;
+        package.properties_internal().set("DragSource", std::any(static_cast<maui::controls::element*>(source.get())));
+        drop_event_args args(data_package_view(package.clone()));
+
+        drop_gesture_recognizer drop;
+        drop.drop.connect([&source](drop_event_args&) { source.reset(); });
+        label target;
+        drop.send_drop(args, &target);
+        EXPECT_EQ(target.text(), "FromSource"); // the fallback was resolved while the source was alive
+    }
+
     // ---- the cross-control seam (drag_drop_data.hpp) directly ----
 
     TEST(drag_drop_data_test, get_string_value_covers_text_and_bool_controls)
@@ -575,4 +626,5 @@ namespace
         EXPECT_FALSE(view.gesture_manager().native_registered_drop_target(*drag));
         EXPECT_FALSE(view.gesture_manager().native_registered_drag_source(*drop));
     }
+
 } // namespace
