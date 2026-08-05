@@ -21,10 +21,13 @@
 // recognizer collection lives. Nothing here reads a gesture recognizer.
 //
 // Bound from C++ with RegisterNatives (reflection-free, no Java_* export), exactly like
-// NativeOnClickListener. `peer` is the backend's gesture_native_state; the C++ side zeroes it
-// through detach() BEFORE it drops this object, so a MotionEvent still queued in the platform's
-// detectors can never reach a freed peer (C#'s "resurrect the eagerly-disposed listener" hazard —
-// InnerGestureListener.cs:69-74 — spelled as an explicit invalidation instead).
+// NativeOnClickListener. `peer` is the backend's gesture_state; the C++ side zeroes it through
+// detach() BEFORE it drops this object, so a MotionEvent still queued in the platform's detectors
+// can never reach a freed peer (C#'s "resurrect the eagerly-disposed listener" hazard —
+// InnerGestureListener.cs:69-74 — spelled as an explicit invalidation instead). A peer that slips
+// past the zeroing (the drag-source peer inside an OS drag session's LocalState) is caught on the
+// C++ side, which validates every peer against a live registry and holds a strong ref to the state
+// for the whole callback — see the RE-ENTRANCY & LIFETIME block in gesture_platform_manager.cpp.
 package dev.mauicpp;
 
 import android.content.ClipData;
@@ -102,9 +105,13 @@ public final class MauiGestureBridge
         if (peer == 0 || e == null) {
             return false;
         }
-        // The IsEnabled / InputTransparent bail (:71-74) is the platform View's own concern here: the
-        // port pushes IsEnabled onto View.setEnabled and InputTransparent onto the touch-listener
-        // install, so a disabled/transparent view never reaches this callback.
+        // GesturePlatformManager.OnTouchEvent :64-91 — the Control == null / !_isEnabled ||
+        // _inputTransparent bail (:66-74), asked of the C++ side because that is where the virtual view
+        // is. It MUST happen here, before either detector sees the event: feeding a detector and then
+        // dropping its callbacks would corrupt its state machine (a swallowed DOWN, a stuck scroll).
+        if (!nativeShouldHandleTouch(peer)) {
+            return false;
+        }
         boolean eventConsumed = false;
         if (hasPinchGestures) {
             eventConsumed = scaleDetector.onTouchEvent(e);
@@ -311,6 +318,8 @@ public final class MauiGestureBridge
     }
 
     // ---- the native halves (bound via RegisterNatives before any instance is constructed) ------------
+
+    private static native boolean nativeShouldHandleTouch(long peer);
 
     private static native boolean nativeOnDown(long peer, float rawX, float rawY);
 

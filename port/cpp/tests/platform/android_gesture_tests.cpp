@@ -159,6 +159,113 @@ namespace
         EXPECT_EQ(tapped, 1);
     }
 
+    // RE-ENTRANCY. A Tapped handler is user code, and user code may mutate the very collection the
+    // fan-out is walking — the classic one-shot handler that removes its own recognizer. The fan-out
+    // must therefore walk a defensive COPY, exactly as C# does (EnumerableExtensions.GetGesturesFor,
+    // src/Controls/src/Core/EnumerableExtensions.cs:48-62: "The method makes a defensive copy of the
+    // gestures"). THREE recognizers, and the FIRST is the one that removes itself: walking the live
+    // table instead shifts the tail left under the cached end iterator, which skips the recognizer that
+    // moved into the current slot and then re-reads the vacated one past the new size.
+    TEST(AndroidGestureSeam, HandlerRemovingItsOwnRecognizerMidDispatchIsSafe)
+    {
+        ASSERT_NE(maui::platform::android::testhost::host_context(), nullptr);
+        attached_box box;
+        ASSERT_NE(box.native(), nullptr);
+
+        auto first = std::make_shared<tap_gesture_recognizer>();
+        auto second = std::make_shared<tap_gesture_recognizer>();
+        auto third = std::make_shared<tap_gesture_recognizer>();
+        int first_taps = 0;
+        int second_taps = 0;
+        int third_taps = 0;
+        first->tapped.connect([&](const maui::controls::tapped_event_args&) {
+            ++first_taps;
+            box.control.gesture_recognizers().remove(first); // detaches + re-syncs FROM INSIDE the sweep
+        });
+        second->tapped.connect([&second_taps](const maui::controls::tapped_event_args&) { ++second_taps; });
+        third->tapped.connect([&third_taps](const maui::controls::tapped_event_args&) { ++third_taps; });
+        box.control.gesture_recognizers().add(first);
+        box.control.gesture_recognizers().add(second);
+        box.control.gesture_recognizers().add(third);
+
+        dispatch_touch(box.native(), k_action_down, 7, 7, 6000, 6000);
+        dispatch_touch(box.native(), k_action_up, 7, 7, 6000, 6050);
+        EXPECT_EQ(first_taps, 1);
+        EXPECT_EQ(second_taps, 1) << "the defensive copy must still reach the recognizers behind the mutation";
+        EXPECT_EQ(third_taps, 1) << "and must reach each of them exactly once";
+
+        // Well past the double-tap timeout, so this is a fresh single tap: the removal really took.
+        dispatch_touch(box.native(), k_action_down, 7, 7, 8000, 8000);
+        dispatch_touch(box.native(), k_action_up, 7, 7, 8000, 8050);
+        EXPECT_EQ(first_taps, 1);
+        EXPECT_EQ(second_taps, 2);
+        EXPECT_EQ(third_taps, 2);
+    }
+
+    // GesturePlatformManager.OnTouchEvent :64-91 — a disabled or input-transparent element refuses the
+    // whole touch stream (:71-74, off Element.IsEnabled / Element.InputTransparent, :407-425). Neither
+    // property has a plain-android.view.View mapping in the port (box_view_handler.cpp:43), so this gate
+    // is the ONLY thing standing between a disabled view and its gestures.
+    TEST(AndroidGestureSeam, DisabledOrInputTransparentViewRefusesTheTouchStream)
+    {
+        ASSERT_NE(maui::platform::android::testhost::host_context(), nullptr);
+        attached_box box;
+        ASSERT_NE(box.native(), nullptr);
+
+        auto tap = std::make_shared<tap_gesture_recognizer>();
+        int tapped = 0;
+        tap->tapped.connect([&tapped](const maui::controls::tapped_event_args&) { ++tapped; });
+        box.control.gesture_recognizers().add(tap);
+
+        box.control.set_is_enabled(false);
+        dispatch_touch(box.native(), k_action_down, 4, 4, 12000, 12000);
+        dispatch_touch(box.native(), k_action_up, 4, 4, 12000, 12050);
+        EXPECT_EQ(tapped, 0) << "a disabled element must not receive gestures";
+
+        box.control.set_is_enabled(true);
+        box.control.set_input_transparent(true);
+        dispatch_touch(box.native(), k_action_down, 4, 4, 14000, 14000);
+        dispatch_touch(box.native(), k_action_up, 4, 4, 14000, 14050);
+        EXPECT_EQ(tapped, 0) << "an input-transparent element must not receive gestures";
+
+        // ...and the gate is a gate, not a latch: clearing both restores the stream.
+        box.control.set_input_transparent(false);
+        dispatch_touch(box.native(), k_action_down, 4, 4, 16000, 16000);
+        dispatch_touch(box.native(), k_action_up, 4, 4, 16000, 16050);
+        EXPECT_EQ(tapped, 1);
+    }
+
+    // The harsher half of the same hazard: the handler tears the whole gesture channel down
+    // (set_handler(nullptr) -> GestureManager.DisconnectGestures -> native_detach_all), freeing the
+    // manager's grip on the peer while a fan-out is standing on it. The callback holds its own strong
+    // ref, so the storage survives the unwind; the sweep stops instead of sending into the dead view.
+    TEST(AndroidGestureSeam, HandlerTearingDownTheViewMidDispatchIsSafe)
+    {
+        ASSERT_NE(maui::platform::android::testhost::host_context(), nullptr);
+        attached_box box;
+        jobject native = box.native();
+        ASSERT_NE(native, nullptr);
+
+        auto first = std::make_shared<tap_gesture_recognizer>();
+        auto second = std::make_shared<tap_gesture_recognizer>();
+        int first_taps = 0;
+        int second_taps = 0;
+        first->tapped.connect([&](const maui::controls::tapped_event_args&) {
+            ++first_taps;
+            box.control.set_handler(nullptr); // the whole platform seam goes away mid-sweep
+        });
+        second->tapped.connect([&second_taps](const maui::controls::tapped_event_args&) { ++second_taps; });
+        box.control.gesture_recognizers().add(first);
+        box.control.gesture_recognizers().add(second);
+
+        dispatch_touch(native, k_action_down, 3, 3, 10000, 10000);
+        dispatch_touch(native, k_action_up, 3, 3, 10000, 10050);
+
+        EXPECT_EQ(first_taps, 1);
+        EXPECT_EQ(second_taps, 0) << "no send may run against a view that the previous handler destroyed";
+        EXPECT_EQ(box.handler->native_view(), nullptr);
+    }
+
     // A drag past the touch slop must run the whole InnerGestureListener scroll machine:
     // OnScroll -> OnPanStarted + OnPan, then ACTION_UP -> EndScrolling -> OnPanComplete.
     TEST(AndroidGestureSeam, DispatchedDragRaisesPanStartedRunningCompleted)

@@ -30,6 +30,16 @@
 // is destroyed FIRST and `recognizers_` dangles by the time ~gesture_platform_manager runs. Teardown
 // therefore works purely off the stored native state.
 //
+// Every FAN-OUT walks a SNAPSHOT, never the live vector — because each callback runs synchronous user
+// code that may mutate the collection (or drop the view) mid-walk. That is the oracle's own rule, not a
+// port invention: `GetGesturesFor<T>` copies before it yields
+// (`foreach (… in new List<IGestureRecognizer>(gestures))`, EnumerableExtensions.cs:49-63), and EVERY
+// fan-out in the Windows partial goes through it (:453, :469, :492, :617, :646, :776, :853, :869, :892).
+// The port's snapshot holds shared_ptrs, so C#'s GC guarantee — a recognizer removed mid-walk still
+// receives this event, and stays alive while it does — holds here too. `has_any_gesture` /
+// `first_gesture` deliberately do NOT copy: they mirror `FirstGestureOrDefault`
+// (EnumerableExtensions.cs:68-82), which walks the live collection, and they call no user code.
+//
 // >>> DEVIATIONS FROM THE ORACLE, ALL DELIBERATE AND NARROW <<<
 //  1. Container-vs-Control split. C# holds `Control = _handler.PlatformView` and `Container =
 //     _handler.ContainerView ?? _handler.PlatformView` (:55-64) and uses the split only for
@@ -59,12 +69,29 @@
 //     block comments in handle_drag_starting and handle_drag_leave. Both are ported to the behaviour the
 //     oracle's own comments/intent describe, because a literal port is provably non-functional (an empty
 //     DataPackage with no AllowedOperations cannot start a Windows drag at all).
+//  7. The POINTER path reads a different collection in the oracle. Every other query here reads
+//     `view.GestureRecognizers`, but the three pointer sites read `ElementGestureRecognizers` (:617,
+//     :646, :1013), i.e. `Element.GetCompositeGestureRecognizers()` (:85-86). The composite collection is
+//     `GestureRecognizers` MIRRORED (View.cs:97-166) plus ONE framework-injected member: the internal
+//     `PointerGestureRecognizer` that `PointerGestureRecognizer.SetupForPointerOverVSM`
+//     (PointerGestureRecognizer.cs:283-312) adds when — and only when — the element declares a
+//     `PointerOver` visual state, so hover can drive the VSM without the developer declaring a
+//     recognizer. The port has NO composite collection and no such injection (`common_states::pointer_over`
+//     exists in visual_state_manager.hpp but nothing drives it), so the composite collection and
+//     `recognizers_` are the same set BY CONSTRUCTION and the pointer sites are correct as written.
+//     Consequence to fix ELSEWHERE, not here: a port view with a PointerOver visual state and no explicit
+//     pointer recognizer never subscribes the pointer events, so that state never lights up. Closing it
+//     means porting SetupForPointerOverVSM into the view/VSM layer; this backend then needs no change,
+//     because the injected recognizer would arrive through `recognizers_`.
+//     // TODO: verify against src/Controls/src/Core/Platform/GestureManager/GesturePlatformManager.Windows.cs:85-86
 //
 // Ownership (PROFILE §8): every lambda captures the manager `this`, whose destructor runs
 // native_detach_all() and removes every subscription installed here — a routed event can therefore never
-// reach a freed manager. The drag payload is a shared_ptr owned by the DRAG SOURCE's state for the
-// duration of the drag, addressed out of the WinRT DataPackage property set exactly as the oracle
-// addresses its managed DataPackage reference.
+// START on a freed manager. (A callback ALREADY RUNNING whose user code destroys the view is a residual
+// this file cannot close: the raw `manager_ptr` the lambda captured dies under it. The fan-out snapshot
+// keeps the RECOGNIZERS alive across such a callback, which is as far as this seam reaches.)
+// The drag payload is owned at PROCESS scope for the life of the drag session, not by the source view —
+// see active_drag_slot() for why the oracle's ownership cannot be spelled with a raw address.
 
 #include "maui/controls/gestures/gesture_platform_manager.hpp"
 
@@ -217,11 +244,10 @@ namespace maui::controls
         bool was_pan_started_sent = false;   // _wasPanGestureStartedSent
         bool was_pinch_started_sent = false; // _wasPinchGestureStartedSent
 
-        // The package a drag STARTED here travels with. C# stashes the managed DataPackage reference in
-        // e.Data.Properties[_doNotUsePropertyString] (:249) and casts it back on the drop side (:209,
-        // :1098); the port stashes the address of this shared_ptr's payload under the same key. Same
-        // in-process-only reach as the oracle (a managed reference cannot cross a process boundary either).
-        std::shared_ptr<data_package> drag_payload;
+        // The id of the drag STARTED here, while it is still in flight (0 = none). The package itself is
+        // owned by active_drag_slot(), NOT by this view — see that function for why. Kept per-manager so
+        // DropCompleted only releases the session THIS view started.
+        std::uint64_t drag_payload_id = 0;
         // The borrow handed to drag_event_args when the property is absent — a drag that originated
         // outside this app. C# passes its null straight through with `package!` (:1098-1100, whose comment
         // asserts it can never be null); the port hands out an empty package rather than dereference null.
@@ -266,8 +292,17 @@ namespace maui::controls
 
         // ---- collection queries (C#'s GestureRecognizerExtensions) --------------------------------
 
-        // `view.GestureRecognizers.GetGesturesFor<T>()` — fan out over the LIVE collection in collection
-        // order (see the file header on why this and not attached_).
+        // `view.GestureRecognizers.GetGesturesFor<T>()` — fan out over the collection in collection order
+        // (see the file header on why this collection and not attached_).
+        //
+        // SNAPSHOT FIRST, then walk. `callback` runs synchronous user code — a handler is free to add or
+        // remove a recognizer, or to navigate away and destroy the whole view — and every such mutation
+        // reallocates or erases inside the live `std::vector`, so a walk of `items()` would be reading a
+        // dangling iterator by the next step. Copying is the ORACLE's behaviour, not a port-side guard:
+        // `GetGesturesFor` iterates `new List<IGestureRecognizer>(gestures)` (EnumerableExtensions.cs:56),
+        // so C# also fires a recognizer that was removed part-way through the same fan-out. Holding
+        // shared_ptrs (not raw pointers) reproduces the other half of that guarantee — the removed
+        // recognizer is still ALIVE when its turn comes, which in C# is the GC's doing.
         template <class Recognizer, class Fn>
         void for_each_gesture(const gesture_platform_manager& manager, Fn&& callback)
         {
@@ -276,12 +311,18 @@ namespace maui::controls
             {
                 return;
             }
+            std::vector<std::shared_ptr<Recognizer>> snapshot;
+            snapshot.reserve(recognizers->items().size());
             for (const auto& recognizer : recognizers->items())
             {
-                if (auto* const typed = dynamic_cast<Recognizer*>(recognizer.get()); typed != nullptr)
+                if (auto typed = std::dynamic_pointer_cast<Recognizer>(recognizer); typed != nullptr)
                 {
-                    callback(*typed);
+                    snapshot.push_back(std::move(typed));
                 }
+            }
+            for (const std::shared_ptr<Recognizer>& recognizer : snapshot)
+            {
+                callback(*recognizer);
             }
         }
 
@@ -431,10 +472,62 @@ namespace maui::controls
             return static_cast<wdt::DataPackageOperation>(static_cast<std::uint32_t>(value));
         }
 
-        // The port data_package a hovering/dropping WinRT payload carries, addressed the way the oracle
-        // addresses its managed DataPackage (see gesture_native_state::drag_payload). Null when the drag
-        // did not originate in this process.
-        [[nodiscard]] data_package* payload_of(const wdt::DataPackageView& view)
+        // The payload of the drag currently in flight, and the id it travels under.
+        //
+        // WHY THE SOURCE VIEW MUST NOT OWN IT. C# puts the MANAGED DataPackage straight into the OS
+        // property bag — `e.Data.Properties[_doNotUsePropertyString] = args.Data;` (:249) — so the BAG is
+        // the owner: the package survives for the whole drag session no matter what happens to the view
+        // that started it, and the drop side's cast back (:209, :1098) is always valid. A WinRT property
+        // bag stores IInspectable only, so the port cannot hand it a C++ object; publishing the ADDRESS of
+        // a view-owned shared_ptr looks equivalent but is not — an OS drag session outlives the view (drag
+        // a row, then navigate away mid-drag), the view's state is destroyed, and the next DragOver/Drop
+        // in this app resolves that address into freed memory. The port therefore keeps ownership at the
+        // scope the drag session actually has — the process — and publishes an ID. An id from a finished
+        // session, from a foreign app, or from a real-MAUI drag (which travels under the same key :37 but
+        // carries a managed object, unboxing to 0 here) all resolve to nullptr, i.e. to the same
+        // "originated outside" path the port already had.
+        //
+        // ponytail: ONE slot, because Windows serialises drag sessions per app — a DragStarting means the
+        // previous session is over, so its payload is released right there and nothing accumulates.
+        // Concurrent (multi-touch) drags would lose the older payload: it degrades to an empty package,
+        // never to a dangling one. Make this a map keyed by id if that ever matters. Not synchronised:
+        // XAML routed events are delivered on the UI thread only.
+        struct active_drag
+        {
+            std::uint64_t id = 0;      // 0 = nothing in flight
+            std::uint64_t next_id = 1; // monotonic; ids are never reused, so a stale one cannot alias
+            std::shared_ptr<data_package> payload;
+        };
+
+        [[nodiscard]] active_drag& active_drag_slot()
+        {
+            static active_drag slot;
+            return slot;
+        }
+
+        // Take ownership of the payload for the new session and return the id it travels under.
+        [[nodiscard]] std::uint64_t publish_drag_payload(std::shared_ptr<data_package> payload)
+        {
+            active_drag& slot = active_drag_slot();
+            slot.payload = std::move(payload);
+            slot.id = slot.next_id++;
+            return slot.id;
+        }
+
+        // Release the session `id` started, if it is still the one in flight.
+        void release_drag_payload(std::uint64_t id)
+        {
+            if (active_drag& slot = active_drag_slot(); id != 0 && slot.id == id)
+            {
+                slot.id = 0;
+                slot.payload.reset();
+            }
+        }
+
+        // The port data_package a hovering/dropping WinRT payload carries (C#'s ToDragEventArgs,
+        // :1095-1101). The returned strong ref is what keeps it alive across the fan-out — the caller
+        // holds it for the whole callback. Null when the drag did not originate in this process.
+        [[nodiscard]] std::shared_ptr<data_package> payload_of(const wdt::DataPackageView& view)
         {
             if (view == nullptr)
             {
@@ -446,21 +539,9 @@ namespace maui::controls
             {
                 return nullptr;
             }
-            const auto address = winrt::unbox_value_or<std::uint64_t>(properties.Lookup(key), 0);
-            if (address == 0)
-            {
-                return nullptr;
-            }
-            // NOLINTNEXTLINE(performance-no-int-to-ptr) — a WinRT property set carries IInspectable values
-            // only, so boxing the address is the only way a native pointer rides through it.
-            return reinterpret_cast<data_package*>(static_cast<std::uintptr_t>(address));
-        }
-
-        // The package drag_over / drag_leave / drop borrow (C#'s ToDragEventArgs, :1095-1101).
-        [[nodiscard]] data_package& borrowed_payload(gesture_native_state& state, const wdt::DataPackageView& view)
-        {
-            data_package* const package = payload_of(view);
-            return package != nullptr ? *package : state.foreign_payload;
+            const auto id = winrt::unbox_value_or<std::uint64_t>(properties.Lookup(key), 0);
+            const active_drag& slot = active_drag_slot();
+            return (id != 0 && id == slot.id) ? slot.payload : nullptr;
         }
 
         // HandleDragStarting (:237-285).
@@ -479,12 +560,13 @@ namespace maui::controls
                     return;
                 }
                 // send_drag_starting returns its args BY VALUE, and the package must outlive this callback
-                // (the OS keeps dragging), so the state takes ownership and publishes the address.
+                // AND this view (the OS keeps dragging), so the process-scoped slot takes ownership and
+                // the session id is what travels in the property bag.
                 drag_starting_event_args port_args = recognizer.send_drag_starting(*sender);
                 auto payload = std::make_shared<data_package>(std::move(port_args.data()));
-                state->drag_payload = payload;
-                const auto address = static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(payload.get()));
-                args.Data().Properties().Insert(winrt::hstring{k_data_package_key}, winrt::box_value(address)); // :249
+                state->drag_payload_id = publish_drag_payload(payload);
+                args.Data().Properties().Insert(winrt::hstring{k_data_package_key},
+                                                winrt::box_value(state->drag_payload_id)); // :249
 
                 // DOCUMENTED DEVIATION (file header note 6). The oracle guards the payload fill with
                 //     if ((!args.Handled || (!args.PlatformArgs?.Handled ?? true)) && sender is IViewHandler handler)
@@ -542,11 +624,12 @@ namespace maui::controls
             for_each_gesture<drag_gesture_recognizer>(manager, [](drag_gesture_recognizer& recognizer) {
                 recognizer.send_drop_completed(drop_completed_event_args{});
             });
-            // The drag is over, so the payload the OS was addressing can go. (C# lets the GC reclaim it;
-            // holding it any longer here would pin one package per view for the app's lifetime.)
+            // The drag is over, so the payload can go — but only the session THIS view started (C# lets
+            // the GC reclaim its package once the OS releases the property bag).
             if (gesture_native_state* const state = access::state(manager); state != nullptr)
             {
-                state->drag_payload.reset();
+                release_drag_payload(state->drag_payload_id);
+                state->drag_payload_id = 0;
             }
         }
 
@@ -558,7 +641,9 @@ namespace maui::controls
             {
                 return;
             }
-            drag_event_args port_args{borrowed_payload(*state, args.DataView())};
+            // Held for the whole fan-out, so no handler can free the package under a later recognizer.
+            const std::shared_ptr<data_package> payload = payload_of(args.DataView());
+            drag_event_args port_args{payload != nullptr ? *payload : state->foreign_payload};
             for_each_gesture<drop_gesture_recognizer>(manager, [&](drop_gesture_recognizer& recognizer) {
                 if (!recognizer.allow_drop())
                 {
@@ -578,7 +663,8 @@ namespace maui::controls
             {
                 return;
             }
-            drag_event_args port_args{borrowed_payload(*state, args.DataView())};
+            const std::shared_ptr<data_package> payload = payload_of(args.DataView());
+            drag_event_args port_args{payload != nullptr ? *payload : state->foreign_payload};
             for_each_gesture<drop_gesture_recognizer>(manager, [&](drop_gesture_recognizer& recognizer) {
                 if (!recognizer.allow_drop())
                 {
@@ -612,7 +698,8 @@ namespace maui::controls
             {
                 return;
             }
-            drop_event_args port_args{borrowed_payload(*state, args.DataView()).view()};
+            const std::shared_ptr<data_package> payload = payload_of(args.DataView());
+            drop_event_args port_args{(payload != nullptr ? *payload : state->foreign_payload).view()};
             for_each_gesture<drop_gesture_recognizer>(manager, [&](drop_gesture_recognizer& recognizer) {
                 if (!recognizer.allow_drop()) // :221-224
                 {
@@ -999,6 +1086,8 @@ namespace maui::controls
                     return; // C#'s `Element is not View` guard (:641-644)
                 }
                 const maui::graphics::point position = pointer_position(*live, args);
+                // :646 reads ElementGestureRecognizers (the COMPOSITE collection), not
+                // view.GestureRecognizers — the port has no composite, so the two coincide (header note 7).
                 for_each_gesture<pointer_gesture_recognizer>(
                     *manager_ptr, [&](pointer_gesture_recognizer& recognizer) { send(recognizer, *sender, position); });
             };
@@ -1046,6 +1135,7 @@ namespace maui::controls
                 {
                     const buttons_mask button = pressed_button(*live, args);
                     const maui::graphics::point position = pointer_position(*live, args);
+                    // :617 reads the COMPOSITE collection — same set here (header note 7).
                     for_each_gesture<pointer_gesture_recognizer>(
                         *manager_ptr, [&](pointer_gesture_recognizer& recognizer) {
                             // CheckButtonMask (:726-734) — `(Buttons & current) == current`, which is
@@ -1192,6 +1282,10 @@ namespace maui::controls
                 }
             }
 
+            // :1013 is the third and last site that reads the COMPOSITE collection rather than
+            // view.GestureRecognizers. The port has no composite collection, so this query sees the same
+            // set — but it is also why a PointerOver visual state alone does not subscribe pointer events
+            // here the way it does in MAUI. Header note 7 has the citation and what closing it needs.
             const bool has_pointer_gesture = has_any_gesture<pointer_gesture_recognizer>(manager);
             if (has_pointer_gesture) // :1013-1018
             {
@@ -1302,7 +1396,10 @@ namespace maui::controls
         // ~gesture_platform_manager). clear_subscriptions works purely off the stored state.
         clear_subscriptions(*native_state_);
         native_state_->target = nullptr;
-        native_state_->drag_payload.reset();
+        // Deliberately NOT release_drag_payload(): a drag session survives its source view, and so must
+        // its package — C#'s lives in the OS property bag, which the view's teardown cannot reach either.
+        // The slot is released by DropCompleted, or reclaimed by the next DragStarting.
+        native_state_->drag_payload_id = 0;
         native_state_->fingers.clear();
         native_state_->is_panning = false;
         native_state_->is_swiping = false;

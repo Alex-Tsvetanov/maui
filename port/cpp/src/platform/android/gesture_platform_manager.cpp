@@ -23,15 +23,42 @@
 // >>> ORDERING TRAP <<<
 // The core pushes into attached_ BEFORE native_attach and calls native_detach BEFORE erasing, so
 // attached_ is STALE at native_detach time. Every whole-collection decision below therefore reads the
-// BACKEND TABLE (gesture_native_state::order), never attached_. That also matches C#, whose
+// BACKEND TABLE (gesture_state::order), never attached_. That also matches C#, whose
 // SetupGestures runs from the CollectionChanged handler — i.e. after the collection already changed.
+//
+// >>> RE-ENTRANCY & LIFETIME <<<
+// Every fan-out below invokes SYNCHRONOUS user code (send_tapped -> command.execute + event.raise), and
+// that user code may add or remove a recognizer — or destroy the view outright — from inside the sweep.
+// Two guarantees make that safe, and both are the C# oracle's, spelled out because C++ has no GC:
+//   1. DEFENSIVE COPY. C# never walks the live collection: every fan-out goes through
+//      EnumerableExtensions.GetGesturesFor (src/Controls/src/Core/EnumerableExtensions.cs:48-62), whose
+//      own remark is "The method makes a defensive copy of the gestures" — `new
+//      List<IGestureRecognizer>(gestures)`. `snapshot()` below is that copy, in shared_ptr form so a
+//      recognizer removed (and released by the collection) mid-fan-out cannot die under the sweep. Like
+//      C#, the snapshot is NOT re-filtered against the live table: a recognizer removed by an earlier
+//      handler in the same sweep still receives this event, exactly as the C# copy delivers it.
+//      (C#'s pointer paths — PointerGestureHandler.cs:34, :71 — walk the live ObservableCollection
+//      instead and would throw InvalidOperationException on such a mutation; the port snapshots there
+//      too. No observable behavior differs, minus the exception.)
+//   2. THE PEER OUTLIVES THE CALLBACK. C# holds the Element/handler in GC references, so a teardown
+//      inside a handler cannot free anything the in-flight callback is standing on. Here the peer (the
+//      gesture_state) is shared_ptr-owned and every JNI entry point takes a STRONG ref off the live
+//      registry for its whole body, so a re-entrant native_detach_all — the manager's dtor running
+//      because user code destroyed the view — drops the manager's ref without freeing the storage. What
+//      teardown does do is set `dead` (and null the raw sender/handler back-refs into the now-dead
+//      view), which every sweep re-checks PER ELEMENT before invoking the next handler.
+// ORDERING RELIED ON: gesture callbacks and manager teardown both run on the Android UI thread — the
+// entry points are reached only from View.dispatchTouchEvent / dispatchHoverEvent / dispatchKeyEvent /
+// OnDragListener, and handler connect/disconnect (and therefore ~gesture_platform_manager) is a UI-thread
+// operation. So the hazard is RE-ENTRANCY, not concurrency; the registry keeps its mutex only so a peer
+// validated from a stray thread still reads a consistent map.
 //
 // >>> WHAT LIVES WHERE <<<
 // java/MauiGestureBridge.java is dumb plumbing: it owns the two platform detectors and forwards their
 // callbacks across JNI as primitives. Every DECISION C# makes in InnerGestureListener and the five
 // *GestureHandler classes — the double-tap state machine, the button-mask filters, the px->dp
 // translation, the pan id stamping, the swipe accumulate-then-detect, the drag/drop payload — is here,
-// where the recognizer collection is. The Java peer is the backend's gesture_native_state (NOT the
+// where the recognizer collection is. The Java peer is the backend's gesture_state (NOT the
 // manager): the free entry points below need the table and the state machine, and nothing else.
 //
 // DEVIATIONS (each cites the C# it departs from):
@@ -55,6 +82,19 @@
 //     drag_on_long_press.
 //   - C# Android never calls SendPanCanceled: OnPanComplete (PanGestureHandler.cs:50-65) is the only
 //     terminal pan send. Preserved.
+//   - COLLECTION SPLIT. C# reads TWO lists: the tap / pan / swipe / pinch handlers walk
+//     `view.GestureRecognizers` (TapGestureHandler.cs:103, PanGestureHandler.cs:41/:58/:76,
+//     SwipeGestureHandler.cs:41/:57, GesturePlatformManager.Android.cs:173-180), while the POINTER
+//     handler walks the COMPOSITE list (PointerGestureHandler.cs:34, :71, :204 ->
+//     ViewExtensions.cs:456-461 -> View.cs:183-195). Composite = GestureRecognizers (mirrored into it by
+//     View.cs:97-119) PLUS two extras: Label's per-span ChildGestureRecognizers (Label.cs:303) and the
+//     internal PointerOver-visual-state recognizer (PointerGestureRecognizer.cs:305, added by
+//     View.CheckPointerOver :207-208). NEITHER extra exists in the port yet — span composite recognizers
+//     are deferred (include/maui/controls/span.hpp:202) and no PointerOver visual state installs a
+//     recognizer — so the port's single collection IS the composite, and every read below (pointer
+//     included) is the composite read. // TODO: verify against
+//     src/Controls/src/Core/Platform/Android/PointerGestureHandler.cs:34/:71/:204 when either extra lands
+//     — at that point the pointer paths must read the composite list and tap/pan/swipe must not.
 
 #include <jni.h>
 
@@ -66,7 +106,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -143,16 +183,22 @@ namespace
 
 namespace maui::controls
 {
-    // The manager's backend attachment table (the forward-declared gesture_native_state). Complete only
-    // in this TU, where the manager's ctor/dtor — and thus the owning unique_ptr's deleter — are defined.
-    // It doubles as the JNI PEER: every native entry point below receives its address as a jlong.
-    struct gesture_native_state
+    // The manager's backend attachment table, and the JNI PEER: every native entry point below receives
+    // its address as a jlong. shared_ptr-owned (see the file header's RE-ENTRANCY & LIFETIME block) so an
+    // in-flight callback keeps it alive across a re-entrant teardown; the manager's unique_ptr-owned
+    // gesture_native_state below holds the only OTHER strong ref.
+    struct gesture_state
     {
         // The ordered backend table. Insertion order == collection order, because every C# fan-out is a
-        // `foreach (var gesture in view.GestureRecognizers)`. Raw pointers are safe: the entry is always
-        // erased before attached_ drops its strong ref, and native_detach_all runs before
-        // attached_.clear() in set_handler (:40-41) and in ~gesture_platform_manager.
-        std::vector<gesture_recognizer*> order;
+        // `foreach (var gesture in view.GestureRecognizers)`. WEAK, not raw: a fan-out snapshots this
+        // into strong refs (snapshot() below), so a recognizer released by the collection while its own
+        // handler is running cannot die under the sweep.
+        std::vector<std::weak_ptr<gesture_recognizer>> order;
+
+        // Set by native_detach_all (through ~gesture_native_state): the manager and the view this state
+        // speaks for are gone. Every sweep re-checks it per element before invoking the next handler,
+        // because a handler is allowed to destroy the view mid-sweep.
+        bool dead = false;
 
         // Refreshed on every sync from the manager (non-owning; the owning view outlives the manager).
         element* sender = nullptr;
@@ -194,22 +240,130 @@ namespace maui::controls
 
     namespace
     {
-        // ---- table queries (every one reads gesture_native_state::order — never attached_) ------------
+        // ---- the live-peer registry -------------------------------------------------------------------
+        // A jlong peer is only dereferenced after it resolves here, and resolving hands back a STRONG ref
+        // that the whole callback runs under (see the file header). Two peers need it: the view's own,
+        // zeroed in Java by detach(); and the DRAG-SOURCE peer, which travels inside the OS drag session's
+        // LocalState (MauiGestureBridge.LocalState) and so outlives any single view — Java cannot zero
+        // that one. (C#'s equivalent hazard is absorbed by the GC; PROFILE §8 makes it explicit here.)
 
-        template <typename Recognizer> [[nodiscard]] bool has_any(const gesture_native_state& state)
+        std::mutex& live_states_mutex()
         {
-            return std::ranges::any_of(state.order, [](gesture_recognizer* recognizer) {
-                return dynamic_cast<Recognizer*>(recognizer) != nullptr;
+            static std::mutex mutex;
+            return mutex;
+        }
+
+        std::unordered_map<const gesture_state*, std::weak_ptr<gesture_state>>& live_states()
+        {
+            static std::unordered_map<const gesture_state*, std::weak_ptr<gesture_state>> states;
+            return states;
+        }
+
+        void register_live_state(const std::shared_ptr<gesture_state>& state)
+        {
+            const std::scoped_lock lock(live_states_mutex());
+            live_states().insert_or_assign(state.get(), state);
+        }
+
+        void unregister_live_state(const gesture_state* state)
+        {
+            const std::scoped_lock lock(live_states_mutex());
+            live_states().erase(state);
+        }
+
+        // Resolve a peer to a strong ref. Null for a peer that was never registered, was torn down, or
+        // (the drag-source case) belongs to a state whose storage is already gone.
+        [[nodiscard]] std::shared_ptr<gesture_state> peer_state(jlong peer)
+        {
+            auto* candidate = reinterpret_cast<gesture_state*>(peer);
+            if (candidate == nullptr)
+            {
+                return nullptr;
+            }
+            const std::scoped_lock lock(live_states_mutex());
+            const auto entry = live_states().find(candidate);
+            return entry == live_states().end() ? nullptr : entry->second.lock();
+        }
+    } // namespace
+
+    // The forward-declared type the manager's unique_ptr owns: a handle onto the shared peer, whose
+    // destruction IS the teardown signal. Keeping the two apart is what lets a callback already walking a
+    // sweep finish safely — it holds the peer, the manager only holds this handle.
+    struct gesture_native_state
+    {
+        std::shared_ptr<gesture_state> shared = std::make_shared<gesture_state>();
+
+        gesture_native_state()
+        {
+            register_live_state(shared);
+        }
+        gesture_native_state(const gesture_native_state&) = delete;
+        gesture_native_state(gesture_native_state&&) = delete;
+        gesture_native_state& operator=(const gesture_native_state&) = delete;
+        gesture_native_state& operator=(gesture_native_state&&) = delete;
+        ~gesture_native_state()
+        {
+            // No NEW callback can resolve this peer, and any sweep already in flight stops at its next
+            // per-element check instead of touching the dead view behind sender/handler.
+            unregister_live_state(shared.get());
+            shared->dead = true;
+            shared->sender = nullptr;
+            shared->handler = nullptr;
+        }
+    };
+
+    namespace
+    {
+        // ---- table queries (every one reads gesture_state::order — never attached_) --------------------
+        // These invoke NO user code, so they read the live table directly; only the fan-outs snapshot.
+
+        template <typename Recognizer> [[nodiscard]] bool has_any(const gesture_state& state)
+        {
+            return std::ranges::any_of(state.order, [](const std::weak_ptr<gesture_recognizer>& entry) {
+                return dynamic_cast<Recognizer*>(entry.lock().get()) != nullptr;
             });
         }
 
-        // Fan out to every recognizer of the given kind, in collection order.
-        template <typename Recognizer, typename Fn> bool for_each_of(gesture_native_state& state, Fn fn)
+        // The defensive copy every fan-out walks — EnumerableExtensions.GetGesturesFor
+        // (src/Controls/src/Core/EnumerableExtensions.cs:48-62), whose remark reads "The method makes a
+        // defensive copy of the gestures" (`new List<IGestureRecognizer>(gestures)`). Strong refs, so the
+        // GC guarantee C# gets for free holds here too.
+        [[nodiscard]] std::vector<std::shared_ptr<gesture_recognizer>> snapshot(const gesture_state& state)
+        {
+            std::vector<std::shared_ptr<gesture_recognizer>> copy;
+            copy.reserve(state.order.size());
+            for (const std::weak_ptr<gesture_recognizer>& entry : state.order)
+            {
+                if (std::shared_ptr<gesture_recognizer> strong = entry.lock())
+                {
+                    copy.push_back(std::move(strong));
+                }
+            }
+            return copy;
+        }
+
+        // Is this recognizer currently in the backend table? (Membership only — the fan-outs deliberately
+        // do NOT re-check it mid-sweep; see the file header.)
+        [[nodiscard]] bool in_table(const gesture_state& state, const gesture_recognizer& recognizer)
+        {
+            return std::ranges::any_of(state.order, [&recognizer](const std::weak_ptr<gesture_recognizer>& entry) {
+                return entry.lock().get() == &recognizer;
+            });
+        }
+
+        // Fan out to every recognizer of the given kind, in collection order, over the defensive copy.
+        // The `dead` re-check is the port's spelling of C#'s GC-rooted `view` local: a handler may destroy
+        // the view mid-sweep, and the sends after it must not run against a freed element.
+        template <typename Recognizer, typename Fn> bool for_each_of(gesture_state& state, Fn fn)
         {
             bool any = false;
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : snapshot(state))
             {
-                if (auto* typed = dynamic_cast<Recognizer*>(recognizer))
+                if (state.dead)
+                {
+                    break;
+                }
+                if (auto* typed = dynamic_cast<Recognizer*>(recognizer.get()))
                 {
                     fn(*typed);
                     any = true;
@@ -220,11 +374,11 @@ namespace maui::controls
 
         // PinchGestureHandler.PinchGesture (:21-22): a view can hold at most one pinch recognizer
         // (enforced by gesture_recognizer_collection), so the first is the only one.
-        [[nodiscard]] i_pinch_gesture_controller* pinch_gesture(gesture_native_state& state)
+        [[nodiscard]] i_pinch_gesture_controller* pinch_gesture(const gesture_state& state)
         {
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::weak_ptr<gesture_recognizer>& entry : state.order)
             {
-                if (auto* pinch = dynamic_cast<i_pinch_gesture_controller*>(recognizer))
+                if (auto* pinch = dynamic_cast<i_pinch_gesture_controller*>(entry.lock().get()))
                 {
                     return pinch;
                 }
@@ -233,26 +387,26 @@ namespace maui::controls
         }
 
         // InnerGestureListener.HasAnyGestures (:64-67).
-        [[nodiscard]] bool has_any_gestures(const gesture_native_state& state)
+        [[nodiscard]] bool has_any_gestures(const gesture_state& state)
         {
             return has_any<pan_gesture_recognizer>(state) || has_any<tap_gesture_recognizer>(state) ||
                    has_any<swipe_gesture_recognizer>(state);
         }
 
         // TapGestureHandler.TapGestureRecognizers(count) (:97-104) — used only as an existence test here.
-        [[nodiscard]] bool has_tap_handler(const gesture_native_state& state, int count)
+        [[nodiscard]] bool has_tap_handler(const gesture_state& state, int count)
         {
-            return std::ranges::any_of(state.order, [count](gesture_recognizer* recognizer) {
-                auto* tap = dynamic_cast<tap_gesture_recognizer*>(recognizer);
+            return std::ranges::any_of(state.order, [count](const std::weak_ptr<gesture_recognizer>& entry) {
+                auto* tap = dynamic_cast<tap_gesture_recognizer*>(entry.lock().get());
                 return tap != nullptr && tap->number_of_taps_required() == count;
             });
         }
 
         // InnerGestureListener.HasSingleTapHandlerWithPrimaryAndSecondary (:269-282).
-        [[nodiscard]] bool has_single_tap_handler_with_primary_and_secondary(const gesture_native_state& state)
+        [[nodiscard]] bool has_single_tap_handler_with_primary_and_secondary(const gesture_state& state)
         {
-            return std::ranges::any_of(state.order, [](gesture_recognizer* recognizer) {
-                auto* tap = dynamic_cast<tap_gesture_recognizer*>(recognizer);
+            return std::ranges::any_of(state.order, [](const std::weak_ptr<gesture_recognizer>& entry) {
+                auto* tap = dynamic_cast<tap_gesture_recognizer*>(entry.lock().get());
                 return tap != nullptr && tap->number_of_taps_required() == 1 &&
                        contains(tap->buttons(), buttons_mask::primary | buttons_mask::secondary);
             });
@@ -260,11 +414,11 @@ namespace maui::controls
 
         // SemanticExtensions.HasAccessibleTapGesture (src/Controls/src/Core/Platform/SemanticExtensions.cs
         // :10-25): the FIRST single-tap recognizer decides — and only if it accepts the primary button.
-        [[nodiscard]] tap_gesture_recognizer* accessible_tap_gesture(gesture_native_state& state)
+        [[nodiscard]] tap_gesture_recognizer* accessible_tap_gesture(const gesture_state& state)
         {
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::weak_ptr<gesture_recognizer>& entry : state.order)
             {
-                auto* tap = dynamic_cast<tap_gesture_recognizer*>(recognizer);
+                auto* tap = dynamic_cast<tap_gesture_recognizer*>(entry.lock().get());
                 if (tap != nullptr && tap->number_of_taps_required() == 1)
                 {
                     return contains(tap->buttons(), buttons_mask::primary) ? tap : nullptr;
@@ -278,7 +432,7 @@ namespace maui::controls
         // ContextExtensions.FromPixels — the px->dp translation PanGestureHandler.PixelTranslation
         // (:10-23), SwipeGestureHandler.PixelTranslation (:10-23) and InnerScaleListener (:44, :49) apply.
         // C# returns 0 when there is no Context; a zero density here means "no View" and does the same.
-        [[nodiscard]] double from_pixels(gesture_native_state& state, double pixels)
+        [[nodiscard]] double from_pixels(const gesture_state& state, double pixels)
         {
             const scoped_env env;
             if (!env || state.view.get() == nullptr)
@@ -291,7 +445,7 @@ namespace maui::controls
 
         // MotionEventExtensions.CalculatePosition with relativeElement == sourceElement (:33-36): the
         // view-relative coordinates in DIPs.
-        [[nodiscard]] maui::graphics::point view_position(gesture_native_state& state, jfloat x, jfloat y)
+        [[nodiscard]] maui::graphics::point view_position(const gesture_state& state, jfloat x, jfloat y)
         {
             return {from_pixels(state, x), from_pixels(state, y)};
         }
@@ -312,7 +466,7 @@ namespace maui::controls
         }
 
         // TapGestureHandler.OnTap (:30-88), minus the child-element fan-out (see the file's DEVIATIONS).
-        bool on_tap(gesture_native_state& state, int count, jfloat x, jfloat y, jint button_state)
+        bool on_tap(gesture_state& state, int count, jfloat x, jfloat y, jint button_state)
         {
             if (state.sender == nullptr)
             {
@@ -320,9 +474,13 @@ namespace maui::controls
             }
             const maui::graphics::point position = view_position(state, x, y);
             bool captured = false;
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : snapshot(state))
             {
-                auto* tap = dynamic_cast<tap_gesture_recognizer*>(recognizer);
+                if (state.dead)
+                {
+                    break; // a handler destroyed the view mid-sweep — see the file header
+                }
+                auto* tap = dynamic_cast<tap_gesture_recognizer*>(recognizer.get());
                 if (tap == nullptr || tap->number_of_taps_required() != count)
                 {
                     continue;
@@ -340,7 +498,7 @@ namespace maui::controls
         // ---- pan (PanGestureHandler) --------------------------------------------------------------------
 
         // PanGestureHandler.OnPanStarted (:67-82).
-        bool on_pan_started(gesture_native_state& state, jint pointer_count)
+        bool on_pan_started(gesture_state& state, jint pointer_count)
         {
             if (state.sender == nullptr)
             {
@@ -357,7 +515,7 @@ namespace maui::controls
 
         // PanGestureHandler.OnPan (:32-48). The totals arrive in PIXELS and are cumulative since the
         // gesture's first event (InnerGestureListener.StartScrolling :252-253).
-        bool on_pan(gesture_native_state& state, jfloat total_x, jfloat total_y, jint pointer_count)
+        bool on_pan(gesture_state& state, jfloat total_x, jfloat total_y, jint pointer_count)
         {
             if (state.sender == nullptr)
             {
@@ -379,7 +537,7 @@ namespace maui::controls
 
         // PanGestureHandler.OnPanComplete (:50-65). NO TouchPoints predicate here (C# omits it), and the
         // id increments exactly once — after the whole sweep, inside the view != null guard (:63).
-        bool on_pan_complete(gesture_native_state& state)
+        bool on_pan_complete(gesture_state& state)
         {
             if (state.sender == nullptr)
             {
@@ -396,7 +554,7 @@ namespace maui::controls
         // ---- swipe (SwipeGestureHandler) ------------------------------------------------------------------
 
         // SwipeGestureHandler.OnSwipe (:32-48): accumulate on every move, detect nothing.
-        bool on_swipe(gesture_native_state& state, jfloat total_x, jfloat total_y)
+        bool on_swipe(gesture_state& state, jfloat total_x, jfloat total_y)
         {
             if (state.sender == nullptr)
             {
@@ -412,15 +570,19 @@ namespace maui::controls
         // SwipeGestureHandler.OnSwipeComplete (:50-67): SHORT-CIRCUITS on the first detected swipe.
         // detect_swipe owns the threshold — the native side never sees it. Note this is deliberately NOT
         // send_swiped (the iOS-only path) and applies NO rotation compensation (iOS-only too).
-        bool on_swipe_complete(gesture_native_state& state)
+        bool on_swipe_complete(gesture_state& state)
         {
             if (state.sender == nullptr)
             {
                 return false;
             }
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : snapshot(state))
             {
-                auto* swipe = dynamic_cast<swipe_gesture_recognizer*>(recognizer);
+                if (state.dead)
+                {
+                    break;
+                }
+                auto* swipe = dynamic_cast<swipe_gesture_recognizer*>(recognizer.get());
                 if (swipe != nullptr && swipe->detect_swipe(*state.sender, swipe->direction()))
                 {
                     return true;
@@ -431,7 +593,7 @@ namespace maui::controls
 
         // ---- scrolling state machine (InnerGestureListener :236-267) --------------------------------------
 
-        void set_starting_position(gesture_native_state& state, jfloat raw_x, jfloat raw_y)
+        void set_starting_position(gesture_state& state, jfloat raw_x, jfloat raw_y)
         {
             state.last_x = raw_x;
             state.last_y = raw_y;
@@ -439,7 +601,7 @@ namespace maui::controls
 
         // InnerGestureListener.EndScrolling (:258-267): pan-complete AND swipe-complete, both gated on
         // _isScrolling. Driven from ACTION_UP (TapAndPanGestureDetector :53-54) and OnFling (:129).
-        void end_scrolling(gesture_native_state& state)
+        void end_scrolling(gesture_state& state)
         {
             if (state.is_scrolling)
             {
@@ -501,7 +663,7 @@ namespace maui::controls
         // recognizer is attached — the sync arms IsLongpressEnabled from HasAnyDragGestures
         // (InnerGestureListener :61-62 -> TapAndPanGestureDetector :26-39), because an always-on long
         // press would pre-empt every pan start (the comment at TapAndPanGestureDetector.cs:31-36).
-        void drag_on_long_press(gesture_native_state& state)
+        void drag_on_long_press(gesture_state& state)
         {
             if (state.sender == nullptr || state.view.get() == nullptr || !has_any<drag_gesture_recognizer>(state))
             {
@@ -521,9 +683,13 @@ namespace maui::controls
                 return; // the bridge class is host-provided; without it the drag channel stays C++-only
             }
 
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : snapshot(state))
             {
-                auto* drag = dynamic_cast<drag_gesture_recognizer*>(recognizer);
+                if (state.dead)
+                {
+                    break; // send_drag_starting is user code — it may have destroyed the view
+                }
+                auto* drag = dynamic_cast<drag_gesture_recognizer*>(recognizer.get());
                 if (drag == nullptr || !drag->can_drag())
                 {
                     continue; // :258-259
@@ -554,13 +720,16 @@ namespace maui::controls
 
         // DragAndDropGestureHandler.HandleDragOver / HandleDragLeave (:168-201). One DragEventArgs is
         // reused across the sweep, exactly as C# does, and AcceptedOperation is read back after each send.
-        void handle_drag_hover(gesture_native_state& state, gesture_native_state& shared, data_package& package,
-                               bool leaving)
+        void handle_drag_hover(gesture_state& state, gesture_state& shared, data_package& package, bool leaving)
         {
             drag_event_args args{package};
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : snapshot(state))
             {
-                auto* drop = dynamic_cast<drop_gesture_recognizer*>(recognizer);
+                if (state.dead)
+                {
+                    break;
+                }
+                auto* drop = dynamic_cast<drop_gesture_recognizer*>(recognizer.get());
                 if (drop == nullptr || !drop->allow_drop())
                 {
                     continue; // :174-175 / :192-193
@@ -578,8 +747,8 @@ namespace maui::controls
         }
 
         // DragAndDropGestureHandler.HandleDrop (:203-249).
-        void handle_drop(gesture_native_state& state, gesture_native_state& shared, data_package& package,
-                         bool from_outside, const std::optional<std::string>& clip_text)
+        void handle_drop(gesture_state& state, gesture_state& shared, data_package& package, bool from_outside,
+                         const std::optional<std::string>& clip_text)
         {
             if (shared.accepted_operation == data_package_operation::none)
             {
@@ -599,9 +768,13 @@ namespace maui::controls
                 // src/Controls/src/Core/Platform/Android/DragAndDropGestureHandler.cs:230-231.
             }
             drop_event_args args{package.view()};
-            for (gesture_recognizer* recognizer : state.order)
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : snapshot(state))
             {
-                auto* drop = dynamic_cast<drop_gesture_recognizer*>(recognizer);
+                if (state.dead)
+                {
+                    break;
+                }
+                auto* drop = dynamic_cast<drop_gesture_recognizer*>(recognizer.get());
                 if (drop == nullptr || !drop->allow_drop())
                 {
                     continue; // :237-238
@@ -613,7 +786,7 @@ namespace maui::controls
         // DragAndDropGestureHandler.HandleDropCompleted (:162-166): raised on the DRAG SOURCE's
         // recognizers, not the target's. send_drop_completed is latched once per drag inside the
         // recognizer, which is exactly why C# can fire it from every drop-handling view.
-        void handle_drop_completed(gesture_native_state& source)
+        void handle_drop_completed(gesture_state& source)
         {
             const drop_completed_event_args args;
             for_each_of<drag_gesture_recognizer>(
@@ -639,7 +812,7 @@ namespace maui::controls
         // GestureCollectionChanged (:347-357) = UpdateDragAndDrop(); UpdatePointer(); SetupGestures();
         // UpdateLongPressSettings(). ONE idempotent pass, cheap enough to re-run per added/removed
         // recognizer (see the file header).
-        void sync_subscriptions(gesture_native_state& state)
+        void sync_subscriptions(gesture_state& state)
         {
             const scoped_env env;
             jobject view = state.view.get();
@@ -719,56 +892,45 @@ namespace maui::controls
         }
 
         // ---- the native halves of dev.mauicpp.MauiGestureBridge -------------------------------------------
-        // The peer is the gesture_native_state (the manager itself is not needed: everything these need is
-        // the ordered table, the sender and the state machine). Java zeroes its OWN peer via detach()
-        // before the storage dies, so a stale queued MotionEvent lands on peer == 0 and returns here.
-        //
-        // The DRAG-SOURCE peer cannot be protected that way: it travels inside the OS drag session's
-        // LocalState (MauiGestureBridge.LocalState), which outlives any single view, so a drag source torn
-        // down mid-drag would leave ACTION_DRAG_ENDED holding a dangling pointer. The live-state registry
-        // is the guard — every peer is validated against it before it is dereferenced. (C#'s equivalent
-        // hazard is absorbed by the GC; PROFILE §8 makes it explicit here instead.)
+        // The peer is the gesture_state (the manager itself is not needed: everything these need is the
+        // ordered table, the sender and the state machine). Java zeroes its OWN peer via detach() before
+        // the manager drops the state, so a stale queued MotionEvent lands on peer == 0 and returns here;
+        // the drag-source peer (which travels in the OS drag session's LocalState and outlives any single
+        // view) has no such zeroing, which is what the live-state registry is for. Every entry point below
+        // resolves its peer THROUGH the registry and holds the resulting strong ref for its whole body —
+        // that is what makes a teardown triggered by the very user code it is calling non-fatal.
 
-        std::mutex& live_states_mutex()
+        // GesturePlatformManager.OnTouchEvent (:64-91): the touch stream is refused OUTRIGHT — before the
+        // detectors see the event — when there is no platform view, or the element is disabled or
+        // input-transparent (:66-74). C# reads two fields it refreshes from PropertyChanged
+        // (UpdateInputTransparent :407-415 / UpdateIsEnabled :417-425 <- Element.InputTransparent /
+        // Element.IsEnabled); the port reads the same two properties live off the virtual view, which
+        // needs no property subscription and cannot go stale.
+        // (This gate was previously omitted, justified in MauiGestureBridge.java by "IsEnabled goes to
+        // View.setEnabled and InputTransparent to the touch-listener install". Both halves were false:
+        // the android partials map input_transparent NOWHERE — a plain View has no WrapperView analog,
+        // box_view_handler.cpp:43 — and a plain View gets no setEnabled mapping either, so a disabled or
+        // input-transparent box_view kept firing gestures.)
+        jboolean JNICALL native_should_handle_touch(JNIEnv* /*env*/, jclass /*cls*/, jlong peer)
         {
-            static std::mutex mutex;
-            return mutex;
-        }
-
-        std::unordered_set<const gesture_native_state*>& live_states()
-        {
-            static std::unordered_set<const gesture_native_state*> states;
-            return states;
-        }
-
-        void register_live_state(const gesture_native_state* state)
-        {
-            const std::scoped_lock lock(live_states_mutex());
-            live_states().insert(state);
-        }
-
-        void unregister_live_state(const gesture_native_state* state)
-        {
-            const std::scoped_lock lock(live_states_mutex());
-            live_states().erase(state);
-        }
-
-        [[nodiscard]] gesture_native_state* peer_state(jlong peer)
-        {
-            auto* candidate = reinterpret_cast<gesture_native_state*>(peer);
-            if (candidate == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->dead || state->view.get() == nullptr)
             {
-                return nullptr;
+                return JNI_FALSE; // `if (Control == null) return false` (:66-69)
             }
-            const std::scoped_lock lock(live_states_mutex());
-            return live_states().contains(candidate) ? candidate : nullptr;
+            auto* virtual_view = state->handler != nullptr ? state->handler->virtual_view() : nullptr;
+            if (virtual_view == nullptr)
+            {
+                return JNI_FALSE;
+            }
+            return (virtual_view->is_enabled() && !virtual_view->input_transparent()) ? JNI_TRUE : JNI_FALSE;
         }
 
         jboolean JNICALL native_on_down(JNIEnv* /*env*/, jclass /*cls*/, jlong peer, jfloat raw_x, jfloat raw_y)
         {
             // InnerGestureListener.OnDown (:111-125).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state)
             {
                 return JNI_FALSE;
             }
@@ -780,8 +942,8 @@ namespace maui::controls
                                           jfloat start_raw_y, jfloat raw_x, jfloat raw_y, jint pointer_count)
         {
             // InnerGestureListener.OnScroll (:139-147) -> StartScrolling (:242-256).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state)
             {
                 return JNI_FALSE;
             }
@@ -801,7 +963,7 @@ namespace maui::controls
 
         void JNICALL native_end_scrolling(JNIEnv* /*env*/, jclass /*cls*/, jlong peer)
         {
-            if (gesture_native_state* state = peer_state(peer))
+            if (const std::shared_ptr<gesture_state> state = peer_state(peer))
             {
                 end_scrolling(*state);
             }
@@ -810,8 +972,8 @@ namespace maui::controls
         void JNICALL native_on_long_press(JNIEnv* /*env*/, jclass /*cls*/, jlong peer, jfloat raw_x, jfloat raw_y)
         {
             // InnerGestureListener.OnLongPress (:133-137).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state)
             {
                 return;
             }
@@ -824,8 +986,8 @@ namespace maui::controls
         {
             // InnerGestureListener.OnSingleTapUp (:153-175): the single tap fires IMMEDIATELY even when a
             // double-tap handler exists (Windows timing), latching _singleTapFiredInSequence.
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state)
             {
                 return JNI_FALSE;
             }
@@ -845,8 +1007,8 @@ namespace maui::controls
                                                         jint button_state)
         {
             // InnerGestureListener.OnSingleTapConfirmed (:177-204).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state)
             {
                 return JNI_FALSE;
             }
@@ -869,8 +1031,8 @@ namespace maui::controls
                                               jint button_state)
         {
             // InnerGestureListener.OnDoubleTap (:76-95).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || !has_tap_handler(*state, 2))
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || !has_tap_handler(*state, 2))
             {
                 return JNI_FALSE;
             }
@@ -883,8 +1045,8 @@ namespace maui::controls
         {
             // InnerGestureListener.OnDoubleTapEvent (:97-109): two singles in a row when there is no
             // double-tap handler.
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state)
             {
                 return JNI_FALSE;
             }
@@ -899,8 +1061,8 @@ namespace maui::controls
         {
             // GesturePlatformManager.OnKeyPress (:272-284): SendTapped(View, (v) => Point.Zero) on the
             // recognizer HasAccessibleTapGesture picked — no mask re-check, that check IS the picker.
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || state->sender == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->sender == nullptr)
             {
                 return;
             }
@@ -914,16 +1076,23 @@ namespace maui::controls
                                                  jfloat y, jint button_state, jint action_button)
         {
             // PointerGestureHandler.OnTouch (:58-118). NOTE Cancel maps to EXITED, not Released (:110).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || state->sender == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->sender == nullptr)
             {
                 return JNI_FALSE;
             }
             const maui::graphics::point position = view_position(*state, x, y);
             element& sender = *state->sender;
-            for (gesture_recognizer* recognizer : state->order)
+            // C# walks the LIVE composite collection here (:71) and would throw on a mutation from inside
+            // a Send*; the port snapshots, like every other fan-out (see the file header). The port's one
+            // collection IS the composite — see the DEVIATIONS note on the collection split.
+            for (const std::shared_ptr<gesture_recognizer>& recognizer : snapshot(*state))
             {
-                auto* pointer = dynamic_cast<pointer_gesture_recognizer*>(recognizer);
+                if (state->dead)
+                {
+                    break;
+                }
+                auto* pointer = dynamic_cast<pointer_gesture_recognizer*>(recognizer.get());
                 if (pointer == nullptr)
                 {
                     continue;
@@ -979,9 +1148,10 @@ namespace maui::controls
         void JNICALL native_on_hover(JNIEnv* /*env*/, jclass /*cls*/, jlong peer, jint action, jfloat x, jfloat y,
                                      jint /*button_state*/)
         {
-            // PointerGestureHandler.OnHover (:25-55): hover fans out UNFILTERED (no button mask).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || state->sender == nullptr)
+            // PointerGestureHandler.OnHover (:25-55): hover fans out UNFILTERED (no button mask), over the
+            // COMPOSITE collection (:34) — which is the port's one collection, see DEVIATIONS.
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->sender == nullptr)
             {
                 return;
             }
@@ -1009,8 +1179,8 @@ namespace maui::controls
                                                jfloat focus_y)
         {
             // InnerScaleListener.OnScaleBegin (:47-50) -> PinchGestureHandler.OnPinchStarted (:52-69).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || state->sender == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->sender == nullptr)
             {
                 return JNI_FALSE;
             }
@@ -1032,8 +1202,8 @@ namespace maui::controls
                                          jfloat current_span, jfloat previous_span, jfloat focus_x, jfloat focus_y)
         {
             // InnerScaleListener.OnScale (:36-45) -> PinchGestureHandler.OnPinch (:24-39).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || state->sender == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->sender == nullptr)
             {
                 return JNI_FALSE;
             }
@@ -1065,8 +1235,8 @@ namespace maui::controls
         {
             // InnerScaleListener.OnScaleEnd (:52-55) -> PinchGestureHandler.OnPinchEnded (:41-50). NOTE:
             // no IsPinching guard on Android (that guard is the iOS bridge's — see synthetic_pinch).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || state->sender == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->sender == nullptr)
             {
                 return;
             }
@@ -1080,16 +1250,16 @@ namespace maui::controls
                                     jlong source_peer, jstring clip_text)
         {
             // DragAndDropGestureHandler.OnDrag (:111-160).
-            gesture_native_state* state = peer_state(peer);
-            if (state == nullptr || state->sender == nullptr)
+            const std::shared_ptr<gesture_state> state = peer_state(peer);
+            if (!state || state->sender == nullptr)
             {
                 return;
             }
             // `e.LocalState ?? _currentCustomLocalStateData ?? new CustomLocalStateData()` (:114): the
             // drag SOURCE's state owns the package + the accepted operation for the whole drag; a drag
             // from outside the process falls back to this view's own state.
-            gesture_native_state* source = peer_state(source_peer);
-            gesture_native_state& shared = source != nullptr ? *source : *state;
+            const std::shared_ptr<gesture_state> source = peer_state(source_peer);
+            gesture_state& shared = source != nullptr ? *source : *state;
             if (!shared.drag_package)
             {
                 shared.drag_package = std::make_unique<data_package>(); // :122-126
@@ -1135,7 +1305,10 @@ namespace maui::controls
         {
             // JNINativeMethod's name/signature are non-const char* and fnPtr is void* for historical
             // JNI-spec reasons — the casts are the API's own shape.
-            static const std::array<JNINativeMethod, 14> k_methods{
+            static const std::array<JNINativeMethod, 15> k_methods{
+                JNINativeMethod{.name = const_cast<char*>("nativeShouldHandleTouch"),
+                                .signature = const_cast<char*>("(J)Z"),
+                                .fnPtr = reinterpret_cast<void*>(&native_should_handle_touch)},
                 JNINativeMethod{.name = const_cast<char*>("nativeOnDown"),
                                 .signature = const_cast<char*>("(JFF)Z"),
                                 .fnPtr = reinterpret_cast<void*>(&native_on_down)},
@@ -1207,17 +1380,18 @@ namespace maui::controls
         }
         if (!native_state_)
         {
+            // Registers the peer; only a registered peer is ever dereferenced (~gesture_native_state
+            // unregisters it).
             native_state_ = std::make_unique<gesture_native_state>();
-            register_live_state(native_state_.get()); // the peer is only valid while it is registered
         }
-        gesture_native_state& state = *native_state_;
+        gesture_state& state = *native_state_->shared;
         state.sender = sender_;
         state.handler = handler_;
 
         // INSERT into the backend table (never attached_ — see the file header's ordering trap).
-        if (std::ranges::find(state.order, recognizer.get()) == state.order.end())
+        if (!in_table(state, *recognizer))
         {
-            state.order.push_back(recognizer.get());
+            state.order.emplace_back(recognizer);
         }
 
         // Create the one per-view bridge on first use (C#'s Lazy<TapAndPanGestureDetector> +
@@ -1254,9 +1428,13 @@ namespace maui::controls
         {
             return;
         }
-        gesture_native_state& state = *native_state_;
-        // ERASE from the backend table, then re-run the same whole-collection sync.
-        std::erase(state.order, &recognizer);
+        gesture_state& state = *native_state_->shared;
+        // ERASE from the backend table, then re-run the same whole-collection sync. Expired entries go
+        // with it — nothing else prunes them.
+        std::erase_if(state.order, [&recognizer](const std::weak_ptr<gesture_recognizer>& entry) {
+            const std::shared_ptr<gesture_recognizer> strong = entry.lock();
+            return strong == nullptr || strong.get() == &recognizer;
+        });
         state.sender = sender_;
         state.handler = handler_;
         sync_subscriptions(state);
@@ -1268,7 +1446,7 @@ namespace maui::controls
         {
             return;
         }
-        gesture_native_state& state = *native_state_;
+        gesture_state& state = *native_state_->shared;
         // Invalidate the Java back-ref FIRST: a MotionEvent already queued in the platform detectors must
         // not reach this storage after it dies (C#'s "resurrect the eagerly-disposed listener" hazard,
         // InnerGestureListener.cs:69-74 — spelled here as an explicit peer zeroing).
@@ -1304,11 +1482,13 @@ namespace maui::controls
             set_view_listener(env.get(), view, nullptr, "setOnDragListener", "(Landroid/view/View$OnDragListener;)V",
                               false);
         }
-        // Any peer still in flight (an OS drag session's LocalState) now resolves to null instead of to
-        // freed storage. Residual ABA: if a later state lands on this exact address before the drag ends,
-        // that drag's Ended reaches the WRONG view — a spurious DropCompleted, not a crash. Not worth a
-        // generation counter until a real drag exposes it.
-        unregister_live_state(&state);
+        // Dropping the handle unregisters the peer and marks it dead (~gesture_native_state), so a peer
+        // still in flight — an OS drag session's LocalState, or the very callback whose user code is
+        // running this teardown — resolves to null or stops at its next per-element check, never at freed
+        // storage. The storage itself outlives this call whenever a callback still holds a strong ref.
+        // Residual ABA: if a later state lands on this exact address before a drag ends, that drag's Ended
+        // reaches the WRONG view — a spurious DropCompleted, not a crash. Not worth a generation counter
+        // until a real drag exposes it.
         native_state_.reset();
     }
 
@@ -1322,8 +1502,8 @@ namespace maui::controls
         {
             return false;
         }
-        const gesture_native_state& state = *native_state_;
-        return state.long_press_enabled && std::ranges::find(state.order, &recognizer) != state.order.end();
+        const gesture_state& state = *native_state_->shared;
+        return state.long_press_enabled && in_table(state, recognizer);
     }
 
     bool gesture_platform_manager::native_registered_drop_target(const gesture_recognizer& recognizer) const
@@ -1332,8 +1512,8 @@ namespace maui::controls
         {
             return false;
         }
-        const gesture_native_state& state = *native_state_;
-        return state.drag_installed && std::ranges::find(state.order, &recognizer) != state.order.end();
+        const gesture_state& state = *native_state_->shared;
+        return state.drag_installed && in_table(state, recognizer);
     }
     // --- end drag&drop (W2-22) ---
 } // namespace maui::controls
