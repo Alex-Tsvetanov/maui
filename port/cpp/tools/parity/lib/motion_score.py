@@ -81,28 +81,50 @@ COMP = HERE.parents[2] / "docs" / "comparison"   # lib -> parity -> tools -> por
 FW_TO_COL = {"maui": "maui_xaml", "cpp": "cpp", "xaml": "cpp_xaml",
              "appkit_cpp": "appkit_cpp", "appkit_xaml": "appkit_xaml"}
 
-# A column "moved" if at least this MANY of its own pixels changed between its first frame and some
+# A column "moved" if at least this FRACTION OF ITS OWN FRAME changed between its first frame and some
 # later one, and is "frozen" below the lower bound. The gap between the two is deliberate: it keeps a
-# page whose animation is a marginal number of pixels out of BOTH buckets rather than forcing a verdict
-# on it. Both measured numbers are printed in the review, so a false positive is arguable from the text
-# alone instead of from a constant nobody can see.
+# page whose animation is marginal out of BOTH buckets rather than forcing a verdict on it. Both the
+# fraction and the raw pixel count are printed in the review, so a false positive is arguable from the
+# text alone instead of from a constant nobody can see.
 #
-# COUNTS, NOT PERCENTAGES, and that correction is load-bearing. These were percentages of the frame,
-# which silently means "a higher-resolution screen must animate MORE to count as animating" — exactly
-# backwards. It produced a measured false verdict: iOS activity_indicator, whose GIF holds 46 DISTINCT
-# frames of a visibly spinning indicator, moved 0.13% of a 1206x2622 framebuffer and so fell under a
-# 0.2% "frozen" bound, and the page was reported as "!! NOTHING MOVED" and forced yellow.
+# FRACTIONS, NOT ABSOLUTE COUNTS, and that correction is load-bearing — it REVERSES the previous one.
+# The bounds here were once percentages, were changed to absolute pixel counts (MOVED_PX/FROZEN_PX =
+# 2000/800), and are now percentages again, because the measurement that justified the counts was
+# MISLABELLED. That comment read:
 #
-# The same spinner is the same object on every lane; only the pixel grid under it changes. In counts
-# the two measured cases separate cleanly, where as percentages they do not:
-#     maccatalyst, genuinely frozen (animations pinned):  0.03% of   819k =   246 px
-#     iOS, visibly animating spinner:                     0.13% of 3.16M =  4100 px
-# 246 vs 4100 is a 16x gap; 0.03% vs 0.13% is 4x with no safe line between them. The bounds below sit
-# in that gap with room on both sides. A count still is not perfectly scale-free — a 3x device draws
-# the same widget with ~9x the pixels — but it errs in the SAFE direction: a denser screen makes real
-# motion easier to detect, not harder.
-MOVED_PX = 2000
-FROZEN_PX = 800
+#     maccatalyst, genuinely frozen (animations pinned):  0.03% of 819k = 246 px
+#
+# maccatalyst was NOT frozen. 246 px is the rounded reconstruction of a REAL 231-px signal: the five
+# UIActivityIndicator rings on activity_indicator, spinning. Measured on run 2026-08-04-15_21_26, the
+# changed pixels are five compact 15x15 boxes at x 504-518 — the rings themselves, nothing else. (The
+# "animations pinned" attribute belongs to the ANDROID still pass, which does pin the animation scales;
+# see recapture's module docstring. It was never true of the mac VM.) A bound of 800 px was therefore
+# set ABOVE the entire real signal of a 1x lane, and every maccatalyst animated cell — including a
+# perfectly matching activity_indicator — was reported "!! NOTHING MOVED" and capped yellow.
+#
+# WHY A FRACTION IS THE RIGHT UNIT. A widget is a fixed size in POINTS. At scale s it covers ~k*s^2
+# pixels, and the frame covers A_pt*s^2 pixels, so changed/frame = k/A_pt — INDEPENDENT of s. An
+# absolute count is not: the same spinner is 15x15 px on the 1x mac window and 60x60 px on the 3x
+# phone, a 16x spread with no single line through it. Measured, burst frames only, >25/channel:
+#
+#                                         worst frozen page      activity_indicator (real motion)
+#   maccatalyst  1024x800   (1x)              0 px  0.0000%          231 px   0.0282%
+#   windows      1024x800   (1x)              0 px  0.0000%         3753 px   0.4581%
+#   ios          1206x2622  (3x)            281 px  0.0089%         4376 px   0.1384%
+#   android      1080x2340  (2.75x)           0 px  0.0000%        40095 px   1.5865%
+#
+# In counts, iOS's frozen 281 px OVERLAPS maccatalyst's moving 231 px — no absolute bound can separate
+# them. As fractions the worst frozen reading (0.0089%) and the weakest real signal (0.0282%) are 3.2x
+# apart, and the bounds below sit inside that gap with ~35% headroom under and ~41% over.
+#
+# The 281 px is the iOS MAUI column's H.264 floor: `simctl io recordVideo` -> ffmpeg re-quantises
+# anti-aliased glyph edges, so a genuinely still page reads as isolated speckle scattered over every
+# text run. It is diffuse where real motion is compact, but NOT separable by eroding or by requiring
+# changed neighbours (both were measured: 3x3 erosion zeroes the 1-px-wide mac ring as well, and at
+# ">=2 changed neighbours" the noise still reads 141 px against the ring's 186). Normalising by frame
+# area is what works, because the noise scales with the frame just as the widget does.
+MOVED_PCT = 0.020
+FROZEN_PCT = 0.012
 # How far back to look for the run that produced the board's capture. Run dirs accumulate for weeks;
 # without a bound, a cell whose run was deleted would read every surviving run's frames to prove it.
 MAX_RUNS_SCANNED = 20
@@ -183,27 +205,42 @@ def _self_motion(pngs: list[str], crop_top: int) -> tuple[float, int]:
     "MAUI animates and the port is frozen" (the finding this tool exists for) — a frame-vs-frame SSIM
     between the two columns cannot tell those apart when the motion is small.
 
-    The COUNT is what the verdict is taken on (see MOVED_PX/FROZEN_PX); the percent is carried only so
-    the review text can quote both, since a percent is what a human reading a diff expects to see."""
+    The PERCENT is what the verdict is taken on (see MOVED_PCT/FROZEN_PCT); the count is carried only
+    so the review text can quote both, since a raw pixel count is what makes a small percentage real.
+
+    NOT routed through _compare(): score_images rounds diff_pct to 2 decimals and the verdict reads
+    fractions near 0.01%, where that rounding IS the signal — the previous code recovered a count by
+    multiplying the rounded percent back out by the frame area, which turned a measured 231 px into
+    246 and put the wrong number in the comment that set the bounds. It also skips the SSIM, which
+    self-motion never looks at."""
     if len(pngs) < 2:
         return 0.0, 0
     best_pct, best_px = 0.0, 0
     for p in pngs[1:]:
-        s = _compare(pngs[0], p, crop_top)
-        px = int(round(s["diff_pct"] / 100.0 * _pixel_count(pngs[0], crop_top)))
+        pct, px = _changed(pngs[0], p, crop_top)
         if px > best_px:
-            best_pct, best_px = s["diff_pct"], px
+            best_pct, best_px = pct, px
     return best_pct, best_px
 
 
-def _pixel_count(png: str, crop_top: int) -> int:
-    """Comparable pixels in a frame — the area the diff percentage is a percentage OF, so the two
-    agree by construction. crop_top is excluded for the same reason score_images excludes it."""
-    from PIL import Image  # noqa: PLC0415  keeps module import free of PIL for --plan/--selftest
+def _changed(path_a: str, path_b: str, crop_top: int) -> tuple[float, int]:
+    """One frame pair -> (percent of comparable pixels that differ, that same count), UNROUNDED.
 
-    with Image.open(png) as im:
-        w, h = im.size
-    return w * max(0, h - crop_top)
+    Same mask score_images builds — pixel_score.load_pair and pixel_score.DIFF_THRESHOLD are imported
+    rather than restated so "visibly different" can never mean two things — and the percent is the
+    mask's own mean, so area and count agree by construction with crop_top excluded from both."""
+    import numpy as np  # noqa: PLC0415  keeps module import free of numpy/PIL for --plan/--selftest
+    import pixel_score  # noqa: PLC0415  see _compare on the import cycle
+
+    ia, ib = pixel_score.load_pair(path_a, path_b)
+    if crop_top > 0:
+        w, h = ia.size
+        if h > crop_top:
+            ia, ib = ia.crop((0, crop_top, w, h)), ib.crop((0, crop_top, w, h))
+    a = np.asarray(ia.convert("RGB"), dtype=np.int16)
+    b = np.asarray(ib.convert("RGB"), dtype=np.int16)
+    mask = np.max(np.abs(a - b), axis=-1) > pixel_score.DIFF_THRESHOLD
+    return float(mask.mean() * 100.0), int(mask.sum())
 
 
 def _run_dirs(comp: Path, plat_dir: str, key: str) -> list[Path]:
@@ -295,14 +332,14 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # not. The pairing is for COMPARING the columns; motion is a property of one column alone.
     move_m, px_m = _self_motion([p for _s, p in sel_m], crop_top)
     move_o, px_o = _self_motion([p for _s, p in sel_o], crop_top)
-    mismatch = ((px_m >= MOVED_PX and px_o <= FROZEN_PX) or
-                (px_o >= MOVED_PX and px_m <= FROZEN_PX))
+    mismatch = ((move_m >= MOVED_PCT and move_o <= FROZEN_PCT) or
+                (move_o >= MOVED_PCT and move_m <= FROZEN_PCT))
     # NEITHER column moved on a page the board calls animated. That is not parity — it is the original
     # bug: a page nobody managed to drive, whose GIF is N copies of one frame. Two frozen columns match
     # each other perfectly and would otherwise score a confident green, which is precisely the
     # "did nothing, reported success" outcome this whole pass exists to make impossible. It cannot be
     # graded from SSIM, because the SSIM is 1.0 — it has to be its own verdict.
-    both_frozen = px_m <= FROZEN_PX and px_o <= FROZEN_PX
+    both_frozen = move_m <= FROZEN_PCT and move_o <= FROZEN_PCT
 
     meta = shots_m[0][2]
     prov = (f"run {run.name}, commit {meta.get('commit', '?')}, "
@@ -313,20 +350,20 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     detail = (f"MOTION {len(pairs)} frames paired by step ({prov}){unpaired} — "
               f"worst SSIM {ssims[worst_i]:.4f} at frame {worst_i + 1} '{pairs[worst_i][0]}' "
               f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
-              f"per-frame diff% {per_frame}; self-motion MAUI {px_m} px ({move_m:.2f}%) vs "
-              f"{label} {px_o} px ({move_o:.2f}%)")
+              f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.4f}% ({px_m} px) vs "
+              f"{label} {move_o:.4f}% ({px_o} px)")
     if mismatch:
-        still_side, moved_side = ("MAUI", label) if px_m <= FROZEN_PX else (label, "MAUI")
+        still_side, moved_side = ("MAUI", label) if move_m <= FROZEN_PCT else (label, "MAUI")
         # FIRST in the string and in caps, because this is the finding the whole pass exists to make.
         # A page where one column animates and the other is frozen can still score a high per-frame
         # SSIM (a spinner is a few hundred pixels), so it must not be left to the number to reveal.
         detail = (f"!! MOTION MISMATCH: {moved_side} ANIMATES and {still_side} IS FROZEN "
-                  f"({max(px_m, px_o)} px vs {min(px_m, px_o)} px of its own change "
+                  f"({max(move_m, move_o):.4f}% vs {min(move_m, move_o):.4f}% of its own frame changed "
                   f"across the sequence) — the end state may match while the animation does not. "
                   f"{detail}")
     elif both_frozen:
-        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {FROZEN_PX} "
-                  f"pixels across the sequence ({px_m} px vs {px_o} px), on a page "
+        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {FROZEN_PCT}% "
+                  f"of its own frame across the sequence ({move_m:.4f}% vs {move_o:.4f}%), on a page "
                   f"the board treats as ANIMATED. The two columns agree perfectly because both are "
                   f"still — this scores no motion parity at all. Either the page needs a scenario "
                   f"step to drive it, or its interaction is not reachable on this lane. {detail}")
@@ -355,32 +392,30 @@ def _selftest() -> int:
             print(f"  FAIL {what}: got {got!r}, want {want!r}")
             ok = False
 
-    BOX = 50   # 50x50 = 2500 px, and the size is LOAD-BEARING, not arbitrary.
+    BOX = 50   # 50x50 on a 240x320 page = 6.5% when it moves; the size is LOAD-BEARING, not arbitrary.
 
-    def frame(path, boxes):
-        """A 240x320 white page with BOXxBOX black boxes at `boxes` — big enough for the 11x11 SSIM
-        window, and big enough to clear MOVED_PX.
+    def frame(path, boxes, size=BOX):
+        """A 240x320 white page with `size`x`size` black boxes at `boxes` — big enough for the 11x11
+        SSIM window, and big enough to clear MOVED_PCT.
 
-        The verdict thresholds are absolute PIXEL COUNTS (see MOVED_PX/FROZEN_PX), because a
-        percentage of the frame means "a higher-resolution screen must animate more to count", which
-        is backwards. That makes this box a real parameter of the test rather than a drawing choice:
-        a box moving between two non-overlapping positions changes 2*BOX^2 = 5000 px, comfortably
-        over MOVED_PX, while a column that keeps its box changes 0. At the original 20x20 the moving
-        column changed 800 px, read as FROZEN, and every "one column moved" assertion here failed —
-        the test was measuring the box size, not the detector."""
+        The verdict thresholds are FRACTIONS of the frame (see MOVED_PCT/FROZEN_PCT), so the box is a
+        real parameter of the test rather than a drawing choice: one moving between two
+        non-overlapping positions changes 2*size^2 of 76800 px, while a column that keeps its box
+        changes 0. Case (8) drives `size` down on purpose — a widget small enough that the bounds'
+        previous ABSOLUTE form (800 px) swallowed it whole."""
         im = Image.new("RGB", (240, 320), "white")
         for x, y in boxes:
-            for dx in range(BOX):
-                for dy in range(BOX):
+            for dx in range(size):
+                for dy in range(size):
                     im.putpixel((x + dx, y + dy), (0, 0, 0))
         im.save(path)
 
-    def unit(run, key, col, theme, frames):
+    def unit(run, key, col, theme, frames, size=BOX):
         """frames: [(step, [boxes])] -> the runner's NNNN.png + NNNN.json pairs."""
         d = run / key / "maccatalyst" / col
         d.mkdir(parents=True, exist_ok=True)
         for n, (step, boxes) in enumerate(frames, 1):
-            frame(d / f"{n:04d}.png", boxes)
+            frame(d / f"{n:04d}.png", boxes, size)
             (d / f"{n:04d}.json").write_text(json.dumps(
                 {"theme": theme, "step": step, "frame": n, "commit": "deadbeef",
                  "captured_at": "2026-08-05T00:00:00+03:00"}))
@@ -421,10 +456,11 @@ def _selftest() -> int:
         check("frozen column: flagged", r["mismatch"], True)
         check("frozen column: says so first", r["detail"].startswith("!! MOTION MISMATCH"), True)
         # Both measurements must be IN THE TEXT, so a forced red can be argued from the review alone.
-        # Asserted as PIXELS (with the percent alongside) because pixels are what the verdict is taken
-        # on — quoting only a percentage would hide the number that actually decided the outcome.
+        # Asserted as a PERCENT (with the pixel count alongside) because the percent is what the
+        # verdict is taken on — quoting only a count would hide the number that decided the outcome,
+        # and a count alone is not comparable across lanes of different pixel density at all.
         check("frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
-        check("frozen column: prints the port's own motion", "vs cpp 0 px (0.00%)" in r["detail"], True)
+        check("frozen column: prints the port's own motion", "cpp 0.0000% (0 px)" in r["detail"], True)
 
         # (3) SHIFTED: both animate, but the port's box sits 8px lower throughout. Real difference,
         #     NOT a mismatch — both columns moved, so the loud flag must stay off.
@@ -474,6 +510,36 @@ def _selftest() -> int:
         frame(comp / "captures" / "maccatalyst" / "cpp" / "stale_light.png", [(90, 90)])
         r = score_cell("stale", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("stale run: refused", "CURRENTLY PUBLISHED" in r["detail"], True)
+
+        # (8) A SMALL WIDGET ON A 1x LANE, and the reason MOVED_PCT/FROZEN_PCT are fractions. A 4x4 box
+        #     moving to a non-overlapping position changes 32 of 76800 px = 0.042% — real motion, in
+        #     both columns, matching. Under the bounds' previous ABSOLUTE form (frozen below 800 px)
+        #     32 px read as FROZEN on BOTH sides, so this scored "!! NOTHING MOVED" and was capped
+        #     yellow. That is not hypothetical: it is maccatalyst activity_indicator, whose five
+        #     UIActivityIndicator rings are 15x15 px on the 1x mac window and moved a measured 231 px
+        #     of 819200 — every animated maccatalyst cell on the board was condemned by it.
+        tiny = seq([10, 40, 70])
+        dm = unit(run, "tiny", "maui_xaml", "light", tiny, size=4)
+        do = unit(run, "tiny", "cpp", "light", tiny, size=4)
+        publish(comp, "tiny", "maui", "light", dm / "0001.png")
+        publish(comp, "tiny", "cpp", "light", do / "0001.png")
+        r = score_cell("tiny", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("small widget: counted as motion", r["both_frozen"], False)
+        check("small widget: not called NOTHING MOVED", "NOTHING MOVED" in r["detail"], False)
+        check("small widget: no false mismatch", r["mismatch"], False)
+        # The percentage is what the verdict was taken on, so the review has to print enough of it to
+        # argue with — "0.04%" at the old 2 decimals rounds a live signal down toward zero.
+        check("small widget: percent quoted at full precision", "0.0417%" in r["detail"], True)
+
+        # (9) …and the frozen side of the SAME small scale is still caught, so (8) did not simply
+        #     disarm the detector: the port holds its 4x4 box still while MAUI moves it.
+        dm = unit(run, "tinyfrozen", "maui_xaml", "light", tiny, size=4)
+        do = unit(run, "tinyfrozen", "cpp", "light", seq([10, 10, 10]), size=4)
+        publish(comp, "tinyfrozen", "maui", "light", dm / "0001.png")
+        publish(comp, "tinyfrozen", "cpp", "light", do / "0001.png")
+        r = score_cell("tinyfrozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("small widget frozen column: flagged", r["mismatch"], True)
+        check("small widget frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
 
     print("motion_score selftest:", "OK" if ok else "FAILED")
     return 0 if ok else 1

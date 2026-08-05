@@ -8,10 +8,10 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
 <tr><td>iOS</td><td>150</td><td>21</td><td>1</td><td>0</td><td>0</td><td>151</td><td>20</td><td>1</td><td>0</td><td>0</td></tr>
-<tr><td>macOS</td><td>147</td><td>23</td><td>2</td><td>0</td><td>0</td><td>146</td><td>24</td><td>2</td><td>0</td><td>0</td></tr>
+<tr><td>macOS</td><td>148</td><td>22</td><td>2</td><td>0</td><td>0</td><td>147</td><td>23</td><td>2</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>147</td><td>21</td><td>4</td><td>0</td><td>0</td><td>148</td><td>21</td><td>3</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>157</td><td>13</td><td>2</td><td>0</td><td>0</td><td>157</td><td>13</td><td>2</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>601</strong></td><td><strong>78</strong></td><td><strong>9</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>602</strong></td><td><strong>78</strong></td><td><strong>8</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>602</strong></td><td><strong>77</strong></td><td><strong>9</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>603</strong></td><td><strong>77</strong></td><td><strong>8</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -2642,8 +2642,8 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 147 | 146 |
-| 🟡 Minor | 23 | 24 |
+| 🟢 Match | 148 | 147 |
+| 🟡 Minor | 22 | 23 |
 | 🔴 Major | 2 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -2663,20 +2663,20 @@ Light: SSIM 0.9947, 0.26% pixels differ · Dark: SSIM 0.9960, 0.27% pixels diffe
 
 Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels differ
 
-### 2. Activity Indicator — 🟡/🟡
+### 2. Activity Indicator — 🟢/🟢
 <sub>activity_indicator</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_light.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/activity_indicator_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/cpp/activity_indicator_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/xaml/activity_indicator_dark.gif" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/activity_indicator_dark.png" /></td></tr></table>
 
 ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 800 pixels across the sequence (246 px vs 246 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still — this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9973 at frame 3 'gif03' (0.11% pixels differ), mean SSIM 0.9976; per-frame diff% 0.09/0.09/0.11/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 246 px (0.03%) vs C++ 246 px (0.03%) · Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 800 pixels across the sequence (328 px vs 328 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still — this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9973 at frame 2 'gif02' (0.11% pixels differ), mean SSIM 0.9975; per-frame diff% 0.10/0.11/0.10/0.10/0.11/0.11/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 328 px (0.04%) vs C++ 328 px (0.04%)
+Light: MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9973 at frame 3 'gif03' (0.11% pixels differ), mean SSIM 0.9976; per-frame diff% 0.09/0.09/0.11/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0282% (231 px) vs C++ 0.0303% (248 px) · Dark: MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9973 at frame 2 'gif02' (0.11% pixels differ), mean SSIM 0.9975; per-frame diff% 0.10/0.11/0.10/0.10/0.11/0.11/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0369% (302 px) vs C++ 0.0371% (304 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: !! NOTHING MOVED: neither MAUI nor C++ &amp; XAML changed by more than 800 pixels across the sequence (246 px vs 246 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still — this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9961 at frame 12 'gif12' (0.14% pixels differ), mean SSIM 0.9963; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.12/0.12/0.12/0.14; self-motion MAUI 246 px (0.03%) vs C++ &amp; XAML 246 px (0.03%) · Dark: !! NOTHING MOVED: neither MAUI nor C++ &amp; XAML changed by more than 800 pixels across the sequence (328 px vs 328 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still — this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9958 at frame 6 'gif06' (0.15% pixels differ), mean SSIM 0.9960; per-frame diff% 0.15/0.15/0.15/0.15/0.11/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 328 px (0.04%) vs C++ &amp; XAML 328 px (0.04%)
+Light: MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9961 at frame 12 'gif12' (0.14% pixels differ), mean SSIM 0.9963; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.12/0.12/0.12/0.14; self-motion MAUI 0.0282% (231 px) vs C++ &amp; XAML 0.0333% (273 px) · Dark: MOTION 12 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04) — worst SSIM 0.9958 at frame 6 'gif06' (0.15% pixels differ), mean SSIM 0.9960; per-frame diff% 0.15/0.15/0.15/0.15/0.11/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0369% (302 px) vs C++ &amp; XAML 0.0380% (311 px)
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
