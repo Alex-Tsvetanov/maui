@@ -1127,7 +1127,13 @@ if(MAUI_BACKEND STREQUAL "android")
     # (W4-34e) the shared generic-IView view-mapper + semantics: render transform / flow direction /
     # background / semantics pushed to a real android.view.View via the shared android_*_ops helpers,
     # read back over JNI.
-    tests/platform/android_view_mapper_tests.cpp)
+    tests/platform/android_view_mapper_tests.cpp
+    # gestures: the real recognizer collection + the gesture platform partial drive a real
+    # android.view.View through dev.mauicpp.MauiGestureBridge — a fabricated MotionEvent pushed through
+    # View.dispatchTouchEvent proves the whole chain (subscription sync -> GestureDetector -> the
+    # RegisterNatives entry points -> the recognizer fan-out). Deliberately NOT in maui_controls_tests:
+    # that binary runs through android-emu-run.sh with no ART runtime, so it has no JavaVM at all.
+    tests/platform/android_gesture_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
   target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls maui_sanitizers)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
@@ -1184,6 +1190,10 @@ if(MAUI_BACKEND STREQUAL "apple")
 elseif(MAUI_BACKEND STREQUAL "ios")
   set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/ios/gesture_platform_manager.mm)
   set_source_files_properties(${MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+elseif(MAUI_BACKEND STREQUAL "android")
+  set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/android/gesture_platform_manager.cpp)
+elseif(MAUI_BACKEND STREQUAL "windows")
+  set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/windows/gesture_platform_manager.cpp)
 else()
   set(MAUI_CONTROLS_GESTURE_PLATFORM_SOURCES src/platform/headless/gesture_platform_manager.cpp)
 endif()
