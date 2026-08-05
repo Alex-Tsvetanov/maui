@@ -284,17 +284,30 @@ namespace maui::controls
                 const double scale = 1.0 + magnify_native.magnification;
                 switch (native.state)
                 {
+                    // Every att/sender access happens BEFORE the raise. A send_* is user code, and a
+                    // PinchUpdated handler may destroy the pinched view — which frees `sender` AND
+                    // `att` (the attachment lives in the manager's native_state_, and the manager is a
+                    // member of the view). C# survives that on the GC; C++ cannot, because a view is
+                    // not shared-owned and the callback has nothing to pin. MAUI itself ships BOTH
+                    // orderings — GesturePlatformManager.iOS.cs:301-302 reads view.Scale AFTER
+                    // SendPinchStarted, the Android partial reads it BEFORE
+                    // (PinchGestureHandler.cs:63 then :67) — so taking the read-before ordering here
+                    // is choosing MAUI's own sibling oracle, not inventing one. The android and
+                    // windows bridges already do (24db16875a); this is the same shape for AppKit.
                     case NSGestureRecognizerStateBegan: {
-                        pinch->send_pinch_started(*sender, scaled);
                         const auto* transform = dynamic_cast<const maui::core::i_transform*>(sender);
                         att->starting_scale = transform != nullptr ? transform->scale() : 1.0;
+                        pinch->send_pinch_started(*sender, scaled);
                         break;
                     }
-                    case NSGestureRecognizerStateChanged:
-                        pinch->send_pinch(*sender, pinch_scale_delta(att->previous_scale, scale, att->starting_scale),
-                                          scaled);
+                    case NSGestureRecognizerStateChanged: {
+                        // The delta is computed off the OLD previous_scale, so latching first is
+                        // value-identical — only the (unobservable) write order moves.
+                        const double delta = pinch_scale_delta(att->previous_scale, scale, att->starting_scale);
                         att->previous_scale = scale;
+                        pinch->send_pinch(*sender, delta, scaled);
                         break;
+                    }
                     case NSGestureRecognizerStateCancelled:
                     case NSGestureRecognizerStateFailed:
                         if (pinch->is_pinching())
@@ -303,11 +316,11 @@ namespace maui::controls
                         }
                         break;
                     case NSGestureRecognizerStateEnded:
+                        att->previous_scale = 1.0; // latch before the raise (see the Began comment)
                         if (pinch->is_pinching())
                         {
                             pinch->send_pinch_ended(*sender);
                         }
-                        att->previous_scale = 1.0;
                         break;
                     default:
                         break;

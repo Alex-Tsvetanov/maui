@@ -445,14 +445,23 @@ namespace maui::controls
                 const bool touches_known = touches > 0; // 0 on a direct target fire (documented)
                 switch (native.state)
                 {
+                    // Every att/sender access happens BEFORE the raise. A send_* is user code, and a
+                    // PinchUpdated handler may destroy the pinched view — which frees `sender` AND
+                    // `att` (the attachment lives in the manager's native_state_, and the manager is a
+                    // member of the view). C# survives that on the GC; C++ cannot, because a view is
+                    // not shared-owned and the callback has nothing to pin. MAUI itself ships BOTH
+                    // orderings — this partial's own :301-302 reads view.Scale AFTER SendPinchStarted,
+                    // the Android partial reads it BEFORE (PinchGestureHandler.cs:63 then :67) — so
+                    // taking the read-before ordering here is choosing MAUI's own sibling oracle, not
+                    // inventing one. The android and windows bridges already do (24db16875a).
                     case UIGestureRecognizerStateBegan: {
                         if (touches_known && touches < 2)
                         {
                             return;
                         }
-                        pinch->send_pinch_started(*sender, scaled);
                         const auto* transform = dynamic_cast<const maui::core::i_transform*>(sender);
                         att->starting_scale = transform != nullptr ? transform->scale() : 1.0;
+                        pinch->send_pinch_started(*sender, scaled);
                         break;
                     }
                     case UIGestureRecognizerStateChanged: {
@@ -462,9 +471,11 @@ namespace maui::controls
                             pinch->send_pinch_ended(*sender);
                             return;
                         }
-                        pinch->send_pinch(*sender, pinch_scale_delta(att->previous_scale, scale, att->starting_scale),
-                                          scaled);
+                        // The delta is computed off the OLD previous_scale, so latching first is
+                        // value-identical — only the (unobservable) write order moves.
+                        const double delta = pinch_scale_delta(att->previous_scale, scale, att->starting_scale);
                         att->previous_scale = scale;
+                        pinch->send_pinch(*sender, delta, scaled);
                         break;
                     }
                     case UIGestureRecognizerStateCancelled:
@@ -475,11 +486,11 @@ namespace maui::controls
                         }
                         break;
                     case UIGestureRecognizerStateEnded:
+                        att->previous_scale = 1.0; // latch before the raise (see the Began comment)
                         if (pinch->is_pinching())
                         {
                             pinch->send_pinch_ended(*sender);
                         }
-                        att->previous_scale = 1.0;
                         break;
                     default:
                         break;
@@ -569,9 +580,12 @@ namespace maui::controls
                             }
                             else
                             {
-                                pointer->send_pointer_exited(*sender, position, button);
+                                // Same shape as the pinch latches above: `att` and `native` are touched
+                                // BEFORE send_pointer_exited, which is user code that may free the view
+                                // (and with it the attachment).
                                 att->pointer_exited = true;
                                 native.state = UIGestureRecognizerStateEnded;
+                                pointer->send_pointer_exited(*sender, position, button);
                             }
                         }
                         break;

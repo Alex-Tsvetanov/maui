@@ -280,6 +280,36 @@ namespace
         EXPECT_FALSE(pinch->is_pinching());
     }
 
+    // The apple twin of this test carries the rationale: a PinchUpdated handler may destroy the pinched
+    // view, the shared dispatch<T> spine already covers that for the synthetic path, and the native
+    // trampolines do NOT route through it. BOTH latching states get a fresh view: Began dynamic_casts
+    // `sender` and writes att->starting_scale, Changed writes att->previous_scale — either one after the
+    // raise touches freed memory. Changed is the production-critical one (every pinch delta); its
+    // touches<2 guard falls through here because is_pinching() is false without a preceding Began.
+    TEST(gesture_ios_seam, pinch_handler_destroying_the_view_mid_dispatch)
+    {
+        for (const UIGestureRecognizerState state : {UIGestureRecognizerStateBegan, UIGestureRecognizerStateChanged})
+        {
+            auto control = std::make_unique<button>();
+            auto handler = std::make_shared<maui::core::button_handler>(); // outlives the button: UIView stays
+            control->set_handler(handler);
+
+            auto pinch = std::make_shared<pinch_gesture_recognizer>();
+            control->gesture_recognizers().add(pinch);
+
+            auto* const native_pinch = (UIPinchGestureRecognizer*)maui_recognizers(native_view(handler)).firstObject;
+            ASSERT_TRUE([native_pinch isKindOfClass:[UIPinchGestureRecognizer class]]);
+
+            pinch->pinch_updated.connect([&control](const pinch_gesture_updated_event_args&) { control.reset(); });
+
+            MauiTestPinchRecognizer* const drive = [[MauiTestPinchRecognizer alloc] init];
+            drive.testState = state;
+            fire_registered_target(native_pinch, drive);
+            EXPECT_EQ(control, nullptr);
+        }
+        SUCCEED(); // returning without an ASan report IS the assertion
+    }
+
     TEST(gesture_ios_seam, swipe_attaches_uiswipe_and_sends_swiped_on_recognition)
     {
         button control;
@@ -374,6 +404,29 @@ namespace
         drive.testState = UIGestureRecognizerStateBegan;
         fire_registered_target(press, drive);
         EXPECT_EQ(pressed, 1);
+    }
+
+    // Same class as the pinch test, second site: the press branch's Changed case leaves the view's
+    // bounds (a drive recognizer has no `view`, so the CGRectContainsPoint guard takes the exited
+    // path) and latches att->pointer_exited. A PointerExited handler destroying the view frees the
+    // attachment, so the latch must be written before the raise.
+    TEST(gesture_ios_seam, pointer_exited_handler_destroying_the_view_mid_dispatch)
+    {
+        auto control = std::make_unique<button>();
+        auto handler = std::make_shared<maui::core::button_handler>(); // outlives the button
+        control->set_handler(handler);
+
+        auto pointer = std::make_shared<pointer_gesture_recognizer>();
+        control->gesture_recognizers().add(pointer);
+        pointer->pointer_exited.connect([&control](const pointer_event_args&) { control.reset(); });
+
+        UIGestureRecognizer* const press = maui_recognizers(native_view(handler)).lastObject;
+        MauiTestPressDriveRecognizer* const drive = [[MauiTestPressDriveRecognizer alloc] init];
+        drive.testState = UIGestureRecognizerStateChanged;
+        fire_registered_target(press, drive);
+        EXPECT_EQ(control, nullptr);
+
+        SUCCEED(); // returning without an ASan report IS the assertion
     }
 
     TEST(gesture_ios_seam, removing_recognizer_detaches_native)

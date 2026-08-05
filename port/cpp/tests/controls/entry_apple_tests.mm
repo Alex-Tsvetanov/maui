@@ -316,6 +316,35 @@ namespace
         EXPECT_EQ(focused_count, 0);
     }
 
+    // Destroying an entry must leave NOTHING registered that still holds the freed entry_handler*.
+    // on_connect_handler subscribes the MauiEntryDelegate to NSTextViewDidChangeSelectionNotification
+    // with object:nil — a PROCESS-GLOBAL registration, so every NSTextView in the process reaches it —
+    // and the delegate carries a raw entry_handler* (`delegate.handler = this`). Nothing calls
+    // disconnect_handler() when a handler is destroyed (there is no ~view_handler doing it), so the
+    // teardown has to happen in ~entry_platform, which the handler's unique_ptr<Platform> member runs.
+    // Without it, the next unrelated NSTextView selection change dereferences freed memory — the exact
+    // heap-use-after-free ASan reported at entry_handler.mm:129 in -[MauiEntryDelegate
+    // mauiSelectionChanged:] (freed by view<i_entry>::~view()).
+    TEST_F(apple_entry_seam, destroying_an_entry_unhooks_the_global_selection_observer)
+    {
+        {
+            entry control;
+            auto handler = std::make_shared<entry_handler>();
+            control.set_handler(handler);
+            ASSERT_NE(handler->platform_view(), nullptr);
+        } // both refs drop here: ~entry_handler runs, disconnect_handler() never does
+
+        // An UNRELATED text view posts the notification exactly the way AppKit does it in production
+        // (editor_handler's replaceCharactersInRange: → setSelectedRanges: → post).
+        NSTextView* const unrelated = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 100, 20)];
+        [unrelated.textStorage replaceCharactersInRange:NSMakeRange(0, 0) withString:@"abc"];
+        [unrelated setSelectedRange:NSMakeRange(1, 1)];
+        // Belt and braces: post it directly too (the selector ignores its argument).
+        [[NSNotificationCenter defaultCenter] postNotificationName:NSTextViewDidChangeSelectionNotification
+                                                            object:unrelated];
+        SUCCEED(); // reaching here without an ASan report IS the assertion
+    }
+
     // The native focus-callback path still funnels Focused/Unfocused on apple (a backend setting
     // IsFocused directly — the AppKit window-did-become/resign-key analog the mapper relies on).
     TEST_F(apple_entry_seam, set_is_focused_funnels_events)

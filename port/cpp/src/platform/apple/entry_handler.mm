@@ -261,12 +261,42 @@ namespace
         NSAttributedString* const attributed = maui::platform::apple::placeholder_attributed(text, foreground, spacing);
         field.placeholderAttributedString = attributed;
     }
+
+    // Unhook everything on_connect_handler installed that outlives the handler. The delegate carries a
+    // RAW entry_handler* and is subscribed to NSTextViewDidChangeSelectionNotification with object:nil —
+    // a PROCESS-GLOBAL registration every NSTextField's field editor in the process reaches. Both
+    // on_disconnect_handler AND ~entry_platform run this, because nothing calls disconnect_handler() when
+    // a handler is merely destroyed (there is no ~view_handler doing it), and the field can outlive the
+    // handler. Without the dtor call, a later unrelated selection change dereferences a freed handler —
+    // ASan: heap-use-after-free at -[MauiEntryDelegate mauiSelectionChanged:]. Same reasoning as the
+    // WinUI partial, whose entry_platform tokens are documented "so a torn-down-without-disconnect struct
+    // still revokes" (entry_handler.hpp).
+    void detach_entry_delegate(void* native)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        NSTextField* const field = as_field(native);
+        if (auto* const delegate = (MauiEntryDelegate*)objc_getAssociatedObject(field, &k_delegate_key))
+        {
+            [[NSNotificationCenter defaultCenter] removeObserver:delegate
+                                                            name:NSTextViewDidChangeSelectionNotification
+                                                          object:nil];
+            delegate.handler = nullptr; // belt and braces: never leave a stale raw pointer reachable
+        }
+        field.delegate = nil;
+        objc_setAssociatedObject(field, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
 } // namespace
 
 namespace maui::core
 {
     entry_platform::~entry_platform()
     {
+        // BEFORE the release: the void* slot holds the last retain, so the field is still alive here and
+        // objc_getAssociatedObject can reach the delegate.
+        detach_entry_delegate(native);
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -333,15 +363,7 @@ namespace maui::core
 
     void entry_handler::on_disconnect_handler(entry_platform& platform)
     {
-        NSTextField* const field = as_field(platform.native);
-        if (auto* const delegate = (MauiEntryDelegate*)objc_getAssociatedObject(field, &k_delegate_key))
-        {
-            [[NSNotificationCenter defaultCenter] removeObserver:delegate
-                                                            name:NSTextViewDidChangeSelectionNotification
-                                                          object:nil];
-        }
-        field.delegate = nil;
-        objc_setAssociatedObject(field, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_entry_delegate(platform.native);
     }
 
     void entry_handler::map_text(entry_handler& handler, i_entry& view)

@@ -264,6 +264,43 @@ namespace
         EXPECT_FALSE(pinch->is_pinching());
     }
 
+    // A PinchUpdated handler is allowed to destroy the pinched view — C#'s GC keeps every object the
+    // in-flight dispatch still needs alive, and the shared synthetic spine spells that in C++ (see the
+    // dispatch<T> comment in gesture_platform_manager.hpp: "(c) destroy the whole view — the manager is
+    // a member of it, so `this` and both members go with it"). The NATIVE trampolines do NOT route
+    // through dispatch<T>, so that fix does not cover them: this drives the REAL registered
+    // target/action with a handler that frees the view mid-raise. The recognizer is kept alive by the
+    // test's own shared_ptr, so anything ASan reports here is the bridge's, not the recognizer's.
+    TEST_F(apple_gesture_seam, pinch_handler_destroying_the_view_mid_dispatch)
+    {
+        // BOTH latching states, each on a FRESH view: Began dynamic_casts `sender` and writes
+        // att->starting_scale; Changed writes att->previous_scale. Either one performed AFTER the raise
+        // touches freed memory once the handler has destroyed the view. Changed is the one that matters
+        // most in production — it runs on every pinch delta, Began only once per gesture.
+        for (const NSGestureRecognizerState state :
+             {NSGestureRecognizerStateBegan, NSGestureRecognizerStateChanged})
+        {
+            auto control = std::make_unique<button>();
+            auto handler = std::make_shared<maui::core::button_handler>(); // outlives the button: NSView stays
+            control->set_handler(handler);
+
+            auto pinch = std::make_shared<pinch_gesture_recognizer>();
+            control->gesture_recognizers().add(pinch);
+
+            auto* const magnify =
+                (NSMagnificationGestureRecognizer*)native_view(handler).gestureRecognizers.firstObject;
+            ASSERT_TRUE([magnify isKindOfClass:[NSMagnificationGestureRecognizer class]]);
+
+            pinch->pinch_updated.connect([&control](const pinch_gesture_updated_event_args&) { control.reset(); });
+
+            MauiTestMagnificationRecognizer* const drive = [[MauiTestMagnificationRecognizer alloc] init];
+            drive.testState = state;
+            fire_action_as(magnify, drive);
+            EXPECT_EQ(control, nullptr);
+        }
+        SUCCEED(); // returning without an ASan report IS the assertion
+    }
+
     TEST_F(apple_gesture_seam, swipe_is_synthesized_from_pan_deltas)
     {
         // AppKit has NO swipe recognizer: the bridge attaches a dedicated NSPanGestureRecognizer and
