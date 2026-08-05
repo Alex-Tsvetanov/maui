@@ -21,6 +21,7 @@
 // box_view is the host control because its android partial builds a plain View(Context) (no TextView
 // base — see android_box_view_tests.cpp for why editor/switch/check_box cannot construct here).
 
+#include <functional>
 #include <memory>
 
 #include <gtest/gtest.h>
@@ -306,6 +307,97 @@ namespace
         EXPECT_EQ(started, 1);
         EXPECT_GE(running, 1);
         EXPECT_EQ(completed, 1);
+    }
+
+    // LONG PRESS NEEDS A PUMPED LOOPER. Unlike tap/scroll — which GestureDetector decides synchronously
+    // inside onTouchEvent — the long press is a DELAYED Handler message (GestureDetector.GestureHandler,
+    // LONG_PRESS at ~500ms). testhost/Bootstrap.java prepares the main Looper but never loops it (the
+    // gtest suite IS that thread), so a fabricated down/up alone never reaches OnLongPress — measured:
+    // 0 drag_starting raises after a real 900ms wait. Pump it by hand instead: MessageQueue.next()
+    // blocks until the next message is due and Handler.dispatchMessage delivers it. Bounded by
+    // max_messages, because next() would block forever once the queue drains.
+    void pump_looper(int max_messages, const std::function<bool()>& done)
+    {
+        const scoped_env env;
+        ASSERT_TRUE(static_cast<bool>(env));
+        auto& cache = default_jni_cache();
+        jclass looper_class = cache.find_class(env.get(), "android/os/Looper");
+        jmethodID my_queue =
+            cache.static_method(env.get(), "android/os/Looper", "myQueue", "()Landroid/os/MessageQueue;");
+        // MessageQueue.next() and Message.target are package-private; JNI resolves them by name, and this
+        // app_process host runs without an application package so hidden-API enforcement does not apply
+        // (the same reason Bootstrap.java can reflect ActivityThread.systemMain).
+        jmethodID next = cache.method(env.get(), "android/os/MessageQueue", "next", "()Landroid/os/Message;");
+        jfieldID target = cache.field(env.get(), "android/os/Message", "target", "Landroid/os/Handler;");
+        jmethodID dispatch_message =
+            cache.method(env.get(), "android/os/Handler", "dispatchMessage", "(Landroid/os/Message;)V");
+        ASSERT_NE(looper_class, nullptr);
+        ASSERT_NE(my_queue, nullptr);
+        ASSERT_NE(next, nullptr);
+        ASSERT_NE(target, nullptr);
+        ASSERT_NE(dispatch_message, nullptr);
+
+        const local_ref<jobject> queue{env.get(), env->CallStaticObjectMethod(looper_class, my_queue)};
+        ASSERT_FALSE(pending_exception_cleared(env.get(), "Looper.myQueue"));
+        ASSERT_TRUE(static_cast<bool>(queue));
+
+        for (int i = 0; i < max_messages && !done(); ++i)
+        {
+            const local_ref<jobject> message{env.get(), env->CallObjectMethod(queue.get(), next)};
+            ASSERT_FALSE(pending_exception_cleared(env.get(), "MessageQueue.next"));
+            if (!message)
+            {
+                return;
+            }
+            const local_ref<jobject> handler{env.get(), env->GetObjectField(message.get(), target)};
+            if (handler)
+            {
+                env->CallVoidMethod(handler.get(), dispatch_message, message.get());
+                (void)pending_exception_cleared(env.get(), "Handler.dispatchMessage");
+            }
+        }
+    }
+
+    // RE-ENTRANCY, the drag arm. send_drag_starting is user code like every other send_*, but
+    // drag_on_long_press keeps working after it INSIDE the same iteration — it parks the data package on
+    // the peer and calls MauiGestureBridge.startDrag on state.view. A DragStarting handler that tears the
+    // view down must stop the sweep right there, the same per-element `dead` re-check the other seven
+    // fan-outs make (for_each_of, gesture_platform_manager.cpp:355-362), which is the port's spelling of
+    // the GC-rooted view C# relies on.
+    //
+    // WHAT THIS TEST IS AND IS NOT. It is the REACHABILITY + no-crash regression for that path: it pins
+    // that a long press really reaches drag_on_long_press here (the ASSERT on drag_starts), and that
+    // freeing the element from inside send_drag_starting unwinds cleanly through native_detach_all. It is
+    // NOT a mutation test — measured on this emulator, it passes with either guard reverted, because the
+    // freed element is read out of an unpoisoned heap and because the only side effect the missing `dead`
+    // re-check adds is a View.startDragAndDrop against a window-less test view, which Android no-ops. The
+    // mutation-provable half of the same defect lives in tests/controls/drag_drop_tests.cpp
+    // (handler_destroying_the_source_mid_send_is_safe) under the asan-ubsan preset.
+    TEST(AndroidGestureSeam, DragHandlerTearingDownTheViewMidDispatchIsSafe)
+    {
+        ASSERT_NE(maui::platform::android::testhost::host_context(), nullptr);
+        // HEAP-owned, unlike the other cases: the handler here frees the ELEMENT, not just its handler,
+        // which is what makes `state.sender` — the very reference send_drag_starting is holding — dangle.
+        auto box = std::make_unique<attached_box>();
+        jobject native = box->native();
+        ASSERT_NE(native, nullptr);
+
+        auto drag = std::make_shared<drag_gesture_recognizer>();
+        int drag_starts = 0;
+        drag->drag_starting.connect([&](maui::controls::drag_starting_event_args&) {
+            ++drag_starts;
+            box.reset(); // box_view + handler + gesture manager, all gone mid-send
+        });
+        box->control.gesture_recognizers().add(drag);
+        ASSERT_TRUE(box->control.gesture_manager().native_registered_drag_source(*drag))
+            << "long press must be armed, or nothing below is exercised";
+
+        dispatch_touch(native, k_action_down, 9, 9, 20000, 20000);
+        pump_looper(8, [&drag_starts] { return drag_starts > 0; });
+
+        // The positive witness: without it a "didn't crash" result cannot be told from a vacuous run.
+        EXPECT_EQ(drag_starts, 1) << "the long press must actually have reached drag_on_long_press";
+        EXPECT_EQ(box, nullptr);
     }
 
     // The drop target's OnDragListener is genuinely installed and genuinely removed — the port reports

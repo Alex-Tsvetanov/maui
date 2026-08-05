@@ -695,6 +695,12 @@ namespace maui::controls
                     continue; // :258-259
                 }
                 drag_starting_event_args args = drag->send_drag_starting(*state.sender);
+                if (state.dead)
+                {
+                    break; // send_drag_starting IS user code — same re-check the other fan-outs do
+                           // (for_each_of :355-362); without it the package write and the startDrag JNI
+                           // call below run against a view the handler already tore down.
+                }
                 if (args.cancel())
                 {
                     continue; // :271-272
