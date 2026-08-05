@@ -93,33 +93,49 @@ add_library(maui_sanitizers INTERFACE)
 # The frame-pointer/debug pair is unconditional on the clang/gcc lanes (cheap, and every sanitizer
 # personality below wants it). MSVC spells neither, and none of the personalities are offered on that
 # lane, so the interface stays empty there rather than gaining a /Oy- translation nothing consumes.
+#
+# EVERY generator expression below says CXX,OBJCXX, and the OBJCXX half is load-bearing. It read
+# `$<COMPILE_LANGUAGE:CXX>` alone, which is a language MATCH, not a superset: an Objective-C++ .mm
+# translation unit compiles as OBJCXX and matched NOTHING, so it received the LINK flag and none of the
+# compile instrumentation. ASan, TSan and MSan were therefore blind to every .mm in the tree — which on
+# this port is the whole apple and ios backend, including gesture_platform_manager.mm.
+#
+# The cost was not theoretical. Three consecutive rounds of gesture lifetime fixes each closed the
+# use-after-free class where the sanitizer could see it and were told by the next review that the same
+# class survived "one layer down"; the layer the sanitizer could not see was the .mm one. A raw
+# recognizer pointer captured into an Objective-C trampoline (apple gesture_platform_manager.mm:215,
+# 239, 271, 317, 339 and the ios sibling at :352, :432, :522) is the identical defect, and no amount of
+# running the suite would ever have reported it.
+#
+# So: any flag added here that must apply to the apple/ios lanes needs both languages named. A
+# CXX-only entry is not a smaller sanitizer, it is a silent hole shaped exactly like one backend.
 if(NOT MSVC)
   target_compile_options(maui_sanitizers INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-g>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-omit-frame-pointer>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-g>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fno-omit-frame-pointer>
   )
 endif()
 if(ENABLE_ASAN_UBSAN)
   target_compile_options(maui_sanitizers INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-O1>
-    $<$<COMPILE_LANGUAGE:CXX>:-fsanitize=address,undefined>
-    $<$<COMPILE_LANGUAGE:CXX>:-fsanitize-address-use-after-scope>
-    $<$<COMPILE_LANGUAGE:CXX>:-fno-sanitize-recover=all>)  # UBSan findings abort -> fail tests
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-O1>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fsanitize=address,undefined>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fsanitize-address-use-after-scope>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fno-sanitize-recover=all>)  # UBSan findings abort -> fail tests
   target_link_options(maui_sanitizers INTERFACE -fsanitize=address,undefined)
   message(STATUS "Sanitizers: ASan + UBSan")
 endif()
 if(ENABLE_TSAN)
   target_compile_options(maui_sanitizers INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-O1>
-    $<$<COMPILE_LANGUAGE:CXX>:-fsanitize=thread>)
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-O1>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fsanitize=thread>)
   target_link_options(maui_sanitizers INTERFACE -fsanitize=thread)
   message(STATUS "Sanitizers: TSan")
 endif()
 if(ENABLE_MSAN)
   target_compile_options(maui_sanitizers INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX>:-O1>
-    $<$<COMPILE_LANGUAGE:CXX>:-fsanitize=memory>
-    $<$<COMPILE_LANGUAGE:CXX>:-fsanitize-memory-track-origins=2>)
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-O1>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fsanitize=memory>
+    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fsanitize-memory-track-origins=2>)
   target_link_options(maui_sanitizers INTERFACE -fsanitize=memory)
   message(STATUS "Sanitizers: MSan")
 endif()
