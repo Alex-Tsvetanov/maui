@@ -423,8 +423,33 @@ namespace maui::controls
 {
     table_view_platform::table_view_platform() = default;
 
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(table_view_platform& platform)
+        {
+            UITableView* const native = as_table(platform.native);
+            if (native != nil)
+            {
+                native.dataSource = nil;
+                native.delegate = nil;
+                objc_setAssociatedObject(native, &g_source_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }
+            platform.realized.clear();
+            platform.recycle_pool.clear();
+            platform.selected_path.reset();
+            platform.section_headers.clear();
+        }
+    } // namespace
+
     table_view_platform::~table_view_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -454,17 +479,7 @@ namespace maui::controls
 
     void table_view_handler::on_disconnect_handler(table_view_platform& platform)
     {
-        UITableView* const native = as_table(platform.native);
-        if (native != nil)
-        {
-            native.dataSource = nil;
-            native.delegate = nil;
-            objc_setAssociatedObject(native, &g_source_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        }
-        platform.realized.clear();
-        platform.recycle_pool.clear();
-        platform.selected_path.reset();
-        platform.section_headers.clear();
+        detach_trampolines(platform);
     }
 
     void table_view_handler::reload()

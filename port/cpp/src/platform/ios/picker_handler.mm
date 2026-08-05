@@ -35,6 +35,7 @@
 #include "ios_done_accessory.hpp"
 #include "ios_semantics_ops.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_view_ops.hpp"
 #include "ios_visual_ops.hpp"
 #include "maui/core/i_picker.hpp"
 #include "maui/core/picker_handler.hpp"
@@ -246,10 +247,17 @@ namespace
 - (void)onStarted:(id)sender
 {
     // MauiPickerProxy.OnStarted: `virtualView.IsFocused = virtualView.IsOpen = true` (IsOpen FIRST).
-    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
-    if (view != nullptr)
+    // `keep` pins us: the raise below is user code and may destroy the view, which runs
+    // ~picker_platform and drops the association that holds this trampoline. Every deref that
+    // FOLLOWS a raise goes through live_view (ios_view_ops.hpp), which re-reads the
+    // back-pointer that same dtor nulls.
+    MauiPickerEditingProxy* const keep = self;
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
     {
         view->set_is_open(true);
+    }
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
+    {
         view->set_is_focused(true);
     }
 }
@@ -257,10 +265,17 @@ namespace
 - (void)onEnded:(id)sender
 {
     // MauiPickerProxy.OnEnded: `virtualView.IsFocused = virtualView.IsOpen = false` (IsOpen FIRST).
-    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
-    if (view != nullptr)
+    // `keep` pins us: the raise below is user code and may destroy the view, which runs
+    // ~picker_platform and drops the association that holds this trampoline. Every deref that
+    // FOLLOWS a raise goes through live_view (ios_view_ops.hpp), which re-reads the
+    // back-pointer that same dtor nulls.
+    MauiPickerEditingProxy* const keep = self;
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
     {
         view->set_is_open(false);
+    }
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
+    {
         view->set_is_focused(false);
     }
 }
@@ -268,8 +283,41 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(picker_platform& platform)
+        {
+            UITextField* const field = as_field(platform.native);
+            UIPickerView* const wheel = wheel_of(field);
+            wheel.dataSource = nil;
+            wheel.delegate = nil;
+            field.inputAccessoryView = nil;
+            // MauiPickerProxy.Disconnect: detach the editing observers and clear its raw handler back-ref.
+            if (MauiPickerEditingProxy* const editing =
+                    (MauiPickerEditingProxy*)objc_getAssociatedObject(field, &k_editing_proxy_key))
+            {
+                [field removeTarget:editing
+                              action:@selector(onStarted:)
+                    forControlEvents:UIControlEventEditingDidBegin];
+                [field removeTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
+                editing.handler = nullptr;
+            }
+            objc_setAssociatedObject(field, &k_source_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(field, &k_done_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(field, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            platform.on_done = nullptr;
+        }
+    } // namespace
+
     picker_platform::~picker_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -393,23 +441,7 @@ namespace maui::core
 
     void picker_handler::on_disconnect_handler(picker_platform& platform)
     {
-        UITextField* const field = as_field(platform.native);
-        UIPickerView* const wheel = wheel_of(field);
-        wheel.dataSource = nil;
-        wheel.delegate = nil;
-        field.inputAccessoryView = nil;
-        // MauiPickerProxy.Disconnect: detach the editing observers and clear its raw handler back-ref.
-        if (MauiPickerEditingProxy* const editing =
-                (MauiPickerEditingProxy*)objc_getAssociatedObject(field, &k_editing_proxy_key))
-        {
-            [field removeTarget:editing action:@selector(onStarted:) forControlEvents:UIControlEventEditingDidBegin];
-            [field removeTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
-            editing.handler = nullptr;
-        }
-        objc_setAssociatedObject(field, &k_source_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(field, &k_done_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(field, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        platform.on_done = nullptr;
+        detach_trampolines(platform);
     }
 
     void picker_handler::map_items(picker_handler& handler, i_picker& view)

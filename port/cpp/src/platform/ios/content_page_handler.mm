@@ -76,8 +76,26 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(content_page_platform& platform)
+        {
+            if (auto* host = (__bridge MauiIosPageView*)platform.native; host != nil)
+            {
+                host.mauiHandler = nullptr;
+            }
+        }
+    } // namespace
+
     content_page_platform::~content_page_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -125,10 +143,7 @@ namespace maui::core
 
     void content_page_handler::on_disconnect_handler(content_page_platform& platform)
     {
-        if (auto* host = (__bridge MauiIosPageView*)platform.native; host != nil)
-        {
-            host.mauiHandler = nullptr;
-        }
+        detach_trampolines(platform);
     }
 
     // The iOSSpecific Page knob nudges (C# PageHandler.iOS MapPrefersStatusBarHiddenMode /

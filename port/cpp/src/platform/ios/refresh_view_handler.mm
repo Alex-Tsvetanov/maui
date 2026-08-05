@@ -78,8 +78,16 @@ namespace maui::core
 {
     refresh_view_platform::~refresh_view_platform()
     {
+        // The UIRefreshControl (and its target, re-armed on every content set) outlives the handler
+        // whenever a superview retains the host — null the raw back-pointer before the release.
         if (native != nullptr)
         {
+            UIView* const host = as_host(native);
+            if (auto* const target = (MauiRefreshTarget*)objc_getAssociatedObject(host, &k_refresh_target_key))
+            {
+                target.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(host, &k_refresh_target_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
             CFRelease(native); // balances the __bridge_retained in create_platform_view
             native = nullptr;
         }

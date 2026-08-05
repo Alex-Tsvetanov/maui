@@ -35,6 +35,7 @@
 #include "ios_conversions.hpp"
 #include "ios_done_accessory.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_view_ops.hpp"
 #include "ios_visual_ops.hpp"
 #include "maui/core/date_picker_handler.hpp"
 #include "maui/core/date_time.hpp"
@@ -289,10 +290,17 @@ namespace
 - (void)onStarted:(id)sender
 {
     // DatePickerHandler.iOS.cs OnStarted: `virtualView.IsFocused = virtualView.IsOpen = true` (IsOpen FIRST).
-    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
-    if (view != nullptr)
+    // `keep` pins us: the raise below is user code and may destroy the view, which runs
+    // ~date_picker_platform and drops the association that holds this trampoline. Every deref that
+    // FOLLOWS a raise goes through live_view (ios_view_ops.hpp), which re-reads the
+    // back-pointer that same dtor nulls.
+    MauiIosDatePickerEditingProxy* const keep = self;
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
     {
         view->set_is_open(true);
+    }
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
+    {
         view->set_is_focused(true);
     }
 }
@@ -300,10 +308,17 @@ namespace
 - (void)onEnded:(id)sender
 {
     // DatePickerHandler.iOS.cs OnEnded: `virtualView.IsFocused = virtualView.IsOpen = false` (IsOpen FIRST).
-    auto* const view = self.handler != nullptr ? self.handler->virtual_view() : nullptr;
-    if (view != nullptr)
+    // `keep` pins us: the raise below is user code and may destroy the view, which runs
+    // ~date_picker_platform and drops the association that holds this trampoline. Every deref that
+    // FOLLOWS a raise goes through live_view (ios_view_ops.hpp), which re-reads the
+    // back-pointer that same dtor nulls.
+    MauiIosDatePickerEditingProxy* const keep = self;
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
     {
         view->set_is_open(false);
+    }
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
+    {
         view->set_is_focused(false);
     }
 }
@@ -311,8 +326,50 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(date_picker_platform& platform)
+        {
+#if TARGET_OS_MACCATALYST
+            UIDatePicker* const picker = as_date_picker(platform.native);
+            if (MauiMacDatePickerValueProxy* const value_proxy =
+                    (MauiMacDatePickerValueProxy*)objc_getAssociatedObject(picker, &k_editing_proxy_key))
+            {
+                [picker removeTarget:value_proxy
+                              action:@selector(onValueChanged:)
+                    forControlEvents:UIControlEventValueChanged];
+                value_proxy.handler = nullptr;
+            }
+            objc_setAssociatedObject(picker, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            platform.on_done = nullptr;
+#else
+            UITextField* const field = as_field(platform.native);
+            field.inputAccessoryView = nil;
+            if (MauiIosDatePickerEditingProxy* const editing =
+                    (MauiIosDatePickerEditingProxy*)objc_getAssociatedObject(field, &k_editing_proxy_key))
+            {
+                [field removeTarget:editing
+                              action:@selector(onStarted:)
+                    forControlEvents:UIControlEventEditingDidBegin];
+                [field removeTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
+                editing.handler = nullptr;
+            }
+            objc_setAssociatedObject(field, &k_done_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            objc_setAssociatedObject(field, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            platform.on_done = nullptr;
+#endif // TARGET_OS_MACCATALYST
+        }
+    } // namespace
+
     date_picker_platform::~date_picker_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -475,32 +532,7 @@ namespace maui::core
 
     void date_picker_handler::on_disconnect_handler(date_picker_platform& platform)
     {
-#if TARGET_OS_MACCATALYST
-        UIDatePicker* const picker = as_date_picker(platform.native);
-        if (MauiMacDatePickerValueProxy* const value_proxy =
-                (MauiMacDatePickerValueProxy*)objc_getAssociatedObject(picker, &k_editing_proxy_key))
-        {
-            [picker removeTarget:value_proxy
-                          action:@selector(onValueChanged:)
-                forControlEvents:UIControlEventValueChanged];
-            value_proxy.handler = nullptr;
-        }
-        objc_setAssociatedObject(picker, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        platform.on_done = nullptr;
-#else
-        UITextField* const field = as_field(platform.native);
-        field.inputAccessoryView = nil;
-        if (MauiIosDatePickerEditingProxy* const editing =
-                (MauiIosDatePickerEditingProxy*)objc_getAssociatedObject(field, &k_editing_proxy_key))
-        {
-            [field removeTarget:editing action:@selector(onStarted:) forControlEvents:UIControlEventEditingDidBegin];
-            [field removeTarget:editing action:@selector(onEnded:) forControlEvents:UIControlEventEditingDidEnd];
-            editing.handler = nullptr;
-        }
-        objc_setAssociatedObject(field, &k_done_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        objc_setAssociatedObject(field, &k_editing_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        platform.on_done = nullptr;
-#endif // TARGET_OS_MACCATALYST
+        detach_trampolines(platform);
     }
 
     void date_picker_handler::map_format(date_picker_handler& handler, i_date_picker& view)

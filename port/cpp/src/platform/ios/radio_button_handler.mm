@@ -88,8 +88,29 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(radio_button_platform& platform)
+        {
+            UIButton* const button = as_button(platform.native);
+            if (auto* const proxy = (MauiIosRadioButtonProxy*)objc_getAssociatedObject(button, &k_proxy_key))
+            {
+                [button removeTarget:proxy action:@selector(onSelect:) forControlEvents:UIControlEventTouchUpInside];
+                proxy.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(button, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     radio_button_platform::~radio_button_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -277,12 +298,7 @@ namespace maui::core
 
     void radio_button_handler::on_disconnect_handler(radio_button_platform& platform)
     {
-        UIButton* const button = as_button(platform.native);
-        if (auto* const proxy = (MauiIosRadioButtonProxy*)objc_getAssociatedObject(button, &k_proxy_key))
-        {
-            [button removeTarget:proxy action:@selector(onSelect:) forControlEvents:UIControlEventTouchUpInside];
-        }
-        objc_setAssociatedObject(button, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void radio_button_handler::map_is_checked(radio_button_handler& handler, i_radio_button& view)

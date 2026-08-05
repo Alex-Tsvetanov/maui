@@ -279,8 +279,23 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(check_box_platform& platform)
+        {
+            as_check_box(platform.native).onCheckedChanged = nil;
+        }
+    } // namespace
+
     check_box_platform::~check_box_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -371,7 +386,7 @@ namespace maui::core
 
     void check_box_handler::on_disconnect_handler(check_box_platform& platform)
     {
-        as_check_box(platform.native).onCheckedChanged = nil;
+        detach_trampolines(platform);
     }
 
     void check_box_handler::map_is_checked(check_box_handler& handler, i_check_box& view)

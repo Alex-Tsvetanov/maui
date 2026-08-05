@@ -670,4 +670,42 @@ namespace
         EXPECT_DOUBLE_EQ(with.height, without.height);
         EXPECT_DOUBLE_EQ(with.width, without.width);
     }
+
+    // LIFETIME (the on-simulator twin of apple_button_seam.clicking_a_button_that_outlived_its_handler_is_inert,
+    // where this defect was REPRODUCED under ASan at button_handler.mm:48 — the same trampoline shape one
+    // file over). The UIButton outlives the handler in any real app (a superview retains it) and the
+    // MauiButtonEventProxy it keeps in its associated objects carries a RAW button_handler*; nothing calls
+    // disconnect_handler() when a handler is merely destroyed, so ~button_platform has to unhook.
+    TEST(ios_button_seam, clicking_a_button_that_outlived_its_handler_is_inert)
+    {
+        UIButton* native = nil;
+        {
+            button control;
+            control.set_handler(std::shared_ptr<button_handler>(new button_handler()));
+            auto* const handler = dynamic_cast<button_handler*>(control.handler().get());
+            ASSERT_NE(handler, nullptr);
+            native = (__bridge UIButton*)handler->typed_platform_view()->native; // ARC retains it here
+        } // control + handler + platform all die; `native` survives
+
+        send_control_event(native, UIControlEventTouchUpInside); // the tap a live superview still delivers
+        SUCCEED();                                               // no ASan report IS the assertion
+    }
+
+    // ORDERING. onTouchUpInside raises TWICE (Released then Clicked) and the first is user code that may
+    // destroy the button, freeing the view the second would touch.
+    TEST(ios_button_seam, a_released_handler_may_destroy_the_button)
+    {
+        auto* control = new button();
+        control->set_handler(std::shared_ptr<button_handler>(new button_handler()));
+        auto* const handler = dynamic_cast<button_handler*>(control->handler().get());
+        ASSERT_NE(handler, nullptr);
+        UIButton* const native = (__bridge UIButton*)handler->typed_platform_view()->native;
+
+        control->released.connect([&control] {
+            delete control;
+            control = nullptr;
+        });
+        send_control_event(native, UIControlEventTouchUpInside);
+        EXPECT_EQ(control, nullptr);
+    }
 } // namespace

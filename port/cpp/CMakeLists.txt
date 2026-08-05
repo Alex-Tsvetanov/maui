@@ -221,7 +221,6 @@ add_library(maui_graphics STATIC
 target_include_directories(maui_graphics PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_link_libraries(maui_graphics PRIVATE maui_sanitizers)
 # MSVC flags a CONSUMER of this framework needs, carried on the bottom-of-DAG target so they reach every
 # target that links any maui:: library, in BOTH consume modes (add_subdirectory and the exported package).
 # The root add_compile_options() above covers the framework's own translation units, but it is
@@ -299,7 +298,6 @@ if(MAUI_BACKEND STREQUAL "apple" OR MAUI_BACKEND STREQUAL "ios")
 endif()
 target_link_libraries(maui_graphics_tests PRIVATE
   maui_graphics
-  maui_sanitizers
   GTest::gmock_main   # transitively pulls gmock + gtest + main(); single chain avoids duplicate-lib warnings
 )
 maui_discover_tests(maui_graphics_tests)
@@ -317,7 +315,6 @@ add_executable(maui_graphics_benchmarks
 )
 target_link_libraries(maui_graphics_benchmarks PRIVATE
   maui_graphics
-  maui_sanitizers
   benchmark::benchmark_main   # provides main(); transitively pulls benchmark (single chain)
 )
 
@@ -798,7 +795,7 @@ target_include_directories(maui_core PUBLIC
   $<INSTALL_INTERFACE:include>)
 # Layer 1 depends on layer 0: core contracts expose graphics value types (color in i_text_style,
 # rect/size in i_view). PUBLIC so consumers of maui_core link maui_graphics transitively.
-target_link_libraries(maui_core PUBLIC maui_graphics PRIVATE maui_sanitizers)
+target_link_libraries(maui_core PUBLIC maui_graphics)
 # The Apple backend's .mm partials use AppKit/Foundation; Cocoa is PUBLIC so test/app consumers link it.
 # QuartzCore (PUBLIC) supplies the CATransform3D* C functions apple_view_ops.hpp's apply_transform uses
 # to build the render transform (Cocoa does not transitively link those symbols).
@@ -1059,7 +1056,6 @@ add_executable(maui_core_tests
 )
 target_link_libraries(maui_core_tests PRIVATE
   maui_core
-  maui_sanitizers
   GTest::gmock_main
 )
 maui_discover_tests(maui_core_tests)
@@ -1151,7 +1147,7 @@ if(MAUI_BACKEND STREQUAL "android")
     # that binary runs through android-emu-run.sh with no ART runtime, so it has no JavaVM at all.
     tests/platform/android_gesture_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
-  target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls maui_sanitizers)
+  target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_android_widget_tests PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
@@ -1183,7 +1179,6 @@ elseif(MAUI_BACKEND STREQUAL "ios")
 endif()
 target_link_libraries(maui_animations_tests PRIVATE
   maui_core
-  maui_sanitizers
   GTest::gmock_main
 )
 maui_discover_tests(maui_animations_tests)
@@ -1495,7 +1490,7 @@ target_include_directories(maui_controls PUBLIC
 # use the maui_layouts measure/arrange managers (their create_layout_manager() instantiates them).
 # maui_essentials joins for the state triggers (DeviceStateTrigger/OrientationStateTrigger read the
 # device_info / device_display facades — the same dependency direction as C# Controls.Core → Essentials).
-target_link_libraries(maui_controls PUBLIC maui_core maui_layouts maui_essentials PRIVATE maui_sanitizers)
+target_link_libraries(maui_controls PUBLIC maui_core maui_layouts maui_essentials)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_controls PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -1940,7 +1935,6 @@ if(MAUI_BACKEND STREQUAL "ios")
 endif()
 target_link_libraries(maui_controls_tests PRIVATE
   maui_controls
-  maui_sanitizers
   GTest::gmock_main
 )
 maui_discover_tests(maui_controls_tests)
@@ -1984,7 +1978,7 @@ add_library(maui_layouts STATIC
 target_include_directories(maui_layouts PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_link_libraries(maui_layouts PUBLIC maui_core PRIVATE maui_sanitizers)
+target_link_libraries(maui_layouts PUBLIC maui_core)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_layouts PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -2008,7 +2002,6 @@ add_executable(maui_layout_tests
 target_include_directories(maui_layout_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for tests/layouts/*.hpp
 target_link_libraries(maui_layout_tests PRIVATE
   maui_controls
-  maui_sanitizers
   GTest::gmock_main
 )
 maui_discover_tests(maui_layout_tests)
@@ -2071,7 +2064,7 @@ target_include_directories(maui_xaml PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 # pugixml stays an implementation detail of the parser .cpp (never in public headers) — PRIVATE.
-target_link_libraries(maui_xaml PUBLIC maui_controls PRIVATE pugixml::pugixml maui_sanitizers)
+target_link_libraries(maui_xaml PUBLIC maui_controls PRIVATE pugixml::pugixml)
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
   set_target_properties(maui_xaml PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
@@ -2094,7 +2087,6 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   )
   target_link_libraries(maui_xaml_tests PRIVATE
     maui_xaml
-    maui_sanitizers
     GTest::gmock_main
   )
   # Corpus dirs (absolute source paths) for the parametrized gallery_twin loader gate: the canonical
@@ -2114,7 +2106,7 @@ endif()
 # piece is just the node->C++ emitter; the parser/registries are shared with the runtime loader. ----
 if(NOT MAUI_BACKEND STREQUAL "ios")
   add_executable(maui_xaml_codegen tools/xaml_codegen/main.cpp)
-  target_link_libraries(maui_xaml_codegen PRIVATE maui_xaml maui_sanitizers)
+  target_link_libraries(maui_xaml_codegen PRIVATE maui_xaml)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_xaml_codegen PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
@@ -2162,7 +2154,7 @@ target_include_directories(maui_hosting PUBLIC
   $<INSTALL_INTERFACE:include>)
 # Hosting mints the controls::application and seeds the controls handler table — PUBLIC so consumers
 # (samples, tests) reach the controls/core surface transitively.
-target_link_libraries(maui_hosting PUBLIC maui_controls PRIVATE maui_sanitizers)
+target_link_libraries(maui_hosting PUBLIC maui_controls)
 # The debug-gated DevFlow agent (maui::devflow) rides in the hosting lib: it introspects the mounted tree
 # a host opts into. The MAUI_DEVFLOW compile-def is PUBLIC so a consumer's `#if defined(MAUI_DEVFLOW)`
 # opt-in block (e.g. the gallery) compiles. OFF (release) = source not compiled + macro undefined = absent.
@@ -2205,7 +2197,7 @@ if(MAUI_BACKEND STREQUAL "android")
   # and transitively maui_controls / maui_core (with the android JNI handler partials swapped in by the
   # android preset) / maui_layouts / maui_essentials. android NDK liblog for any os-level logging the
   # handlers do (linked the same way maui_core already links the platform libs).
-  target_link_libraries(maui_android_apphost PRIVATE maui_hosting maui_sanitizers)
+  target_link_libraries(maui_android_apphost PRIVATE maui_hosting)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_android_apphost PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
@@ -2262,7 +2254,7 @@ if(MAUI_BACKEND STREQUAL "android")
   # transitively maui_controls / maui_core with the android handler partials swapped in). maui_xaml brings
   # the runtime xaml_loader build_page hydrates the byte-array markup through — the ONLY extra link vs the
   # C++ apphost (the XAML twin parses at mount instead of dispatching a C++ page type).
-  target_link_libraries(maui_android_apphost_xaml PRIVATE maui_hosting maui_xaml maui_sanitizers)
+  target_link_libraries(maui_android_apphost_xaml PRIVATE maui_hosting maui_xaml)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     set_target_properties(maui_android_apphost_xaml PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
   endif()
@@ -2282,7 +2274,6 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   target_link_libraries(maui_hosting_tests PRIVATE
     maui_hosting
     maui_xaml # phase-4 render gate loads the twins via xaml_loader
-    maui_sanitizers
     GTest::gmock_main
   )
   # Corpus dirs (absolute source paths) for the parametrized render gate: the canonical shared pages
@@ -2351,7 +2342,6 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
   target_link_libraries(maui_ui_tests PRIVATE
     maui_hosting
     maui_xaml
-    maui_sanitizers
     GTest::gmock_main
   )
   maui_discover_tests(maui_ui_tests)
@@ -2509,7 +2499,7 @@ target_include_directories(maui_essentials PUBLIC
 target_include_directories(maui_essentials PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 # Essentials sits on core (event/move_only_function/cancellation_token) which carries graphics
 # (vector3/quaternion for the sensor readings) transitively.
-target_link_libraries(maui_essentials PUBLIC maui_core PRIVATE maui_sanitizers)
+target_link_libraries(maui_essentials PUBLIC maui_core)
 # The macOS partials reach beyond Cocoa (already PUBLIC on maui_core): IOKit (battery power
 # sources + the keep-screen-on power assertion), SystemConfiguration (SCDynamicStoreCopyComputerName)
 # and CoreLocation (geolocation/geocoding).
@@ -2618,7 +2608,6 @@ endif()
 target_include_directories(maui_essentials_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}) # for src/... detail headers
 target_link_libraries(maui_essentials_tests PRIVATE
   maui_essentials
-  maui_sanitizers
   GTest::gmock_main
 )
 maui_discover_tests(maui_essentials_tests)
@@ -2628,6 +2617,27 @@ if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     OBJCXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
 endif()
 # --- end maui_essentials: devices+sensors (W1-16) ---
+
+# ---- Sanitizer coverage: ONE mechanism, applied to every target in this directory. ----
+# This runs after the last add_library/add_executable, so it cannot go stale. It replaces the
+# 21 hand-written `maui_sanitizers` entries that used to sit in each target's target_link_libraries —
+# a per-target list is the same shape of bug as the two blind spots this file has already paid for
+# (the CXX-only generator expressions above, and, one level up, "which binaries link the interface
+# at all"). Both were invisible until measured. Test binary number ten cannot forget this loop.
+#
+# PRIVATE is load-bearing: the interface must NOT enter INTERFACE_LINK_LIBRARIES of the installed
+# static libs, or a find_package(maui) consumer inherits sanitizer link flags it never asked for.
+# BUILDSYSTEM_TARGETS excludes ALIAS and IMPORTED targets; the TYPE filter drops the two INTERFACE
+# libs (maui_sanitizers itself, maui_umbrella) and any custom/UTILITY target, none of which can be
+# given a PRIVATE link dependency. With ENABLE_ASAN_UBSAN/TSAN/MSAN all OFF the interface carries
+# only -g/-fno-omit-frame-pointer, so "off" stays off everywhere.
+get_property(MAUI_ALL_TARGETS DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(maui_target IN LISTS MAUI_ALL_TARGETS)
+  get_target_property(maui_target_type ${maui_target} TYPE)
+  if(NOT maui_target_type STREQUAL "INTERFACE_LIBRARY" AND NOT maui_target_type STREQUAL "UTILITY")
+    target_link_libraries(${maui_target} PRIVATE maui_sanitizers)
+  endif()
+endforeach()
 
 # ======================================================================
 # Packaging — install + export so the framework is consumable via find_package(maui CONFIG REQUIRED)

@@ -83,8 +83,23 @@ namespace maui::core
 {
     indicator_view_platform::indicator_view_platform() = default;
 
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(indicator_view_platform& platform)
+        {
+            as_page_control(platform.native).cppHandler = nullptr;
+        }
+    } // namespace
+
     indicator_view_platform::~indicator_view_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -132,7 +147,7 @@ namespace maui::core
 
     void indicator_view_handler::on_disconnect_handler(indicator_view_platform& platform)
     {
-        as_page_control(platform.native).cppHandler = nullptr;
+        detach_trampolines(platform);
     }
 
     // ---- the native bridge (MauiPageControl methods) ----

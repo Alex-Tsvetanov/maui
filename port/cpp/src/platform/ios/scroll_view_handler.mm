@@ -26,6 +26,7 @@
 #include <string_view>
 
 #include "ios_semantics_ops.hpp"
+#include "ios_view_ops.hpp"
 #include "ios_visual_ops.hpp"
 #include "maui/controls/scroll_view.hpp"
 #include "maui/core/i_scroll_view.hpp"
@@ -139,12 +140,15 @@
 @implementation MauiScrollViewDelegate
 - (void)scrollViewDidScroll:(UIScrollView*)scrollView
 {
-    if (self.handler == nullptr)
+    // `keep` pins US: the first offset write below is user code, and a Scrolled handler that destroys
+    // the scroll view runs ~scroll_view_platform, which drops the association holding this delegate.
+    MauiScrollViewDelegate* const keep = self;
+    if (keep.handler == nullptr)
     {
         return;
     }
-    auto* const platform = self.handler->typed_platform_view();
-    auto* const view = self.handler->virtual_view();
+    auto* const platform = keep.handler->typed_platform_view();
+    auto* const view = keep.handler->virtual_view();
     if (platform == nullptr || view == nullptr)
     {
         return;
@@ -152,9 +156,22 @@
     const CGPoint offset = scrollView.contentOffset;
     platform->offset_x = offset.x;
     platform->offset_y = offset.y;
-    // C# Scrolled: VirtualView.HorizontalOffset/VerticalOffset = platformView.ContentOffset.
+    // C# Scrolled: VirtualView.HorizontalOffset/VerticalOffset = platformView.ContentOffset — TWO
+    // raises (ScrollViewHandler.iOS.cs:247-248), and the first is user code that may destroy the
+    // scroll view, freeing `view`, the handler and the platform. C# re-reads its VirtualView property
+    // for the second axis; the C++ equivalent is to re-read `keep.handler`, which
+    // ~scroll_view_platform's detach nulls (that detach is what makes this check meaningful — delete
+    // one and the other stops working). Proven on the apple twin: ASan heap-use-after-free READ at
+    // scroll_view_handler.mm:67, freed inside the handler called from :66.
+    // RESIDUAL, not covered: a view destroyed while a SECOND shared_ptr keeps its handler alive leaves
+    // virtual_view_ dangling, because nothing in ~view disconnects the handler. Closing that needs
+    // maui::controls::view, not this file. App code is safe — the view owns the only handler ref.
     view->set_horizontal_offset(offset.x);
-    view->set_vertical_offset(offset.y);
+    auto* const live = maui::platform::ios::live_view(keep.handler);
+    if (live != nullptr)
+    {
+        live->set_vertical_offset(offset.y);
+    }
 }
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView*)scrollView
@@ -210,8 +227,33 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(scroll_view_platform& platform)
+        {
+            UIScrollView* const scroller = as_scroller(platform.native);
+            if ([scroller isKindOfClass:[MauiIosScrollView class]])
+            {
+                ((MauiIosScrollView*)scroller).mauiHandler = nullptr; // drop the backref (no ownership)
+            }
+            if (auto* const delegate = (MauiScrollViewDelegate*)objc_getAssociatedObject(scroller, &k_delegate_key))
+            {
+                delegate.handler = nullptr;
+            }
+            scroller.delegate = nil;
+            objc_setAssociatedObject(scroller, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     scroll_view_platform::~scroll_view_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -291,17 +333,7 @@ namespace maui::core
 
     void scroll_view_handler::on_disconnect_handler(scroll_view_platform& platform)
     {
-        UIScrollView* const scroller = as_scroller(platform.native);
-        if ([scroller isKindOfClass:[MauiIosScrollView class]])
-        {
-            ((MauiIosScrollView*)scroller).mauiHandler = nullptr; // drop the backref (no ownership)
-        }
-        if (auto* const delegate = (MauiScrollViewDelegate*)objc_getAssociatedObject(scroller, &k_delegate_key))
-        {
-            delegate.handler = nullptr;
-        }
-        scroller.delegate = nil;
-        objc_setAssociatedObject(scroller, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     // C# UpdateContentView: remove the tagged current content, then tag + add the new one.

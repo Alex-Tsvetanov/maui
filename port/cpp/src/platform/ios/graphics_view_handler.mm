@@ -30,8 +30,23 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(graphics_view_platform& platform)
+        {
+            maui::platform::ios::drawable_host_set_interaction_target(platform.native, nullptr);
+        }
+    } // namespace
+
     graphics_view_platform::~graphics_view_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_drawable_host
@@ -114,7 +129,7 @@ namespace maui::core
     // PlatformTouchGraphicsView.Disconnect: clear the borrow before the view goes away.
     void graphics_view_handler::on_disconnect_handler(graphics_view_platform& platform)
     {
-        maui::platform::ios::drawable_host_set_interaction_target(platform.native, nullptr);
+        detach_trampolines(platform);
     }
 
     // C# UpdateDrawable: point the host at VirtualView.Drawable (and redraw).

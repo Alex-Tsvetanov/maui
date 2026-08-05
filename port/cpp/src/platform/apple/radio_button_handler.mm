@@ -89,8 +89,30 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(radio_button_platform& platform)
+        {
+            NSButton* const button = as_button(platform.native);
+            button.target = nil;
+            button.action = nil;
+            if (auto* const trampoline = (MauiRadioButtonTarget*)objc_getAssociatedObject(button, &k_target_key))
+            {
+                trampoline.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(button, &k_target_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     radio_button_platform::~radio_button_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -182,10 +204,7 @@ namespace maui::core
 
     void radio_button_handler::on_disconnect_handler(radio_button_platform& platform)
     {
-        NSButton* const button = as_button(platform.native);
-        button.target = nil;
-        button.action = nil;
-        objc_setAssociatedObject(button, &k_target_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void radio_button_handler::map_is_checked(radio_button_handler& handler, i_radio_button& view)

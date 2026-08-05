@@ -53,6 +53,7 @@
 #include "ios_done_accessory.hpp"
 #include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_view_ops.hpp"
 #include "ios_visual_ops.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/editor_handler.hpp"
@@ -280,14 +281,15 @@ namespace
     // MauiTextViewEventProxy.OnEnded: one final text sync, then IsFocused = false (it resigned first
     // responder), then Completed — matching EditorHandler.iOS.cs OnEnded (IsFocused=false before
     // Completed()), so a Completed handler already observes the unfocused state.
-    [self mauiSyncTextFrom:(MauiIosEditorTextView*)textView];
-    if (self.handler != nullptr)
+    MauiIosEditorProxy* const keep = self; // each raise below may destroy the editor -> frees us
+    [keep mauiSyncTextFrom:(MauiIosEditorTextView*)textView];
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
     {
-        if (auto* view = self.handler->virtual_view())
-        {
-            view->set_is_focused(false);
-            view->send_completed();
-        }
+        view->set_is_focused(false);
+    }
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
+    {
+        view->send_completed();
     }
 }
 
@@ -326,9 +328,11 @@ namespace
     {
         view->set_cursor_position(cursor);
     }
-    if (view->selection_length() != length)
+    // set_cursor_position raised a property change: re-read before touching the view again.
+    auto* const still = maui::platform::ios::live_view(self.handler);
+    if (still != nullptr && still->selection_length() != length)
     {
-        view->set_selection_length(length);
+        still->set_selection_length(length);
     }
 }
 
@@ -359,8 +363,29 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(editor_platform& platform)
+        {
+            MauiIosEditorTextView* const text_view = as_text_view(platform.native);
+            text_view.delegate = nil;
+            if (auto* const trampoline = (MauiIosEditorProxy*)objc_getAssociatedObject(text_view, &k_proxy_key))
+            {
+                trampoline.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(text_view, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     editor_platform::~editor_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -441,9 +466,7 @@ namespace maui::core
 
     void editor_handler::on_disconnect_handler(editor_platform& platform)
     {
-        MauiIosEditorTextView* const text_view = as_text_view(platform.native);
-        text_view.delegate = nil;
-        objc_setAssociatedObject(text_view, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void editor_handler::map_text(editor_handler& handler, i_editor& view)

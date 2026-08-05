@@ -141,9 +141,11 @@ MAUI_ENTRY_VERTICAL_ALIGNMENT_BODY
     {
         view->set_cursor_position(cursor);
     }
-    if (view->selection_length() != length)
+    // set_cursor_position raised a property change: re-read before touching the view again.
+    auto* const still = maui::platform::apple::live_view(self.handler);
+    if (still != nullptr && still->selection_length() != length)
     {
-        view->set_selection_length(length);
+        still->set_selection_length(length);
     }
 }
 

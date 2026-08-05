@@ -48,6 +48,7 @@
 #include "ios_keyboard_manager_ops.hpp" // W7 keyboard-automanager: the next-responder walk
 #include "ios_keyboard_ops.hpp"
 #include "ios_text_ops.hpp"
+#include "ios_view_ops.hpp"
 #include "ios_visual_ops.hpp"
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/clear_button_visibility.hpp"
@@ -296,7 +297,8 @@ namespace
     {
         return;
     }
-    if (auto* view = self.handler->virtual_view())
+    MauiIosEntryProxy* const keep = self; // set_cursor_position may destroy the entry -> frees us
+    if (auto* view = keep.handler->virtual_view())
     {
         // "Update cursor position before updating text so that when TextChanged event fires, the
         // CursorPosition property reflects the current native cursor position" (OnEditingChanged).
@@ -305,7 +307,10 @@ namespace
         {
             view->set_cursor_position(cursor);
         }
-        [self mauiSyncTextFrom:field];
+        if (maui::platform::ios::live_view(keep.handler) != nullptr)
+        {
+            [keep mauiSyncTextFrom:field];
+        }
     }
 }
 
@@ -449,17 +454,54 @@ namespace
     {
         view->set_cursor_position(cursor);
     }
-    if (view->selection_length() != selected)
+    // set_cursor_position raised a property change: re-read before touching the view again.
+    auto* const still = maui::platform::ios::live_view(self.handler);
+    if (still != nullptr && still->selection_length() != selected)
     {
-        view->set_selection_length(selected);
+        still->set_selection_length(selected);
     }
 }
 @end
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(entry_platform& platform)
+        {
+            UITextField* const field = as_field(platform.native);
+            if (auto* const proxy = (MauiIosEntryProxy*)objc_getAssociatedObject(field, &k_proxy_key))
+            {
+                // MauiTextFieldProxy.Disconnect — unhook the same wirings.
+                [field removeTarget:proxy
+                              action:@selector(onEditingChanged:)
+                    forControlEvents:UIControlEventEditingChanged];
+                [field removeTarget:proxy
+                              action:@selector(onEditingDidBegin:)
+                    forControlEvents:UIControlEventEditingDidBegin];
+                [field removeTarget:proxy
+                              action:@selector(onEditingDidEnd:)
+                    forControlEvents:UIControlEventEditingDidEnd];
+                proxy.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            field.delegate = nil;
+            if ([field isKindOfClass:[MauiIosTextField class]])
+            {
+                ((MauiIosTextField*)field).mauiProxy = nil;
+            }
+            objc_setAssociatedObject(field, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     entry_platform::~entry_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -564,24 +606,7 @@ namespace maui::core
 
     void entry_handler::on_disconnect_handler(entry_platform& platform)
     {
-        UITextField* const field = as_field(platform.native);
-        if (auto* const proxy = (MauiIosEntryProxy*)objc_getAssociatedObject(field, &k_proxy_key))
-        {
-            // MauiTextFieldProxy.Disconnect — unhook the same wirings.
-            [field removeTarget:proxy
-                          action:@selector(onEditingChanged:)
-                forControlEvents:UIControlEventEditingChanged];
-            [field removeTarget:proxy
-                          action:@selector(onEditingDidBegin:)
-                forControlEvents:UIControlEventEditingDidBegin];
-            [field removeTarget:proxy action:@selector(onEditingDidEnd:) forControlEvents:UIControlEventEditingDidEnd];
-        }
-        field.delegate = nil;
-        if ([field isKindOfClass:[MauiIosTextField class]])
-        {
-            ((MauiIosTextField*)field).mauiProxy = nil;
-        }
-        objc_setAssociatedObject(field, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void entry_handler::map_text(entry_handler& handler, i_entry& view)

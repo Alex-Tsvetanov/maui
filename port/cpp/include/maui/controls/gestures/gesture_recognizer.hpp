@@ -23,9 +23,12 @@
 //   1. THE CALLER OWNS THE RECOGNIZER for the whole send_* call — a defensive copy of strong refs taken
 //      before the first send, which is exactly what C#'s own fan-outs do
 //      (EnumerableExtensions.GetGesturesFor: "The method makes a defensive copy of the gestures").
-//      Every caller already honors it: gesture_platform_manager::dispatch<> (the cross-platform
-//      synthetic dispatch) and both native bridges (src/platform/{android,windows}/…). That is what
-//      makes a send_*'s post-raise access to ITS OWN state valid, so such access needs no guard here.
+//      gesture_platform_manager::dispatch<> (the cross-platform synthetic dispatch) and the windows
+//      bridge honor it, and every drag/drop fan-out does. It is NOT universal, and it is NOT a licence
+//      for post-raise self-access: the android PINCH path breaks it today — pinch_gesture() returns
+//      `entry.lock().get()` (src/platform/android/gesture_platform_manager.cpp:377-387), so the strong
+//      ref dies at the end of that expression and the send at :1203 runs through a raw pointer. Rule 3
+//      is what actually closes the callee side.
 //
 //   2. NO send_* MAY DEREFERENCE A BORROWED ELEMENT AFTER RAISING. `sender` (and drop's `parent`) are
 //      raw element references; an element is not shared-owned, so nothing in this layer can root one.
@@ -34,6 +37,18 @@
 //      read-after-Invoke. The one irreducible exception is drop's injection into `parent`, which by
 //      definition must write into a live target after the handler has run; its liveness is the caller's
 //      contract (drop_gesture_recognizer.hpp).
+//
+//   3. NO send_* MAY WRITE ITS OWN STATE AFTER RAISING. Latch first, raise last: `this` is freed the
+//      moment a handler destroys the view that owns the recognizer, and rule 1 is not guaranteed by
+//      every caller (see above). Where a send_* has more than one raise site, route them through one
+//      private latch-then-raise helper so the ordering cannot be re-broken by the next send_* added —
+//      pinch_gesture_recognizer::latch_then_raise is the pattern (it also carries the fidelity argument
+//      for moving the write, which C# does after the Invoke). Checked 2026-08-05: pan, pointer, tap and
+//      swipe raise LAST already and touch nothing afterwards; drag's send_drop_completed latches before
+//      its raise. The one irreducible exception is send_drag_starting's `is_drag_active_ = true`
+//      (drag_drop_recognizers.cpp:83), whose value C# gates on the handler-filled args.Cancel/Handled,
+//      so it cannot be hoisted — it rests on rule 1 alone, and both of its callers do snapshot strong
+//      refs (android :697, windows :699).
 
 #include "maui/controls/element.hpp"
 

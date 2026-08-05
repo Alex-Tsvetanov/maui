@@ -69,8 +69,30 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(switch_platform& platform)
+        {
+            NSSwitch* const native = as_switch(platform.native);
+            native.target = nil;
+            native.action = nil;
+            if (auto* const trampoline = (MauiSwitchTarget*)objc_getAssociatedObject(native, &k_target_key))
+            {
+                trampoline.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(native, &k_target_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     switch_platform::~switch_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (container != nullptr)
         {
             CFRelease(container); // balances the __bridge_retained in on_setup_container
@@ -165,10 +187,7 @@ namespace maui::core
 
     void switch_handler::on_disconnect_handler(switch_platform& platform)
     {
-        NSSwitch* const native = as_switch(platform.native);
-        native.target = nil;
-        native.action = nil;
-        objc_setAssociatedObject(native, &k_target_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     // C# ViewHandler.SetupContainer (the WrapperView swap): wrap the natural-sized NSSwitch in a plain

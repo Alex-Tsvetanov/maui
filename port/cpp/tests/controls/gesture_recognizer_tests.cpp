@@ -198,6 +198,40 @@ namespace
         EXPECT_EQ(result, 2);
     }
 
+    // LIFETIME TRIPWIRE (runs under ASan in the asan-ubsan preset). A PinchUpdated handler may destroy
+    // the pinched view, and the view's gesture_recognizers() collection is the recognizer's owner — so
+    // the recognizer dies with it, mid-raise. Nothing roots it: the android bridge resolves its
+    // controller as `entry.lock().get()` (src/platform/android/gesture_platform_manager.cpp:377-387,
+    // sent through at :1203), where the strong ref dies at the end of that expression. Any member the
+    // send_* touches after the raise is then a use-after-free WRITE — which is what the four latch
+    // writes were. Drives all four sends, so a post-raise write reintroduced in ANY of them trips.
+    TEST(pinch_gesture_recognizer_test, a_handler_may_destroy_the_view_and_the_recognizer_mid_dispatch)
+    {
+        const auto drive = [](auto&& send) {
+            auto view = std::make_unique<test_view>();
+            auto owned = std::make_shared<pinch_gesture_recognizer>();
+            auto* pinch = owned.get();
+            view->gesture_recognizers().add(std::move(owned)); // the view is now the SOLE owner
+
+            bool handler_ran = false;
+            pinch->pinch_updated.connect([&](const pinch_gesture_updated_event_args&) {
+                handler_ran = true;
+                view.reset(); // user code tears down the tree: frees the collection AND `pinch`
+            });
+
+            send(static_cast<i_pinch_gesture_controller&>(*pinch), *view);
+
+            EXPECT_TRUE(handler_ran);
+            EXPECT_EQ(view, nullptr);
+        };
+
+        using maui::controls::element;
+        drive([](i_pinch_gesture_controller& c, element& s) { c.send_pinch_started(s, point(0.5, 0.5)); });
+        drive([](i_pinch_gesture_controller& c, element& s) { c.send_pinch(s, 1.5, point(0.5, 0.5)); });
+        drive([](i_pinch_gesture_controller& c, element& s) { c.send_pinch_ended(s); });
+        drive([](i_pinch_gesture_controller& c, element& s) { c.send_pinch_canceled(s); });
+    }
+
     TEST(pinch_gesture_recognizer_test, only_one_pinch_gesture_per_view)
     {
         test_view view;

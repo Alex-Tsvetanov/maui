@@ -256,6 +256,7 @@ namespace
         {
             [as_window(platform.native) removeObserver:proxy forKeyPath:@"frame" context:frame_kvo_context()];
         }
+        proxy.window = nullptr;                      // the back-pointer live_view re-reads after user code
         CFRelease(platform.notification_trampoline); // balances the __bridge_retained in connect()
         platform.notification_trampoline = nullptr;
     }

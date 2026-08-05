@@ -103,8 +103,11 @@
     {
         return;
     }
-    _interactionTarget->send_start_interaction(points);
+    // Latch BEFORE the raise: send_start_interaction is user code, and a handler that destroys the
+    // graphics view releases the native host — writing an ivar on a freed `self` afterwards is a UAF.
+    // Unobservable reorder (nothing reads _pressedContained until the next touch callback).
     _pressedContained = true;
+    _interactionTarget->send_start_interaction(points);
 }
 
 - (void)notifyDragInteraction:(const std::vector<maui::graphics::point_f>&)points
@@ -185,6 +188,10 @@ namespace maui::platform::ios
 
     void drawable_host_set_interaction_target(void* host, maui::core::i_graphics_view* target)
     {
+        if (host == nullptr) // the platform dtor detaches unconditionally; a direct ivar write would trap on nil
+        {
+            return;
+        }
         ((__bridge MauiCppDrawableHostView*)host)->_interactionTarget = target; // non-owning borrow
     }
 } // namespace maui::platform::ios

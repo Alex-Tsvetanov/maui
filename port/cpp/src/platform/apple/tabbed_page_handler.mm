@@ -87,6 +87,7 @@ namespace maui::core
         // create_platform_view). `delegate` is unused on AppKit (the subclass forwards selection).
         if (controller != nullptr)
         {
+            as_controller(controller).mauiHandler = nullptr; // the back-pointer live_view re-reads after user code
             CFRelease(controller);
             controller = nullptr;
         }

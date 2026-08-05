@@ -207,6 +207,13 @@ namespace maui::core
     {
         if (notification_trampoline != nullptr)
         {
+            // What disconnect() does, for the handler that is destroyed without one.
+            if (native != nullptr)
+            {
+                as_window(native).delegate = nil;
+            }
+            ((__bridge MauiWindowDelegate*)notification_trampoline).window =
+                nullptr;                        // the back-pointer live_view re-reads after user code
             CFRelease(notification_trampoline); // balances the __bridge_retained in connect()
             notification_trampoline = nullptr;
         }

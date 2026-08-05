@@ -155,8 +155,31 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(search_bar_platform& platform)
+        {
+            NSSearchField* const field = as_search_field(platform.native);
+            field.delegate = nil;
+            field.target = nil;
+            field.action = nil;
+            if (auto* const trampoline = (MauiSearchBarDelegate*)objc_getAssociatedObject(field, &k_delegate_key))
+            {
+                trampoline.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(field, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     search_bar_platform::~search_bar_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -214,11 +237,7 @@ namespace maui::core
 
     void search_bar_handler::on_disconnect_handler(search_bar_platform& platform)
     {
-        NSSearchField* const field = as_search_field(platform.native);
-        field.delegate = nil;
-        field.target = nil;
-        field.action = nil;
-        objc_setAssociatedObject(field, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void search_bar_handler::map_text(search_bar_handler& handler, i_search_bar& view)

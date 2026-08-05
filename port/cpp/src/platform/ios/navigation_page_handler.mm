@@ -184,6 +184,14 @@ namespace maui::core
         // Release every retained UIKit handle (each balances a __bridge_retained in create_platform_view /
         // on_connect_handler / host_modal / host_title_view). The bar's subviews are owned by the bar; the
         // back trampoline + the hosted title view are held via their own slots.
+        if (back_target != nullptr) // the back button outlives the handler whenever the bar does
+        {
+            auto* const proxy = (__bridge MauiNavBackProxy*)back_target;
+            [as_button(back_button) removeTarget:proxy
+                                          action:@selector(onBack:)
+                                forControlEvents:UIControlEventTouchUpInside];
+            proxy.handler = nullptr; // the back-pointer live_view re-reads after user code
+        }
         if (title_view_host != nullptr)
         {
             CFRelease(title_view_host);

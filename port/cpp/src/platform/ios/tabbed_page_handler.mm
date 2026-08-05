@@ -115,6 +115,8 @@ namespace maui::core
         // Release the retained UIKit handles (each balances a __bridge_retained below).
         if (delegate != nullptr)
         {
+            ((__bridge MauiTabBarDelegate*)delegate).mauiHandler =
+                nullptr; // the back-pointer live_view re-reads after user code
             CFRelease(delegate);
             delegate = nullptr;
         }

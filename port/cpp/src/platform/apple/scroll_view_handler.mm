@@ -48,12 +48,15 @@
 @implementation MauiScrollViewProxy
 - (void)boundsDidChange:(NSNotification*)notification
 {
-    if (self.handler == nullptr)
+    // `keep` pins US: the first offset write below is user code, and a Scrolled handler that destroys
+    // the scroll view runs ~scroll_view_platform, which drops the association holding this proxy.
+    MauiScrollViewProxy* const keep = self;
+    if (keep.handler == nullptr)
     {
         return;
     }
-    auto* const platform = self.handler->typed_platform_view();
-    auto* const view = self.handler->virtual_view();
+    auto* const platform = keep.handler->typed_platform_view();
+    auto* const view = keep.handler->virtual_view();
     if (platform == nullptr || view == nullptr)
     {
         return;
@@ -63,8 +66,20 @@
     platform->offset_x = origin.x;
     platform->offset_y = origin.y;
     // The platform write-back (C# Scrolled → VirtualView.Horizontal/VerticalOffset = ContentOffset).
+    // TWO raises, one per axis, exactly as ScrollViewHandler.iOS.cs:247-248 — and the first is user
+    // code that may destroy the scroll view, freeing `view`, the handler and the platform. C# re-reads
+    // its VirtualView property for the second axis; the C++ equivalent is to re-read `keep.handler`,
+    // which ~scroll_view_platform's detach nulls (that detach is what makes this check meaningful —
+    // delete one and the other stops working).
+    // RESIDUAL, not covered: a view destroyed while a SECOND shared_ptr keeps its handler alive leaves
+    // virtual_view_ dangling, because nothing in ~view disconnects the handler. Closing that needs
+    // maui::controls::view, not this file. App code is safe — the view owns the only handler ref.
     view->set_horizontal_offset(origin.x);
-    view->set_vertical_offset(origin.y);
+    auto* const live = maui::platform::apple::live_view(keep.handler);
+    if (live != nullptr)
+    {
+        live->set_vertical_offset(origin.y);
+    }
 }
 @end
 
@@ -91,8 +106,31 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(scroll_view_platform& platform)
+        {
+            NSScrollView* const scroller = as_scroller(platform.native);
+            if (auto* const proxy = (MauiScrollViewProxy*)objc_getAssociatedObject(scroller, &k_proxy_key))
+            {
+                [[NSNotificationCenter defaultCenter] removeObserver:proxy
+                                                                name:NSViewBoundsDidChangeNotification
+                                                              object:scroller.contentView];
+                proxy.handler = nullptr;
+            }
+            objc_setAssociatedObject(scroller, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     scroll_view_platform::~scroll_view_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -188,15 +226,7 @@ namespace maui::core
 
     void scroll_view_handler::on_disconnect_handler(scroll_view_platform& platform)
     {
-        NSScrollView* const scroller = as_scroller(platform.native);
-        if (auto* const proxy = (MauiScrollViewProxy*)objc_getAssociatedObject(scroller, &k_proxy_key))
-        {
-            [[NSNotificationCenter defaultCenter] removeObserver:proxy
-                                                            name:NSViewBoundsDidChangeNotification
-                                                          object:scroller.contentView];
-            proxy.handler = nullptr;
-        }
-        objc_setAssociatedObject(scroller, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void scroll_view_handler::set_content()

@@ -26,6 +26,7 @@
 #include <string_view>
 
 #include "ios_conversions.hpp"
+#include "ios_view_ops.hpp"
 #include "ios_visual_ops.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/i_image_button.hpp"
@@ -52,13 +53,18 @@
 - (void)onTouchUpInside:(id)sender
 {
     (void)sender;
-    if (self.handler != nullptr)
+    // `keep` pins us: the raise below is user code and may destroy the view, which runs
+    // ~image_button_platform and drops the association that holds this trampoline. Every deref that
+    // FOLLOWS a raise goes through live_view (ios_view_ops.hpp), which re-reads the
+    // back-pointer that same dtor nulls.
+    MauiIosImageButtonProxy* const keep = self;
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
     {
-        if (auto* view = self.handler->virtual_view())
-        {
-            view->send_released();
-            view->send_clicked();
-        }
+        view->send_released();
+    }
+    if (auto* const view = maui::platform::ios::live_view(keep.handler))
+    {
+        view->send_clicked();
     }
 }
 
@@ -176,8 +182,35 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(image_button_platform& platform)
+        {
+            UIButton* const button = as_button(platform.native);
+            if (auto* const proxy = (MauiIosImageButtonProxy*)objc_getAssociatedObject(button, &k_proxy_key))
+            {
+                [button removeTarget:proxy
+                              action:@selector(onTouchUpInside:)
+                    forControlEvents:UIControlEventTouchUpInside];
+                [button removeTarget:proxy
+                              action:@selector(onTouchUpOutside:)
+                    forControlEvents:UIControlEventTouchUpOutside];
+                [button removeTarget:proxy action:@selector(onTouchDown:) forControlEvents:UIControlEventTouchDown];
+                proxy.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(button, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     image_button_platform::~image_button_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -279,16 +312,7 @@ namespace maui::core
 
     void image_button_handler::on_disconnect_handler(image_button_platform& platform)
     {
-        UIButton* const button = as_button(platform.native);
-        if (auto* const proxy = (MauiIosImageButtonProxy*)objc_getAssociatedObject(button, &k_proxy_key))
-        {
-            [button removeTarget:proxy action:@selector(onTouchUpInside:) forControlEvents:UIControlEventTouchUpInside];
-            [button removeTarget:proxy
-                          action:@selector(onTouchUpOutside:)
-                forControlEvents:UIControlEventTouchUpOutside];
-            [button removeTarget:proxy action:@selector(onTouchDown:) forControlEvents:UIControlEventTouchDown];
-        }
-        objc_setAssociatedObject(button, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void image_button_handler::map_aspect(image_button_handler& handler, i_image_button& view)

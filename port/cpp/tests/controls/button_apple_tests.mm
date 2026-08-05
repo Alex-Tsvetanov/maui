@@ -318,6 +318,47 @@ namespace
         remove_file(path);
     }
 
+    // LIFETIME. The NSButton outlives the handler in any real app — a superview retains it — and the
+    // MauiButtonTarget it keeps in its associated objects carries a RAW button_handler*. Nothing calls
+    // disconnect_handler() when a handler is merely destroyed (there is no ~view_handler doing it), so
+    // the unhook has to happen in ~button_platform. Without it the next click dereferences freed memory:
+    // heap-use-after-free READ at button_handler.mm:50 in -[MauiButtonTarget onClick:].
+    // The ARC local below is the superview stand-in; dropping the local shared_ptr is what lets the
+    // handler die (a held one is why every other test in this file misses this).
+    TEST_F(apple_button_seam, clicking_a_button_that_outlived_its_handler_is_inert)
+    {
+        NSButton* native = nil;
+        {
+            button control;
+            control.set_handler(std::shared_ptr<button_handler>(new button_handler()));
+            auto* const handler = dynamic_cast<button_handler*>(control.handler().get());
+            ASSERT_NE(handler, nullptr);
+            native = (__bridge NSButton*)handler->typed_platform_view()->native; // ARC retains it here
+        } // control + handler + platform all die; `native` survives
+
+        [native performClick:nil]; // the click a live superview would still deliver
+        SUCCEED();                 // reaching here without an ASan report IS the assertion
+    }
+
+    // ORDERING. `clicked` is user code and may destroy the button — so the trampoline must touch
+    // nothing afterwards. Kept as a live probe: it is the shape that breaks the moment someone adds a
+    // post-raise read to -[MauiButtonTarget onClick:].
+    TEST_F(apple_button_seam, a_clicked_handler_may_destroy_the_button)
+    {
+        auto* control = new button();
+        control->set_handler(std::shared_ptr<button_handler>(new button_handler()));
+        auto* const handler = dynamic_cast<button_handler*>(control->handler().get());
+        ASSERT_NE(handler, nullptr);
+        NSButton* const native = (__bridge NSButton*)handler->typed_platform_view()->native;
+
+        control->clicked.connect([&control] {
+            delete control;
+            control = nullptr;
+        });
+        [native performClick:nil];
+        EXPECT_EQ(control, nullptr);
+    }
+
     TEST_F(apple_button_seam, content_layout_is_stored_and_pushes_without_crashing)
     {
         // ContentLayout is stored + pushed (the text+image composition is deferred — no container infra).

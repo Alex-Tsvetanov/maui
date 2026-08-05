@@ -123,4 +123,48 @@ namespace
         EXPECT_EQ(scroller.scroll_y(), 900.0);
         EXPECT_EQ(completed, 2);
     }
+
+    // LIFETIME. The NSScrollView outlives the handler in any real app — a superview retains it — and
+    // the MauiScrollViewProxy it keeps in its associated objects carries a RAW scroll_view_handler* and
+    // stays subscribed to the clip view's bounds-change notifications. Nothing calls disconnect_handler()
+    // when a handler is merely destroyed (there is no ~view_handler doing it), so the unhook has to
+    // happen in ~scroll_view_platform. Without it the next scroll dereferences freed memory:
+    // heap-use-after-free READ at scroll_view_handler.mm:55 in -[MauiScrollViewProxy boundsDidChange:].
+    // The ARC local below is the superview stand-in; dropping the local shared_ptr is what lets the
+    // handler die (a held one is why every other test in this file misses this).
+    TEST_F(apple_scroll_view_seam, scrolling_a_scroller_that_outlived_its_handler_is_inert)
+    {
+        NSScrollView* native = nil;
+        {
+            scroll_view scroller;
+            scroller.set_handler(std::shared_ptr<scroll_view_handler>(new scroll_view_handler()));
+            auto* const handler = dynamic_cast<scroll_view_handler*>(scroller.handler().get());
+            ASSERT_NE(handler, nullptr);
+            native = (__bridge NSScrollView*)handler->typed_platform_view()->native; // ARC retains it here
+        } // scroller + handler + platform all die; `native` survives
+
+        [native.contentView setBoundsOrigin:NSMakePoint(0, 50)]; // the scroll a live superview still delivers
+        SUCCEED();                                               // no ASan report IS the assertion
+    }
+
+    // ORDERING. The write-back raises `scrolled` TWICE (once per axis, as C# does at
+    // ScrollViewHandler.iOS.cs:247-248), and the first raise is user code that may destroy the scroll
+    // view — which frees the handler, the platform and the cached `view` pointer. The second axis must
+    // not run against any of it. An x AND y move is required: a y-only move makes the horizontal write
+    // a no-op, so the first raise never happens and the hazard is invisible.
+    TEST_F(apple_scroll_view_seam, a_scrolled_handler_may_destroy_the_view_between_the_two_axes)
+    {
+        auto* scroller = new scroll_view();
+        scroller->set_handler(std::shared_ptr<scroll_view_handler>(new scroll_view_handler()));
+        auto* const handler = dynamic_cast<scroll_view_handler*>(scroller->handler().get());
+        ASSERT_NE(handler, nullptr);
+        NSScrollView* const native = (__bridge NSScrollView*)handler->typed_platform_view()->native;
+
+        scroller->scrolled.connect([&scroller](double, double) {
+            delete scroller;
+            scroller = nullptr;
+        });
+        [native.contentView setBoundsOrigin:NSMakePoint(150, 200)];
+        EXPECT_EQ(scroller, nullptr);
+    }
 } // namespace

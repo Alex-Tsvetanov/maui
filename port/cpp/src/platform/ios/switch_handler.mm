@@ -188,6 +188,20 @@ namespace maui::core
 {
     switch_platform::~switch_platform()
     {
+        // The value trampoline first: the UISwitch outlives the handler whenever a superview retains it,
+        // and its proxy carries a raw switch_handler*.
+        if (native != nullptr)
+        {
+            UISwitch* const switch_view = as_switch(native);
+            if (auto* const proxy = (MauiSwitchEventProxy*)objc_getAssociatedObject(switch_view, &k_proxy_key))
+            {
+                [switch_view removeTarget:proxy
+                                   action:@selector(onValueChanged:)
+                         forControlEvents:UIControlEventValueChanged];
+                proxy.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(switch_view, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
         // Tear down SwitchProxy's color-re-application observers BEFORE the native UISwitch is released —
         // a surviving NSNotificationCenter observer or trait-change registration would fire into freed
         // memory (UAF). Mirrors on_disconnect_handler so a never-disconnected handler is still safe.
@@ -319,6 +333,7 @@ namespace maui::core
         if (auto* const proxy = (MauiSwitchEventProxy*)objc_getAssociatedObject(native, &k_proxy_key))
         {
             [native removeTarget:proxy action:@selector(onValueChanged:) forControlEvents:UIControlEventValueChanged];
+            proxy.handler = nullptr; // the back-pointer live_view re-reads after user code
         }
         objc_setAssociatedObject(native, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 

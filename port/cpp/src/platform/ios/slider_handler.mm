@@ -178,8 +178,36 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(slider_platform& platform)
+        {
+            UISlider* const native = as_slider(platform.native);
+            if (auto* const proxy = (MauiSliderEventProxy*)objc_getAssociatedObject(native, &k_proxy_key))
+            {
+                // SliderProxy.Disconnect — unhook the same three wirings.
+                [native removeTarget:proxy
+                              action:@selector(onValueChanged:)
+                    forControlEvents:UIControlEventValueChanged];
+                [native removeTarget:proxy action:@selector(onTouchDown:) forControlEvents:UIControlEventTouchDown];
+                [native removeTarget:proxy
+                              action:@selector(onTouchUp:)
+                    forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside];
+                proxy.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(native, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     slider_platform::~slider_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -255,17 +283,7 @@ namespace maui::core
 
     void slider_handler::on_disconnect_handler(slider_platform& platform)
     {
-        UISlider* const native = as_slider(platform.native);
-        if (auto* const proxy = (MauiSliderEventProxy*)objc_getAssociatedObject(native, &k_proxy_key))
-        {
-            // SliderProxy.Disconnect — unhook the same three wirings.
-            [native removeTarget:proxy action:@selector(onValueChanged:) forControlEvents:UIControlEventValueChanged];
-            [native removeTarget:proxy action:@selector(onTouchDown:) forControlEvents:UIControlEventTouchDown];
-            [native removeTarget:proxy
-                          action:@selector(onTouchUp:)
-                forControlEvents:UIControlEventTouchUpInside | UIControlEventTouchUpOutside];
-        }
-        objc_setAssociatedObject(native, &k_proxy_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void slider_handler::map_minimum(slider_handler& handler, i_slider& view)

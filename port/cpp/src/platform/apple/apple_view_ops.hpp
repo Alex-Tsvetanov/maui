@@ -131,4 +131,19 @@ namespace maui::platform::apple
                 break;
         }
     }
+
+    // ---- lifetime -------------------------------------------------------------------------------
+    // Re-fetch a trampoline's virtual view AFTER it has run user code (any send_*/set_* raises an
+    // event, and a handler is free to destroy the view it was raised on). `handler` is the raw
+    // back-pointer the ObjC trampoline holds; ~<x>_platform's detach_trampolines nulls it, so a null
+    // result means "the view died under us" and the caller must stop touching it. NEVER cache the
+    // result across another raise — call this again. Pin the trampoline itself with a strong local
+    // (`auto* const keep = self;`) before the first raise, or `keep.handler` is itself a freed read.
+    // Residual, unfixable here: a view destroyed while a SECOND shared_ptr keeps its handler alive
+    // leaves virtual_view_ dangling — nothing in ~view disconnects the handler. App code is safe (the
+    // view owns the only handler ref); closing it fully needs maui::controls::view.
+    template <class Handler> [[nodiscard]] auto* live_view(Handler* handler) noexcept
+    {
+        return handler != nullptr ? handler->virtual_view() : nullptr;
+    }
 } // namespace maui::platform::apple

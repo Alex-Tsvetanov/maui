@@ -240,7 +240,8 @@ namespace
     {
         return;
     }
-    auto* const view = self.handler->virtual_view();
+    MauiEditorDelegate* const keep = self;
+    auto* const view = keep.handler->virtual_view();
     if (view == nullptr)
     {
         return;
@@ -252,9 +253,11 @@ namespace
     {
         view->set_cursor_position(cursor);
     }
-    if (view->selection_length() != length)
+    // set_cursor_position raised a property change: re-read before touching the view again.
+    auto* const still = maui::platform::apple::live_view(keep.handler);
+    if (still != nullptr && still->selection_length() != length)
     {
-        view->set_selection_length(length);
+        still->set_selection_length(length);
     }
 }
 
@@ -287,8 +290,29 @@ namespace
 
 namespace maui::core
 {
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The native
+    // view outlives the handler in any real app (a superview retains it) and the trampolines it keeps
+    // in its associated objects carry RAW handler pointers; nothing calls disconnect_handler() when a
+    // handler is destroyed (there is no ~view_handler doing it), so the platform dtor has to run this
+    // too or the next native callback dereferences freed memory. Idempotent: disconnect_handler()
+    // destroys the platform right after calling it, so both paths run on the same object.
+    namespace
+    {
+        void detach_trampolines(editor_platform& platform)
+        {
+            as_text_view(platform.native).delegate = nil;
+            NSScrollView* const host = as_scroll_view(platform.native);
+            if (auto* const delegate = (MauiEditorDelegate*)objc_getAssociatedObject(host, &k_delegate_key))
+            {
+                delegate.handler = nullptr; // the back-pointer live_view re-reads after user code
+            }
+            objc_setAssociatedObject(host, &k_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+    } // namespace
+
     editor_platform::~editor_platform()
     {
+        detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -371,9 +395,7 @@ namespace maui::core
 
     void editor_handler::on_disconnect_handler(editor_platform& platform)
     {
-        as_text_view(platform.native).delegate = nil;
-        objc_setAssociatedObject(as_scroll_view(platform.native), &k_delegate_key, nil,
-                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_trampolines(platform);
     }
 
     void editor_handler::map_text(editor_handler& handler, i_editor& view)
