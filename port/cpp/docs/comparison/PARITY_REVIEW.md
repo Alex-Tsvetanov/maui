@@ -3058,3 +3058,33 @@ judgement call rather than a measurement:
   (b) leave the page undriven, as switch/slider are, and record it as a lane limitation.
 Not chosen here. What is settled is that nobody should build the twin markup and two code-behinds for
 this page expecting the `gestures` outcome.
+
+### android gestures: MAUI moves 2985 px, the port moves 0 — and this one IS the port
+
+Third lane for the gesture recipe, and the first where the port is the side at fault. iOS (1b46744647)
+and maccatalyst (69ad10ea5d) both reached motion parity. Android inverts:
+
+    pixel       MAUI 2985 px vs C++ 0    (light)   RED / NOTHING MOVED
+    pixel_xaml  MAUI 2985 px vs 0        (light)   RED
+
+MAUI's 2985 px proves the whole chain above the backend is correct on this lane too: the twin markup
+loaded, GesturesPage.xaml.cs fired, the scenario's tap landed, and the readout changed. Both PORT
+columns sat still, in both frameworks — so it is not the loader, not the code-behind, not the aim.
+
+The cause is known and deliberate. 29d63917ae ("native managers — DORMANT, not yet safe to attach")
+records that Android and Windows compiled the HEADLESS no-op gesture manager, so "a recognizer was
+bookkept in attached_ and never reached a native gesture". That commit added the real partials and the
+CMake branches, and its own title says they are not yet attached. So on Android a
+<TapGestureRecognizer> is registered, parsed, owned and never delivered any touch.
+
+WHY IT IS HARD, in that commit's words: the port's seam is PER-RECOGNIZER because UIKit/AppKit
+recognizers ARE per-recognizer objects, and neither Android nor Windows works that way — Android
+installs ONE GestureDetector + ONE ScaleGestureDetector on the view and recomputes them from the WHOLE
+collection. It also pins an ordering trap: load_recognizers pushes into attached_ BEFORE native_attach
+and calls native_detach BEFORE the erase, so attached_ is STALE at detach time.
+
+So this red is the board doing its job: it is the first end-to-end evidence that the Android gesture
+backend is dormant, produced by a page whose other three layers are now known-good on two lanes. It
+should stay red until the manager is attached — that is a real, user-visible gap (no gesture on any
+Android page works), not a harness artifact. Windows will almost certainly show the same, for the same
+reason and from the same commit.
