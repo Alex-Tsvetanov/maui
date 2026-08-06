@@ -37,8 +37,10 @@ Writes results directly into docs/comparison/comparison.json (preserves everythi
 docs/comparison/tools/gen_readme.py afterward to render the scores.
 """
 import argparse
+import glob
 import json
 import os
+import tomllib
 
 import numpy as np
 from PIL import Image
@@ -49,6 +51,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CPP_ROOT = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 COMP = os.path.join(CPP_ROOT, "docs", "comparison")
 JSON = os.path.join(COMP, "comparison.json")
+
+_DRIVEN = None   # driven_pages() cache
 
 PLATFORMS = ("ios", "maccatalyst", "android", "windows")
 THEMES = ("light", "dark")
@@ -186,6 +190,31 @@ def classify(theme_scores):
     return status, review
 
 
+def driven_pages():
+    """Page keys whose authored scenario performs at least one ACTION — i.e. pages the harness drives.
+
+    Cached: main() calls this per page x platform x framework, and the answer cannot change mid-run.
+
+    Why a scenario rather than a list: a driven page is animated in the only sense this scorer cares
+    about — its frames differ because something happened to it. Keeping a second hard-coded set beside
+    ANIMATED would go stale the first time anyone authored a scenario without remembering to update it,
+    which is exactly how the motion of 26 driven pages went unscored on the first driven sweep.
+    """
+    global _DRIVEN
+    if _DRIVEN is None:
+        _DRIVEN = set()
+        scen = os.path.join(COMP, "scenarios")
+        for f in glob.glob(os.path.join(scen, "*.toml")):
+            try:
+                with open(f, "rb") as fh:
+                    steps = tomllib.load(fh).get("steps") or []
+            except Exception:            # noqa: BLE001  a malformed scenario is the runner's error to
+                continue                 # report, not this scorer's — it simply is not driven here
+            if any(s.get("action") for s in steps):
+                _DRIVEN.add(os.path.splitext(os.path.basename(f))[0])
+    return _DRIVEN
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="", help="comma-separated page keys (default: all)")
@@ -218,11 +247,24 @@ def main():
                 crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_images)
                 theme_scores = {t: score_theme(full_res(maui.get(t)), full_res(other.get(t)), crop_top)
                                 for t in themes}
-                if page["name"] in motion_score.ANIMATED:
-                    # The trigger is the ANIMATED set, not "captures/ holds a .gif": a page whose GIF
-                    # assembly FAILED is still an animated page, and the run frames can still score its
-                    # motion. Every score here either becomes a frame-by-frame number or keeps the
-                    # still one carrying the reason it could not — never a silent single-frame verdict.
+                if page["name"] in motion_score.ANIMATED or page["name"] in driven_pages():
+                    # The trigger is the ANIMATED set OR an authored scenario that performs an action —
+                    # NOT "captures/ holds a .gif". Two reasons, and the second one was measured:
+                    #
+                    # A page whose GIF assembly FAILED is still an animated page, and the run frames can
+                    # still score its motion.
+                    #
+                    # And a page that is DRIVEN is animated in every sense that matters here, even
+                    # though it is not in the hard-coded ANIMATED list. The first driven iOS sweep made
+                    # this concrete: 234 scenario steps executed with 0 failures across 26 pages, every
+                    # extra frame landed in the run dir — and 58 of 62 cells were then scored from a
+                    # SINGLE STILL, because the gate only knew about the 14 hard-coded pages. The
+                    # motion was captured and silently ignored, which is the same shape of blind spot
+                    # as the sanitizer's CXX-only language gate: the tool was not looking where the
+                    # work had been done.
+                    #
+                    # Keying on the scenario means a page becomes motion-scored the moment someone
+                    # authors a drive for it, with no second list to remember to update.
                     theme_scores = {t: motion_score.score_cell(page["name"], plat, fw, t, crop_top, v,
                                                                fw_label=FW_LABEL[fw])
                                     for t, v in theme_scores.items()}
