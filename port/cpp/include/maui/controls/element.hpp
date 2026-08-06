@@ -72,6 +72,11 @@ namespace maui::controls
     // real collection; element.hpp itself takes no trigger.hpp dependency).
     class triggers_collection;
 
+    // The View.GestureRecognizers / Span.GestureRecognizers collection type (defined in
+    // gestures/gesture_recognizer_collection.hpp). Forward-declared for the same reason as
+    // triggers_collection above — the loader reaches it through gesture_recognizers_or_null() below.
+    class gesture_recognizer_collection;
+
     class element : public maui::core::bindable_object
     {
     public:
@@ -112,6 +117,16 @@ namespace maui::controls
         // <X.Triggers> on a non-view is inert. Returns a pointer (incomplete type is fine for the nullptr
         // default here; the override in view.hpp sees the complete type).
         [[nodiscard]] virtual triggers_collection* triggers_or_null()
+        {
+            return nullptr;
+        }
+
+        // The same non-template reach for View.GestureRecognizers (and Span.GestureRecognizers): the
+        // loader holds a parsed <TapGestureRecognizer> and its owner as an element&, and must add the
+        // recognizer to the owner's collection — but gesture_recognizers() lives on the view<> CRTP
+        // template (and, separately, on span). Both override this; an element that has no recognizer
+        // collection returns nullptr, so a stray <X.GestureRecognizers> is inert rather than fatal.
+        [[nodiscard]] virtual gesture_recognizer_collection* gesture_recognizers_or_null()
         {
             return nullptr;
         }

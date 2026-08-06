@@ -57,6 +57,12 @@
 #include "maui/controls/flex_layout.hpp"       // W11: FlexLayout attached props
 #include "maui/controls/font_image_source.hpp" // W17: <FontImageSource> element form
 #include "maui/controls/formatted_string.hpp"  // W8: Label.FormattedText element form
+// <View.GestureRecognizers> element form: the recognizer types the loader mints.
+#include "maui/controls/gestures/pan_gesture_recognizer.hpp"
+#include "maui/controls/gestures/pinch_gesture_recognizer.hpp"
+#include "maui/controls/gestures/pointer_gesture_recognizer.hpp"
+#include "maui/controls/gestures/swipe_gesture_recognizer.hpp"
+#include "maui/controls/gestures/tap_gesture_recognizer.hpp"
 #include "maui/controls/grid.hpp"
 #include "maui/controls/image.hpp"                   // W17: Image.Source element form
 #include "maui/controls/items/carousel_view.hpp"     // CarouselView.Position gap closure
@@ -2314,5 +2320,211 @@ namespace
         EXPECT_EQ(message, "Cannot set the content of Shell as it doesn't have a ContentPropertyAttribute") << message;
         // Either way the <Shell> children never reach the caller's content_page: its Content stays unset.
         EXPECT_EQ(page.content(), nullptr);
+    }
+
+    // ---- <View.GestureRecognizers> ----------------------------------------------------------------
+    // The XAML column's port of what the code-first gallery page does with
+    // target.gesture_recognizers().add(...) (examples/gallery/pages/gestures_page.hpp). The recognizer
+    // types are minted from the registry (register_xaml_gestures.cpp) and the property-element routing
+    // (xaml_visitors.cpp try_add_gesture_recognizer) lands each one in the owner's collection.
+
+    TEST(xaml_loader, view_gesture_recognizers_element_form_attaches_a_tap)
+    {
+        controls::box_view box;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(box, R"xml(
+<BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<BoxView.GestureRecognizers>
+		<TapGestureRecognizer NumberOfTapsRequired="2" Buttons="Primary,Secondary" />
+	</BoxView.GestureRecognizers>
+</BoxView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        ASSERT_EQ(box.gesture_recognizers().count(), 1U);
+        const auto* tap = dynamic_cast<const controls::tap_gesture_recognizer*>(box.gesture_recognizers().at(0).get());
+        ASSERT_NE(tap, nullptr);
+        // The recognizer's own bindable properties round-trip through the registered surface.
+        EXPECT_EQ(tap->number_of_taps_required(), 2);
+        EXPECT_EQ(tap->buttons(), controls::buttons_mask::primary | controls::buttons_mask::secondary);
+        // Unset properties keep their descriptor defaults (C# NumberOfTapsRequired = 1, Buttons = Primary).
+        controls::box_view bare;
+        (void)xaml_loader::load_into(bare, R"xml(
+<BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<BoxView.GestureRecognizers>
+		<TapGestureRecognizer />
+	</BoxView.GestureRecognizers>
+</BoxView>)xml");
+        ASSERT_EQ(bare.gesture_recognizers().count(), 1U);
+        const auto* plain =
+            dynamic_cast<const controls::tap_gesture_recognizer*>(bare.gesture_recognizers().at(0).get());
+        ASSERT_NE(plain, nullptr);
+        EXPECT_EQ(plain->number_of_taps_required(), 1);
+        EXPECT_EQ(plain->buttons(), controls::buttons_mask::primary);
+    }
+
+    TEST(xaml_loader, view_gesture_recognizers_multiple_attach_alongside_normal_children)
+    {
+        // The multi-child list path (visit_collection_item's ListNode branch) — AND the register_add_child
+        // trap: a view has exactly ONE child sink and it belongs to its normal children, so the
+        // recognizers must NOT be routed through it. Both collections must be populated after this load.
+        controls::vertical_stack_layout stack;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(stack, R"xml(
+<VerticalStackLayout xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<VerticalStackLayout.GestureRecognizers>
+		<TapGestureRecognizer NumberOfTapsRequired="2" />
+		<PanGestureRecognizer TouchPoints="2" />
+		<PinchGestureRecognizer />
+		<SwipeGestureRecognizer Direction="Left,Right" Threshold="42" />
+		<PointerGestureRecognizer />
+	</VerticalStackLayout.GestureRecognizers>
+	<Label Text="one" />
+	<Label Text="two" />
+</VerticalStackLayout>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        ASSERT_EQ(stack.gesture_recognizers().count(), 5U);
+        EXPECT_NE(dynamic_cast<const controls::tap_gesture_recognizer*>(stack.gesture_recognizers().at(0).get()),
+                  nullptr);
+        const auto* pan =
+            dynamic_cast<const controls::pan_gesture_recognizer*>(stack.gesture_recognizers().at(1).get());
+        ASSERT_NE(pan, nullptr);
+        EXPECT_EQ(pan->touch_points(), 2);
+        EXPECT_NE(dynamic_cast<const controls::pinch_gesture_recognizer*>(stack.gesture_recognizers().at(2).get()),
+                  nullptr);
+        const auto* swipe =
+            dynamic_cast<const controls::swipe_gesture_recognizer*>(stack.gesture_recognizers().at(3).get());
+        ASSERT_NE(swipe, nullptr);
+        // The [Flags] SwipeDirection converter OR-combines the comma-separated names.
+        EXPECT_EQ(swipe->direction(), maui::core::swipe_direction::left | maui::core::swipe_direction::right);
+        EXPECT_EQ(swipe->threshold(), 42U);
+        EXPECT_NE(dynamic_cast<const controls::pointer_gesture_recognizer*>(stack.gesture_recognizers().at(4).get()),
+                  nullptr);
+
+        // …and the layout's OWN children are untouched (the child sink still works).
+        EXPECT_EQ(stack.count(), 2);
+    }
+
+    TEST(xaml_loader, span_gesture_recognizers_element_form_attaches)
+    {
+        // Span : GestureElement in C# — the port's span owns a real collection too, so the same routing
+        // reaches it through element::gesture_recognizers_or_null.
+        // DESTRUCTION ORDER IS LOAD-BEARING HERE, and getting it wrong is a heap-use-after-free rather
+        // than a wrong value. FormattedString's child sink stores a NON-OWNING aliasing shared_ptr per
+        // span (register_xaml_formatted_text.cpp), so the load result's graph is the spans' ONLY owner.
+        // With `label` declared first, the result is destroyed FIRST — the graph frees the spans, then
+        // ~label runs ~formatted_string whose scoped_connection vector calls event::disconnect on the
+        // freed span. Caught by the asan-ubsan lane, which gate.sh runs by default. Holding the root in a
+        // shared_ptr and resetting it before the result leaves scope forces the safe order: root dies
+        // while the graph still owns the spans.
+        auto label_owner = std::make_shared<controls::label>();
+        controls::label& label = *label_owner;
+        const xaml_load_result result = xaml_loader::load_into(label, R"xml(
+<Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<Label.FormattedText>
+		<FormattedString>
+			<Span Text="tap me">
+				<Span.GestureRecognizers>
+					<TapGestureRecognizer NumberOfTapsRequired="3" />
+				</Span.GestureRecognizers>
+			</Span>
+		</FormattedString>
+	</Label.FormattedText>
+</Label>)xml");
+
+        const std::shared_ptr<controls::formatted_string> formatted = label.formatted_text();
+        ASSERT_NE(formatted, nullptr);
+        ASSERT_EQ(formatted->spans().size(), 1U);
+        const controls::span* span = formatted->spans()[0].get();
+        ASSERT_NE(span, nullptr);
+        ASSERT_EQ(span->gesture_recognizers().count(), 1U);
+        const auto* tap =
+            dynamic_cast<const controls::tap_gesture_recognizer*>(span->gesture_recognizers().at(0).get());
+        ASSERT_NE(tap, nullptr);
+        EXPECT_EQ(tap->number_of_taps_required(), 3);
+        label_owner.reset(); // the root dies while `result`'s graph still owns the spans
+    }
+
+    TEST(xaml_loader, gesture_recognizers_on_an_owner_without_a_collection_is_a_loud_error)
+    {
+        // <X.GestureRecognizers> on an element that owns NO collection (FormattedString) must FAIL, not be
+        // dropped. MAUI's ApplyPropertiesVisitor exhausts TrySetProperty/TryAddToProperty and throws
+        // XamlParseException ("No property, BindableProperty, or event found for ..."), and the port's
+        // generic throw_cannot_assign already matched that — so consuming it here would have replaced a
+        // MAUI-matching loud error with a silent drop, and this test would have PINNED that invention as
+        // spec. The stray-<Trigger>/<Setter> precedent does not license it: those are inert because C# is
+        // inert for them, and C# is not inert for this.
+        controls::label label;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(label, R"xml(
+<Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<Label.FormattedText>
+		<FormattedString>
+			<FormattedString.GestureRecognizers>
+				<TapGestureRecognizer />
+			</FormattedString.GestureRecognizers>
+		</FormattedString>
+	</Label.FormattedText>
+</Label>)xml");
+        });
+        EXPECT_NE(message.find("GestureRecognizers"), std::string::npos) << message;
+    }
+
+    TEST(xaml_loader, non_recognizer_child_of_gesture_recognizers_is_a_loud_error)
+    {
+        // The inert carve-out is narrow: only a real recognizer is consumed. A <Label> under
+        // <BoxView.GestureRecognizers> still hits the generic cannot-assign error.
+        controls::box_view box;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(box, R"xml(
+<BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<BoxView.GestureRecognizers>
+		<Label Text="not a recognizer" />
+	</BoxView.GestureRecognizers>
+</BoxView>)xml");
+        });
+        EXPECT_EQ(message, "Cannot assign property \"GestureRecognizers\": Property does not exist, or is not "
+                           "assignable, or mismatching type between value and property")
+            << message;
+        EXPECT_EQ(box.gesture_recognizers().count(), 0U);
+    }
+
+    TEST(xaml_loader, second_pinch_recognizer_reports_through_the_loader_error_channel)
+    {
+        // View.ValidateGesture allows ONE pinch per view; the collection throws std::runtime_error (the
+        // port's InvalidOperationException stand-in), which try_add_gesture_recognizer translates onto the
+        // loader's single xaml_parse_exception channel so it carries the node position like every other
+        // markup error.
+        controls::box_view box;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(box, R"xml(
+<BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<BoxView.GestureRecognizers>
+		<PinchGestureRecognizer />
+		<PinchGestureRecognizer />
+	</BoxView.GestureRecognizers>
+</BoxView>)xml");
+        });
+        EXPECT_NE(message, "(no xaml_parse_exception thrown)");
+        EXPECT_EQ(box.gesture_recognizers().count(), 1U); // the first one still attached
+    }
+
+    TEST(xaml_loader, swipe_direction_none_is_rejected_like_csharp)
+    {
+        // src/Core/src/Primitives/SwipeDirection.cs declares no `None` member, so C# Enum.Parse rejects
+        // it. The port's enum spells the 0 default `none` for ergonomics, but the CONVERTER must not
+        // accept that name or markup would parse a value real MAUI refuses.
+        controls::box_view box;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(box, R"xml(
+<BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+	<BoxView.GestureRecognizers>
+		<SwipeGestureRecognizer Direction="None" />
+	</BoxView.GestureRecognizers>
+</BoxView>)xml");
+        });
+        EXPECT_EQ(message, "Cannot convert \"None\" into maui::core::swipe_direction") << message;
     }
 } // namespace

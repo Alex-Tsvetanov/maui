@@ -1150,7 +1150,16 @@ if(MAUI_BACKEND STREQUAL "android")
     # document child (always UNSPECIFIED on the scroll axis), plus the real scroller's canScrollVertically.
     # The host used to answer 0 there, giving every scrolling page a scroll range of 0 while looking
     # perfect at rest — invisible to still comparison, caught only once the board drove gestures.
-    tests/platform/android_scroll_view_tests.cpp)
+    tests/platform/android_scroll_view_tests.cpp
+    # picker / date_picker / time_picker MODAL DIALOG seam: the live-peer contract every trampoline
+    # resolves through (a stale peer must be a no-op, not a dereference), the date/time <-> dialog
+    # argument conversions (0-based month, epoch millis, the ordinal "HH" 24-hour test) and each
+    # handler's commit path from its dialog callback into the virtual view. The three widgets are
+    # EditText-based, so — like editor/entry/switch/check_box above — no widget can be constructed in
+    # this host, and a Dialog additionally needs a real Activity: these tests therefore attach the
+    # handlers through the CONTEXT-LESS path and assert only the C++ half. The listener install, the
+    # Dialog construction and the row/OK/Cancel interaction stay app-host-only (stated in the file).
+    tests/platform/android_dialog_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
   target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
@@ -2059,6 +2068,7 @@ add_library(maui_xaml STATIC
   src/xaml/register_xaml_formatted_text.cpp  # W8: FormattedString / Span (Label.FormattedText)
   src/xaml/register_xaml_tables.cpp  # TableView content hierarchy (TableView/TableRoot/TableSection + cells)
   src/xaml/register_xaml_shell.cpp  # Shell item tree (Shell/ShellItem/ShellSection/ShellContent) — Create-path only
+  src/xaml/register_xaml_gestures.cpp  # <View.GestureRecognizers>: Tap/Pan/Pinch/Swipe/Pointer recognizers
   src/xaml/xaml_node.cpp
   src/xaml/xaml_parser.cpp
   src/xaml/i_markup_extension.cpp

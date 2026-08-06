@@ -64,6 +64,13 @@ namespace maui::xaml
     void register_xaml_shell(xaml_type_registry& types, xaml_property_registry& properties,
                              xaml_converter_registry& converters);
 
+    // Gestures: the recognizer types a <View.GestureRecognizers> property element mints (Tap / Pan /
+    // Pinch / Swipe / Pointer) + the SwipeDirection / ButtonsMask / uint converters. The routing that
+    // adds a parsed recognizer to the owning view's collection lives in xaml_visitors.cpp
+    // (try_add_gesture_recognizer), not in a child sink — a view's ONE add_child slot is its children.
+    void register_xaml_gestures(xaml_type_registry& types, xaml_property_registry& properties,
+                                xaml_converter_registry& converters);
+
     // Shared converter sink: value converters that more than one group needs (registered once).
     void register_xaml_extra_converters(xaml_converter_registry& converters);
 } // namespace maui::xaml

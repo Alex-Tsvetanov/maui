@@ -827,6 +827,12 @@ namespace maui::controls
         {
             return gesture_recognizers_;
         }
+        // The non-template reach for the XAML loader (element::gesture_recognizers_or_null): a view HAS
+        // a GestureRecognizers collection, so hand back the real one.
+        [[nodiscard]] gesture_recognizer_collection* gesture_recognizers_or_null() override
+        {
+            return &gesture_recognizers_;
+        }
         // The per-view gesture platform manager (View._gestureManager). Exposed for attachment
         // observability + the synthetic dispatch (the headless stand-in for native gesture events);
         // real input flows from the native recognizers the manager attaches.

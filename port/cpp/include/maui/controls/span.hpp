@@ -208,6 +208,13 @@ namespace maui::controls
         {
             return gesture_recognizers_;
         }
+        // The non-template reach for the XAML loader (element::gesture_recognizers_or_null): a span owns
+        // a real collection too (C# Span : GestureElement), so <Span.GestureRecognizers><Tap/></…> lands
+        // here — subject to validate_gesture's tap-only rule below.
+        [[nodiscard]] gesture_recognizer_collection* gesture_recognizers_or_null() override
+        {
+            return &gesture_recognizers_;
+        }
 
     protected:
         // Element.LogicalChildren: a span's gesture recognizers are its logical children (so they inherit

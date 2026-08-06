@@ -28,6 +28,9 @@
 #include "maui/controls/flex_layout.hpp"       // W11: FlexLayout.Grow/Shrink/Basis/Order/AlignSelf attached props
 #include "maui/controls/font_image_source.hpp" // W17: <FontImageSource> element form (Image.Source)
 #include "maui/controls/formatted_string.hpp"  // W8: element-form formatted_string object-coercion (FormattedText)
+// <View.GestureRecognizers> element form: the recognizer base + the owning collection.
+#include "maui/controls/gestures/gesture_recognizer.hpp"
+#include "maui/controls/gestures/gesture_recognizer_collection.hpp"
 #include "maui/controls/grid.hpp"
 #include "maui/controls/items/boxed_item.hpp"            // W13: box preselected SelectedItems strings
 #include "maui/controls/items/items_view.hpp"            // W4: ItemTemplate target (CollectionView/CarouselView)
@@ -785,6 +788,61 @@ namespace maui::xaml
             return true;
         }
 
+        // <View.GestureRecognizers><TapGestureRecognizer/>…</View.GestureRecognizers>: a created recognizer
+        // routes to the OWNER's gesture_recognizers() collection (View.cs's
+        // ObservableCollection<IGestureRecognizer>), not the registered-property table — a recognizer is an
+        // element, not a property value, and a view's ONE register_add_child slot already belongs to its
+        // normal children. Mirrors try_add_grid_definition: called from BOTH the single-child
+        // (apply_value_core) and the multi-child (visit_collection_item ListNode) paths.
+        //
+        // Consumption rule, matching the stray-<Trigger> precedent: only a real recognizer under the
+        // GestureRecognizers name is consumed. An owner that has no collection (a non-view, non-span
+        // element) makes it INERT — the recognizer is simply dropped. A NON-recognizer child of
+        // <X.GestureRecognizers> returns false so the generic "cannot assign" error still fires.
+        [[nodiscard]] bool try_add_gesture_recognizer(maui::core::bindable_object& target,
+                                                      const std::string& property_name, const std::any& value,
+                                                      int line_number, int line_position)
+        {
+            if (property_name != "GestureRecognizers")
+            {
+                return false;
+            }
+            const auto* object = std::any_cast<std::shared_ptr<maui::core::bindable_object>>(&value);
+            std::shared_ptr<maui::controls::gesture_recognizer> recognizer =
+                object != nullptr ? std::dynamic_pointer_cast<maui::controls::gesture_recognizer>(*object) : nullptr;
+            if (recognizer == nullptr)
+            {
+                return false;
+            }
+            auto* owner = dynamic_cast<maui::controls::element*>(&target);
+            maui::controls::gesture_recognizer_collection* recognizers =
+                owner != nullptr ? owner->gesture_recognizers_or_null() : nullptr;
+            if (recognizers == nullptr)
+            {
+                // NOT consumed, so the generic path's throw_cannot_assign reports it — which is what MAUI
+                // does. ApplyPropertiesVisitor exhausts TrySetProperty/TryAddToProperty and throws
+                // XamlParseException ("No property, BindableProperty, or event found for ..."), so
+                // <FormattedString.GestureRecognizers> is a LOUD error there, not a silent drop.
+                // The stray-<Trigger>/<Setter> precedent does not license inertness here: those are inert
+                // because C# is inert for them (see the comment on apply_setter_to_parent_style), and C# is
+                // not inert for this.
+                return false;
+            }
+            try
+            {
+                recognizers->add(std::move(recognizer));
+            }
+            catch (const std::runtime_error& error)
+            {
+                // The collection's validate hook (View.ValidateGesture: one pinch per view;
+                // Span.ValidateGesture: tap only) throws std::runtime_error — the port's
+                // InvalidOperationException stand-in. guarded() only catches xaml_parse_exception, so
+                // translate it onto the loader's single error channel with this node's position.
+                throw xaml_parse_exception(error.what(), line_number, line_position);
+            }
+            return true;
+        }
+
         // W13 — element-form <CollectionView.ItemsSource><x:Array Type="{x:Type x:String}"><x:String>…
         // The <x:Array> create-pass mints an xaml_array carrying its item children (here std::string from
         // the <x:String> primitives); the ItemsSource property is a shared_ptr<i_item_collection> set only
@@ -920,6 +978,13 @@ namespace maui::xaml
             // child (the multi-child list path is handled in visit_collection_item). Routes the created
             // <SwipeItems> into swipe_view's owned default collection.
             if (try_add_swipe_view_items(target, local_name, value))
+            {
+                return;
+            }
+
+            // element-form <View.GestureRecognizers> with a SINGLE recognizer child (the multi-child list
+            // path is handled in visit_collection_item).
+            if (try_add_gesture_recognizer(target, local_name, value, line_number, line_position))
             {
                 return;
             }
@@ -2434,6 +2499,14 @@ namespace maui::xaml
             // created <SwipeItems> is drained into the owned default collection (the multi-child twin of
             // the apply_value_core path).
             if (try_add_swipe_view_items(*target, list_name, value))
+            {
+                return;
+            }
+
+            // element-form <View.GestureRecognizers> with SEVERAL recognizer children: each created
+            // recognizer is added to the owner's collection (the multi-child twin of the
+            // apply_value_core path above).
+            if (try_add_gesture_recognizer(*target, list_name, value, node.line_number(), node.line_position()))
             {
                 return;
             }
