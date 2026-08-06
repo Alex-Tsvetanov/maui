@@ -3032,3 +3032,29 @@ On a touch simulator there is no hover: entered/moved have no way to fire from a
 only pointer_pressed is plausibly reachable. That is the same shape as the switch/slider finding
 (d51acde0e8) — a page that cannot be driven is honest, a scenario that silently does nothing is not — so
 probe whether a tap moves that page's readout at all before building the five-step chain for it.
+
+#### pointer_gesture PROBED BEFORE BUILDING: the page is hover-first, so a tap reaches 1 of 3 targets
+
+c8ee225056 flagged the risk; this settles it by LOOKING at the page rather than building the chain and
+finding out afterwards. captures/ios/maui/pointer_gesture_light.png contains exactly three targets, and
+every one of them says so in its own text:
+
+    "Hover, press, and release me!"   pointer_entered + pointer_moved + pointer_pressed  (:78, :89, :91)
+    "Hover me!"                       pointer_entered / exited only
+    "Hover me green!"                 pointer_entered / exited only (recolours to green)
+
+A touch simulator has no hover: idb synthesizes touches, and pointer_entered / pointer_moved have no
+input that can produce them. Only the FIRST label also handles PRESS, which a tap does deliver — so the
+best a tap scenario can drive here is one target out of three, and the other two would sit at rest
+looking exactly like a page that does not react.
+
+CONSEQUENCE — this page is NOT a `gestures` repeat. The five-step recipe would produce a scenario that
+is honest about one third of the page and silent about the rest, which is the "reports ok and changes
+nothing" shape d51acde0e8 dropped switch and slider for. Two defensible options, and the choice is a
+judgement call rather than a measurement:
+  (a) drive ONLY the press target, wire only pointer_pressed on both sides, and say in the scenario that
+      the hover two-thirds are unreachable on this lane — motion parity on a third of the page beats
+      none, provided the file states its own scope;
+  (b) leave the page undriven, as switch/slider are, and record it as a lane limitation.
+Not chosen here. What is settled is that nobody should build the twin markup and two code-behinds for
+this page expecting the `gestures` outcome.
