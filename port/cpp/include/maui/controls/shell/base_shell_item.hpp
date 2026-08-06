@@ -39,7 +39,12 @@ namespace maui::controls
 {
     class shell; // forward — find_parent_shell walks up to it
 
-    class base_shell_item : public element, public std::enable_shared_from_this<base_shell_item>
+    // shared_from_this()/weak_from_this() come from maui::core::bindable_object (which derives
+    // enable_shared_from_this so property<T> can pin its owner across a change notification). This
+    // class must NOT add its own enable_shared_from_this base: with two of them libc++ populates
+    // NEITHER, so both silently return an expired weak_ptr. The recovered pointer is therefore a
+    // shared_ptr<bindable_object>; every call site already static_pointer_cast's it back down.
+    class base_shell_item : public element
     {
     public:
         base_shell_item() = default;

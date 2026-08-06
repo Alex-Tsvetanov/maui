@@ -148,4 +148,37 @@ namespace
         ASSERT_TRUE(result.has_value());
         EXPECT_EQ(result.value_or(""), "2");
     }
+
+    // The AppKit twin's lifetime test, on the backend that shares the SAME hybrid_web_view_handler.mm.
+    // create_platform_view registers a MauiCppHybridScriptMessageHandler on the userContentController and
+    // sets `script_handler.handler = this`; only on_disconnect_handler used to undo that, and nothing
+    // calls disconnect_handler() when a handler is merely destroyed — so ~hybrid_web_view_platform has to
+    // detach too. Without it, JS posting to window.webkit.messageHandlers after the handler died is a
+    // heap-use-after-free in hybrid_web_view_handler::message_received, delivered by WebKit's real
+    // ScriptMessageHandlerDelegate.
+    TEST(hybrid_web_view_ios, destroying_a_hybrid_web_view_unregisters_the_script_handler)
+    {
+        WKWebView* web = nil;
+        {
+            seam s;
+            ASSERT_TRUE(s.load_page("<p>lifetime host</p>"));
+            web = native_web_view(s.handler); // an ARC strong local: the web view outlives the handler
+        } // ~hybrid_web_view_handler -> ~hybrid_web_view_platform; disconnect_handler() never runs
+
+        auto completed = std::make_shared<bool>(false);
+        [web evaluateJavaScript:@"window.webkit.messageHandlers.webwindowinterop.postMessage('after death')"
+              completionHandler:^(id, NSError*) {
+                *completed = true;
+              }];
+        ASSERT_TRUE(pump_until([&] { return *completed; }));
+        // WebKit delivers script messages asynchronously, so a still-registered handler would fire after
+        // the evaluate completion, not during it.
+        NSDate* const until = [NSDate dateWithTimeIntervalSinceNow:0.5];
+        while (until.timeIntervalSinceNow > 0)
+        {
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                     beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        }
+        // Reaching here without an ASan report IS the assertion.
+    }
 } // namespace

@@ -726,4 +726,59 @@ namespace
         EXPECT_NEAR(box.size.width, 140.0, 1e-3);
         EXPECT_NEAR(box.size.height, 40.0, 1e-3);
     }
+
+    // -[MauiIosEntryProxy mauiSelectionChangedFrom:] writes CursorPosition and then SelectionLength — TWO
+    // raises — and reads `self.handler` again between them. The first raise is USER CODE, and a user
+    // reacting to it by dropping the entry's handler runs detach_trampolines, which clears the associated
+    // object holding the proxy's only OWNING reference. This test pins that fact down: by the time the
+    // callback returns, the proxy's ownership is already gone.
+    //
+    // WHAT THIS DOES *NOT* SHOW, stated plainly: the post-raise read does NOT fault under ASan. The sole
+    // caller, -[MauiIosTextField setSelectedTextRange:], reads the WEAK `mauiProxy` property, and ARC
+    // emits objc_retainAutoreleasedReturnValue before the send and objc_release after it — a real retain
+    // held across the whole callback (verified in the emitted assembly for src/platform/ios/
+    // entry_handler.mm). That is ARC's guarantee about the CALLER. The strong-local pin in
+    // mauiSelectionChangedFrom: makes the method correct on its own terms; no synthetic caller was
+    // invented to manufacture a red run.
+    TEST(ios_entry_seam, dropping_the_handler_from_a_selection_change_releases_the_proxy)
+    {
+        entry control;
+        control.set_text("abcdef");
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        UITextField* const field = native_field(handler);
+        ASSERT_EQ(control.cursor_position(), 0);
+
+        UITextPosition* const start = field.beginningOfDocument;
+        UITextPosition* const one = [field positionFromPosition:start offset:1];
+        ASSERT_NE(one, nil); // no text-input model => this lane cannot drive the selection channel
+        UITextRange* const caret_at_one = [field textRangeFromPosition:one toPosition:one];
+        ASSERT_NE(caret_at_one, nil);
+
+        // Connect BEFORE moving the caret — the write below is what raises.
+        control.property_changed.connect([&control](std::string_view name) {
+            if (name == "cursor_position")
+            {
+                control.set_handler(nullptr); // disconnect_handler -> the proxy is deallocated
+            }
+        });
+
+        // __weak, so the observation itself adds no lasting reference; the pool drain discards the
+        // getter's autoreleased one.
+        __weak id weak_proxy = nil;
+        @autoreleasepool
+        {
+            weak_proxy = field.delegate; // on_connect_handler set this to the proxy
+        }
+        ASSERT_NE(weak_proxy, nil);
+
+        @autoreleasepool
+        {
+            field.selectedTextRange = caret_at_one; // MauiIosTextField override -> mauiSelectionChangedFrom:
+        }
+        EXPECT_EQ(weak_proxy, nil); // the release happened during the callback
+
+        EXPECT_EQ(control.handler(), nullptr); // the user code really ran
+        EXPECT_EQ(control.cursor_position(), 1);
+    }
 } // namespace

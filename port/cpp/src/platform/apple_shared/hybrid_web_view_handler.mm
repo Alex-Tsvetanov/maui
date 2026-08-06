@@ -176,10 +176,41 @@ namespace
 
 @end
 
+namespace
+{
+    // Same teardown, same reason, as web_view_handler.mm's detach_web_view_delegates and
+    // apple/entry_handler.mm's detach_entry_delegate: the WKWebView outlives the handler in any real app
+    // (a superview retains it), the script message handler it keeps in its associated objects carries a
+    // RAW hybrid_web_view_handler* (`script_handler.handler = this`) AND stays registered on the shared
+    // userContentController, and nothing calls disconnect_handler() when a handler is merely destroyed.
+    // Without this, JavaScript posting to window.webkit.messageHandlers after the handler died
+    // dereferences freed memory. Idempotent: disconnect_handler() destroys the platform right after
+    // calling it, so both paths run on the same object.
+    void detach_script_message_handler(void* native)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        WKWebView* const web_view = as_web_view(native);
+        auto* const script_handler =
+            (MauiCppHybridScriptMessageHandler*)objc_getAssociatedObject(web_view, &k_script_handler_key);
+        if (script_handler != nil)
+        {
+            script_handler.handler = nullptr;
+        }
+        [web_view.configuration.userContentController removeScriptMessageHandlerForName:k_script_message_handler_name];
+        objc_setAssociatedObject(web_view, &k_script_handler_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+} // namespace
+
 namespace maui::controls
 {
     hybrid_web_view_platform::~hybrid_web_view_platform()
     {
+        // BEFORE the release: the void* slot holds the last retain, so the web view is still alive here
+        // and objc_getAssociatedObject can reach the script handler.
+        detach_script_message_handler(native);
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -321,17 +352,9 @@ namespace maui::controls
     void hybrid_web_view_handler::on_disconnect_handler(hybrid_web_view_platform& platform)
     {
         platform.connected_view = nullptr;
-        WKWebView* const web_view = as_web_view(platform.native);
         // HybridWebViewHandler.DisconnectHandler: remove the script message handler so the retained
         // trampoline drops its handler back-reference and stops routing.
-        auto* const script_handler =
-            (MauiCppHybridScriptMessageHandler*)objc_getAssociatedObject(web_view, &k_script_handler_key);
-        if (script_handler != nil)
-        {
-            script_handler.handler = nullptr;
-        }
-        [web_view.configuration.userContentController removeScriptMessageHandlerForName:k_script_message_handler_name];
-        objc_setAssociatedObject(web_view, &k_script_handler_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_script_message_handler(platform.native);
     }
 
     // HybridWebViewHandler.MapSendRawMessage → MauiHybridWebView.SendRawMessage: evaluate

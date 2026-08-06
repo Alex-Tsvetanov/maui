@@ -283,4 +283,33 @@ namespace
         ASSERT_TRUE(pump_until([&] { return completed; }));
         EXPECT_FALSE(result.has_value()); // no root → Cancel → JS null
     }
+
+    // The AppKit twin's lifetime test, on the backend that shares the SAME web_view_handler.mm. Destroying
+    // a web_view must leave nothing attached that still holds the freed web_view_handler*:
+    // on_connect_handler sets `delegate.handler = this` and keeps the navigation delegate alive on the
+    // WKWebView via an associated object, and nothing calls disconnect_handler() when a handler is merely
+    // destroyed — so ~web_view_platform has to detach too. Without it the next WebKit navigation callback
+    // is a heap-use-after-free READ at web_view_handler.mm:233 in
+    // -[MauiCppWebViewNavigationDelegate webView:didFinishNavigation:].
+    TEST(web_view_ios, destroying_a_web_view_detaches_the_navigation_delegate)
+    {
+        WKWebView* web = nil;
+        {
+            seam s;
+            web = native_web_view(s.handler); // an ARC strong local: the web view outlives the handler
+            ASSERT_NE(web.navigationDelegate, nil);
+        } // ~web_view_handler -> ~web_view_platform; disconnect_handler() never runs
+
+        EXPECT_EQ(web.navigationDelegate, nil);
+        EXPECT_EQ(web.UIDelegate, nil);
+
+        // Pinning the delegate here is harmless — the freed object is the C++ handler behind
+        // `self.handler`, not the delegate — so this cannot false-clean.
+        id<WKNavigationDelegate> const nav = web.navigationDelegate;
+        if (nav != nil)
+        {
+            [nav webView:web didFinishNavigation:nil]; // pre-fix: heap-use-after-free on the handler
+        }
+        // Reaching here without an ASan report IS the assertion.
+    }
 } // namespace

@@ -1503,6 +1503,11 @@ if(MAUI_BACKEND STREQUAL "apple")
     tests/controls/button_apple_tests.mm
     tests/controls/effect_apple_tests.mm # (G3) effect attaching to a real native-handled NSButton
     tests/controls/effect_tests.cpp # (G3) effects: registry + resolve + element attach/detach (backend-agnostic)
+    # E1 gesture state machines + synthetic pipeline. BACKEND-AGNOSTIC, but it was listed only in the
+    # else() branch, so it ran on headless/android/windows and never on the two backends that actually
+    # own native recognizer bridges. The *_apple/_ios suites below cover the ATTACHMENT seam and assumed
+    # this one covered the state machines underneath; nobody was running it here.
+    tests/controls/gesture_recognizer_tests.cpp
     tests/controls/gesture_apple_tests.mm # E1: native recognizer attachment + target/action drives
     tests/controls/label_apple_tests.mm
     tests/controls/formatted_text_tests.cpp # G1: span/formatted_string/label.formatted_text (backend-agnostic)
@@ -1678,6 +1683,8 @@ elseif(MAUI_BACKEND STREQUAL "ios")
   set(MAUI_IOS_TEST_MM_SOURCES
     tests/controls/button_ios_tests.mm
     tests/controls/gesture_ios_tests.mm # E1: native recognizer attachment + registered-target drives
+    # NOTE: gesture_recognizer_tests.cpp (the backend-agnostic state machines) is added to the plain
+    # source list further down, NOT here — this list is the .mm-only set that gets -fobjc-arc.
     tests/controls/label_ios_tests.mm
     tests/controls/formatted_text_ios_tests.mm # G1: the real UILabel attributed-text seam
     tests/controls/entry_ios_tests.mm
@@ -1735,6 +1742,9 @@ elseif(MAUI_BACKEND STREQUAL "ios")
     tests/controls/window_ios_tests.mm)
   add_executable(maui_controls_tests
     ${MAUI_IOS_TEST_MM_SOURCES}
+    # E1 gesture state machines + synthetic pipeline — backend-agnostic, previously else()-only (see the
+    # apple branch above for why it went missing on both native-recognizer backends).
+    tests/controls/gesture_recognizer_tests.cpp
     tests/controls/formatted_text_tests.cpp # G1: span/formatted_string/label.formatted_text (backend-agnostic)
     tests/controls/window_modal_events_tests.cpp # (G4) backend-agnostic: the Window modal events ordering
     tests/controls/window_overlay_tests.cpp # (G4) backend-agnostic: add/remove overlay + adorner list + invalidate->draw

@@ -262,4 +262,35 @@ namespace
         ASSERT_TRUE(pump_until([&] { return completed; }));
         EXPECT_FALSE(result.has_value());
     }
+
+    // Destroying a web_view must leave NOTHING attached that still holds the freed web_view_handler*.
+    // on_connect_handler sets `delegate.handler = this` and keeps the MauiCppWebViewNavigationDelegate
+    // alive on the WKWebView via an associated object; only on_disconnect_handler used to undo that, and
+    // NOTHING calls disconnect_handler() when a handler is merely destroyed (there is no ~view_handler
+    // doing it). ~web_view_platform CFReleased the native view and stopped — so a WKWebView that outlives
+    // the handler (in any real app a superview retains it; here the ARC local does) kept a live delegate
+    // pointing at freed memory, and the next WebKit navigation callback dereferenced it.
+    // This is the entry_handler defect (1e7812c243) three files over; the fix is the same
+    // detach-from-the-dtor-too, not a null check.
+    TEST(web_view_apple, destroying_a_web_view_detaches_the_navigation_delegate)
+    {
+        WKWebView* web = nil;
+        {
+            seam s;
+            web = native_web_view(s.handler); // an ARC strong local: the web view outlives the handler
+            ASSERT_NE(web.navigationDelegate, nil);
+        } // ~web_view_handler -> ~web_view_platform; disconnect_handler() never runs
+
+        EXPECT_EQ(web.navigationDelegate, nil);
+        EXPECT_EQ(web.UIDelegate, nil);
+
+        // Drive the callback WebKit would. Pinning the delegate here is harmless — the freed object is
+        // the C++ handler behind `self.handler`, not the delegate — so this cannot false-clean.
+        id<WKNavigationDelegate> const nav = web.navigationDelegate;
+        if (nav != nil)
+        {
+            [nav webView:web didFinishNavigation:nil]; // pre-fix: heap-use-after-free on the handler
+        }
+        // Reaching here without an ASan report IS the assertion.
+    }
 } // namespace

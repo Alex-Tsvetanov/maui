@@ -110,6 +110,7 @@ namespace maui::core
         }
         void set(T value, setter_specificity specificity)
         {
+            auto const pin = pin_owner();
             const auto& callbacks = descriptor_->callbacks();
             if (callbacks.validate_value && !callbacks.validate_value(*owner_, value))
             {
@@ -169,6 +170,7 @@ namespace maui::core
         }
         void clear(setter_specificity specificity)
         {
+            auto const pin = pin_owner();
             const auto& callbacks = descriptor_->callbacks();
             T const original = values_.empty() ? descriptor_->default_value() : values_.value_ref();
             if (!values_.empty() && values_.specificity() == setter_specificity::from_handler)
@@ -205,6 +207,32 @@ namespace maui::core
         event<T, T> changed;
 
     private:
+        // Keep the owner alive for the whole of set()/clear(). Both run USER CODE mid-body — the
+        // coerce/validate/changing/changed callbacks, on_property_changing/on_property_changed (which
+        // fan out through every override down to bindable_object's raise), and `changed` — and every
+        // frame on the way back out still touches the object: property.hpp's own tail, but also
+        // element's effects fan-out (element_effects.cpp:117-118) and view's handler/z-order push. A
+        // handler that drops the last shared_ptr to the owner would otherwise run operator delete
+        // underneath all of those frames.
+        //
+        // This is C#'s guarantee restated, not a new one: BindableObject.cs:637-644 raises and THEN
+        // touches `this`, and Element.cs:696-706 documents that the trailing work is deliberately
+        // sequenced after both raises ("It can cause somewhat confusing behavior if the handler update
+        // happens between these two calls"). So the order is load-bearing and must not be flipped; the
+        // CLR simply roots `this` for the method body and the port has to say so out loud. Nothing here
+        // asks "am I still alive" — the object cannot die in the first place, so no frame needs a check.
+        //
+        // Empty (a harmless no-op) when the owner is not itself shared_ptr-owned. A pure stack local is
+        // then safe anyway — a handler has no way to end its scope. A SUBOBJECT of a shared_ptr-owned
+        // parent is the one residual gap: releasing the parent frees the member too, and there is no
+        // refcount on the member to pin. Closing that needs the pin to name the OWNING object rather
+        // than `this`, which property<T> cannot see; it is a separate change, not something a wider
+        // pin here would catch.
+        [[nodiscard]] std::shared_ptr<bindable_object> pin_owner() const
+        {
+            return owner_->weak_from_this().lock();
+        }
+
         // --- runtime bindings (W1-02) helpers ---
         // The value as a walkable bindable_object node: only a shared_ptr<U> with U deriving
         // bindable_object has one (the engine's chain hop); every other T answers null.

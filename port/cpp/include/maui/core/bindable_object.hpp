@@ -27,7 +27,15 @@
 
 namespace maui::core
 {
-    class bindable_object
+    // Derives enable_shared_from_this so a property mutation can PIN its owner for the duration of
+    // the change notification (property.hpp). C# is safe here for free: a managed `this` on the stack
+    // is a GC root, so no PropertyChanged handler can make the CLR reclaim the object while any frame
+    // of OnPropertyChanged is still running (BindableObject.cs:637-644 touches `this` after the raise,
+    // and Element.cs:709-724 does the same in its override). The port has no such root — dropping the
+    // last shared_ptr inside a handler runs operator delete immediately — so it re-creates the root
+    // explicitly. NOTE: because a class may have only ONE unambiguous enable_shared_from_this base
+    // (two make libc++ populate NEITHER, silently), no bindable_object subclass may add its own.
+    class bindable_object : public std::enable_shared_from_this<bindable_object>
     {
     public:
         bindable_object() = default;

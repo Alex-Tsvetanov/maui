@@ -132,4 +132,42 @@ namespace
         ASSERT_TRUE(result.has_value());
         EXPECT_EQ(result.value_or(""), "2");
     }
+
+    // Destroying a hybrid_web_view must leave NOTHING registered that still holds the freed
+    // hybrid_web_view_handler*. create_platform_view registers a MauiCppHybridScriptMessageHandler on the
+    // (shared) userContentController under "webwindowinterop" and sets `script_handler.handler = this`;
+    // only on_disconnect_handler used to undo that, and NOTHING calls disconnect_handler() when a handler
+    // is merely destroyed. The WKWebView outlives the handler in any real app (a superview retains it;
+    // here the ARC local does), so JavaScript posting to window.webkit.messageHandlers afterwards reached
+    // a live trampoline pointing at freed memory. Structural twin of the web_view_handler.mm defect fixed
+    // alongside it, and of apple/entry_handler.mm's (1e7812c243) before that.
+    TEST(hybrid_web_view_apple, destroying_a_hybrid_web_view_unregisters_the_script_handler)
+    {
+        WKWebView* web = nil;
+        {
+            seam s;
+            ASSERT_TRUE(s.load_page("<p>lifetime host</p>"));
+            web = native_web_view(s.handler); // an ARC strong local: the web view outlives the handler
+        } // ~hybrid_web_view_handler -> ~hybrid_web_view_platform; disconnect_handler() never runs
+
+        // Post from JS exactly as HybridWebView.js does. After the fix the message handler is gone, so
+        // `window.webkit.messageHandlers.webwindowinterop` is undefined and the script throws harmlessly;
+        // before it, this delivered into -[MauiCppHybridScriptMessageHandler
+        // userContentController:didReceiveScriptMessage:] with a dangling `handler`.
+        auto completed = std::make_shared<bool>(false);
+        [web evaluateJavaScript:@"window.webkit.messageHandlers.webwindowinterop.postMessage('after death')"
+              completionHandler:^(id, NSError*) {
+                *completed = true;
+              }];
+        ASSERT_TRUE(pump_until([&] { return *completed; }));
+        // Pump a little longer: WebKit delivers script messages asynchronously, so a still-registered
+        // handler would fire after the evaluate completion, not during it.
+        NSDate* const until = [NSDate dateWithTimeIntervalSinceNow:0.5];
+        while (until.timeIntervalSinceNow > 0)
+        {
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                     beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        }
+        // Reaching here without an ASan report IS the assertion.
+    }
 } // namespace

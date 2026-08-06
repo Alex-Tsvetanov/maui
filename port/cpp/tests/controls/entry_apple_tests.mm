@@ -366,4 +366,74 @@ namespace
         EXPECT_FALSE(control.is_focused());
         EXPECT_EQ(unfocused_count, 1);
     }
+
+    // -[MauiEntryDelegate mauiSelectionChanged:] writes CursorPosition and then SelectionLength — TWO
+    // raises — and reads `self.handler` again between them. The first raise is USER CODE, and a user
+    // reacting to it by dropping the entry's handler runs on_disconnect_handler -> detach_entry_delegate,
+    // which clears the associated object holding the delegate's only OWNING reference. This test pins
+    // that fact down: by the time the callback returns, the delegate's ownership is already gone.
+    //
+    // WHAT THIS DOES *NOT* SHOW, stated plainly because it is the interesting result: the post-raise read
+    // does NOT fault under ASan today. NSNotificationCenter autoreleases the observers in its dispatch
+    // snapshot, so the delegate stays addressable for the rest of the method and dies the instant the
+    // pool drains — which is exactly what the two assertions below measure. The strong-local pin in
+    // mauiSelectionChanged: is therefore not fixing a live crash; it is removing the method's dependence
+    // on an undocumented Foundation retain. No synthetic caller was invented to manufacture a red run.
+    //
+    // NOTE ON ISOLATION: the user code here drops the HANDLER, not the entry. Destroying the entry is the
+    // other trigger, but it also frees the bindable_object whose on_property_changed chain is still
+    // unwinding, so it faults inside property.hpp's override chain before ever returning here. Dropping
+    // the handler frees the delegate and NOTHING else, which is what makes this a test of this file.
+    TEST_F(apple_entry_seam, dropping_the_handler_from_a_selection_change_releases_the_delegate)
+    {
+        NSWindow* const window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 60)
+                                                             styleMask:NSWindowStyleMaskTitled
+                                                               backing:NSBackingStoreBuffered
+                                                                 defer:NO];
+        entry control;
+        auto handler = std::make_shared<entry_handler>();
+        control.set_handler(handler);
+        NSTextField* const field = native_field(handler);
+        [window.contentView addSubview:field];
+        [window makeKeyAndOrderFront:nil];
+        ASSERT_TRUE([window makeFirstResponder:field]);
+        ASSERT_NE(field.currentEditor, nil); // no field editor => mauiSelectionChanged: early-returns
+
+        field.stringValue = @"abc";
+        ASSERT_EQ(control.cursor_position(), 0);
+
+        // Connect BEFORE moving the caret — the selection write below is what raises, and if the caret
+        // were already at 1 the guard in mauiSelectionChanged: would skip the raise and the test would
+        // pass green with the bug present.
+        // The entry outlives this; only the handler (and with it the delegate) is dropped.
+        control.property_changed.connect([&control](std::string_view name) {
+            if (name == "cursor_position")
+            {
+                control.set_handler(nullptr); // disconnect_handler -> the delegate is deallocated
+            }
+        });
+
+        // __weak, so the observation itself adds no reference — a plain `id d = field.delegate` would pin
+        // the delegate under ARC and the measurement below would read ALIVE for the wrong reason.
+        __weak id weak_delegate = field.delegate;
+        ASSERT_NE(weak_delegate, nil);
+
+        // Production path: AppKit posts NSTextViewDidChangeSelectionNotification from the field editor,
+        // and the delegate is subscribed to it with object:nil.
+        @autoreleasepool
+        {
+            [field.currentEditor setSelectedRange:NSMakeRange(1, 1)]; // cursor 1 != the property's 0
+            // Still addressable INSIDE the callback's autorelease scope — this is the Foundation retain,
+            // not ownership.
+            EXPECT_NE(weak_delegate, nil);
+        }
+        // ...and gone the moment the pool drains. The release happened during the callback: everything
+        // mauiSelectionChanged: touched after the raise was living on borrowed time.
+        EXPECT_EQ(weak_delegate, nil);
+
+        EXPECT_EQ(control.handler(), nullptr); // the user code really ran
+        EXPECT_EQ(control.cursor_position(), 1);
+        [window close];
+        // Reaching here without an ASan report IS the assertion.
+    }
 } // namespace

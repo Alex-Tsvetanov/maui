@@ -375,4 +375,55 @@ namespace
         element.set_text("hello"); // a property change on the element
         EXPECT_GT(added->property_changed_count, 0);
     }
+
+    // ---- the notification is re-entrancy-safe against its own owner being destroyed ----------------
+    //
+    // A change notification runs USER CODE in the middle of the mutation, and the stack then unwinds
+    // through frames that all still touch the object: element's effects fan-out (element_effects.cpp:
+    // 117-118), view's handler / visual-state / z-order push, and property<T>::set's own trailing
+    // property_changed callback and `changed` raise. If a handler drops the last owning reference,
+    // every one of those frames runs on freed storage.
+    //
+    // C# gets this for free — a managed `this` on the stack is a GC root for the whole method body, so
+    // BindableObject.cs:637-644 and Element.cs:709-724 can touch `this` after their raises. The port
+    // has no such root, so property<T>::set/clear pin the owner for the duration (property.hpp). These
+    // two tests are the ASan witnesses for that pin; they are meaningless without -fsanitize=address.
+    //
+    // Not hypothetical: the binding engine subscribes to exactly these events (binding_expression.cpp,
+    // bindings/binding_base.cpp), and maui::ui::view_ref owns its view by shared_ptr — so a two-way
+    // binding whose view-model setter releases the view is this test.
+    //
+    // *** Use `shared_ptr<label>(new label)`, NEVER make_shared. *** make_shared co-allocates the
+    // object with its control block, so the weak_ptr used here to prove destruction keeps the storage
+    // mapped: the destructor runs but operator delete never does, ASan has nothing to poison, and the
+    // test passes green against a fully live use-after-free. A separate control block is load-bearing.
+    //
+    // character_spacing is deliberately chosen over text: label::set_text reads formatted_text_ AFTER
+    // text_.set() returns, which is a separate hazard in the CALLER and not what property<T> can fix.
+    // set_character_spacing is a bare forward, so these tests isolate the notification chain itself.
+    TEST(element_notification_lifetime, changed_handler_may_destroy_the_owner)
+    {
+        std::shared_ptr<label> owner(new label);
+        std::weak_ptr<label> const observer = owner;
+        owner->property_changed.connect([&owner](std::string_view) { owner.reset(); });
+
+        label& raw = *owner;
+        raw.set_character_spacing(4.0); // unwinds through every frame listed above
+
+        EXPECT_TRUE(observer.expired()) << "test is void unless the handler really freed the label";
+    }
+
+    // The changing path reaches freed storage even harder: property<T>::set's `values_.set(...)` is a
+    // WRITE into the property's own member after on_property_changing has raised.
+    TEST(element_notification_lifetime, changing_handler_may_destroy_the_owner)
+    {
+        std::shared_ptr<label> owner(new label);
+        std::weak_ptr<label> const observer = owner;
+        owner->property_changing.connect([&owner](std::string_view) { owner.reset(); });
+
+        label& raw = *owner;
+        raw.set_character_spacing(4.0);
+
+        EXPECT_TRUE(observer.expired()) << "test is void unless the handler really freed the label";
+    }
 } // namespace

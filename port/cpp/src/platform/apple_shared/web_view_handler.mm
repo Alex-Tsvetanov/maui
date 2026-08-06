@@ -519,10 +519,47 @@ namespace
 
 @end
 
+namespace
+{
+    // The teardown that must run whether the handler is DISCONNECTED or merely DESTROYED. The WKWebView
+    // outlives the handler in any real app (a superview retains it) and the navigation delegate it keeps
+    // in its associated objects carries a RAW web_view_handler* (`delegate.handler = this`); nothing
+    // calls disconnect_handler() when a handler is destroyed (there is no ~view_handler doing it), so
+    // ~web_view_platform has to run this too or the next WebKit navigation callback dereferences freed
+    // memory — ASan: heap-use-after-free READ at web_view_handler.mm:233 in
+    // -[MauiCppWebViewNavigationDelegate webView:didFinishNavigation:]. Same defect and same fix as
+    // apple/entry_handler.mm's detach_entry_delegate (1e7812c243) and ios/entry_handler.mm's
+    // detach_trampolines. Idempotent: disconnect_handler() destroys the platform right after calling it,
+    // so both paths run on the same object.
+    void detach_web_view_delegates(void* native)
+    {
+        if (native == nullptr)
+        {
+            return;
+        }
+        WKWebView* const web_view = as_web_view(native);
+        auto* const delegate =
+            (MauiCppWebViewNavigationDelegate*)objc_getAssociatedObject(web_view, &k_navigation_delegate_key);
+        if (delegate != nil)
+        {
+            delegate.handler = nullptr; // never leave a stale raw pointer reachable
+        }
+        web_view.navigationDelegate = nil;
+        objc_setAssociatedObject(web_view, &k_navigation_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        // The UI delegate carries no handler back-reference (see on_connect_handler), but it is retained
+        // by the same web view and has nothing left to serve once the handler is gone.
+        web_view.UIDelegate = nil;
+        objc_setAssociatedObject(web_view, &k_ui_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+} // namespace
+
 namespace maui::core
 {
     web_view_platform::~web_view_platform()
     {
+        // BEFORE the release: the void* slot holds the last retain, so the web view is still alive here
+        // and objc_getAssociatedObject can reach the delegate.
+        detach_web_view_delegates(native);
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -707,17 +744,7 @@ namespace maui::core
     void web_view_handler::on_disconnect_handler(web_view_platform& platform)
     {
         platform.connected_view = nullptr;
-        WKWebView* const web_view = as_web_view(platform.native);
-        auto* const delegate =
-            (MauiCppWebViewNavigationDelegate*)objc_getAssociatedObject(web_view, &k_navigation_delegate_key);
-        if (delegate != nil)
-        {
-            delegate.handler = nullptr;
-        }
-        web_view.navigationDelegate = nil;
-        objc_setAssociatedObject(web_view, &k_navigation_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-        web_view.UIDelegate = nil;
-        objc_setAssociatedObject(web_view, &k_ui_delegate_key, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        detach_web_view_delegates(platform.native);
     }
 
     // WebViewHandler.MapSource + WebViewExtensions.UpdateSource: the platform view is the

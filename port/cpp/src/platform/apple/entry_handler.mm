@@ -122,13 +122,23 @@ MAUI_ENTRY_VERTICAL_ALIGNMENT_BODY
 - (void)mauiSelectionChanged:(NSNotification*)notification
 {
     (void)notification;
-    if (self.handler == nullptr)
+    // `keep` pins US. The set_cursor_position below is user code, and a handler that reacts by dropping
+    // the entry's handler runs on_disconnect_handler -> detach_entry_delegate, which clears the
+    // associated object holding this delegate's only OWNING reference. MEASURED: after that, the object
+    // survives the rest of this method solely on an autoreleased retain from NSNotificationCenter's
+    // observer snapshot — a `__weak` probe reads ALIVE inside the post and DEALLOCATED the moment the
+    // pool drains. So the free is real and already scheduled; only an undocumented Foundation detail
+    // stands between it and a use-after-free on `self.handler` below. This local is ownership, not a
+    // liveness check, and it makes the method correct independently of how it was called — the same pin
+    // scroll_view_handler.mm:51 and the ios partial's onEditingChanged: already take.
+    MauiEntryDelegate* const keep = self;
+    if (keep.handler == nullptr)
     {
         return;
     }
-    auto* const view = self.handler->virtual_view();
-    NSText* const editor = (self.handler->typed_platform_view() != nullptr)
-                               ? ((__bridge NSTextField*)self.handler->typed_platform_view()->native).currentEditor
+    auto* const view = keep.handler->virtual_view();
+    NSText* const editor = (keep.handler->typed_platform_view() != nullptr)
+                               ? ((__bridge NSTextField*)keep.handler->typed_platform_view()->native).currentEditor
                                : nil;
     if (view == nullptr || editor == nil)
     {
@@ -142,7 +152,7 @@ MAUI_ENTRY_VERTICAL_ALIGNMENT_BODY
         view->set_cursor_position(cursor);
     }
     // set_cursor_position raised a property change: re-read before touching the view again.
-    auto* const still = maui::platform::apple::live_view(self.handler);
+    auto* const still = maui::platform::apple::live_view(keep.handler);
     if (still != nullptr && still->selection_length() != length)
     {
         still->set_selection_length(length);

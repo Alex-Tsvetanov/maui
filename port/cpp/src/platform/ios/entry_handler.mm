@@ -439,11 +439,21 @@ namespace
 {
     // OnSelectionChanged: push the native caret/selection back onto the virtual view (guarded on actual
     // differences, exactly like C#).
-    if (self.handler == nullptr || field == nil)
+    // `keep` pins US, for the same reason onEditingChanged: above takes the same local: the
+    // set_cursor_position below is user code, and a handler that reacts by dropping the entry's handler
+    // runs detach_trampolines, which clears the associated object holding this proxy's only OWNING
+    // reference. Today the sole caller — MauiIosTextField.setSelectedTextRange: — happens to keep us
+    // addressable anyway, because reading the WEAK `mauiProxy` property emits
+    // objc_retainAutoreleasedReturnValue before the send and objc_release after it (verified in the
+    // emitted assembly for this TU). That is ARC's guarantee about the CALLER, not this method's about
+    // itself; make `mauiProxy` unsafe_unretained, or add a second caller, and the free below becomes a
+    // use-after-free. The local is ownership, not a liveness check.
+    MauiIosEntryProxy* const keep = self;
+    if (keep.handler == nullptr || field == nil)
     {
         return;
     }
-    auto* const view = self.handler->virtual_view();
+    auto* const view = keep.handler->virtual_view();
     if (view == nullptr)
     {
         return;
@@ -455,7 +465,7 @@ namespace
         view->set_cursor_position(cursor);
     }
     // set_cursor_position raised a property change: re-read before touching the view again.
-    auto* const still = maui::platform::ios::live_view(self.handler);
+    auto* const still = maui::platform::ios::live_view(keep.handler);
     if (still != nullptr && still->selection_length() != selected)
     {
         still->set_selection_length(selected);
