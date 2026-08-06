@@ -2,8 +2,8 @@
 // Shared Android (JNI) click + modal-dialog seam. Used by button_handler.cpp and
 // image_button_handler.cpp for the click trampoline alone, and by the three dialog-bearing handlers —
 // picker, date_picker and time_picker — for the modals as well. Include only from those android
-// partials (it reaches the jni_cache / scoped_env / app_context seam). VM-less safe: every helper acquires a scoped_env and quietly
-// returns when there is no JavaVM / no Context, exactly like the other android_*_ops headers.
+// partials (it reaches the jni_cache / scoped_env / app_context seam). VM-less safe: every helper acquires a scoped_env
+// and quietly returns when there is no JavaVM / no Context, exactly like the other android_*_ops headers.
 //
 // WHAT THIS PORTS
 //   PickerHandler.Android.cs      ConnectHandler's `platformView.Click += OnClick`, OnClick's
@@ -108,6 +108,30 @@ namespace maui::platform::android
         // ---- the live-peer registry (rule 1 + 2) ---------------------------------------------------
         // Keyed by address, valued by weak_ptr: an entry whose owner is gone resolves to nullptr rather
         // than to freed storage, which is precisely what a raw jlong peer cannot do.
+        //
+        // KNOWN HAZARD, NOT YET FIXED — ADDRESS RECYCLING. The key is the trampoline's ADDRESS, and an
+        // address is only unique among LIVE objects. The sequence that defeats this registry:
+        //   1. handler A's peer lives at 0xABC; Java holds token 0xABC.
+        //   2. A disconnects; ~dialog_trampoline erases 0xABC; the storage is freed.
+        //   3. handler B allocates a peer and the allocator hands back 0xABC, which it is entitled to
+        //      do and in practice frequently does; B registers under 0xABC.
+        //   4. a LATE callback still carrying A's token resolves 0xABC, finds a LIVE weak_ptr, locks it
+        //      — and drives B.
+        // The weak_ptr protects against use-after-free, which was the bug this registry was built for,
+        // but not against ALIASING: the resolve succeeds and runs the wrong control's callback. Visible
+        // symptom would be a dismissed picker's date landing in a different picker.
+        //
+        // The fix is a generation counter, and it is small because the token has exactly one production
+        // site: give dialog_trampoline a `const std::uint64_t id` from a static atomic, key this map by
+        // id instead of by pointer, pass `peer->id` at :266 (the NewObject call) instead of
+        // reinterpret_cast<jlong>(peer), erase by id in ~dialog_trampoline, and have
+        // resolve_dialog_peer look the id up. Monotonic ids never repeat, so a recycled address cannot
+        // alias. The regression test needs TWO peers — destroy the first, create the second, and assert
+        // the first's token resolves to nothing even if the addresses match; the current single-peer
+        // tests cannot exercise this by construction.
+        //
+        // Affects every dialog seam (picker / date_picker / time_picker) AND the button/image_button
+        // click trampolines migrated onto this registry in a0d440d778.
         inline std::mutex& dialog_peers_mutex()
         {
             static std::mutex mutex;
