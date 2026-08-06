@@ -174,6 +174,13 @@ def classify(theme_scores):
     # than forced red because it is not evidence of a PORT defect: it says the page was never driven
     # (no scenario, or an interaction this lane cannot reach). Yellow puts it in front of a human
     # without accusing the port of something the capture never tested.
+    # Both columns moved the same distance from the same resting frame, and only the PHASE differs —
+    # which on a fling this lane cannot reproduce in either column (motion_score's PHASE_* block has the
+    # control measurements). A red there would assert a port defect the evidence does not support, so it
+    # is capped at yellow. Never promoted TO green: frame parity was not established either. Requires
+    # EVERY scored theme to be phase-only, so one genuinely red theme still reds the cell.
+    if status == "red" and have and all(v.get("phase_only") for v in have.values()):
+        status = "yellow"
     if any(v.get("both_frozen") for v in have.values()) and status == "green":
         status = "yellow"
     parts = []
