@@ -686,11 +686,22 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
                         # `still_first` on everything that is not ANIMATED: shoot AT REST, publish
                         # that, then drive and bank the reacted frame in the unit — so the board keeps
                         # the resting render (it was showing post-click switches and checkboxes) and
-                        # the unit holds a real before/after. The ANIMATED path keeps driving BEFORE
-                        # the shot: its board artifact is the GIF and its motion frames come out of
+                        # the unit holds a real before/after.
+                        #
+                        # DRIVEN WINS OVER ANIMATED. This used to read `kind != "png+gif"`, so a page
+                        # that was BOTH animated and driven drove FIRST and only then shot — its
+                        # `initial` frame was already post-gesture, every burst frame after it was too,
+                        # and no at-rest frame existed anywhere in the run. motion_score then compared
+                        # two identical post-gesture states and reported 0 px, correctly, on a page that
+                        # had reacted perfectly. Measured on `gestures` (2026-08-06): the scenario logged
+                        # `step tapped: ok` on all three columns and not one frame carried that step.
+                        # 89261d905a fixed this ordering for the non-animated path; nothing was both
+                        # animated and driven at the time, so this branch kept the old behavior unseen.
+                        # `or` rather than a swap: still_first can only turn ON here, never off, so an
+                        # undriven page of either kind behaves exactly as before.
                         # that recording. `run_unit` is the ADDITIONAL evidence copy either way.
                         out = capture_ios.capture_still(app, key, theme, settle, steps=steps,
-                                                        still_first=kind != "png+gif",
+                                                        still_first=bool(steps) or kind != "png+gif",
                                                         **ios_run_kw(key, fw, want_unit))
                         if kind == "png+gif":
                             # Both, deliberately: the GIF is what the board renders, the still keeps a
@@ -1452,13 +1463,19 @@ def selftest() -> int:
     # class of page that quietly goes back to being photographed at rest.
     for fn, needle, want in ((lane_ios, "steps=steps", 2), (android_gifs, "steps=scen.get(key)", 1)):
         assert inspect.getsource(fn).count(needle) == want, (fn.__name__, needle, want)
-    # …and WHICH SIDE OF THE SHOT they run on. Everything but an ANIMATED page shoots at rest first;
-    # without that, a driven page's board still is the frame AFTER the click — the board was showing
-    # flipped switches and ticked checkboxes as their resting render. Source check for the same reason
-    # as above: it needs a booted simulator to observe, and the failure mode is a published frame that
-    # looks perfectly plausible.
+    # …and WHICH SIDE OF THE SHOT they run on. A DRIVEN page must shoot at rest FIRST; without that,
+    # its board still is the frame AFTER the click — the board was showing flipped switches and ticked
+    # checkboxes as their resting render. Source check for the same reason as above: it needs a booted
+    # simulator to observe, and the failure mode is a published frame that looks perfectly plausible.
+    #
+    # THIS ASSERTION USED TO PIN `still_first=kind != "png+gif"`, i.e. it pinned the ANIMATED-only rule
+    # as spec — and that rule was the bug: a page that was BOTH animated and driven drove before it
+    # shot, so no at-rest frame existed and motion_score read 0 px on a page that reacted perfectly
+    # (measured on `gestures`, 2026-08-06 — `step tapped: ok` on all three columns, zero frames carrying
+    # that step). The assertion faithfully protected the defect. It now pins the property that was
+    # actually wanted: a page with STEPS shoots first, whatever its kind.
     assert "still_first" in inspect.signature(capture_ios.capture_still).parameters
-    assert inspect.getsource(lane_ios).count('still_first=kind != "png+gif"') == 1
+    assert inspect.getsource(lane_ios).count('still_first=bool(steps) or kind != "png+gif"') == 1
     # The unit gate must cover BOTH halves of what pixel_score motion-scores (ANIMATED or driven), or
     # the frames it scores are never banked in the first place.
     assert inspect.getsource(lane_ios).count('kind == "png+gif" or bool(steps)') == 1
