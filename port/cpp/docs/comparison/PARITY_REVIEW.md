@@ -2741,3 +2741,39 @@ NOT done piecemeal here, deliberately: editing a twin invalidates the MAUI colum
 and forces a full recapture of it. The loop's leftover list already carries "twin gesture markup (one
 batched change, invalidates the MAUI column on all 4 platforms)" — `button`'s counter belongs in that
 same batch, not in a one-page recapture of its own.
+
+---
+
+## the 16 gesture yellows: three different causes, one batched fix (2026-08-06, diagnosed)
+
+`gestures` and `pointer_gesture` are yellow / NOTHING MOVED on ALL EIGHT lane-column slots (4 lanes x
+pixel + pixel_xaml) — the largest single block of unaccounted motion left on the board. Neither is a
+port defect, and no coordinate change touches any of it. The three columns are still for three
+UNRELATED reasons, which is why this reads as one symptom:
+
+  maui_xaml   the shared twin OMITS the interaction outright. gestures.xaml:8 says so in a comment:
+              `<!-- the gesture target (GestureRecognizers omitted; resting appearance is the box) -->`
+              There is nothing on that BoxView to fire.
+  cpp_xaml    the XAML loader has NO GestureRecognizers handling — `try_add_gesture_recognizers` is a
+              PROPOSED name, not an existing function; grep finds it nowhere in src/. Even given the
+              markup, the loader would drop it.
+  cpp         the code-first page DOES attach them (gestures_page.hpp:125-127 adds tap_, pan_, pinch_
+              to target_.gesture_recognizers()) — but nothing DRIVES the page: there is no
+              scenarios/gestures.toml or pointer_gesture.toml.
+
+And both pages sit in recapture.py:135's hard-coded ANIMATED list, so the board EXPECTS motion from
+them and reports its absence. That is why they score NOTHING MOVED rather than being quietly ignored
+like the ~155 undriven pages.
+
+**All three must land together, and the order matters.** A scenario alone drives the cpp column only —
+MAUI's column cannot move, so the page flips from "both still" (a truthful yellow) to a MOTION MISMATCH
+that blames the port for the twin's omission. The batch is:
+  1. twin markup — add GestureRecognizers to gestures.xaml + pointer_gesture.xaml (ruling 12's
+     fix-both-sides precedent: the twin degrades below original MAUI, so it gets upgraded);
+  2. loader — parse `<X.GestureRecognizers>` into view::gesture_recognizers(), with unit tests;
+  3. scenarios — a tap/pan for each, fractions per lane, cleared through scenarios/_selftest.py first.
+Then recapture: editing a twin invalidates the MAUI column on ALL FOUR platforms, so this costs a full
+4-lane MAUI re-shoot and cannot be done page-at-a-time.
+
+Not started here. It is a genuine multi-hour, cross-cutting change and the diagnosis above is what makes
+it executable without re-deriving any of it.
