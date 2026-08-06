@@ -3,9 +3,9 @@
 // interactions (source swap buttons, navigated → status label, eval_js → result label) without a
 // hosting main. The handler-dependent paths (back/forward/reload, the real eval round trip) are covered
 // by the web_view seam suites per backend.
+#include "examples/gallery/pages/web_view_page.hpp"
 #include "maui/core/web_navigation_event.hpp"
 #include "maui/core/web_navigation_result.hpp"
-#include "examples/gallery/pages/web_view_page.hpp"
 
 #include <string>
 
@@ -30,6 +30,25 @@ namespace
         ASSERT_NE(source, nullptr);
         EXPECT_NE(source->html().find("Welcome"), std::string::npos);
         EXPECT_EQ(source->base_url(), "https://demo.test/welcome");
+    }
+
+    // Regression net for the windows dark render. The html source reaches WebView2 through
+    // NavigateToString, whose document brings no opaque canvas, so on a dark host the base paints through
+    // and the page scored SSIM 0.7260 / 29.43% against MAUI's white one. `<meta color-scheme>` does not
+    // cover it — only an explicit background does. Both the initial source and the ones the Page A/Page B
+    // buttons swap in must carry it, or the same page goes red again on whichever one is showing.
+    TEST(web_view_page, every_html_source_declares_an_opaque_background)
+    {
+        web_view_page demo;
+        const auto declares_background = [&] {
+            auto* source = dynamic_cast<maui::controls::html_web_view_source*>(demo.browser().source());
+            return source != nullptr && source->html().find("html{background:#fff}") != std::string::npos;
+        };
+        EXPECT_TRUE(declares_background()) << "initial source";
+        demo.load_a_button().send_clicked();
+        EXPECT_TRUE(declares_background()) << "after Page A";
+        demo.load_b_button().send_clicked();
+        EXPECT_TRUE(declares_background()) << "after Page B";
     }
 
     TEST(web_view_page, load_buttons_swap_the_html_source)

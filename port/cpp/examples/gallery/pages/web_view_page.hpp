@@ -153,8 +153,22 @@ namespace maui::samples
                 // ruling 12, fix-both-sides): white in both themes, matching the shared web_view.xaml twin.
                 // <!DOCTYPE html> selects standards mode — MAUI's welcome.html has it, and without it the
                 // WebView renders in quirks mode (different default font/box metrics → a ~1.5% parity diff).
+                //
+                // The explicit `html{background:#fff}` is load-bearing on WINDOWS ONLY, and the meta tag
+                // alone is not enough there. Measured on the board (2026-08-06, reproduced on a repeat
+                // capture): in DARK this cell renders black text on a #121212 canvas, while the shared twin
+                // — same handler, same markup, but navigated as a URL (Source="welcome.html") — renders the
+                // same document on opaque white. Only the source KIND differs: an html source reaches
+                // WebView2 through NavigateToString, whose document brings no opaque canvas of its own, so
+                // the host's dark base paints through while `color-scheme: light` still resolves the TEXT
+                // black. Light scored SSIM 1.0000 throughout, because a white document over a white app
+                // background hides exactly this. Declaring the background makes the document opaque
+                // regardless of what is beneath it. This also falsifies web_view_handler.cpp:611-613's
+                // "zero render risk" note on skipping Profile.PreferredColorScheme — the meta tag does NOT
+                // pin the canvas "either way" under NavigateToString.
                 "<!DOCTYPE html><html><head><meta name=\"color-scheme\" content=\"light\">"
-                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head>"
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+                "<style>html{background:#fff}</style></head>"
                 "<body><h1>" +
                     heading + "</h1><p>Served from a static HtmlWebViewSource.</p></body></html>",
                 std::move(base_url)));

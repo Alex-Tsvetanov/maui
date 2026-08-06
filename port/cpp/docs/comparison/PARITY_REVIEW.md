@@ -2528,3 +2528,43 @@ No single cause spans these four. `clip` (already recorded) is code-first conten
 authored; `path_gallery` is code-first authoring; `box_view` is twin degradation; `clip_gallery` is a
 few pixels of scroll landing; `selection_synchronization` is undiagnosed. Only `path_gallery` is safe to
 act on without a ruling, and even there the magnitudes are contested.
+
+---
+
+## windows `web_view` dark — an html source has no canvas of its own (2026-08-06, MEASURED)
+
+The first driven Windows lane turned `web_view` red in dark only: SSIM 0.7260, 29.43% of frame, against
+SSIM 1.0000 in light. `cpp_xaml` was green in both themes.
+
+**What the picture actually contains.** The code-first cell's luminance range is 0..18. Stretched, it
+holds the complete, correctly typeset Welcome document — heading, body text, trailing period, right
+font metrics. So this is not the WebView2 init race `web_view_handler.cpp:68-72` documents: an unpainted
+cell has no glyphs, and this one has all of them. Sampled: the cell is `#121212` in the port's column and
+`#ffffff` in MAUI's and the twin's, with the app panel at `#272727` in all three. Reproduced exactly on a
+second capture 20 minutes later, so it is deterministic.
+
+**Why the two columns differ.** They run the same handler and the same markup. The only difference is
+the SOURCE KIND. The twin sets `Source="welcome.html"` — a URL, which navigates a document with a real
+origin and an opaque white canvas. The code-first page sets an `HtmlWebViewSource`, which reaches
+WebView2 through `NavigateToString`; that document brings no opaque canvas, so on a dark host the base
+paints through it while `color-scheme: light` still resolves the TEXT black. Light scored a perfect
+1.0000 the whole time because a white document over a white app background hides exactly this.
+
+**This falsifies a claim already in the tree.** `web_view_handler.cpp:611-613` justifies skipping
+`Profile.PreferredColorScheme` with "Zero render risk on the board: Auto is WebView2's default, no
+gallery page sets a WebView Background, and welcome.html pins `<meta name="color-scheme">` either way."
+The meta tag does NOT pin the canvas under `NavigateToString`. The skip may still be right — the oracle
+only sets `PreferredColorScheme = Light` when a Background IS set, and no gallery page sets one, so
+porting that method faithfully would leave it Auto and change nothing here — but the stated reason is
+wrong and should not be relied on again.
+
+**Fixed as page authoring, per ruling 12's fix-both-sides precedent on this exact page (`df52e8f212`).**
+The code-first HTML now declares `html{background:#fff}`, making the document opaque regardless of what
+is beneath it. `welcome.html` is deliberately NOT touched: it already renders white on all four
+platforms, and editing it would invalidate the MAUI column everywhere for no gain.
+
+**Open, and honestly unknown:** what MAUI itself renders for an `HtmlWebViewSource` on Windows in dark.
+No MAUI data point exists — the twin navigates a URL, and `web_view_page.hpp` is the only page in the
+gallery using `html_web_view_source`. If MAUI darkens it too, the port was faithful and this change makes
+the page diverge from MAUI's string-source behavior while matching its rendered reference. Getting the
+answer needs a string source added to the MauiReference twin and a MAUI rebuild; not done here.
