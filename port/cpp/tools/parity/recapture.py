@@ -725,11 +725,20 @@ def lane_android(frameworks, themes, examples, visible, gif_secs, gif_frames) ->
     log("=== LANE android")
     if not ensure_android_emulator(visible):
         return
-    animated = [k for k in examples if k in ANIMATED]
+    # ANIMATED **or DRIVEN** — the same trigger pixel_score uses, for the same reason. Gating this on
+    # ANIMATED alone meant the ~24 pages with an authored scenario were never driven on Android at
+    # all: not mis-ordered, simply skipped, so their cells could only ever score a resting frame. That
+    # is the fifth instance of one shape — a hard-coded list standing between work and the tool meant
+    # to see it (sanitizers gated on CXX never saw .mm; motion scoring gated on ANIMATED never saw
+    # driven pages; frame banking gated on the same list never kept their frames; the VM lane seeded
+    # an empty scenario dir). Keying on the scenarios themselves is what stops it recurring here.
+    drivable = [k for k in examples if k in ANIMATED or (SCENARIOS / f"{k}.toml").is_file()]
     # ONLY THE GIF PASS IS DRIVABLE HERE. The still pass below is build_android_apphost*.sh — a shell
-    # pipeline with no injection hook — so `button`/`entry`/`scroll_view` are never driven on Android
-    # and their board PNG stays at rest. Resolved once so the log line is not repeated per theme.
-    scen = device_scenarios("android (GIF pass only — the still pass is a shell script)", animated)
+    # pipeline with no injection hook — so a driven page's board PNG stays AT REST on Android. That is
+    # the honest outcome and it sidesteps the reacted-still defect iOS had: the still is never driven,
+    # so it cannot be published post-action. Resolved once so the log line is not repeated per theme.
+    scen = device_scenarios("android (GIF pass only — the still pass is a shell script)", drivable)
+    animated = drivable
     for theme in themes:
         for fw in frameworks:
             script, column = ANDROID_SCRIPT[fw]
