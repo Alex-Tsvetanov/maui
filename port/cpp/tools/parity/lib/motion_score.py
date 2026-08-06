@@ -151,6 +151,30 @@ FROZEN_PCT = 0.012
 # "we could not measure this" and "we measured nothing".
 PHASE_SELF_MOTION_TOL = 0.10  # relative spread between the two columns' own motion
 PHASE_AT_REST_PCT = 1.0       # how tightly the first paired (pre-gesture) frame must already agree
+# And only say it when it CHANGES anything. A cell whose frames already agree to the green bar has
+# established frame parity — stamping "not decidable" on it would be false, and would bury the real
+# instances among a dozen green ones. These mirror pixel_score.classify's green test.
+PHASE_ONLY_SSIM = 0.98
+PHASE_ONLY_DIFF_PCT = 1.0
+# AND THE CLAUSE THE FIRST CUT OF THIS GATE WAS MISSING — the lane's motion must actually be
+# irreproducible. The three clauses above describe a SIGNATURE (both moved, same distance, matching
+# resting frame), and a reproducible end-state difference produces the very same signature. Measured,
+# same probe, MAUI's column against itself across two runs of `clip`:
+#
+#   android   maui 2.90%-11.57%   port 0.00%   -> undecidable, the coast is a sample
+#   ios       maui 0.00%          port 0.00%   -> fully reproducible; the maui-vs-port settled
+#                                                 difference repeated at 30.03% in BOTH pairs
+#
+# On iOS the port scrolls to a visibly different place (its frame reveals the page's trailing "Toggle
+# clip on/off" that MAUI has not reached) and does so identically every run. That is a finding, not a
+# phase artifact, and without this clause the gate would have quietly forgiven three iOS cells.
+# Structurally the two lanes also sample differently: the iOS driven run banks TWO frames (initial +
+# settled, per-frame diff reads "0.00/29.76"), so it never sees the transient at all, while android
+# banks a 12-frame burst straight through it.
+#
+# Membership is a MEASURED property of the lane's injector, not a preference. Re-measure before editing:
+# launch one column twice, drive it, screenshot after settle, diff below the status bar.
+NON_REPRODUCIBLE_DRIVE = {"android"}
 # How far back to look for the run that produced the board's capture. Run dirs accumulate for weeks;
 # without a bound, a cell whose run was deleted would read every surviving run's frames to prove it.
 MAX_RUNS_SCANNED = 20
@@ -370,7 +394,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     at_rest_diff = scores[0]["diff_pct"] if scores else 100.0
     widest = max(move_m, move_o)
     spread = abs(move_m - move_o) / widest if widest > 0 else 1.0
-    phase_only = (not mismatch and move_m >= MOVED_PCT and move_o >= MOVED_PCT
+    frames_disagree = ssims[worst_i] < PHASE_ONLY_SSIM or scores[worst_i]["diff_pct"] > PHASE_ONLY_DIFF_PCT
+    phase_only = (plat_dir in NON_REPRODUCIBLE_DRIVE and frames_disagree
+                  and not mismatch and move_m >= MOVED_PCT and move_o >= MOVED_PCT
                   and spread <= PHASE_SELF_MOTION_TOL and at_rest_diff <= PHASE_AT_REST_PCT)
 
     meta = shots_m[0][2]
@@ -398,10 +424,11 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
                   f"SAME distance ({move_m:.4f}% vs {move_o:.4f}% of their own frame, {spread * 100:.1f}% "
                   f"apart) from a resting frame that already agreed to {at_rest_diff:.2f}%. What differs "
                   f"is WHEN, not whether or how far. An `input swipe` releases at full velocity and the "
-                  f"fling coasts a random distance — measured, MAUI's own column differs from ITSELF by "
-                  f"up to 11.57% across two runs of the same page while it is byte-stable at rest — so "
-                  f"the per-frame SSIM below samples two different moments of the same motion. Capped "
-                  f"YELLOW: frame parity was NOT established, and no port defect is evidenced either. "
+                  f"fling coasts a random distance — measured on THIS lane, MAUI's own column differs "
+                  f"from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable "
+                  f"at rest — so the per-frame SSIM below samples two different moments of the same "
+                  f"motion. Capped YELLOW: frame parity was NOT established, and no port defect is "
+                  f"evidenced either. "
                   f"{detail}")
     elif both_frozen:
         detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {FROZEN_PCT}% "
@@ -453,9 +480,9 @@ def _selftest() -> int:
                     im.putpixel((x + dx, y + dy), (0, 0, 0))
         im.save(path)
 
-    def unit(run, key, col, theme, frames, size=BOX):
+    def unit(run, key, col, theme, frames, size=BOX, plat="maccatalyst"):
         """frames: [(step, [boxes])] -> the runner's NNNN.png + NNNN.json pairs."""
-        d = run / key / "maccatalyst" / col
+        d = run / key / plat / col
         d.mkdir(parents=True, exist_ok=True)
         for n, (step, boxes) in enumerate(frames, 1):
             frame(d / f"{n:04d}.png", boxes, size)
@@ -464,8 +491,8 @@ def _selftest() -> int:
                  "captured_at": "2026-08-05T00:00:00+03:00"}))
         return d
 
-    def publish(comp, key, fw, theme, src):
-        dst = comp / "captures" / "maccatalyst" / fw / f"{key}_{theme}.png"
+    def publish(comp, key, fw, theme, src, plat="maccatalyst"):
+        dst = comp / "captures" / plat / fw / f"{key}_{theme}.png"
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(src, dst)
 
@@ -523,15 +550,32 @@ def _selftest() -> int:
         # (3b) PHASE ONLY — the fling. Same start, same end, same distance travelled; only the middle
         #      sample lands somewhere else, exactly what a non-reproducible coast does. Must be flagged
         #      and must NOT read as a mismatch.
-        dm = unit(run, "phase", "maui_xaml", "light", moving)                 # 10 -> 40 -> 70
-        do = unit(run, "phase", "cpp", "light", seq([10, 55, 70]))            # 10 -> 55 -> 70
-        publish(comp, "phase", "maui", "light", dm / "0001.png")
-        publish(comp, "phase", "cpp", "light", do / "0001.png")
-        r = score_cell("phase", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        for lane in ("android", "ios"):
+            dm = unit(run, "phase", "maui_xaml", "light", moving, plat=lane)      # 10 -> 40 -> 70
+            do = unit(run, "phase", "cpp", "light", seq([10, 55, 70]), plat=lane) # 10 -> 55 -> 70
+            publish(comp, "phase", "maui", "light", dm / "0001.png", plat=lane)
+            publish(comp, "phase", "cpp", "light", do / "0001.png", plat=lane)
+        r = score_cell("phase", "android", "cpp", "light", 0, STILL, comp)
         check("phase: flagged", r["phase_only"], True)
         check("phase: says so first", r["detail"].startswith("!! PHASE ONLY"), True)
         check("phase: not a mismatch", r["mismatch"], False)
         check("phase: the middle frame really does differ", r["ssim"] < 0.98, True)
+        # (3b-ii) THE SAME FRAMES ON A REPRODUCIBLE LANE. The signature is identical, so only the
+        #         measured per-lane fact separates them — and iOS's drive IS reproducible (both columns
+        #         0.00% against themselves), which makes an equal-distance disagreement a finding rather
+        #         than a sampling artifact. Without this clause the gate forgives three real iOS cells.
+        r = score_cell("phase", "ios", "cpp", "light", 0, STILL, comp)
+        check("phase on a reproducible lane: NOT forgiven", r["phase_only"], False)
+        check("phase on a reproducible lane: no phase banner", r["detail"].startswith("!! PHASE ONLY"), False)
+        # (3b-iii) A cell whose frames AGREE established parity — it must stay clean, not carry a
+        #          "not decidable" banner. Identical sequences on the non-reproducible lane.
+        dm = unit(run, "agree", "maui_xaml", "light", moving, plat="android")
+        do = unit(run, "agree", "cpp", "light", moving, plat="android")
+        publish(comp, "agree", "maui", "light", dm / "0001.png", plat="android")
+        publish(comp, "agree", "cpp", "light", do / "0001.png", plat="android")
+        r = score_cell("agree", "android", "cpp", "light", 0, STILL, comp)
+        check("agreeing frames: not flagged as phase", r["phase_only"], False)
+        check("agreeing frames: perfect score", r["ssim"], 1.0)
 
         # (3c) HALF THE DISTANCE — the case the phase gate must never swallow. Same resting frame, but
         #      the port travels 30px where MAUI travels 60. A port that scrolls half as far is a defect,
