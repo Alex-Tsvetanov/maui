@@ -32,7 +32,7 @@
 // This directory (src/platform/android/java/) is the port's twin of C#'s src/Core/AndroidNative Java
 // support library: the widget test host and the gallery app host both dex every *.java here
 // (tools/android-testhost-run.sh + tools/parity/build_android_apphost.sh glob this dir), so MauiImageView
-// is picked up automatically alongside MauiShapeView/MauiLayout/NativeOnClickListener — no script edits.
+// is picked up automatically alongside MauiShapeView/MauiLayout/MauiDialogBridge — no script edits.
 package dev.mauicpp;
 
 import android.content.Context;

@@ -38,6 +38,17 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
+#ifdef MAUI_PLATFORM_ANDROID
+namespace maui::platform::android
+{
+    // The click trampoline target the android partial owns (src/platform/android/android_dialog_ops.hpp).
+    // Forward-declared: this cross-platform header must not see the JNI seam, and a shared_ptr to an
+    // incomplete type is well-formed as long as it is only default-constructed and destroyed here (the
+    // android partial, which sees the definition, does the rest).
+    struct dialog_trampoline;
+} // namespace maui::platform::android
+#endif
+
 namespace maui::core
 {
     // Derives view_platform_base so the shared view_mapper can push the generic IView properties
@@ -193,6 +204,12 @@ namespace maui::core
         // The clip borrow platform_arrange re-resolves against the live bounds (null = no clip). Unused on
         // headless/Apple (Apple stashes via an associated object), so it is android-gated.
         const maui::graphics::i_shape* clip_shape = nullptr;
+        // The trampoline the installed View.OnClickListener carries as its peer, and which OWNS the
+        // send_clicked body. Heap-allocated and registry-registered so a tap that arrives after the
+        // handler is gone resolves to nothing instead of dereferencing freed storage — the reason this
+        // is a shared_ptr rather than the `this` the Java side used to carry as a raw jlong. Torn down by
+        // release_dialog_seam from BOTH on_disconnect_handler and ~button_platform.
+        std::shared_ptr<maui::platform::android::dialog_trampoline> dialog_peer;
 #endif
     };
 

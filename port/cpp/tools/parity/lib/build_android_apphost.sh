@@ -12,7 +12,7 @@
 #      resource tree (tools/parity/android-aar-lib.sh, staged from the local NuGet cache) into one merged
 #      table, emitting an R.java per library package. Runs BEFORE javac, which must compile those R classes.
 #   3. javac + d8: dex MauiHostActivity.java + the runtime java support classes (src/platform/android/java —
-#      NativeOnClickListener etc., the same set the testhost dexes) + the generated R classes + every
+#      MauiDialogBridge etc., the same set the testhost dexes) + the generated R classes + every
 #      library jar into classes*.dex (native multidex — AppCompat+Material exceed the 64K method limit).
 #   4. Assemble: add classes*.dex (root) + lib/<abi>/libmaui_android_apphost.so into the APK (zip).
 #   5. zipalign 4-byte, then apksigner sign with a throwaway debug keystore (created on demand).
@@ -155,7 +155,7 @@ echo "[apphost] .so: ${app_so}" >&2
 apphost_dir="${cpp_root}/src/platform/android/apphost"
 manifest="${apphost_dir}/AndroidManifest.xml"
 activity_java="${apphost_dir}/MauiHostActivity.java"
-runtime_java_dir="${cpp_root}/src/platform/android/java" # NativeOnClickListener.java etc.
+runtime_java_dir="${cpp_root}/src/platform/android/java" # MauiDialogBridge.java etc.
 [[ -f "${manifest}" && -f "${activity_java}" ]] || maui_die "missing apphost manifest/Activity under ${apphost_dir}"
 
 work="${build_dir}/apphost-apk"

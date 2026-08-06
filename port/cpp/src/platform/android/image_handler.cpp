@@ -710,7 +710,7 @@ namespace
     }
 
     // Binds nativeUriFetched to MauiUriFetch (RegisterNatives — no Java_* export needed). Idempotent, so
-    // every fetch can call it without once-flag coordination (the NativeOnClickListener recipe).
+    // every fetch can call it without once-flag coordination (the MauiDialogBridge recipe).
     [[nodiscard]] bool register_uri_fetch_natives(JNIEnv* env, jclass fetch_class)
     {
         // JNINativeMethod's name/signature members are non-const char* and fnPtr is a void* for historical

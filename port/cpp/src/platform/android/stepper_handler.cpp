@@ -42,8 +42,9 @@
 //   - The StepperListener click → `VirtualView.Value = Value ± Interval; UpdateButtons()` is the inbound
 //     channel. Like button_handler.cpp's OnTouchListener and slider_handler.cpp's OnSeekBarChangeListener,
 //     installing a REAL android.view.View.OnClickListener needs a host-provided Java listener class bound
-//     via RegisterNatives — the android test host carries only dev.mauicpp.NativeOnClickListener (wired for
-//     a single peer; the stepper would need TWO listeners or a per-button peer). So the inbound JNI click
+//     via RegisterNatives — the android test host carries dev.mauicpp.MauiDialogBridge, whose click native
+//     carries ONE peer per bridge instance (the stepper would need two bridges, one per half, or a peer
+//     that encodes which half was tapped). So the inbound JNI click
 //     is DEFERRED: on_minus / on_plus stay invokable C++ callbacks carrying the StepperListener body (down
 //     subtracts Interval, up adds it, then UpdateButtons re-runs), and on_value_changed keeps the headless
 //     mirror's write-back shape (StepperProxy.OnValueChanged) so the cross-platform suite drives the seam.

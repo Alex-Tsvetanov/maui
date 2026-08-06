@@ -12,7 +12,7 @@
 // treats empty bytes as "nothing loaded", the same degradation as a missing local file).
 //
 // nativeUriFetched is bound from C++ via JNIEnv.RegisterNatives before the first fetch is dispatched
-// (reflection-free, no Java_* symbol export needed) — the NativeOnClickListener recipe.
+// (reflection-free, no Java_* symbol export needed) — the MauiDialogBridge recipe.
 //
 // This directory (src/platform/android/java/) is the port's twin of C#'s src/Core/AndroidNative Java
 // support library: runtime classes the native backend needs in the process' dex. The widget test host

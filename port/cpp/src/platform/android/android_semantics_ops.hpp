@@ -23,7 +23,7 @@
 // DOCUMENTED DEVIATIONS from the C# Android oracle (each an infrastructure gap, not a behavior guess):
 //   - Hint has NO plain-android.view.View setter: C# surfaces it via info.HintText on the
 //     AccessibilityNodeInfo, filled by a MauiAccessibilityDelegateCompat installed on the View during
-//     the accessibility traversal (a host-provided Java subclass, like NativeOnClickListener). This
+//     the accessibility traversal (a host-provided Java subclass, like MauiDialogBridge). This
 //     APK-less backend carries no such delegate class, so Hint is kept ONLY in the headless mirror (the
 //     base body) — matching exactly what a View shows when no delegate is installed. (Wiring a hint
 //     delegate is the accessibility-delegate fan-out, paralleling the click-listener trampoline.)

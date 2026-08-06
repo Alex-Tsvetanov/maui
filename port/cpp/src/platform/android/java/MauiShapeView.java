@@ -15,12 +15,12 @@
 // nativePtr is the address of the handler's shape_view_platform; the handler sets it after creating the
 // view and clears it (setNativePtr(0)) before the struct can die, so onDraw never dereferences a dangling
 // pointer (a 0 ptr makes nativeDraw a no-op). nativeDraw is bound from C++ via RegisterNatives (the
-// reflection-free NativeOnClickListener recipe) — no Java_* export symbol is needed.
+// reflection-free MauiDialogBridge recipe) — no Java_* export symbol is needed.
 //
 // This directory (src/platform/android/java/) is the port's twin of C#'s src/Core/AndroidNative Java
 // support library: the widget test host and the gallery app host both dex every *.java here
 // (tools/android-testhost-run.sh + tools/parity/build_android_apphost.sh glob this dir), so MauiShapeView
-// is picked up automatically alongside MauiLayout/NativeOnClickListener — no build-script edits needed.
+// is picked up automatically alongside MauiLayout/MauiDialogBridge — no build-script edits needed.
 package dev.mauicpp;
 
 import android.content.Context;

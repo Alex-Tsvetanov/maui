@@ -55,7 +55,7 @@ done
 
 # The compiled sources: the bootstrap itself plus the backend's runtime Java support classes
 # (src/platform/android/java — the dev.mauicpp.* trampolines the JNI handler partials construct,
-# e.g. NativeOnClickListener; the port's twin of C#'s src/Core/AndroidNative maui Java library).
+# e.g. MauiDialogBridge; the port's twin of C#'s src/Core/AndroidNative maui Java library).
 # The layout coupling (../java relative to the bootstrap) is deliberate: the test host must dex
 # exactly what a real app host would have to ship.
 runtime_java_dir="$(cd "$(dirname "${bootstrap_java}")/.." && pwd)/java"

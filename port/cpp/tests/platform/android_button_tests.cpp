@@ -6,7 +6,7 @@
 //   virtual → native: set virtual-view properties, read the widget (getText/getCurrentTextColor/
 //                     isEnabled/getVisibility/getAlpha/getContentDescription/getPadding*/
 //                     getTextSize/getTypeface/getBackground...)
-//   native → virtual: View.performClick() → the NativeOnClickListener trampoline → send_clicked →
+//   native → virtual: View.performClick() → the shared MauiDialogBridge trampoline → send_clicked →
 //                     the control's `clicked` event.
 // Characterization target: ButtonHandler.Android.cs + the Android platform extensions (the
 // documented plain-widget deviations are in the partial's header).
@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <jni.h>
 
+#include "android_dialog_ops.hpp"
 #include "jni/jni_cache.hpp"
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
@@ -449,5 +450,40 @@ namespace
         EXPECT_EQ(handled, JNI_FALSE) << "the click listener must be uninstalled on disconnect";
         EXPECT_EQ(clicks, 0);
         env->DeleteGlobalRef(widget);
+    }
+
+    // The hazard the OLD trampoline could not survive, now expressed directly against the seam: a click
+    // that arrives after the whole handler is gone. Java carries the peer as a jlong; the previous
+    // trampoline reinterpret_cast it straight back to a button_platform* and read `->on_click` through it,
+    // so a late tap dereferenced freed storage. The shared seam resolves that same jlong in a live-peer
+    // registry instead, where a dead owner is simply absent.
+    //
+    // Calling the trampoline with the stale token is what makes this a REAL test rather than a hopeful
+    // one: performClick cannot reproduce it (the listener is uninstalled, so nothing fires and the
+    // assertion would pass for the wrong reason), whereas this drives the exact entry point Java would.
+    // The old shape had no equivalent to assert against — its trampoline reinterpret_cast the jlong and
+    // read through it with no way to ask whether the owner still existed, which is the defect. The live
+    // assertion here is the in-scope one: the SAME token delivers while the peer is alive and delivers
+    // nothing once it is not, so a passing run cannot be a token that was never wired.
+    TEST(android_button, a_click_arriving_after_the_handler_is_gone_resolves_to_nothing)
+    {
+        int clicks = 0;
+        jlong stale_token = 0;
+        {
+            attached_button seam;
+            ASSERT_NE(seam.widget(), nullptr);
+            auto* platform = seam.handler->typed_platform_view();
+            ASSERT_NE(platform, nullptr);
+            ASSERT_NE(platform->dialog_peer, nullptr) << "connect must mint a registered peer";
+            stale_token = reinterpret_cast<jlong>(platform->dialog_peer.get());
+            seam.control.clicked.connect([&clicks] { ++clicks; });
+            // Sanity: while the handler IS alive that same token delivers, so a 0 below means the peer
+            // went away rather than that the token was never wired.
+            maui::platform::android::detail::native_dialog_click(nullptr, nullptr, stale_token);
+            ASSERT_EQ(clicks, 1) << "the live peer must reach send_clicked";
+        }
+        ASSERT_NE(stale_token, 0);
+        maui::platform::android::detail::native_dialog_click(nullptr, nullptr, stale_token);
+        EXPECT_EQ(clicks, 1) << "a click on a torn-down peer must commit nothing";
     }
 } // namespace

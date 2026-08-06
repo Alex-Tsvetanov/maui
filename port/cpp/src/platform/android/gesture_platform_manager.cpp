@@ -1306,7 +1306,7 @@ namespace maui::controls
 
         // Binds every native half to the bridge class. Idempotent (RegisterNatives replaces an existing
         // binding), so re-syncing managers need no once-flag coordination — same contract as
-        // button_handler.cpp's register_click_natives.
+        // android_dialog_ops.hpp's register_dialog_natives.
         [[nodiscard]] bool register_gesture_natives(JNIEnv* env, jclass bridge_class)
         {
             // JNINativeMethod's name/signature are non-const char* and fnPtr is void* for historical

@@ -2,8 +2,12 @@
 // fan-out (M6's iOS Rosetta Stone replayed over JNI). The managed platform view is a REAL
 // android.widget.Button (held as a JNI global reference in button_platform::native), every map_*
 // pushes its property through the jni_cache'd method ids, and a native click flows back through the
-// dev.mauicpp.NativeOnClickListener trampoline (RegisterNatives — reflection-free) into
-// i_button::send_clicked.
+// SHARED dev.mauicpp.MauiDialogBridge trampoline (android_dialog_ops.hpp) into i_button::send_clicked.
+// That seam replaced a per-handler dev.mauicpp.NativeOnClickListener whose jlong peer was this struct's
+// raw address: JNI RegisterNatives binds per CLASS, so button and image_button — each binding
+// `nativeOnClick` on that one class with its OWN peer type — overwrote each other process-wide, and a
+// tap arriving after a handler was gone dereferenced freed storage. The shared bridge resolves every
+// peer through a live-peer registry instead, and is bound in exactly one place.
 //
 // Ported DIRECTLY from ButtonHandler.Android.cs + Platform/Android/{ButtonExtensions.cs,
 // TextViewExtensions.cs, ViewExtensions.cs, MauiRippleDrawableExtensions.cs (GetStrokeProperties),
@@ -51,6 +55,7 @@
 #include <string_view>
 
 #include "android_clip_ops.hpp"
+#include "android_dialog_ops.hpp"
 #include "android_image_decode.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
@@ -88,7 +93,6 @@ namespace
     constexpr const char* k_gradient_drawable_class = "android/graphics/drawable/GradientDrawable";
     constexpr const char* k_typeface_class = "android/graphics/Typeface";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
-    constexpr const char* k_click_listener_class = "dev/mauicpp/NativeOnClickListener";
     constexpr const char* k_style_class = "android/R$style";
 
     // ButtonHandler.CreatePlatformView constructs a MauiMaterialButton (Google.Android.Material's
@@ -616,38 +620,6 @@ namespace
         return !clear_pending(env);
     }
 
-    // The native half of dev.mauicpp.NativeOnClickListener.nativeOnClick(long): the peer is the
-    // handler's button_platform, and the wired on_click callback carries ButtonHandler.OnClick's
-    // body (VirtualView.Clicked()). Bound via RegisterNatives (no Java_* export needed).
-    void JNICALL native_on_click(JNIEnv* /*env*/, jclass /*listener_class*/, jlong peer)
-    {
-        // The canonical JNI peer pattern: the Java side stores the pointer the C++ side handed it.
-        auto* platform = reinterpret_cast<maui::core::button_platform*>(peer);
-        if (platform != nullptr && platform->on_click)
-        {
-            platform->on_click();
-        }
-    }
-
-    // Binds nativeOnClick to the listener class. Idempotent (RegisterNatives replaces an existing
-    // binding), so connecting handlers need no once-flag coordination.
-    [[nodiscard]] bool register_click_natives(JNIEnv* env, jclass listener_class)
-    {
-        // JNINativeMethod's name/signature members are non-const char* and fnPtr is a void* for
-        // historical JNI-spec reasons — the const_casts/reinterpret_cast are the API's own shape.
-        static const std::array<JNINativeMethod, 1> k_methods{
-            JNINativeMethod{.name = const_cast<char*>("nativeOnClick"),
-                            .signature = const_cast<char*>("(J)V"),
-                            .fnPtr = reinterpret_cast<void*>(&native_on_click)},
-        };
-        const jint status = env->RegisterNatives(listener_class, k_methods.data(), static_cast<jint>(k_methods.size()));
-        if (status != JNI_OK)
-        {
-            clear_pending(env);
-            return false;
-        }
-        return true;
-    }
 } // namespace
 
 namespace maui::core
@@ -661,6 +633,12 @@ namespace maui::core
     // pimpl-owned-native-view doctrine: the ios twin CFReleases its UIButton here).
     button_platform::~button_platform()
     {
+        // BEFORE the widget's global ref goes: uninstalling the listener needs a live View, and a
+        // handler destroyed WITHOUT a disconnect (the case on_disconnect_handler alone never covered)
+        // would otherwise leave an installed listener whose bridge still names this peer. Idempotent —
+        // a peer already cleared by on_disconnect_handler is null here and the call is a no-op.
+        void* no_dialog = nullptr;
+        maui::platform::android::release_dialog_seam(native, no_dialog, dialog_peer);
         if (native != nullptr)
         {
             const scoped_env env; // any-thread teardown, exactly like global_ref::reset
@@ -1039,10 +1017,30 @@ namespace maui::core
                 view->send_released();
             }
         };
+        // TWO channels carry the same body, deliberately. platform.on_click is the CROSS-PLATFORM one the
+        // VM-less suite drives directly (tests/controls/button_tests.cpp:164) — and it must stay assigned
+        // on this backend, because the android preset REMOVE_ITEMs src/platform/headless/button_handler.cpp
+        // and puts this partial in its place (CMakeLists.txt:531), so there is no headless twin left to
+        // assign it. dialog_peer->on_click is the JNI one.
+        //
+        // They are separate lambdas rather than one forwarding to the other: forwarding would mean the
+        // trampoline capturing `&platform` to reach the member, which is the raw-address deref this seam
+        // exists to remove. Each captures the handler and each is cleared by its own teardown.
         platform.on_click = [this] {
             if (auto* view = virtual_view())
             {
                 view->send_clicked();
+            }
+        };
+        // The peer is a REGISTRY-REGISTERED trampoline, not this struct's address: a tap that arrives
+        // after the handler is gone resolves to nullptr in the live-peer registry instead of
+        // dereferencing freed storage, and the shared Java bridge cannot be re-bound out from under us by
+        // another handler (android_dialog_ops.hpp's header states both hazards).
+        platform.dialog_peer = maui::platform::android::make_dialog_peer();
+        platform.dialog_peer->on_click = [this] {
+            if (auto* view = virtual_view())
+            {
+                view->send_clicked(); // last statement (rule 4): may re-enter and destroy this handler
             }
         };
         if (platform.native == nullptr)
@@ -1054,28 +1052,8 @@ namespace maui::core
         {
             return;
         }
-        auto& cache = default_jni_cache();
-        jclass listener_class = cache.find_class(env.get(), k_click_listener_class);
-        jmethodID listener_ctor = cache.method(env.get(), k_click_listener_class, "<init>", "(J)V");
-        jmethodID set_on_click_listener =
-            cache.method(env.get(), k_button_class, "setOnClickListener", "(Landroid/view/View$OnClickListener;)V");
-        if (listener_class == nullptr || listener_ctor == nullptr || set_on_click_listener == nullptr ||
-            !register_click_natives(env.get(), listener_class))
-        {
-            return; // the listener class is host-provided (see NativeOnClickListener.java); without
-                    // it the click channel stays C++-only, exactly like the VM-less degradation
-        }
-        // ConnectHandler: ClickListener.Handler = this; platformView.SetOnClickListener(ClickListener).
-        // The peer is the platform struct; the View holds the listener strongly, and disconnect
-        // uninstalls it before the struct can die.
-        const local_ref<jobject> listener{
-            env.get(), env->NewObject(listener_class, listener_ctor, reinterpret_cast<jlong>(&platform))};
-        if (clear_pending(env.get()) || !listener)
-        {
-            return;
-        }
-        env->CallVoidMethod(widget_of(platform), set_on_click_listener, listener.get());
-        clear_pending(env.get());
+        maui::platform::android::install_dialog_click_listener(env.get(), widget_of(platform),
+                                                               platform.dialog_peer.get());
     }
 
     void button_handler::on_disconnect_handler(button_platform& platform)
@@ -1084,22 +1062,12 @@ namespace maui::core
         platform.on_press = nullptr;
         platform.on_release = nullptr;
         platform.on_click = nullptr;
-        if (platform.native == nullptr)
-        {
-            return;
-        }
-        const scoped_env env;
-        if (!env)
-        {
-            return;
-        }
-        jmethodID set_on_click_listener = default_jni_cache().method(env.get(), k_button_class, "setOnClickListener",
-                                                                     "(Landroid/view/View$OnClickListener;)V");
-        if (set_on_click_listener != nullptr)
-        {
-            env->CallVoidMethod(widget_of(platform), set_on_click_listener, static_cast<jobject>(nullptr));
-            clear_pending(env.get());
-        }
+        // release_dialog_seam is the whole teardown in the documented order — uninstall the click
+        // listener, clear the callbacks, then drop the peer (which unregisters it). The button owns no
+        // dialog, so the dialog slot it dismisses is a local null; passing it keeps ONE teardown path
+        // for every handler on this seam rather than a button-shaped variant that can drift.
+        void* no_dialog = nullptr;
+        maui::platform::android::release_dialog_seam(platform.native, no_dialog, platform.dialog_peer);
     }
 
     void button_handler::map_text(button_handler& handler, i_text_button& view)

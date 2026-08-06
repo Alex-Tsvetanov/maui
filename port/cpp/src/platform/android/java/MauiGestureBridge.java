@@ -21,7 +21,7 @@
 // recognizer collection lives. Nothing here reads a gesture recognizer.
 //
 // Bound from C++ with RegisterNatives (reflection-free, no Java_* export), exactly like
-// NativeOnClickListener. `peer` is the backend's gesture_state; the C++ side zeroes it through
+// MauiDialogBridge. `peer` is the backend's gesture_state; the C++ side zeroes it through
 // detach() BEFORE it drops this object, so a MotionEvent still queued in the platform's detectors
 // can never reach a freed peer (C#'s "resurrect the eagerly-disposed listener" hazard —
 // InnerGestureListener.cs:69-74 — spelled as an explicit invalidation instead). A peer that slips

@@ -43,8 +43,9 @@
 //     theme-accent parity fix (commits 3bec64c267 / bbb632f301). See the k_material_check_box_gray note.
 //   - The CheckedChange listener (CompoundButton.OnCheckedChangeListener → OnCheckedChange:
 //     VirtualView.IsChecked = e.IsChecked) is DEFERRED with the gesture/event fan-out: there is no
-//     host-provided listener Java class for it (the test host ships only dev.mauicpp.NativeOnClickListener
-//     for the button). on_checked_changed stays a wired, invokable C++ callback carrying OnCheckedChange's
+//     host-provided listener Java class for it (the test host ships dev.mauicpp.MauiDialogBridge, whose
+//     five natives are click/date/time/item/dismiss — no CompoundButton listener among them).
+//     on_checked_changed stays a wired, invokable C++ callback carrying OnCheckedChange's
 //     body — the cross-platform suite drives it directly, exactly as the headless mirror does — but the
 //     real widget's setOnCheckedChangeListener is not installed. A programmatic setChecked still reaches
 //     the widget (virtual→native) and reads back through isChecked.

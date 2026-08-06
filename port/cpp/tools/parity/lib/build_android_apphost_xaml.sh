@@ -143,7 +143,7 @@ fi
 apphost_dir="${cpp_root}/examples/gallery_xaml/apphost"
 manifest="${apphost_dir}/AndroidManifest.xml"
 activity_java="${apphost_dir}/MauiHostActivity.java"
-runtime_java_dir="${cpp_root}/src/platform/android/java" # NativeOnClickListener.java etc. (shared)
+runtime_java_dir="${cpp_root}/src/platform/android/java" # MauiDialogBridge.java etc. (shared)
 [[ -f "${manifest}" && -f "${activity_java}" ]] || maui_die "missing XAML apphost manifest/Activity under ${apphost_dir}"
 
 work="${build_dir}/apphost-xaml-apk"

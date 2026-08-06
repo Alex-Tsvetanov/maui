@@ -40,7 +40,7 @@
 // support library: runtime classes the native backend needs in the process' dex. The widget test host
 // and the gallery app host both dex every *.java here (tools/android-testhost-run.sh and
 // tools/parity/build_android_apphost.sh glob this dir), so MauiLayout.java is picked up automatically
-// alongside NativeOnClickListener.java — no script edits needed.
+// alongside MauiDialogBridge.java — no script edits needed.
 // ARBITRARY-STROKESHAPE BORDER (dispatchDraw + canvas): a Border whose StrokeShape is NOT a shape the
 // GradientDrawable background can express (a rounded rect / ellipse / plain rect — all handled by
 // border_handler.cpp's GradientDrawable + Outline clip) needs a canvas draw to trace an arbitrary path

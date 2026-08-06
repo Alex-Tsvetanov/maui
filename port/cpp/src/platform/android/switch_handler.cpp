@@ -603,8 +603,8 @@ namespace maui::core
     {
         // SwitchHandler.Android's CheckedChangeListener → OnCheckedChanged → VirtualView.IsOn write-back,
         // guarded against echo (C#: `if (VirtualView is null || VirtualView.IsOn == isOn) return`). The
-        // REAL native OnCheckedChangeListener wiring (a RegisterNatives trampoline, like button's
-        // NativeOnClickListener) is DEFERRED with the gesture/event fan-out; the callback stays wired even
+        // REAL native OnCheckedChangeListener wiring (a RegisterNatives trampoline, like the shared
+        // dev.mauicpp.MauiDialogBridge) is DEFERRED with the gesture/event fan-out; the callback stays wired even
         // VM-less so the cross-platform suite can drive it (it mirrors the headless partial's body).
         platform.on_value_changed = [this] {
             auto* view = virtual_view();

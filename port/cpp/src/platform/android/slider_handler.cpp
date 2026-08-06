@@ -64,8 +64,8 @@
 //     flag for parity only (no native gesture install needed; the SeekBar behavior already matches intent).
 //   - The OnSeekBarChangeListener (OnProgressChanged → ValueChanged, OnStartTrackingTouch → DragStarted,
 //     OnStopTrackingTouch → DragCompleted) requires a host-provided Java listener class bound via
-//     RegisterNatives — the android test host carries only dev.mauicpp.NativeOnClickListener (for button),
-//     NOT a SeekBar change listener. So the inbound channel is DEFERRED with the gesture fan-out, exactly
+//     RegisterNatives — the android test host carries dev.mauicpp.MauiDialogBridge (click/date/time/item/
+//     dismiss), NOT a SeekBar change listener. So the inbound channel is DEFERRED with the gesture fan-out, exactly
 //     like button_handler.cpp's OnTouchListener: on_value_changed / on_drag_started / on_drag_completed
 //     stay invokable C++ callbacks (the cross-platform suite drives them) carrying SliderHandler's
 //     OnProgressChanged (the fromUser → Value write-back) / OnStartTrackingTouch / OnStopTrackingTouch.
@@ -682,8 +682,8 @@ namespace maui::core
     {
         // SliderHandler.ConnectHandler installs a SeekBarChangeListener (OnProgressChanged → the fromUser
         // Value write-back, OnStartTrackingTouch → DragStarted, OnStopTrackingTouch → DragCompleted). That
-        // listener needs a host-provided Java class bound via RegisterNatives (like button's
-        // dev.mauicpp.NativeOnClickListener); the android test host does NOT carry a SeekBar listener, so
+        // listener needs a host-provided Java class bound via RegisterNatives (like the shared
+        // dev.mauicpp.MauiDialogBridge); the android test host does NOT carry a SeekBar listener, so
         // the inbound JNI channel is DEFERRED (header note). The callbacks stay wired even VM-less so the
         // cross-platform suite can drive them — carrying SliderHandler.OnProgressChanged /
         // OnStartTrackingTouch / OnStopTrackingTouch.
