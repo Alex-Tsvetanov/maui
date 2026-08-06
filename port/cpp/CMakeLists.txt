@@ -1145,7 +1145,12 @@ if(MAUI_BACKEND STREQUAL "android")
     # View.dispatchTouchEvent proves the whole chain (subscription sync -> GestureDetector -> the
     # RegisterNatives entry points -> the recognizer fan-out). Deliberately NOT in maui_controls_tests:
     # that binary runs through android-emu-run.sh with no ART runtime, so it has no JavaVM at all.
-    tests/platform/android_gesture_tests.cpp)
+    tests/platform/android_gesture_tests.cpp
+    # scroll range: a real MauiLayout content host measured the way android.widget.ScrollView measures its
+    # document child (always UNSPECIFIED on the scroll axis), plus the real scroller's canScrollVertically.
+    # The host used to answer 0 there, giving every scrolling page a scroll range of 0 while looking
+    # perfect at rest — invisible to still comparison, caught only once the board drove gestures.
+    tests/platform/android_scroll_view_tests.cpp)
   target_include_directories(maui_android_widget_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
   target_link_libraries(maui_android_widget_tests PRIVATE GTest::gtest maui_controls)
   if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)

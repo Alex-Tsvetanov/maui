@@ -144,15 +144,56 @@ public final class MauiLayout extends ViewGroup {
         }
     }
 
-    // Report the resolved spec size without measuring children (maui already measured/arranged them,
-    // and the container handler frames this ViewGroup Exactly through platform_arrange). resolveSize
-    // honours Exactly/AtMost and yields the spec size for Unspecified — never 0, which would clip the
-    // hosted children.
+    // Report this host's size without measuring children (maui already measured/arranged them, and the
+    // container handler frames this ViewGroup Exactly through platform_arrange) — but under an
+    // UNSPECIFIED spec report the CONTENT extent: the union of the children's already-laid-out
+    // right/bottom edges.
+    //
+    // The former body was resolveSize(0, spec) with a comment claiming it "never reports 0". That is true
+    // for EXACTLY only: View.resolveSize returns `size` (here 0) for both UNSPECIFIED and AT_MOST. It went
+    // unnoticed because platform_arrange always measures this host EXACTLY — except inside a scroller.
+    // android.widget.ScrollView.measureChild ALWAYS measures its single document child with an UNSPECIFIED
+    // height spec (that is how content may exceed the viewport and scroll), IGNORING its LayoutParams, so a
+    // MauiLayout content host reported height 0, the scroller computed scrollRange = 0, and the page could
+    // not be scrolled AT ALL. Measured on emulator-5554 before this change: the port's `clip` page renders
+    // identically to MAUI at rest, its ScrollView reports scrollable="false" in the accessibility tree, and
+    // an `input swipe` that moves MAUI's page by 96.14% of the frame moved the port's by 0 px.
+    //
+    // The children keep drawing at their absolute frames either way (onLayout is the handler's, not this
+    // ViewGroup's), which is why the bug was invisible to every still comparison: only the scroll RANGE was
+    // wrong, never the pixels at rest.
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        final int width = resolveSize(0, widthMeasureSpec);
-        final int height = resolveSize(0, heightMeasureSpec);
-        setMeasuredDimension(width, height);
+        setMeasuredDimension(resolveContent(contentExtent(this, false), widthMeasureSpec),
+                             resolveContent(contentExtent(this, true), heightMeasureSpec));
+    }
+
+    // The union of `group`'s laid-out children's right (or bottom) edges — the content extent a scroller
+    // needs to know how far it may scroll. Shared with MauiCollectionContent, which hosts the same
+    // absolutely-framed children under the same scroller.
+    static int contentExtent(ViewGroup group, boolean vertical) {
+        int extent = 0;
+        for (int i = 0, n = group.getChildCount(); i < n; i++) {
+            final View child = group.getChildAt(i);
+            if (child.getVisibility() == GONE) {
+                continue;
+            }
+            extent = Math.max(extent, vertical ? child.getBottom() : child.getRight());
+        }
+        return extent;
+    }
+
+    // EXACTLY → the spec size; AT_MOST → min(content, spec); UNSPECIFIED → the content extent.
+    static int resolveContent(int content, int spec) {
+        final int mode = MeasureSpec.getMode(spec);
+        final int size = MeasureSpec.getSize(spec);
+        if (mode == MeasureSpec.EXACTLY) {
+            return size;
+        }
+        if (mode == MeasureSpec.AT_MOST) {
+            return Math.min(content, size);
+        }
+        return content; // UNSPECIFIED
     }
 
     // Bound from C++ via JNIEnv.RegisterNatives before any instance lays out (layout_handler.cpp's android

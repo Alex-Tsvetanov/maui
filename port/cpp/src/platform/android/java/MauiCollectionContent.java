@@ -16,7 +16,6 @@
 package dev.mauicpp;
 
 import android.content.Context;
-import android.view.View;
 import android.view.ViewGroup;
 
 public final class MauiCollectionContent extends ViewGroup {
@@ -34,33 +33,12 @@ public final class MauiCollectionContent extends ViewGroup {
     // Report the CONTENT extent — the union of the children's already-laid-out right/bottom edges — so a
     // ScrollView (which measures this child with an UNSPECIFIED height spec) gets the real scrollable size
     // rather than zero. Honour an Exactly/AtMost spec per axis, but never report less than the content.
+    // MauiLayout now measures the same way (its resolveSize(0, spec) reported 0 under UNSPECIFIED and froze
+    // every scrolling page), so both hosts share one implementation.
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int contentRight = 0;
-        int contentBottom = 0;
-        final int count = getChildCount();
-        for (int i = 0; i < count; i++) {
-            final View child = getChildAt(i);
-            if (child.getVisibility() == GONE) {
-                continue;
-            }
-            contentRight = Math.max(contentRight, child.getRight());
-            contentBottom = Math.max(contentBottom, child.getBottom());
-        }
-        setMeasuredDimension(resolveContent(contentRight, widthMeasureSpec),
-                             resolveContent(contentBottom, heightMeasureSpec));
-    }
-
-    // EXACTLY → the spec size; AT_MOST → min(content, spec); UNSPECIFIED → the content extent.
-    private static int resolveContent(int content, int spec) {
-        final int mode = MeasureSpec.getMode(spec);
-        final int size = MeasureSpec.getSize(spec);
-        if (mode == MeasureSpec.EXACTLY) {
-            return size;
-        }
-        if (mode == MeasureSpec.AT_MOST) {
-            return Math.min(content, size);
-        }
-        return content; // UNSPECIFIED
+        setMeasuredDimension(
+            MauiLayout.resolveContent(MauiLayout.contentExtent(this, false), widthMeasureSpec),
+            MauiLayout.resolveContent(MauiLayout.contentExtent(this, true), heightMeasureSpec));
     }
 }
