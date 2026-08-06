@@ -2932,3 +2932,28 @@ code-behind rather than exempt the diff. So:
 Until that lands, cpp_xaml red on this page is honest and self-explaining: the column renders the twin
 faithfully and cannot run its interactivity. Worth preferring to the yellow it replaced, which said
 nothing at all.
+
+### OPEN: describe() reports no gestures at all on pointer_gesture, and its PASS is not evidence
+
+e2f91da2f4 taught view_tree_describe.hpp to emit gestures="N[types]" and it caught four divergent twins.
+`pointer_gesture` PASSED that sweep. It should not have:
+
+  * the builder attaches THREE recognizers — pointer_gesture_page.hpp:101 and :119 add pgr_ and hover_ to
+    pgr_label_ and hover_label_;
+  * the twin omits them by comment — pointer_gesture.xaml:4-6 "GestureRecognizers layer is omitted per
+    the dialect";
+  * and `maui_ui_tests --gtest_filter=gallery_structure_equivalence.pointer_gesture` prints ZERO
+    `gestures=` lines — on EITHER side. So describe() is not seeing the builder's recognizers either,
+    which is why the two trees compare equal.
+
+That is a hole in the check, not a property of the page: a builder-vs-twin gap that describe() cannot
+see is exactly what the gesture awareness was added to stop, and here it silently reports agreement.
+Candidates, none confirmed: the labels' gesture_recognizers_or_null() override not resolving through
+view<label> the way it does for box_view; describe() not being reached for those particular children; or
+the recognizers being attached after the point the test snapshots. Isolating it needs a targeted probe
+(assert a hand-built label with one recognizer round-trips through describe) rather than another sweep.
+
+CONSEQUENCE: `gestures` (1b46744647) is proven end to end, but pointer_gesture's green on
+structure-equivalence must NOT be read as "its twin matches". Until the hole is closed, that page's
+status is unknown rather than good, and the same doubt applies to any page whose divergence is
+gesture-only and whose views are not box_view.
