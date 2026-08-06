@@ -929,7 +929,13 @@ namespace
         // W7: the ELEMENT form <BoxView.Background><LinearGradientBrush><GradientStop…/></…> — the brush
         // is created (register_type), its EndPoint + GradientStop children apply, and the created brush
         // reaches the shared_ptr<brush> Background property via the apply object-coercion.
-        controls::box_view box;
+        // DESTRUCTION ORDER IS LOAD-BEARING: the load result OWNS the created graph and this root
+        // holds NON-OWNING aliasing handles into it, so a plain local declared here dies AFTER the
+        // result and touches freed children (heap-use-after-free under asan-ubsan, which gate.sh
+        // runs by default). Holding the root in a shared_ptr and resetting it below forces the
+        // root to die while the graph still owns everything it points at.
+        auto box_owner = std::make_shared<controls::box_view>();
+        controls::box_view& box = *box_owner;
         const xaml_load_result result = xaml_loader::load_into(box, R"xml(
 <BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
     <BoxView.Background>
@@ -954,6 +960,7 @@ namespace
         const auto* paint = dynamic_cast<const maui::graphics::gradient_paint*>(box.background());
         ASSERT_NE(paint, nullptr) << "Background paint is not a gradient (stops not bridged)";
         EXPECT_EQ(paint->gradient_stops().size(), 2U);
+        box_owner.reset(); // root dies while `result`'s graph still owns its children
     }
 
     TEST(xaml_loader, element_form_formatted_string)
@@ -962,7 +969,13 @@ namespace
         // spans apply their attributes, the spans child-sink fills the collection, and the created
         // formatted_string reaches Label.FormattedText via the object-coercion. (label::set_formatted_text
         // subscribes to the formatted_string's changed signal, so loader-added spans rebuild the text.)
-        controls::label label;
+        // DESTRUCTION ORDER IS LOAD-BEARING: the load result OWNS the created graph and this root
+        // holds NON-OWNING aliasing handles into it, so a plain local declared here dies AFTER the
+        // result and touches freed children (heap-use-after-free under asan-ubsan, which gate.sh
+        // runs by default). Holding the root in a shared_ptr and resetting it below forces the
+        // root to die while the graph still owns everything it points at.
+        auto label_owner = std::make_shared<controls::label>();
+        controls::label& label = *label_owner;
         const xaml_load_result result = xaml_loader::load_into(label, R"xml(
 <Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
     <Label.FormattedText>
@@ -981,6 +994,7 @@ namespace
         EXPECT_EQ(formatted->spans()[0]->font_attributes(), maui::core::font_attributes::bold);
         EXPECT_EQ(formatted->spans()[1]->text(), " underlined");
         EXPECT_EQ(formatted->spans()[1]->text_decorations(), maui::core::text_decorations::underline);
+        label_owner.reset(); // root dies while `result`'s graph still owns its children
     }
 
     TEST(xaml_loader, flex_layout_attached_grow_basis)
@@ -1945,7 +1959,13 @@ namespace
         // <TableView><TableRoot>… implicit content (TableView [ContentProperty(nameof(Root))]).
         // Keep the load result alive: it OWNS the created cell/section/root graph, and the table holds
         // non-owning aliasing handles into it (xaml_loader.hpp: "destroy the result, destroy the tree").
-        controls::table_view table;
+        // DESTRUCTION ORDER IS LOAD-BEARING: the load result OWNS the created graph and this root
+        // holds NON-OWNING aliasing handles into it, so a plain local declared here dies AFTER the
+        // result and touches freed children (heap-use-after-free under asan-ubsan, which gate.sh
+        // runs by default). Holding the root in a shared_ptr and resetting it below forces the
+        // root to die while the graph still owns everything it points at.
+        auto table_owner = std::make_shared<controls::table_view>();
+        controls::table_view& table = *table_owner;
         const xaml_load_result result = xaml_loader::load_into(table, R"xml(
 <TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -1964,12 +1984,19 @@ namespace
         ASSERT_NE(text, nullptr);
         EXPECT_EQ(text->text(), "Hi");
         EXPECT_EQ(text->detail(), "D");
+        table_owner.reset(); // root dies while `result`'s graph still owns its children
     }
 
     TEST(xaml_loader, table_view_root_property_element)
     {
         // The explicit <TableView.Root> property-element spelling routes through the same "Root" sink.
-        controls::table_view table;
+        // DESTRUCTION ORDER IS LOAD-BEARING: the load result OWNS the created graph and this root
+        // holds NON-OWNING aliasing handles into it, so a plain local declared here dies AFTER the
+        // result and touches freed children (heap-use-after-free under asan-ubsan, which gate.sh
+        // runs by default). Holding the root in a shared_ptr and resetting it below forces the
+        // root to die while the graph still owns everything it points at.
+        auto table_owner = std::make_shared<controls::table_view>();
+        controls::table_view& table = *table_owner;
         const xaml_load_result result = xaml_loader::load_into(table, R"xml(
 <TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -1985,6 +2012,7 @@ namespace
         ASSERT_EQ(table.root()->count(), 1U);
         EXPECT_EQ(table.root()->at(0)->title(), "B");
         ASSERT_EQ(table.root()->at(0)->count(), 1U);
+        table_owner.reset(); // root dies while `result`'s graph still owns its children
     }
 
     TEST(xaml_loader, table_view_scalar_properties)
@@ -2002,7 +2030,13 @@ namespace
     TEST(xaml_loader, table_view_all_cell_types)
     {
         // One section with a TextCell, EntryCell, SwitchCell, and a ViewCell wrapping a Label.
-        controls::table_view table;
+        // DESTRUCTION ORDER IS LOAD-BEARING: the load result OWNS the created graph and this root
+        // holds NON-OWNING aliasing handles into it, so a plain local declared here dies AFTER the
+        // result and touches freed children (heap-use-after-free under asan-ubsan, which gate.sh
+        // runs by default). Holding the root in a shared_ptr and resetting it below forces the
+        // root to die while the graph still owns everything it points at.
+        auto table_owner = std::make_shared<controls::table_view>();
+        controls::table_view& table = *table_owner;
         const xaml_load_result result = xaml_loader::load_into(table, R"xml(
 <TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -2044,12 +2078,19 @@ namespace
         auto* inner_label = dynamic_cast<controls::label*>(view_cell->view().get());
         ASSERT_NE(inner_label, nullptr);
         EXPECT_EQ(inner_label, result.find_by_name<controls::label>("vclabel").get());
+        table_owner.reset(); // root dies while `result`'s graph still owns its children
     }
 
     TEST(xaml_loader, table_cell_height_and_isenabled)
     {
         // Cell.Height (plain-field, non-bindable route) + Cell.IsEnabled (bindable).
-        controls::table_view table;
+        // DESTRUCTION ORDER IS LOAD-BEARING: the load result OWNS the created graph and this root
+        // holds NON-OWNING aliasing handles into it, so a plain local declared here dies AFTER the
+        // result and touches freed children (heap-use-after-free under asan-ubsan, which gate.sh
+        // runs by default). Holding the root in a shared_ptr and resetting it below forces the
+        // root to die while the graph still owns everything it points at.
+        auto table_owner = std::make_shared<controls::table_view>();
+        controls::table_view& table = *table_owner;
         const xaml_load_result result = xaml_loader::load_into(table, R"xml(
 <TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
     <TableRoot>
@@ -2066,12 +2107,19 @@ namespace
         ASSERT_NE(text, nullptr);
         EXPECT_EQ(text->height(), 25.0);
         EXPECT_FALSE(text->is_enabled());
+        table_owner.reset(); // root dies while `result`'s graph still owns its children
     }
 
     TEST(xaml_loader, table_section_title_and_textcolor)
     {
         // TableSection inherited Title/TextColor (re-registered per concrete type; find() has no base walk).
-        controls::table_view table;
+        // DESTRUCTION ORDER IS LOAD-BEARING: the load result OWNS the created graph and this root
+        // holds NON-OWNING aliasing handles into it, so a plain local declared here dies AFTER the
+        // result and touches freed children (heap-use-after-free under asan-ubsan, which gate.sh
+        // runs by default). Holding the root in a shared_ptr and resetting it below forces the
+        // root to die while the graph still owns everything it points at.
+        auto table_owner = std::make_shared<controls::table_view>();
+        controls::table_view& table = *table_owner;
         const xaml_load_result result = xaml_loader::load_into(table, R"xml(
 <TableView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
     <TableRoot>
@@ -2083,6 +2131,7 @@ namespace
         const auto& section = table.root()->at(0);
         EXPECT_EQ(section->title(), "Locations");
         EXPECT_EQ(section->text_color(), maui::graphics::colors::red);
+        table_owner.reset(); // root dies while `result`'s graph still owns its children
     }
 
     // ---- SwipeView items (SwipeItem / SwipeItemView / SwipeItems) --------------------------------------
