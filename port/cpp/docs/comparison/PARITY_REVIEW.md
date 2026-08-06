@@ -2839,3 +2839,37 @@ GENERATED marker must be removed, or `e2e.py gen` will overwrite the work.
 Two formats are float-sensitive and worth pinning in whatever test covers this: "%.0f" drops the decimal
 entirely (Pan 12,-3, not Pan 12.0,-3.0) and "%.2f" keeps exactly two (Pinch x1.25). C#'s default
 ToString() matches neither, so these need explicit format strings on the MAUI side.
+
+### step 5 is BLOCKED: an ANIMATED page's driven step runs but its frame is never banked (2026-08-06)
+
+The gesture batch's steps 1-4 all landed and verified, MauiReference was rebuilt for iOS (0 warnings),
+and `gestures` was recaptured on the iOS lane: 0 failed steps, and the runner logged `step tapped: ok`
+for EVERY column in BOTH themes. The score is still 0 px vs 0 px, NOTHING MOVED, on both frameworks.
+
+The frames say why. Every sidecar in
+docs/comparison/2026-08-06-23_14_45/gestures/ios/*/ carries one of:
+
+    initial (6)   gif00000 (2)   gif00333 (6)   gif00667 (4)   ... gif04000 (4)
+
+and `tapped` appears ZERO times. The step RAN — the agent reported ok four times — and the frame that
+records its effect was never written. motion_score then pairs `initial` against `initial` and correctly
+reports no motion. This is the same shape as 89261d905a (frame banking gated on a list that never kept
+the driven frames) and the same shape as the aim misses: something reports success, the frame comes back
+identical, and an inert result is indistinguishable from a working one.
+
+WHAT MAKES IT SPECIFIC: `gestures` is in recapture.py:135's hard-coded ANIMATED list, so it gets a GIF
+burst as well as its scenario. write_gif_scenarios' own docstring (:993-1000) says the burst is
+"COMPOSED onto whatever it already has ... APPENDED AFTER THE LAST of them — the last step is the one
+that set the page in motion, so the frames that record that motion have to follow it, not replace it.
+Replacing was the old behavior and it silently disarmed any page that was both animated and driven."
+The banked frames show exactly the disarming that docstring says was fixed, so either the compose is not
+reaching this page or the frames are dropped downstream of it. Not yet isolated.
+
+Note the asymmetry while diagnosing: maui_xaml and cpp_xaml banked 26 sidecars each, cpp only 6 — so
+the burst length differs per COLUMN too, which any fix has to keep straight.
+
+CONSEQUENCE: every page that is BOTH animated and driven is currently unmeasurable for motion, which is
+a superset of this one page. Until it is isolated, do not read NOTHING MOVED on an ANIMATED page as
+evidence about the port — check whether a frame carrying the driven step exists at all:
+
+    python3 -c "import json,glob,collections;c=collections.Counter(json.load(open(f)).get('step') for f in glob.glob('<run>/<key>/<lane>/*/*.json'));print(dict(c))"
