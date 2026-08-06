@@ -671,19 +671,26 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
                 for key in examples:
                     kind = kind_for("ios", key)
                     steps = scen.get(key)          # None for the ~155 unscripted pages: touch nothing
-                    # ANIMATED pages only. pixel_score calls motion_score.score_cell for exactly the
-                    # ANIMATED set, so a still page's unit would be ~1000 PNGs per run duplicating
-                    # bytes captures/ already holds — in a tree nothing prunes. `kind` IS that set
-                    # (kind_for), so this cannot drift out of step with what gets scored.
-                    want_unit = unit_ok and kind == "png+gif"
+                    # PAGES THAT GET MOTION-SCORED — which is the ANIMATED set OR a page with an
+                    # authored action step, because pixel_score calls motion_score.score_cell for
+                    # both (its `driven_pages()`). An UNSCRIPTED still page still gets no unit: ~1000
+                    # PNGs per run duplicating bytes captures/ already holds, in a tree nothing prunes.
+                    # This used to claim `kind` alone "cannot drift out of step with what gets scored"
+                    # — it did drift, the moment pages were driven: 58 of 62 driven cells were scored
+                    # from a single still because their frames were never banked. Both halves of the
+                    # scorer's trigger have to appear here, and `steps` is the same
+                    # scenario-derived answer `driven_pages()` computes.
+                    want_unit = unit_ok and (kind == "png+gif" or bool(steps))
                     t0 = begin("ios", fw, theme, key, kind)
                     try:
-                        # NOTE the lane difference (see the module docstring): capture_still drives and
-                        # THEN shoots straight to the board path, so on iOS a driven page's canonical
-                        # still is the REACTED frame — the run dir records that same frame rather than
-                        # an at-rest one it never took. That is the same state all three iOS columns
-                        # get. `run_unit` is the ADDITIONAL evidence copy; the board path is unchanged.
+                        # `still_first` on everything that is not ANIMATED: shoot AT REST, publish
+                        # that, then drive and bank the reacted frame in the unit — so the board keeps
+                        # the resting render (it was showing post-click switches and checkboxes) and
+                        # the unit holds a real before/after. The ANIMATED path keeps driving BEFORE
+                        # the shot: its board artifact is the GIF and its motion frames come out of
+                        # that recording. `run_unit` is the ADDITIONAL evidence copy either way.
                         out = capture_ios.capture_still(app, key, theme, settle, steps=steps,
+                                                        still_first=kind != "png+gif",
                                                         **ios_run_kw(key, fw, want_unit))
                         if kind == "png+gif":
                             # Both, deliberately: the GIF is what the board renders, the still keeps a
@@ -1404,6 +1411,16 @@ def selftest() -> int:
     # class of page that quietly goes back to being photographed at rest.
     for fn, needle, want in ((lane_ios, "steps=steps", 2), (android_gifs, "steps=scen.get(key)", 1)):
         assert inspect.getsource(fn).count(needle) == want, (fn.__name__, needle, want)
+    # …and WHICH SIDE OF THE SHOT they run on. Everything but an ANIMATED page shoots at rest first;
+    # without that, a driven page's board still is the frame AFTER the click — the board was showing
+    # flipped switches and ticked checkboxes as their resting render. Source check for the same reason
+    # as above: it needs a booted simulator to observe, and the failure mode is a published frame that
+    # looks perfectly plausible.
+    assert "still_first" in inspect.signature(capture_ios.capture_still).parameters
+    assert inspect.getsource(lane_ios).count('still_first=kind != "png+gif"') == 1
+    # The unit gate must cover BOTH halves of what pixel_score motion-scores (ANIMATED or driven), or
+    # the frames it scores are never banked in the first place.
+    assert inspect.getsource(lane_ios).count('kind == "png+gif" or bool(steps)') == 1
 
     # --- the RUN DIRECTORY the device lanes leave for lib/motion_score.py. Same shape of check and
     # for the same reason: a dropped destination type-checks, runs, logs success, writes no evidence,

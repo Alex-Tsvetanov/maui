@@ -25,8 +25,9 @@ reason it is not three lines of `simctl`:
 
 DRIVING THE DEVICE (scenario steps)
 -----------------------------------
-`run_steps()` replays a page's step dicts against the device — before the still, and DURING the GIF
-recording. Touches are injected with **idb** (`idb ui tap/swipe/text`), which speaks to the simulator's
+`run_steps()` replays a page's step dicts against the device — AFTER the at-rest still and again for
+the reacted frame (`capture_still(still_first=True)`, which is what a driven page gets), or before the
+still on the animated path, and DURING the GIF recording. Touches are injected with **idb** (`idb ui tap/swipe/text`), which speaks to the simulator's
 own HID layer over the companion socket. THE HOST POINTER IS NEVER TOUCHED, and that is a hard
 requirement, not a nicety: this lane previously drove the Simulator WINDOW with `cliclick` plus an
 `osascript … activate`, so a board run seized the cursor and the foreground app for its whole duration
@@ -683,15 +684,40 @@ def _bank_burst(run_unit, app: str, column: str | None, key: str, theme: str, re
     return made
 
 
+# The step name of the reacted frame `still_first` banks after driving. Not `initial` (that name is
+# reserved for the at-rest frame every lane publishes) and not `gif*` (recapture.burst_frames treats
+# those as burst frames). Constant, so the two columns of one page pair on it — they run the same
+# scenario, so "after the last step" is the same moment of the same page in each.
+REACTED_STEP = "driven"
+
+
 def capture_still(app: str, key: str, theme: str, settle: float, udid: str = UDID,
-                  steps: list[dict] | None = None, run_unit=None, column: str | None = None) -> str | None:
+                  steps: list[dict] | None = None, run_unit=None, column: str | None = None,
+                  still_first: bool = False) -> str | None:
     """Launch + settle + screenshot. Returns the written path, or None if the frame was DROPPED.
 
     `run_unit` (a `<comp>/<RUN>/<key>/ios/<column>/` path) additionally banks the PUBLISHED bytes
-    there as this unit's `initial` frame; None keeps the pre-run-dir behavior exactly."""
+    there as this unit's `initial` frame; None keeps the pre-run-dir behavior exactly.
+
+    `steps` DRIVE THE PAGE, and `still_first` decides on which side of the shot:
+
+      * False (the default, and what an ANIMATED page gets): drive, THEN shoot — the published still
+        is the REACTED frame. That is deliberate there, because such a page's board artifact is the
+        GIF from `capture_gif` and its motion frames come out of that recording.
+      * True: shoot AT REST first, publish and bank THAT, then drive and bank the reacted frame
+        beside it as `REACTED_STEP`. This is what a driven page needs: the board keeps the resting
+        render (a post-click switch is not what "at rest" looks like), and the unit holds a real
+        before/after for motion_score instead of the single frame this path used to produce.
+
+    Every VM lane already works the second way — it shoots a step named `initial` with no action and
+    import_run_captures publishes that.
+    """
     out = out_path(app, key, theme, "png")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     stage = os.path.join(tempfile.gettempdir(), f"parity_{app}_{key}_{theme}.png")
+    # The drive that precedes the SHOT. Under `still_first` it is empty and the steps run afterwards —
+    # including on every splash retry, whose relaunch would otherwise leave the page undriven.
+    pre = None if still_first else steps
 
     def keep(published: str) -> str:
         """Both return paths funnel through here — the splash retry publishes its own frame, and a
@@ -700,25 +726,44 @@ def capture_still(app: str, key: str, theme: str, settle: float, udid: str = UDI
             _bank(run_unit, app, column, key, theme, published, "initial")
         return published
 
+    def react(published: str) -> str:
+        """`still_first`: the at-rest frame is banked, so NOW drive and bank what the page became.
+
+        Only when there is somewhere to bank it: without a run unit the reacted frame has nothing to
+        be compared against and nowhere to live (it must never reach the board path — that is the
+        whole point of shooting at rest first), so driving would be pure wall-clock."""
+        if not (still_first and steps and run_unit is not None):
+            return published
+        run_steps(steps, udid)
+        if _screenshot(stage, udid):
+            if is_splash(stage):
+                # Same rule as everywhere else in this module: never bank a frame that is not the
+                # page. The unit keeps its at-rest frame, and motion_score reports the missing pair.
+                print(f"      run-dir: reacted frame for {key}/{theme} was a splash — not banked")
+            else:
+                _bank(run_unit, app, column, key, theme, stage, REACTED_STEP)
+            os.remove(stage)
+        return published
+
     launch(app, key, udid)
     time.sleep(settle)
-    run_steps(steps, udid)
+    run_steps(pre, udid)
     if not _screenshot(stage, udid):
         return None
     shutil.copyfile(stage, out)
     os.remove(stage)
     if not is_splash(out):
-        return keep(out)
+        return react(keep(out))
     for extra in (4.0, 8.0, 16.0):
         launch(app, key, udid)
         time.sleep(settle + extra)
-        run_steps(steps, udid)   # a relaunch discards the reacted state — re-drive, or the retry frame is idle
+        run_steps(pre, udid)   # a relaunch discards the reacted state — re-drive, or the retry frame is idle
         if not _screenshot(stage, udid):
             continue
         shutil.copyfile(stage, out)
         os.remove(stage)
         if not is_splash(out):
-            return keep(out)
+            return react(keep(out))
     os.remove(out)   # still a splash — drop it rather than bank a known-bad frame
     return None
 
@@ -996,6 +1041,32 @@ if __name__ == "__main__":
         assert all(s for s, _, _ in shots)
         paired = motion_score._pair([(s, p) for s, p, _ in shots], [(s, p) for s, p, _ in shots])
         assert len(paired) == len(shots), paired
+
+    # ---- A DRIVEN, NON-ANIMATED PAGE (`still_first`): at-rest frame published and banked, reacted
+    # frame banked beside it. REACTED_STEP is the load-bearing detail — `initial` is the published
+    # still's name and a `gif*` name would make burst_frames treat the frame as a burst frame, so
+    # either would leave the sequence with no BEFORE, which is the single-frame bug wearing a run dir.
+    assert REACTED_STEP != "initial" and not REACTED_STEP.startswith("gif"), REACTED_STEP
+    with tempfile.TemporaryDirectory() as tmp:
+        unit = os.path.join(tmp, "2026-08-05-00_00_00", "switch", "ios", "cpp")
+        rest, hit = os.path.join(tmp, "rest.png"), os.path.join(tmp, "hit.png")
+        for p, b in ((rest, b"\x89PNG\r\n\x1a\n switch OFF"), (hit, b"\x89PNG\r\n\x1a\n switch ON")):
+            with open(p, "wb") as fh:
+                fh.write(b)
+        _bank(unit, "cpp", None, "switch", "light", rest, "initial")
+        _bank(unit, "cpp", None, "switch", "light", hit, REACTED_STEP)
+
+        import pathlib
+        shots = motion_score._shots(pathlib.Path(unit), "light")
+        assert [s for s, _, _ in shots] == ["initial", REACTED_STEP], shots
+        # The board still is the AT-REST frame, and this run is the one behind it — the reacted frame
+        # must never be what captures/ shows.
+        assert motion_score._is_published_run(rest, shots), "the at-rest frame is not the run's still"
+        assert not motion_score._is_published_run(hit, [shots[0]]), "the reacted frame was published"
+        # Two frames, distinct, and both paired: a real before/after instead of one still.
+        assert len(motion_score._pair([(s, p) for s, p, _ in shots],
+                                      [(s, p) for s, p, _ in shots])) == 2
+        assert len(burst_frames(pathlib.Path(unit), "light")) == 2, "a driven unit keeps its BEFORE"
 
     # EVERY checked-in scenario, replayed through plan() — the real files, not fixtures. These are read
     # by four lanes, and this one used to implement a strictly SMALLER verb set than the vocabulary they
