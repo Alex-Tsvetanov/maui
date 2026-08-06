@@ -514,6 +514,20 @@ namespace maui::controls
         // a wired-real knob's mapper key re-runs.
         template <class T> void set_platform_spec(std::string_view name, T value)
         {
+            // PIN THE OWNER, exactly as property<T>::set does (property.hpp:113/:231, added in
+            // 96dd81cf12). This path raises twice and TOUCHES `this` BETWEEN AND AFTER the raises:
+            // on_property_changing is user code that fans out through every override down to
+            // bindable_object's raise, and a handler there may drop the last shared_ptr to this element
+            // — after which the insert_or_assign below writes into freed storage and on_property_changed
+            // is called on it. property<T> was pinned and this sibling mutator was not; the ordering is
+            // load-bearing (BindableObject.cs:637-644 raises and then touches `this`) so the fix is to
+            // root the object for the body, not to reorder or to add am-I-alive checks.
+            //
+            // Empty and harmless when the element is not shared_ptr-owned — a pure stack local cannot be
+            // freed by a handler anyway. Same residual gap property.hpp documents: a SUBOBJECT of a
+            // shared_ptr-owned parent has no refcount of its own to pin.
+            auto const pin = weak_from_this().lock();
+
             std::string key{name};
             if (const auto it = platform_specs_.find(key); it != platform_specs_.end())
             {

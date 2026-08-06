@@ -426,4 +426,40 @@ namespace
 
         EXPECT_TRUE(observer.expired()) << "test is void unless the handler really freed the label";
     }
+
+    // The SAME guarantee for the platform-spec mutator, which is a second, independent path into the
+    // two raises: element::set_platform_spec (element.hpp) writes platform_specs_ BETWEEN
+    // on_property_changing and on_property_changed. property<T>::set was pinned in 96dd81cf12 and this
+    // sibling was not, so a handler that dropped the last reference during the CHANGING raise left the
+    // insert_or_assign writing into freed storage and on_property_changed running on it. The two tests
+    // above cannot reach it — they go through a property<T>, which has its own pin.
+    TEST(element_notification_lifetime, platform_spec_changing_handler_may_destroy_the_owner)
+    {
+        std::shared_ptr<label> owner(new label);
+        std::weak_ptr<label> const observer = owner;
+        owner->property_changing.connect([&owner](std::string_view) { owner.reset(); });
+
+        label& raw = *owner;
+        raw.set_platform_spec<bool>("Test.PlatformSpecPinProbe", true);
+
+        EXPECT_TRUE(observer.expired()) << "test is void unless the handler really freed the label";
+    }
+
+    // And through the destroying CHANGED raise. NOTE, measured by removing the pin and re-running:
+    // this one PASSES either way, so it is a statement of the guarantee rather than a regression net —
+    // set_platform_spec does nothing after on_property_changed returns, so a free at that point has no
+    // subsequent access to corrupt. The CHANGING twin above is the discriminating test: without the pin
+    // it fails, because the insert_or_assign and the second raise both run on freed storage. Kept
+    // because it pins the ordering contract if a tail is ever added after the changed raise.
+    TEST(element_notification_lifetime, platform_spec_changed_handler_may_destroy_the_owner)
+    {
+        std::shared_ptr<label> owner(new label);
+        std::weak_ptr<label> const observer = owner;
+        owner->property_changed.connect([&owner](std::string_view) { owner.reset(); });
+
+        label& raw = *owner;
+        raw.set_platform_spec<bool>("Test.PlatformSpecPinProbe", true);
+
+        EXPECT_TRUE(observer.expired()) << "test is void unless the handler really freed the label";
+    }
 } // namespace
