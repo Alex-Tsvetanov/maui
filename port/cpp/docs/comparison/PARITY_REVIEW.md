@@ -3088,3 +3088,37 @@ backend is dormant, produced by a page whose other three layers are now known-go
 should stay red until the manager is attached — that is a real, user-visible gap (no gesture on any
 Android page works), not a harness artifact. Windows will almost certainly show the same, for the same
 reason and from the same commit.
+
+### REAL BREAKAGE, introduced by me: gallery_xaml CRASHES on Windows/gestures (0xC000041D)
+
+Escalating rather than filing quietly. The Windows lane's cpp_xaml column now dies on the gestures page:
+
+    ! gestures/cpp_xaml/light: launch failed: process exited early with code 3221226107
+
+3221226107 = 0xC000041D = STATUS_FATAL_USER_CALLBACK_EXCEPTION — an unhandled exception thrown inside a
+callback. The app does not render; the frame is dropped.
+
+SCOPE IS EXACT, which makes the cause narrow:
+  * cpp (code-first) on the SAME page, same run, same guest: SUCCEEDS. It attaches the same five
+    recognizer types via the same gesture_recognizers() collection.
+  * cpp_xaml: crashes.
+  * iOS and maccatalyst run this identical code-behind without incident (1b46744647, 69ad10ea5d).
+So it is not "recognizers on Windows" in general, and not the twin markup — it is the XAML path on this
+backend: loader-created recognizers plus examples/gallery_xaml/Views/gestures.xaml.cpp walking the
+collection and connecting.
+
+INTRODUCED BY 1b46744647 (the hand-written cpp_xaml code-behind). Before it, that file only #embedded the
+XAML and called build_page, and the Windows lane was green on this page. Suspects, in order:
+  1. page->retain(scoped_connection(evt, token)) — the token/connection pairing is the part I got wrong
+     twice already on this file, and Windows is the only backend where it has never run;
+  2. page->find<box_view>("GestureTarget") / find<label>("Readout") returning something the walk then
+     dereferences — the null path returns early on iOS, but the crash is a CALLBACK exception, which
+     points at connect-time rather than lookup-time;
+  3. the dormant Windows gesture manager (29d63917ae) throwing where the headless no-op did not — the
+     cpp column would not hit this if its recognizers are attached through a different path.
+
+CAPTURES FROM THIS RUN ARE NOT PUBLISHED. The cpp_xaml frame is missing and the rest would pair a live
+MAUI column against a crashed one, which is worse than the stale-but-consistent state it replaces.
+
+Verify a fix with `ninja gallery_xaml` in the GUEST's C:/maui-src/cpp/examples/build-win (it BUILDS clean
+— exit 0 — so this is runtime, not compile), then re-run the single page.
