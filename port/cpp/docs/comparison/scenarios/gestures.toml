@@ -1,0 +1,37 @@
+# Scenario for the `gestures` page: capture at rest, then TAP the gesture target so the readout label
+# changes from "Last gesture: (none)" to "Last gesture: Tapped".
+#
+# THIS PAGE WAS NOT DRIVABLE UNTIL THREE THINGS LANDED, and adding this file before any of them would
+# have made the board WORSE, not better:
+#   1. e2f91da2f4 — the shared twin had no <GestureRecognizers> at all ("omitted" in its own comment),
+#      so MAUI's column had nothing to fire.
+#   2. 27fd12e283 — the C++ XAML loader could not even mint a <TapGestureRecognizer>; the types were
+#      unregistered, so the cpp_xaml column would have dropped the layer silently.
+#   3. 7007a8909a — the twin's recognizers fired NOTHING (GesturesPage.xaml.cs had no handlers) while
+#      the code-first builder updated its readout, so a tap would have moved ONE column and the board
+#      would have reported MOTION MISMATCH, blaming the port for the twin's omission. A mismatch reads
+#      as a defect; the NOTHING MOVED it would have replaced reads as unmeasured. Only one was true.
+#
+# COORDINATES — one portable fraction serves all four lanes, which is unusual here and was verified
+# rather than assumed. The cornflower-blue target was located mechanically in each lane's MAUI capture
+# (its colour is unambiguous), giving these boxes as fractions of frame:
+#     ios          1206x2622  y 0.118-0.300     android      1080x2340  y 0.109-0.296
+#     maccatalyst  1024x800   y 0.083-0.229     windows      1024x800   y 0.094-0.293
+# x is centred on every lane (0.498-0.499). The y intersection is 0.118-0.229, so 0.173 sits comfortably
+# inside all four with margin on both sides — no at_<env> override is needed, and adding one would only
+# create a second thing to keep calibrated.
+#
+# TO RECALIBRATE: re-run the colour search over captures/<lane>/maui/gestures_light.png and take the
+# intersection of the four boxes again; do NOT nudge this value to clear a guard without re-measuring.
+
+tag = "gestures"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "tapped"
+action = "click"
+at = [0.50, 0.173]        # the cornflower-blue gesture target; readout -> "Last gesture: Tapped"
