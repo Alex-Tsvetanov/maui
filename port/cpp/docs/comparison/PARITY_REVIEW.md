@@ -2679,3 +2679,38 @@ unpresented window with coordinates measured on a 1024x800 presented one.
 
 Board after both desktop lanes: ios 290g/46y/8r · android 271g/58y/15r ·
 maccatalyst 265g/74y/5r · windows 286g/53y/5r.
+
+---
+
+## windows `button`: the ONLY divergence among the nine "lands on content, scores nothing" pages (2026-08-06)
+
+Checked all nine for a hidden port defect — a page where MAUI reacts and the port does not, or vice
+versa, masked by the shared NOTHING MOVED verdict. Eight are 0 px vs 0 px: both columns agree, there is
+simply nothing for the board to measure. One is not.
+
+  button [windows]:  MAUI 0 px  vs  C++ 57 px  (light), 0 vs 58 (dark)
+
+**The port reacts and MAUI does not.** The port's change is 59 pixels in a 7x10 box at x 54-60, y 49-58 —
+top-left of the page, digit-sized — going from (227,227,227) to (244,244,244). That is a counter label
+incrementing. The click itself lands far away, at window-relative (512, 171), so this is a readout
+responding to the press, not the press artifact.
+
+**A methodology note that matters more than the finding.** The raw frame diff says BOTH columns changed
+~29,450 pixels, which flatly contradicts the score. The score is right and the raw diff is the naive
+measurement: MAUI's 29,457 changed pixels have a MAXIMUM delta of 6 levels — a uniform sub-visible
+shimmer across one row. The port has those same ~29,300 shimmer pixels PLUS 59 with deltas up to 218.
+motion_score counts only the significant ones. So "0 px" never meant the frames were identical; it meant
+nothing changed enough to see. Anyone re-checking this with a plain ImageChops difference will
+"discover" a contradiction that is not there.
+
+**Not yet diagnosed:** why MAUI's counter does not move. Same absolute coordinate, same pinned rect, so
+both columns receive the identical click. Either MAUI's button is not under (512, 171) in its layout —
+button.toml is one of the LEGACY absolute files, calibrated for one lane and never re-authored — or the
+shared XAML twin does not wire the counter the code-first page does. The second would be ruling-12
+territory (a twin degrading original content), and is checkable by reading the twin. Left open.
+
+The remaining eight are honest: picker / ios_picker / ios_date_picker open WinUI popups that
+PrintWindow(PW_RENDERFULLCONTENT) cannot see (it captures the window's own backing store, and a popup is
+a separate top-level window); search_bar / semantics / clip_views focus a text field, which on Windows is
+a caret and no on-screen keyboard; ios_scroll_view and radio_button_content need a closer look but agree
+across columns, so neither hides a parity gap.
