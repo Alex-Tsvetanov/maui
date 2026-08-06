@@ -84,10 +84,59 @@ def points(rc, step, rect=None):
     raise ValueError(f"{step.get('name')!r}: unknown action {action!r}")
 
 
+# --- does the point land on a CONTROL, or on empty page? ------------------------------------------
+# The docstring above says this file cannot check that "by construction". It can, for any lane whose
+# MAUI capture is on disk, and not checking it cost sixteen dead pages on the Windows board before
+# anyone looked: seven of them aimed at bare background, and because a miss and an inert page produce
+# the SAME identical-frames result, the board reported them as parity for weeks.
+#
+# The rule is deliberately weak in one direction: a FLAT patch that matches the page's own background
+# colour is a miss, anything else passes. An empty Entry's interior is flat white too, which is why the
+# background-colour agreement is required and not just the flatness — and why a control sitting on a
+# same-coloured fill is a false PASS rather than a false alarm. Verified against the measured Windows
+# sweep: check_box (512,108) and stepper (215,104) are caught; picker (512,104), which lands on a
+# full-width ComboBox, is not. The SAME check clears check_box on maccatalyst, where that page is
+# centred and the identical fraction lands on the control — which is how the two lanes were shown to
+# need different coordinates rather than sharing one bug.
+CAPTURES = HERE.parent / "captures"
+PATCH = 30              # half-width: a 60x60 window, wide enough to include a small control's border
+FLAT_STDDEV = 3.0       # below this the patch carries no edge at all
+BG_TOLERANCE = 6        # per-channel distance at which the patch counts as "the page background"
+
+
+def _capture(platform: str, key: str):
+    """The lane's MAUI light capture, or None when this lane has never shot this page."""
+    try:
+        from PIL import Image                      # noqa: PLC0415  optional: the rest of the gate runs without it
+    except ImportError:
+        return None
+    p = CAPTURES / platform / "maui" / f"{key}_light.png"
+    return Image.open(p).convert("RGB") if p.exists() else None
+
+
+def lands_on_content(im, x: int, y: int) -> bool:
+    """False when (x, y) sits in a flat region painted the page's own background colour."""
+    from PIL import ImageStat                      # noqa: PLC0415  guarded by _capture returning None
+
+    w, h = im.size
+    if not (0 <= x < w and 0 <= y < h):
+        return True                                # off-image is the band check's job, not this one
+    patch = im.crop((max(0, x - PATCH), max(0, y - PATCH), min(w, x + PATCH), min(h, y + PATCH)))
+    stat = ImageStat.Stat(patch)
+    if max(stat.stddev) >= FLAT_STDDEV:
+        return True
+    # Flat. Is it flat in the PAGE BACKGROUND, or flat inside a large same-coloured control? Compare
+    # against a corner well clear of any content — the bottom-left of the frame, which every gallery
+    # page leaves empty because its content stacks from the top.
+    bg = im.getpixel((min(8, w - 1), h - 9))
+    return any(abs(a - b) > BG_TOLERANCE for a, b in zip(stat.mean, bg))
+
+
 def main() -> int:
     rc = _load_runner()
     x_lo, x_hi, y_lo, y_hi = band()
     errors, warnings, checked = [], [], 0
+    blind = []
 
     for f in sorted(HERE.glob("*.toml")):
         try:
@@ -132,8 +181,34 @@ def main() -> int:
                 except Exception as e:             # noqa: BLE001
                     (warnings if f.stem in LEGACY else errors).append(f"{f.name} [{lane}]: {e}")
                     continue
+                im = _capture(lane, f.stem)
+                if im is None:
+                    blind.append(f"{f.stem} [{lane}]")
                 for i, (x, y) in enumerate(pts):
                     checked += 1
+                    # Only the START of a gesture is tested: a drag END may legitimately finish over
+                    # empty page.
+                    #
+                    # A CLICK on background is always dead — there is nothing under the cursor to
+                    # receive it. A SCROLL or DRAG is not: it acts on whatever scrollable ancestor is
+                    # beneath, and the inside of a ScrollView is mostly blank by nature. clip_gallery
+                    # aims at flat background on both desktop lanes and scrolls perfectly well there
+                    # (15.93% of frame in MAUI vs 16.25% in the port), so failing it would be the gate
+                    # lying about a page that works. Hence: hard error for click/hover, warning for the
+                    # rest — still worth saying, because carousel_page and swipe_refresh aim at blank
+                    # too and those two really are dead on Windows.
+                    if i == 0 and im is not None and not lands_on_content(im, x - lx, y - ly):
+                        needs_target = step.get("action") in ("click", "hover")
+                        msg = (f"{f.name} [{lane}]: step {step.get('name')!r} ({step.get('action')}) "
+                               f"aims at [{x}, {y}] = image ({x - lx}, {y - ly}), which is FLAT PAGE "
+                               f"BACKGROUND in this lane's MAUI capture — "
+                               + ("a click there lands on nothing, the agent reports ok, and the frame "
+                                  "comes back identical, which the board cannot tell apart from a page "
+                                  "that does not react"
+                                  if needs_target else
+                                  "which is fine IF a scrollable ancestor is underneath, and dead if "
+                                  "not; confirm against the page's motion score before trusting it"))
+                        (errors if needs_target and f.stem not in LEGACY else warnings).append(msg)
                     if i == 0 and lane == "maccatalyst" and y < ly + TITLE_BAR:
                         msg = (f"{f.name} [{lane}]: step {step.get('name')!r} STARTS at [{x}, {y}], "
                                f"on the title bar (y < {ly + TITLE_BAR}) — a drag from there moves "
@@ -145,6 +220,10 @@ def main() -> int:
         print(f"WARN  {w}")
     for e in errors:
         print(f"FAIL  {e}")
+    if blind:
+        # Say what was NOT checked. A gate that silently skips half its inputs reads as a pass.
+        print(f"note  no MAUI capture, content check skipped: {len(blind)} — {', '.join(blind[:6])}"
+              f"{' ...' if len(blind) > 6 else ''}")
     print(f"{'FAIL' if errors else 'ok'}: {checked} point(s) across "
           f"{len(list(HERE.glob('*.toml')))} scenario(s), {len(warnings)} warning(s)")
     return 1 if errors else 0
