@@ -2568,3 +2568,55 @@ No MAUI data point exists — the twin navigates a URL, and `web_view_page.hpp` 
 gallery using `html_web_view_source`. If MAUI darkens it too, the port was faithful and this change makes
 the page diverge from MAUI's string-source behavior while matching its rendered reference. Getting the
 answer needs a string source added to the MauiReference twin and a MAUI rebuild; not done here.
+
+---
+
+## windows: the 16 NOTHING MOVED pages do NOT share one cause (2026-08-06, MEASURED)
+
+**Correction to commit 83917baff3.** That message says the 16 are "the same 1024x800 desktop-window
+miss the maccatalyst lane reported". That is wrong, and it was generalised from a single page. The
+commit is already the parent of others so it is not amended; this entry is the record.
+
+The generalisation broke on the first page checked properly. `check_box` aims at fraction [0.50, 0.135].
+On maccatalyst that resolves to (512, 108) and the checkboxes ARE centred at x=512 — the click lands
+(it drifts one row down onto `colored_check_`, which the scenario comment anticipated, and the page
+moved 109 px). On Windows the very same page is LEFT-ALIGNED, checkboxes at x=40, so x=0.50 lands in
+empty space. Same fraction, same window size, opposite outcome — because the two desktop lanes lay the
+page out differently, not because they share a geometry problem.
+
+**The mechanical sweep.** For each of the 16, the scenario's aim point was resolved against
+captures/windows/maui/<key>_light.png and the standard deviation of the 40x40 patch around it measured.
+A flat patch means the gesture landed on background:
+
+  MISSED — patch stddev 0.00, aim lands on empty background (7):
+    carousel_page (870,360) · check_box (512,108) · data_template_selector (512,96) ·
+    empty_view_selector (512,160) · hit_testing (296,128) · stepper (215,104) · swipe_refresh (512,120)
+
+  LANDED ON CONTENT and still scored 0.0000% (9):
+    button (512,171) stddev 46.6 [absolute coords, window-relative] · clip_views (225,152) 92.8 ·
+    ios_date_picker (512,72) 28.3 · radio_button_content (61,112) 51.5 · search_bar (337,208) 18.4 ·
+    semantics (337,264) 18.5 · picker (512,104) 4.9 · ios_scroll_view (512,72) 12.7 ·
+    ios_picker (512,72) 8.5
+
+So HALF the block is not an aiming problem at all, and re-authoring coordinates would not move it.
+
+**Why the nine produce nothing.** Read off the captures rather than inferred: `picker` aims at (512,104),
+which is squarely on the first full-width ComboBox — clicking it opens a WinUI **popup**, and the agent
+captures with PrintWindow(PW_RENDERFULLCONTENT), the window's own backing store, which does not contain
+popup layers. The window is byte-identical before and after, which is exactly the 0.0000% observed, in
+MAUI's column too. The same applies to ios_picker and ios_date_picker. `search_bar` and `semantics`
+focus a text field: on iOS that raises the on-screen keyboard and moves a large fraction of the frame,
+while on Windows focus is a caret and nothing else — there is no keyboard to appear.
+
+**Consequence for the per-lane coordinate override.** It is still needed — maccatalyst and Windows
+demonstrably disagree on x for the same page — but it is warranted for the SEVEN, not the sixteen, and
+the nine need a capture-path answer (popup compositing) rather than a coordinate one. Design shape when
+it is built: resolve in run_comparison.py `_resolve` (it has the platform) and in recapture.py
+`device_scenarios` (it has the lane); leave seed_scenarios' shutil.copy2 alone rather than rewriting
+TOML on the way out, since the stdlib has no dumper. `_points` / `coordinate_space` / `out_of_rect` must
+enumerate any override key, or a file whose only absolute pair hides in `at_windows` gets seeded onto a
+lane that cannot replay it. Validate with an extended `recapture.py --selftest` that resolves every
+checked-in scenario against all four lane rects BEFORE any capture runs.
+
+Note also: `button.toml` is still authored in ABSOLUTE coordinates (at = [756, 171]). On Windows that is
+inside the presented rect so it is seeded and clicked, landing window-relative at (512, 171).
