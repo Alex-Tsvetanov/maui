@@ -2930,11 +2930,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9999 at frame 2 'scrolled-down' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 12.8867% (105568 px) vs C++ 12.8875% (105574 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9999 at frame 2 'scrolled-down' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01; self-motion MAUI 12.9016% (105690 px) vs C++ 12.9026% (105698 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9999 at frame 2 'scrolled-down' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 12.8867% (105568 px) vs C++ & XAML 12.8875% (105574 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9999 at frame 2 'scrolled-down' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01; self-motion MAUI 12.9016% (105690 px) vs C++ & XAML 12.9026% (105698 px)"
         }
       }
     }
@@ -3076,12 +3076,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0070%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9997 at frame 2 'after-tap' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0070% (57 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0071%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9997 at frame 2 'after-tap' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0071% (58 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -3224,11 +3224,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 800 pixels across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-09_14_54, commit 036ba41f30, 2026-08-04) \u2014 worst SSIM 1.0000 at frame 1 'gif01' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0 px (0.00%) vs C++ 0 px (0.00%) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 800 pixels across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-09_14_54, commit 036ba41f30, 2026-08-04) \u2014 worst SSIM 1.0000 at frame 1 'gif01' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0 px (0.00%) vs C++ 0 px (0.00%)"
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 800 pixels across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-09_14_54, commit 036ba41f30, 2026-08-04) \u2014 worst SSIM 1.0000 at frame 1 'gif01' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0 px (0.00%) vs C++ & XAML 0 px (0.00%) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 800 pixels across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-09_14_54, commit 036ba41f30, 2026-08-04) \u2014 worst SSIM 1.0000 at frame 1 'gif01' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0 px (0.00%) vs C++ & XAML 0 px (0.00%)"
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -3517,12 +3517,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9990, 0.04% pixels differ \u00b7 Dark: SSIM 0.9992, 0.04% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9990 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9990; per-frame diff% 0.04/0.04; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9992 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.04/0.04; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -3811,12 +3811,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9992, 0.04% pixels differ \u00b7 Dark: SSIM 0.9992, 0.04% pixels differ"
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9726 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9860% (114573 px) vs C++ 15.4509% (126574 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9725 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9611% (114369 px) vs C++ 15.4279% (126385 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9992, 0.04% pixels differ \u00b7 Dark: SSIM 0.9992, 0.04% pixels differ"
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9726 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9860% (114573 px) vs C++ & XAML 15.4509% (126574 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9725 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9611% (114369 px) vs C++ & XAML 15.4279% (126385 px)"
         }
       }
     }
@@ -4105,12 +4105,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9823 at frame 2 'scrolled-down' (2.31% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/2.31; self-motion MAUI 15.9281% (130483 px) vs C++ 16.2539% (133152 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9833 at frame 2 'scrolled-down' (2.30% pixels differ), mean SSIM 0.9916; per-frame diff% 0.00/2.30; self-motion MAUI 15.8035% (129462 px) vs C++ 16.1233% (132082 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9823 at frame 2 'scrolled-down' (2.31% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/2.31; self-motion MAUI 15.9281% (130483 px) vs C++ & XAML 16.2539% (133152 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9833 at frame 2 'scrolled-down' (2.30% pixels differ), mean SSIM 0.9916; per-frame diff% 0.00/2.30; self-motion MAUI 15.8035% (129462 px) vs C++ & XAML 16.1233% (132082 px)"
         }
       }
     }
@@ -4252,12 +4252,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9983, 0.10% pixels differ \u00b7 Dark: SSIM 0.9987, 0.09% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9983 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9983; per-frame diff% 0.10/0.10/0.10; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9987 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9983, 0.10% pixels differ \u00b7 Dark: SSIM 0.9987, 0.09% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9983 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9983; per-frame diff% 0.10/0.10/0.10; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9987 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -5281,12 +5281,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9976, 0.03% pixels differ \u00b7 Dark: SSIM 0.9979, 0.02% pixels differ"
+          "status": "red",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9974 at frame 2 'unchecked' (0.03% pixels differ), mean SSIM 0.9977; per-frame diff% 0.02/0.03; self-motion MAUI 0.0216% (177 px) vs C++ 0.0199% (163 px) \u00b7 Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.0211% vs 0.0099% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9979 at frame 2 'unchecked' (0.02% pixels differ), mean SSIM 0.9981; per-frame diff% 0.01/0.02; self-motion MAUI 0.0211% (173 px) vs C++ 0.0099% (81 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9979, 0.02% pixels differ \u00b7 Dark: SSIM 0.9980, 0.02% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9974 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9974; per-frame diff% 0.03/0.03; self-motion MAUI 0.0216% (177 px) vs C++ & XAML 0.0220% (180 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9979 at frame 1 'initial' (0.02% pixels differ), mean SSIM 0.9980; per-frame diff% 0.02/0.02; self-motion MAUI 0.0211% (173 px) vs C++ & XAML 0.0205% (168 px)"
         }
       }
     }
@@ -6016,12 +6016,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -6752,11 +6752,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01/0.03; self-motion MAUI 0.2701% (2213 px) vs C++ 0.2822% (2312 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9987 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.01/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ 0.2828% (2317 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01/0.03; self-motion MAUI 0.2701% (2213 px) vs C++ & XAML 0.2822% (2312 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9987 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.01/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ & XAML 0.2828% (2317 px)"
         }
       }
     }
@@ -7634,11 +7634,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9953, 0.11% pixels differ \u00b7 Dark: SSIM 0.9952, 0.11% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9953 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9953; per-frame diff% 0.11/0.11/0.11; self-motion MAUI 0.2781% (2278 px) vs C++ 0.2781% (2278 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9952 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9952; per-frame diff% 0.11/0.11/0.11; self-motion MAUI 0.2809% (2301 px) vs C++ 0.2809% (2301 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9973, 0.07% pixels differ \u00b7 Dark: SSIM 0.9973, 0.07% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9973 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9973; per-frame diff% 0.07/0.07/0.07; self-motion MAUI 0.2781% (2278 px) vs C++ & XAML 0.2781% (2278 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9973 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9973; per-frame diff% 0.07/0.07/0.07; self-motion MAUI 0.2809% (2301 px) vs C++ & XAML 0.2809% (2301 px)"
         }
       }
     }
@@ -7780,12 +7780,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -8369,11 +8369,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2701% (2213 px) vs C++ 0.2870% (2351 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9984 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ 0.2876% (2356 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2701% (2213 px) vs C++ & XAML 0.2870% (2351 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9984 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ & XAML 0.2876% (2356 px)"
         }
       }
     }
@@ -11161,12 +11161,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9855, 0.33% pixels differ \u00b7 Dark: SSIM 0.9878, 0.28% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9855 at frame 1 'initial' (0.33% pixels differ), mean SSIM 0.9855; per-frame diff% 0.33/0.33; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9878 at frame 1 'initial' (0.28% pixels differ), mean SSIM 0.9878; per-frame diff% 0.28/0.28; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9855, 0.33% pixels differ \u00b7 Dark: SSIM 0.9878, 0.28% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9855 at frame 1 'initial' (0.33% pixels differ), mean SSIM 0.9855; per-frame diff% 0.33/0.33; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9878 at frame 1 'initial' (0.28% pixels differ), mean SSIM 0.9878; per-frame diff% 0.28/0.28; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -12778,12 +12778,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -13366,12 +13366,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -13660,12 +13660,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -16453,12 +16453,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9500 at frame 2 'scrolled-down' (1.59% pixels differ), mean SSIM 0.9750; per-frame diff% 0.00/1.59; self-motion MAUI 8.9327% (73177 px) vs C++ 9.4210% (77177 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9497 at frame 2 'scrolled-down' (1.70% pixels differ), mean SSIM 0.9748; per-frame diff% 0.00/1.70; self-motion MAUI 8.8046% (72127 px) vs C++ 9.3019% (76201 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 8.9327% (73177 px) vs C++ & XAML 8.9329% (73178 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 8.8046% (72127 px) vs C++ & XAML 8.7832% (71952 px)"
         }
       }
     }
@@ -16747,12 +16747,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -18070,12 +18070,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -18659,11 +18659,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0251% (206 px) vs C++ 0.0251% (206 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0387% (317 px) vs C++ 0.0387% (317 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0251% (206 px) vs C++ & XAML 0.0251% (206 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0387% (317 px) vs C++ & XAML 0.0387% (317 px)"
         }
       }
     }
@@ -19688,11 +19688,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ 0.1337% (1095 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ 0.1337% (1095 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ & XAML 0.1337% (1095 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ & XAML 0.1337% (1095 px)"
         }
       }
     }
@@ -19835,11 +19835,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0221% (8373 px) vs C++ 1.0221% (8373 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0790% (8839 px) vs C++ 1.0790% (8839 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0221% (8373 px) vs C++ & XAML 1.0221% (8373 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0790% (8839 px) vs C++ & XAML 1.0790% (8839 px)"
         }
       }
     }
@@ -19981,12 +19981,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -20276,11 +20276,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.6978% (22100 px) vs C++ 2.7018% (22133 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.8197% (23099 px) vs C++ 2.8243% (23137 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.6978% (22100 px) vs C++ & XAML 2.7018% (22133 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.8197% (23099 px) vs C++ & XAML 2.8243% (23137 px)"
         }
       }
     }
@@ -20422,12 +20422,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 1.0000, 0.01% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 1.0000, 0.01% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -21745,12 +21745,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9904, 0.15% pixels differ \u00b7 Dark: SSIM 0.9912, 0.13% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9904 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9904; per-frame diff% 0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9912 at frame 1 'initial' (0.13% pixels differ), mean SSIM 0.9912; per-frame diff% 0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9904, 0.15% pixels differ \u00b7 Dark: SSIM 0.9912, 0.13% pixels differ"
+          "status": "yellow",
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9904 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9904; per-frame diff% 0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 2 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9912 at frame 1 'initial' (0.13% pixels differ), mean SSIM 0.9912; per-frame diff% 0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -22481,11 +22481,11 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 800 pixels across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-09_14_54, commit 036ba41f30, 2026-08-04) \u2014 worst SSIM 0.9934 at frame 1 'gif01' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0 px (0.00%) vs C++ 0 px (0.00%) \u00b7 Dark: SSIM 0.9931, 0.15% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page"
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9934 at frame 1 'initial' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9931 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9931; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 800 pixels across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 12 frames paired by step (run 2026-08-04-09_14_54, commit 036ba41f30, 2026-08-04) \u2014 worst SSIM 0.9934 at frame 1 'gif01' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0 px (0.00%) vs C++ & XAML 0 px (0.00%) \u00b7 Dark: SSIM 0.9931, 0.15% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page"
+          "review": "Light: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9934 at frame 1 'initial' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NOTHING MOVED: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0.0000% vs 0.0000%), on a page the board treats as ANIMATED. The two columns agree perfectly because both are still \u2014 this scores no motion parity at all. Either the page needs a scenario step to drive it, or its interaction is not reachable on this lane. MOTION 14 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9931 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9931; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)"
         }
       }
     }
@@ -23804,11 +23804,11 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9999, 0.02% pixels differ \u00b7 Dark: SSIM 0.9999, 0.02% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ 0.0574% (470 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ 0.0574% (470 px)"
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: SSIM 0.9999, 0.02% pixels differ \u00b7 Dark: SSIM 0.9999, 0.02% pixels differ"
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-06-18_48_38, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ & XAML 0.0574% (470 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-06-19_39_01, commit 5960478ac2, 2026-08-06) \u2014 worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ & XAML 0.0574% (470 px)"
         }
       }
     }
@@ -25126,8 +25126,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.9959, 0.00% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 0.7260, 29.43% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
