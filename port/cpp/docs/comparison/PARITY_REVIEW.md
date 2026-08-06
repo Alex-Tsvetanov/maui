@@ -3122,3 +3122,28 @@ MAUI column against a crashed one, which is worse than the stale-but-consistent 
 
 Verify a fix with `ninja gallery_xaml` in the GUEST's C:/maui-src/cpp/examples/build-win (it BUILDS clean
 — exit 0 — so this is runtime, not compile), then re-run the single page.
+
+#### refinement: the Windows crash is at LAUNCH, not in the tap callback
+
+Re-read the log line rather than the exception name: "process exited early". The app dies during page
+CONSTRUCTION, before the scenario ever taps. That demotes my leading suspect — the tap lambda and its
+scoped_connection cannot have run yet — and promotes a different one:
+
+  the loader ATTACHES the recognizers while the Windows native peer already exists, whereas the
+  code-first page (gestures_page.hpp) adds them to the collection during construction, BEFORE the view
+  is mounted and has a peer.
+
+That single difference fits every observation: same page, same recognizers, cpp fine / cpp_xaml dead;
+Windows only; and 29d63917ae's Windows manager being the one that "compiled the HEADLESS no-op" and was
+never safe to attach. An attach that reaches a dormant native manager with a live peer is exactly the
+path the code-first ordering never takes.
+
+NEXT STEP IS AN ISOLATION, NOT A FIX: temporarily restore gestures.xaml.cpp to its generated form
+(#embed + build_page only, no code-behind) and re-run the single Windows page. If it still crashes, the
+fault is the loader's recognizer attach on Windows and my code-behind is innocent; if it survives, the
+fault is in the code-behind after all. Doing that costs one guest build and one page capture, and it
+distinguishes two fixes that have nothing in common.
+
+Not done here: it would temporarily undo the iOS and maccatalyst greens (1b46744647, 69ad10ea5d), and
+starting a revert-measure-restore cycle across three lanes is not something to begin at the end of a
+session. The escalation above stands as the record.
