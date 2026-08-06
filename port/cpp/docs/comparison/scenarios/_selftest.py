@@ -46,6 +46,16 @@ LANES = {"maccatalyst": (128, 30, 1024, 800), "windows": (244, 0, 1024, 800)}
 # resolves `at_<env>` exactly as the runner will — a per-lane override nobody can check offline is the
 # same silent-miss hazard the rest of this file exists to close.
 LANE_ENV = {"maccatalyst": "macos-arm64", "windows": "windows-x64"}
+
+# THE DEVICE LANES GET THE CONTENT CHECK TOO. They were left out of this file entirely because its
+# original job was the on-window band, which only a positioned desktop window can fail — a device
+# fraction is in-bounds by construction. But "in bounds" was never the interesting property: a tap that
+# lands on empty page is just as dead on a phone, and iOS/Android read the SAME scenario files, so a
+# fraction calibrated for one lane's layout can miss on the other exactly as it did on the two desktops.
+# There is no rect to intersect here — a device fraction is of the whole captured screen, origin (0,0),
+# which is what capture_ios.plan and capture_android.to_pixels both do — so only the aim is checked.
+# Measured off the captures on disk; every page in a lane shares one geometry.
+DEVICE_LANES = {"ios": (1206, 2622), "android": (1080, 2340)}
 TITLE_BAR = 34          # macOS traffic-light strip, in window-local pixels — never a drag origin
 # Scenarios authored before the sidecar rects were measured: an off-band point in one of these is a
 # WARNING, not a failure — reporting them is in scope, editing them is not.
@@ -241,6 +251,40 @@ def main() -> int:
                                f"the WINDOW and invalidates the capture rect for every remaining "
                                f"frame of the unit, not just this step")
                         (warnings if f.stem in LEGACY else errors).append(msg)
+
+            # Device lanes: aim only. No rect to be outside of, and no per-lane override key either —
+            # capture_ios/capture_android read the portable `at` and scale it against the whole screen.
+            for lane, (dw, dh) in sorted(DEVICE_LANES.items()):
+                rect = {"x": 0, "y": 0, "w": dw, "h": dh}
+                try:
+                    pts = points(rc, step, rect)
+                except Exception as e:             # noqa: BLE001
+                    (warnings if f.stem in LEGACY else errors).append(f"{f.name} [{lane}]: {e}")
+                    continue
+                im = _capture(lane, f.stem)
+                if im is None:
+                    blind.append(f"{f.stem} [{lane}]")
+                    continue
+                for i, (x, y) in enumerate(pts):
+                    checked += 1
+                    if i == 0 and not lands_on_content(im, x, y):
+                        # WARNING ONLY ON DEVICE LANES, AND THAT IS A MEASURED DECISION rather than
+                        # caution. On the desktops this check ran 9 flags / 8 real. On iOS it ran
+                        # 9 flags / 0 real: data_template_selector, editor, empty_view_rtl,
+                        # empty_view_selector, ios_date_picker, ios_picker, picker, semantics and
+                        # title_bar were ALL flagged, and the board measures every one of them moving,
+                        # from 3,579 px to 778,425 px. The reason is structural, not a tuning problem:
+                        # desktop controls carry chrome (WinUI boxes, Catalyst rings) so flat really is
+                        # empty page, while an iOS text field is borderless flat white ON a white page
+                        # and is genuinely the same pixels as its background. A gate with zero precision
+                        # must not fail the build; a gate whose output people learn to ignore is worse
+                        # than none, so the message says outright that it is usually wrong here.
+                        warnings.append(
+                            f"{f.name} [{lane}]: step {step.get('name')!r} ({step.get('action')}) aims "
+                            f"at image ({x}, {y}) of {dw}x{dh}, which is FLAT PAGE BACKGROUND in this "
+                            f"lane's MAUI capture — ADVISORY ONLY: on iOS this check has a measured "
+                            f"0/9 hit rate, because borderless fields are the same pixels as the page. "
+                            f"Confirm against the page's motion score before believing it")
 
     for w in warnings:
         print(f"WARN  {w}")
