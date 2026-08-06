@@ -35,4 +35,7 @@ name = "initial"
 [[steps]]
 name = "toggled-on"
 action = "click"
-at = [0.08, 0.23]         # bg_color_switch_ Switch, blue off-track below "BackgroundColor" label
+at = [0.078, 0.214]      # bg_color_switch_ Switch. MEASURED, not estimated: the blue on-track
+                          # occupies x[0,188] y[523,602] of the 1206x2622 iOS capture, centre (94,562).
+                          # The previous [0.08, 0.23] put y at 201pt, ~14pt BELOW the control, and nine
+                          # probe taps all returned a null diff.

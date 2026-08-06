@@ -40,7 +40,11 @@ name = "initial"
 [[steps]]
 name = "dragged-right"
 action = "drag"
-at = [0.06, 0.12]         # default_slider_ thumb, resting at Value=0 (leftmost)
-to = [0.5, 0.12]          # dragged to mid-track -> Value near 0.5 of its 0..1 range
+at = [0.43, 0.122]       # default_slider_ THUMB. MEASURED: the filled blue track runs x[0,516]
+                          # y[311,328] of the 1206x2622 capture, so the thumb sits at its right end,
+                          # x 516/1206 = 0.43 — NOT the 0.06 a previous edit used to clear the iOS
+                          # EDGE_PT guard without re-measuring. A drag must GRAB the thumb; UISlider
+                          # ignores a drag that starts on empty track.
+to = [0.85, 0.122]       # dragged right along the track
 steps = 20                # a deliberate pan, not a flick: the drag needs intermediate move events
 duration = 0.5            # 25ms per move — above the ~20ms floor where both OSes coalesce moves
