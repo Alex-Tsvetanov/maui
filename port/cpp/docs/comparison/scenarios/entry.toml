@@ -19,11 +19,11 @@
 # THE PORTABLE VALUE IS MEASURED FROM iOS: captures/ios/maui/entry_light.png (1206x2622), where the first
 # Entry ("Type here…") centres at (603, 323) -> 0.500, 0.123.
 #
-# ANDROID IS UNVERIFIED AND INHERITS THE PORTABLE VALUE. It has never had this scenario at all, so any
-# aim beats none, but the gate cannot confirm this one: the content check is ADVISORY on device lanes
-# because it has a measured 0/9 hit rate on iOS — a borderless field is the same pixels as the page
-# behind it. Confirm against the Android motion score after the next capture, and add an
-# `at_<android-env>` override if it lands off the field.
+# ANDROID INHERITS THE PORTABLE VALUE AND IT LANDS — CONFIRMED ON HARDWARE (2026-08-06). It was authored
+# unverified, because the aim gate is only ADVISORY on device lanes (measured 0/9 on iOS: a borderless
+# field is the same pixels as the page behind it), so the capture was the only way to know. It scores
+# MOTION green in both columns and both themes: light MAUI 184,530 px vs C++ 184,669 px, dark 497,162 vs
+# 497,146 — a spread of 0.08% and 0.003%. No `at_<android-env>` override is needed.
 #
 # TO RECALIBRATE any lane: open captures/<lane>/maui/entry_light.png, find the FIRST Entry (below the
 # "LENGTH: 0  RETURN: Default" readout) and divide its centre by that frame's width/height.
