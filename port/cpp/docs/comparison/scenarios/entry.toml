@@ -1,9 +1,32 @@
 # Scenario for the `entry` page: focus the first field, type text, capture the typed state.
 #
-# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1512-WIDE DISPLAY (1512x950). Window is
-# 1024 pt wide, centered, pinned to the top (y_origin = 30) -> centered controls at screen x = width/2 =
-# 756; y measured from the fixed top. Verified: this focuses the first Entry ("Type here…") and types
-# into it. Re-calibrate if you change the display width or the gallery window size.
+# RE-AUTHORED FROM ABSOLUTE PIXELS TO FRACTIONS (2026-08-06). The old `at = [756, 111]` was absolute
+# screen coordinates calibrated for a 1512x950 display, and the consequence was not a mis-aimed tap — it
+# was NO TAP AT ALL on half the board. recapture.device_scenarios() classifies any file carrying an
+# absolute pair as un-replayable on a device lane and skips the WHOLE scenario, so on iOS and Android
+# this page was never driven: both columns sat still, agreed perfectly, and scored as parity without a
+# single keystroke ever being measured.
+#
+# THE DESKTOP AIM IS UNCHANGED IN EFFECT. The two overrides below are the exact fractions the old
+# absolute pair resolved to on each lane, so those columns receive the identical point they always have.
+# This is a change of NOTATION for them, not of target:
+#   maccatalyst  rect [128,30 1024x800]: (756,111) -> window-relative (628, 81) -> 0.613, 0.101
+#   windows      rect [244, 0 1024x800]: (756,111) -> window-relative (512,111) -> 0.500, 0.139
+# Keeping them as overrides rather than collapsing to one fraction is deliberate: both points are PROVEN
+# (the aim gate reports them on content, and the page scores motion today), and there is no reason to
+# put a working lane at risk to make the file look tidier.
+#
+# THE PORTABLE VALUE IS MEASURED FROM iOS: captures/ios/maui/entry_light.png (1206x2622), where the first
+# Entry ("Type here…") centres at (603, 323) -> 0.500, 0.123.
+#
+# ANDROID IS UNVERIFIED AND INHERITS THE PORTABLE VALUE. It has never had this scenario at all, so any
+# aim beats none, but the gate cannot confirm this one: the content check is ADVISORY on device lanes
+# because it has a measured 0/9 hit rate on iOS — a borderless field is the same pixels as the page
+# behind it. Confirm against the Android motion score after the next capture, and add an
+# `at_<android-env>` override if it lands off the field.
+#
+# TO RECALIBRATE any lane: open captures/<lane>/maui/entry_light.png, find the FIRST Entry (below the
+# "LENGTH: 0  RETURN: Default" readout) and divide its centre by that frame's width/height.
 
 tag = "entry"
 themes = ["light"]
@@ -15,7 +38,9 @@ name = "initial"
 [[steps]]
 name = "focus-field"
 action = "click"
-at = [756, 111]           # the first Entry ("Type here…")
+at = [0.500, 0.123]                # first Entry ("Type here…"), measured on iOS
+at_macos-arm64 = [0.613, 0.101]    # exactly where the old absolute [756,111] landed on Catalyst
+at_windows-x64 = [0.500, 0.139]    # exactly where the old absolute [756,111] landed on Windows
 
 [[steps]]
 name = "typed"
