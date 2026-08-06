@@ -40,3 +40,11 @@ name = "initial"
 name = "checked"
 action = "click"
 at = [0.29, 0.16]         # "Rectangle Selection" CheckBox, unchecked ring
+# PER-LANE OVERRIDES, read off each lane's own MAUI capture (both were FLAT PAGE BACKGROUND before).
+# The control is the same one on every lane; only where it sits differs, and it is small enough that
+# the iOS-calibrated fraction misses it entirely on both desktops.
+#   maccatalyst  ring at (93, 93)  of 1024x800 -> 0.091, 0.116
+#   windows      box  at (129,122) of 1024x800 -> 0.126, 0.153  (Windows draws a wider label gap and
+#                sits ~29px lower, under the chrome strip the Catalyst capture does not include)
+at_macos-arm64 = [0.091, 0.116]
+at_windows-x64 = [0.126, 0.153]

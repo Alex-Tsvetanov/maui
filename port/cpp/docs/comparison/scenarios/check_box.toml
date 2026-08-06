@@ -35,3 +35,11 @@ name = "initial"
 name = "checked"
 action = "click"
 at = [0.50, 0.135]        # default_check_ CheckBox, unchecked ring below the "Default" label
+# WINDOWS OVERRIDE. This page is the one that proved per-lane coordinates were necessary at all: the
+# fraction above is CORRECT on maccatalyst, which centres the CheckBox column at x=512, and lands on
+# bare page on Windows, which left-aligns the identical page in an identically-sized window. Same
+# number, same geometry, opposite outcome — nothing about the window could have predicted it.
+# No maccatalyst override: 0.50 lands there, drifting one row onto colored_check_ (also unconnected,
+# so still control-intrinsic), and the page measured 109 px of motion that way.
+#   windows  default_check_ at (40, 94) of 1024x800 -> 0.039, 0.118
+at_windows-x64 = [0.039, 0.118]

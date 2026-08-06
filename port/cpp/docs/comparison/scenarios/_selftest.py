@@ -51,6 +51,19 @@ TITLE_BAR = 34          # macOS traffic-light strip, in window-local pixels — 
 # WARNING, not a failure — reporting them is in scope, editing them is not.
 LEGACY = {"button", "entry", "scroll_view", "web_view", "hybrid_web_view"}
 
+# The content check's ONE false-positive class, and it is not hypothetical: a control that paints
+# NOTHING but its own text is indistinguishable from empty page. `editor` on maccatalyst is the proof —
+# its Editors are borderless there, so the aim point is flat pixels, and the board nevertheless measured
+# real matched motion across the click (MAUI 0.0409% of frame vs C++ 0.0400%). Had that failure been
+# "fixed" by moving the coordinate, a working scenario would have been broken to satisfy a check.
+#
+# So an entry here means: the flat patch was CHECKED AGAINST THE MOTION SCORE and the gesture demonstrably
+# lands. Nothing else earns a place — a page that merely looks plausible does not. Re-verify with
+#   python3 -c "import json;d={e['name']:e for e in json.load(open('port/cpp/docs/comparison/comparison.json'))};print(d['<key>']['platforms']['<lane>']['pixel']['review'])"
+# and delete the entry the moment that page reads NOTHING MOVED, because then the flat patch was telling
+# the truth all along.
+MOVES_ANYWAY = {("editor", "maccatalyst")}   # borderless Editor: 0.0409% MAUI vs 0.0400% C++
+
 
 def _load_runner():
     """Import run_comparison.py by path — it is a script in a sibling dir, not an installed module."""
@@ -216,7 +229,12 @@ def main() -> int:
                                   if needs_target else
                                   "which is fine IF a scrollable ancestor is underneath, and dead if "
                                   "not; confirm against the page's motion score before trusting it"))
-                        (errors if needs_target and f.stem not in LEGACY else warnings).append(msg)
+                        hard = (needs_target and f.stem not in LEGACY
+                                and (f.stem, lane) not in MOVES_ANYWAY)
+                        if (f.stem, lane) in MOVES_ANYWAY:
+                            msg += " — but the board MEASURED motion here, so the control is painting "\
+                                   "nothing but its text; see MOVES_ANYWAY"
+                        (errors if hard else warnings).append(msg)
                     if i == 0 and lane == "maccatalyst" and y < ly + TITLE_BAR:
                         msg = (f"{f.name} [{lane}]: step {step.get('name')!r} STARTS at [{x}, {y}], "
                                f"on the title bar (y < {ly + TITLE_BAR}) — a drag from there moves "

@@ -30,6 +30,12 @@ name = "initial"
 name = "focus-field"
 action = "click"
 at = [0.5, 0.16]          # search_ SearchBar ("Filter")
+# MACCATALYST OVERRIDE ONLY. 0.16 puts the click at y=128 there, which is inside the item grid between
+# two rows — the page measured 0.0000% self-motion in both columns. Catalyst stacks the FlowDirection
+# entry and the Filter bar tight against the top, so the field is at y=77 (0.096), well above the
+# iOS-calibrated fraction. WINDOWS IS DELIBERATELY LEFT ALONE: it already measured 0.2781% in both
+# columns with the portable value, and overriding a lane that works is how a fix becomes a regression.
+at_macos-arm64 = [0.5, 0.096]
 
 [[steps]]
 name = "typed"

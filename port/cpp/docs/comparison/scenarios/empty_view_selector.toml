@@ -29,6 +29,14 @@ name = "initial"
 name = "focus-field"
 action = "click"
 at = [0.5, 0.2]           # search_ SearchBar ("Filter")
+# PER-LANE OVERRIDES. x is right on both desktops — the SearchBar is full-width there — but y is not:
+# 0.2 clears the field and lands in the empty list below it, and both lanes measured 0.0000% self-motion
+# because of it (the type step then went nowhere either). The desktops pack the intro paragraph into
+# one or two lines where iOS wraps it into many, so the field sits far higher than the iOS fraction.
+#   maccatalyst  field centre y=85  of 800 -> 0.106
+#   windows      field centre y=104 of 800 -> 0.130  (the chrome strip the Catalyst capture omits)
+at_macos-arm64 = [0.5, 0.106]
+at_windows-x64 = [0.5, 0.130]
 
 [[steps]]
 name = "typed"
