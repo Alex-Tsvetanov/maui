@@ -2650,3 +2650,32 @@ rather than a quiet retarget. NOT changed here.
 Note the check the gate cannot make: it verifies a click lands on a CONTROL, and `stepper` passes that
 now — the "+" button is genuinely under the cursor. Landing on a control and producing an observable
 change are different properties, and only a capture separates them.
+
+---
+
+## maccatalyst: the same overrides verified — and `stepper` is now identical in both columns (2026-08-06)
+
+40 units, 0 failed steps. Catalyst self-motion, MAUI's own column vs the port's:
+
+  hit_testing          0.0000% -> 0.0134% (110 px)  both columns identical      GREEN
+  empty_view_selector  0.0000% -> 1.0023% (8211 px) vs 0.9990% (8184 px)        GREEN
+  empty_view_rtl       0.0000% -> 0.7834% (6418 px) vs 0.7966% (6526 px)        GREEN
+  stepper              0.0000% -> 0.0024% (20 px)   both columns identical      still under FROZEN_PCT
+
+`stepper` is worth stating precisely, because "NOTHING MOVED" now means something different from what it
+meant this morning. Before the override the click landed on bare background and BOTH columns read
+exactly 0 px. After it, both columns read exactly 20 px — the port reproduces MAUI's response to the
+pixel. The verdict has not changed only because 0.0024% is under FROZEN_PCT (0.012%), and it is under
+that threshold for a structural reason established on Windows: the DEFAULT stepper has no value readout
+(stepper_page.hpp wires one, on the ValueChanged stepper at :79-80), so incrementing it produces almost
+nothing to see on either desktop backend. This is a page the board cannot score for motion, NOT a
+divergence between MAUI and the port.
+
+APPKIT WAS CORRECTLY LEFT ON THE PORTABLE COORDINATE. It seeded all four scenarios and drove them with
+`at`, not with `at_macos-arm64`, because its environment name is macos-appkit. That separation is the
+reason the override is keyed by environment rather than by `platform` — local.toml gives Catalyst and
+AppKit the SAME platform string, so a platform-keyed override would have silently aimed a 480x752
+unpresented window with coordinates measured on a 1024x800 presented one.
+
+Board after both desktop lanes: ios 290g/46y/8r · android 271g/58y/15r ·
+maccatalyst 265g/74y/5r · windows 286g/53y/5r.
