@@ -900,11 +900,11 @@ ports EntryPage.xaml (Microsoft.Maui.Controls sample gallery)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored; iOS and Android keep no run dir at all) · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored; iOS and Android keep no run dir at all)
+Light: MOTION 2 frames paired by step (run 2026-08-06-21_09_09, commit f07847c565, 2026-08-06) — worst SSIM 0.9984 at frame 2 'driven' (0.07% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.07; self-motion MAUI 0.6106% (19307 px) vs C++ 0.6626% (20952 px) · Dark: MOTION 2 frames paired by step (run 2026-08-06-21_09_09, commit f07847c565, 2026-08-06) — worst SSIM 0.9986 at frame 2 'driven' (0.06% pixels differ), mean SSIM 0.9993; per-frame diff% 0.00/0.06; self-motion MAUI 0.6010% (19003 px) vs C++ 0.6642% (21004 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored; iOS and Android keep no run dir at all) · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored; iOS and Android keep no run dir at all)
+Light: MOTION 2 frames paired by step (run 2026-08-06-21_09_09, commit f07847c565, 2026-08-06) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.6106% (19307 px) vs C++ &amp; XAML 0.5993% (18951 px) · Dark: MOTION 2 frames paired by step (run 2026-08-06-21_09_09, commit f07847c565, 2026-08-06) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6010% (19003 px) vs C++ &amp; XAML 0.6010% (19003 px)
 
 ### 58. Filter Collection — 🟢/🟢
 <sub>filter_collection</sub>
