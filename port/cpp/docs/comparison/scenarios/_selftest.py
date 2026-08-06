@@ -40,6 +40,12 @@ RUNNER = HERE.parent / "tools" / "run_comparison.py"
 
 # Lane capture rects, from any run's frame sidecars (docs/comparison/<run>/<key>/<plat>/<col>/*.json).
 LANES = {"maccatalyst": (128, 30, 1024, 800), "windows": (244, 0, 1024, 800)}
+# The board dir a lane publishes into is NOT the key its per-lane coordinates are written under.
+# run_comparison.for_lane keys on the ENVIRONMENT name because local.toml gives Catalyst and AppKit the
+# same `platform = "maccatalyst"`, so platform cannot address them separately. Kept here so this gate
+# resolves `at_<env>` exactly as the runner will — a per-lane override nobody can check offline is the
+# same silent-miss hazard the rest of this file exists to close.
+LANE_ENV = {"maccatalyst": "macos-arm64", "windows": "windows-x64"}
 TITLE_BAR = 34          # macOS traffic-light strip, in window-local pixels — never a drag origin
 # Scenarios authored before the sidecar rects were measured: an off-band point in one of these is a
 # WARNING, not a failure — reporting them is in scope, editing them is not.
@@ -63,7 +69,7 @@ def band():
     return x_lo, x_hi, y_lo, y_hi
 
 
-def points(rc, step, rect=None):
+def points(rc, step, rect=None, env=None):
     """Every screen point a step resolves to, using the RUNNER's validators (which raise on garbage).
 
     `rect` is the lane's capture rect. Pass it: without one, step_point cannot scale a 0..1 fraction
@@ -71,6 +77,8 @@ def points(rc, step, rect=None):
     action = step.get("action")
     if action in (None, "type"):
         return []
+    if env:
+        step = rc.for_lane(step, env)   # resolve exactly as CoordinateDriver.run_action will
     if action in ("click", "hover", "scroll"):
         pt = rc.step_point(step, rect=rect)
         if action == "scroll":
@@ -177,7 +185,7 @@ def main() -> int:
             for lane, (lx, ly, lw, lh) in sorted(LANES.items()):
                 rect = {"x": lx, "y": ly, "w": lw, "h": lh}
                 try:
-                    pts = points(rc, step, rect)
+                    pts = points(rc, step, rect, LANE_ENV.get(lane))
                 except Exception as e:             # noqa: BLE001
                     (warnings if f.stem in LEGACY else errors).append(f"{f.name} [{lane}]: {e}")
                     continue

@@ -393,6 +393,46 @@ def _resolve(step: dict, key: str, rect: dict | None) -> list[int]:
     return [rect["x"] + _scale(x, rect["w"]), rect["y"] + _scale(y, rect["h"])]
 
 
+# --- per-lane coordinates -------------------------------------------------------------------------
+# One fraction cannot serve every lane, because the LANES DO NOT LAY THE PAGE OUT THE SAME WAY. Measured
+# on check_box: [0.50, 0.135] lands on the control on maccatalyst, whose CheckBoxes are centred, and on
+# bare background on Windows, which left-aligns the identical page in an identically-sized window. Both
+# lanes read one scenario file and there was no way to say "here, but there instead", so seven Windows
+# pages were driven at nothing and scored as parity.
+#
+# KEYED BY ENVIRONMENT NAME, not by `platform`, and that is not a style choice: local.toml declares
+# `platform = "maccatalyst"` for BOTH macos-arm64 (Catalyst, presented at 1024x800) and macos-appkit
+# (a 480x752 window that is never presented at all). Keying on platform would silently aim AppKit with
+# Catalyst's coordinates. Environment names are unique by construction — they are the config's own
+# [environments.<name>] table keys.
+#
+# An unknown or absent override is not an error: the portable `at` remains the default and every lane
+# without an entry keeps using it, so adding one page's override cannot disturb any other lane.
+LANE_POINT_KEYS = ("at", "to")
+
+
+def for_lane(step: dict, env_name: str) -> dict:
+    """`step` with any `at_<env>` / `to_<env>` promoted over the portable `at` / `to`.
+
+    Returns the step unchanged when it carries no override, so the common path allocates nothing and
+    every downstream validator keeps seeing exactly the shape it already handles."""
+    over = {k: step[f"{k}_{env_name}"] for k in LANE_POINT_KEYS if f"{k}_{env_name}" in step}
+    return {**step, **over} if over else step
+
+
+def lane_overrides(step: dict) -> dict[str, list]:
+    """{env_name: point} for every per-lane key on this step — what the classifiers must also inspect.
+
+    A file whose ONLY absolute pair hides in an override would otherwise classify as fractional and be
+    seeded onto a lane that cannot replay it, which is the failure this whole mechanism exists to stop."""
+    out = {}
+    for k, v in step.items():
+        for base in LANE_POINT_KEYS:
+            if k.startswith(f"{base}_"):
+                out[k] = v
+    return out
+
+
 def _clamp(pt: list[int], rect: dict | None) -> list[int]:
     """A point pinned inside `rect`. An unknown rect (None) clamps to nothing and returns it as-is."""
     if rect is None:
@@ -530,6 +570,10 @@ class CoordinateDriver:
         action = step.get("action")
         if not action:
             return None   # the idle screenshot ~155 of the board's pages want: no agent call at all
+        # ONE substitution point for the whole coordinate vocabulary. Every verb below reads `at`/`to`
+        # through step_point/drag_endpoints, so promoting the override here means none of them — nor
+        # their validators, nor _selftest's copies of them — needs to learn about per-lane keys.
+        step = for_lane(step, self.env.name)
         if action in COORDINATE_ACTIONS and self.rect is None:
             return (f"{_step_id(step)}: no capture rect, so a coordinate resolves against nothing "
                     f"(present = false and `window-id` reported no bounds?)")

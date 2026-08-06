@@ -39,3 +39,14 @@ name = "initial"
 name = "incremented"
 action = "click"
 at = [0.21, 0.13]         # default_stepper_ Stepper, the "+" half
+# PER-LANE OVERRIDES. The portable `at` above is calibrated on the iOS capture, where the Stepper is
+# wide and centred. The desktop lanes render the same control as two ~32px buttons hard against the
+# left margin, so 0.21 lands in bare page — measured, not guessed: _selftest.py flagged both lanes as
+# FLAT PAGE BACKGROUND before these were added. Keyed by ENVIRONMENT name, because local.toml gives
+# Catalyst and AppKit the same `platform`, so platform cannot address them apart.
+#   windows      "+" at (67, 90) of 1024x800  -> 0.065, 0.113
+#   maccatalyst  "+" at (67, 84) of 1024x800  -> 0.065, 0.105  (rows sit 6px higher; no title bar
+#                inside the captured content, unlike the Windows chrome strip)
+# Re-derive by opening captures/<lane>/maui/stepper_light.png and dividing the "+" centre by the frame.
+at_windows-x64 = [0.065, 0.113]
+at_macos-arm64 = [0.065, 0.105]

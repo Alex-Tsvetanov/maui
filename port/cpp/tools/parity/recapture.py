@@ -803,10 +803,17 @@ def _points(step: dict) -> dict[str, list[float]]:
     Anything malformed is left alone on purpose: run_comparison.step_point and capture_android
     .input_argv already raise on it, loudly, at the point of use, and scenarios/_selftest.py catches
     it at authoring time. This module only has to classify what is there.
+
+    PER-LANE KEYS COUNT TOO. `at_<env>` / `to_<env>` (run_comparison.for_lane) are real coordinates on
+    the lane they name, so a file whose only ABSOLUTE pair sits in one of them must classify as
+    absolute — otherwise coordinate_space calls the file fractional, seed_scenarios waves it onto every
+    lane including the ones that never pin a window, and out_of_rect never sees the pair it exists to
+    bounds-check. Keyed by the ORIGINAL key name so callers reading `.get("at")` are unaffected.
     """
     out = {}
-    for key in ("at", "to"):
-        pt = step.get(key)
+    for key, pt in step.items():
+        if key not in ("at", "to") and not key.startswith(("at_", "to_")):
+            continue
         if (isinstance(pt, (list, tuple)) and len(pt) == 2
                 and all(isinstance(v, (int, float)) for v in pt)):
             out[key] = [float(pt[0]), float(pt[1])]
@@ -859,7 +866,7 @@ def lane_geometry(cfg: str, envname: str) -> tuple[bool, dict]:
     return cap.get("present", True), {"x": 128, "y": 30, "w": 1024, "h": 800, **cap.get("geometry", {})}
 
 
-def out_of_rect(steps: list[dict], rect: dict) -> str | None:
+def out_of_rect(steps: list[dict], rect: dict, envname: str | None = None) -> str | None:
     """The first gesture START that lands outside a lane's presented window, phrased as a skip reason.
 
     The `at` point only, deliberately — and BY NAME, never "the first coordinate in the step": `at` is
@@ -876,14 +883,25 @@ def out_of_rect(steps: list[dict], rect: dict) -> str | None:
     x0, y0 = rect["x"], rect["y"]
     x1, y1 = x0 + rect["w"], y0 + rect["h"]
     for step in steps:
-        start = _points(step).get("at") if step.get("action") else None
+        if not step.get("action"):
+            continue
+        pts = _points(step)
+        # The start THIS lane will actually use: its own `at_<env>` when the step carries one, else the
+        # portable `at`. Checking the portable one regardless would bounds-check a coordinate the lane
+        # is never going to send, and — worse — let the override it DOES send through unchecked.
+        start = pts.get(f"at_{envname}") if envname else None
+        if start is None:
+            start = pts.get("at")
         if start and not (x0 <= start[0] < x1 and y0 <= start[1] < y1):
-            return (f"step {step.get('name', '?')!r} starts at {start}, outside this lane's window "
-                    f"[{x0},{y0} {rect['w']}x{rect['h']}] — those coordinates belong to another lane")
+            which = f"at_{envname}" if envname and f"at_{envname}" in pts else "at"
+            return (f"step {step.get('name', '?')!r} starts at {start} ({which}), outside this lane's "
+                    f"window [{x0},{y0} {rect['w']}x{rect['h']}] — those coordinates belong to "
+                    f"another lane")
     return None
 
 
-def seed_scenarios(scen_dir: Path, lane: str, present: bool, rect: dict) -> list[str]:
+def seed_scenarios(scen_dir: Path, lane: str, present: bool, rect: dict,
+                   envname: str | None = None) -> list[str]:
     """Start a lane's scenario dir from the AUTHORED scenarios in docs/comparison/scenarios/.
 
     This dir used to be created EMPTY, and `--scenarios <dir>` is the runner's WHOLE scenario source
@@ -922,7 +940,7 @@ def seed_scenarios(scen_dir: Path, lane: str, present: bool, rect: dict) -> list
             continue
         why = None
         if space == "absolute":
-            why = (out_of_rect(steps, rect) if present else
+            why = (out_of_rect(steps, rect, envname) if present else
                    "absolute screen coordinates, but this lane never PINS its window (present=false) "
                    "— there is no fixed rect they could be relative to; re-author as 0..1 fractions")
         if why:
@@ -1093,7 +1111,7 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
         # The gate needs the lane's REAL rect, so it comes from the config the runner is about to be
         # handed rather than from a table here that could drift out of step with it.
         present, rect = lane_geometry(cfg, envname)
-        seeded = seed_scenarios(scen_dir, f"{platform}/{lane}", present, rect)
+        seeded = seed_scenarios(scen_dir, f"{platform}/{lane}", present, rect, envname)
         animated = write_gif_scenarios(scen_dir, examples, themes, gif_frames, gif_interval)
         # Say which pages this lane will actually DRIVE. In a five-hour log this one line is how you
         # confirm the scenarios reached the guest without reading any code.
@@ -1224,6 +1242,20 @@ def selftest() -> int:
     assert out_of_rect([{"action": "swipe", "at": [200, 100], "to": [9999, 9999]}], cat) is None
     assert out_of_rect([{"name": "initial", "at": [9999, 9999]}], cat) is None           # no action
     assert out_of_rect([{"action": "click", "at": [1400, 100]}], cat)                    # off-window
+    # --- per-lane overrides (run_comparison.for_lane) ---------------------------------------------
+    # The lane bounds-checks the point IT will send, not the portable one. Without the envname arm
+    # both of these are wrong in the dangerous direction: the first passes a lane a coordinate that is
+    # off its window, the second refuses a file whose override is exactly what makes it valid.
+    off = [{"action": "click", "at": [200, 100], "at_macos-arm64": [1400, 100]}]
+    assert out_of_rect(off, cat, "macos-arm64"), "an off-window override must be caught"
+    assert out_of_rect(off, cat) is None, "with no envname only the portable `at` is judged"
+    fix = [{"action": "click", "at": [1400, 100], "at_macos-arm64": [200, 100]}]
+    assert out_of_rect(fix, cat, "macos-arm64") is None, "the override rescues the step for its lane"
+    assert out_of_rect(fix, cat), "other lanes still see the portable coordinate, and it is off-window"
+    # An absolute pair hiding in an override must still pin the WHOLE file to absolute, or
+    # seed_scenarios waves it onto lanes that never pin a window.
+    assert coordinate_space([{"action": "click", "at": [0.5, 0.2],
+                              "at_windows-x64": [756, 171]}]) == "absolute"
     # half-open on the far edge, as capture_android.input_argv is: 128+1024 = 1152 is the first pixel
     # PAST a window whose last column is 1151.
     assert out_of_rect([{"action": "click", "at": [1151, 829]}], cat) is None
