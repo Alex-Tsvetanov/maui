@@ -2957,3 +2957,22 @@ CONSEQUENCE: `gestures` (1b46744647) is proven end to end, but pointer_gesture's
 structure-equivalence must NOT be read as "its twin matches". Until the hole is closed, that page's
 status is unknown rather than good, and the same doubt applies to any page whose divergence is
 gesture-only and whose views are not box_view.
+
+#### NARROWED: describe() handles labels fine — so it is traversal or timing, not the override
+
+3341ef8ce2 listed three candidates for why pointer_gesture reports no gestures. A targeted probe
+(tests/controls/effect_tests.cpp, `describe_gestures_probe.a_label_with_a_recognizer_reports_it`) settles
+two of them: a bare `label` carrying one tap recognizer round-trips through describe() as exactly
+"1[tap]". So
+
+  * gesture_recognizers_or_null() DOES resolve through view<label> — label derives view<i_label> and the
+    override at view.hpp:832 is inherited, contrary to the box_view-only suspicion;
+  * describe_gestures() itself is not label-specific.
+
+What remains: describe() is not REACHING pgr_label_ / hover_label_ in the pointer_gesture tree, or those
+recognizers are attached after the point the structure test snapshots. Both are about the page, not the
+helper. The next probe is equally narrow — describe the builder page directly and print the tree, then
+look for the two labels by their text.
+
+The probe stays in the suite: it is three lines of assertion that pin the property the four twin fixes
+depend on, and it would have made this narrowing unnecessary had it existed when the check was written.

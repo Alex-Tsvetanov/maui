@@ -17,7 +17,12 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/platform_effect.hpp"
 #include "maui/controls/routing_effect.hpp"
+#include <algorithm>
+
 #include <gtest/gtest.h>
+
+#include "maui/controls/gestures/tap_gesture_recognizer.hpp"
+#include "tests/support/view_tree_describe.hpp"
 
 namespace
 {
@@ -462,4 +467,22 @@ namespace
 
         EXPECT_TRUE(observer.expired()) << "test is void unless the handler really freed the label";
     }
+
+    // PROBE for the describe() hole recorded in 3341ef8ce2: pointer_gesture's builder attaches three
+    // recognizers to LABELS and describe() emitted no gestures= line for it, while the same describe()
+    // reported five on gestures' BoxView. This asks the narrow question directly — does a label carrying
+    // one recognizer round-trip through describe at all?
+    TEST(describe_gestures_probe, a_label_with_a_recognizer_reports_it)
+    {
+        label target;
+        target.gesture_recognizers().add(std::make_shared<maui::controls::tap_gesture_recognizer>());
+        ASSERT_EQ(target.gesture_recognizers().count(), 1U) << "precondition: the recognizer attached";
+
+        const maui::tests::view_node node = maui::tests::describe(target);
+        const auto found = std::find_if(node.props.begin(), node.props.end(),
+                                        [](const auto& p) { return p.first == "gestures"; });
+        ASSERT_NE(found, node.props.end()) << "describe() did not report the label's recognizer at all";
+        EXPECT_EQ(found->second, "1[tap]");
+    }
+
 } // namespace
