@@ -2392,3 +2392,59 @@ It should be narrowed to the signature that is actually always wrong — cross-c
 with** `light == dark` in a column, or with a mismatch against the run manifest — rather than
 cross-column identity alone. Until then its non-zero exit on this tree is expected, and that is worth a
 line in its docstring so the next reader does not repeat this mistake.
+
+---
+
+## iOS `clip`: the code-first gallery page renders 60pt of content the ground truth never authored
+### 2026-08-06 — needs a user ruling (scope), not a code fix I should make unilaterally
+
+**What the board shows.** On iOS, `clip` scores `cpp = red` and `cpp_xaml = green`. The XAML column
+renders the same shared twin MAUI does, through the port's loader, and matches it. Only the code-first
+column diverges — so this is not a framework defect, it is a page-authoring difference.
+
+**Measured, not inferred.** Driving the page on the simulator through idb, four SLOW fling-free drags so
+each column pins at its own maximum content offset (alignment error 0.00 px in every measurement — the
+two frames are a pure vertical shift of one another, i.e. identical content):
+
+| column | max content offset |
+|---|---|
+| maui (shared twin)      | **361.0 pt** |
+| cpp (code-first)        | **421.0 pt** |
+| difference              | **60.0 pt** |
+
+A fast swipe reproduces the same 60.0 pt gap (maui 361.0, cpp 421.0), and a slow 208 pt drag that
+reaches neither end gives **0.0 pt** difference. So the geometry above the fold is identical and the
+divergence is entirely trailing extent. Both columns are deterministic here: each measured 0.00%
+against itself across two runs, which is what makes the 30.03% cross-column difference a finding rather
+than sampling noise (see the NON_REPRODUCIBLE_DRIVE note in tools/parity/lib/motion_score.py).
+
+**Cause, located.** `port/cpp/examples/gallery/pages/clip_page.hpp:123-130` appends a status label
+("Clipped") and a real Button ("Toggle clip on/off") after the four clipped images. Its own header says
+why: *"The XAML has no interaction (no code-behind), but the gallery convention is an observable
+readout"*. That is deliberate, and it is the whole 60 pt.
+
+**Neither oracle authors it.** `port/maui-reference/pages/clip.xaml` has exactly four `<Label>`s
+(RectangleGeometry / EllipseGeometry / GeometryGroup / PathGeometry) and no button; the ORIGINAL
+`src/Controls/samples/Controls.Sample/Pages/Core/ClipPage.xaml` has the same four and no button. So
+ruling 12 does NOT apply — the shared twin is a faithful copy, not a degraded one, and there is no
+original content for the code-first page to be preserving.
+
+**Why it hid until now.** The extra rows sit BELOW the fold. At rest the two columns are pixel-identical
+(the driven run's frame 0 reads 0.00%), so no still comparison could ever see it. It only surfaces once
+the board drives a scroll and the columns clamp at different bottoms.
+
+**Why this is a user decision.** Under ruling 1 MAUI's render is ground truth for page CONTENT, which
+says remove the readout. But the readout is a deliberate gallery convention for making an otherwise
+inert page observable, and the driven-scenario work depends on readouts elsewhere to witness
+interaction. Deleting it silently would trade a parity diff for a hole in the motion evidence. The
+options are: (a) drop the two rows from the code-first page and accept that `clip` cannot witness its
+own toggle; (b) add the same two rows to the shared twin so all three columns agree (this invalidates
+the MAUI column for this page and needs a recapture); (c) exempt the page and record it.
+
+**Scope.** `grep` for this convention across `port/cpp/examples/gallery/pages/` matches ONE page —
+`clip`. So this is a single-page issue, not a class.
+
+**NOT explained by this.** The other four iOS scroll reds are a different shape and remain open:
+`box_view` (cpp red / xaml yellow), `clip_gallery` (cpp yellow / xaml red),
+`path_gallery` (cpp red / xaml yellow), `selection_synchronization` (both red). Their column patterns do
+not match `clip`'s, so the same cause cannot simply be assumed.
