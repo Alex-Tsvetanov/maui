@@ -2809,3 +2809,33 @@ CORRECTED ORDER — the code-behind is a required step, not an optional polish:
 Note for whoever does step 5: until it runs, the MAUI column for those four pages shows the pre-markup
 render. The board is STALE for them, not wrong in a new way — but a reader comparing the twin source to
 the published capture will see a discrepancy that is expected.
+
+#### the exact readout contract step 3 must reproduce (derived 2026-08-06)
+
+Whoever writes the twin code-behind needs MAUI's column to land on the SAME string the port does, or the
+page trades NOTHING MOVED for a MOTION MISMATCH — the failure this whole correction exists to avoid. All
+of it is in gestures_page.hpp; reproduced here so it need not be re-derived:
+
+    set_readout(g)  ->  readout label text = "Last gesture: " + g      (:208-213)
+    tap             ->  "Tapped"                                        (:68)
+    pan started     ->  "Pan started"
+    pan running     ->  "Pan %.0f,%.0f" of total_x, total_y             (snprintf, 0 decimals)
+    pan completed   ->  "Pan completed"
+    pan canceled    ->  "Pan canceled"                                  (US spelling, one 'l')
+    pinch running   ->  "Pinch x%.2f" of scale                          (2 decimals, lowercase x)
+    swipe           ->  "Swiped " + direction name
+    pointer         ->  "Pointer entered" / "Pointer moved" / "Pointer pressed" /
+                        "Pointer released" / "Pointer exited"
+
+At REST both columns read "Last gesture: (none)", which is exactly why the missing handlers never showed
+up in the still comparison and why only a DRIVEN page exposes them.
+
+The generated code-behind carries its own instructions:
+port/maui-reference/app/Pages/GesturesPage.xaml.cs says "pages needing interactivity replace this file
+with a hand-written partial (drop the GENERATED marker line above so the generator leaves it alone)
+wiring handlers via x:Name fields per docs/AUTHORING.md" — so the readout Label needs an x:Name and the
+GENERATED marker must be removed, or `e2e.py gen` will overwrite the work.
+
+Two formats are float-sensitive and worth pinning in whatever test covers this: "%.0f" drops the decimal
+entirely (Pan 12,-3, not Pan 12.0,-3.0) and "%.2f" keeps exactly two (Pinch x1.25). C#'s default
+ToString() matches neither, so these need explicit format strings on the MAUI side.
