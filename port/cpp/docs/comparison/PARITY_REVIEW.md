@@ -2873,3 +2873,35 @@ a superset of this one page. Until it is isolated, do not read NOTHING MOVED on 
 evidence about the port — check whether a frame carrying the driven step exists at all:
 
     python3 -c "import json,glob,collections;c=collections.Counter(json.load(open(f)).get('step') for f in glob.glob('<run>/<key>/<lane>/*/*.json'));print(dict(c))"
+
+#### ISOLATED, and it is not write_gif_scenarios — the ANIMATED path drives BEFORE it shoots
+
+The entry above offered two candidates. It is neither of the ones it emphasised: write_gif_scenarios is
+called ONLY at recapture.py:1115, inside the VM-lane loop. The iOS lane (:656) goes through
+device_scenarios and never touches it, so its "APPENDED AFTER THE LAST step" guarantee does not apply
+here at all.
+
+The real cause is one expression in lane_ios, and the code states it plainly:
+
+    want_unit = unit_ok and (kind == "png+gif" or bool(steps))
+    ...
+    out = capture_ios.capture_still(app, key, theme, settle, steps=steps,
+                                    still_first=kind != "png+gif", ...)
+
+with the comment: "`still_first` on everything that is not ANIMATED: shoot AT REST, publish that, then
+drive and bank the reacted frame in the unit ... The ANIMATED path keeps driving BEFORE [the shot]."
+
+So for a page that is BOTH animated and driven, still_first is FALSE: the scenario runs, and only then
+is anything captured. The frame labelled `initial` is already POST-TAP, and every gif frame after it is
+post-tap too. There is no at-rest frame anywhere in the run, so motion_score compares two identical
+post-tap states and reports 0 px — correctly, given what it was handed.
+
+This is 89261d905a's bug surviving in the branch that commit did not cover. That fix gave the NON-animated
+path its at-rest-first ordering; the ANIMATED path kept drive-then-shoot, and nothing was both animated
+and driven at the time, so no test or run could have noticed.
+
+THE FIX is to stop conditioning still_first on ANIMATED and condition it on whether the page is DRIVEN:
+a page with scenario steps needs its at-rest frame banked BEFORE the steps run, whether or not a burst
+follows. An animated-but-undriven page is unaffected either way, since it has no steps to run first.
+Worth a unit assertion that a driven page's run dir contains a frame for its FIRST step name, which is
+the invariant that was silently false here.
