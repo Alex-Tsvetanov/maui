@@ -2976,3 +2976,29 @@ look for the two labels by their text.
 
 The probe stays in the suite: it is three lines of assertion that pin the property the four twin fixes
 depend on, and it would have made this narrowing unnecessary had it existed when the check was written.
+
+#### RETRACTED: there is no describe() hole — pointer_gesture is on known_diverging
+
+3341ef8ce2 and 6a2a99bd3e claimed describe() fails to see pointer_gesture's recognizers. That is WRONG
+and both entries are superseded by this one.
+
+`pointer_gesture` is listed in known_diverging() (gallery_structure_equivalence_tests.cpp:250, cluster A
+"twin uses StackLayout where the builder uses V/H StackLayout"). For those keys the macro takes an
+EXPECT_NE branch and asserts the trees STILL DIFFER — so the test PASSES precisely because the page is
+still divergent. That is deliberate bidirectional tracking, and it is behaving correctly.
+
+THE EVIDENCE I USED DID NOT EXIST. I ran the test, grepped its output for `gestures=`, got zero, and
+concluded describe() emitted nothing. But gtest prints the trees ONLY ON FAILURE — the test passed, so
+there was no tree in that output to grep. I counted lines in absent output and read the absence as a
+measurement. That is the board's own "a hash is not evidence of what is IN a picture" rule, applied to a
+log instead of an image, and I broke it while writing up someone else's version of the same mistake.
+
+What survives: the probe added in 6a2a99bd3e (a label with one recognizer round-trips as "1[tap]") is a
+genuinely useful assertion and stays. Its result was never in doubt — it was answering a question that
+did not need asking.
+
+WHAT IS ACTUALLY TRUE about pointer_gesture: its twin DOES still omit the gesture layer
+(pointer_gesture.xaml:4-6 says so) while the builder attaches three (pointer_gesture_page.hpp:101, :119),
+so the page needs the same treatment `gestures` got. It simply cannot be detected by the
+structure-equivalence sweep while the key sits on known_diverging for an unrelated StackLayout reason —
+the coarse "these trees differ" assertion cannot distinguish which divergence it is seeing.
