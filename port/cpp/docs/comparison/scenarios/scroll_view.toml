@@ -14,13 +14,19 @@
 # page is DRIVEN with `any(step != "initial" and not step.startswith("gif"))` — so a first step named
 # anything else both loses the at-rest anchor and counts itself as a drive.
 #
-# `at` is over the list BODY: 0.7 rather than a mid-window 0.4 because the page carries a header above
-# the list on the narrow lanes, and 0.7 lands inside the rows on all four. `dy` is negative to scroll the
-# content UP (revealing lower rows), and it is a FRACTION here too — capture_android._scale and its iOS
-# twin read |v| <= 1 as a fraction of the axis span, so one number serves a 2340 px phone and an 800 pt
-# window without either lane being mis-scaled. (An earlier note claimed dy had to be an integer. It does
-# not: _scale's own docstring says otherwise, and measured, dy = -0.25 on this emulator resolves to
-# `input swipe 540 936 540 351` — 585 px, exactly 0.25 x 2340.)
+# THE TWO AXES OF THIS FILE OBEY DIFFERENT RULES, and they are not negotiable — one comes from the
+# device lanes, the other from the VM lanes, and a value that satisfies only one is silently or loudly
+# fatal on the other:
+#   `at`  MUST be FRACTIONAL. recapture.device_scenarios() skips the entire file on iOS/Android if any
+#         coordinate pair is absolute (that is the bug this file was re-authored to fix).
+#   `dy`  MUST be a NON-ZERO INTEGER. run_comparison.py:546 tests `isinstance(dy, int)` and RAISES on a
+#         float — and that raise aborts the WHOLE capture stage, not just this page. Measured the hard
+#         way: dy = -0.35 killed the maccatalyst stage at unit 70 of 186.
+# `dy` is not part of a coordinate PAIR, so it does not affect device_scenarios' fraction/absolute
+# classification — an integer dy therefore keeps the device lanes happy while satisfying the VM's type
+# check. It is read as pixels on Android (400 of 2340) and as POINTS on iOS (400 of 874), so the same
+# number is a different fraction per lane; that is acceptable because a scroll only has to WITNESS
+# motion, and it is verified below rather than assumed.
 #
 # Recalibrating: open captures/<platform>/maui/scroll_view_light.png, find a row well inside the list,
 # express its centre as a fraction of the frame, then check that same fraction against the cpp and xaml
@@ -37,4 +43,4 @@ name = "initial"
 name = "scrolled-down"
 action = "scroll"
 at = [0.5, 0.7]           # over the list body, inside the rows on every lane
-dy = -0.35                # 35% of the surface upward: a multi-row scroll on all four lanes
+dy = -400                 # integer REQUIRED (see above): 400 px on Android, 400 pt on iOS/VM
