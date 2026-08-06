@@ -1,0 +1,36 @@
+# Scenario for the `empty_view_selector` page: capture at rest, then focus the `search_` SearchBar
+# ("Filter") and type into it, so the native text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's empty_view_selector row — empty_view_selector_page.hpp:150 wires
+# `search_.search_command` only (no text_changed.connect anywhere in the file, confirmed via full
+# grep). Per search_bar.hpp, search_command fires only on native search-button-press, not per
+# keystroke, so typing text is safe and matches the twin's inert bare SearchBar
+# (empty_view_selector.xaml:16). CONTROL-INTRINSIC: the field paints the typed characters itself.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/empty_view_selector_light.png (1206x2622): `search_` sits
+# below the instruction Label, centered at roughly pixel (460, 410) of that frame -> fraction
+# (0.5, 0.2).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the only SearchBar on
+# the page, directly above the single-item CollectionView — re-locate it in a fresh capture if the
+# instruction text (row 0) wraps to a different number of lines.
+
+tag = "empty_view_selector"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.5, 0.2]           # search_ SearchBar ("Filter")
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "cat"

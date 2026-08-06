@@ -1,0 +1,37 @@
+# Scenario for the `empty_view_rtl` page: capture at rest, then focus the `search_` SearchBar
+# ("Filter") and type into it, so the native text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's empty_view_rtl row — `picker_.selected_index_changed` (the
+# FlowDirection Picker, empty_view_rtl.xaml:12-17) IS genuinely handler-driven (flips the whole page's
+# FlowDirection) and must NOT be driven. Separately, `search_.search_command` is wired but — per
+# search_bar.hpp — only fires on native search-button-press, never on text_changed, so typing text is
+# safe and matches the twin's inert bare SearchBar (empty_view_rtl.xaml:18). CONTROL-INTRINSIC: the
+# field paints the typed characters itself.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/empty_view_rtl_light.png (1206x2622): `search_` sits below
+# the FlowDirection Picker, centered at roughly pixel (460, 315) of that frame -> fraction (0.5, 0.16).
+# y clears the FlowDirection Picker's row above it — do NOT raise it into that band.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the only SearchBar on
+# the page, directly above the populated CollectionView grid — re-locate it in a fresh capture if the
+# row layout changes.
+
+tag = "empty_view_rtl"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.5, 0.16]          # search_ SearchBar ("Filter")
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "jpg"

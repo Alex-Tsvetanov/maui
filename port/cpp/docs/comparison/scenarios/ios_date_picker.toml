@@ -1,0 +1,49 @@
+# Scenario for the `ios_date_picker` page: capture at rest, then tap the DatePicker (clamped to 2020)
+# to open its native date-picker chrome, capturing the OPENED state.
+#
+# WHY THIS CONTROL: TRIAGE.md's ios_date_picker row — twin
+# port/maui-reference/pages/ios_date_picker.xaml:4-8 comment: the iOS DatePicker.UpdateMode attached
+# property is "a platform knob (no XAML dialect analog)"; only the resting DatePicker (MinimumDate
+# 01/01/2020, MaximumDate 12/31/2020) + a toggle button render. builder
+# ios_date_picker_page.hpp:56-64: the toggle button's .clicked.connect() only flips a stored platform
+# enum — no readout Label, no text change. AVOID that button; it is handler-driven with zero visible
+# effect. Tapping the DatePicker itself is control-intrinsic and IS a real, visible reaction.
+#
+# WHY OPEN-ONLY, NOT "OPEN + SELECT A DATE": same reasoning as picker.toml/ios_picker.toml — no
+# in-place alternative exists on this page, and a second interaction inside the resulting date wheel/
+# calendar popover (whose shape, position, and even whether it's a wheel vs. a calendar grid varies by
+# platform) has no fraction that is safe across lanes. This scenario stops at OPENING the picker.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/ios_date_picker_light.png (1206x2622) with a border-row
+# scan: the VerticalStackLayout has Spacing=12 and NO Padding, so the DatePicker sits edge-to-edge at
+# the very top of the page (right below the status bar) with border lines at y=186 (top) and y=287
+# (bottom) -> vertical center 236.5 -> fraction 0.09; x is the horizontal center of the full-width box
+# (603 of 1206) -> fraction 0.5. (Same row geometry as ios_picker.toml — both pages are
+# VerticalStackLayout Spacing=12 with a single full-width control as the first child.)
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the ONLY DatePicker on
+# the page and the first control, so this should stay stable unless the page gains content above it.
+#
+# CROSS-LANE CHECK (informational, not a recalibration): captures/maccatalyst/maui/ios_date_picker_light.png
+# (1024x800, matching the selftest's window rects) renders the DatePicker as a plain text row with NO
+# border box at all (a bordered scan finds nothing — macOS's native DatePicker looks different from
+# iOS's boxed one), content-band-scanned at roughly y=34..43 -> fraction ~0.048, below this file's
+# 0.09. Same class of cross-lane imprecision as ios_picker.toml/picker.toml (documented there and in
+# _selftest.py's own button.toml/entry.toml notes) — no single fraction hits both lanes' differently-
+# shaped control exactly. This file follows the task's own calibration source (the iOS capture); a
+# miss on macOS/Windows would land in the blank gap above the toggle button, not on the title bar.
+
+tag = "ios_date_picker"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "opened"
+action = "click"
+at = [0.5, 0.09]          # the DatePicker (MinimumDate 01/01/2020, MaximumDate 12/31/2020)

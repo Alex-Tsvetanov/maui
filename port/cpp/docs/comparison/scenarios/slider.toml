@@ -1,0 +1,46 @@
+# Scenario for the `slider` page: capture at rest, then DRAG the `default_slider_` thumb rightward
+# from its Minimum (0) resting position to the middle of its track, so the filled minimum-track color
+# sweeps in behind it and the thumb moves.
+#
+# WHY A DRAG AND NOT A CLICK: a Slider's Value tracks the finger under a press-move-release, not a
+# single tap-at-a-point (a bare click on the track is not guaranteed to seek reliably on every native
+# slider implementation). TRIAGE.md's slider row calls out `drag` as the verb for this reason.
+#
+# WHY THIS CONTROL: twin slider.xaml:6-7 ('Default' Slider, no bindings); builder
+# slider_page.hpp:213/134-135 declares `default_slider_` with zero connects anywhere in the file. AVOID
+# `disabled_slider_` (line 20 twin, IsEnabled=False trap — can't move), `edge_slider_` (line 47 twin,
+# Min==Max==Value=100 trap — can't move), and `min_max_slider_`/`dynamic_slider_` (builder lines
+# 63-65,101-112: both ARE connected to readout labels — handler-driven, avoid). Dragging
+# `default_slider_` is CONTROL-INTRINSIC: the Slider repaints its own thumb position and track fill,
+# same mechanism on every column.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/slider_light.png (1206x2622): the page's root is a
+# `<ScrollView>` but `default_slider_` is the very first control, well above any fold, so no scroll is
+# needed first. Its thumb (Value=0, leftmost) sits at roughly pixel (45, 325) of that frame -> fraction
+# (0.04, 0.12). The track runs the full width of the page, so dragging to fraction x=0.5 (half the
+# window) lands solidly past the midpoint of Slider's default 0..1 range.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the FIRST Slider on the
+# page (below the "Default" label) — re-locate it in a fresh capture if row order/spacing changes.
+# Calibrated from the iOS capture (per house convention — every sibling scenario does the same); the
+# desktop lanes (maccatalyst/windows, 1024x800) pack rows tighter, so this drag's START point resolves
+# ~1.5x higher in their stack — checked against the real maccatalyst capture, it lands on the
+# "BackgroundColor" label text (inert), not on any other Slider's thumb.
+
+tag = "slider"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "dragged-right"
+action = "drag"
+at = [0.06, 0.12]         # default_slider_ thumb, resting at Value=0 (leftmost)
+to = [0.5, 0.12]          # dragged to mid-track -> Value near 0.5 of its 0..1 range
+steps = 20                # a deliberate pan, not a flick: the drag needs intermediate move events
+duration = 0.5            # 25ms per move — above the ~20ms floor where both OSes coalesce moves

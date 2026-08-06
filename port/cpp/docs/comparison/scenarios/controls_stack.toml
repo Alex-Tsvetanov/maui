@@ -1,0 +1,39 @@
+# Scenario for the `controls_stack` page: capture at rest, then click the CheckBox (IsChecked="True"
+# at rest) so it flips to unchecked, changing the native chrome from a filled checkmark to an empty
+# ring.
+#
+# WHY THIS CONTROL: TRIAGE.md's controls_stack row lists several equally-safe options (CheckBox,
+# Switch, Slider, Stepper, Entry, Editor, SearchBar) — twin controls_stack.xaml:7-17 is a flat
+# showcase with zero code-behind, and builder controls_stack_page.hpp has ZERO .connect() calls
+# anywhere (only `switch_.set_is_toggled(true)` as an initial-value seed, not a handler). Of that set
+# the CheckBox is picked here for the simplest possible drive: a single click, no focus-then-type
+# sequencing and no drag calibration. It is CONTROL-INTRINSIC: the CheckBox paints its own checked
+# state, same mechanism on every column.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/controls_stack_light.png (1206x2622): the page is a flat
+# VerticalStackLayout (Label, Button, Entry, Editor, SearchBar, then a HorizontalStackLayout of
+# CheckBox/Switch/ActivityIndicator, Slider, Stepper, ProgressBar) in XAML order; the CheckBox (already
+# checked, blue disc) sits at roughly pixel (57, 1122) of that frame -> fraction (0.05, 0.43).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the FIRST control in the
+# CheckBox/Switch/ActivityIndicator row — re-locate it in a fresh capture if row order/spacing changes.
+# Calibrated from the iOS capture (per house convention — every sibling scenario does the same); the
+# desktop lanes (maccatalyst/windows, 1024x800) pack rows tighter, so this y resolves lower in their
+# stack — checked against the real maccatalyst capture, the drift lands on the (non-interactive)
+# ProgressBar row, not on any other connected control; this page has zero .connect() calls page-wide
+# regardless, so a miss anywhere on it stays safe.
+
+tag = "controls_stack"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "unchecked"
+action = "click"
+at = [0.05, 0.43]         # CheckBox, checked (blue disc) at rest

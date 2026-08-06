@@ -1,0 +1,38 @@
+# Scenario for the `editor` page: capture at rest, then focus the purple `text_color_` Editor ("Text")
+# and type into it, so the native multi-line text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's editor row — editor_page.hpp DOES call .connect() on `basic_`
+# (text_changed + completed, drives a length readout) and `auto_size_` (text_changed, drives an
+# autosize-length readout); typing into EITHER of those is handler-driven and must be avoided. But
+# `text_color_`/`placeholder_`/`font_`/`numeric_`/`aligned_` (editor_page.hpp:61-85) have ZERO handlers
+# attached, matching the twin's bare `<Editor Text="Text" TextColor="Purple" />` (editor.xaml:7).
+# Typing into `text_color_` is CONTROL-INTRINSIC: the Editor paints the characters itself.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/editor_light.png (1206x2622): the page is a flat
+# VerticalStackLayout in XAML order (Label, basic_, text_color_, placeholder_, font_, readonly_,
+# numeric_, aligned_, Label, auto_size_); `text_color_`'s "Text" row sits at roughly pixel (130, 348)
+# of that frame -> fraction (0.14, 0.17). x is kept toward the LEFT (near the short "Text" glyph) since
+# the row's right extent past the word is unconfirmed chrome, not because the field is narrow.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. If row order/spacing changes,
+# re-locate the 3rd control (1st Label, then basic_, then text_color_) in a fresh capture first.
+
+tag = "editor"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.14, 0.17]         # the purple text_color_ Editor ("Text"), 3rd control on the page
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "MAUI"

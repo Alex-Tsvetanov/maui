@@ -1,0 +1,35 @@
+# Scenario for the `scroll_to_group` page: capture at rest, then focus the `group_index_entry_` Entry
+# (first "Group:" field, value "0") and type into it, so the native text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's scroll_to_group row — scroll_to_group_page.hpp:180-196 builds
+# `group_index_entry_`/`item_index_entry_`/`group_name_entry_`/`item_name_entry_` with NO
+# text_changed connect anywhere in the file; only the two "Go" buttons' .command is wired. Typing into
+# any of the four Entries is CONTROL-INTRINSIC — this scenario uses the first one.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/scroll_to_group_light.png (1206x2622): the first Grid's
+# "Group:" row Entry sits at roughly pixel (900, 165) of that frame -> fraction (0.75, 0.08). y clears
+# BOTH the macOS title bar (window-local y >= 0.0425 of an 800pt window) and the Android status bar
+# (~0.06 of the display) with margin, even though it is the topmost interactive control on the page.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the entry in the RIGHT
+# column of the first (Group/Item index) Grid, row 0 — re-locate it in a fresh capture if layout shifts.
+
+tag = "scroll_to_group"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.75, 0.08]         # group_index_entry_ Entry ("Group:" row, value "0")
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "3"

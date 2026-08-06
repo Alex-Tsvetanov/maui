@@ -1,0 +1,37 @@
+# Scenario for the `check_box` page: capture at rest, then click the unchecked `default_check_`
+# CheckBox so it flips to checked, changing the native chrome from an empty ring to a filled checkmark.
+#
+# WHY THIS CONTROL: TRIAGE.md's check_box row — check_box_page.hpp DOES call .connect() once
+# (change_button_.command at line 55, wiring the 'Is green?' button to flip is_green_ and recolor
+# change_check_ + the button) — that pair is handler-driven and must be avoided. But `default_check_`
+# and `colored_check_` (lines 108/110) have NO handler at all — clicking either just flips native
+# IsChecked, matching the twin's bare `<CheckBox/>` (check_box.xaml:6). Clicking `default_check_` is
+# CONTROL-INTRINSIC: the checkbox paints its own checked state, same mechanism on every column.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/check_box_light.png (1206x2622): the page is a flat
+# VerticalStackLayout ("Default" label + CheckBox, "Colored" label + CheckBox, ...) in XAML order; the
+# first (default_check_) ring sits at roughly pixel (595, 355) of that frame -> fraction (0.50, 0.135)
+# (x is centered in the layout, confirmed layout-invariant against the real maccatalyst capture too:
+# 511/1024 = 0.50).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the FIRST CheckBox on the
+# page (below the "Default" label) — re-locate it in a fresh capture if row order/spacing changes.
+# Calibrated from the iOS capture (per house convention — every sibling scenario does the same); the
+# desktop lanes (maccatalyst/windows, 1024x800) pack rows tighter, so this y resolves ~1.5x higher in
+# their stack — checked against the real maccatalyst capture, the drift lands near `colored_check_`
+# (also TRIAGE-safe, unconnected), not on a handler-driven control.
+
+tag = "check_box"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "checked"
+action = "click"
+at = [0.50, 0.135]        # default_check_ CheckBox, unchecked ring below the "Default" label

@@ -1,0 +1,40 @@
+# Scenario for the `clip` page: capture at rest, then scroll down over the clipped-image stack so the
+# native repaint reveals the lower rows (GeometryGroup / PathGeometry clips) that sit below the fold.
+#
+# WHY THIS CONTROL: TRIAGE.md's clip row — twin clip.xaml is a ScrollView over 5 captioned copies of
+# dotnet_bot.png, each with a different Image.Clip geometry (plain / Rectangle / Ellipse / GeometryGroup
+# / Path), no code-behind. Builder clip_page.hpp DOES call .connect() once (toggle_.clicked→on_toggle,
+# line 129) for a code-first-only Toggle button the twin's own comment says is "the gallery's Toggle
+# button + status readout... omitted here, structural resting twin" — AVOID that button. The
+# ScrollView/image stack itself has zero handlers. VISUALLY CONFIRMED overflow directly against
+# port/maui-reference/captures/ios/clip_light.png AND captures/maccatalyst/clip_light.png: on both, the
+# 5th row ("Clipped Image using PathGeometry") is cut off mid-image at the bottom edge of the frame —
+# real overflow on the tightest lane, not a guess. Scrolling is native repaint only, identical on all
+# three columns — CONTROL-INTRINSIC.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). `at` lands over the image stack, well clear of the Toggle button
+# (which the twin doesn't even have, per the comment above) and of the macOS title bar / Android status
+# bar traps.
+#
+# `dy = -400` reuses scroll_view.toml's already-calibrated magnitude (negative scrolls the content up,
+# revealing the lower rows).
+#
+# TO RECALIBRATE: divide a still-visible-at-rest content pixel by that frame's width/height. Confirmed
+# overflow on BOTH the tall iOS simulator frame and the much shorter 1024x800-class macOS window, so
+# this page overflows on every lane — a NOTHING MOVED result here would mean the scroll itself didn't
+# register, not that the content fits.
+
+tag = "clip"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "scrolled-down"
+action = "scroll"
+at = [0.5, 0.4]           # mid-window, over the clipped-image stack (avoid the code-first Toggle button)
+dy = -400

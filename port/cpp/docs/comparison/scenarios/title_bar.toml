@@ -1,0 +1,36 @@
+# Scenario for the `title_bar` page: capture at rest, then focus the `title_entry_` Entry ("Title")
+# and type into it, so the native text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's title_bar row — title_bar_page.hpp:151-152,159-160 DOES wire
+# `title_entry_`/`subtitle_entry_` text_changed -> bar_.set_title/set_subtitle, but `bar_` (a
+# maui::controls::title_bar) is never installed/rendered anywhere in the cpp gallery (grepped
+# gallery_host.hpp/main.cpp for '.bar('/'set_title_bar' — zero matches), so that wiring has NO visible
+# effect on any column. The only visible pixel change from typing is the Entry's OWN native text
+# render, which is CONTROL-INTRINSIC — identical mechanism on every column.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/title_bar_light.png (1206x2622): the page is a 2-column
+# Grid; `title_entry_` (left panel, "Title" bordered field, below the "Set Icon" checkbox row) sits at
+# roughly pixel (230, 350) of that frame -> fraction (0.25, 0.18).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the first bordered Entry
+# in the left ("Content Options") column — re-locate it in a fresh capture if the panel layout changes.
+
+tag = "title_bar"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.25, 0.18]         # title_entry_ Entry ("Title"), left panel
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "MAUI"

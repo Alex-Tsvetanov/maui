@@ -1,0 +1,60 @@
+# Scenario for the `ios_scroll_view` page: capture at rest, then DRAG the Slider thumb from its
+# Value=50 midpoint toward the right, capturing the slider's fill/thumb-position change in place (no
+# popover, no navigation).
+#
+# WHY A DRAG ON THE SLIDER AND NOT THE SCROLLVIEW: TRIAGE.md's ios_scroll_view row names both the
+# Slider (ios_scroll_view.xaml:10) and the ScrollView (:8) under the `drag` verb, but the ScrollView
+# itself does not overflow — the twin's content is only a Slider + two Buttons (checked against
+# port/cpp/docs/comparison/captures/ios/maui/ios_scroll_view_light.png: everything fits in well under
+# half the frame with a large blank remainder below), so a scroll drag there would be a NOTHING MOVED
+# no-op. The twin's comment also notes the page's iOS ShouldDelayContentTouches knob is "omitted:
+# platform-config, no markup sink" — there is no readout for it either way.
+#
+# WHY THE SLIDER AND NOT A BUTTON: builder ios_scroll_view_page.hpp — `inner_slider_` has NO
+# .value_changed.connect() at all (control-intrinsic: dragging it only moves the native thumb and
+# repaints the native fill, identical mechanism on every column). AVOID both buttons: "Toggle
+# ScrollView DelayContentTouches" (:59) flips a stored knob with no visible repaint (handler-driven,
+# zero effect — a false "reacted" frame), and "Return to Platform-Specifics List" (:66) navigates AWAY
+# from this page entirely, which would corrupt every remaining frame of the capture unit — never tap
+# it.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/ios_scroll_view_light.png (1206x2622) by direct pixel
+# scan (not eyeballed): the Slider track (VerticalStackLayout Spacing=20, no Padding — edge-to-edge, no
+# side inset) sits at row y=228..245 -> center y=236.5 -> fraction 0.09; the systemBlue fill / white
+# thumb / gray-track boundary at Value=50 of Maximum=100 lands at x=548..660 (the thumb circle itself)
+# -> center x=604, i.e. dead center of the 1206-wide frame -> fraction 0.5 (expected: 50% of 100 is the
+# midpoint). The drag END, [0.85, 0.09], stays on the same edge-to-edge track (verified: track pixels
+# run the full frame width, x=0..1205) well clear of the right edge.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. If the Slider's default Value
+# changes from 50, re-measure the blue/white/gray boundary at the new row rather than assuming center.
+#
+# CROSS-LANE CHECK (informational, not a recalibration — done first for this file specifically because
+# it is a DRAG ORIGIN, the riskier class): captures/maccatalyst/maui/ios_scroll_view_light.png (1024x800,
+# matching the selftest's window rects) puts the slider track at y=43..46 -> fraction ~0.056, below
+# this file's 0.09 (fraction 72px down that window) — same cross-lane disproportion as the picker pages
+# above (iOS's status bar/native row height vs. macOS's slim title bar). CONFIRMED SAFE regardless: the
+# drag origin at window-local y=72 clears the selftest's TITLE_BAR=34 threshold by 38px, so even
+# missing the slider on the macOS/Windows lanes cannot corrupt the window position — it would only
+# leave that lane's slider unmoved (a scenario-fidelity gap, not a capture-corrupting one), the same
+# class of imprecision _selftest.py's own docstring accepts for button.toml/entry.toml. The x=0.5
+# center point IS confirmed on both lanes (Value=50/Maximum=100 centers the thumb regardless of track
+# width — verified the maccatalyst thumb gap also sits at x~500-520 of 1024, fraction ~0.5).
+
+tag = "ios_scroll_view"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "dragged-right"
+action = "drag"
+at = [0.5, 0.09]          # inner_slider_ thumb at its Value=50 midpoint
+to = [0.85, 0.09]         # drags the thumb toward Maximum=100, well inside the edge-to-edge track
+steps = 20                # a deliberate pan, not a flick — matches carousel_page.toml's calibration
+duration = 0.5

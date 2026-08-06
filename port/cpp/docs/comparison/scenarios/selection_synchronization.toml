@@ -1,0 +1,47 @@
+# Scenario for the `selection_synchronization` page: capture at rest, then scroll down over the outer
+# ScrollView so the native repaint reveals the CollectionViews below the fold.
+#
+# WHY THIS CONTROL: TRIAGE.md's selection_synchronization row — twin selection_synchronization.xaml:
+# 11-197 is a bare ScrollView wrapping 9 CollectionViews at HeightRequest=250 each (~2250pt of content,
+# clearly overflows any viewport). Builder selection_synchronization_page.hpp:301/118
+# (scroll_.set_content(stack_)) has no scrolled/scroll-related connect anywhere in the file. AVOID
+# tapping any cell: every CV's selection_changed IS wired (line 263, wire_readout) to rewrite its own
+# "Selected: ..." Label — handler-driven, must not be the driven verb. Scrolling the outer ScrollView
+# itself is native repaint only, identical on all three columns — CONTROL-INTRINSIC.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml).
+#
+# THE SCROLL-CHAINING CAVEAT (read before recalibrating): there is no single fraction that lands on a
+# page-level Label on every lane. Each CV block is ~2-3 label lines (~110px on a 2622px iOS frame, i.e.
+# a THIN band) followed by a 250pt CollectionView (a much TALLER band) — and on an 800pt-class desktop
+# window the first 250pt CV alone occupies over 30% of the visible rect. So `at` below WILL land inside
+# a nested CollectionView on at least one lane, not on the wrapping label text. That is expected, not a
+# bug: none of the 9 CVs' own content overflows its own 250pt bounds (4 short rows in a 250pt box), so
+# each CV is already at both of its own scroll limits and a wheel/scroll event over it is expected to
+# CHAIN to the parent ScrollView on every platform's native scroll-chaining behavior (UIScrollView /
+# ScrollViewer / NestedScrollView), the same way carousel_page.toml/swipe_refresh.toml flag their own
+# unverified-on-device platform behavior. If this ever reads NOTHING MOVED, chaining from a
+# non-overflowing nested CV is the knob to move first — pick a point inside the inter-CV label gap
+# instead (mid-window here was chosen precisely to avoid depending on that gap's exact per-lane offset).
+#
+# `dy = -400` reuses scroll_view.toml's already-calibrated magnitude (negative scrolls the content up,
+# revealing lower CollectionViews).
+#
+# TO RECALIBRATE: divide a still-visible-at-rest content pixel by that frame's width/height. 9 x 250pt
+# of CollectionView content overflows every captured lane by a wide margin.
+
+tag = "selection_synchronization"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "scrolled-down"
+action = "scroll"
+at = [0.5, 0.45]          # mid-window; may land inside a nested CV (see chaining caveat above) — do
+                          # NOT tap here, this is a scroll-only point
+dy = -400

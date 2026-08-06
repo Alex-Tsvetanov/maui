@@ -1,0 +1,38 @@
+# Scenario for the `clip_views` page: capture at rest, then focus the clipped Entry ("Entry"
+# placeholder) and type into it, so the native text render changes inside the ellipse-clipped field.
+#
+# WHY THIS CONTROL: TRIAGE.md's clip_views row — the twin (clip_views.xaml:19) hosts 7 Red-backgrounded
+# controls (Button/DatePicker/Entry/Editor/Grid/SearchBar/TimePicker) all sharing ONE EllipseGeometry
+# Clip, no code-behind at all; builder clip_views_page.hpp has ZERO .connect() calls anywhere. Typing
+# into the Entry is CONTROL-INTRINSIC: the field paints the typed characters itself, same on every
+# column, and it also happens to exercise the Clip machinery (the typed text must still render inside
+# the clipped bounds).
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/clip_views_light.png (1206x2622): the controls stack in
+# XAML order (Button, DatePicker, Entry, Editor, Grid, SearchBar, TimePicker) and the Entry row's red
+# band sits at roughly pixel (260, 500) of that frame -> fraction (0.22, 0.19). x is kept toward the
+# LEFT of the row: the shared ellipse clip tapers the red area away going right (and more so on lower
+# rows), so a left-biased x stays solidly inside the clipped hit-region on every row, not just this one.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. If the row order or spacing
+# changes, re-locate "Entry" (3rd red band) in a fresh capture first.
+
+tag = "clip_views"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.22, 0.19]         # the clipped Entry (Placeholder="Entry"), 3rd red band
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "MAUI"

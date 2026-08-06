@@ -1,0 +1,34 @@
+# Scenario for the `semantics` page: capture at rest, then focus the `entry_dth_` Entry ("Entry text,
+# DTH") and type into it, so the native text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's semantics row — semantics_page.hpp:66-72 builds `entry_dth_` /
+# `editor_dth_` / `search_dh_` with only set_semantics (accessibility metadata, no rendered effect) —
+# zero connects. AVOID `button_th_`/`button_dh_`/`focus_button_` (handler-driven, per TRIAGE). Typing
+# into `entry_dth_` is CONTROL-INTRINSIC: the field paints the typed characters itself.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/semantics_light.png (1206x2622): the page is a ScrollView
+# over a VerticalStackLayout; `entry_dth_`'s bordered "Entry text, DTH" row sits at roughly pixel
+# (300, 652) of that frame -> fraction (0.33, 0.33).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the first bordered field
+# below the two "Button text T/DH" buttons — re-locate it in a fresh capture if content above it grows.
+
+tag = "semantics"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.33, 0.33]         # entry_dth_ Entry ("Entry text, DTH")
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "MAUI"

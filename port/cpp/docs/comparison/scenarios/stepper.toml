@@ -1,0 +1,41 @@
+# Scenario for the `stepper` page: capture at rest, then click the "+" half of the `default_stepper_`
+# Stepper, incrementing its native Value.
+#
+# WHY THIS CONTROL: TRIAGE.md's stepper row — twin stepper.xaml:5-6 ('Default' Stepper); builder
+# stepper_page.hpp:169 declares `default_stepper_` with zero connects. AVOID `enable_stepper_` (line 8
+# twin, IsEnabled=False trap) and `value_changed_stepper_` (builder line 84: connected to
+# update_readout, rewriting 'Value: N' — handler-driven). Clicking `default_stepper_`'s "+" is
+# CONTROL-INTRINSIC — no readout Label is bound to it on this page, but the +/- segments are NOT
+# visually inert: at rest, Value == Minimum == 0, so the native control disables (and greys out) the
+# "-" segment while "+" stays enabled (black) — confirmed in the real capture, see
+# port/cpp/docs/comparison/captures/ios/maui/stepper_light.png. One click on "+" bumps Value to 1,
+# which re-enables "-" and repaints it from grey to black; THAT enabled/disabled repaint is the durable
+# pixel diff this scenario is verifying, identical mechanism on every column. `at` MUST stay on the "+"
+# half: a tap on "-" at Value==Minimum is a clamped no-op with no repaint at all.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/stepper_light.png (1206x2622): the page is a flat
+# VerticalStackLayout ("Default" label + Stepper, "Disabled" label + Stepper, ...) in XAML order; the
+# first (default_stepper_) "+" glyph sits at roughly pixel (250, 350) of that frame -> fraction
+# (0.21, 0.13).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the FIRST Stepper on the
+# page (below the "Default" label) — re-locate it in a fresh capture if row order/spacing changes.
+# Calibrated from the iOS capture (per house convention — every sibling scenario does the same); the
+# desktop lanes (maccatalyst/windows, 1024x800) pack rows tighter, so this y resolves ~1.5x higher in
+# their stack, landing in blank space above the control rather than on any other Stepper — a harmless
+# miss, not a handler collision.
+
+tag = "stepper"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "incremented"
+action = "click"
+at = [0.21, 0.13]         # default_stepper_ Stepper, the "+" half

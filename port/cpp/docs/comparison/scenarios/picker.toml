@@ -1,0 +1,55 @@
+# Scenario for the `picker` page: capture at rest, then tap the "Basic" Picker to open its native
+# picker chrome (wheel/popover/dialog, whichever the platform renders), capturing the OPENED state.
+#
+# WHY THIS CONTROL: TRIAGE.md's picker row — picker_page.hpp DOES call .connect() 4 times on this page
+# (lines 81, 109, 111, 117), but NOT on `basic_picker_` (picker_page.hpp:57-62), which is built with
+# items only. Twin picker.xaml:7-30, the FIRST Picker ("Basic", Title="Select an item", 20 x:String
+# items, no SelectedIndex), has no code-behind at all — matches. AVOID every other Picker on the page
+# (SelectedIndex=1 / SelectedIndexChanged / TextColor / TitleColor / FontAttributes / dynamic-items /
+# Items-markup): several of those ARE wired to the connected handlers above.
+#
+# WHY OPEN-ONLY, NOT "OPEN + SELECT AN ITEM": tapping a Picker is control-intrinsic either way (no app
+# handler needed for the platform chrome to appear), but the SECOND tap — landing on a specific row
+# inside the resulting wheel/dialog/dropdown — has no fraction that is safe across lanes: iOS/Catalyst
+# present a bottom action-sheet wheel, Android an AlertDialog list, desktop lanes a differently-shaped
+# popover/flyout, each at a different position and each liable to change frame-to-frame if the picker
+# scrolls to a different starting row. Per the task's own geometry-trap guidance ("prefer a control
+# whose change is in-place... say in the header if you chose the popover anyway"): this page has no
+# in-place alternative (every other Picker instance is handler-driven, see above), so the popover is
+# the only available control-intrinsic reaction, and this scenario stops at OPENING it — a large,
+# platform-chrome pixel diff every column must render for the same reason, without gambling a second
+# tap on a target that moves per lane.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/picker_light.png (1206x2622) with a border-row scan (not
+# eyeballed): the VerticalStackLayout has Padding=12, and the repeating Label+Picker rows produce
+# horizontal border lines at y=291/392 (box 1, "Basic"), 480/581 (box 2), 669/... (box 3). Box 1 spans
+# y=291..392 -> vertical center 341.5 -> fraction 0.13; x is the horizontal center of the Padding=12
+# box (~603 of 1206) -> fraction 0.5.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. If content above "Basic" grows
+# (an inserted row), re-run the border-row scan and re-locate box 1, not just shift the y by eye.
+#
+# CROSS-LANE CHECK (informational, not a recalibration): the same border-row scan against
+# captures/maccatalyst/maui/picker_light.png (1024x800, a 1024x800 lane frame — same w/h as the
+# selftest's window rects) puts box 1 at y=58..84 -> fraction ~0.089, noticeably below this file's 0.13
+# (iOS's status bar + larger native row height pushes content down proportionally more than macOS's
+# slim title bar does). The two boxes' fraction ranges don't overlap, so no single fraction hits both
+# lanes' box exactly — the same class of imprecision _selftest.py's own docstring documents as
+# accepted for button.toml/entry.toml ("both PASS here"). This file follows the task's own calibration
+# source (the iOS capture) and is on-window on every lane; a miss on macOS/Windows would land in the
+# gap between two Picker rows (blank space), not on the title bar or another control.
+
+tag = "picker"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "opened"
+action = "click"
+at = [0.5, 0.13]          # basic_picker_ ("Basic", no SelectedIndex, no handler) — 1st Picker on the page

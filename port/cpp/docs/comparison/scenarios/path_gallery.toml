@@ -1,0 +1,36 @@
+# Scenario for the `path_gallery` page: capture at rest, then scroll down over the shape catalogue so
+# the native repaint reveals the lower rows (Multiple Line Segments star, Complex Paths placeholders)
+# below the fold.
+#
+# WHY THIS CONTROL: TRIAGE.md's path_gallery row — twin is a bare <ScrollView><VerticalStackLayout
+# Padding=12> with 8 captioned shape variants (Line / Polygon / Polyline / Ellipse / Rectangle / Ellipse
+# / Polyline-star / 2 placeholder shapes) + 10 Labels, no code-behind. Builder path_gallery_page.hpp has
+# ZERO .connect() calls. VISUALLY CONFIRMED via port/maui-reference/captures/maccatalyst/
+# path_gallery_light.png: the "Multiple Line Segments" star is cut off at the bottom edge of the
+# captured frame, with "Complex Paths" + 2 more shapes never shown — real overflow, not a guess. Pure
+# native scroll, no handler on either side — CONTROL-INTRINSIC.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). x = 0.5 is fine even though every shape carries
+# HorizontalOptions="Start" (left-aligned, often narrower than the window): the ScrollView spans the
+# full page width, so the blank band to the right of a shape is still part of its scroll surface.
+#
+# `dy = -400` reuses scroll_view.toml's already-calibrated magnitude (negative scrolls the content up,
+# revealing the lower rows).
+#
+# TO RECALIBRATE: divide a still-visible-at-rest content pixel by that frame's width/height. Confirmed
+# overflow on the macOS window (the shortest lane), so this page overflows on every lane.
+
+tag = "path_gallery"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "scrolled-down"
+action = "scroll"
+at = [0.5, 0.4]           # mid-window, over the shape catalogue (no interactive controls on this page)
+dy = -400

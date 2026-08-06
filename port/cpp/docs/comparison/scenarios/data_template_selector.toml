@@ -1,0 +1,35 @@
+# Scenario for the `data_template_selector` page: capture at rest, then focus the `search_` SearchBar
+# ("Day of Week Filter") and type into it, so the native text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's data_template_selector row — data_template_selector_page.hpp:132 DOES
+# wire `search_.search_command`, but per maui/controls/search_bar.hpp:249-259 `search_command` only
+# fires from `send_search_button_pressed` (the native "search/return key pressed" event), NOT from
+# `text_changed` (a separate signal, raised independently). Typing characters alone never invokes it —
+# the only pixel change is the SearchBar's own native text render, CONTROL-INTRINSIC.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/data_template_selector_light.png (1206x2622): `search_` is
+# the sole control in row 0 of the page's Grid, centered at roughly pixel (460, 242) of that frame ->
+# fraction (0.5, 0.12).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the only SearchBar on
+# the page, directly above the CollectionView — re-locate it in a fresh capture if the row layout changes.
+
+tag = "data_template_selector"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.5, 0.12]          # search_ SearchBar ("Day of Week Filter")
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "Mon"

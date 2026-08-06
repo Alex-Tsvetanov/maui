@@ -1,0 +1,38 @@
+# Scenario for the `box_view` page: capture at rest, then scroll down over the BoxView stack so the
+# native repaint reveals the lower sections (CornerRadius / Complex CornerRadius / Opacity / Clip /
+# Shadow rows) that sit below the fold.
+#
+# WHY THIS CONTROL: TRIAGE.md's box_view row — twin box_view.xaml:4-40 is a bare <ScrollView> over 8
+# labelled 160x160 BoxView sections (Default / Using Color / Background gradient / CornerRadius /
+# Complex CornerRadius / Opacity / Clip / Shadow), no code-behind at all. Builder box_view_page.hpp has
+# ZERO .connect() calls — plain content assembly, scroller_.set_content(stack_). VISUALLY CONFIRMED
+# overflow against port/maui-reference/captures/ios/box_view_light.png: only 4 of 8 sections are visible
+# before the frame cuts off. Scrolling is native repaint only, identical on all three columns —
+# CONTROL-INTRINSIC.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). The page has no controls above the ScrollView at all (it IS the
+# page content), so any x/y comfortably clear of the macOS title bar / Android status bar traps lands
+# on a passive BoxView or Label — nothing here reacts to a hover or a scroll-wheel pass-over.
+#
+# `dy = -400` reuses scroll_view.toml's already-calibrated magnitude (negative scrolls the content up,
+# revealing the lower rows) rather than picking a new one.
+#
+# TO RECALIBRATE: if this ever reads NOTHING MOVED, divide a still-visible-at-rest content pixel by that
+# frame's width/height and update `at`; the scroll direction/magnitude below already clears every
+# platform's known content length (2622px iOS / 1536-2x macOS / 800pt desktop all show real overflow
+# beyond section 4).
+
+tag = "box_view"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "scrolled-down"
+action = "scroll"
+at = [0.5, 0.4]           # mid-window, over the BoxView stack (no interactive controls on this page)
+dy = -400

@@ -1,0 +1,49 @@
+# Scenario for the `ios_picker` page: capture at rest, then tap the "Select a monkey" Picker to open
+# its native picker chrome, capturing the OPENED state.
+#
+# WHY THIS CONTROL: TRIAGE.md's ios_picker row — twin port/maui-reference/pages/ios_picker.xaml:4-6
+# comment: the iOS Picker.UpdateMode attached property is a platform knob with "no resting visual and
+# no supported markup sink", so it is omitted — only the Picker + a toggle button render at rest.
+# builder ios_picker_page.hpp:60-64: the toggle button's .clicked.connect() only flips a stored
+# update_mode enum — no readout Label, no text change, nothing repaints. AVOID that button; it is
+# handler-driven with zero visible effect (a false "reacted" frame that is really a no-op). Tapping the
+# Picker itself is control-intrinsic and IS a real, visible reaction.
+#
+# WHY OPEN-ONLY, NOT "OPEN + SELECT": same reasoning as picker.toml — the page has no in-place
+# alternative (the only other interactive element is the invisible toggle button above), and a second
+# tap landing on a specific row of the resulting wheel/dialog/dropdown has no fraction that is safe
+# across lanes (different chrome shape and position per platform). This scenario stops at OPENING the
+# picker, per the geometry-trap guidance to prefer the safe reaction over a risky exact one.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/ios_picker_light.png (1206x2622) with a border-row scan:
+# the VerticalStackLayout has Spacing=12 and NO Padding, so the Picker sits edge-to-edge at the very
+# top of the page (right below the status bar) with border lines at y=186 (top) and y=287 (bottom) ->
+# vertical center 236.5 -> fraction 0.09; x is the horizontal center of the full-width box (603 of
+# 1206) -> fraction 0.5.
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the ONLY Picker on the
+# page and the first control, so this should stay stable unless the page gains content above it.
+#
+# CROSS-LANE CHECK (informational, not a recalibration): the same scan against
+# captures/maccatalyst/maui/ios_picker_light.png (1024x800, matching the selftest's window rects) puts
+# the Picker box at y=31..57 -> fraction ~0.055, below this file's 0.09 (macOS's title bar is a much
+# smaller fraction of an 800px window than iOS's status bar is of a 2622px frame, so the same
+# first-on-page control sits higher, proportionally, on macOS). The two fraction ranges don't overlap
+# — the same class of imprecision _selftest.py's own docstring documents as accepted for
+# button.toml/entry.toml. This file follows the task's own calibration source (the iOS capture); a
+# miss on macOS/Windows would land in the blank gap above the toggle button, not on the title bar.
+
+tag = "ios_picker"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "opened"
+action = "click"
+at = [0.5, 0.09]          # the "Select a monkey" Picker — only Picker on the page

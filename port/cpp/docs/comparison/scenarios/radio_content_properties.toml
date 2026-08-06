@@ -1,0 +1,37 @@
+# Scenario for the `radio_content_properties` page: capture at rest, then click the first RadioButton
+# ("Option A", styled Red/Italic/14pt) so it flips to selected, filling in its native inner dot.
+#
+# WHY THIS CONTROL: TRIAGE.md's radio_content_properties row — twin radio_content_properties.xaml:7-24
+# has 8 RadioButtons, all GroupName='test' (styling/content-property demo), no readout Label anywhere,
+# no code-behind. GroupName is a per-instance registered bindable property in the XAML loader
+# (port/cpp/src/xaml/register_xaml_toggles_selections.cpp:60-61), so the group behaves identically
+# across columns. Clicking the first RadioButton is CONTROL-INTRINSIC: it paints its own selected
+# state, same mechanism on every column, and starts unselected (all 8 rings are empty at rest) so the
+# dot's appearance is an unambiguous diff.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/radio_content_properties_light.png (1206x2622): the page
+# is a flat StackLayout (Label, Label, RadioButton "Option A", Label, RadioButton "Option B", ...) in
+# XAML order; the first RadioButton's ring sits at roughly pixel (37, 518) of that frame -> fraction
+# (0.03, 0.20).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the FIRST RadioButton on
+# the page ("Option A", red italic text) — re-locate it in a fresh capture if row order/spacing changes.
+# Calibrated from the iOS capture (per house convention — every sibling scenario does the same); the
+# desktop lanes (maccatalyst/windows, 1024x800) pack rows tighter, so this y resolves higher in their
+# stack. This page is handler-free throughout (all 8 RadioButtons and every Label), so any drift still
+# lands on inert content, never a handler-driven control.
+
+tag = "radio_content_properties"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "selected"
+action = "click"
+at = [0.06, 0.20]         # first RadioButton ("Option A", GroupName='test'), unselected ring

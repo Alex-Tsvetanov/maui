@@ -1,0 +1,34 @@
+# Scenario for the `clip_gallery` page: capture at rest, then scroll down over the clipped-image stack
+# so the native repaint reveals the lower rows (GeometryGroup / PathGeometry clips) below the fold.
+#
+# WHY THIS CONTROL: TRIAGE.md's clip_gallery row — twin is a bare ScrollView over 6 captioned oasis.jpg
+# copies, each with a different Image.Clip geometry (plain / Rectangle / RoundRectangle / Ellipse /
+# GeometryGroup / Path), no code-behind at all. Builder clip_gallery_page.hpp has ZERO .connect() calls.
+# VISUALLY CONFIRMED overflow against port/maui-reference/captures/ios/clip_gallery_light.png: only 3.5
+# of 6 images are visible before the frame cuts off. Pure native scroll, no handler on either side —
+# CONTROL-INTRINSIC.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). The page has no controls above the ScrollView at all, so any x/y
+# clear of the macOS title bar / Android status bar traps lands on a passive captioned image.
+#
+# `dy = -400` reuses scroll_view.toml's already-calibrated magnitude (negative scrolls the content up,
+# revealing the lower rows).
+#
+# TO RECALIBRATE: divide a still-visible-at-rest content pixel by that frame's width/height. Content
+# overflows an entire 2622px-tall iOS frame at just 3.5 of 6 rows, so it comfortably overflows every
+# shorter desktop lane too.
+
+tag = "clip_gallery"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "scrolled-down"
+action = "scroll"
+at = [0.5, 0.4]           # mid-window, over the clipped-image stack (no interactive controls on this page)
+dy = -400

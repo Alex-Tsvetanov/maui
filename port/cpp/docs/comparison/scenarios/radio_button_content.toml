@@ -1,0 +1,37 @@
+# Scenario for the `radio_button_content` page: capture at rest, then click the "Option A"
+# RadioButton (`option_a_`) so it flips to selected, filling in its native inner dot.
+#
+# WHY THIS CONTROL: TRIAGE.md's radio_button_content row — twin radio_button_content.xaml:6-15 (4
+# RadioButtons: Option A / Option C / framed fallback-text / coffee.png fallback-text), NONE carry an
+# explicit GroupName; mutual exclusion relies on the framework's auto-group-by-immediate-parent default
+# (port/cpp/src/controls/radio_button_group.cpp:106-116). None of `option_a_`/`option_c_`/
+# `fallback_radio_`/`framed_radio_` has a connected handler. `option_a_` is picked here as the first
+# and simplest — clicking it is CONTROL-INTRINSIC: the RadioButton paints its own selected state, same
+# mechanism on every column, and starts unselected so the dot's appearance is an unambiguous diff.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/radio_button_content_light.png (1206x2622): the page's
+# root is a `<ScrollView>`, but "Option A" is the very first RadioButton, right after the intro Label,
+# well above any fold, so no scroll is needed first. Its ring sits at roughly pixel (75, 360) of that
+# frame -> fraction (0.06, 0.14).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the FIRST RadioButton on
+# the page ("Option A") — re-locate it in a fresh capture if row order/spacing changes.
+# Calibrated from the iOS capture (per house convention — every sibling scenario does the same); the
+# desktop lanes (maccatalyst/windows, 1024x800) pack rows tighter, so this y resolves higher in their
+# stack. This page is handler-free throughout (every RadioButton and Label on it), so any drift still
+# lands on inert content, never a handler-driven control.
+
+tag = "radio_button_content"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "selected"
+action = "click"
+at = [0.06, 0.14]         # option_a_ RadioButton ("Option A"), unselected ring

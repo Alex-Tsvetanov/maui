@@ -1,0 +1,42 @@
+# Scenario for the `hit_testing` page: capture at rest, then click the "Rectangle Selection" CheckBox
+# so it flips to checked, changing the native chrome from an empty ring to a filled checkmark.
+#
+# WHY THIS CONTROL: twin port/maui-reference/pages/hit_testing.xaml:4-10 comment: "the CheckedChanged
+# handler and all tap interaction are pure runtime behavior and are omitted" (resting UI only). Builder
+# port/cpp/examples/gallery/pages/hit_testing_page.hpp:94
+# `rectangle_select_check_.checked_changed.connect` sets only an internal `rectangle_mode_` bool with
+# NO repaint — the tap-driven hit_test()/deliver_tap() readout logic (lines 206-248) needs a real touch
+# on the shapes below and is NOT what this scenario drives. Clicking the CheckBox itself is
+# CONTROL-INTRINSIC: it paints its own checked state, same mechanism on every column, independent of
+# that internal bool.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/hit_testing_light.png (1206x2622): the page's root is a
+# `<ScrollView>`, but the "Rectangle Selection" row is the 2nd item (right after the "Selected: -"
+# label), well above any fold, so no scroll is needed first. The CheckBox ring sits at roughly pixel
+# (355, 422) of that frame -> fraction (0.29, 0.16).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. It is the ONLY CheckBox on the
+# page — re-locate the "Rectangle Selection" row in a fresh capture if layout changes.
+# Calibrated from the iOS capture (per house convention — every sibling scenario does the same). This
+# page is the one EXPENSIVE case to get wrong: TRIAGE.md notes the builder's tap-driven
+# hit_test()/deliver_tap() readout (hit_testing_page.hpp:206-248) fires on a real touch on the Buttons
+# or shapes below, which the twin omits — a stray click landing there would be handler-driven cpp-only
+# and manufacture a false red. Checked against the real maccatalyst capture (1024x800): this fraction
+# resolves to (297, 128), which lands in the blank margin after the first "Lorem ipsum..." label and
+# well above the "Scale = 1"/"Scale = 2"/"Rotation = 20" Buttons (y >= 203) — confirmed inert on that
+# lane too, not a handler collision.
+
+tag = "hit_testing"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "checked"
+action = "click"
+at = [0.29, 0.16]         # "Rectangle Selection" CheckBox, unchecked ring

@@ -1,0 +1,35 @@
+# Scenario for the `search_bar` page: capture at rest, then focus the green `text_color_` SearchBar
+# ("Green text") and type into it, so the native text render changes.
+#
+# WHY THIS CONTROL: TRIAGE.md's search_bar row — search_bar_page.hpp:66-67 builds `text_color_` with
+# only set_text/set_text_color, no connect. AVOID the `default_` bar (lines 55-63: text_changed ->
+# update_readout rewriting the "LENGTH: N SEARCHES: N" label, and search_button_pressed -> readout
+# overwrite) — that one is handler-driven. Typing into `text_color_` is CONTROL-INTRINSIC: the field
+# paints the typed characters itself, same on every column.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the
+# presented window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full
+# rationale in carousel_page.toml). Measured from
+# port/cpp/docs/comparison/captures/ios/maui/search_bar_light.png (1206x2622): the page is a flat
+# VerticalStackLayout (Label, default_, text_color_, placeholder_, ...) in XAML order; `text_color_`'s
+# "Green text" row sits at roughly pixel (300, 515) of that frame -> fraction (0.33, 0.26).
+#
+# TO RECALIBRATE: divide the target pixel by that frame's width/height. If row order/spacing changes,
+# re-locate the 2nd SearchBar (1st is default_, AVOID) in a fresh capture first.
+
+tag = "search_bar"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "focus-field"
+action = "click"
+at = [0.33, 0.26]         # the green text_color_ SearchBar ("Green text"), 2nd SearchBar on the page
+
+[[steps]]
+name = "typed"
+action = "type"
+text = "MAUI"
