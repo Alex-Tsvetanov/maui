@@ -1,19 +1,40 @@
-# Scenario for the `scroll_view` page: capture top, scroll down, capture the scrolled state.
+# Scenario for the `scroll_view` page: capture the at-rest state, scroll down, capture the scrolled one.
 #
-# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1512-WIDE DISPLAY (1512x950). Window is
-# 1024 pt wide, centered, pinned to the top -> centered content at screen x = width/2 = 756. Scroll is
-# forgiving: any point over the list works. `dy` is pixels; negative scrolls the content up (reveals
-# lower rows). Verified: scrolls the 40-row list from Row 0 down to ~Row 25-30, updating "Scrolled to:".
+# FRACTIONS OF THE TARGET SURFACE (0..1), scaled per lane. The previous version was ABSOLUTE pixels
+# calibrated for a 1512x950 Mac display, and the consequence was not a mis-aimed gesture — it was NO
+# GESTURE AT ALL. recapture.device_scenarios() classifies a file carrying any absolute pair as
+# un-replayable on a device lane and skips the WHOLE scenario, which the runner logged as
+#   !! SCENARIO SKIPPED android (...)/scroll_view: absolute desktop coordinates cannot be replayed on a
+#      device with different geometry; re-author as 0..1 fractions
+# so on iOS and Android this page was never driven at all: both columns sat still, agreed perfectly, and
+# the board scored it "NOTHING MOVED" — no motion parity measured whatsoever.
+#
+# The first step MUST stay named `initial`. It was named `top`, and that name is not cosmetic:
+# recapture.py picks the published at-rest frame by looking for the step called `initial`, and decides a
+# page is DRIVEN with `any(step != "initial" and not step.startswith("gif"))` — so a first step named
+# anything else both loses the at-rest anchor and counts itself as a drive.
+#
+# `at` is over the list BODY: 0.7 rather than a mid-window 0.4 because the page carries a header above
+# the list on the narrow lanes, and 0.7 lands inside the rows on all four. `dy` is negative to scroll the
+# content UP (revealing lower rows), and it is a FRACTION here too — capture_android._scale and its iOS
+# twin read |v| <= 1 as a fraction of the axis span, so one number serves a 2340 px phone and an 800 pt
+# window without either lane being mis-scaled. (An earlier note claimed dy had to be an integer. It does
+# not: _scale's own docstring says otherwise, and measured, dy = -0.25 on this emulator resolves to
+# `input swipe 540 936 540 351` — 585 px, exactly 0.25 x 2340.)
+#
+# Recalibrating: open captures/<platform>/maui/scroll_view_light.png, find a row well inside the list,
+# express its centre as a fraction of the frame, then check that same fraction against the cpp and xaml
+# captures. All three columns must receive the identical gesture or the comparison means nothing.
 
 tag = "scroll_view"
 themes = ["light"]
 timeout_seconds = 30
 
 [[steps]]
-name = "top"
+name = "initial"
 
 [[steps]]
 name = "scrolled-down"
 action = "scroll"
-at = [756, 400]           # over the list body (centered, mid-window)
-dy = -400
+at = [0.5, 0.7]           # over the list body, inside the rows on every lane
+dy = -0.35                # 35% of the surface upward: a multi-row scroll on all four lanes
