@@ -11,7 +11,7 @@
              box_view gestures="5[tap,pan,pinch,swipe,pointer]" vs a bare box_view.
              The event handlers stay omitted per the dialect — only the RECOGNIZERS are declared, which
              is what the resting render and the interaction layer depend on. -->
-        <BoxView Color="CornflowerBlue" HeightRequest="160" CornerRadius="8">
+        <BoxView x:Name="GestureTarget" Color="CornflowerBlue" HeightRequest="160" CornerRadius="8">
             <BoxView.GestureRecognizers>
                 <TapGestureRecognizer />
                 <PanGestureRecognizer />
@@ -22,6 +22,6 @@
         </BoxView>
 
         <!-- the readout (resets to none at rest) -->
-        <Label Text="Last gesture: (none)" />
+        <Label x:Name="Readout" Text="Last gesture: (none)" />
     </VerticalStackLayout>
 </ContentPage>
