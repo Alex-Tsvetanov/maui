@@ -3002,3 +3002,33 @@ WHAT IS ACTUALLY TRUE about pointer_gesture: its twin DOES still omit the gestur
 so the page needs the same treatment `gestures` got. It simply cannot be detected by the
 structure-equivalence sweep while the key sits on known_diverging for an unrelated StackLayout reason —
 the coarse "these trees differ" assertion cannot distinguish which divergence it is seeing.
+
+### the gesture recipe, PROVEN on `gestures` — and what it costs to repeat
+
+gestures/ios is green on both columns (1b46744647): MAUI 3935 px vs cpp 3935 px, cpp_xaml 4782 px. Five
+steps, in this order, each of which is load-bearing:
+
+  1. twin markup            <X.GestureRecognizers> in port/maui-reference/pages/<key>.xaml, plus x:Name
+                            on the target and the readout so BOTH frameworks can reach them
+  2. loader support         already landed for 7 recognizer types (27fd12e283) — no per-page work
+  3. C# code-behind         hand-write app/Pages/<Key>Page.xaml.cs, DROP the generated marker line, wire
+                            via x:Name. NOT via XAML event attributes: the C++ loader refuses those
+                            loudly (xaml_loader.event_wiring_is_a_loud_deferral) and the file is shared
+  4. cpp_xaml code-behind   hand-write examples/gallery_xaml/Views/<key>.xaml.cpp the same way, drop its
+                            marker, page->find<T>(name) + page->retain(scoped_connection(evt, token))
+  5. scenario + recapture   fractions cleared through scenarios/_selftest.py, then rebuild AND INSTALL
+
+TWO TRAPS THAT COST REAL TIME ON THE FIRST PAGE, both of which will recur:
+  * capture_ios.py:100 says "Does NOT build or install". `dotnet build` puts a new .app on disk and
+    NOTHING installs it — the sim keeps running the old bundle and MAUI's two frames come back
+    byte-identical. `xcrun simctl install <UDID> <.app>` after every MauiReference rebuild.
+  * examples/ is a SEPARATE CMake project. `tools/dev.sh <filter>` does not build gallery_xaml at all —
+    the headless preset has no such target — so a green filtered test says NOTHING about whether a
+    .xaml.cpp compiles. Build it with `ninja gallery_xaml` in examples/build-ios.
+
+POINTER_GESTURE IS THE NEXT CANDIDATE AND CARRIES A SPECIFIC RISK worth settling BEFORE step 1. Its
+builder wires pointer_entered / pointer_moved / pointer_pressed (pointer_gesture_page.hpp:78, :89, :91).
+On a touch simulator there is no hover: entered/moved have no way to fire from a synthesized tap, and
+only pointer_pressed is plausibly reachable. That is the same shape as the switch/slider finding
+(d51acde0e8) — a page that cannot be driven is honest, a scenario that silently does nothing is not — so
+probe whether a tap moves that page's readout at all before building the five-step chain for it.
