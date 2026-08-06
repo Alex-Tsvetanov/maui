@@ -7,7 +7,14 @@
     <VerticalStackLayout Margin="20" Spacing="12">
         <Label Text="Pan the target. If you pan it, this Label will change." FontAttributes="Bold" />
         <Button Text="Toggle Simultaneous Gesture Recognition" />
-        <Label Text="Pan target" />
+        <!-- The PanGestureRecognizer is declared (the builder twin attaches one here); only its EVENT
+             handler stays omitted per the dialect. Named by the structure-equivalence diff as
+             label text="Pan target" gestures="1[pan]" against a bare label. -->
+        <Label Text="Pan target">
+            <Label.GestureRecognizers>
+                <PanGestureRecognizer />
+            </Label.GestureRecognizers>
+        </Label>
         <Label Text="SimultaneousRecognition: false" />
     </VerticalStackLayout>
 </ContentPage>

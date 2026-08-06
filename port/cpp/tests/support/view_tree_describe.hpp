@@ -26,6 +26,14 @@
 #include "maui/controls/button.hpp"
 #include "maui/controls/check_box.hpp"
 #include "maui/controls/content_page.hpp"
+#include "maui/controls/gestures/drag_gesture_recognizer.hpp"
+#include "maui/controls/gestures/drop_gesture_recognizer.hpp"
+#include "maui/controls/gestures/gesture_recognizer_collection.hpp"
+#include "maui/controls/gestures/pan_gesture_recognizer.hpp"
+#include "maui/controls/gestures/pinch_gesture_recognizer.hpp"
+#include "maui/controls/gestures/pointer_gesture_recognizer.hpp"
+#include "maui/controls/gestures/swipe_gesture_recognizer.hpp"
+#include "maui/controls/gestures/tap_gesture_recognizer.hpp"
 #include "maui/controls/content_view.hpp"
 #include "maui/controls/editor.hpp"
 #include "maui/controls/entry.hpp"
@@ -250,10 +258,61 @@ namespace maui::tests
         }
     } // namespace detail
 
+    namespace detail
+    {
+        // GESTURE RECOGNIZERS, and this is not a cosmetic prop — it is the one thing on a view that
+        // changes what the page DOES rather than how it looks, so the conservative-props policy above
+        // does not apply to it.
+        //
+        // It was absent, and the cost was concrete: gestures_page.hpp attaches tap+pan+pinch while the
+        // shared twin gestures.xaml attaches NONE ("GestureRecognizers omitted" in its own comment), and
+        // the structure-equivalence test for that key PASSED anyway — this describe() never looked, so
+        // the first line of defense for the shared-XAML board was blind to the entire interaction layer.
+        // Emitted as a count plus the ordered type list: enough to catch a missing, extra or reordered
+        // recognizer, without dragging in each one's tuning properties (which ARE cosmetic here).
+        // Most-derived-first, mirroring describe_self's naming policy.
+        [[nodiscard]] inline std::string gesture_type_name(const maui::controls::gesture_recognizer& r)
+        {
+            if (dynamic_cast<const maui::controls::tap_gesture_recognizer*>(&r) != nullptr) return "tap";
+            if (dynamic_cast<const maui::controls::pan_gesture_recognizer*>(&r) != nullptr) return "pan";
+            if (dynamic_cast<const maui::controls::pinch_gesture_recognizer*>(&r) != nullptr) return "pinch";
+            if (dynamic_cast<const maui::controls::swipe_gesture_recognizer*>(&r) != nullptr) return "swipe";
+            if (dynamic_cast<const maui::controls::pointer_gesture_recognizer*>(&r) != nullptr) return "pointer";
+            if (dynamic_cast<const maui::controls::drag_gesture_recognizer*>(&r) != nullptr) return "drag";
+            if (dynamic_cast<const maui::controls::drop_gesture_recognizer*>(&r) != nullptr) return "drop";
+            return "gesture"; // a recognizer type this helper does not know — still counted, still diffed
+        }
+
+        inline void describe_gestures(const maui::core::i_view& view, view_node& node)
+        {
+            const auto* element = dynamic_cast<const maui::controls::element*>(&view);
+            if (element == nullptr)
+            {
+                return;
+            }
+            auto* recognizers = const_cast<maui::controls::element*>(element)->gesture_recognizers_or_null();
+            if (recognizers == nullptr || recognizers->count() == 0)
+            {
+                return; // absent and empty are the same thing to a reader, and to a diff
+            }
+            std::string names;
+            for (std::size_t i = 0; i < recognizers->count(); ++i)
+            {
+                if (!names.empty())
+                {
+                    names += ",";
+                }
+                names += gesture_type_name(*recognizers->at(i));
+            }
+            add_prop(node, "gestures", std::format("{}[{}]", recognizers->count(), names));
+        }
+    } // namespace detail
+
     // Normalize one view subtree.
     [[nodiscard]] inline view_node describe(const maui::core::i_view& view)
     {
         view_node node = detail::describe_self(view);
+        detail::describe_gestures(view, node);
         detail::describe_children(view, node);
         return node;
     }

@@ -52,6 +52,8 @@
 #include <system_error>
 
 #include "maui/controls/gestures/buttons_mask.hpp"
+#include "maui/controls/gestures/drag_gesture_recognizer.hpp"
+#include "maui/controls/gestures/drop_gesture_recognizer.hpp"
 #include "maui/controls/gestures/pan_gesture_recognizer.hpp"
 #include "maui/controls/gestures/pinch_gesture_recognizer.hpp"
 #include "maui/controls/gestures/pointer_gesture_recognizer.hpp"
@@ -177,6 +179,24 @@ namespace maui::xaml
 
         // ---- PinchGestureRecognizer (PinchGestureRecognizer.cs; no bindable property) ----
         types.register_type<controls::pinch_gesture_recognizer>("PinchGestureRecognizer");
+
+        // ---- DragGestureRecognizer / DropGestureRecognizer (DragAndDrop/*.cs) ----
+        // These were SKIPPED in the first cut on the rationale "no twin uses them". That rationale was
+        // circular: no twin used ANY recognizer, because every twin omitted the whole layer. Once the
+        // twins were corrected, drag_drop.xaml needed exactly these two — the structure-equivalence diff
+        // named four sites carrying one recognizer each that the builder attaches and the twin did not.
+        // Only the two BOOL knobs are registered: CanDrag / AllowDrop are the C# bindables the markup can
+        // meaningfully set at rest. The Command / CommandParameter pairs (DragStarting, DropCompleted,
+        // DragOver, DragLeave, Drop) are deliberately omitted for the same reason the other recognizers'
+        // are — the port models C#'s `object` parameter as a boxed std::any that is not a property<T>,
+        // so there is no descriptor to register, and the commands are interaction-time concerns the
+        // resting board never observes.
+        types.register_type<controls::drag_gesture_recognizer>("DragGestureRecognizer");
+        properties.register_bindable_property<controls::drag_gesture_recognizer>(
+            "CanDrag", controls::drag_gesture_recognizer::can_drag_property());
+        types.register_type<controls::drop_gesture_recognizer>("DropGestureRecognizer");
+        properties.register_bindable_property<controls::drop_gesture_recognizer>(
+            "AllowDrop", controls::drop_gesture_recognizer::allow_drop_property());
 
         // ---- SwipeGestureRecognizer (SwipeGestureRecognizer.cs) ----
         types.register_type<controls::swipe_gesture_recognizer>("SwipeGestureRecognizer");

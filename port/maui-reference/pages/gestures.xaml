@@ -5,8 +5,21 @@
         <!-- instructions -->
         <Label Text="Gesture target (tap / pan / pinch / swipe / pointer)" />
 
-        <!-- the gesture target (GestureRecognizers omitted; resting appearance is the box) -->
-        <BoxView Color="CornflowerBlue" HeightRequest="160" CornerRadius="8" />
+        <!-- The gesture target. The five recognizers match GesturesPage's builder twin exactly
+             (gestures_page.hpp:125-129 adds tap, pan, pinch, swipe, pointer in this order); the
+             structure-equivalence test diffs the two trees and named the omission as
+             box_view gestures="5[tap,pan,pinch,swipe,pointer]" vs a bare box_view.
+             The event handlers stay omitted per the dialect — only the RECOGNIZERS are declared, which
+             is what the resting render and the interaction layer depend on. -->
+        <BoxView Color="CornflowerBlue" HeightRequest="160" CornerRadius="8">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer />
+                <PanGestureRecognizer />
+                <PinchGestureRecognizer />
+                <SwipeGestureRecognizer />
+                <PointerGestureRecognizer />
+            </BoxView.GestureRecognizers>
+        </BoxView>
 
         <!-- the readout (resets to none at rest) -->
         <Label Text="Last gesture: (none)" />

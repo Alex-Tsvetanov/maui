@@ -5,18 +5,57 @@
          the two color lists + the position readouts. -->
     <VerticalStackLayout Spacing="12">
         <Label Text="All colors (drag a swatch to the rainbow list):" />
+        <!-- Both stacks are DROP targets and every swatch is a DRAG source, matching the builder
+             twin (drag_drop_page.hpp). The structure-equivalence diff named the omission as
+             gestures="1[drop]" on each stack and gestures="1[drag]" on each BoxView. Commands and
+             handlers stay omitted per the dialect — only the recognizers are declared. -->
         <VerticalStackLayout Spacing="4">
-            <BoxView Color="Red" HeightRequest="40" />
-            <BoxView Color="Orange" HeightRequest="40" />
-            <BoxView Color="Yellow" HeightRequest="40" />
-            <BoxView Color="Green" HeightRequest="40" />
-            <BoxView Color="Blue" HeightRequest="40" />
-            <BoxView Color="Indigo" HeightRequest="40" />
-            <BoxView Color="Violet" HeightRequest="40" />
+            <VerticalStackLayout.GestureRecognizers>
+                <DropGestureRecognizer AllowDrop="True" />
+            </VerticalStackLayout.GestureRecognizers>
+            <BoxView Color="Red" HeightRequest="40">
+                <BoxView.GestureRecognizers>
+                    <DragGestureRecognizer CanDrag="True" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <BoxView Color="Orange" HeightRequest="40">
+                <BoxView.GestureRecognizers>
+                    <DragGestureRecognizer CanDrag="True" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <BoxView Color="Yellow" HeightRequest="40">
+                <BoxView.GestureRecognizers>
+                    <DragGestureRecognizer CanDrag="True" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <BoxView Color="Green" HeightRequest="40">
+                <BoxView.GestureRecognizers>
+                    <DragGestureRecognizer CanDrag="True" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <BoxView Color="Blue" HeightRequest="40">
+                <BoxView.GestureRecognizers>
+                    <DragGestureRecognizer CanDrag="True" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <BoxView Color="Indigo" HeightRequest="40">
+                <BoxView.GestureRecognizers>
+                    <DragGestureRecognizer CanDrag="True" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <BoxView Color="Violet" HeightRequest="40">
+                <BoxView.GestureRecognizers>
+                    <DragGestureRecognizer CanDrag="True" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
         </VerticalStackLayout>
 
         <Label Text="Rainbow:" />
-        <VerticalStackLayout Spacing="4" />
+        <VerticalStackLayout Spacing="4">
+            <VerticalStackLayout.GestureRecognizers>
+                <DropGestureRecognizer AllowDrop="True" />
+            </VerticalStackLayout.GestureRecognizers>
+        </VerticalStackLayout>
 
         <Label Text="Drag start position relative to..." />
         <Label Text="" />

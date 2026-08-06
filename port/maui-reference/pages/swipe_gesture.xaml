@@ -10,7 +10,13 @@
     <VerticalStackLayout Spacing="8">
         <Label Text="The SwipeView has a TapGestureRecognizer. Tap two times the SwipeView to show a dialog."
                BackgroundColor="Black" TextColor="White" />
+        <!-- The TapGestureRecognizer the page's own instruction label describes ("The SwipeView has a
+             TapGestureRecognizer"). The builder twin attaches one here; the structure-equivalence diff
+             named it as view gestures="1[tap]" against a bare view. Handler omitted per the dialect. -->
         <SwipeView>
+            <SwipeView.GestureRecognizers>
+                <TapGestureRecognizer NumberOfTapsRequired="2" />
+            </SwipeView.GestureRecognizers>
             <SwipeView.Content>
                 <Grid RowSpacing="0" BackgroundColor="White">
                     <Grid.ColumnDefinitions>
