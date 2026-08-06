@@ -475,7 +475,7 @@ namespace
             auto* platform = seam.handler->typed_platform_view();
             ASSERT_NE(platform, nullptr);
             ASSERT_NE(platform->dialog_peer, nullptr) << "connect must mint a registered peer";
-            stale_token = reinterpret_cast<jlong>(platform->dialog_peer.get());
+            stale_token = static_cast<jlong>(platform->dialog_peer->id);
             seam.control.clicked.connect([&clicks] { ++clicks; });
             // Sanity: while the handler IS alive that same token delivers, so a 0 below means the peer
             // went away rather than that the token was never wired.

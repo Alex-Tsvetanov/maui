@@ -96,7 +96,9 @@ namespace
         [[nodiscard]] jlong peer_token() const
         {
             auto* platform = handler->typed_platform_view();
-            return platform == nullptr ? 0 : reinterpret_cast<jlong>(platform->dialog_peer.get());
+            return platform == nullptr || !platform->dialog_peer
+                       ? 0
+                       : static_cast<jlong>(platform->dialog_peer->id);
         }
 
         [[nodiscard]] dialog_trampoline* peer() const
@@ -118,7 +120,7 @@ TEST(AndroidDialogPeer, AStalePeerTokenIsANoOpNotADereference)
     int date_sets = 0;
     auto peer = make_dialog_peer();
     peer->on_date_set = [&date_sets](int, int, int) { ++date_sets; };
-    const jlong token = reinterpret_cast<jlong>(peer.get());
+    const jlong token = static_cast<jlong>(peer->id);
 
     maui::platform::android::detail::native_dialog_date_set(nullptr, nullptr, token, 2020, 11, 31);
     EXPECT_EQ(date_sets, 1) << "a LIVE peer must still reach its callback";
@@ -135,12 +137,49 @@ TEST(AndroidDialogPeer, UnregisteredAndNullTokensResolveToNothing)
     dialog_trampoline never_registered;
     never_registered.on_click = [] { FAIL() << "an unregistered peer must never be resolved"; };
 
-    maui::platform::android::detail::native_dialog_click(nullptr, nullptr, reinterpret_cast<jlong>(&never_registered));
+    maui::platform::android::detail::native_dialog_click(nullptr, nullptr,
+                                                        static_cast<jlong>(never_registered.id));
     maui::platform::android::detail::native_dialog_click(nullptr, nullptr, 0);
     maui::platform::android::detail::native_dialog_dismiss(nullptr, nullptr, 0);
     maui::platform::android::detail::native_dialog_time_set(nullptr, nullptr, 0, 1, 2);
     maui::platform::android::detail::native_dialog_item_selected(nullptr, nullptr, 0, 3);
     SUCCEED();
+}
+
+// THE ALIASING GUARANTEE, and the reason the registry is keyed by a monotonic id rather than by the
+// trampoline's address. An address is unique only among LIVE objects, so with an address key this exact
+// sequence resolved SUCCESSFULLY and drove the wrong control: peer A is freed, peer B is allocated, the
+// allocator hands back A's address, and a late callback carrying A's token locks B's live weak_ptr. The
+// weak_ptr stopped the crash but not the cross-talk. A single-peer test cannot reach this — it needs a
+// second peer to collide with, which is why the bug survived the rest of this file.
+TEST(AndroidDialogPeer, ARecycledAddressDoesNotResurrectAStaleToken)
+{
+    jlong stale = 0;
+    const void* first_address = nullptr;
+    {
+        auto first = make_dialog_peer();
+        first->on_click = [] { FAIL() << "the FIRST peer is gone; its token must never resolve again"; };
+        stale = static_cast<jlong>(first->id);
+        first_address = first.get();
+    } // first is destroyed and unregistered here
+
+    // Allocate a fresh peer; the allocator is free to hand back the address just released, and commonly
+    // does. Whether it happens to on this run is not the point — the assertion below holds either way,
+    // and the address comparison is reported so a run where they DID collide is visible in the log.
+    auto second = make_dialog_peer();
+    int second_clicks = 0;
+    second->on_click = [&second_clicks] { ++second_clicks; };
+    if (static_cast<const void*>(second.get()) == first_address)
+    {
+        RecordProperty("addresses_collided", "yes"); // the case that used to mis-resolve
+    }
+
+    EXPECT_NE(stale, static_cast<jlong>(second->id)) << "ids must never be reused";
+    maui::platform::android::detail::native_dialog_click(nullptr, nullptr, stale);
+    EXPECT_EQ(second_clicks, 0) << "a stale token must not drive whatever now occupies that address";
+
+    maui::platform::android::detail::native_dialog_click(nullptr, nullptr, static_cast<jlong>(second->id));
+    EXPECT_EQ(second_clicks, 1) << "the live peer's own token must still work";
 }
 
 // clear() detaches without freeing: a callback already in flight can see `dead` and stop touching the
@@ -150,7 +189,7 @@ TEST(AndroidDialogPeer, ClearDetachesTheCallbacksAndFlagsTheHandlerDead)
     auto peer = make_dialog_peer();
     int clicks = 0;
     peer->on_click = [&clicks] { ++clicks; };
-    const jlong token = reinterpret_cast<jlong>(peer.get());
+    const jlong token = static_cast<jlong>(peer->id);
 
     peer->clear();
     EXPECT_TRUE(peer->dead);
@@ -165,7 +204,7 @@ TEST(AndroidDialogPeer, ButtonWhichValuesAreNotRowSelections)
     auto peer = make_dialog_peer();
     int rows = -1;
     peer->on_item_selected = [&rows](int row) { rows = row; };
-    const jlong token = reinterpret_cast<jlong>(peer.get());
+    const jlong token = static_cast<jlong>(peer->id);
 
     maui::platform::android::detail::native_dialog_item_selected(nullptr, nullptr, token, -2); // Cancel
     EXPECT_EQ(rows, -1) << "DialogInterface.BUTTON_NEGATIVE must not be committed as a row";

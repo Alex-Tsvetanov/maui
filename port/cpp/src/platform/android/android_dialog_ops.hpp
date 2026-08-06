@@ -49,6 +49,7 @@
 #include <jni.h>
 
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <functional>
@@ -67,6 +68,13 @@
 
 namespace maui::platform::android
 {
+    // Monotonic, process-wide, never reused. Wrapping would take 585 years at one peer per nanosecond.
+    [[nodiscard]] inline std::uint64_t next_dialog_peer_id()
+    {
+        static std::atomic<std::uint64_t> next{1}; // 0 stays reserved for "no peer"
+        return next.fetch_add(1, std::memory_order_relaxed);
+    }
+
     // The trampoline target: one per connected handler, heap-allocated so a callback can hold it alive
     // independently of the handler. Only the callbacks a given handler needs are set; the rest stay
     // empty and their trampolines are no-ops.
@@ -82,6 +90,12 @@ namespace maui::platform::android
         // decide whether touching the handler again is still legal. See picker_handler.cpp's row commit,
         // the one callback that has work to do after its re-entrant call.
         bool dead = false;
+
+        // The registry key, and the jlong Java actually carries. NOT the address: an address is unique
+        // only among LIVE objects, so a recycled allocation lets a stale token resolve to a DIFFERENT
+        // live peer and drive the wrong control. A monotonic id never repeats, so a stale token resolves
+        // to nothing for the rest of the process.
+        const std::uint64_t id = next_dialog_peer_id();
 
         dialog_trampoline() = default;
         dialog_trampoline(const dialog_trampoline&) = delete;
@@ -106,41 +120,28 @@ namespace maui::platform::android
     namespace detail
     {
         // ---- the live-peer registry (rule 1 + 2) ---------------------------------------------------
-        // Keyed by address, valued by weak_ptr: an entry whose owner is gone resolves to nullptr rather
-        // than to freed storage, which is precisely what a raw jlong peer cannot do.
-        //
-        // KNOWN HAZARD, NOT YET FIXED — ADDRESS RECYCLING. The key is the trampoline's ADDRESS, and an
-        // address is only unique among LIVE objects. The sequence that defeats this registry:
-        //   1. handler A's peer lives at 0xABC; Java holds token 0xABC.
-        //   2. A disconnects; ~dialog_trampoline erases 0xABC; the storage is freed.
-        //   3. handler B allocates a peer and the allocator hands back 0xABC, which it is entitled to
-        //      do and in practice frequently does; B registers under 0xABC.
-        //   4. a LATE callback still carrying A's token resolves 0xABC, finds a LIVE weak_ptr, locks it
-        //      — and drives B.
-        // The weak_ptr protects against use-after-free, which was the bug this registry was built for,
-        // but not against ALIASING: the resolve succeeds and runs the wrong control's callback. Visible
-        // symptom would be a dismissed picker's date landing in a different picker.
-        //
-        // The fix is a generation counter, and it is small because the token has exactly one production
-        // site: give dialog_trampoline a `const std::uint64_t id` from a static atomic, key this map by
-        // id instead of by pointer, pass `peer->id` at :266 (the NewObject call) instead of
-        // reinterpret_cast<jlong>(peer), erase by id in ~dialog_trampoline, and have
-        // resolve_dialog_peer look the id up. Monotonic ids never repeat, so a recycled address cannot
-        // alias. The regression test needs TWO peers — destroy the first, create the second, and assert
-        // the first's token resolves to nothing even if the addresses match; the current single-peer
-        // tests cannot exercise this by construction.
-        //
-        // Affects every dialog seam (picker / date_picker / time_picker) AND the button/image_button
-        // click trampolines migrated onto this registry in a0d440d778.
+        // Keyed by the peer's monotonic ID, valued by weak_ptr. Two distinct failures are covered, and
+        // the second is why the key is not the address:
+        //   USE-AFTER-FREE — an entry whose owner is gone resolves to nullptr rather than to freed
+        //   storage, which is precisely what a raw jlong peer cannot do.
+        //   ALIASING — an ADDRESS is unique only among LIVE objects. Keyed by address, this sequence
+        //   resolved successfully and drove the WRONG control: handler A's peer lives at 0xABC and Java
+        //   holds token 0xABC; A disconnects and the storage is freed; handler B allocates a peer and
+        //   the allocator hands back 0xABC (it may, and in practice often does); a late callback still
+        //   carrying A's token finds B's LIVE weak_ptr and locks it. The weak_ptr stopped the crash but
+        //   not the cross-talk — a dismissed picker's date landing in a different picker. IDs are
+        //   monotonic and never reused, so a stale token resolves to nothing for the rest of the
+        //   process, whatever the allocator does.
+        // Costs nothing at the seam: the id IS the jlong, so there is no extra indirection to resolve.
         inline std::mutex& dialog_peers_mutex()
         {
             static std::mutex mutex;
             return mutex;
         }
 
-        inline std::unordered_map<const dialog_trampoline*, std::weak_ptr<dialog_trampoline>>& dialog_peers()
+        inline std::unordered_map<std::uint64_t, std::weak_ptr<dialog_trampoline>>& dialog_peers()
         {
-            static std::unordered_map<const dialog_trampoline*, std::weak_ptr<dialog_trampoline>> peers;
+            static std::unordered_map<std::uint64_t, std::weak_ptr<dialog_trampoline>> peers;
             return peers;
         }
 
@@ -148,13 +149,12 @@ namespace maui::platform::android
         // was never registered, or whose last owner has dropped it.
         [[nodiscard]] inline std::shared_ptr<dialog_trampoline> resolve_dialog_peer(jlong peer)
         {
-            auto* candidate = reinterpret_cast<dialog_trampoline*>(peer); // the canonical JNI peer pattern
-            if (candidate == nullptr)
+            if (peer == 0)
             {
                 return nullptr;
             }
             const std::scoped_lock lock(dialog_peers_mutex());
-            const auto entry = dialog_peers().find(candidate);
+            const auto entry = dialog_peers().find(static_cast<std::uint64_t>(peer));
             return entry == dialog_peers().end() ? nullptr : entry->second.lock();
         }
 
@@ -287,7 +287,7 @@ namespace maui::platform::android
             {
                 return {}; // host-provided class missing (see MauiDialogBridge.java) — degrade quietly
             }
-            local_ref<jobject> bridge{env, env->NewObject(bridge_class, ctor, reinterpret_cast<jlong>(peer))};
+            local_ref<jobject> bridge{env, env->NewObject(bridge_class, ctor, static_cast<jlong>(peer->id))};
             if (dialog_clear_pending(env))
             {
                 return {};
@@ -335,7 +335,7 @@ namespace maui::platform::android
     inline dialog_trampoline::~dialog_trampoline()
     {
         const std::scoped_lock lock(detail::dialog_peers_mutex());
-        detail::dialog_peers().erase(this);
+        detail::dialog_peers().erase(id);
     }
 
     // Mint a registered peer. Register-on-construct / unregister-on-destruct means the registry can
@@ -344,7 +344,7 @@ namespace maui::platform::android
     {
         auto peer = std::make_shared<dialog_trampoline>();
         const std::scoped_lock lock(detail::dialog_peers_mutex());
-        detail::dialog_peers().insert_or_assign(peer.get(), peer);
+        detail::dialog_peers().insert_or_assign(peer->id, peer);
         return peer;
     }
 
