@@ -2777,3 +2777,35 @@ Then recapture: editing a twin invalidates the MAUI column on ALL FOUR platforms
 
 Not started here. It is a genuine multi-hour, cross-cutting change and the diagnosis above is what makes
 it executable without re-deriving any of it.
+
+### correction to the gesture batch order (2026-08-06): markup is necessary, NOT sufficient
+
+The plan recorded above was "twin markup -> loader support -> scenarios". Steps 1 and 2 have landed
+(e2f91da2f4, 27fd12e283) and step 3 as written would MAKE THE BOARD LIE. Checked before acting on it:
+
+    port/maui-reference/app/Pages/GesturesPage.xaml.cs exists and contains ZERO gesture handlers
+    (grep for Tapped/Panned/Pinch returns 0).
+
+So the twins now declare RECOGNIZERS that fire nothing, while the code-first builder pages update a
+readout label on every gesture event (gestures_page.hpp:17 "the recognizers exist; events drive the
+readout"). Drive that page today and only the cpp column changes — the board reports MOTION MISMATCH and
+blames the PORT for the twin's missing handlers. That is worse than the current honest yellow, because a
+mismatch reads as a defect while NOTHING MOVED reads as unmeasured.
+
+CORRECTED ORDER — the code-behind is a required step, not an optional polish:
+  1. twin markup                        DONE (e2f91da2f4)
+  2. loader GestureRecognizers support  DONE (27fd12e283)
+  3. TWIN CODE-BEHIND HANDLERS          NOT DONE — the blocker. GesturesPage.xaml.cs (and the
+     ios_pan_gesture / swipe_gesture / drag_drop twins) need handlers that update the same readout the
+     builder page does, exactly the way ruling 12's header_footer_template resolution added code-behind
+     rather than exempting the diff.
+  4. scenarios for gestures + pointer_gesture, cleared through scenarios/_selftest.py
+  5. recapture — the twin edit already invalidates the MAUI column for gestures, ios_pan_gesture,
+     swipe_gesture and drag_drop on ALL FOUR lanes, so those four pages need re-shooting regardless of
+     whether step 3 lands. MauiReference must be REBUILT per platform first (the XAML is compiled in);
+     recapture.py does not do that for you — see windows.toml's "sync port/maui-reference to C:/maui-src,
+     then build_maui_reference.ps1".
+
+Note for whoever does step 5: until it runs, the MAUI column for those four pages shows the pre-markup
+render. The board is STALE for them, not wrong in a new way — but a reader comparing the twin source to
+the published capture will see a discrepancy that is expected.
