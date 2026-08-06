@@ -2714,3 +2714,30 @@ PrintWindow(PW_RENDERFULLCONTENT) cannot see (it captures the window's own backi
 a separate top-level window); search_bar / semantics / clip_views focus a text field, which on Windows is
 a caret and no on-screen keyboard; ios_scroll_view and radio_button_content need a closer look but agree
 across columns, so neither hides a parity gap.
+
+### RESOLVED, same day: `button` is a degraded twin, not a port defect — ruling 12
+
+Read the twin rather than guessing between the two hypotheses. `port/maui-reference/pages/button.xaml`
+answers it outright:
+
+    line  5:  <Label Text="Taps: 0" />          <- STATIC text
+    line 13:  <!-- Clicked (handler omitted) -->
+    line 14:  <Button Text="Clicked" />
+
+The twin deliberately omits the click handler, so MAUI and cpp_xaml render a frozen "Taps: 0". The
+code-first page wires it (button_page.hpp:63, `clicked_button_.clicked.connect` updating `readout_`
+seeded "Taps: 0" at :52), which is what the original MAUI CoreGallery page does. The 59 changed pixels
+at x 54-60, y 49-58 are the "0" digit of that label turning into "1" — position and size match exactly.
+
+**So the port is CORRECT and MAUI's column is the degraded one.** This is parity ruling 12 (a shared-XAML
+twin simplifying content below original MAUI), and NOT a port bug to chase. The board's 57-vs-0 px is
+the port doing the right thing.
+
+Ruling 12's RESOLVED precedent (2026-07-18, user directive "fix both sides to match") says the remedy is
+to UPGRADE the twin rather than exempt the diff — as header_footer_template was, via code-behind. That
+means giving button.xaml an `x:Name` on the readout and a Clicked handler in ButtonPage.xaml.cs.
+
+NOT done piecemeal here, deliberately: editing a twin invalidates the MAUI column on ALL FOUR platforms
+and forces a full recapture of it. The loop's leftover list already carries "twin gesture markup (one
+batched change, invalidates the MAUI column on all 4 platforms)" — `button`'s counter belongs in that
+same batch, not in a one-page recapture of its own.
