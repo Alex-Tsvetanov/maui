@@ -2620,3 +2620,33 @@ checked-in scenario against all four lane rects BEFORE any capture runs.
 
 Note also: `button.toml` is still authored in ABSOLUTE coordinates (at = [756, 171]). On Windows that is
 inside the presented rect so it is seeded and clicked, landing window-relative at (512, 171).
+
+---
+
+## windows: three of the four re-aimed pages now measure motion; `stepper` cannot (2026-08-06)
+
+The per-lane overrides were verified on hardware (24 units, 0 failed steps). Before/after, self-motion
+of MAUI's own column vs the port's:
+
+  check_box            0.0000% -> 0.0457% (374 px) both columns, identical      GREEN
+  hit_testing          0.0000% -> 0.0457% (374 px) both columns, identical      GREEN
+  empty_view_selector  0.0000% -> 0.2670% (2187 px) both columns, identical     GREEN
+  stepper              0.0000% -> MAUI 0.0005% (4 px), C++ 0.0000% (0 px)       still NOTHING MOVED
+
+So the aim fix worked, and it is the coordinates that were wrong — not the pages.
+
+**`stepper` is a different problem and no coordinate will fix it.** The scenario clicks the DEFAULT
+stepper's "+", and that stepper has no value readout: stepper_page.hpp only wires one
+(`value_changed_` at :79-80, whose value drives a label). WinUI's stepper buttons do not render the
+value themselves, so incrementing the Default stepper changes nothing that survives the gesture — the
+4 px MAUI reports is the transient press highlight, caught by one column's timing and not the other's.
+
+The only stepper on the page with visible state is the ValueChanged one, and TRIAGE.md deliberately
+routes scenarios AWAY from handler-driven controls, so retargeting there trades a page that measures
+nothing for a page that measures the port's handler wiring instead of the control. That is arguably the
+more useful measurement, but it is a change of what the scenario is FOR, and it should be a decision
+rather than a quiet retarget. NOT changed here.
+
+Note the check the gate cannot make: it verifies a click lands on a CONTROL, and `stepper` passes that
+now — the "+" button is genuinely under the cursor. Landing on a control and producing an observable
+change are different properties, and only a capture separates them.
