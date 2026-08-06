@@ -2448,3 +2448,83 @@ the MAUI column for this page and needs a recapture); (c) exempt the page and re
 `box_view` (cpp red / xaml yellow), `clip_gallery` (cpp yellow / xaml red),
 `path_gallery` (cpp red / xaml yellow), `selection_synchronization` (both red). Their column patterns do
 not match `clip`'s, so the same cause cannot simply be assumed.
+
+---
+
+## The four remaining iOS scroll reds — diagnosed, each refuted by two independent lenses
+### 2026-08-06 — three need a user ruling, one is directly actionable
+
+Twelve agents: one diagnosis per page from captures and source only (no device), then two adversarial
+refutations each. Recorded WITH the disagreements, because on three of the four the refuters accepted
+the mechanism and rejected the disposition — and on one of them they were right about a ruling I would
+otherwise have applied wrongly.
+
+### FIRST, A CORRECTION THAT CHANGES THE DEFAULT REMEDY
+
+Ruling 12 is not an exemption. Its own last paragraph records what happened when this situation first
+arose: the user said **"fix both sides to match"**, and `header_footer_template` was UPGRADED on both
+sides until all three columns agreed (`port/CLAUDE.md`, the RESOLVED 2026-07-18 note). One refuter
+caught me — and the diagnosing agent — about to read it as "the code-first render wins, stop scoring the
+diff". The PRINCIPLE stands for identifying which side is degraded; the REMEDY on precedent is to repair
+the twin, which invalidates the MAUI column for that page and needs a recapture.
+
+This does not disturb the `clip` entry above it: there the twin is FAITHFUL to the original, so ruling
+12 never applied.
+
+### `path_gallery` — SURVIVES 0/2. A real code-first authoring defect, and the only directly actionable one
+
+`examples/gallery/pages/path_gallery_page.hpp` inflates its own content height two ways, neither of them
+a rendering bug: (a) the two glyph-markup Labels are authored WITHOUT `FontSize="9"`, so they render at
+the default ~17pt where the twin asks for 9pt; (b) the second markup Label carries the FULL 2440-char
+leaf-glyph string while the twin carries a ~100-char ellipsized one. That is the extra extent the device
+probe saw (maui 554.7 pt == xaml 554.7 pt at alignment error 0.00, cpp larger). The xaml column renders
+the same twin as MAUI and matches it, which is what localises the fault to page authoring.
+CONTESTED: one verifier confirmed the mechanism from primary sources but says the "headline
+blame-direction and every magnitude" are wrong. Re-derive the numbers before quoting them.
+
+### `box_view` — REFUTED 2/2 on evidence; the content finding survives the refutation
+
+The twin DROPS content the original authors. `port/maui-reference/pages/box_view.xaml` ends with two
+bare `<BoxView Color="Pink" .../>` under Labels reading "Clip" and "Shadow";
+`src/Controls/samples/Controls.Sample/Pages/Controls/BoxViewPage.xaml` authors a
+`<BoxView.Clip><EllipseGeometry Center="80,80" RadiusX="80" RadiusY="80"/>` and a
+`<BoxView.Shadow><Shadow Radius="6" Offset="6,6" Brush="Red"/>`. The code-first page wires the shadow
+faithfully, so cpp paints it and both twin-rendering columns paint nothing — the labels survive, the
+things they name do not. Per the correction above the remedy is to restore both to the twin, not to
+exempt the diff.
+REFUTED: the diagnosis also claimed iOS scroll landing is non-deterministic, citing a self-scroll table
+(light maui 1036 px vs dark maui 441 px). Both refuters rejected it and one showed it does not
+reproduce — and it is not a reproducibility measurement at all: it compares LIGHT against DARK, two
+different renders, not two runs of the same one. The direct control (same app, same page, same theme,
+two runs) measured 0.00% on iOS. `NON_REPRODUCIBLE_DRIVE` stays `{"android"}`.
+SEPARATE, BOARD-INVISIBLE: no column renders the original's EllipseGeometry clip, and
+`box_view_page.hpp`'s stated reason for deferring it ("no Geometry-as-clip primitive in the headless
+surface") is stale — `maui::controls::shapes::ellipse_geometry` exists and `clip_page.hpp` in the same
+directory already calls `set_clip` with one.
+
+### `clip_gallery` — REFUTED 1/2, and the two lenses reproduced the same numbers to opposite verdicts
+
+Claim: all three columns render identical content and the whole cpp-YELLOW / xaml-RED signal is a rigid
+vertical translation of a few device pixels (best-fit dy -2/-8/-6, residual 0.0046/0.0023/0.0052 against
+3.361/7.209/6.433 unshifted; the surviving 100 pixels all at x=1188..1196, the scroll indicator). One
+verifier reproduced every number and CONFIRMED; the other reproduced every number and REFUTED. Both
+agree the columns are the same content at slightly different scroll offsets.
+UNRESOLVED, and it is the interesting part: a 2-8 px landing difference between columns from an
+identical gesture is either harmless settling or a real sub-pixel-scale divergence, and the yellow/red
+threshold happens to sit inside that band — which is why the SAME page reads yellow in one column and
+red in the other. Not a phase artifact under the committed gate (iOS is reproducible run-to-run), so it
+is currently scored as a difference. Needs a ruling on whether a few px of scroll landing is a diff.
+
+### `selection_synchronization` — REFUTED 2/2, but both refuters agree the verdict is right
+
+Both accept `port defect: false`; both reject the evidence package. The claim was that the only content
+difference is one label line (cpp reads "Selected: Foo, Bar, Baz" where the other two read
+"Selected: (none)") worth 0.107% against a reported 5.77%. One refuter notes that "only one label"
+fails the very below-the-fold trap the `clip` case exists to warn about. Treat as UNDIAGNOSED.
+
+### What is NOT claimed
+
+No single cause spans these four. `clip` (already recorded) is code-first content the oracles never
+authored; `path_gallery` is code-first authoring; `box_view` is twin degradation; `clip_gallery` is a
+few pixels of scroll landing; `selection_synchronization` is undiagnosed. Only `path_gallery` is safe to
+act on without a ruling, and even there the magnitudes are contested.
