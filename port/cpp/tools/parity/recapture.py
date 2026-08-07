@@ -1061,6 +1061,19 @@ def burst_frames(unit_dir: Path, theme: str, driven: bool | None = None) -> list
         png = sidecar.with_suffix(".png")
         if meta.get("theme") == theme and png.exists():
             shots.append((str(meta.get("step", "")), str(png)))
+    # AN EXPLICIT IN-BURST BEFORE WINS, and settles what `initial` means per lane. A unit carrying an
+    # `at-rest` step was shot with one (capture_android.write_run_unit): that frame belongs to THIS
+    # recording, while `initial` there is a byte copy of the published still from a different launch,
+    # kept only as motion_score._is_published_run's provenance witness. Lead with the real BEFORE and
+    # drop the copy — checked FIRST because the name-based `driven` test below would otherwise see
+    # `at-rest`, call the unit driven, and keep BOTH.
+    #
+    # On the VM and iOS lanes nothing writes `at-rest`, so this is inert there and `initial` keeps its
+    # existing meaning: a genuine first frame of the run.
+    prov = next((i for i, (step, _) in enumerate(shots) if step == "initial"), None)
+    if any(step == "at-rest" for step, _ in shots):
+        return [png for i, (_, png) in enumerate(shots) if i != prov]
+
     at_rest = next((i for i, (step, _) in enumerate(shots) if step == "initial"), 0)
     # DRIVEN pages keep the at-rest frame; UNDRIVEN ones drop it. The stutter rationale above only
     # holds when every frame is a burst frame taken at --gif-interval. On a page with an action step
@@ -1367,6 +1380,16 @@ def selftest() -> int:
         (unit / "0001.json").write_text(json.dumps({"step": "top", "theme": "light"}))
         assert [Path(p).name for p in burst_frames(unit, "light")] == \
             ["0001.png", "0002.png", "0003.png"]
+
+        # (a1) AN EXPLICIT `at-rest` STEP SUPERSEDES THE PROVENANCE COPY. This is the Android shape:
+        # 0001 is a byte copy of the published still (motion_score._is_published_run's witness, shot
+        # under different device state) and 0002 is the burst's own BEFORE. The witness must stay in
+        # the unit — find_frames rejects the whole run without it — and must NOT be scored as a frame.
+        # Substituting one for the other was tried and reverted twice; this pins the third shape.
+        (unit / "0001.json").write_text(json.dumps({"step": "initial", "theme": "light"}))
+        (unit / "0002.json").write_text(json.dumps({"step": "at-rest", "theme": "light"}))
+        got = [Path(p).name for p in burst_frames(unit, "light")]
+        assert got == ["0002.png", "0003.png"], got
     finally:
         shutil.rmtree(run, ignore_errors=True)
 

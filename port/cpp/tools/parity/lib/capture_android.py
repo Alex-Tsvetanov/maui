@@ -211,6 +211,21 @@ def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
         print(f"      !! {key} ({app}/{theme}): no published still at {still} — run unit written "
               f"WITHOUT its provenance frame, so this cell stays NOT motion-scored until the still "
               f"pass runs", flush=True)
+    # THE BURST'S OWN BEFORE, carried ALONGSIDE the provenance copy rather than replacing it. Both are
+    # needed and they are not the same thing:
+    #   `initial`  bytes of the published still, from the STILL pass — motion_score._is_published_run's
+    #              byte-identical twin, the only thing tying this unit to the board. Shot under
+    #              DIFFERENT device state (no pin_android, no set_theme), so it is not a usable BEFORE.
+    #   `at-rest`  shot inside THIS burst, after the settle and before the first gesture — same theme,
+    #              same demo mode, same animation scales. The only honest BEFORE a time-labelled burst
+    #              can have, because its frames are named gif01..gifNN whatever the driver does.
+    #
+    # Substituting one for the other was tried twice and reverted twice (ccb057fcca, 3b46bce76c): using
+    # the still as the BEFORE reds pages on a device-state mismatch (89.63% "differ" on hit_testing/dark),
+    # and using the at-rest shot as the witness makes find_frames reject the whole run and score an older
+    # one. Carrying both costs one PNG per unit and ends that.
+    if at_rest and os.path.isfile(at_rest):
+        put(at_rest, "at-rest")
     for sample, png in samples:
         put(png, step_name(sample, secs, frame_count))
     return str(unit)
