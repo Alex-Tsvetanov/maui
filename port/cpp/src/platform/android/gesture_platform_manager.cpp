@@ -96,6 +96,8 @@
 //     src/Controls/src/Core/Platform/Android/PointerGestureHandler.cs:34/:71/:204 when either extra lands
 //     — at that point the pointer paths must read the composite list and tap/pan/swipe must not.
 
+#include <android/log.h>
+#include <cstdarg>
 #include <jni.h>
 
 #include <algorithm>
@@ -141,6 +143,26 @@ namespace
     using maui::platform::android::scoped_env;
 
     constexpr const char* k_bridge_class = "dev/mauicpp/MauiGestureBridge";
+
+    // WHY THIS LOGS AT ALL. Every way the gesture channel can fail to come up is silent by design —
+    // "the VM-less degradation every android handler partial documents" — and silence is right for a
+    // headless/VM-less unit test. It is WRONG on a device, where it produced a page that renders
+    // pixel-perfectly and ignores every touch: on 2026-08-07 the `gestures` board cell read
+    // maui 1790 px vs port 0 px on Android while iOS, Catalyst and Windows all showed EXACT parity
+    // (3935/3935, 206/206, 261/261), and narrowing it cost a full session of static elimination
+    // because nothing anywhere said which branch had bailed. One line per failure is cheaper than the
+    // next investigation. `adb logcat -s maui-gestures`.
+    constexpr const char* k_log_tag = "maui-gestures";
+
+    void log_gesture_setup(int priority, const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+
+    void log_gesture_setup(int priority, const char* fmt, ...)
+    {
+        va_list args;
+        va_start(args, fmt);
+        __android_log_vprint(priority, k_log_tag, fmt, args);
+        va_end(args);
+    }
     constexpr const char* k_view_class = "android/view/View";
 
     // android.view.MotionEvent action constants (Android.Views.MotionEventActions).
@@ -824,6 +846,12 @@ namespace maui::controls
             jobject view = state.view.get();
             if (!env || view == nullptr)
             {
+                // The end of every failed path above lands HERE, which is why the whole channel went
+                // missing without a word. Say so once, with what was already known at the time.
+                log_gesture_setup(ANDROID_LOG_WARN,
+                                  "sync skipped: view=%p env=%d recognizers=%zu — no touch listener will "
+                                  "be installed",
+                                  static_cast<void*>(view), env ? 1 : 0, state.order.size());
                 return; // `if (platformView == null) return` (:190-191)
             }
 
@@ -846,6 +874,9 @@ namespace maui::controls
             // SetupGestures :241 (Touch) — the RecyclerView branch (:234-238) has no port equivalent.
             state.touch_installed = set_view_listener(env.get(), view, bridge, "setOnTouchListener",
                                                       "(Landroid/view/View$OnTouchListener;)V", should_add_touch);
+            // The one line that says the channel is LIVE. Its absence is the finding.
+            log_gesture_setup(ANDROID_LOG_INFO, "touch listener: recognizers=%zu wanted=%d installed=%d",
+                              state.order.size(), should_add_touch, state.touch_installed);
 
             // SetupGestures :245-255 — the accessible-tap key channel plus its Focusable override, and the
             // restore of the captured default when the touch channel goes away.
@@ -1406,12 +1437,29 @@ namespace maui::controls
         {
             auto* native = handler_ != nullptr ? static_cast<jobject>(handler_->native_view()) : nullptr;
             const scoped_env env;
+            if (native == nullptr || !env)
+            {
+                // handler_ is never null here (load_recognizers guards it), so a null `native` means the
+                // HANDLER HAS NO PLATFORM VIEW YET — and nothing re-runs this when one appears.
+                log_gesture_setup(ANDROID_LOG_WARN, "no bridge: native_view=%p env=%d — gestures will not be delivered",
+                                  static_cast<void*>(native), env ? 1 : 0);
+            }
             if (native != nullptr && env)
             {
                 auto& cache = default_jni_cache();
                 jclass bridge_class = cache.find_class(env.get(), k_bridge_class);
                 jmethodID ctor = cache.method(env.get(), k_bridge_class, "<init>", "(Landroid/view/View;J)V");
-                if (bridge_class != nullptr && ctor != nullptr && register_gesture_natives(env.get(), bridge_class))
+                const bool registered =
+                    bridge_class != nullptr && ctor != nullptr && register_gesture_natives(env.get(), bridge_class);
+                if (!registered)
+                {
+                    log_gesture_setup(ANDROID_LOG_WARN,
+                                      "no bridge: class=%d ctor=%d natives=%d (%s) — gestures will not "
+                                      "be delivered",
+                                      bridge_class != nullptr, ctor != nullptr,
+                                      bridge_class != nullptr && ctor != nullptr, k_bridge_class);
+                }
+                if (registered)
                 {
                     state.view = maui::platform::android::global_ref<jobject>{env.get(), native};
                     const local_ref<jobject> bridge{
@@ -1419,6 +1467,10 @@ namespace maui::controls
                     if (!clear_pending(env.get()) && bridge)
                     {
                         state.bridge = maui::platform::android::global_ref<jobject>{env.get(), bridge.get()};
+                    }
+                    else
+                    {
+                        log_gesture_setup(ANDROID_LOG_WARN, "no bridge: MauiGestureBridge ctor threw or returned null");
                     }
                 }
                 // Without the host-provided bridge class the gesture channel stays C++-only — exactly the

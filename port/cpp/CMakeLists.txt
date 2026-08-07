@@ -837,6 +837,11 @@ endif()
 if(MAUI_BACKEND STREQUAL "android")
   target_compile_definitions(maui_core PUBLIC MAUI_PLATFORM_ANDROID)
   target_include_directories(maui_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/android)
+  # `log` is the ONE NDK library this backend needs beyond the sysroot. The comment above is right that
+  # JNI itself needs no link library — every call goes through the JNIEnv function tables — but
+  # __android_log_* are real exported symbols in liblog.so, so the gesture manager's setup diagnostics
+  # fail at LINK time without this (`undefined symbol: __android_log_vprint`), not at runtime.
+  target_link_libraries(maui_core PUBLIC log)
 endif()
 # The windows twin: MAUI_PLATFORM_WINDOWS (PUBLIC, the same ODR rule as the blocks above) selects the
 # windows-only slots in the shared platform structs for every TU of the build.

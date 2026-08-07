@@ -3241,90 +3241,55 @@ port columns have nothing under that point because they have nothing anywhere.
 
 ---
 
-## OPEN, Android: the port is frozen on `gestures` and `carousel_page` (2026-08-07)
+## RESOLVED + OPEN, Android `gestures` / `carousel_page` (2026-08-07)
 
-Two Android cells are MOTION MISMATCH with the port at **exactly 0 px** while MAUI moves. Both are
-genuine — the capture is healthy and the injector reaches the port everywhere else.
+Two Android cells read MOTION MISMATCH with the port at exactly 0 px. **They have different causes,
+and the first one is not a port defect at all.** Both were settled by injecting directly with
+`adb shell input` instead of reasoning about the code — after an entire session of static elimination
+that narrowed three hypotheses to one and was about to be wrong about that one too.
 
-**The injector is NOT the problem.** Self-motion per column over run `2026-08-07-05_47_52`, all 32
-driven Android pages: 26 move in near-lockstep (usually within 1%) — `entry` 184530/184669,
-`slider` 1018194/1018153, `radio_button_content` 1507/1507. Only these differ:
-
-```
-page             maui px   cpp px
-carousel_page      52944        0     port frozen
-gestures            1790        0     port frozen
-empty_view_rtl    178784    10317     17x smaller — SEPARATE, unexamined
-button/stepper/swipe_refresh/switch: 0/0 — nothing driven either side (see below)
-```
-
-**`gestures` fails on Android ONLY.** The same page, same twin, same scenario:
+### `gestures` — NOT a port defect. The port reacts.
 
 ```
-ios          maui 3935  port 3935   green
-maccatalyst  maui  206  port  206   green
-windows      maui  261  port  261   green
-android      maui 1790  port    0   RED
+adb shell am start -W -n dev.mauicpp.apphost/.MauiHostActivity --es MAUI_SAMPLE_PAGE gestures
+adb shell input tap 540 405        # = the scenario's [0.50, 0.173] on 1080x2340
 ```
 
-What moves in MAUI is the readout: `Last gesture: (none)` -> `Pointer released`. The twin puts
-Tap/Pan/Pinch/Swipe/Pointer recognizers on a `BoxView` (`gestures.xaml:14-21`), so this is the only
-page in the driven set whose reaction depends on GESTURE RECOGNIZERS rather than on a native widget
-handling its own touch — `hit_testing`, which also reacts to a click, is three plain Buttons.
+`Last gesture: (none)` -> `Last gesture: Pointer released`, which is exactly what MAUI's column does.
+The gesture channel also comes up cleanly — the new `maui-gestures` logcat tag prints one line per
+recognizer as the collection fills:
 
-**Ruled out: the bridge class is missing.** `MauiGestureBridge` is present in the shipped APK
-(`build/android/maui_android_apphost.apk`, `classes5.dex`, alongside the `MauiDialogBridge` control).
-`build_android_apphost.sh:158` dexes the whole `src/platform/android/java` dir, so it cannot go absent
-silently. Checked in the artifact, not in the script.
+```
+touch listener: recognizers=1 wanted=1 installed=1     ... through recognizers=5
+```
 
-**THE FIRST HYPOTHESIS WAS WRONG — recorded so nobody re-runs it.** The guess was that
-markup-declared recognizers attach BEFORE the handler connects, leaving `native_attach` with a null
-`handler_`. The shared layer already prevents that: `set_handler`
-(`src/controls/gestures/gesture_platform_manager.cpp:29-47`) tears down and re-runs
-`load_recognizers()` on every handler change, and `load_recognizers` returns early while
-`handler_ == nullptr`. So `native_attach` is only ever reached WITH a handler, on every backend.
+So `setOnTouchListener` IS installed, the bridge IS constructed, and touches DO reach the port. Every
+hypothesis recorded earlier in this file is dead: not the ordering (the shared layer prevents it), not
+`RegisterNatives` (all 16 signatures verified), not the classloader, and not a null `native_view()` —
+the log says `installed=1`.
 
-**What is actually still open**, all three of which fail SILENTLY and land in the same place — no
-bridge, so `sync_subscriptions` bails at `view == nullptr` (:826) and `setOnTouchListener` (:847)
-never runs:
+**The remaining explanation is the CAPTURE, not the port**: the harness's tap during the GIF burst
+does not land the way a plain `adb shell input tap` does. The board cell is a harness artifact and
+must not be read as a port defect.
 
-1. `handler_->native_view()` is null for the Android BoxView at that moment (a handler exists, its
-   platform view may not yet).
-2. `cache.find_class(env, "dev/mauicpp/MauiGestureBridge")` fails. This is the classic Android JNI
-   trap: `FindClass` resolves APP classes only through the app class loader, so the same call that
-   finds system classes returns null for a bundled class depending on the calling thread. The class
-   being present in `classes5.dex` does not rule this out — it is exactly the shape where the class
-   is shipped and still unfindable.
-3. `register_gesture_natives` fails.
+### `carousel_page` — a REAL port defect.
 
-**NARROWED BY STATIC CHECK 2026-08-07 — two of the three are now out:**
+Same method, correct page, direct injection:
 
-* Candidate 3, `register_gesture_natives` failing, is **ELIMINATED**. `RegisterNatives` fails
-  wholesale if any one name/signature is wrong, which would match the symptom exactly — but all
-  sixteen native halves were compared by hand against `MauiGestureBridge.java:320-357` and every one
-  agrees, including the multi-line ones: `nativeOnScroll (JFFFFI)Z`, `nativeOnDoubleTapEvent
-  (JIFFI)Z`, `nativeOnPointerTouch (JIFFII)Z`, `nativeOnScale (JFFFFF)Z`, `nativeOnDrag
-  (JIFFJLjava/lang/String;)V`. (The `std::array<…, 15>` plus a separate `k_drag_method` is 16, not a
-  count mismatch.)
-* Candidate 2, the FindClass classloader trap, is **WEAKENED**. `border_handler.cpp:148` and
-  `content_page_handler.cpp:60` resolve `dev/mauicpp/MauiLayout` — an APP class — through the SAME
-  `default_jni_cache().find_class`, and layout works on every Android page. Not conclusive (the
-  calling thread can differ) but no longer the front-runner.
-* Also checked and ruled out: nothing else installs an `OnTouchListener` that could overwrite the
-  bridge's. The only two call sites in the whole Android backend are
-  `gesture_platform_manager.cpp:847` and `:1482`.
+```
+adb shell am start -W -n ... --es MAUI_SAMPLE_PAGE carousel_page
+adb shell input swipe 810 1170 270 1170 400    # = [0.85,0.45] -> [0.15,0.45]
+```
 
-That leaves candidate 1 — `handler_->native_view()` null for the Android BoxView when the first
-recognizer attaches — or something not yet on this list.
+**0 px changed.** The page renders correctly ("Card", purple border) and does not page. MAUI's column
+moves 52944 px on the same gesture. The port's CarouselPage does not respond to a horizontal swipe on
+Android — genuinely unimplemented or unwired, and worth its own fix.
 
-**The discriminating experiment**, which needs the emulator: log whether `native_attach` sees a
-non-null `handler_->native_view()` on `gestures`, and whether `state.touch_installed` is ever true.
-One catch-and-log beats another round of inference — the Windows `0xC000041D` crash earlier this week
-went the same way.
+### The process error worth keeping
 
-**Separately, the four both-zero pages are NOT this bug:**
-* `button` — absolute coordinates, so `device_scenarios` refuses it on device lanes by name. Correct.
-* `switch` — a plain `input tap` does not actuate an Android switch; needs a held-press idiom.
-* `stepper` — the iOS-calibrated fraction is unverified against the 1080x2340 capture.
-* `swipe_refresh` — the drag does not trigger pull-to-refresh in EITHER column, as its own scenario
-  comment predicts for lanes where a synthetic drag is not a pan.
+The first carousel attempt used `-e page carousel_page`, which the app IGNORES — the launcher reads
+`--es MAUI_SAMPLE_PAGE` (`build_android_apphost.sh:277-278`). It silently left the app on a
+formatted-text page, and the swipe there also returned 0 px, which would have "confirmed" the defect
+from the wrong screen. Only LOOKING at the screenshot caught it. Sixth instance of the same shape:
+the tool was not running where it was assumed to be.
+
