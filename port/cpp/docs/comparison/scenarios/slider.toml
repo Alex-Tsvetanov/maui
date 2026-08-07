@@ -30,7 +30,12 @@ name = "initial"
 [[steps]]
 name = "dragged-right"
 action = "drag"
-at = [0.045, 0.122]      # the Default slider's THUMB at rest (x~18pt of 402), NOT the track
+at = [0.070, 0.122]      # the Default slider's THUMB at rest, NOT the track. RE-MEASURED, not nudged:
+                         # 0.045 (=18pt) was inside the lane's 20pt edge-margin guard and the run
+                         # rejected it. Scanning row y=320px of slider_light.png, the near-white thumb
+                         # runs x[0..110]px = [0..36.7]pt in BOTH columns, so its drivable band is
+                         # 20..36.7pt and 0.070 (=28pt) is the middle of that band — still on the thumb,
+                         # 8pt clear of the guard.
 to = [0.50, 0.122]       # dragged right along the track
 steps = 20               # a deliberate pan, not a flick: the drag needs intermediate move events
 duration = 0.8           # 40ms per move — above the ~20ms floor where both OSes coalesce moves
