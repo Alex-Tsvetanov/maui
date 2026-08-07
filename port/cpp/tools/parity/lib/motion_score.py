@@ -247,6 +247,53 @@ def _pair(shots_a, shots_b) -> list[tuple[str, str, str]]:
     return [(k[0], ka[k], kb[k]) for k in ka if k in kb]   # dict order == capture order
 
 
+# How far the two columns' sampling may be out of step before a shift stops being a shift. The burst
+# schedule is 12 frames over 4s (~0.33s apart) and a screencap costs ~0.13s, so a drift of one or two
+# samples is ordinary; beyond three the sequences are not the same motion seen late, they are different
+# motion.
+MAX_PHASE_SHIFT = 3
+
+
+def _align(pairs, crop_top: int):
+    """[(step, png_a, png_b)] -> (aligned_pairs, offset): column B shifted by the offset that makes the
+    two sequences agree BEST, and the offset it chose.
+
+    WHY THIS EXISTS. Pairing frame k to frame k asserts that both columns are at the same point of the
+    same animation at sample k. Nothing enforces that: the burst names encode the REQUESTED schedule
+    (`gif01@4s/12f`), each screencap costs ~0.13s of its own, and that cost does not accumulate
+    identically in MAUI's app and in the port. capture_android's own docstring has said so from the
+    start — "frames nominally the same moment can be tens of milliseconds apart in wall clock ... a
+    frame-by-frame parity signal, not a timing measurement" — and this scorer did not honour it.
+
+    The cost was real and measured, not theoretical:
+      * gestures/android scored RED at worst SSIM 0.8820 with 34.42% of pixels differing on a frame BOTH
+        columns label `at-rest`, on a page where a direct `adb shell input tap` proves the port reacts
+        exactly as MAUI does (readout "(none)" -> "Pointer released", self-motion 2985 vs 2883 px).
+      * 13 cells moved in one rescore with NO change to scoring logic; 8 of the 13 landed on PHASE ONLY,
+        the verdict that exists for this artifact and that its own comment says cannot be widened
+        because "a reproducible end-state difference produces the very same signature".
+      * clip_views, entry and scroll_view flipped between two runs of byte-identical code.
+
+    A SINGLE GLOBAL OFFSET, not per-frame free choice. A timing skew is one offset for the whole
+    sequence; letting every frame pick its own partner would let a port that visits the right states in
+    the WRONG ORDER score as well as one that matches, which is the property this board exists to catch.
+    The offset is chosen on the cheap changed-pixel metric (no SSIM in the search) and reported, so a
+    reader can see how far the columns drifted rather than infer it.
+    """
+    if len(pairs) < 2:
+        return pairs, 0
+    best, best_off = None, 0
+    for off in range(-MAX_PHASE_SHIFT, MAX_PHASE_SHIFT + 1):
+        overlap = [(pairs[i][0], pairs[i][1], pairs[i + off][2])
+                   for i in range(len(pairs)) if 0 <= i + off < len(pairs)]
+        if len(overlap) < max(2, len(pairs) - MAX_PHASE_SHIFT):
+            continue                     # too little left to judge: a shift that discards the sequence
+        cost = sum(_changed(a, b, crop_top)[0] for _s, a, b in overlap) / len(overlap)
+        if best is None or cost < best[0]:
+            best, best_off = (cost, overlap), off
+    return (best[1], best_off) if best else (pairs, 0)
+
+
 def _has_action_scenario(key: str, comp: Path) -> bool:
     """Does this page have an authored scenario that INJECTS something?
 
@@ -421,6 +468,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
                           f"NO step name occurs in both, so nothing can be paired — a comparison by "
                           f"frame index would be a guess. Re-capture this page")
 
+    # PHASE-INVARIANT: shift column B by the offset that makes the sequences agree best before scoring.
+    # A sampling drift is a shift, not a defect; see _align for the measurements that forced this.
+    pairs, phase_shift = _align(pairs, crop_top)
     scores = [_compare(a, b, crop_top) for _step, a, b in pairs]
     ssims = [s["ssim"] for s in scores]
     worst_i = min(range(len(ssims)), key=lambda i: ssims[i])
@@ -487,7 +537,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     dropped = (len(sel_m) - len(pairs)) + (len(sel_o) - len(pairs))
     unpaired = (f"; {dropped} frame(s) had no partner and were NOT scored" if dropped else "")
     per_frame = "/".join(f"{s['diff_pct']:.2f}" for s in scores)
-    detail = (f"MOTION {len(pairs)} frames paired by step ({prov}){unpaired} — "
+    shifted = (f"; column frames realigned by {phase_shift:+d} sample(s) — a sampling drift, not a "
+               f"defect (see _align)" if phase_shift else "")
+    detail = (f"MOTION {len(pairs)} frames paired by step ({prov}){unpaired}{shifted} — "
               f"worst SSIM {ssims[worst_i]:.4f} at frame {worst_i + 1} '{pairs[worst_i][0]}' "
               f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
               f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.4f}% ({px_m} px) vs "
@@ -748,6 +800,32 @@ def _selftest() -> int:
         r = score_cell("tinyfrozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("small widget frozen column: flagged", r["mismatch"], True)
         check("small widget frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
+
+        # (13) A PURE SAMPLING DRIFT IS NOT A DEFECT. Both columns move the box through the SAME
+        #      positions; column B is simply sampled one step later. Index pairing scores that as a
+        #      large per-frame difference and reds the cell — which is exactly what happened to
+        #      gestures/android (worst SSIM 0.8820, 34.42% differing on a frame both columns call
+        #      `at-rest`) on a page where direct adb injection proves the port behaves identically.
+        drift_a = seq([10, 40, 70, 100])
+        drift_b = seq([40, 70, 100, 130])          # same trajectory, one sample late
+        dm = unit(run, "drift", "maui_xaml", "light", drift_a)
+        do = unit(run, "drift", "cpp", "light", drift_b)
+        publish(comp, "drift", "maui", "light", dm / "0001.png")
+        publish(comp, "drift", "cpp", "light", do / "0001.png")
+        r = score_cell("drift", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("sampling drift: realigned, not called a mismatch", r["mismatch"], False)
+        check("sampling drift: says it realigned", "realigned by" in r["detail"], True)
+        check("sampling drift: scores as agreeing", r["ssim"] > 0.99, True)
+
+        # (14) …and the alignment does NOT forgive a real divergence. Column B visits DIFFERENT places,
+        #      so no shift within MAX_PHASE_SHIFT can make the sequences agree. Without this the fix
+        #      would buy green cells by sliding frames until something matched.
+        dm = unit(run, "diverge", "maui_xaml", "light", seq([10, 40, 70, 100]))
+        do = unit(run, "diverge", "cpp", "light", seq([10, 15, 20, 25]))
+        publish(comp, "diverge", "maui", "light", dm / "0001.png")
+        publish(comp, "diverge", "cpp", "light", do / "0001.png")
+        r = score_cell("diverge", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("real divergence: still scores badly", r["ssim"] < 0.99, True)
 
         # (10) STEP-PAIRED frames have no encoder in them, so they get no percentage floor at all —
         #      moved iff any pixel changed. A 2x2 box is 8 changed px of 76800 = 0.0104%, UNDER
