@@ -393,19 +393,25 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # A page with an AUTHORED SCENARIO was driven, whatever this lane happened to call the frames — see
     # burst_frames' `driven` note. Passing it keeps the at-rest BEFORE on Android, where the burst is
     # labelled by time (gifNN) rather than by step and the inference silently reads "undriven".
-    # NOT PASSED ON ANDROID — and therefore not passed at all, yet. Forcing `driven=True` here is the
-    # right idea and it MADE THE BOARD WORSE: android 269g/58y/17r -> 259g/56y/29r, because the frame it
-    # restores cannot be trusted on that lane. capture_android labels the still from the MAIN pass
-    # `initial` and splices it into the GIF unit, but the two are shot under different device state —
-    # the burst runs after pin_android + set_theme, the still does not. MEASURED on
-    # 2026-08-07-05_47_52 hit_testing/dark: MAUI's `initial` has mean luma 66.4 against its own burst's
-    # 41.6, so pairing it against the port's (41.6) reports 89.63% of pixels differing and reds a page
-    # whose motion is IDENTICAL in both columns (1134 px each).
+    # OFF, and this is the second time it was switched on and had to come back off. Both failures are
+    # recorded because the mechanism is right and the next person will want to try it again.
     #
-    # The real fix belongs in capture_android.capture_gif: take the at-rest frame INSIDE the burst's
-    # device state, immediately before driver.start() — the same ordering fix 89261d905a made on iOS.
-    # Until then the name-based inference stands, `gestures` stays mis-scored, and that is the smaller
-    # of the two wrongs. See PARITY_REVIEW.
+    #   attempt 1 (ccb057fcca): forced driven=True while capture_android still spliced the MAIN pass's
+    #     still in as `initial`. That still is shot under different device state than the burst, so
+    #     hit_testing/dark paired MAUI's at 66.4 mean luma against the port's at 41.6 — "89.63% differ"
+    #     on a page whose motion is identical in both columns. 269g/58y/17r -> 259g/56y/29r.
+    #   attempt 2 (4c3444010a + this): fixed the frame — capture_gif now shoots the at-rest frame INSIDE
+    #     the burst, verified matching luma (227.3 vs 227.2) and identical 2985 px self-motion in both
+    #     columns. Board went 269g -> 255g anyway. CAUSE: `initial` was doing DOUBLE DUTY. find_frames
+    #     (:346) requires the run's frames to match the PUBLISHED STILL byte-for-byte — `initial` is the
+    #     provenance witness that ties a run unit to the board. Replacing it with a fresh shot breaks
+    #     that tie, so find_frames REJECTS the new run and silently falls back to an older one whose
+    #     `initial` still matches — scoring the very frames the fix removed.
+    #
+    # The real fix needs BOTH: the published still kept as the provenance witness AND the burst at-rest
+    # frame carried under its own step name, with find_frames matching the former and the motion
+    # selector using the latter. Until that exists, the name-based inference stands and `gestures` stays
+    # mis-scored on Android — the smallest of the three wrongs.
     was_driven = None
     sel_m = [(burst_m.get(p, ""), p) for p in burst_frames(dm, theme, driven=was_driven)]
     sel_o = [(burst_o.get(p, ""), p) for p in burst_frames(do, theme, driven=was_driven)]

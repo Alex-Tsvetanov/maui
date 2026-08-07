@@ -189,10 +189,20 @@ def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
     # An at-rest frame shot INSIDE the burst has none of that: same theme, same demo mode, same
     # animation scales, microseconds before the first gesture. This is the ordering 89261d905a fixed on
     # iOS, applied to the lane that still had it backwards.
+    # THE PUBLISHED STILL STAYS THE `initial` FRAME, and that is NOT negotiable: motion_score
+    # .find_frames (:346) accepts a run only when its frames match the published still BYTE-FOR-BYTE.
+    # `initial` is the PROVENANCE WITNESS tying this unit to the board, not merely a BEFORE.
+    #
+    # Substituting the burst's at-rest shot here — which is otherwise the better BEFORE, and is
+    # measurably so (see capture_gif) — breaks that tie: find_frames then REJECTS this run and falls
+    # back to an older one whose `initial` still matches, scoring the very frames the change removed.
+    # Measured: android 269g/58y/17r -> 255g/57y/32r, WORSE than the 259g the previous attempt cost.
+    #
+    # Doing this properly means carrying BOTH: the still as the witness, the burst at-rest under its
+    # own step name, with the motion selector preferring the latter. `at_rest` is still captured and
+    # still passed in, so that change is a naming decision rather than a capture one.
     still = still_path(app, key, theme)
-    if at_rest and os.path.isfile(at_rest):
-        put(at_rest, "initial")
-    elif os.path.isfile(still):
+    if os.path.isfile(still):
         put(still, "initial")                   # the provenance witness — copied bytes, not a shot
     else:
         # Not fatal — the GIF is still a valid board artifact — but the unit cannot prove which run the
