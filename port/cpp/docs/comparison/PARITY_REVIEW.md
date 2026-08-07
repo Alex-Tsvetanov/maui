@@ -3200,3 +3200,41 @@ catch-and-log gave the answer that three rounds of inference got wrong.
 
 NEXT: resync C:/maui-src to HEAD, rebuild gallery + gallery_xaml + MauiReference, re-run the Windows
 lane. Do not trust any Windows score until that is done.
+
+---
+
+## OPEN, Windows: the Stepper handler does not exist (2026-08-07)
+
+**The port renders NO stepper at all on Windows.** `stepper.xaml` declares seven `<Stepper>` elements;
+MAUI's column draws seven `−`/`+` pairs (including the red `BackgroundColor` one) and the port's cpp and
+cpp_xaml columns draw **none**. The page's Labels and its "Enable Stepper" Button render correctly, so
+this is not a loader failure — only the Steppers are missing.
+
+**Root cause, in the repo rather than on the guest:** `src/platform/windows/` has 36 files and no
+`stepper_handler.cpp`. Every other backend has one:
+
+```
+headless  apple  ios  android  windows
+   1        1     1      1        0
+```
+
+`src/controls/stepper.cpp:127` registers `maui::controls::stepper -> maui::core::stepper_handler`, and
+on Windows that resolves to the headless implementation still in `MAUI_CORE_PLATFORM_SOURCES` (only the
+Android block does the `REMOVE_ITEM src/platform/headless/stepper_handler.cpp` swap). A headless handler
+creates no WinUI view, so the control occupies no pixels — which is exactly what the capture shows.
+
+**How it stayed hidden, and what found it.** The still-image score called this page **yellow**: seven
+small controls missing from a mostly-white 1024x800 page barely moves SSIM. It surfaced only once
+step-paired frames stopped being held to the burst noise floor (`6c9436c228`) — the scenario clicks
+where MAUI's "+" is, MAUI's "−" glyph re-enables (4-35 px depending on where the WinUI fade was caught),
+and the port changes zero pixels because there is nothing there to click. That is now a MOTION MISMATCH,
+red on both port columns, and it is honest: the port really does not implement this control here.
+
+**This is a missing feature, not a regression** — no Windows stepper handler has ever existed. Writing
+one is the fix (a WinUI `RepeatButton` pair, mirroring `src/platform/android/stepper_handler.cpp`'s
+LinearLayout + two Buttons shape); the four existing backends and `src/core/stepper_handler.cpp` define
+the contract, and `tests/controls/stepper_*_tests` define the behaviour to match.
+
+**Do NOT re-derive the Windows aim while chasing this.** The `at_windows-x64 = [0.065, 0.113]` override
+is correct — verified by crosshair overlay against the MAUI column, dead centre on the "+" glyph. The
+port columns have nothing under that point because they have nothing anywhere.
