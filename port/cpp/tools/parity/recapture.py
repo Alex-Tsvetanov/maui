@@ -1035,7 +1035,7 @@ def write_gif_scenarios(scen_dir: Path, examples, themes, frames: int, interval:
     return animated
 
 
-def burst_frames(unit_dir: Path, theme: str) -> list[str]:
+def burst_frames(unit_dir: Path, theme: str, driven: bool | None = None) -> list[str]:
     """The PNGs one (tag, column, theme) unit contributes to its GIF, in CAPTURE ORDER. Pure.
 
     EVERY frame except the one the board publishes as the still. This used to be the opposite — an
@@ -1069,7 +1069,25 @@ def burst_frames(unit_dir: Path, theme: str) -> list[str]:
     # the same post-action state. Dropping it leaves gif.py nothing to distinguish, so it deletes the
     # GIF and the log blames the encoder — the exact 12-identical-frames symptom this pass exists to
     # kill, reproduced on the only pages that actually gesture.
-    driven = any(step and step != "initial" and not step.startswith("gif") for step, _ in shots)
+    # WHETHER THIS UNIT WAS DRIVEN. Inferred from the step names by default, which works wherever the
+    # runner labels each frame with the SCENARIO step that produced it (the VM and iOS lanes do).
+    #
+    # IT DOES NOT WORK ON ANDROID, and silently. capture_android's burst is TIME-based: it labels its
+    # frames `gif01@4s/12f` … `gif12@4s/12f` no matter what the driver thread is doing, so a page whose
+    # scenario step is called `tapped` produces a unit whose steps are only `initial` + gifNN — and the
+    # test below then calls a DRIVEN page undriven and throws away its at-rest frame. That frame is the
+    # only BEFORE a time-labelled burst has.
+    #
+    # MEASURED on run 2026-08-07-10_31_49, android/gestures: the unit holds 13 frames and this returned
+    # 12. MAUI survived by luck — its tap landed DURING the burst, so gif01 still differed from gif02+
+    # (2985 px) — while the port's landed before gif01, leaving its 12 surviving frames identical and
+    # scoring "port frozen, 0 px" against a page that measurably reacts (2985 px with the at-rest frame
+    # kept, verified by direct adb injection). That is a fabricated MOTION MISMATCH.
+    #
+    # So callers that KNOW may say so. motion_score does: a page with an authored scenario is driven,
+    # whatever the frames happen to be called.
+    if driven is None:
+        driven = any(step and step != "initial" and not step.startswith("gif") for step, _ in shots)
     if driven:
         return [png for _, png in shots]
     return [png for i, (_, png) in enumerate(shots) if i != at_rest]

@@ -247,6 +247,20 @@ def _pair(shots_a, shots_b) -> list[tuple[str, str, str]]:
     return [(k[0], ka[k], kb[k]) for k in ka if k in kb]   # dict order == capture order
 
 
+def _has_action_scenario(key: str, comp: Path) -> bool:
+    """Does this page have an authored scenario that INJECTS something?
+
+    True only for a scenario carrying at least one step with an `action` — a settle-only file
+    (web_view's 5s wait) drives nothing and must keep the undriven frame selection. Missing file or
+    unreadable TOML is False: the frames' own step names then decide, exactly as before."""
+    import tomllib
+    f = comp / "scenarios" / f"{key}.toml"
+    try:
+        return any(s.get("action") for s in tomllib.loads(f.read_text()).get("steps", []))
+    except (OSError, tomllib.TOMLDecodeError):
+        return False
+
+
 def _twin_cannot_react(key: str, comp: Path) -> bool:
     """Does this page's scenario declare that the MAUI ground-truth column is static by construction?
 
@@ -376,8 +390,25 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     do = run / key / plat_dir / FW_TO_COL.get(fw_dir, fw_dir)
     burst_m = {p: s for s, p, _ in shots_m}
     burst_o = {p: s for s, p, _ in shots_o}
-    sel_m = [(burst_m.get(p, ""), p) for p in burst_frames(dm, theme)]
-    sel_o = [(burst_o.get(p, ""), p) for p in burst_frames(do, theme)]
+    # A page with an AUTHORED SCENARIO was driven, whatever this lane happened to call the frames — see
+    # burst_frames' `driven` note. Passing it keeps the at-rest BEFORE on Android, where the burst is
+    # labelled by time (gifNN) rather than by step and the inference silently reads "undriven".
+    # NOT PASSED ON ANDROID — and therefore not passed at all, yet. Forcing `driven=True` here is the
+    # right idea and it MADE THE BOARD WORSE: android 269g/58y/17r -> 259g/56y/29r, because the frame it
+    # restores cannot be trusted on that lane. capture_android labels the still from the MAIN pass
+    # `initial` and splices it into the GIF unit, but the two are shot under different device state —
+    # the burst runs after pin_android + set_theme, the still does not. MEASURED on
+    # 2026-08-07-05_47_52 hit_testing/dark: MAUI's `initial` has mean luma 66.4 against its own burst's
+    # 41.6, so pairing it against the port's (41.6) reports 89.63% of pixels differing and reds a page
+    # whose motion is IDENTICAL in both columns (1134 px each).
+    #
+    # The real fix belongs in capture_android.capture_gif: take the at-rest frame INSIDE the burst's
+    # device state, immediately before driver.start() — the same ordering fix 89261d905a made on iOS.
+    # Until then the name-based inference stands, `gestures` stays mis-scored, and that is the smaller
+    # of the two wrongs. See PARITY_REVIEW.
+    was_driven = None
+    sel_m = [(burst_m.get(p, ""), p) for p in burst_frames(dm, theme, driven=was_driven)]
+    sel_o = [(burst_o.get(p, ""), p) for p in burst_frames(do, theme, driven=was_driven)]
     pairs = _pair(sel_m, sel_o)
     if not pairs:
         return not_scored(f"run {run.name} has {len(sel_m)} MAUI and {len(sel_o)} {label} frames but "
