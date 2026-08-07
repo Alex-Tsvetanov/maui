@@ -134,7 +134,8 @@ def step_name(sample: int, secs: float, frame_count: int) -> str:
 
 
 def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
-                   samples: list[tuple[int, str]], secs: float, frame_count: int) -> str:
+                   samples: list[tuple[int, str]], secs: float, frame_count: int,
+                   at_rest: str | None = None) -> str:
     """Persist one (page, column, theme) burst as the run unit motion_score.py reads. Returns its path.
 
     `samples` is [(nominal sample number, png path)] — see the naming note above; the number, never the
@@ -175,8 +176,23 @@ def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
             {"tag": key, "platform": RUN_PLAT_DIR, "column": column, "theme": theme,
              "step": step, "frame": n, "commit": commit, "captured_at": when}, indent=2))
 
+    # THE BEFORE FRAME. Prefer the one the BURST shot, not the board still.
+    #
+    # The still comes from the MAIN pass and is shot under different device state: the burst runs after
+    # pin_android + set_theme, the still does not. Splicing it in as `initial` therefore compares two
+    # columns' frames that were never taken under the same conditions. MEASURED on run
+    # 2026-08-07-05_47_52, hit_testing/dark: MAUI's spliced `initial` has mean luma 66.4 against its own
+    # burst's 41.6, and pairing it with the port's (41.6) reports 89.63% of pixels differing — reddening
+    # a page whose motion is IDENTICAL in both columns (1134 px each). Five pages went green->red that
+    # way the moment the frame was actually used, which is why motion_score still refuses to trust it.
+    #
+    # An at-rest frame shot INSIDE the burst has none of that: same theme, same demo mode, same
+    # animation scales, microseconds before the first gesture. This is the ordering 89261d905a fixed on
+    # iOS, applied to the lane that still had it backwards.
     still = still_path(app, key, theme)
-    if os.path.isfile(still):
+    if at_rest and os.path.isfile(at_rest):
+        put(at_rest, "initial")
+    elif os.path.isfile(still):
         put(still, "initial")                   # the provenance witness — copied bytes, not a shot
     else:
         # Not fatal — the GIF is still a valid board artifact — but the unit cannot prove which run the
@@ -480,6 +496,26 @@ def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float
     driver = (threading.Thread(target=lambda: statuses.extend(run_steps(steps, size)), daemon=True)
               if steps else None)
     with tempfile.TemporaryDirectory() as tmp:
+        # THE AT-REST FRAME, shot HERE: after the settle, before a single gesture, in exactly the device
+        # state the burst runs in (theme set, demo mode pinned, animation scales as configured). This is
+        # the only BEFORE a time-labelled burst can have — the frames themselves are named gif01..gifNN
+        # whatever the driver does, so nothing downstream can pick one out. write_run_unit prefers it
+        # over the main pass's still, which is shot under DIFFERENT state; see its comment for the
+        # 89.63%-differing measurement that cost five green cells.
+        #
+        # It is NOT added to `frames`: the GIF is unchanged by this, and a page that turns out not to
+        # move still yields the same animation it always did.
+        at_rest = None
+        if driver:
+            shot = adb("exec-out", "screencap", "-p", capture_output=True).stdout
+            if shot and len(shot) > 1000:
+                at_rest = os.path.join(tmp, "at_rest.png")
+                with open(at_rest, "wb") as fh:
+                    fh.write(shot)
+            else:
+                print(f"      !! {key} ({app}/{theme}): at-rest screencap failed — the unit falls back "
+                      f"to the main pass's still, whose device state does not match the burst",
+                      flush=True)
         if driver:
             driver.start()                   # with the burst, not before it — see the docstring
         for i in range(frame_count):
@@ -530,8 +566,9 @@ def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float
                       f"score as FROZEN and blame the port for a failed screencap)", flush=True)
             else:
                 unit = write_run_unit(run_dir, column or APPS[app]["col"], app, key, theme,
-                                      list(zip(moments, frames)), secs, frame_count)
-                print(f"      frames {len(frames)}/{frame_count} + still -> {unit}", flush=True)
+                                      list(zip(moments, frames)), secs, frame_count, at_rest=at_rest)
+                before = "burst at-rest" if at_rest else "still"
+                print(f"      frames {len(frames)}/{frame_count} + {before} -> {unit}", flush=True)
         # frames_to_gif refuses a single frame, and _ffmpeg deletes a GIF whose frames are all
         # identical — so a page that genuinely does not move ends up with its still and no GIF.
         ok = gifmod.frames_to_gif(frames, out, fps=max(1, min(10, round(1 / max(interval, 0.1)))))
