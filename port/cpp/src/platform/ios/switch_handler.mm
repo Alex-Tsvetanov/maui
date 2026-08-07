@@ -478,6 +478,28 @@ namespace maui::core
         {
             return;
         }
+        // NeedsContainer: after on_setup_container the CONTAINER is what the parent adds and the layout
+        // positions — the UISwitch is only its subview. Framing the switch alone left the wrapper at its
+        // setup-time bounds — the switch's INTRINSIC size at the ORIGIN. (UISwitch sizes itself even from
+        // initWithFrame:CGRectZero, so the wrapper is ~51x31 at (0,0), not empty. That plausible size is
+        // why this hid: the wrapper looks arranged, it is merely never in the arranged PLACE.)
+        //
+        // On AppKit that mispositioned the toggle and was caught immediately (see the twin comment in
+        // apple/switch_handler.mm). ON UIKIT IT IS INVISIBLE: UIView does not clip to bounds by default,
+        // so the switch still DRAWS at the right place — the maui and port at-rest frames are
+        // pixel-identical — while hitTest:withEvent: refuses every touch: pointInside: is asked of the
+        // wrapper FIRST, and a page row at y=117 is far below the wrapper's ~31pt height at y=0.
+        //
+        // MEASURED 2026-08-07, maccatalyst, the toggled-on step: MAUI's switch changed 877 px inside
+        // x[0..48] y[117..138] (thumb left->right, track dark->light blue) and the port changed ZERO
+        // pixels anywhere in the 1024x800 frame. Same asymmetry the iOS lane found via a held idb press,
+        // i.e. two backends and two unrelated injectors agreeing.
+        if (platform->container != nullptr)
+        {
+            [(__bridge UIView*)platform->container setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+            [as_switch(platform->native) setFrame:CGRectMake(0, 0, frame.width, frame.height)];
+            return;
+        }
         [as_switch(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
     }
 

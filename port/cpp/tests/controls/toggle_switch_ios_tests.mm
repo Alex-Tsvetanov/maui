@@ -260,6 +260,54 @@ namespace
         EXPECT_EQ(view.superview, wrapper);             // the switch still lives inside the container
     }
 
+    // platform_arrange must frame the CONTAINER, not the bare switch. Framing only the switch left the
+    // wrapper at its setup-time CGRectZero, and because UIView does not clip to bounds the switch still
+    // RENDERED correctly — so the board's at-rest frames were pixel-identical to MAUI's while every touch
+    // was refused: hitTest: asks pointInside: of the empty wrapper first and nothing is ever inside it.
+    // Measured on maccatalyst 2026-08-07: MAUI's switch changed 877 px on the toggle step, the port zero.
+    //
+    // The assertion is about HIT-TESTABILITY, so it checks what UIKit checks — that the arranged point
+    // resolves through the wrapper down to the switch — rather than just comparing frame rectangles.
+    TEST(ios_switch_seam, arrange_frames_the_container_so_the_switch_is_hit_testable)
+    {
+        toggle_switch control;
+        auto handler = std::make_shared<switch_handler>();
+        control.set_handler(handler);
+        UIView* const wrapper = (__bridge UIView*)handler->container_view();
+        UISwitch* const view = native_switch(handler);
+        ASSERT_NE(wrapper, nil);
+
+        // The wrapper starts at the switch's INTRINSIC size at the ORIGIN — UISwitch sizes itself even
+        // when minted with initWithFrame:CGRectZero, so the wrapper is ~51x31 at (0,0) rather than empty.
+        // That is precisely why the bug hid: the wrapper is a plausible size, just never in the arranged
+        // PLACE, so anything below its ~31pt height falls outside it.
+        EXPECT_EQ(wrapper.frame.origin.x, 0);
+        EXPECT_EQ(wrapper.frame.origin.y, 0);
+
+        const maui::graphics::rect arranged{12, 117, 51, 31};
+        ASSERT_GT(arranged.y, wrapper.frame.size.height)
+            << "the arranged row must sit below the un-moved wrapper, or this proves nothing";
+        handler->platform_arrange(arranged);
+
+        EXPECT_EQ(wrapper.frame.origin.x, arranged.x);
+        EXPECT_EQ(wrapper.frame.origin.y, arranged.y);
+        EXPECT_EQ(wrapper.frame.size.width, arranged.width);
+        EXPECT_EQ(wrapper.frame.size.height, arranged.height);
+        EXPECT_EQ(view.frame.origin.x, 0) << "the switch fills the container, in ITS coordinate space";
+        EXPECT_EQ(view.frame.origin.y, 0);
+
+        // The centre of the arranged rect, in the wrapper's own coordinates: UIKit must route it to the
+        // switch. With a zero-sized wrapper this returns nil, which is the whole bug.
+        const CGPoint centre = CGPointMake(arranged.width / 2, arranged.height / 2);
+        EXPECT_TRUE([wrapper pointInside:centre withEvent:nil]);
+        // hitTest: returns the DEEPEST view under the point, which for a UISwitch is one of its own
+        // private visual subviews — never the UISwitch itself. What matters is that the touch lands
+        // somewhere inside the switch, so ask that; isDescendantOfView: is YES for the switch too.
+        UIView* const hit = [wrapper hitTest:centre withEvent:nil];
+        ASSERT_NE(hit, nil) << "a zero-sized or mispositioned wrapper swallows the touch";
+        EXPECT_TRUE([hit isDescendantOfView:view]);
+    }
+
     // U19 — SwitchProxy.WillEnterForeground observer: on app return-from-background UIKit re-applies the
     // default OFF-track styling, so the handler re-applies the custom OFF track color (async, 10ms settle)
     // when the switch is OFF and a custom color is set. The spawned process has no UIApplication, but the
