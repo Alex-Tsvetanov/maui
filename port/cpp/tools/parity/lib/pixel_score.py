@@ -181,6 +181,13 @@ def classify(theme_scores):
     # EVERY scored theme to be phase-only, so one genuinely red theme still reds the cell.
     if status == "red" and have and all(v.get("phase_only") for v in have.values()):
         status = "yellow"
+    # The port reacted and the ground truth could not, because the shared XAML twin omits the handler
+    # (motion_score's `twin_cannot_react` block). Capped at yellow on the same reasoning as phase_only:
+    # a red would accuse the port of the TWIN's omission, and a green would claim a motion parity that
+    # this page structurally cannot demonstrate. Every scored theme must be exempt, so a genuinely red
+    # theme still reds the cell.
+    if status == "red" and have and all(v.get("authored_asymmetry") for v in have.values()):
+        status = "yellow"
     if any(v.get("both_frozen") for v in have.values()) and status == "green":
         status = "yellow"
     parts = []

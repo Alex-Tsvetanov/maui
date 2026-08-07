@@ -247,6 +247,19 @@ def _pair(shots_a, shots_b) -> list[tuple[str, str, str]]:
     return [(k[0], ka[k], kb[k]) for k in ka if k in kb]   # dict order == capture order
 
 
+def _twin_cannot_react(key: str, comp: Path) -> bool:
+    """Does this page's scenario declare that the MAUI ground-truth column is static by construction?
+
+    True only for a scenario carrying `twin_cannot_react = true`. Missing file, unreadable TOML or a
+    missing key all mean False — the exemption has to be asked for explicitly, never inferred."""
+    import tomllib
+    f = comp / "scenarios" / f"{key}.toml"
+    try:
+        return bool(tomllib.loads(f.read_text()).get("twin_cannot_react", False))
+    except (OSError, tomllib.TOMLDecodeError):
+        return False
+
+
 def _self_motion(pngs: list[str], crop_top: int) -> tuple[float, int]:
     """How much a column moved ON ITS OWN -> (percent, PIXEL COUNT) of the largest change between its
     first frame and any later one.
@@ -382,21 +395,53 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # not. The pairing is for COMPARING the columns; motion is a property of one column alone.
     move_m, px_m = _self_motion([p for _s, p in sel_m], crop_top)
     move_o, px_o = _self_motion([p for _s, p in sel_o], crop_top)
-    mismatch = ((move_m >= MOVED_PCT and move_o <= FROZEN_PCT) or
-                (move_o >= MOVED_PCT and move_m <= FROZEN_PCT))
+    # WHICH FLOOR: the percentage bounds above were calibrated against BURST frames, whose noise is a
+    # VIDEO artifact — `simctl io recordVideo` -> ffmpeg re-quantises anti-aliased glyph edges, so a
+    # still iOS page reads 281 px of speckle. A STEP-PAIRED sequence has no encoder in it at all: it is
+    # two PNG screenshots of the same window. Applying the burst floor to it rejects real signal.
+    #
+    # MEASURED over every step pair in this repo's 2026-08-06/07 runs (1510 pairs, gif frames excluded):
+    #
+    #                pairs   exactly 0 px   smallest NON-zero
+    #   maccatalyst    749         249         22 px (0.0027%)   <- stepper's "-" glyph re-enabling
+    #   windows        394         146         35 px (0.0043%)   <- the same glyph
+    #   ios            367          18        245 px (0.0078%)   <- the same glyph at 3x
+    #
+    # The population is EXACTLY ZERO or it is a real reaction; there is no small-noise band on any lane,
+    # so the step-paired floor needs no threshold and gets none — moved iff any pixel changed. That is
+    # strictly sharper than a percentage in both directions: stepper's 22/35/245 px stop reading as
+    # "!! NOTHING MOVED" when all three columns agree perfectly, AND a 22-px reaction present in MAUI
+    # and absent in the port now raises a MISMATCH that 0.012% silently swallowed.
+    step_paired = not any(s.startswith("gif") for s, _p in sel_m + sel_o)
+    # A page whose GROUND TRUTH cannot react. The shared XAML twins deliberately omit every Clicked /
+    # GestureRecognizer, so on those pages the maui_xaml column is static BY CONSTRUCTION while the
+    # port's code-first builder does wire the handler. `button` is the case: the twin carries a literal
+    # <Label Text="Taps: 0"/> and the comment "<!-- Clicked (handler omitted) -->", and the port's
+    # readout goes "Taps: 0" -> "Taps: 1" on the same click. That asymmetry is AUTHORED, not a defect —
+    # it can only ever produce a mismatch, so a red there accuses the port of the twin's omission.
+    # Flagged in the scenario rather than hard-coded here, so the batched twin-markup change that adds
+    # those handlers retires the exemption by deleting one line.
+    asymmetric = _twin_cannot_react(key, comp)
+    if step_paired:
+        m_moved, m_frozen = px_m > 0, px_m == 0
+        o_moved, o_frozen = px_o > 0, px_o == 0
+    else:
+        m_moved, m_frozen = move_m >= MOVED_PCT, move_m <= FROZEN_PCT
+        o_moved, o_frozen = move_o >= MOVED_PCT, move_o <= FROZEN_PCT
+    mismatch = (m_moved and o_frozen) or (o_moved and m_frozen)
     # NEITHER column moved on a page the board calls animated. That is not parity — it is the original
     # bug: a page nobody managed to drive, whose GIF is N copies of one frame. Two frozen columns match
     # each other perfectly and would otherwise score a confident green, which is precisely the
     # "did nothing, reported success" outcome this whole pass exists to make impossible. It cannot be
     # graded from SSIM, because the SSIM is 1.0 — it has to be its own verdict.
-    both_frozen = move_m <= FROZEN_PCT and move_o <= FROZEN_PCT
+    both_frozen = m_frozen and o_frozen
     # See the PHASE_* block: both moved, by the same amount, from an already-matching resting frame.
     at_rest_diff = scores[0]["diff_pct"] if scores else 100.0
     widest = max(move_m, move_o)
     spread = abs(move_m - move_o) / widest if widest > 0 else 1.0
     frames_disagree = ssims[worst_i] < PHASE_ONLY_SSIM or scores[worst_i]["diff_pct"] > PHASE_ONLY_DIFF_PCT
     phase_only = (plat_dir in NON_REPRODUCIBLE_DRIVE and frames_disagree
-                  and not mismatch and move_m >= MOVED_PCT and move_o >= MOVED_PCT
+                  and not mismatch and m_moved and o_moved
                   and spread <= PHASE_SELF_MOTION_TOL and at_rest_diff <= PHASE_AT_REST_PCT)
 
     meta = shots_m[0][2]
@@ -410,8 +455,18 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
               f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
               f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.4f}% ({px_m} px) vs "
               f"{label} {move_o:.4f}% ({px_o} px)")
-    if mismatch:
-        still_side, moved_side = ("MAUI", label) if move_m <= FROZEN_PCT else (label, "MAUI")
+    # The exemption applies ONLY in the authored direction — the port moved and MAUI did not. If MAUI
+    # reacts and the PORT is frozen on such a page, the twin's omission cannot explain it and the
+    # mismatch is exactly as damning as anywhere else, so it is left alone.
+    authored_asymmetry = bool(mismatch and asymmetric and o_moved and m_frozen)
+    if authored_asymmetry:
+        detail = (f"AUTHORED ASYMMETRY, not a port defect: {label} reacted ({px_o} px) and MAUI did not "
+                  f"({px_m} px), on a page whose shared XAML twin deliberately OMITS the handler — the "
+                  f"ground-truth column has nothing to react WITH, so no motion parity can be "
+                  f"established here either way. Retire this by adding the handler to the twin, not by "
+                  f"changing the port. {detail}")
+    elif mismatch:
+        still_side, moved_side = ("MAUI", label) if m_frozen else (label, "MAUI")
         # FIRST in the string and in caps, because this is the finding the whole pass exists to make.
         # A page where one column animates and the other is frozen can still score a high per-frame
         # SSIM (a spinner is a few hundred pixels), so it must not be left to the number to reveal.
@@ -431,8 +486,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
                   f"evidenced either. "
                   f"{detail}")
     elif both_frozen:
-        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {FROZEN_PCT}% "
-                  f"of its own frame across the sequence ({move_m:.4f}% vs {move_o:.4f}%), on a page "
+        bound = "a single pixel" if step_paired else f"{FROZEN_PCT}% of its own frame"
+        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {bound} "
+                  f"across the sequence ({px_m} px vs {px_o} px), on a page "
                   f"the board treats as ANIMATED. The two columns agree perfectly because both are "
                   f"still — this scores no motion parity at all. Either the page needs a scenario "
                   f"step to drive it, or its interaction is not reachable on this lane. {detail}")
@@ -440,7 +496,7 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # carried by `detail` (the review sentence) rather than duplicated into keys nothing reads back.
     return {"ssim": round(ssims[worst_i], 4), "diff_pct": round(scores[worst_i]["diff_pct"], 2),
             "detail": detail, "mismatch": mismatch, "both_frozen": both_frozen,
-            "phase_only": phase_only}
+            "phase_only": phase_only, "authored_asymmetry": authored_asymmetry}
 
 
 # --------------------------------------------------------------------------- self-check
@@ -655,6 +711,47 @@ def _selftest() -> int:
         r = score_cell("tinyfrozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("small widget frozen column: flagged", r["mismatch"], True)
         check("small widget frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
+
+        # (10) STEP-PAIRED frames have no encoder in them, so they get no percentage floor at all —
+        #      moved iff any pixel changed. A 2x2 box is 8 changed px of 76800 = 0.0104%, UNDER
+        #      FROZEN_PCT: as a burst that is indistinguishable from iOS's H.264 speckle, but as two
+        #      PNG screenshots it is a real reaction. This is stepper, whose entire intrinsic signal is
+        #      one "-" glyph re-enabling: 22 px on Catalyst, 35 on Windows, 245 on iOS, all three
+        #      columns agreeing, every one of them previously reported "!! NOTHING MOVED".
+        def steps(offsets):
+            return [("initial", [(10, 10)])] + [(f"step{i:02d}", [(x, 10)]) for i, x in enumerate(offsets, 1)]
+
+        tiny_steps = steps([40])
+        dm = unit(run, "steppaired", "maui_xaml", "light", tiny_steps, size=2)
+        do = unit(run, "steppaired", "cpp", "light", tiny_steps, size=2)
+        publish(comp, "steppaired", "maui", "light", dm / "0001.png")
+        publish(comp, "steppaired", "cpp", "light", do / "0001.png")
+        r = score_cell("steppaired", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("step-paired: sub-floor reaction is motion", r["both_frozen"], False)
+        check("step-paired: not called NOTHING MOVED", "NOTHING MOVED" in r["detail"], False)
+        check("step-paired: no false mismatch", r["mismatch"], False)
+
+        # (11) …and the exactness cuts BOTH ways: the same 8-px reaction present in MAUI and absent in
+        #      the port is now a MISMATCH. Under the 0.012% burst floor both sides read "frozen" and
+        #      this scored a confident green — the switch defect, at the scale where it hid longest.
+        dm = unit(run, "steppairedfrozen", "maui_xaml", "light", tiny_steps, size=2)
+        do = unit(run, "steppairedfrozen", "cpp", "light", steps([10]), size=2)
+        publish(comp, "steppairedfrozen", "maui", "light", dm / "0001.png")
+        publish(comp, "steppairedfrozen", "cpp", "light", do / "0001.png")
+        r = score_cell("steppairedfrozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("step-paired frozen column: flagged", r["mismatch"], True)
+        check("step-paired frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
+
+        # (12) A genuinely dead step-paired page is STILL caught: nothing moved anywhere, no threshold
+        #      needed to say so, and the message quotes pixels rather than a percentage bound.
+        dead = steps([10])
+        dm = unit(run, "steppaireddead", "maui_xaml", "light", dead, size=2)
+        do = unit(run, "steppaireddead", "cpp", "light", dead, size=2)
+        publish(comp, "steppaireddead", "maui", "light", dm / "0001.png")
+        publish(comp, "steppaireddead", "cpp", "light", do / "0001.png")
+        r = score_cell("steppaireddead", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("step-paired dead page: still NOTHING MOVED", "NOTHING MOVED" in r["detail"], True)
+        check("step-paired dead page: quotes a single pixel", "a single pixel" in r["detail"], True)
 
     print("motion_score selftest:", "OK" if ok else "FAILED")
     return 0 if ok else 1

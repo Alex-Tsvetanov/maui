@@ -10,6 +10,18 @@
 # is the forward-looking hook: the DevFlow driver taps it by name (resolution-independent, no coords);
 # the coordinate driver ignores it and uses `at`.
 
+# THE MAUI COLUMN CANNOT REACT TO THIS TAP. The shared XAML twin (port/maui-reference/pages/button.xaml)
+# carries a literal <Label Text="Taps: 0"/> next to "<!-- Clicked (handler omitted) -->", while the
+# port's code-first builder DOES wire the handler — measured on windows run 2026-08-07-01_18_39, the
+# port's readout goes "Taps: 0" -> "Taps: 1" (57 px) and MAUI's stays at 0 px. Driving this page can
+# therefore only ever produce a MOTION MISMATCH, and that mismatch is the twin's omission, not a port
+# defect: motion_score reads the flag below and says so instead of reddening the cell.
+#
+# RETIRE THIS BY FIXING THE TWIN, not by deleting the scenario — the batched twin-gesture-markup change
+# adds the Clicked handler on all four platforms, after which all three columns react and the flag comes
+# out. Until then the still capture and the port's own reaction are still worth having.
+twin_cannot_react = true
+
 tag = "button"
 themes = ["light"]        # add "dark" to also sweep dark; frames continue the NNNN sequence
 timeout_seconds = 30

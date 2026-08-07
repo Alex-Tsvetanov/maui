@@ -45,8 +45,16 @@ at = [0.21, 0.13]         # default_stepper_ Stepper, the "+" half
 # FLAT PAGE BACKGROUND before these were added. Keyed by ENVIRONMENT name, because local.toml gives
 # Catalyst and AppKit the same `platform`, so platform cannot address them apart.
 #   windows      "+" at (67, 90) of 1024x800  -> 0.065, 0.113
-#   maccatalyst  "+" at (67, 84) of 1024x800  -> 0.065, 0.105  (rows sit 6px higher; no title bar
-#                inside the captured content, unlike the Windows chrome strip)
+#   maccatalyst  "+" at (62, 74) of 1024x800  -> 0.061, 0.0925 (rows sit ~16px higher than Windows; no
+#                title bar inside the captured content, unlike the Windows chrome strip)
 # Re-derive by opening captures/<lane>/maui/stepper_light.png and dividing the "+" centre by the frame.
+#
+# THE CATALYST y WAS 10px LOW AND WORKED BY ACCIDENT. 0.105 resolved to y=84, and the stepper pill
+# occupies y[63..83] — one pixel BELOW the control, in the gap before the "Disabled" label. Overlaying
+# a crosshair on the capture is what showed it; the aim gate did not, because the gap is not flat page
+# background. It still registered sometimes (the hit area runs past the visible pill) and sometimes not
+# — run 2026-08-07-06_54_58 changed 22 px in all three columns, run 2026-08-07-07_57_41 changed 0 in
+# all three. A coordinate that works by accident stops working the next time row spacing shifts, and a
+# scenario that silently does nothing is exactly what these files exist to prevent.
 at_windows-x64 = [0.065, 0.113]
-at_macos-arm64 = [0.065, 0.105]
+at_macos-arm64 = [0.061, 0.0925]
