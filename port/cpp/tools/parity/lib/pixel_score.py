@@ -228,7 +228,13 @@ def main():
     ap.add_argument("--platform", default=",".join(PLATFORMS), help="comma-separated platforms")
     args = ap.parse_args()
 
-    plats = [p for p in args.platform.split(",") if p in PLATFORMS]
+    # A name that is not a board platform is a MISTAKE, not a filter. Silently dropping it made
+    # `--platform macos` (the lane's name for the maccatalyst board column) print "scored 0" and
+    # exit 0 — a successful-looking run that scored nothing.
+    plats = [p.strip() for p in args.platform.split(",") if p.strip()]
+    unknown = [p for p in plats if p not in PLATFORMS]
+    if unknown:
+        ap.error(f"unknown platform(s) {','.join(unknown)}; known: {','.join(PLATFORMS)}")
     pages = json.load(open(JSON, encoding="utf-8"))
     want = set(k.strip() for k in args.only.split(",") if k.strip()) if args.only else None
 
