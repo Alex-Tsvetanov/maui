@@ -38,3 +38,17 @@ name = "toggled-on"
 action = "click"
 at = [0.078, 0.214]      # bg_color_switch_ Switch — the blue on-track, measured from the at-rest still
 duration = 0.6           # HELD: an instantaneous tap actuates neither column (see the table above)
+
+# CATALYST NEEDS ITS OWN AIM. The `at` above is a fraction of a 402x874 PORTRAIT PHONE, and the same
+# fraction of Catalyst's 1024x800 LANDSCAPE window is a different place on the page: it resolves to
+# (80,171), which is empty space to the right of the "Background" row. MEASURED 2026-08-07 on the
+# maccatalyst captures — the blue BackgroundColor track is x[0..47] y[117..137], identically in
+# maui, cpp AND xaml (533 blue px, same bbox in all three), so its centre is (23,127) = this
+# fraction of the 1024x800 rect. That miss is why the 2026-08-07 run scored switch NOTHING MOVED at
+# 0.0000% in every column.
+#
+# AUTHOR IT AS A FRACTION, NEVER AS PIXELS. coordinate_space() classifies over _points(), which
+# INCLUDES at_<env> keys — one absolute pair anywhere in the file flips the whole scenario to
+# "absolute", and device_scenarios then drops it from the iOS lane BY NAME. Writing [23,127] here
+# would silently delete the iOS held-press finding this file documents above.
+at_macos-arm64 = [0.023, 0.159]

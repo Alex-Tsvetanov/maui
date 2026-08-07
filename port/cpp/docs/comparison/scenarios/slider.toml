@@ -39,3 +39,18 @@ at = [0.070, 0.122]      # the Default slider's THUMB at rest, NOT the track. RE
 to = [0.50, 0.122]       # dragged right along the track
 steps = 20               # a deliberate pan, not a flick: the drag needs intermediate move events
 duration = 0.8           # 40ms per move — above the ~20ms floor where both OSes coalesce moves
+
+# CATALYST NEEDS ITS OWN AIM, BOTH ENDS. The pair above is a fraction of a 402x874 PORTRAIT PHONE;
+# the same fractions of Catalyst's 1024x800 LANDSCAPE window resolve to (72,98) -> (512,98), and
+# y=98 is the BackgroundColor *label* row, not a slider. MEASURED 2026-08-07 on the maccatalyst
+# captures: at row y=65 the Default slider's near-white thumb is the run x[0..27], identically in
+# maui, cpp AND xaml. Centre (14,65) = this fraction of the 1024x800 rect.
+#
+# The END is overridden too, not just the start. A drag that begins on the thumb and ends 33px off
+# the track row is not a shorter drag, it is a different gesture — and the end is CLAMPED rather
+# than rejected (run_comparison.drag_endpoints), so a wrong `to` fails silently.
+#
+# Fractions, not pixels: see the note in switch.toml — an absolute pair in an at_<env> key would
+# reclassify the whole file and drop it from the iOS lane.
+at_macos-arm64 = [0.014, 0.081]
+to_macos-arm64 = [0.50, 0.081]
