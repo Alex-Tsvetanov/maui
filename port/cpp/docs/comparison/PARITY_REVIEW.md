@@ -3297,6 +3297,26 @@ never runs:
    is shipped and still unfindable.
 3. `register_gesture_natives` fails.
 
+**NARROWED BY STATIC CHECK 2026-08-07 — two of the three are now out:**
+
+* Candidate 3, `register_gesture_natives` failing, is **ELIMINATED**. `RegisterNatives` fails
+  wholesale if any one name/signature is wrong, which would match the symptom exactly — but all
+  sixteen native halves were compared by hand against `MauiGestureBridge.java:320-357` and every one
+  agrees, including the multi-line ones: `nativeOnScroll (JFFFFI)Z`, `nativeOnDoubleTapEvent
+  (JIFFI)Z`, `nativeOnPointerTouch (JIFFII)Z`, `nativeOnScale (JFFFFF)Z`, `nativeOnDrag
+  (JIFFJLjava/lang/String;)V`. (The `std::array<…, 15>` plus a separate `k_drag_method` is 16, not a
+  count mismatch.)
+* Candidate 2, the FindClass classloader trap, is **WEAKENED**. `border_handler.cpp:148` and
+  `content_page_handler.cpp:60` resolve `dev/mauicpp/MauiLayout` — an APP class — through the SAME
+  `default_jni_cache().find_class`, and layout works on every Android page. Not conclusive (the
+  calling thread can differ) but no longer the front-runner.
+* Also checked and ruled out: nothing else installs an `OnTouchListener` that could overwrite the
+  bridge's. The only two call sites in the whole Android backend are
+  `gesture_platform_manager.cpp:847` and `:1482`.
+
+That leaves candidate 1 — `handler_->native_view()` null for the Android BoxView when the first
+recognizer attaches — or something not yet on this list.
+
 **The discriminating experiment**, which needs the emulator: log whether `native_attach` sees a
 non-null `handler_->native_view()` on `gestures`, and whether `state.touch_installed` is ever true.
 One catch-and-log beats another round of inference — the Windows `0xC000041D` crash earlier this week
