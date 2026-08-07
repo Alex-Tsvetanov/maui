@@ -3277,13 +3277,25 @@ handling its own touch — `hit_testing`, which also reacts to a click, is three
 `build_android_apphost.sh:158` dexes the whole `src/platform/android/java` dir, so it cannot go absent
 silently. Checked in the artifact, not in the script.
 
-**LEADING HYPOTHESIS, NOT PROVEN — do not fix on it without a discriminating run.** In
-`gesture_platform_manager.cpp`, `native_attach` captures `state.view` only INSIDE the
-`if (state.bridge.get() == nullptr)` branch, and that branch needs `handler_->native_view()` to be
-non-null at the moment the FIRST recognizer attaches. `sync_subscriptions` then bails at
-`view == nullptr` (:826), so `setOnTouchListener` (:847) never runs. If markup-declared recognizers
-attach to the element BEFORE its handler connects, the bridge is never built and nothing retries on
-connect. That would be Android-only if the other three backends re-attach on handler connect.
+**THE FIRST HYPOTHESIS WAS WRONG — recorded so nobody re-runs it.** The guess was that
+markup-declared recognizers attach BEFORE the handler connects, leaving `native_attach` with a null
+`handler_`. The shared layer already prevents that: `set_handler`
+(`src/controls/gestures/gesture_platform_manager.cpp:29-47`) tears down and re-runs
+`load_recognizers()` on every handler change, and `load_recognizers` returns early while
+`handler_ == nullptr`. So `native_attach` is only ever reached WITH a handler, on every backend.
+
+**What is actually still open**, all three of which fail SILENTLY and land in the same place — no
+bridge, so `sync_subscriptions` bails at `view == nullptr` (:826) and `setOnTouchListener` (:847)
+never runs:
+
+1. `handler_->native_view()` is null for the Android BoxView at that moment (a handler exists, its
+   platform view may not yet).
+2. `cache.find_class(env, "dev/mauicpp/MauiGestureBridge")` fails. This is the classic Android JNI
+   trap: `FindClass` resolves APP classes only through the app class loader, so the same call that
+   finds system classes returns null for a bundled class depending on the calling thread. The class
+   being present in `classes5.dex` does not rule this out — it is exactly the shape where the class
+   is shipped and still unfindable.
+3. `register_gesture_natives` fails.
 
 **The discriminating experiment**, which needs the emulator: log whether `native_attach` sees a
 non-null `handler_->native_view()` on `gestures`, and whether `state.touch_installed` is ever true.
