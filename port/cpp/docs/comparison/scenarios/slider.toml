@@ -1,0 +1,36 @@
+# Scenario for the `slider` page: capture at rest, then drag the Default slider's THUMB to the right.
+#
+# RESTORED after d51acde0e8 dropped it as undrivable. That was wrong, and the reason is worth keeping
+# because it is a measurement trap, not a typo:
+#
+#   the old `at` was [0.43, 0.122], commented "default_slider_ THUMB. MEASURED: the filled blue track
+#   runs x[0,516]". A thumb at x=516px IS 0.43 of a 1206px frame — but a Default slider at REST has no
+#   filled track at all: value 0, thumb hard left at x~55px (0.045). The 516 was measured off an
+#   ALREADY-DRAGGED frame, back when the lane published the REACTED frame as the board still. 89261d905a
+#   fixed that ordering, the published still became the true at-rest one, and the coordinate was left
+#   pointing at bare track.
+#
+#   An iOS UISlider only drags when the gesture STARTS on the thumb; a drag beginning mid-track does
+#   nothing. So the drag moved neither column, and "neither column reacts" was read as "idb cannot
+#   actuate a UISlider". MEASURED 2026-08-07, both columns, iPhone17-265 / iOS 26.5:
+#     at=[0.43,0.122] (mid-track)  maui bbox=None            cpp bbox=None
+#     at=[0.045,0.122] (thumb)     maui bbox=(0,42,648,206)  cpp bbox=(0,42,660,206)
+#   and the port's thumb visibly lands mid-track with a blue filled run behind it. Both columns react.
+#
+# TO RECALIBRATE: find the thumb in captures/ios/<col>/slider_light.png — the rounded white cap at the
+# LEFT end of the grey track — and take its centre. Do NOT measure the blue fill: at rest there isn't one.
+
+tag = "slider"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "dragged-right"
+action = "drag"
+at = [0.045, 0.122]      # the Default slider's THUMB at rest (x~18pt of 402), NOT the track
+to = [0.50, 0.122]       # dragged right along the track
+steps = 20               # a deliberate pan, not a flick: the drag needs intermediate move events
+duration = 0.8           # 40ms per move — above the ~20ms floor where both OSes coalesce moves

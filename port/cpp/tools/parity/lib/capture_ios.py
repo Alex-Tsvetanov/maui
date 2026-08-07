@@ -361,7 +361,15 @@ def plan(steps: list[dict], size: tuple[int, int]) -> list[tuple[list[str], floa
             out.append(([], hold))
         elif action in ("click", "tap"):
             x, y = start_point(step.get("at"), bool(step.get("edge")))
-            out.append((["tap", str(x), str(y)], hold))
+            tap = ["tap", str(x), str(y)]
+            # A LONG press, when the step asks for one. MEASURED on iOS 26.5: an instantaneous
+            # `idb ui tap` does NOT actuate a UISwitch — neither column moves — while the SAME point
+            # with `--duration 0.5` toggles MAUI's switch (12428 px). So a zero-duration tap is not
+            # "the tool cannot drive switches"; it is a press too brief for that control to accept.
+            # The desktop lanes ignore this key and click normally, which is correct there.
+            if step.get("duration"):
+                tap += ["--duration", f"{float(step['duration']):g}"]
+            out.append((tap, hold))
         elif action in ("swipe", "scroll", "drag"):
             x0, y0 = start_point(step.get("at"), bool(step.get("edge")))
             if action == "scroll":

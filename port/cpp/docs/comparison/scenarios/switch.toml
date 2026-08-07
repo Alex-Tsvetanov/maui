@@ -1,0 +1,40 @@
+# Scenario for the `switch` page: capture at rest, then toggle the BackgroundColor switch.
+#
+# RESTORED after d51acde0e8 dropped it as undrivable, and this one is NOT a coordinate error — the
+# coordinate was always right. What was wrong is the gesture, and correcting it exposes a PORT DEFECT.
+#
+# MEASURED 2026-08-07, iPhone17-265 / iOS 26.5, same point [0.078,0.214] = (31,187)pt, diffed BELOW the
+# status bar, both columns, launched fresh per attempt:
+#
+#             gesture              maui                          cpp
+#   instantaneous `idb ui tap`     bbox=None    0 px             bbox=None   0 px
+#   `--duration 0.5`               bbox=(0,323,189,407) 12428px  bbox=None   0 px
+#   `--duration 1.2`               bbox=(0,323,189,407) 12428px  bbox=None   0 px
+#
+# LOOKED AT, not just hashed: MAUI's BackgroundColor switch goes blue/off (thumb left) -> green/on
+# (thumb right). The port's stays blue/off after the identical 0.6s press at the identical point.
+#
+# So d51acde0e8's "idb cannot actuate UISwitch" was half right and half wrong, and the half that was
+# wrong matters: an INSTANTANEOUS tap actuates neither column — that part is a real tool limitation —
+# but a HELD press actuates MAUI and does NOT actuate the port. A control that MAUI toggles and the
+# port ignores is a port defect, not a harness limit, and dropping the scenario hid it.
+#
+# This scenario is therefore EXPECTED to report a MOTION MISMATCH on iOS until the port's Switch
+# accepts a held press. That is the honest state: the mismatch IS the bug. Do not "fix" the board by
+# deleting this file again.
+#
+# `duration` is honoured by capture_ios (tap gains --duration); the desktop lanes ignore the key and
+# click normally, which is correct — a mouse click toggles a Switch on Windows/macOS.
+
+tag = "switch"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"
+
+[[steps]]
+name = "toggled-on"
+action = "click"
+at = [0.078, 0.214]      # bg_color_switch_ Switch — the blue on-track, measured from the at-rest still
+duration = 0.6           # HELD: an instantaneous tap actuates neither column (see the table above)
