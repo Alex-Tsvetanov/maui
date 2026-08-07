@@ -3238,3 +3238,61 @@ the contract, and `tests/controls/stepper_*_tests` define the behaviour to match
 **Do NOT re-derive the Windows aim while chasing this.** The `at_windows-x64 = [0.065, 0.113]` override
 is correct — verified by crosshair overlay against the MAUI column, dead centre on the "+" glyph. The
 port columns have nothing under that point because they have nothing anywhere.
+
+---
+
+## OPEN, Android: the port is frozen on `gestures` and `carousel_page` (2026-08-07)
+
+Two Android cells are MOTION MISMATCH with the port at **exactly 0 px** while MAUI moves. Both are
+genuine — the capture is healthy and the injector reaches the port everywhere else.
+
+**The injector is NOT the problem.** Self-motion per column over run `2026-08-07-05_47_52`, all 32
+driven Android pages: 26 move in near-lockstep (usually within 1%) — `entry` 184530/184669,
+`slider` 1018194/1018153, `radio_button_content` 1507/1507. Only these differ:
+
+```
+page             maui px   cpp px
+carousel_page      52944        0     port frozen
+gestures            1790        0     port frozen
+empty_view_rtl    178784    10317     17x smaller — SEPARATE, unexamined
+button/stepper/swipe_refresh/switch: 0/0 — nothing driven either side (see below)
+```
+
+**`gestures` fails on Android ONLY.** The same page, same twin, same scenario:
+
+```
+ios          maui 3935  port 3935   green
+maccatalyst  maui  206  port  206   green
+windows      maui  261  port  261   green
+android      maui 1790  port    0   RED
+```
+
+What moves in MAUI is the readout: `Last gesture: (none)` -> `Pointer released`. The twin puts
+Tap/Pan/Pinch/Swipe/Pointer recognizers on a `BoxView` (`gestures.xaml:14-21`), so this is the only
+page in the driven set whose reaction depends on GESTURE RECOGNIZERS rather than on a native widget
+handling its own touch — `hit_testing`, which also reacts to a click, is three plain Buttons.
+
+**Ruled out: the bridge class is missing.** `MauiGestureBridge` is present in the shipped APK
+(`build/android/maui_android_apphost.apk`, `classes5.dex`, alongside the `MauiDialogBridge` control).
+`build_android_apphost.sh:158` dexes the whole `src/platform/android/java` dir, so it cannot go absent
+silently. Checked in the artifact, not in the script.
+
+**LEADING HYPOTHESIS, NOT PROVEN — do not fix on it without a discriminating run.** In
+`gesture_platform_manager.cpp`, `native_attach` captures `state.view` only INSIDE the
+`if (state.bridge.get() == nullptr)` branch, and that branch needs `handler_->native_view()` to be
+non-null at the moment the FIRST recognizer attaches. `sync_subscriptions` then bails at
+`view == nullptr` (:826), so `setOnTouchListener` (:847) never runs. If markup-declared recognizers
+attach to the element BEFORE its handler connects, the bridge is never built and nothing retries on
+connect. That would be Android-only if the other three backends re-attach on handler connect.
+
+**The discriminating experiment**, which needs the emulator: log whether `native_attach` sees a
+non-null `handler_->native_view()` on `gestures`, and whether `state.touch_installed` is ever true.
+One catch-and-log beats another round of inference — the Windows `0xC000041D` crash earlier this week
+went the same way.
+
+**Separately, the four both-zero pages are NOT this bug:**
+* `button` — absolute coordinates, so `device_scenarios` refuses it on device lanes by name. Correct.
+* `switch` — a plain `input tap` does not actuate an Android switch; needs a held-press idiom.
+* `stepper` — the iOS-calibrated fraction is unverified against the 1080x2340 capture.
+* `swipe_refresh` — the drag does not trigger pull-to-refresh in EITHER column, as its own scenario
+  comment predicts for lanes where a synthetic drag is not a pan.
