@@ -23004,12 +23004,12 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.1044% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-08_45_39, commit 3c586063dc, 2026-08-07) \u2014 worst SSIM 0.9958 at frame 2 'toggled-on' (0.25% pixels differ), mean SSIM 0.9964; per-frame diff% 0.15/0.25; self-motion MAUI 0.1044% (855 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.1068% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-08_45_39, commit 3c586063dc, 2026-08-07) \u2014 worst SSIM 0.9966 at frame 2 'toggled-on' (0.25% pixels differ), mean SSIM 0.9971; per-frame diff% 0.14/0.25; self-motion MAUI 0.1068% (875 px) vs C++ 0.0000% (0 px)"
+          "status": "green",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-07-09_01_14, commit 47c5fb41d5, 2026-08-07) \u2014 worst SSIM 0.9969 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9969; per-frame diff% 0.15/0.15; self-motion MAUI 0.1044% (855 px) vs C++ 0.1038% (850 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-07-09_01_14, commit 47c5fb41d5, 2026-08-07) \u2014 worst SSIM 0.9977 at frame 1 'initial' (0.14% pixels differ), mean SSIM 0.9977; per-frame diff% 0.14/0.14; self-motion MAUI 0.1068% (875 px) vs C++ 0.1080% (885 px)"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ & XAML IS FROZEN (0.1044% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-08_45_39, commit 3c586063dc, 2026-08-07) \u2014 worst SSIM 0.9945 at frame 2 'toggled-on' (0.28% pixels differ), mean SSIM 0.9951; per-frame diff% 0.18/0.28; self-motion MAUI 0.1044% (855 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ & XAML IS FROZEN (0.1068% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-08_45_39, commit 3c586063dc, 2026-08-07) \u2014 worst SSIM 0.9954 at frame 2 'toggled-on' (0.28% pixels differ), mean SSIM 0.9959; per-frame diff% 0.17/0.28; self-motion MAUI 0.1068% (875 px) vs C++ & XAML 0.0000% (0 px)"
+          "status": "green",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-07-09_01_14, commit 47c5fb41d5, 2026-08-07) \u2014 worst SSIM 0.9957 at frame 1 'initial' (0.18% pixels differ), mean SSIM 0.9957; per-frame diff% 0.18/0.18; self-motion MAUI 0.1044% (855 px) vs C++ & XAML 0.1038% (850 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-07-09_01_14, commit 47c5fb41d5, 2026-08-07) \u2014 worst SSIM 0.9964 at frame 1 'initial' (0.17% pixels differ), mean SSIM 0.9964; per-frame diff% 0.17/0.17; self-motion MAUI 0.1068% (875 px) vs C++ & XAML 0.1080% (885 px)"
         }
       },
       "android": {
