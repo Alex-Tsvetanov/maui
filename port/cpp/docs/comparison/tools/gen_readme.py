@@ -104,6 +104,35 @@ def review_body(rev):
     return txt if txt else "_Not yet reviewed._"
 
 
+# The motion verdict's own glyphs. A SEPARATE alphabet from the board's 🟢/🟡/🔴 on purpose: motion is
+# reported ALONGSIDE the colour, never folded into it (pixel_score.classify explains why — a layer
+# covering 24.6% of cells must not drive the colour of the other 75%), and reusing the board's circles
+# would invite exactly the conflation the four-verdict lattice was built to end.
+VERDICT_GLYPH = {"PASS": "✅ PASS", "FAIL": "❌ FAIL",
+                 "INVALID": "🚫 INVALID", "INCONCLUSIVE": "❔ INCONCLUSIVE"}
+
+
+def motion_line(rev):
+    """The motion badge under a review, or "" on a page with no motion evidence at all.
+
+    Reads like a claim a human can check: the governing verdict, why, each theme's own verdict, and the
+    run the frames came from — the last so a surprising verdict can be traced to a capture without
+    grepping the prose."""
+    m = (rev or {}).get("motion")
+    if not m:
+        return ""
+    v = m.get("verdict", "")
+    bits = [f"**Motion:** {VERDICT_GLYPH.get(v, v)}"]
+    if m.get("why"):
+        bits.append(f"`{m['why']}`")
+    themes = m.get("themes") or {}
+    if len(set(themes.values())) > 1:      # only worth printing when the themes DISAGREE
+        bits.append(" / ".join(f"{t} {x}" for t, x in sorted(themes.items())))
+    if m.get("run"):
+        bits.append(f"<sub>run {esc(m['run'])} · {esc(str(m.get('captured_at') or ''))}</sub>")
+    return " · ".join(bits)
+
+
 def preview_table(sc, fws):
     """The screenshot <table> for one page, per the fixed template."""
     head = ["<th></th>"] + [f"<th>{FW_LABEL[fw]}</th>" for fw in fws]
@@ -181,6 +210,52 @@ def board_summary_table(pages):
     total = ("\n<tr><td><strong>Total</strong></td>"
              + "".join(f"<td><strong>{v}</strong></td>" for v in tcells) + "</tr>")
     return head + body + total + "\n</table>"
+
+
+VERDICTS = ("PASS", "FAIL", "INVALID", "INCONCLUSIVE")
+
+
+def motion_counts(pages, plat):
+    """Motion verdicts on one platform, over BOTH model slots -> {verdict: n, "cells": n}."""
+    c = {v: 0 for v in VERDICTS}
+    c["cells"] = 0
+    for p in pages:
+        for key, _label in MODELS:
+            m = ((p["platforms"].get(plat) or {}).get(key) or {}).get("motion")
+            if not m:
+                continue
+            c["cells"] += 1
+            if m.get("verdict") in c:
+                c[m["verdict"]] += 1
+    return c
+
+
+def motion_summary_table(pages):
+    """The board-wide motion roll-up — reported BESIDE the colour table, never merged into it.
+
+    Two separate tables is the whole point. The colour table answers "do the pixels match?" over every
+    cell; this one answers "was the motion validly compared?" over the subset that has motion evidence
+    at all. Merging them would let a 24.6%-coverage layer silently re-colour the other 75%, and would
+    hide the number that matters most here — how many cells have NO usable motion evidence."""
+    rows = []
+    tot = {v: 0 for v in VERDICTS}
+    tot["cells"] = 0
+    for plat, display, _fws, _is_mac in PLATFORMS:
+        c = motion_counts(pages, plat)
+        if not c["cells"]:
+            continue
+        for k in tot:
+            tot[k] += c[k]
+        rows.append((display, c))
+    if not rows:
+        return ""
+    head = ("| Platform | Cells with motion evidence | " + " | ".join(VERDICT_GLYPH[v] for v in VERDICTS) + " |\n"
+            "| --- | --- | " + " | ".join("---" for _ in VERDICTS) + " |")
+    body = "\n".join(f"| {d} | {c['cells']} | " + " | ".join(str(c[v]) for v in VERDICTS) + " |"
+                     for d, c in rows)
+    total = (f"| **Total** | **{tot['cells']}** | "
+             + " | ".join(f"**{tot[v]}**" for v in VERDICTS) + " |")
+    return "\n".join([head, body, total])
 
 
 def summary_table(pages, plat, n):
@@ -309,6 +384,10 @@ def page_section(i, p, plat, fws, meas=None):
         model = page.get(key)
         out.append(f"#### {status_emoji(model, sc, fws)} {label}")
         out.append("")
+        motion = motion_line(model)
+        if motion:
+            out.append(motion)
+            out.append("")
         out.append(review_body(model))
         out.append("")
     return "\n".join(out).rstrip()
@@ -368,6 +447,24 @@ def main():
                "renders genuinely dark, so Android's reds are the port being correct against a broken "
                "ground truth rather than a port defect. See `PARITY_REVIEW.md`._")
     out.append("")
+    mtbl = motion_summary_table(pages)
+    if mtbl:
+        out.append("**Motion parity — reported SEPARATELY from the colours above, on purpose.** A cell "
+                   "gets a motion verdict when the page is driven or animated; that is a minority of "
+                   "cells, and the layer is younger than the static one. So a non-`PASS` verdict caps "
+                   "a cell at 🟡 (it can never be 🟢) but does not force it 🔴 — ANDing a partial, "
+                   "still-settling layer into the board's colour would turn every motion flake into a "
+                   "board regression. Read the two together: 🟢 with ✅ PASS is a page whose pixels AND "
+                   "whose motion were compared and agreed.")
+        out.append("")
+        out.append("🚫 **INVALID means there is no usable evidence, not that the port failed** — the "
+                   "commonest cause by far is that no scenario was ever authored to drive the page, in "
+                   "which case nothing about the port can be concluded from the cell at all. The "
+                   "per-page badge names the reason (`no-scenario`, `not-driven`, `no-frames`, "
+                   "`provenance`, …).")
+        out.append("")
+        out.append(mtbl)
+        out.append("")
     tbl = size_table(meas)
     if tbl:
         out.append(tbl)

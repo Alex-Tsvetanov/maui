@@ -3293,3 +3293,45 @@ formatted-text page, and the swipe there also returned 0 px, which would have "c
 from the wrong screen. Only LOOKING at the screenshot caught it. Sixth instance of the same shape:
 the tool was not running where it was assumed to be.
 
+
+## 11 of the 14 `ANIMATED` pages have NO SCENARIO AT ALL — the biggest single item on the board (2026-08-08)
+
+Found while implementing the motion verdict lattice, by asking a question the old scoring could not
+express: of the 139 board cells reporting `!! NOTHING MOVED`, how many belong to a page that anything
+was ever **aimed at**?
+
+```
+ 59 cells  page HAS an action scenario  -> something was injected and neither column reacted
+ 80 cells  page has NO action scenario  -> nothing was ever aimed at it
+```
+
+Those 80 cells were reading like a port finding. They are not a finding of any kind. `recapture.py`'s
+hard-coded `ANIMATED` list names 14 pages the board treats as animated, and **11 of them have no
+`docs/comparison/scenarios/<key>.toml` file at all** — not an empty one, not one without an action:
+
+| page | why it is inert |
+| --- | --- |
+| `animation` | no scenario file |
+| `chrome` | no scenario file |
+| `empty_view_load_simulate` | no scenario file |
+| `ios_blur_effect` | no scenario file |
+| `ios_pan_gesture` | no scenario file |
+| `ios_swipe_transition` | no scenario file |
+| `pan_gesture_events` | no scenario file |
+| `pointer_gesture` | no scenario file |
+| `swipe_gesture` | no scenario file |
+| `swipe_item_position` | no scenario file |
+| `activity_indicator` | no scenario file — but its spinners animate unprompted, so it is the one page of the 11 that still produces real motion evidence |
+
+Only `carousel_page`, `gestures` and `swipe_refresh` — 3 of 14 — are actually driven. Every GIF on the
+other ten is N copies of one frame, which is why both columns match perfectly and why the cell scored
+a confident green until the `both_frozen` cap was added.
+
+**This is authored-artifact work, not port work.** Ten scenario files, each declaring the interaction
+its page exists to demonstrate. Until they exist, nothing about the port's behaviour on those pages has
+ever been tested by this board, and the scorer now says exactly that: verdict `INVALID`, why
+`no-scenario`, with the review text stating in words that no conclusion about the port follows.
+
+The distinction is the whole point of the lattice. `not-driven` (59 cells) is a real lead — an action
+was injected and nothing moved, so either the coordinate misses on that lane or the interaction is
+unreachable there. `no-scenario` (80 cells) is a missing file. Both used to print the same sentence.

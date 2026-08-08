@@ -22,9 +22,24 @@ difference exceeds a visibility threshold (25/255) — a blunter, more intuitive
 **Animated pages are scored FRAME BY FRAME**, at full resolution, by lib/motion_score.py — worst-frame
 and mean SSIM across the sequence, so a port that reaches the right END state through the wrong
 intermediate frames is caught. The worst frame supplies the {ssim, diff_pct} the thresholds below judge.
-When the frames are unavailable (they live in the per-run, gitignored run directory — see that module's
-header for why that source was chosen, and why iOS/Android cannot be motion-scored yet) the cell keeps
-its single-still number and the review SAYS "NOT motion-scored"; it never passes a still off as motion.
+
+**Motion carries its own four-verdict result** (PASS / FAIL / INVALID / INCONCLUSIVE — the lattice is
+defined and justified in motion_score.py) and it is written into comparison.json under a `motion` key
+BESIDE the status, never merged into it. Three consequences, each deliberate:
+
+  * a non-PASS cell can never be GREEN — including the case that used to slip through, where the run
+    frames had expired and the cell quietly scored a confident green off ONE resting still while its
+    review prose said "NOT motion-scored" to nobody in particular (measured: 6 cells);
+  * a non-PASS cell is NOT forced red either. The recovery plan asks for "static green AND motion PASS";
+    that AND is not adopted, because motion covers 24.6% of board cells and the layer still moves
+    (13 cells changed verdict in one rescore with no logic change). classify() has the full argument;
+  * a verdict OUTLIVES the gitignored run directory that produced it. See carry_forward — without that,
+    every pruned run would degrade another cell and a fresh clone would cap the entire animated board
+    yellow, which is a fact about the checkout rather than about the port.
+
+Modes: `--verify` scores without writing and reports which cells moved (a CHANGE gate for scorer edits);
+`--selftest` checks the verdict plumbing with no images. For run-to-run stability of the verdicts
+themselves, see `motion_score.py --stability`, which varies the run directory rather than the clock.
 
 Mismatched image dimensions are resized (LANCZOS) to the smaller common size before comparing — a
 known limitation: this is a global comparison, not a registered/aligned diff, so a uniform outer-inset
@@ -40,6 +55,7 @@ import argparse
 import glob
 import json
 import os
+import sys
 import tomllib
 
 import numpy as np
@@ -150,13 +166,19 @@ def full_res(rel_path):
 
 
 def classify(theme_scores):
-    """theme_scores: {"light": {...}|None, "dark": {...}|None}. -> ({status}, review text)."""
+    """theme_scores: {"light": {...}|None, "dark": {...}|None}. -> (status, review text, motion).
+
+    `motion` is the four-verdict block (or None on a page with no motion evidence at all):
+    {"verdict", "themes": {theme: verdict}, "why", "run", "commit", "captured_at"} — see
+    motion_score's lattice block. It is returned SEPARATELY from the status, and that separation is
+    deliberate: see the cap rules below.
+    """
     have = {t: v for t, v in theme_scores.items() if v is not None}
     if not have:
-        return "blank", "No comparable MAUI/C++ screenshot pair exists for this page on this platform."
+        return "blank", "No comparable MAUI/C++ screenshot pair exists for this page on this platform.", None
     worst_ssim = min(v["ssim"] for v in have.values())
     worst_diff = max(v["diff_pct"] for v in have.values())
-    if worst_ssim >= 0.98 and worst_diff <= 1.0:
+    if worst_ssim >= motion_score.GREEN_SSIM and worst_diff <= motion_score.GREEN_DIFF:
         status = "green"
     elif worst_ssim >= 0.90 and worst_diff <= 8.0:
         status = "yellow"
@@ -190,6 +212,38 @@ def classify(theme_scores):
         status = "yellow"
     if any(v.get("both_frozen") for v in have.values()) and status == "green":
         status = "yellow"
+    # ---- the motion verdict, and WHY IT IS NOT ANDed INTO THE COLOUR ----------------------------
+    # The recovery plan this implements asks for "only static green AND motion PASS may render a green
+    # cell". That AND is the one part of it not adopted, on measured grounds: motion evidence covers
+    # 338 of 1376 board cells (24.6%), and that layer demonstrably moves — 13 cells changed verdict in
+    # a single rescore with NO logic change, and three flipped between byte-identical runs. ANDing a
+    # flapping 24.6% layer into the 100% layer converts every motion flake into a board regression, and
+    # the board is what a human reads to decide where to work.
+    #
+    # So the verdict is REPORTED (its own field, rendered as its own badge by gen_readme) and the
+    # colour keeps the cap rules above, which already encode the honest half of the plan's intent: a
+    # non-PASS cell can never be GREEN, but neither is it forced red by a metric that is still settling.
+    # The one gap that closes here is INVALID -> capped yellow, below.
+    verdicts = {t: v.get("verdict") for t, v in have.items() if v.get("verdict")}
+    motion = None
+    if verdicts:
+        governing = motion_score.worst_verdict(verdicts.values())
+        # The evidence pointer, from whichever theme actually supplied one. It is written into the
+        # COMMITTED comparison.json precisely so a verdict outlives its gitignored run directory —
+        # main() reads it back to tell "the frames expired" from "the frames disagreed".
+        ev = next((v["evidence"] for v in have.values() if v.get("evidence")), {}) or {}
+        why = next((v.get("why") for t, v in have.items()
+                    if v.get("verdict") == governing and v.get("why")), "")
+        motion = {"verdict": governing, "themes": verdicts, "why": why,
+                  "run": ev.get("run"), "commit": ev.get("commit"),
+                  "captured_at": ev.get("captured_at")}
+        # INVALID CANNOT BE GREEN. This is the plan's "never turn INVALID green to make the board look
+        # complete", and it closes a real hole: a driven page whose run directory was pruned fell
+        # through to `not_scored`, which returns the SINGLE-STILL number — so the cell scored a
+        # confident green off one resting frame while its review text said, in prose nobody aggregates,
+        # "NOT motion-scored". Measured at 6 cells on this board.
+        if governing == motion_score.INVALID and status == "green":
+            status = "yellow"
     parts = []
     for t in THEMES:
         v = theme_scores.get(t)
@@ -201,7 +255,7 @@ def classify(theme_scores):
         elif t in theme_scores:
             parts.append(f"{t.capitalize()}: no comparable pair")
     review = " · ".join(parts)
-    return status, review
+    return status, review, motion
 
 
 def driven_pages():
@@ -229,10 +283,104 @@ def driven_pages():
     return _DRIVEN
 
 
+def stills_fingerprint(paths):
+    """sha256 over the published stills a cell is scored from — the thing a carried-forward verdict is
+    pinned to.
+
+    NOT a hash of the run frames: those are gitignored and pruned, so hashing them would pin a verdict
+    to evidence guaranteed to vanish. The published stills ARE committed, so this asks the only
+    question that matters when the frames are gone: *are the pictures on the board still the same
+    pictures the recorded verdict was taken on?* If yes the verdict still describes them; if a
+    recapture landed, the hash moves and the verdict is recomputed or refused."""
+    import hashlib  # noqa: PLC0415  only main() needs it
+    h = hashlib.sha256()
+    for rel in paths:
+        if not rel:
+            continue
+        p = os.path.join(COMP, rel)
+        h.update(rel.encode())
+        h.update(open(p, "rb").read() if os.path.isfile(p) else b"<missing>")
+    return h.hexdigest()[:16]
+
+
+def carry_forward(theme_scores, prior, fingerprint):
+    """Replace EXPIRED motion INVALIDs with the verdict previously recorded for these same stills.
+
+    THE TIME-RATCHET THIS EXISTS TO PREVENT. Run directories are per-run, gitignored and pruned (see
+    motion_score's module header for why that source was chosen). Without this, "the frames are gone"
+    and "the frames disagreed" both land as INVALID, so:
+
+      * every pruned run silently degrades another cell to a yellow cap, and
+      * ON A FRESH CLONE, where there are no run directories at all, EVERY motion cell is INVALID and
+        the whole animated board caps yellow — a statement about the checkout, not about the port.
+
+    The board would decay with the calendar. So the two are separated at the source (motion_score's
+    EXPIRED_WHY codes) and rejoined here: an expired verdict falls back to the one recorded in the
+    COMMITTED comparison.json, but only while `fingerprint` proves the published stills have not moved
+    since. A recapture changes the stills, the fingerprint changes with them, and nothing is carried.
+
+    Only EXPIRED codes are eligible. A cell that was driven and did not react, or whose frames cannot
+    be paired, has real evidence saying so — that is a finding, and a finding is never overwritten by
+    an older one."""
+    if not prior or prior.get("stills") != fingerprint:
+        return theme_scores
+    was = prior.get("themes") or {}
+    out = {}
+    for t, v in theme_scores.items():
+        old = was.get(t)
+        if (v is not None and v.get("verdict") == motion_score.INVALID
+                and v.get("why") in motion_score.EXPIRED_WHY and old):
+            v = dict(v, verdict=old, why=prior.get("why", ""), carried=True,
+                     evidence={"run": prior.get("run"), "commit": prior.get("commit"),
+                               "captured_at": prior.get("captured_at")},
+                     detail=(f"{v['detail']} — CARRIED FORWARD: the published stills are byte-identical "
+                             f"to those behind the recorded {old} verdict from run "
+                             f"{prior.get('run')} ({prior.get('captured_at')}), so the evidence "
+                             f"EXPIRED rather than disagreed. Re-capture to re-derive it."))
+        out[t] = v
+    return out
+
+
+def lane_status():
+    """docs/comparison/lane_status.toml -> {platform: {...}}, or {} when the file is absent.
+
+    A lane whose CAPTURES cannot be trusted for a reason no pixel can see — the classic being a build
+    guest running source older than the tree, which renders old code perfectly and hashes perfectly.
+    Declared in one file so retiring it is a one-line edit rather than a sweep over 172 pages."""
+    p = os.path.join(COMP, "lane_status.toml")
+    if not os.path.isfile(p):
+        return {}
+    with open(p, "rb") as fh:
+        return tomllib.load(fh)
+
+
+def declare_lane(theme_scores, lane):
+    """Apply a lane_status.toml declaration: force every motion verdict on this lane to INVALID.
+
+    For the failure no frame hash can detect — a lane whose captures render SOURCE THAT IS NOT THIS
+    TREE. The Windows guest is the measured case: `C:/maui-src` is a tarball copy, not a checkout, and
+    was found six days behind. Old code renders perfectly and hashes perfectly; every provenance check
+    in this pipeline passes, because they all bind a capture to its own run and none of them binds a
+    run to the source it was built from. Only a human who checks SYNC_STAMP.txt can know, so the
+    declaration is where that knowledge is written down."""
+    if not lane or not lane.get("motion_invalid"):
+        return theme_scores
+    why = lane.get("reason", "declared stale in lane_status.toml")
+    return {t: (v if v is None or not v.get("verdict") else
+                dict(v, verdict=motion_score.INVALID, why=motion_score.WHY_PROVENANCE, carried=False,
+                     detail=f"{v['detail']} — LANE DECLARED STALE: {why}"))
+            for t, v in theme_scores.items()}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="", help="comma-separated page keys (default: all)")
     ap.add_argument("--platform", default=",".join(PLATFORMS), help="comma-separated platforms")
+    ap.add_argument("--verify", action="store_true",
+                    help="score into memory and DIFF against the committed comparison.json instead of "
+                         "writing it; exits 1 if any cell's status or motion verdict moved. This is a "
+                         "CHANGE gate ('did my edit move the board?'), not a stability gate — for that "
+                         "see `motion_score.py --stability`, which varies the run directory.")
     args = ap.parse_args()
 
     # A name that is not a board platform is a MISTAKE, not a filter. Silently dropping it made
@@ -251,7 +399,9 @@ def main():
     SLOTS = [("cpp", "pixel"), ("xaml", "pixel_xaml")]
     FW_LABEL = {"cpp": "C++", "xaml": "C++ & XAML"}   # how the motion review names the port column
 
+    lanes = lane_status()
     scored = 0
+    changes = []
     for page in pages:
         if want is not None and page["name"] not in want:
             continue
@@ -265,6 +415,7 @@ def main():
             for fw, slot in SLOTS:
                 other = sc.get(fw, {})
                 crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_images)
+                paths = [full_res(maui.get(t)) for t in themes] + [full_res(other.get(t)) for t in themes]
                 theme_scores = {t: score_theme(full_res(maui.get(t)), full_res(other.get(t)), crop_top)
                                 for t in themes}
                 if page["name"] in motion_score.ANIMATED or page["name"] in driven_pages():
@@ -288,13 +439,137 @@ def main():
                     theme_scores = {t: motion_score.score_cell(page["name"], plat, fw, t, crop_top, v,
                                                                fw_label=FW_LABEL[fw])
                                     for t, v in theme_scores.items()}
-                status, review = classify(theme_scores)
-                platform[slot] = {"status": status, "review": review}
+                    fingerprint = stills_fingerprint(paths)
+                    prior = (platform.get(slot) or {}).get("motion")
+                    theme_scores = carry_forward(theme_scores, prior, fingerprint)
+                    theme_scores = declare_lane(theme_scores, lanes.get(plat))
+                else:
+                    fingerprint = None
+                was = platform.get(slot) or {}
+                status, review, motion = classify(theme_scores)
+                cell = {"status": status, "review": review}
+                if motion:
+                    motion["stills"] = fingerprint
+                    cell["motion"] = motion
+                if (was.get("status"), (was.get("motion") or {}).get("verdict")) != \
+                        (status, (motion or {}).get("verdict")):
+                    changes.append((f"{page['name']}/{plat}/{slot}",
+                                    was.get("status"), (was.get("motion") or {}).get("verdict"),
+                                    status, (motion or {}).get("verdict")))
+                platform[slot] = cell
                 scored += 1
 
+    # The change list is printed either way. A full rescore of this board is a ~12-minute SSIM grind,
+    # so making the operator run it TWICE — once to see the delta, once to keep it — is a real cost for
+    # no information: `--verify` differs only in withholding the write.
+    for name, os_, ov, ns, nv in changes:
+        moved = [f"status {os_} -> {ns}"] if os_ != ns else []
+        if ov != nv:
+            moved.append(f"motion {ov} -> {nv}")
+        print(f"  CHANGED {name}: " + ", ".join(moved))
+    if args.verify:
+        print(f"--verify: {scored} scored, {len(changes)} cell(s) differ from {JSON} (nothing written)")
+        return 1 if changes else 0
+
     json.dump(pages, open(JSON, "w", encoding="utf-8"), indent=2)
-    print(f"scored {scored} page x platform x framework comparisons -> {JSON}")
+    print(f"scored {scored} page x platform x framework comparisons "
+          f"({len(changes)} changed) -> {JSON}")
+    return 0
+
+
+def _selftest() -> int:
+    """python3 tools/parity/lib/pixel_score.py --selftest — the verdict plumbing, no board, no images.
+
+    motion_score's own selftest proves a single cell's verdict. These prove what this module does with
+    verdicts once it HAS them: aggregate them, cap the colour on them, and carry them forward. Each
+    case is a failure mode that was reasoned about rather than observed, which is exactly why it needs
+    a check that fails when the reasoning is wrong."""
+    ok = True
+
+    def check(what, got, want):
+        nonlocal ok
+        if got != want:
+            print(f"  FAIL {what}: got {got!r}, want {want!r}")
+            ok = False
+
+    GREEN = {"ssim": 1.0, "diff_pct": 0.0}
+    RED = {"ssim": 0.5, "diff_pct": 30.0}
+
+    def cell(base, **kw):
+        return dict(base, detail="d", evidence={"run": "R", "commit": "c", "captured_at": "2026-08-08"}, **kw)
+
+    # (1) INVALID CANNOT BE GREEN — the 6-cell hole. Perfect pixels, no usable motion evidence.
+    st, _rev, mo = classify({"light": cell(GREEN, verdict=motion_score.INVALID, why="no-frames"),
+                             "dark": None})
+    check("INVALID caps a perfect cell at yellow", st, "yellow")
+    check("INVALID is reported as the verdict", mo["verdict"], motion_score.INVALID)
+
+    # (2) …and PASS does NOT cap. The cap must be the exception, not a blanket tax on motion cells.
+    st, _rev, mo = classify({"light": cell(GREEN, verdict=motion_score.PASS, why=""), "dark": None})
+    check("PASS leaves green alone", st, "green")
+    check("PASS reported", mo["verdict"], motion_score.PASS)
+
+    # (3) PRECEDENCE ACROSS THEMES: light passes, dark has no evidence. The cell is governed by dark.
+    st, _rev, mo = classify({"light": cell(GREEN, verdict=motion_score.PASS, why=""),
+                             "dark": cell(GREEN, verdict=motion_score.INVALID, why="no-scenario")})
+    check("one INVALID theme governs the cell", mo["verdict"], motion_score.INVALID)
+    check("per-theme verdicts both kept", mo["themes"],
+          {"light": motion_score.PASS, "dark": motion_score.INVALID})
+    check("the governing theme's why is the one reported", mo["why"], "no-scenario")
+
+    # (4) A FAIL VERDICT DOES NOT FORCE RED. The plan's conjunctive rule would AND motion into the
+    #     colour; measured flapping (13 cells moved in one rescore with no logic change) says a 24.6%
+    #     layer must not drive the 100% layer. So a FAIL on frames the static bands call minor stays
+    #     yellow AND says FAIL — which is the informative outcome, not a contradiction.
+    st, _rev, mo = classify({"light": cell({"ssim": 0.95, "diff_pct": 3.0},
+                                           verdict=motion_score.FAIL, why="frames-disagree"),
+                             "dark": None})
+    check("FAIL does not force red", st, "yellow")
+    check("FAIL is still reported", mo["verdict"], motion_score.FAIL)
+
+    # (5) A CELL WITH NO MOTION EVIDENCE AT ALL carries no motion block — the ~158 static pages must
+    #     not acquire an empty one.
+    st, _rev, mo = classify({"light": GREEN, "dark": None})
+    check("static page: no motion block", mo, None)
+    check("static page: unaffected", st, "green")
+
+    # (6) CARRY-FORWARD, and the fingerprint that bounds it. Same stills -> the recorded verdict
+    #     stands; the board must not decay as run directories are pruned.
+    expired = {"light": cell(GREEN, verdict=motion_score.INVALID, why=motion_score.WHY_NO_FRAMES)}
+    prior = {"verdict": motion_score.PASS, "themes": {"light": motion_score.PASS}, "why": "",
+             "run": "2026-08-07-13_30_41", "commit": "c451d81", "captured_at": "2026-08-07",
+             "stills": "abc123"}
+    got = carry_forward(expired, prior, "abc123")
+    check("expired + unchanged stills: prior verdict stands", got["light"]["verdict"], motion_score.PASS)
+    check("carried verdicts say so", got["light"]["carried"], True)
+    check("carried verdict keeps the ORIGINAL run pointer", got["light"]["evidence"]["run"],
+          "2026-08-07-13_30_41")
+    check("carried verdict explains itself", "CARRIED FORWARD" in got["light"]["detail"], True)
+    check("a carried PASS is green again", classify(got)[0], "green")
+
+    # (7) …and a RECAPTURE breaks the carry. Different stills, so the old verdict describes different
+    #     pictures and must not survive.
+    got = carry_forward(expired, prior, "DIFFERENT")
+    check("stills changed: nothing carried", got["light"]["verdict"], motion_score.INVALID)
+
+    # (8) ONLY EXPIRED CODES CARRY. A page that was driven and did not react has real evidence saying
+    #     so; an older PASS must never overwrite a finding.
+    finding = {"light": cell(GREEN, verdict=motion_score.INVALID, why=motion_score.WHY_NOT_DRIVEN)}
+    got = carry_forward(finding, prior, "abc123")
+    check("a real finding is never carried over", got["light"]["verdict"], motion_score.INVALID)
+    check("a real finding keeps its why", got["light"]["why"], motion_score.WHY_NOT_DRIVEN)
+
+    # (9) A LANE DECLARED STALE invalidates every verdict on it, including a PASS — the point of the
+    #     declaration is a failure no frame hash can see, so it must beat evidence that looks clean.
+    good = {"light": cell(GREEN, verdict=motion_score.PASS, why="")}
+    got = declare_lane(good, {"motion_invalid": True, "reason": "guest source is stale"})
+    check("declared lane: PASS invalidated", got["light"]["verdict"], motion_score.INVALID)
+    check("declared lane: reason reaches the review", "guest source is stale" in got["light"]["detail"], True)
+    check("undeclared lane: untouched", declare_lane(good, None)["light"]["verdict"], motion_score.PASS)
+
+    print("pixel_score selftest:", "OK" if ok else "FAILED")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(_selftest() if "--selftest" in sys.argv else main())

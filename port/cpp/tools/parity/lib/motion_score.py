@@ -29,8 +29,15 @@ rather than hidden: a cell can only be motion-scored while its run directory sti
 
 The failure mode is therefore explicit everywhere. When the frames are not available this module NEVER
 returns a bare still score — it returns the still score carrying a `detail` string that SAYS "NOT
-motion-scored" and why. A single-still number wearing a motion label is the one outcome this file
-exists to prevent.
+motion-scored" and why, AND a `verdict` of INVALID with an EXPIRED why-code. A single-still number
+wearing a motion label is the one outcome this file exists to prevent, and prose alone did not prevent
+it: the sentence was there for months while six cells scored green off one frame, because nothing
+downstream aggregates English. The verdict is the machine-readable half of that same claim.
+
+WHAT A CELL'S MOTION RESULT IS: one of PASS / FAIL / INVALID / INCONCLUSIVE, defined in the lattice
+block below the constants. Read that before changing any threshold here — the distinction it draws
+between "the port did not move" and "nothing was ever aimed at this page" is the reason 80 board cells
+stopped reading as port findings.
 
 WHICH FRAMES: exactly the ones the GIF was built from. `recapture.burst_frames` is imported rather
 than reimplemented, so the number always describes the sequence a human can actually look at.
@@ -51,13 +58,18 @@ would silently re-align the whole tail of a sequence when one column drops a fra
 the "wrong score that looks right" this tool must not produce. Frames with no partner are NOT scored
 and their count is reported. If NOTHING pairs, the cell is refused, not scored on an empty set.
 
-NOT EVERY PLATFORM CAN BE MOTION-SCORED TODAY. Only the VM lanes (maccatalyst, windows) keep full-res
-per-step frames. `capture_ios.capture_gif` deletes its mp4 after the ffmpeg conversion, and
-`capture_android.capture_gif` writes its burst into a `tempfile.TemporaryDirectory` — both discard the
-full-res frames, so iOS and Android animated cells get the labelled "NOT motion-scored" fallback. Those
-two functions are the change that would enable them; it is outside this file's scope.
+ALL FOUR LANES NOW KEEP FRAMES. This paragraph used to say only the VM lanes (maccatalyst, windows)
+banked full-res per-step frames, because `capture_ios.capture_gif` deleted its mp4 after the ffmpeg
+conversion and `capture_android.capture_gif` burst into a `tempfile.TemporaryDirectory`. Both were
+changed to write run units in the same shape the VM lanes leave, so iOS and Android animated cells are
+motion-scored like everything else. What still varies is the FRAME LABELLING — the VM and iOS lanes name
+each frame after the scenario step that produced it, Android's burst is time-labelled (`gifNN`) — and
+that difference is load-bearing in several places below; do not assume a step name means the same thing
+on every lane.
 
-Self-check (no device, no run dir, no board writes):  python3 tools/parity/lib/motion_score.py
+Modes (all read-only — no device, no board writes):
+  python3 tools/parity/lib/motion_score.py                the selftest
+  python3 tools/parity/lib/motion_score.py --stability    do verdicts depend on WHICH RUN they read?
 """
 from __future__ import annotations
 
@@ -151,11 +163,19 @@ FROZEN_PCT = 0.012
 # "we could not measure this" and "we measured nothing".
 PHASE_SELF_MOTION_TOL = 0.10  # relative spread between the two columns' own motion
 PHASE_AT_REST_PCT = 1.0       # how tightly the first paired (pre-gesture) frame must already agree
-# And only say it when it CHANGES anything. A cell whose frames already agree to the green bar has
-# established frame parity — stamping "not decidable" on it would be false, and would bury the real
-# instances among a dozen green ones. These mirror pixel_score.classify's green test.
-PHASE_ONLY_SSIM = 0.98
-PHASE_ONLY_DIFF_PCT = 1.0
+# THE BOARD'S GREEN BAR, defined ONCE, here. It lives in this module rather than in pixel_score purely
+# because of the import direction — pixel_score imports motion_score at top level, so the reverse can
+# only ever be a deferred in-function import, and a threshold nobody can reference at module scope gets
+# copied instead. It was copied: these two were `PHASE_ONLY_SSIM`/`PHASE_ONLY_DIFF_PCT` carrying the
+# comment "these mirror pixel_score.classify's green test", a duplicate with nothing holding it in sync.
+#
+# THREE readers now share this one pair, and they must agree by construction:
+#   * pixel_score.classify   — is this cell green?
+#   * the phase gate below   — only call a cell "not decidable" when it ISN'T already green anyway
+#   * the conjunctive PASS   — motion PASS means the frames would be called green
+# That last one is what makes "static green AND motion PASS" a statement about one bar rather than two.
+GREEN_SSIM = 0.98
+GREEN_DIFF = 1.0
 # AND THE CLAUSE THE FIRST CUT OF THIS GATE WAS MISSING — the lane's motion must actually be
 # irreproducible. The three clauses above describe a SIGNATURE (both moved, same distance, matching
 # resting frame), and a reproducible end-state difference produces the very same signature. Measured,
@@ -178,6 +198,68 @@ NON_REPRODUCIBLE_DRIVE = {"android"}
 # How far back to look for the run that produced the board's capture. Run dirs accumulate for weeks;
 # without a bound, a cell whose run was deleted would read every surviving run's frames to prove it.
 MAX_RUNS_SCANNED = 20
+
+# --------------------------------------------------------------------------- the verdict lattice
+# WHAT A MOTION VERDICT IS, AND THE CONFLATION IT EXISTS TO END.
+#
+# Until now the outcome of motion scoring was a bag of booleans, and one of them — `both_frozen`,
+# rendered "!! NOTHING MOVED" — was carrying three unrelated claims at once:
+#
+#   * the port is frozen where MAUI animates          (a PORT DEFECT)
+#   * the harness injected an action and NOTHING in either column reacted   (a HARNESS/AIM failure)
+#   * the page has no scenario at all, so nothing was ever driven           (NO EVIDENCE AT ALL)
+#
+# MEASURED on this board, 2026-08-08, over the 139 cells then reading "!! NOTHING MOVED":
+#
+#     59  pages WITH an action scenario   -> something was injected and nothing reacted
+#     80  pages with NO action scenario   -> never driven. These are 10 pages x 8 cells: animation,
+#                                            chrome, empty_view_load_simulate, ios_blur_effect,
+#                                            ios_pan_gesture, ios_swipe_transition, pan_gesture_events,
+#                                            pointer_gesture, swipe_gesture, swipe_item_position.
+#
+# ELEVEN of the 14 hard-coded ANIMATED pages have no scenario file at all; the eleventh is
+# activity_indicator, which is absent from the frozen bucket only because its spinners animate
+# unprompted. Just THREE of the 14 — carousel_page, gestures, swipe_refresh — are actually driven.
+# The other ten pages' GIFs are N copies of one frame. See PARITY_REVIEW.md for the work list.
+#
+# 80 cells were reading like a port finding when the true statement is "nobody wrote a scenario". A
+# reader cannot act on that, and worse, cannot tell it apart from the 59 that ARE actionable. So the
+# outcome becomes an explicit four-way verdict, and the distinction is IN THE VERDICT, not in prose:
+#
+#   PASS          valid evidence, and the two columns' motion agreed
+#   FAIL          valid evidence, and it demonstrates a real difference (one animates, one is frozen)
+#   INVALID       the evidence is unusable: absent, stale, unpairable, or never driven at all
+#   INCONCLUSIVE  the evidence is valid but the model cannot decide equivalence from it (an
+#                 irreproducible fling; a twin that structurally cannot react)
+#
+# PASS IS CONJUNCTIVE. It is tempting to define it as "the comparison was validly performed" and let
+# the board colour carry pixel agreement — but then a cell with perfect provenance and a worst-frame
+# SSIM of 0.60 reads `motion_verdict=PASS`, and every reader of that field concludes the motion
+# matched. It requires BOTH valid evidence AND frames that agree to the board's own green bar, which
+# is imported from pixel_score rather than restated so the two can never drift.
+PASS, FAIL, INVALID, INCONCLUSIVE = "PASS", "FAIL", "INVALID", "INCONCLUSIVE"
+# Precedence for collapsing several themes (or several columns) into one. FAIL first because a
+# demonstrated difference outranks a missing measurement; INVALID above INCONCLUSIVE because "I have
+# no evidence" is a worse position than "I have evidence I cannot decide on".
+VERDICT_RANK = {FAIL: 3, INVALID: 2, INCONCLUSIVE: 1, PASS: 0}
+# Why-codes, so a caller can branch on the REASON without parsing the prose. The two marked EXPIRED
+# are the ones pixel_score may carry a previously recorded verdict through: they say the frames are
+# gone, never that the frames disagreed. Run directories are gitignored and pruned, so without that
+# distinction the board would decay with the calendar — on a fresh clone every motion cell would be
+# INVALID and capped yellow purely because nobody had the run dirs, which is a statement about the
+# machine and not about the port.
+WHY_NO_FRAMES = "no-frames"        # EXPIRED: no run directory holds this cell's frames any more
+WHY_PROVENANCE = "provenance"      # EXPIRED: frames exist but none match the published stills
+WHY_UNPAIRABLE = "unpairable"      # frames exist, but no step name occurs in both columns
+WHY_NOT_DRIVEN = "not-driven"      # an action WAS injected and neither column reacted
+WHY_NO_SCENARIO = "no-scenario"    # no action scenario exists; this page was never driven
+EXPIRED_WHY = (WHY_NO_FRAMES, WHY_PROVENANCE)
+
+
+def worst_verdict(verdicts):
+    """Collapse several verdicts into the one that governs, by VERDICT_RANK. None if none were given."""
+    seen = [v for v in verdicts if v]
+    return max(seen, key=lambda v: VERDICT_RANK.get(v, 0)) if seen else None
 
 
 def _compare(path_a: str, path_b: str, crop_top: int) -> dict:
@@ -373,13 +455,16 @@ def _run_dirs(comp: Path, plat_dir: str, key: str) -> list[Path]:
     return [r for r in runs if (r / key / plat_dir).is_dir()][:MAX_RUNS_SCANNED]
 
 
-def find_frames(key, plat_dir, fw_dir, theme, published_maui, published_other, comp=COMP):
+def find_frames(key, plat_dir, fw_dir, theme, published_maui, published_other, comp=COMP,
+                only_run=None):
     """The newest run holding BOTH columns' frames for this cell behind the published stills.
 
-    -> (run_dir, shots_maui, shots_other, why_not). Exactly one of run_dir / why_not is set."""
+    -> (run_dir, shots_maui, shots_other, why_not). Exactly one of run_dir / why_not is set. `why_not`
+    is a (WHY_* code, prose) pair: the code so a caller can tell EXPIRED evidence from contradicted
+    evidence without parsing English, the prose because the code alone never explains itself."""
     col_m, col_o = FW_TO_COL["maui"], FW_TO_COL.get(fw_dir, fw_dir)
     saw_frames = False
-    scanned = _run_dirs(comp, plat_dir, key)
+    scanned = [only_run] if only_run is not None else _run_dirs(comp, plat_dir, key)
     for run in scanned:
         dm, do = run / key / plat_dir / col_m, run / key / plat_dir / col_o
         if not (dm.is_dir() and do.is_dir()):
@@ -389,22 +474,30 @@ def find_frames(key, plat_dir, fw_dir, theme, published_maui, published_other, c
             continue
         saw_frames = True
         # BOTH columns must be the ones behind the board, not just one: a mixed pairing would compare
-        # two different runs' builds and report the difference as a port bug.
-        if _is_published_run(published_maui, sm) and _is_published_run(published_other, so):
+        # two different runs' builds and report the difference as a port bug. `only_run` deliberately
+        # BYPASSES that tie — it exists solely for --stability, which asks "would a DIFFERENT run have
+        # produced a different verdict?" and therefore has to look at runs that are not the board's.
+        # It must never be reachable from the scoring path, and it isn't: score_cell's own parameter is
+        # keyword-only and pixel_score never passes it.
+        if only_run is not None or (_is_published_run(published_maui, sm)
+                                    and _is_published_run(published_other, so)):
             return run, sm, so, None
     if saw_frames:
         # The scan window is named, because "I did not find it" and "I stopped looking" are different
         # claims and this file's whole point is that no failure reads as something it is not.
         capped = " (the newest %d were scanned)" % MAX_RUNS_SCANNED if len(scanned) == MAX_RUNS_SCANNED else ""
-        return None, None, None, (f"no run directory holds the frames behind the CURRENTLY PUBLISHED "
+        return None, None, None, (WHY_PROVENANCE,
+                                  f"no run directory holds the frames behind the CURRENTLY PUBLISHED "
                                   f"stills for both columns{capped} — their frames do not match "
                                   f"captures/ byte-for-byte, so re-capture this page")
-    return None, None, None, (f"no run directory under docs/comparison/ has {theme} frames for both "
-                              f"columns of this cell (run dirs are per-run and gitignored; iOS and "
-                              f"Android keep no run dir at all)")
+    return None, None, None, (WHY_NO_FRAMES,
+                              f"no run directory under docs/comparison/ has {theme} frames for both "
+                              f"columns of this cell (run dirs are per-run and gitignored, so this "
+                              f"says the evidence EXPIRED — never that it disagreed)")
 
 
-def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_label=None):
+def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_label=None, *,
+               only_run=None):
     """The motion score for one (page, platform, framework, theme), shaped for pixel_score.classify.
 
     Returns the same {"ssim", "diff_pct"} contract classify() already reads — with `ssim`/`diff_pct`
@@ -412,23 +505,31 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     that a long static tail can hide — plus:
       detail    the review sentence (mean/worst/per-frame diffs/frame counts/provenance)
       mismatch  True when one column moved and the other did not; pixel_score forces RED on it
+      verdict   PASS / FAIL / INVALID / INCONCLUSIVE — see the lattice block above
+      why       the WHY_* code behind a non-PASS verdict, or "" — branchable without parsing prose
+      evidence  {run, commit, captured_at} of the frames the verdict was taken on, or None
 
     `still` is the single-frame score pixel_score already computed. It is returned UNCHANGED except
     for a `detail` that says the page was NOT motion-scored whenever the frames are unavailable, and
-    None stays None (a cell with no comparable pair is blank, exactly as before)."""
+    None stays None (A CELL WITH NO COMPARABLE PAIR STAYS BLANK AND CARRIES NO VERDICT — an absent
+    screenshot is not invalid motion evidence, it is no cell at all, and stamping INVALID on it would
+    turn every page missing a dark capture into a motion finding)."""
     label = fw_label or fw_dir
 
-    def not_scored(why):
+    def not_scored(why_pair):
+        why_code, why = why_pair
         if still is None:
             return None
         # "single frame" rather than "still": on a cell whose PNG is missing, full_res() leaves
         # pixel_score scoring the 400px GIF, and calling that a still would misstate it twice over.
-        return dict(still, detail=f"SSIM {still['ssim']:.4f}, {still['diff_pct']:.2f}% pixels differ "
-                                  f"(single frame only) — NOT motion-scored: {why}")
+        return dict(still, verdict=INVALID, why=why_code, evidence=None,
+                    detail=f"SSIM {still['ssim']:.4f}, {still['diff_pct']:.2f}% pixels differ "
+                           f"(single frame only) — NOT motion-scored: {why}")
 
     pub_m = str(comp / "captures" / plat_dir / "maui" / f"{key}_{theme}.png")
     pub_o = str(comp / "captures" / plat_dir / fw_dir / f"{key}_{theme}.png")
-    run, shots_m, shots_o, why = find_frames(key, plat_dir, fw_dir, theme, pub_m, pub_o, comp)
+    run, shots_m, shots_o, why = find_frames(key, plat_dir, fw_dir, theme, pub_m, pub_o, comp,
+                                             only_run=only_run)
     if run is None:
         return not_scored(why)
 
@@ -464,9 +565,10 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     sel_o = [(burst_o.get(p, ""), p) for p in burst_frames(do, theme, driven=was_driven)]
     pairs = _pair(sel_m, sel_o)
     if not pairs:
-        return not_scored(f"run {run.name} has {len(sel_m)} MAUI and {len(sel_o)} {label} frames but "
-                          f"NO step name occurs in both, so nothing can be paired — a comparison by "
-                          f"frame index would be a guess. Re-capture this page")
+        return not_scored((WHY_UNPAIRABLE,
+                           f"run {run.name} has {len(sel_m)} MAUI and {len(sel_o)} {label} frames but "
+                           f"NO step name occurs in both, so nothing can be paired — a comparison by "
+                           f"frame index would be a guess. Re-capture this page"))
 
     # PHASE-INVARIANT: shift column B by the offset that makes the sequences agree best before scoring.
     # A sampling drift is a shift, not a defect; see _align for the measurements that forced this.
@@ -509,6 +611,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # Flagged in the scenario rather than hard-coded here, so the batched twin-markup change that adds
     # those handlers retires the exemption by deleting one line.
     asymmetric = _twin_cannot_react(key, comp)
+    # Was anything ever AIMED at this page? Splits the "neither column moved" verdict below into its
+    # actionable and non-actionable halves — see the lattice block for the 59/80 measurement.
+    driven_page = _has_action_scenario(key, comp)
     if step_paired:
         m_moved, m_frozen = px_m > 0, px_m == 0
         o_moved, o_frozen = px_o > 0, px_o == 0
@@ -526,7 +631,13 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     at_rest_diff = scores[0]["diff_pct"] if scores else 100.0
     widest = max(move_m, move_o)
     spread = abs(move_m - move_o) / widest if widest > 0 else 1.0
-    frames_disagree = ssims[worst_i] < PHASE_ONLY_SSIM or scores[worst_i]["diff_pct"] > PHASE_ONLY_DIFF_PCT
+    # The board's OWN green bar, imported rather than restated. This used to be two module constants
+    # (PHASE_ONLY_SSIM/PHASE_ONLY_DIFF_PCT) whose comment already said "these mirror
+    # pixel_score.classify's green test" — a copy that nothing stopped from drifting. It now feeds both
+    # the phase gate and the conjunctive PASS clause, so "motion PASS" and "the board would call these
+    # frames green" cannot mean two different things.
+    frames_agree = ssims[worst_i] >= GREEN_SSIM and scores[worst_i]["diff_pct"] <= GREEN_DIFF
+    frames_disagree = not frames_agree
     phase_only = (plat_dir in NON_REPRODUCIBLE_DRIVE and frames_disagree
                   and not mismatch and m_moved and o_moved
                   and spread <= PHASE_SELF_MOTION_TOL and at_rest_diff <= PHASE_AT_REST_PCT)
@@ -576,16 +687,111 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
                   f"{detail}")
     elif both_frozen:
         bound = "a single pixel" if step_paired else f"{FROZEN_PCT}% of its own frame"
-        detail = (f"!! NOTHING MOVED: neither MAUI nor {label} changed by more than {bound} "
-                  f"across the sequence ({px_m} px vs {px_o} px), on a page "
-                  f"the board treats as ANIMATED. The two columns agree perfectly because both are "
-                  f"still — this scores no motion parity at all. Either the page needs a scenario "
-                  f"step to drive it, or its interaction is not reachable on this lane. {detail}")
+        # THE SPLIT THAT 80 CELLS WERE MISSING (see the verdict lattice block). "Neither column moved"
+        # means two completely different things depending on whether anything was ever AIMED at this
+        # page, and only one of them is worth a human's time.
+        if driven_page:
+            cause = (f"An action WAS injected here — {key}.toml declares one — and NEITHER column "
+                     f"reacted to it. So either the coordinate misses its target on this lane, or the "
+                     f"interaction is not reachable here. This is the actionable half of the old "
+                     f"'NOTHING MOVED' bucket: 59 of the 139 cells that carried it.")
+        else:
+            cause = (f"NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/{key}.toml "
+                     f"is absent or declares no `action` — so nothing was ever aimed at it and both "
+                     f"columns are at rest by construction. This is NOT a port finding and nothing "
+                     f"about the port can be concluded from it; the missing artifact is the scenario. "
+                     f"80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, "
+                     f"including 10 of the 14 hard-coded ANIMATED pages.")
+        detail = (f"!! NO MOTION EVIDENCE: neither MAUI nor {label} changed by more than {bound} "
+                  f"across the sequence ({px_m} px vs {px_o} px), on a page the board treats as "
+                  f"ANIMATED. {cause} {detail}")
+
+    # ---- the verdict. Order mirrors VERDICT_RANK, so the first clause that fires is the governing one.
+    if mismatch and not authored_asymmetry:
+        verdict, why = FAIL, "mismatch"
+    elif both_frozen:
+        # INVALID, never FAIL: two frozen columns agree perfectly and would otherwise read as a
+        # confident green. Nothing was demonstrated about the port either way — the evidence is
+        # missing, and the why-code says which kind of missing.
+        verdict, why = INVALID, (WHY_NOT_DRIVEN if driven_page else WHY_NO_SCENARIO)
+    elif phase_only:
+        verdict, why = INCONCLUSIVE, "phase-only"
+    elif authored_asymmetry:
+        verdict, why = INCONCLUSIVE, "twin-cannot-react"
+    elif frames_agree:
+        verdict, why = PASS, ""
+    else:
+        # Valid evidence, both columns moved, and the frames still do not agree to the board's green
+        # bar. That IS the demonstrated difference FAIL is for. It does not force the cell red — the
+        # board's own thresholds decide the colour — so a FAIL on a yellow cell is a real and useful
+        # statement: the frames genuinely disagree, and the static bands call that minor.
+        verdict, why = FAIL, "frames-disagree"
+
     # Only what a caller USES: pixel_score writes {status, review} into the slot, so every number is
     # carried by `detail` (the review sentence) rather than duplicated into keys nothing reads back.
+    # `evidence` is the exception and is deliberately STRUCTURED: pixel_score records it in the
+    # committed comparison.json so a verdict outlives the gitignored run directory it came from.
     return {"ssim": round(ssims[worst_i], 4), "diff_pct": round(scores[worst_i]["diff_pct"], 2),
             "detail": detail, "mismatch": mismatch, "both_frozen": both_frozen,
-            "phase_only": phase_only, "authored_asymmetry": authored_asymmetry}
+            "phase_only": phase_only, "authored_asymmetry": authored_asymmetry,
+            "verdict": verdict, "why": why,
+            "evidence": {"run": run.name, "commit": meta.get("commit", "?"),
+                         "captured_at": str(meta.get("captured_at", "?"))[:10]}}
+
+
+# --------------------------------------------------------------------------- cross-run stability
+def stability(comp=COMP, only=None, platforms=None, max_runs=4) -> int:
+    """`python3 lib/motion_score.py --stability` — does a cell's verdict depend on WHICH RUN it reads?
+
+    THE GATE THIS REPLACES, AND WHY THE OBVIOUS ONE IS USELESS. The stated intent was "require two
+    consecutive scoring runs to agree". But scoring is a pure function of the frames on disk: run it
+    twice on unchanged input and it agrees BY CONSTRUCTION, so that gate can only ever pass. It would
+    have been a green check that tested nothing — the exact failure shape this whole pass is against.
+
+    The flapping that was actually observed (13 cells changing verdict in one rescore with no logic
+    change; three cells differing between byte-identical board states) came from WHICH RUN DIRECTORY
+    got selected, not from the arithmetic. So the variable to vary is the run. This scores every motion
+    cell against the newest `max_runs` directories that hold both its columns' frames, and reports each
+    cell whose verdict is not the same in all of them.
+
+    A disagreeing cell is not automatically a bug — a genuine recapture between runs SHOULD change a
+    verdict. It is a cell whose reported verdict is a function of run selection, which is the thing
+    that must be known before anyone ANDs this layer into the board's colour. Read-only: no writes.
+    """
+    import pixel_score  # noqa: PLC0415  see _compare on the import cycle
+
+    pages = json.loads((comp / "comparison.json").read_text())
+    keys = set(ANIMATED) | pixel_score.driven_pages()
+    flapped, checked, single = [], 0, 0
+    for page in pages:
+        if page["name"] not in keys or (only and page["name"] not in only):
+            continue
+        for plat, pv in (page.get("platforms") or {}).items():
+            if pv is None or (platforms and plat not in platforms):
+                continue
+            crop_top = 140 if plat == "android" else 0
+            for fw in ("cpp", "xaml"):
+                for theme in ("light", "dark"):
+                    runs = _run_dirs(comp, plat, page["name"])[:max_runs]
+                    seen = {}
+                    for run in runs:
+                        r = score_cell(page["name"], plat, fw, theme, crop_top,
+                                       {"ssim": 1.0, "diff_pct": 0.0}, comp, only_run=run)
+                        if r and r.get("evidence"):          # this run really did hold the frames
+                            seen[run.name] = r["verdict"]
+                    if not seen:
+                        continue
+                    checked += 1
+                    if len(seen) == 1:
+                        single += 1        # only one run has these frames: nothing to disagree with
+                    elif len(set(seen.values())) > 1:
+                        flapped.append((f"{page['name']}/{plat}/{fw}/{theme}", seen))
+    for name, seen in flapped:
+        print(f"  UNSTABLE {name}: " + ", ".join(f"{r}={v}" for r, v in sorted(seen.items())))
+    print(f"--stability: {checked} cell(s) scored across up to {max_runs} runs each; "
+          f"{single} had only ONE run to read (not a stability measurement); "
+          f"{len(flapped)} disagreed across runs")
+    return 1 if flapped else 0
 
 
 # --------------------------------------------------------------------------- self-check
@@ -865,12 +1071,99 @@ def _selftest() -> int:
         publish(comp, "steppaireddead", "maui", "light", dm / "0001.png")
         publish(comp, "steppaireddead", "cpp", "light", do / "0001.png")
         r = score_cell("steppaireddead", "maccatalyst", "cpp", "light", 0, STILL, comp)
-        check("step-paired dead page: still NOTHING MOVED", "NOTHING MOVED" in r["detail"], True)
+        check("step-paired dead page: still flagged", "NO MOTION EVIDENCE" in r["detail"], True)
         check("step-paired dead page: quotes a single pixel", "a single pixel" in r["detail"], True)
+
+        # ------------------------------------------------------------------ the verdict lattice
+        # Each of these reproduces a failure this board actually shipped, so the gate is checked
+        # against history rather than against its own definitions.
+
+        # (15) A DRIVEN PAGE WHOSE RUN DIRECTORY IS GONE MUST NOT SCORE GREEN OFF ONE STILL. This was
+        #      6 live cells: `not_scored` returns the single-frame number, the cell scored a confident
+        #      green, and the only trace was the words "NOT motion-scored" inside prose that nothing
+        #      aggregated. The verdict is what makes it visible to a caller.
+        r = score_cell("vanished", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("expired evidence: INVALID", r["verdict"], INVALID)
+        check("expired evidence: marked EXPIRED, not contradicted", r["why"] in EXPIRED_WHY, True)
+        check("expired evidence: carries no run pointer", r["evidence"], None)
+        # …and (advisor's catch) an ABSENT PAIR IS NOT INVALID EVIDENCE. A theme with no comparable
+        # screenshot is no cell at all; stamping a verdict on it would turn every page missing a dark
+        # capture into a motion finding and drown the 6 real ones.
+        check("no comparable pair: still blank, still verdict-free",
+              score_cell("vanished", "maccatalyst", "cpp", "light", 0, None, comp), None)
+
+        # (16) PROVENANCE MISMATCH IS ALSO EXPIRED, NOT CONTRADICTED. Frames exist; none belong to the
+        #      published stills. That says nothing about whether the port moved — so it must be
+        #      eligible for carry-forward, exactly like a pruned directory. (Reuses case 7's fixture.)
+        r = score_cell("stale", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("provenance mismatch: INVALID", r["verdict"], INVALID)
+        check("provenance mismatch: EXPIRED class", r["why"], WHY_PROVENANCE)
+
+        # (17) BOTH COLUMNS FROZEN, WITH AN ACTION AIMED AT THE PAGE — the actionable half. Something
+        #      was injected and nothing reacted anywhere: the aim missed, or the interaction is not
+        #      reachable on this lane. INVALID rather than FAIL, because two frozen columns are
+        #      byte-identical and demonstrate nothing about the port in either direction.
+        (comp / "scenarios").mkdir(exist_ok=True)
+        (comp / "scenarios" / "steppaireddead.toml").write_text(
+            '[[steps]]\naction = "tap"\nat = [0.5, 0.5]\n')
+        r = score_cell("steppaireddead", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("frozen + action authored: INVALID", r["verdict"], INVALID)
+        check("frozen + action authored: named as not-driven", r["why"], WHY_NOT_DRIVEN)
+        check("frozen + action authored: says the action was injected",
+              "An action WAS injected here" in r["detail"], True)
+
+        # (18) …and the SAME FRAMES with no scenario at all are a different statement entirely: nobody
+        #      ever aimed at this page. 80 of the 139 cells carrying the old "NOTHING MOVED" banner
+        #      were this — including 10 of the 14 hard-coded ANIMATED pages — reading like a port
+        #      finding when the missing artifact was a scenario file.
+        (comp / "scenarios" / "steppaireddead.toml").unlink()
+        r = score_cell("steppaireddead", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("frozen + no scenario: INVALID", r["verdict"], INVALID)
+        check("frozen + no scenario: named as such", r["why"], WHY_NO_SCENARIO)
+        check("frozen + no scenario: refuses to blame the port",
+              "NOT a port finding" in r["detail"], True)
+
+        # (19) PASS IS CONJUNCTIVE. Case (1)'s identical sequences have valid evidence AND agreeing
+        #      frames. Case (3)'s 8px-shifted port has evidence just as valid and frames that do not
+        #      agree — if PASS meant only "validly compared", that cell would advertise PASS while the
+        #      board rendered it red, and every reader of the field would conclude the motion matched.
+        check("identical sequences: PASS", score_cell("same", "maccatalyst", "cpp", "light", 0,
+                                                      STILL, comp)["verdict"], PASS)
+        check("8px-shifted port: NOT PASS", score_cell("shift", "maccatalyst", "cpp", "light", 0,
+                                                       STILL, comp)["verdict"], FAIL)
+        check("one column frozen: FAIL", score_cell("frozen", "maccatalyst", "cpp", "light", 0,
+                                                    STILL, comp)["verdict"], FAIL)
+        check("fling phase: INCONCLUSIVE", score_cell("phase", "android", "cpp", "light", 0,
+                                                      STILL, comp)["verdict"], INCONCLUSIVE)
+
+        # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
+        #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.
+        check("precedence: FAIL outranks PASS", worst_verdict([PASS, FAIL]), FAIL)
+        check("precedence: INVALID outranks INCONCLUSIVE", worst_verdict([INCONCLUSIVE, INVALID]), INVALID)
+        check("precedence: INVALID outranks PASS", worst_verdict([PASS, INVALID]), INVALID)
+        check("precedence: FAIL outranks INVALID", worst_verdict([INVALID, FAIL]), FAIL)
+        check("precedence: nothing in, nothing out", worst_verdict([None, None]), None)
 
     print("motion_score selftest:", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
 
+def _csv(s):
+    """"a,b" -> {"a","b"}; "" -> None. An EMPTY filter must mean "no filter", never "match nothing" —
+    `--only ""` silently selecting zero cells and printing a cheerful "0 disagreed" is the same
+    successful-looking-run-that-did-nothing shape as `--platform macos` scoring zero pages."""
+    return {p for p in (s or "").split(",") if p.strip()} or None
+
+
 if __name__ == "__main__":
-    sys.exit(_selftest())
+    import argparse  # noqa: PLC0415  CLI only
+
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--stability", action="store_true",
+                    help="cross-run verdict stability instead of the selftest (read-only)")
+    ap.add_argument("--only", default="", help="comma-separated page keys")
+    ap.add_argument("--platform", default="", help="comma-separated board platforms")
+    ap.add_argument("--runs", type=int, default=4, help="how many run dirs per cell (default 4)")
+    a = ap.parse_args()
+    sys.exit(stability(only=_csv(a.only), platforms=_csv(a.platform), max_runs=a.runs)
+             if a.stability else _selftest())

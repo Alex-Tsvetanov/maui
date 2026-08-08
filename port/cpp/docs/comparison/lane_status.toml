@@ -1,0 +1,32 @@
+# Lanes whose CAPTURES cannot be trusted for a reason no pixel and no hash can detect.
+#
+# Every provenance check in this pipeline binds a capture to its own run: motion_score._is_published_run
+# ties a run's frames to the still on the board byte-for-byte, and pixel_score.stills_fingerprint ties a
+# recorded verdict to the stills it was taken on. Both are sound and neither can see the failure declared
+# here — A BUILD HOST RENDERING SOURCE THAT IS NOT THIS TREE. Old code renders perfectly, is captured
+# perfectly, and hashes perfectly. Nothing downstream can tell.
+#
+# So it is declared, by a human, in one file. Read by pixel_score.declare_lane; retiring a declaration is
+# deleting a block, not sweeping 172 pages.
+#
+#   motion_invalid = true     every motion verdict on this lane becomes INVALID, whatever the frames say
+#   reason = "..."            appended to the review text of every affected cell
+
+[windows]
+motion_invalid = true
+reason = """C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
+was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
+unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
+re-capture, and delete this block."""
+
+# SCOPE, STATED RATHER THAN LEFT TO BE DISCOVERED: this declaration caps MOTION verdicts only.
+#
+# That is NOT because the static Windows scores are trustworthy. They are not, and for exactly the same
+# reason: if the guest renders stale source, its still screenshots are stale too, and the whole Windows
+# column — 289 green cells at the last count — was rendered by code of unknown age. Motion is capped and
+# static is not for one deliberate reason and one only: the plan being implemented asks for motion, and
+# invalidating 289 static greens is a call for the board's owner to make, not a side effect of a scoring
+# change. The mechanism to do it is a `status_cap = "yellow"` key away.
+#
+# The guest was unreachable when this file was written (ssh WINDOWS-VM.local: publickey/password denied),
+# so the six-day figure is the last VERIFIED reading, not today's. It cannot have got fresher on its own.
