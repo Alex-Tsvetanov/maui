@@ -3335,3 +3335,28 @@ ever been tested by this board, and the scorer now says exactly that: verdict `I
 The distinction is the whole point of the lattice. `not-driven` (59 cells) is a real lead — an action
 was injected and nothing moved, so either the coordinate misses on that lane or the interaction is
 unreachable there. `no-scenario` (80 cells) is a missing file. Both used to print the same sentence.
+
+### Correction to that commit's own reasoning (same day, before the board landed)
+
+`0e47d1d0fb`'s departure #1 justified NOT ANDing motion into the board colour partly with "13 cells
+changed verdict in one rescore with no logic change". **That citation is wrong and is withdrawn here
+rather than left in the durable record.** Those 13 cells moved because `c451d81252` landed
+phase-invariant alignment — a logic change, and the intended effect of one.
+
+The `--stability` gate built in that same commit is the measurement that actually settles it, and it
+points the other way: 172 maccatalyst cells, 137 with two or more runs to compare, **8 disagreed and
+all 8 are `slider`/`switch`, whose runs bracket this session's two landed fixes.** Zero cells flapped
+without a cause. The motion layer is more run-to-run stable than the commit gave it credit for.
+
+Decoupling still stands, on the reasons that survive:
+
+* motion evidence covers 338 of 1376 cells (24.6%), so ANDing lets a minority layer re-colour a
+  majority it has no reading on;
+* the INVALID population is dominated by `no-scenario` — 80 of 139 — which is a missing file, not a
+  signal about the port. Forcing those cells red would be asserting a defect from an absent artifact;
+* `carry_forward` cannot fire on the FIRST pass (no prior `motion` block exists to carry), so the
+  first board is the pessimistic one by construction. Reading it as the steady state would understate
+  the port by exactly the cells whose run dirs have expired.
+
+Revisit the AND once the ten missing scenarios exist and a second board has been scored with
+carry-forward live. The gate to re-run before that argument is `motion_score.py --stability`.
