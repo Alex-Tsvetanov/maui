@@ -3581,3 +3581,45 @@ TWO SEPARATE THINGS TO FIX, and they should not be conflated:
      error against a full page. A per-scenario ROI — "these coordinates are where the reaction must
      appear" — is the smallest thing that would catch it, and it is the same idea the motion-parity
      plan calls a required live ROI.
+
+### How many PASSes are the `button` false positive? Measured: 8 asymmetric, 60 small-signal, of 302
+
+ff40560a59 added the declared-reaction-region gate but noted the honest limit: only button.toml declares
+an roi, so the PASS count still includes an unknown number of the same false positive. This bounds it.
+
+The `button` smell is an ASYMMETRY — MAUI moved 187 px, the port 41 px, in different places. Every
+motion review already records `self-motion MAUI X% (N px) vs <port> (M px)`, so the whole board can be
+screened without re-scoring anything:
+
+    302   PASS theme-readings that carry a motion measurement
+      8   have a >= 2x self-motion asymmetry between the columns   <- the button shape
+     60   have a reaction under 500 px in BOTH columns             <- the small-signal class
+
+The 60 are not defects; they are the population where a divergence CAN hide, because a few hundred
+pixels is under the whole-frame green bar by construction. They are where declaring an roi buys the most.
+
+THE EIGHT, largest first:
+
+    247.1x   gestures/android          maui   3311 px   port 818452 px   (dark)
+     46.1x   empty_view_rtl/android    maui 496859 px   port  10780 px   (one theme)
+     17.0x   empty_view_rtl/android    maui 185004 px   port  10902 px   (the other)
+      3.8x   controls_stack/ios        maui   1993 px   port    524 px
+      2.9x   controls_stack/ios        (x3 more readings, same shape)
+
+gestures/android is the extreme and is NOT simply a false green. Its light theme reads MAUI 2985 px vs
+port 2883 px — a near-perfect match, consistent with the direct adb verification done earlier in this
+branch. The 247x is the DARK theme, whose own review says "2 frame(s) had no partner and were NOT
+scored" and "column frames realigned by +1 sample(s)". So the port's 818k-pixel change lives in frames
+that could not be paired, while every step that DID pair agrees to 0.00%. The scorer is reporting
+exactly what it measured; what it cannot say is whether the unpaired frames contain a real divergence.
+
+That is a THIRD gap, distinct from the two already recorded: self-motion is computed over each column's
+FULL sequence (deliberately — see its comment, so a frozen column that dropped frames cannot hide), but
+the verdict is taken only on the PAIRED intersection. A cell can therefore report a 247x self-motion
+asymmetry and still PASS. Nothing about that is wrong per clause; the combination is just not
+interpretable, and the review does not flag it.
+
+CHEAPEST NEXT STEP, in order of value per effort:
+  1. declare rois on the 60 small-signal pages — mechanical, one measured box per lane per page;
+  2. surface the asymmetry ratio in the review text so a 247x cell cannot read as a clean PASS;
+  3. decide what an unpairable-frame population means for a verdict (today: silently excluded).
