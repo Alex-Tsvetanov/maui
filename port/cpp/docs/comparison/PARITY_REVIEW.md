@@ -3833,3 +3833,55 @@ path rather than the click itself, try a hover-then-click or a slower synthetic 
 consider adding `windows` to NON_REPRODUCIBLE_DRIVE, which would move these cells from INVALID to
 INCONCLUSIVE — a more accurate label, and one that must be earned by the measurement in (1), not
 assumed from these three samples.
+
+### CORRECTION — the Windows click is NOT non-deterministic. The reaction is SUB-THRESHOLD.
+
+The previous entry concluded "the interaction is not reproducible under an injected click" from three
+samples reading 0, 164 and 1464 px. That conclusion is WRONG and is retracted here.
+
+Running the runner's exact geometry and point EIGHT times:
+
+    164, 180, 180, 159, 159, 164, 164, 140 px      zero-change runs: 0/8
+
+Never zero. And the runner's own two captures are byte-identical ACROSS RUNS (sha256 of 0001/0002
+matches between run 2026-08-09-20_13_27 and run 2026-08-09-20_20_50), so the runner is not flaky either
+— it is perfectly reproducible. Two reproducible processes with different-looking answers is not
+non-determinism; it was a measurement artifact, and the artifact is the THRESHOLD.
+
+Re-measuring the runner's frames at several thresholds:
+
+    threshold > 0   29456 px   x[21..1002] y[97..126]
+    threshold > 3   29434 px   x[21..1002] y[97..126]
+    threshold > 8       0 px
+    threshold >25       0 px   <- DIFF_THRESHOLD, what the scorer uses
+    max per-pixel delta: 6
+
+The click worked. 29,434 pixels changed, over EXACTLY box 1 (measured independently at y[96..127] in
+f994a7d42b) — the whole width of the first Picker. The amplitude is 6/255, which is genuinely near
+invisible, and `pixel_score.DIFF_THRESHOLD = 25` exists precisely to ignore differences that small.
+
+ALL THREE COLUMNS AGREE EXACTLY:
+
+    maui_xaml   >3: 29434 px   >25: 0 px   max 6   x[21..1002] y[97..126]
+    cpp         >3: 29434 px   >25: 0 px   max 6   x[21..1002] y[97..126]
+    cpp_xaml    >3: 29434 px   >25: 0 px   max 6   x[21..1002] y[97..126]
+
+So picker/windows is not a defect and not an unreachable interaction — it is a PERFECT THREE-WAY MATCH
+scoring INVALID/`not-driven` because the WinUI ComboBox's focus state changes its fill by six values.
+
+A NEW GAP, and a different one from the ROI case. The ROI gap was small AREA — a changed digit lost in a
+whole-frame average. This is small AMPLITUDE over a LARGE area: 29k pixels, every one of them below the
+"visibly different" bar. One threshold is being asked two different questions:
+
+    "do these two COLUMNS look different?"   25/channel is right — that is a visibility question
+    "did this ONE column CHANGE at all?"     25/channel is wrong — a faint highlight IS a reaction
+
+motion_score's own header already establishes the principle for step-paired frames: "The population is
+EXACTLY ZERO or it is a real reaction ... needs no threshold and gets none." That measurement was taken
+at >25/channel; at >3 these frames show 29434 and at >8 they show 0, so the sub-threshold band is real
+and is not encoder noise (step-paired PNGs have no encoder in them at all).
+
+THE FIX: self-motion on STEP-PAIRED frames should use a sensitivity floor rather than the visibility
+threshold. Burst frames must keep 25 — the iOS H.264 speckle measurement in that same header depends on
+it. This needs its own re-derivation of the step-paired noise floor before landing, not a guessed
+constant: a guessed bound is exactly how the MOVED_PX/FROZEN_PX mistake happened before.
