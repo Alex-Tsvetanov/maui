@@ -5189,34 +5189,34 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 clip_views.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9981 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9981; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 clip_views.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9987 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-09-20_48_25, commit c5050e0620, 2026-08-09); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9874 at frame 2 'typed' (1.09% pixels differ), mean SSIM 0.9926; per-frame diff% 0.16/1.09; self-motion MAUI 0.0885% (725 px) vs C++ 1.0487% (8591 px); !! SELF-MOTION ASYMMETRY 12x \u2014 C++ moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-09-20_48_25, commit c5050e0620, 2026-08-09); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9911 at frame 2 'typed' (1.08% pixels differ), mean SSIM 0.9944; per-frame diff% 0.15/1.08; self-motion MAUI 0.0896% (734 px) vs C++ 1.0486% (8590 px); !! SELF-MOTION ASYMMETRY 12x \u2014 C++ moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "FAIL",
             "themes": {
-              "light": "INVALID",
-              "dark": "INVALID"
+              "light": "FAIL",
+              "dark": "FAIL"
             },
-            "why": "not-driven",
-            "run": "2026-08-07-01_18_39",
-            "commit": "3f70bd6e91",
-            "captured_at": "2026-08-07",
-            "stills": "05f66273c414aaa0"
+            "why": "frames-disagree",
+            "run": "2026-08-09-20_48_25",
+            "commit": "c5050e0620",
+            "captured_at": "2026-08-09",
+            "stills": "7e45d71ed1e6d6bf"
           }
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 clip_views.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9981 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9981; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 clip_views.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9987 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-09-20_48_25, commit c5050e0620, 2026-08-09); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9874 at frame 2 'typed' (1.09% pixels differ), mean SSIM 0.9926; per-frame diff% 0.16/1.09; self-motion MAUI 0.0885% (725 px) vs C++ & XAML 1.0487% (8591 px); !! SELF-MOTION ASYMMETRY 12x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-09-20_48_25, commit c5050e0620, 2026-08-09); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9911 at frame 2 'typed' (1.08% pixels differ), mean SSIM 0.9944; per-frame diff% 0.15/1.08; self-motion MAUI 0.0896% (734 px) vs C++ & XAML 1.0486% (8590 px); !! SELF-MOTION ASYMMETRY 12x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "FAIL",
             "themes": {
-              "light": "INVALID",
-              "dark": "INVALID"
+              "light": "FAIL",
+              "dark": "FAIL"
             },
-            "why": "not-driven",
-            "run": "2026-08-07-01_18_39",
-            "commit": "3f70bd6e91",
-            "captured_at": "2026-08-07",
-            "stills": "fef58d7adfa4dcfb"
+            "why": "frames-disagree",
+            "run": "2026-08-09-20_48_25",
+            "commit": "c5050e0620",
+            "captured_at": "2026-08-09",
+            "stills": "dda3a23038afa6bd"
           }
         }
       }

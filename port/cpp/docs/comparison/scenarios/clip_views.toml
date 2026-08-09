@@ -37,6 +37,12 @@ at = [0.22, 0.19]         # the clipped Entry (Placeholder="Entry"), 3rd red ban
 # y[40..64] Button, y[69..84] DatePicker "7.08.2026", y[89..115] ENTRY, y[120..145] Editor,
 # y[150..188] Grid. The Entry band centre is (124,102) -> 0.121, 0.1275.
 at_macos-arm64 = [0.121, 0.1275]
+# WINDOWS: 0.22,0.19 resolves to (225,152), which on this lane falls in the GAP between the Entry band
+# (y[118..150]) and the Editor band (y[155..190]) — it focuses nothing, and the stored frames prove it:
+# 0001 and 0002 are byte-identical, ZERO changed pixels even at threshold >0. Measured band order on
+# this lane: y[50..75] Button, y[90..110] DatePicker "8/7/2026", y[118..150] ENTRY, y[155..190] Editor,
+# y[195..240] Grid. The Entry's centre is (154,134) of 1024x800.
+at_windows-x64 = [0.15, 0.1675]
 
 [[steps]]
 name = "typed"
