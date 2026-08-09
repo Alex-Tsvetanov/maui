@@ -28,6 +28,10 @@ name = "initial"
 name = "focus-field"
 action = "click"
 at = [0.5, 0.12]          # search_ SearchBar ("Day of Week Filter")
+# MACCATALYST: 0.12 resolves to y=96, which lands BETWEEN two CollectionView rows ("Sunday" at y=91,
+# "Monday" at y=113) — inside the list, not on the SearchBar the step names. The SearchBar is the
+# full-width rounded field at y~55 (x[12..1010]), centre (511,55) -> 0.499, 0.0688.
+at_macos-arm64 = [0.499, 0.0688]
 
 [[steps]]
 name = "typed"

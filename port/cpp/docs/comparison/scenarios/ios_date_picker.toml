@@ -47,3 +47,11 @@ name = "initial"
 name = "opened"
 action = "click"
 at = [0.5, 0.09]          # the DatePicker (MinimumDate 01/01/2020, MaximumDate 12/31/2020)
+# MACCATALYST: 0.09 resolves to y=72, which is the "Toggle DatePicker UpdateMode" BUTTON (band
+# y[64..74]) — a different control with a different handler, so the tap "worked" and proved nothing
+# about the DatePicker. The DatePicker on this lane is the COMPACT LEFT-ALIGNED "31.12.2020" field
+# at band y[34..44] x[0..74], centre (37,39) -> 0.036, 0.0488. Its shape is not an accident: MAUI
+# uses a bare compact UIDatePicker on Catalyst (DatePickerHandler.MacCatalyst.cs), which the port
+# already mirrors in date_picker_handler.mm's TARGET_OS_MACCATALYST branch — so a centred fraction
+# calibrated on the iOS bordered field can never hit it.
+at_macos-arm64 = [0.036, 0.0488]

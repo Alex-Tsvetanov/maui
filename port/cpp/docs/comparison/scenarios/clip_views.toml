@@ -31,6 +31,12 @@ name = "initial"
 name = "focus-field"
 action = "click"
 at = [0.22, 0.19]         # the clipped Entry (Placeholder="Entry"), 3rd red band
+# MACCATALYST: 0.22,0.19 resolves to (225,152), which on this lane is the "Grid" band
+# (y[150..188]) — a decorative clipped shape, not the Entry, so the click focuses nothing. The
+# lane packs the seven red bands far tighter than iOS does; measured band order here is
+# y[40..64] Button, y[69..84] DatePicker "7.08.2026", y[89..115] ENTRY, y[120..145] Editor,
+# y[150..188] Grid. The Entry band centre is (124,102) -> 0.121, 0.1275.
+at_macos-arm64 = [0.121, 0.1275]
 
 [[steps]]
 name = "typed"
