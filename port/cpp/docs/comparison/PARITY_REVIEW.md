@@ -3927,3 +3927,37 @@ declared region satisfy the "did this column move" question independently of the
 is a small change to code that already exists (ff40560a59) rather than a new subsystem — but it is a
 change to a scoring rule, so it needs its own selftest case and break-test, and it is not being made in
 the same pass as the measurement that motivates it.
+
+### The sub-threshold explanation covers TWO of the eight Windows pages, not the cluster
+
+With ROI_DIFF_THRESHOLD landed, the obvious next move was to declare a region on the other seven cluster
+pages and recover them the same way. Measuring first, on the stored Windows frames, at threshold >0 —
+i.e. "did ANY pixel change at all, however faintly":
+
+    page                     >0        >3      >25   max   box
+    ios_picker            30176     30154        0     6   x[9..1014] y[60..89]   <- recoverable
+    carousel_page             0         0        0     0   —
+    clip_views                0         0        0     0   —
+    data_template_selector    0         0        0     0   —
+    ios_date_picker           0         0        0     0   —
+    ios_scroll_view           0         0        0     0   —
+    radio_button_content      0         0        0     0   —
+
+ios_picker carries picker's exact signature — 30,176 px over the control's full width at an amplitude of
+six, IDENTICAL in maui_xaml and cpp — and an `roi_windows` recovers it: yellow -> GREEN, INVALID -> PASS
+in both columns. Both recovered pages are ComboBox-based, which is the common factor.
+
+THE OTHER SIX ARE BYTE-IDENTICAL BEFORE AND AFTER. Zero changed pixels at threshold >0 is not a
+sensitivity problem — nothing happened at all. No region can recover them, and declaring one would be
+inventing a reason for a cell to be green.
+
+WHAT THEY NEED INSTEAD, and it is a different job: their WINDOWS aims have never been measured. Seven of
+the eight had their MACCATALYST coordinates corrected in 821e61f045 and f994a7d42b, each landing on a
+real but WRONG control; Windows was deliberately given nothing at the time, on the evidence that
+picker's Windows aim was already on target (box 1 y[96..127], coordinate y=104). That reasoning was
+sound for picker and does not generalise — picker is exactly the page whose Windows aim happened to be
+right. The other six need the same per-lane measurement the maccatalyst ones got: open
+captures/windows/maui/<key>_light.png, find the control the scenario names, divide by the frame.
+
+So the Windows cluster splits 2 / 6: two pages were a scoring blind spot and are now green; six are
+plain aim errors that were never measured on that lane.

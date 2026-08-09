@@ -53,3 +53,13 @@ at = [0.5, 0.09]          # the "Select a monkey" Picker — only Picker on the 
 # content band, y[31..57], centre 44 -> 0.0550. Measured off captures/maccatalyst/maui/
 # ios_picker_light.png with a background-delta band scan, not by eye.
 at_macos-arm64 = [0.5, 0.055]
+# THE DECLARED REACTION REGION — Windows only, and measured. Same ComboBox story as picker.toml: the
+# click opens the flyout and its focus state changes 30,176 px (the control's full width) by an
+# amplitude of SIX, so the 25/channel whole-frame floor reads 0 for every column and the cell scored
+# INVALID/`not-driven` on a cell where maui_xaml and cpp agree TO THE PIXEL (30176 each, box
+# x[9..1014] y[60..89], run 2026-08-07-01_18_39). See motion_score.ROI_DIFF_THRESHOLD.
+#
+# ONLY roi_windows is declared. The other lanes are not guessed at: maccatalyst already scores PASS
+# here on its own evidence, and an roi placed wrongly is worse than none — it would manufacture a
+# roi-split on a cell that is currently correct.
+roi_windows = [0.0, 0.06, 1.0, 0.13]
