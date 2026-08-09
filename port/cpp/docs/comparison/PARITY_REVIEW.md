@@ -3885,3 +3885,45 @@ THE FIX: self-motion on STEP-PAIRED frames should use a sensitivity floor rather
 threshold. Burst frames must keep 25 — the iOS H.264 speckle measurement in that same header depends on
 it. This needs its own re-derivation of the step-paired noise floor before landing, not a guessed
 constant: a guessed bound is exactly how the MOVED_PX/FROZEN_PX mistake happened before.
+
+### The step-paired noise floor CANNOT be derived from the stored runs — and does not need to be
+
+The sub-threshold fix needs a sensitivity floor, and the file's own history says a guessed one is how
+MOVED_PX/FROZEN_PX went wrong. So it was attempted from the stored run dirs: take every
+(page, lane, column, theme, step) captured in two or more runs and measure the max per-pixel delta
+between them — whatever differs there had no interaction between it.
+
+    ALL run pairs                       SAME-COMMIT run pairs only
+    lane          groups  delta=0       lane         groups  delta=0   p50   p90
+    android          204      113       ios              19       16     0    52
+    ios              408       85       maccatalyst    1350      223   223   255
+    maccatalyst     2192     1692       windows           8        7     0    71
+    windows         1272     1163
+
+THE MEASUREMENT IS CONTAMINATED and must not be used to set a constant. Two repeat captures of "the
+same" frame differ for reasons that are not capture noise: a clock in a status bar, a date-dependent
+page, a rebuilt app, a theme applied differently. maccatalyst's same-commit p50 of 223 is not noise —
+it is mostly real content divergence, and the same commit can still span different MauiReference builds
+(this session rebuilt it twice). The iOS and Windows same-commit samples (19 and 8) are too small to
+carry a threshold either way.
+
+WHAT IS CLEAN, and it is enough: the Windows picker's two runs seven minutes apart at the same commit
+produced BYTE-IDENTICAL PNGs (sha256 matched on both 0001 and 0002), and 7 of 8 same-commit Windows
+repeats show delta = 0. On that lane the capture path contributes nothing, so the 29,434-pixel /
+6-amplitude change measured there is entirely signal.
+
+AND THE ARCHITECTURE MAKES THE CONSTANT UNNECESSARY. Both gaps found today have the same fix:
+
+    ROI gap            small AREA, large amplitude   — a changed digit lost in a whole-frame average
+    sub-threshold gap  large area, small AMPLITUDE   — 29k px none of which is "visibly different"
+
+A DECLARED REGION answers both. Inside a scenario's `roi` the question is not "would a human notice
+this" but "did the thing the author pointed at change", so a sensitive floor is correct there and needs
+no global calibration — the region already bounds where noise could come from. Outside the roi,
+DIFF_THRESHOLD = 25 stays exactly as it is, and every lane's existing calibration is untouched.
+
+So the next step is NOT a new constant: it is to give `_roi_changed` its own low threshold, and to let a
+declared region satisfy the "did this column move" question independently of the whole-frame floor. That
+is a small change to code that already exists (ff40560a59) rather than a new subsystem — but it is a
+change to a scoring rule, so it needs its own selftest case and break-test, and it is not being made in
+the same pass as the measurement that motivates it.
