@@ -3697,3 +3697,39 @@ THE FIX, in the capture path rather than any scenario: when a driven step's `pre
 to a SCREEN-rect capture cropped to the app window's rect UNION any new windows the process owns —
 rather than dropping the frame. The evidence is on screen; only the window-scoped grab cannot reach it.
 Until then ios_date_picker/maccatalyst stays INVALID with its correct coordinate, which is honest.
+
+### DISPROVEN: the Windows `not-driven` cluster is NOT a PrintWindow blind spot
+
+c2560159de proposed that the Catalyst popover finding might explain the Windows cluster too — "a flyout
+in a separate top-level window that PrintWindow(PW_RENDERFULLCONTENT) cannot include". Tested on the
+guest by driving `picker` through the session-1 agent and capturing the SAME MOMENT both ways:
+
+    present --proc gallery.exe        -> {"id": 590016, "bounds": [128, 30, 1024, 800]}
+    click at the presented rect's 0.5,0.13 = screen (640,134)
+    shot --window 590016  (PrintWindow)   1024x800
+    shot --window 0       (whole screen)  1512x949
+
+PrintWindow before-vs-after: 1464 px changed. Cropping the screen shot to the presented window's rect
+and stacking it against the PrintWindow grab shows THE SAME CONTENT — and the first Picker reads
+"Item 11" in both, where it read "Select an item" before the click. The dropdown opened, a row was
+committed, and the window-scoped capture saw all of it.
+
+So the hypothesis is wrong for Windows. Catalyst and Windows do NOT share a root cause: on Catalyst the
+calendar is a genuinely separate top-level window that escapes the app's bounds; on Windows the
+ComboBox flyout is inside the window and PrintWindow renders it.
+
+WHICH LEAVES THE ORIGINAL QUESTION OPEN, and narrows it usefully: the Windows picker DOES react to a
+correctly-presented click TODAY, so the board's `not-driven` verdict describes the capture in run
+2026-08-07-01_18_39, not current behaviour. That cell needs a re-capture before anything further is
+inferred from it.
+
+AND A REAL INCONSISTENCY SURFACED ON THE WAY. The agent's two window verbs disagree about which window
+gallery.exe means:
+
+    present --proc gallery.exe   -> window 590016, bounds [128, 30, 1024, 800]   (pinned)
+    window-id <pid>              -> window 262678, bounds [ 52, 52, 1134,  655]
+
+Two top-level windows, and the verb you ask decides which one you get. My first two probes resolved the
+click against window-id's rect and therefore clicked the wrong place — the same class of error as the
+macOS origin mistake in c2560159de, twice in one investigation. Any caller that presents one window and
+then computes coordinates from the other is aiming at nothing, and nothing in the agent says so.
