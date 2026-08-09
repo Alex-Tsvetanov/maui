@@ -18,6 +18,7 @@
 // GetDesiredSize (a cosmetic, empirically-measured overflow constant; the port keeps the native
 // fitting size).
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -60,6 +61,29 @@ namespace maui::core
         // it to the native stepper (NSView layout direction / UISemanticContentAttribute) AND mirror it
         // here (the same convention as progress_bar_platform).
         maui::core::flow_direction resolved_flow_direction = maui::core::flow_direction::match_parent;
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend. `native` holds the Grid; these hold the two Buttons inside it, retained
+        // separately so every mapper push and the enable/disable recipe can reach them without a
+        // visual-tree walk. See src/platform/windows/stepper_handler.cpp for why the port builds the
+        // Grid directly instead of reproducing MauiStepper's ControlTemplate.
+        void* minus_button = nullptr;
+        void* plus_button = nullptr;
+        // Click registration tokens, so on_disconnect_handler revokes EXACTLY what it registered (the
+        // button_platform/slider_platform pattern).
+        std::int64_t minus_click_token = 0;
+        std::int64_t plus_click_token = 0;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // WinUI 3 backend: push the generic IView properties to the native element via the shared
+        // winui_visual_ops helpers, exactly like slider_platform's block.
+        void update_visibility(maui::core::visibility value) override;
+        void update_opacity(double value) override;
+        void update_is_enabled(bool value) override;
+        void update_automation_id(std::string_view value) override;
+        void update_background(const maui::graphics::paint* value) override;
+#endif
 
 #ifdef MAUI_PLATFORM_APPLE
         // Apple backend: push the generic IView properties to the NSStepper (defined in

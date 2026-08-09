@@ -685,6 +685,12 @@ else()
       check_box_handler
       radio_button_handler
       switch_handler
+      # Windows was the ONLY backend with no stepper partial, so the build linked the headless one and
+      # every Stepper on the board rendered as an empty gap of the right height (the headless
+      # get_desired_size still returned the iOS 94x32, so the page kept its rhythm and the hole read as
+      # a scoring diff). src/platform/windows/stepper_handler.cpp builds MauiStepperStyle.xaml's
+      # Grid-of-two-Buttons directly.
+      stepper_handler
       # (W22 web_view / G5 hybrid_web_view) a real Microsoft.UI.Xaml.Controls.WebView2 each -- the type
       # WebViewHandler.Windows.cs and HybridWebViewHandler.Windows.cs both create. Needs NO new
       # dependency: the WebView2 XAML control is in the already-generated winrt/Microsoft.UI.Xaml.
