@@ -3486,3 +3486,55 @@ matching .mm is a cheap screen for the whole class.
 THE FIX is a `#if TARGET_OS_MACCATALYST` arm in picker_handler.mm following the date_picker precedent in
 the same directory: no inputView, and an alert-controller presentation on focus. Not attempted in the
 same change as the diagnosis.
+
+### The Catalyst-branch screen, run across the other four files — mostly negative, and worth saying so
+
+61f45de1d6 proposed a cheap screen for the class the Picker defect belonged to: count `#if MACCATALYST`
+in each `Handlers/*/*.iOS.cs` and compare against `TARGET_OS_MACCATALYST` in the matching `.mm`. Run:
+
+    WindowHandler.iOS.cs   2 branches   window_handler.mm     0     MapTitleBar + WindowViewController
+    ViewHandler.iOS.cs     2 branches   view_chrome_ops.mm    0     MapContextFlyout (UIContextMenuInteraction)
+    SwitchHandler.iOS.cs   1 branch     switch_handler.mm     0     NSWindowDidBecomeKey -> UpdateTrackOffColor
+    ButtonHandler.iOS.cs   1 branch     button_handler.mm     0     MapBackground via UIButtonConfiguration
+
+So all four ARE unported. But the board says the screen's yield is low, and that is the honest result
+rather than four new bugs:
+
+    switch/maccatalyst          GREEN, motion PASS
+    title_bar/maccatalyst       GREEN, motion PASS
+    button/maccatalyst          yellow — but for an unrelated reason, see below
+    context_flyout/maccatalyst  yellow — the live-external-content page that is already exempt
+
+Three of the four are genuinely invisible to a still+drive capture: a track colour re-applied when the
+NSWindow becomes key, a title-bar view controller on a page whose title bar already matches, and a
+right-click context menu no scenario opens. ButtonHandler.MapBackground is the one that COULD show, and
+`button` is not currently evidence either way — its cell fails for a different cause entirely.
+
+WHAT THE SCREEN IS WORTH, stated so nobody re-runs it expecting more: it converts "we do not know what
+Catalyst does here" into "we know these four differ and none is currently observable". That is a real
+narrowing, and it is also why the Picker was worth chasing and these are not — the Picker's branch
+changed the WHOLE PRESENTATION MECHANISM, which no capture could miss, while these change details a
+capture cannot reach. A future scenario that right-clicks (context_flyout) or focuses the window
+(switch) would make two of them measurable.
+
+### button/maccatalyst is `not-driven` because button.toml still uses ABSOLUTE coordinates
+
+Unrelated to the Catalyst screen, found while checking it. button.toml carries `at = [756, 171]`,
+calibrated in its own header "for a 1512-WIDE DISPLAY (1512x950)". Every other scenario has moved to
+0..1 fractions. Consequences, all already visible in this session's logs:
+
+  * maccatalyst pins its window at [128,30 1024x800], so 756,171 resolves to image (628,141) — not the
+    "Clicked" button, which the capture puts at (511,127). Hence `not-driven`: injected, no reaction.
+  * the appkit lane REFUSES the file outright — "SCENARIO SKIPPED macos/appkit/button: absolute screen
+    coordinates, but this lane never PINS its window (present=false) … re-author as 0..1 fractions".
+  * recapture's coordinate_space() classifies a file with ANY absolute pair as absolute and drops it
+    from the device lanes BY NAME, so iOS and Android have never driven this page at all.
+
+MEASURED targets for the re-author ("Clicked", the 3rd button):
+
+    ios          band y[542..574] x[533..670]  centre (601,558) of 1206x2622  -> 0.4983, 0.2128
+    maccatalyst  band y[123..131] x[493..530]  centre (511,127) of 1024x800   -> 0.4990, 0.1588
+
+Windows and Android still need their own measurement — both render this page as one unbroken content
+band, so the row scan that worked on the other two lanes does not separate the buttons there and the
+targets have to be read off the images directly. Not guessed at here.
