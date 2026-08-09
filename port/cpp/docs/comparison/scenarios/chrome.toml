@@ -1,0 +1,51 @@
+# Scenario for the `chrome` page: capture at rest ("Ready"), click the action button, capture the
+# stamped readout ("Last: Button pressed").
+#
+# WHY THIS PAGE COULD NOT BE DRIVEN UNTIL NOW, and why authoring this file earlier would have made the
+# board WORSE. Until f6b7b8c860 the shared twin declared `<Button Text="Press or right-click me" />`
+# with no x:Name and no handler, and both code-behinds were generated stubs — so MAUI and cpp_xaml were
+# inert while the code-first builder (examples/gallery/pages/chrome_page.hpp:75) DID react. A tap would
+# have moved exactly one of three columns and been scored as a MOTION MISMATCH against the port, for an
+# omission that lived in the twin. The twin is wired now (x:Name anchors + hand-written partials on both
+# sides), so all three columns stamp the same string and this scenario measures something real.
+#
+# THE READOUT IS THE SIGNAL, not the button. Clicking repaints the button's pressed state only
+# transiently, but the Label underneath goes "Ready" -> "Last: Button pressed" and STAYS there — a
+# discrete, phase-free change, which is what makes this page cheap to score. Contrast `animation`, whose
+# Start button launches a chained 1000+1000+2000ms translate: any frame after that tap samples a random
+# point on a four-second path.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 both axes), the house convention. The
+# portable `at` is calibrated on the iOS capture; per-lane `at_<env>` keys override it for the VM lanes.
+# NOTE that only the VM lanes HAVE env names (config/local.toml, config/windows.toml) — Android and iOS
+# are driven by recapture.py directly and can only ever see the portable `at`, so it must hit BOTH.
+#
+# MEASURED, not guessed — the button's content band in each lane's MAUI capture, centre / frame size:
+#
+#   ios          1206x2622   text x[388..819] y[216..254]  centre (603,235)  -> 0.5000, 0.0896
+#   android      1080x2340   band y[140..235] full width   centre (539,187)  -> 0.4991, 0.0799
+#   maccatalyst  1024x800    text x[454..569] y[ 39.. 49]  centre (511, 44)  -> 0.4990, 0.0550
+#   windows      1024x800    button spans the width, y[33..63], text centre  -> 0.5000, 0.0600
+#
+# The portable 0.0896 resolves to y=210 on Android, inside its button band [140..235], so ONE fraction
+# serves both device lanes. It does NOT serve the desktop lanes: 0.0896 is y=71.7 of 800, which on
+# maccatalyst is the "Ready" LABEL row (the button ends at 49) and on Windows is below the button
+# (which ends at 63). Both would have been silent misses, so both get an override.
+#
+# TO RECALIBRATE: reopen captures/<lane>/maui/chrome_light.png and divide the button centre by the
+# frame. The page is a VerticalStackLayout of exactly two children, so the button is always the first
+# content band below the window chrome.
+
+tag = "chrome"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"          # no action -> settle + screenshot; the readout reads "Ready"
+
+[[steps]]
+name = "pressed"
+action = "click"
+at = [0.50, 0.0896]       # the action button — iOS-calibrated, also lands on Android's band
+at_macos-arm64 = [0.499, 0.055]
+at_windows-x64 = [0.50, 0.060]
