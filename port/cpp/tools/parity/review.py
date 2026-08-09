@@ -535,7 +535,10 @@ def main(argv=None) -> int:
             status, review = auto
             source = "pixel"
         elif a.no_judge:
-            status, review = pixel_score.classify(scores)
+            # Third value is the motion verdict block; None here, because `scores` holds raw
+            # {ssim, diff_pct} pairs with no `verdict` key for it to aggregate. See run_comparison.py's
+            # matching call.
+            status, review, _motion = pixel_score.classify(scores)
             source = "pixel"
         elif a.limit and client is not None and client.calls >= a.limit:
             # Budget spent. Keep going — the remaining pairs the PIXELS can settle are still free and

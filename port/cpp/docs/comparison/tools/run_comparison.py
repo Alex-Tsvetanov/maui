@@ -1096,7 +1096,12 @@ def score(env: Env, tags: list[str], run_root: Path, frames: dict) -> dict:
                     theme_scores[theme] = {"ssim": min(x["ssim"] for x in lst),
                                            "diff_pct": max(x["diff_pct"] for x in lst)}
             if theme_scores:
-                status, review = pixel_score.classify(theme_scores)
+                # classify's third value is the four-verdict MOTION block, which is always None here:
+                # these theme_scores are raw {ssim, diff_pct} reductions over this run's own frames and
+                # carry no `verdict` key, so there is nothing for it to aggregate. The run summary
+                # deliberately stays a static per-frame report; motion verdicts are computed against the
+                # PUBLISHED board by pixel_score.main().
+                status, review, _motion = pixel_score.classify(theme_scores)
                 page[col] = {"status": status, "review": review}
         if page:
             summary["pages"][tag] = page
