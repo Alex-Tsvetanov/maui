@@ -3360,3 +3360,42 @@ Decoupling still stands, on the reasons that survive:
 
 Revisit the AND once the ten missing scenarios exist and a second board has been scored with
 carry-forward live. The gate to re-run before that argument is `motion_score.py --stability`.
+
+## Windows: a tap that lands on the control and produces nothing (2026-08-09)
+
+Triaging the 59 `not-driven` motion cells (an action WAS injected and NEITHER column reacted) turned up
+a cluster of 8 pages with exactly 4 cells each — both desktop lanes, both columns:
+
+    carousel_page  clip_views  data_template_selector  ios_date_picker
+    ios_picker     ios_scroll_view  picker  radio_button_content
+
+The obvious hypothesis is one cause: these scenarios' portable `at` fractions were calibrated on the
+iOS capture (1206x2622 portrait) and none of the 8 declares a per-lane override, so they should be
+landing wrong on the desktop lanes' 1024x800 landscape. A crosshair contact sheet over the maccatalyst
+captures confirms that half of it — `picker` lands in blank space, `clip_views` on a decorative red
+shape instead of an Entry, `ios_picker`/`ios_date_picker`/`ios_scroll_view` on the "Toggle …" BUTTON
+above the control they name, `data_template_selector` in empty space.
+
+BUT IT IS NOT ONE CAUSE, and `picker` is the counter-example that proves it. Border-row scan of the
+first Picker box on each desktop lane:
+
+    maccatalyst  box 1 y[59..84]   centre  71 of 800  -> 0.0887
+    windows      box 1 y[96..127]  centre 111 of 800  -> 0.1388
+
+The portable 0.13 resolves to y=104. On maccatalyst that is the GAP between box 1 (ends 84) and box 2
+(starts 107) — a genuine miss, now fixed with `at_macos-arm64 = [0.5, 0.0887]`. On WINDOWS y=104 is
+INSIDE box 1: **the aim is already correct there, and the lane still scored `not-driven`.** The tap
+lands on the Picker and no picker chrome appears.
+
+So the Windows half of this cluster is an open question, not an aim bug, and must not be "fixed" by
+nudging a coordinate that is already on target — the standing rule is never to nudge a coordinate to
+clear a guard without re-measuring aim, and here re-measuring says the aim was never the problem.
+
+CANDIDATES, none yet tested: (a) the injected click is a synthetic message the WinUI ComboBox/flyout
+does not treat as a real activation; (b) the flyout opens and dismisses before the settle screenshot;
+(c) the flyout renders in a separate top-level window that PrintWindow(PW_RENDERFULLCONTENT) — which
+captures the target window's own backing store — does not include. (c) would be consistent with the
+whole cluster on that lane and is cheap to test: drive the page manually over the session-1 agent and
+watch whether the frame ever contains the popup. Until one of these is measured, the Windows cells stay
+INVALID/`not-driven`, which is the honest verdict: something was injected and no evidence of a reaction
+was captured.

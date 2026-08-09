@@ -32,15 +32,26 @@
 # TO RECALIBRATE: divide the target pixel by that frame's width/height. If content above "Basic" grows
 # (an inserted row), re-run the border-row scan and re-locate box 1, not just shift the y by eye.
 #
-# CROSS-LANE CHECK (informational, not a recalibration): the same border-row scan against
-# captures/maccatalyst/maui/picker_light.png (1024x800, a 1024x800 lane frame — same w/h as the
-# selftest's window rects) puts box 1 at y=58..84 -> fraction ~0.089, noticeably below this file's 0.13
-# (iOS's status bar + larger native row height pushes content down proportionally more than macOS's
-# slim title bar does). The two boxes' fraction ranges don't overlap, so no single fraction hits both
-# lanes' box exactly — the same class of imprecision _selftest.py's own docstring documents as
-# accepted for button.toml/entry.toml ("both PASS here"). This file follows the task's own calibration
-# source (the iOS capture) and is on-window on every lane; a miss on macOS/Windows would land in the
-# gap between two Picker rows (blank space), not on the title bar or another control.
+# CROSS-LANE CHECK — and this file PREDICTED ITS OWN MISS, which the board then measured. The original
+# note read: "the same border-row scan against captures/maccatalyst/maui/picker_light.png puts box 1 at
+# y=58..84 -> fraction ~0.089, noticeably below this file's 0.13 ... The two boxes' fraction ranges
+# don't overlap, so no single fraction hits both lanes' box exactly ... a miss on macOS/Windows would
+# land in the gap between two Picker rows (blank space)". That was written when there WAS no way to
+# express a per-lane point; `at_<env>` overrides (run_comparison.for_lane) arrived later. There is now,
+# so the accepted miss is fixed rather than re-documented.
+#
+# RE-MEASURED with the same border-row scan, both desktop lanes, full-width box edges:
+#
+#   maccatalyst  box 1 spans y[59..84]   centre  71 of 800  -> 0.0887   (confirms the note's ~0.089)
+#   windows      box 1 spans y[96..127]  centre 111 of 800  -> 0.1388
+#
+# ONLY MACCATALYST GETS AN OVERRIDE, and the reason matters. The portable 0.13 resolves to y=104, which
+# on maccatalyst falls in the GAP between box 1 (ends 84) and box 2 (starts 107) — exactly the blank
+# space the note predicted. On WINDOWS y=104 is INSIDE box 1 [96..127]: the aim there is already
+# correct, and that lane still scored `not-driven`. So the two lanes' cells share a symptom and not a
+# cause, and a windows override would be a coordinate change dressed up as a fix for something else.
+# The Windows non-reaction is a separate open question — the tap lands on the Picker and no chrome
+# appears — recorded in PARITY_REVIEW.md rather than papered over here.
 
 tag = "picker"
 themes = ["light"]
@@ -53,3 +64,6 @@ name = "initial"
 name = "opened"
 action = "click"
 at = [0.5, 0.13]          # basic_picker_ ("Basic", no SelectedIndex, no handler) — 1st Picker on the page
+# maccatalyst packs the rows tighter than iOS, so 0.13 lands in the blank gap BETWEEN box 1 and box 2.
+# Measured centre of box 1 on that lane: y=71 of 800. Windows needs none — see the cross-lane note.
+at_macos-arm64 = [0.5, 0.0887]
