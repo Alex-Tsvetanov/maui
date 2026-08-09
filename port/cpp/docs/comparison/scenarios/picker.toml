@@ -67,3 +67,13 @@ at = [0.5, 0.13]          # basic_picker_ ("Basic", no SelectedIndex, no handler
 # maccatalyst packs the rows tighter than iOS, so 0.13 lands in the blank gap BETWEEN box 1 and box 2.
 # Measured centre of box 1 on that lane: y=71 of 800. Windows needs none — see the cross-lane note.
 at_macos-arm64 = [0.5, 0.0887]
+# THE DECLARED REACTION REGION — the first Picker's own box, per lane. This page is why
+# ROI_DIFF_THRESHOLD exists: on WINDOWS the click opens the ComboBox and its focus state changes 29,434
+# px (the full width of the control) by an amplitude of SIX. The whole-frame floor is 25, so all three
+# columns read 0 and the cell scored INVALID/`not-driven` — on a cell where the three agree TO THE PIXEL
+# (29434 each, identical box, run 2026-08-09-20_13_27). Inside a region the author declared, "did this
+# change" is the question, not "would a human notice".
+roi_windows = [0.0, 0.09, 1.0, 0.17]
+roi_maccatalyst = [0.0, 0.06, 1.0, 0.12]
+roi_ios = [0.0, 0.10, 1.0, 0.16]
+roi_android = [0.0, 0.10, 1.0, 0.17]

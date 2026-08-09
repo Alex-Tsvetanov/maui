@@ -459,8 +459,38 @@ def _step_rois(key: str, comp: Path, plat_dir: str = "") -> dict:
     return out
 
 
+# THE SENSITIVITY FLOOR INSIDE A DECLARED REGION, and why it is not DIFF_THRESHOLD.
+#
+# pixel_score.DIFF_THRESHOLD = 25 answers "would a human see a difference between these two COLUMNS" —
+# a visibility question, for which 25 is right. Inside a declared `roi` the question is different: "did
+# the thing the scenario author pointed at change at all". A control can answer that with an amplitude
+# no human would notice.
+#
+# MEASURED on picker/windows (run 2026-08-09-20_13_27), the WinUI ComboBox's focus state:
+#
+#   threshold  >0     >1     >2     >3     >5     >8    >25
+#   changed    29456  29454  29446  29434  29410     0      0     max per-pixel delta: 6
+#
+# 29,434 pixels — the full width of the control — change by at most SIX values. At 25 that reads as a
+# dead page, and all three columns scored INVALID/`not-driven` on a cell where they agree TO THE PIXEL
+# (29434 each, identical box). The usable range is 1..5; 3 sits in the middle with margin either side.
+#
+# CHECKED IN THE OTHER DIRECTION on button/maccatalyst's readout region, where the answer is also known:
+# MAUI's column is max=0 there — byte-identical, the handler genuinely did not fire — while both port
+# columns read 53 px at >3. So 3 separates "did not react" from "reacted faintly" on both cases with a
+# known answer, which is the entire population available today.
+#
+# WHY NO GLOBAL FLOOR WAS DERIVED INSTEAD: it could not be. Repeat captures of the same frame differ for
+# reasons that are not capture noise (clocks, dates, rebuilt apps), so the stored runs yield no clean
+# measurement — see PARITY_REVIEW's "The step-paired noise floor CANNOT be derived". A declared region
+# needs none, because the region itself bounds where noise could come from.
+ROI_DIFF_THRESHOLD = 3
+
+
 def _roi_changed(first_png: str, later_png: str, roi, crop_top: int) -> int:
-    """Changed pixels INSIDE `roi` between two frames of the SAME column. 0 when nothing moved there."""
+    """Changed pixels INSIDE `roi` between two frames of the SAME column. 0 when nothing moved there.
+
+    Uses ROI_DIFF_THRESHOLD, NOT the whole-frame visibility threshold — see the block above."""
     import numpy as np  # noqa: PLC0415
     import pixel_score  # noqa: PLC0415
 
@@ -475,7 +505,7 @@ def _roi_changed(first_png: str, later_png: str, roi, crop_top: int) -> int:
         return 0
     a = np.asarray(ia.crop(box).convert("RGB"), dtype=np.int16)
     b = np.asarray(ib.crop(box).convert("RGB"), dtype=np.int16)
-    return int((np.max(np.abs(a - b), axis=-1) > pixel_score.DIFF_THRESHOLD).sum())
+    return int((np.max(np.abs(a - b), axis=-1) > ROI_DIFF_THRESHOLD).sum())
 
 
 def _twin_cannot_react(key: str, comp: Path) -> bool:
@@ -689,6 +719,25 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # strictly sharper than a percentage in both directions: stepper's 22/35/245 px stop reading as
     # "!! NOTHING MOVED" when all three columns agree perfectly, AND a 22-px reaction present in MAUI
     # and absent in the port now raises a MISMATCH that 0.012% silently swallowed.
+    # ---- the DECLARED REACTION REGION, measured BEFORE the frozen determination below because its
+    # answer overrides that one. See _step_rois for the green this exists to stop, and
+    # ROI_DIFF_THRESHOLD for why it uses its own floor.
+    roi_by_step = _step_rois(key, comp, plat_dir)
+    roi_split = []                       # (step, maui px, other px) where only ONE column reacted
+    roi_moved_m = roi_moved_o = False    # did EITHER column change inside any declared region at all
+    if roi_by_step and pairs:
+        first_m, first_o = pairs[0][1], pairs[0][2]
+        for step_name, path_m, path_o in pairs:
+            roi = roi_by_step.get(step_name)
+            if roi is None:
+                continue
+            px_roi_m = _roi_changed(first_m, path_m, roi, crop_top)
+            px_roi_o = _roi_changed(first_o, path_o, roi, crop_top)
+            if (px_roi_m > 0) != (px_roi_o > 0):
+                roi_split.append((step_name, px_roi_m, px_roi_o))
+            roi_moved_m = roi_moved_m or px_roi_m > 0
+            roi_moved_o = roi_moved_o or px_roi_o > 0
+
     step_paired = not any(s.startswith("gif") for s, _p in sel_m + sel_o)
     # A page whose GROUND TRUTH cannot react. The shared XAML twins deliberately omit every Clicked /
     # GestureRecognizer, so on those pages the maui_xaml column is static BY CONSTRUCTION while the
@@ -708,6 +757,17 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     else:
         m_moved, m_frozen = move_m >= MOVED_PCT, move_m <= FROZEN_PCT
         o_moved, o_frozen = move_o >= MOVED_PCT, move_o <= FROZEN_PCT
+    # A DECLARED REGION ALSO ANSWERS "DID THIS COLUMN MOVE", independently of the whole-frame floor.
+    # picker/windows is why: all three columns change 29,434 px inside the control at an amplitude of 6,
+    # so _self_motion — which asks the VISIBILITY question at 25/channel — reads 0 for every column and
+    # the cell scores `both_frozen` -> INVALID/`not-driven`, on a cell where the three agree to the
+    # pixel. The author pointed at that region and said the reaction belongs there; a change inside it
+    # IS the page reacting, whatever its amplitude. It can only ever UN-freeze: with no roi declared
+    # both flags stay False and every verdict below is exactly what it was.
+    if roi_moved_m:
+        m_moved, m_frozen = True, False
+    if roi_moved_o:
+        o_moved, o_frozen = True, False
     mismatch = (m_moved and o_frozen) or (o_moved and m_frozen)
     # NEITHER column moved on a page the board calls animated. That is not parity — it is the original
     # bug: a page nobody managed to drive, whose GIF is N copies of one frame. Two frozen columns match
@@ -726,23 +786,6 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # frames green" cannot mean two different things.
     frames_agree = ssims[worst_i] >= GREEN_SSIM and scores[worst_i]["diff_pct"] <= GREEN_DIFF
     frames_disagree = not frames_agree
-    # ---- the DECLARED REACTION REGION (see _step_rois for the green this exists to stop) ------------
-    # For every paired step the scenario gave a `roi`, ask each column SEPARATELY whether anything moved
-    # inside it, measured against that column's own FIRST paired frame. A region that reacts in one
-    # column and not the other is a divergence no whole-frame number can carry: on button/maccatalyst
-    # the entire difference was one digit, 0.005% of the frame.
-    roi_by_step = _step_rois(key, comp, plat_dir)
-    roi_split = []          # (step, maui px, other px) for every region only ONE column reacted in
-    if roi_by_step and pairs:
-        first_m, first_o = pairs[0][1], pairs[0][2]
-        for step_name, path_m, path_o in pairs:
-            roi = roi_by_step.get(step_name)
-            if roi is None:
-                continue
-            px_roi_m = _roi_changed(first_m, path_m, roi, crop_top)
-            px_roi_o = _roi_changed(first_o, path_o, roi, crop_top)
-            if (px_roi_m > 0) != (px_roi_o > 0):
-                roi_split.append((step_name, px_roi_m, px_roi_o))
     phase_only = (plat_dir in NON_REPRODUCIBLE_DRIVE and frames_disagree
                   and not mismatch and m_moved and o_moved
                   and spread <= PHASE_SELF_MOTION_TOL and at_rest_diff <= PHASE_AT_REST_PCT)
@@ -960,6 +1003,30 @@ def _selftest() -> int:
                 for dy in range(size):
                     im.putpixel((x + dx, y + dy), (0, 0, 0))
         im.save(path)
+
+    def faint_frame(path, boxes, size, rgb):
+        """A 240x320 white page with `size`x`size` boxes in `rgb` — for the SUB-THRESHOLD cases.
+
+        The existing `frame` draws BLACK on white, a per-pixel delta of 255, which makes any threshold
+        between 1 and 254 behave identically. That is why cases 21/22 passed with ROI_DIFF_THRESHOLD
+        forced back to 25 and with the un-freeze disabled: their fixture could not tell the two apart.
+        This one draws the amplitude the real defect had."""
+        im = Image.new("RGB", (240, 320), "white")
+        for x, y in boxes:
+            for dx in range(size):
+                for dy in range(size):
+                    im.putpixel((x + dx, y + dy), rgb)
+        im.save(path)
+
+    def faint_unit(run, key, col, theme, frames, size, rgb, plat="maccatalyst"):
+        d = run / key / plat / col
+        d.mkdir(parents=True, exist_ok=True)
+        for n, (step, boxes) in enumerate(frames, 1):
+            faint_frame(d / f"{n:04d}.png", boxes, size, rgb)
+            (d / f"{n:04d}.json").write_text(json.dumps(
+                {"theme": theme, "step": step, "frame": n, "commit": "deadbeef",
+                 "captured_at": "2026-08-05T00:00:00+03:00"}))
+        return d
 
     def unit(run, key, col, theme, frames, size=BOX, plat="maccatalyst"):
         """frames: [(step, [boxes])] -> the runner's NNNN.png + NNNN.json pairs."""
@@ -1350,6 +1417,45 @@ def _selftest() -> int:
         r = score_cell("sym", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("symmetric: silent", "SELF-MOTION ASYMMETRY" in r["detail"], False)
         check("symmetric: PASS", r["verdict"], PASS)
+
+        # (25) A SUB-THRESHOLD REACTION INSIDE A DECLARED REGION IS STILL A REACTION.
+        #      picker/windows exactly: the WinUI ComboBox's focus state changes 29,434 px — the whole
+        #      control — by an amplitude of SIX. _self_motion asks the VISIBILITY question at
+        #      25/channel, reads 0 for every column, and the cell scores both_frozen ->
+        #      INVALID/`not-driven` on a cell where all three columns agree TO THE PIXEL.
+        #
+        #      The fixture draws (249,249,249) on white: a delta of 6, matching the real amplitude.
+        #      Cases 21/22 could not have caught this — their boxes are BLACK on white, delta 255, so
+        #      every threshold from 1 to 254 behaves the same and both halves of the fix could be
+        #      disabled with the suite still green. That was verified by break-testing before this
+        #      case existed.
+        (comp / "scenarios").mkdir(exist_ok=True)
+        (comp / "scenarios" / "faint.toml").write_text(
+            '[[steps]]\nname = "initial"\n\n[[steps]]\nname = "after-tap"\naction = "click"\n'
+            'at = [0.5, 0.5]\nroi = [0.0, 0.0, 0.5, 0.5]\n')
+        faint = [("initial", [(10, 10)]), ("after-tap", [(60, 10)])]
+        dm = faint_unit(run, "faint", "maui_xaml", "light", faint, 40, (249, 249, 249))
+        do = faint_unit(run, "faint", "cpp", "light", faint, 40, (249, 249, 249))
+        publish(comp, "faint", "maui", "light", dm / "0001.png")
+        publish(comp, "faint", "cpp", "light", do / "0001.png")
+        r = score_cell("faint", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("faint reaction: NOT called frozen", r["both_frozen"], False)
+        check("faint reaction: not a mismatch (both reacted)", r["mismatch"], False)
+        check("faint reaction: PASSES", r["verdict"], PASS)
+        check("faint reaction: no roi split", r["why"] == "roi-split", False)
+
+        # (26) …and a page that is genuinely dead INSIDE the region is still caught, so (25) did not
+        #      simply disarm the frozen detector by declaring a region.
+        dead_faint = [("initial", [(10, 10)]), ("after-tap", [(10, 10)])]
+        dm = faint_unit(run, "faintdead", "maui_xaml", "light", dead_faint, 40, (249, 249, 249))
+        do = faint_unit(run, "faintdead", "cpp", "light", dead_faint, 40, (249, 249, 249))
+        publish(comp, "faintdead", "maui", "light", dm / "0001.png")
+        publish(comp, "faintdead", "cpp", "light", do / "0001.png")
+        (comp / "scenarios" / "faintdead.toml").write_text(
+            (comp / "scenarios" / "faint.toml").read_text())
+        r = score_cell("faintdead", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("faint dead page: still frozen", r["both_frozen"], True)
+        check("faint dead page: INVALID", r["verdict"], INVALID)
 
         # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
         #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.
