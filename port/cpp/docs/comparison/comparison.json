@@ -4200,35 +4200,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/chrome.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif04' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/chrome.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif04' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: MOTION 14 frames paired by step (run 2026-08-09-17_49_24, commit c75e62d31a, 2026-08-09) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0631% (517 px) vs C++ 0.0631% (517 px) \u00b7 Dark: MOTION 14 frames paired by step (run 2026-08-09-17_49_24, commit c75e62d31a, 2026-08-09) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0883% (723 px) vs C++ 0.0883% (723 px)",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "PASS",
             "themes": {
-              "light": "INVALID",
-              "dark": "INVALID"
+              "light": "PASS",
+              "dark": "PASS"
             },
-            "why": "no-scenario",
-            "run": "2026-08-04-15_21_26",
-            "commit": "faa4d8c27c",
-            "captured_at": "2026-08-04",
-            "stills": "a87f65b48321f597"
+            "why": "",
+            "run": "2026-08-09-17_49_24",
+            "commit": "c75e62d31a",
+            "captured_at": "2026-08-09",
+            "stills": "a378d413185453f2"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/chrome.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'gif04' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/chrome.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif04' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: MOTION 14 frames paired by step (run 2026-08-09-17_49_24, commit c75e62d31a, 2026-08-09) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0631% (517 px) vs C++ & XAML 0.0631% (517 px) \u00b7 Dark: MOTION 14 frames paired by step (run 2026-08-09-17_49_24, commit c75e62d31a, 2026-08-09) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0883% (723 px) vs C++ & XAML 0.0883% (723 px)",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "PASS",
             "themes": {
-              "light": "INVALID",
-              "dark": "INVALID"
+              "light": "PASS",
+              "dark": "PASS"
             },
-            "why": "no-scenario",
-            "run": "2026-08-04-15_21_26",
-            "commit": "faa4d8c27c",
-            "captured_at": "2026-08-04",
-            "stills": "95990f20f38235b2"
+            "why": "",
+            "run": "2026-08-09-17_49_24",
+            "commit": "c75e62d31a",
+            "captured_at": "2026-08-09",
+            "stills": "fb4226a2a8966b50"
           }
         }
       },
