@@ -19299,35 +19299,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 picker.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 picker.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "red",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) \u2014 worst SSIM 0.8992 at frame 2 'opened' (97.51% pixels differ), mean SSIM 0.9485; per-frame diff% 0.09/97.51; self-motion MAUI 97.4930% (798663 px) vs C++ 0.8650% (7086 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) \u2014 worst SSIM 0.7601 at frame 2 'opened' (10.92% pixels differ), mean SSIM 0.8790; per-frame diff% 0.08/10.92; self-motion MAUI 9.8480% (80675 px) vs C++ 1.1077% (9074 px)",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "FAIL",
             "themes": {
-              "light": "INVALID",
-              "dark": "INVALID"
+              "light": "FAIL",
+              "dark": "FAIL"
             },
-            "why": "not-driven",
-            "run": "2026-08-07-06_54_58",
-            "commit": "5abe607545",
-            "captured_at": "2026-08-07",
-            "stills": "73b6d74ef760e974"
+            "why": "frames-disagree",
+            "run": "2026-08-09-18_01_15",
+            "commit": "32885d4719",
+            "captured_at": "2026-08-09",
+            "stills": "a157ba747b0b0603"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 picker.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 picker.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "red",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) \u2014 worst SSIM 0.8980 at frame 2 'opened' (97.51% pixels differ), mean SSIM 0.9473; per-frame diff% 0.12/97.51; self-motion MAUI 97.4930% (798663 px) vs C++ & XAML 0.8650% (7086 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) \u2014 worst SSIM 0.7591 at frame 2 'opened' (10.96% pixels differ), mean SSIM 0.8779; per-frame diff% 0.11/10.96; self-motion MAUI 9.8480% (80675 px) vs C++ & XAML 1.1102% (9095 px)",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "FAIL",
             "themes": {
-              "light": "INVALID",
-              "dark": "INVALID"
+              "light": "FAIL",
+              "dark": "FAIL"
             },
-            "why": "not-driven",
-            "run": "2026-08-07-06_54_58",
-            "commit": "5abe607545",
-            "captured_at": "2026-08-07",
-            "stills": "8fca8a5b321e55b9"
+            "why": "frames-disagree",
+            "run": "2026-08-09-18_01_15",
+            "commit": "32885d4719",
+            "captured_at": "2026-08-09",
+            "stills": "c94ddf530f65bb5f"
           }
         }
       },

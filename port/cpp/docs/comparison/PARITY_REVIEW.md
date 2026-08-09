@@ -3399,3 +3399,35 @@ whole cluster on that lane and is cheap to test: drive the page manually over th
 watch whether the frame ever contains the popup. Until one of these is measured, the Windows cells stay
 INVALID/`not-driven`, which is the honest verdict: something was injected and no evidence of a reaction
 was captured.
+
+### …and fixing the maccatalyst aim turned that cell RED, which is the point
+
+`picker/maccatalyst` with `at_macos-arm64 = [0.5, 0.0887]` applied, run 2026-08-09-18_01_15:
+
+    maui_xaml   initial->opened:  798663 px   x[0..1023] y[0..799]     the whole frame
+    cpp         initial->opened:    7086 px   x[9..1014] y[58..84]     box 1 only
+    cpp_xaml    initial->opened:    7086 px   x[9..1014] y[58..84]
+
+All three columns now react, where all three were inert before — so the override did its job. LOOKING at
+MAUI's second frame (not just its pixel count): it presents a MODAL PICKER WHEEL, centred, listing
+Item 1..4 with a "Done" button, over a dimmed backdrop. The port's 7086 px are confined to the field
+itself — a focus ring. **The port focuses the Picker and never presents its wheel.**
+
+    picker/maccatalyst/pixel        yellow -> RED,  motion INVALID -> FAIL/frames-disagree
+    picker/maccatalyst/pixel_xaml   yellow -> RED   (worst SSIM 0.8992, 97.51% differing on 'opened')
+
+The board is two cells worse and the port is not. Those cells were yellow because nothing had ever been
+driven there; they are red because a real defect is now visible. Trading an uninformative yellow for an
+actionable red is the whole reason the `not-driven` verdict was split out.
+
+MECHANISM, as far as static reading goes. src/platform/ios/picker_handler.mm ports the right shape: a
+MauiPicker UITextField whose `inputView` is a UIPickerView and whose `inputAccessoryView` is the Done
+toolbar, with MapIsOpen -> UpdateIsOpen -> BecomeFirstResponder. On iOS that inputView presents as the
+keyboard; MAUI's Catalyst render shows the same wheel presented in Catalyst's own modal style. The port
+reaches first-responder (hence the ring) and the inputView does not appear. NOT yet diagnosed further —
+whether Catalyst refuses to present an inputView for a field this handler configures, whether the
+accessory toolbar is what triggers presentation, or whether something resigns it before the settle
+screenshot. It needs driving on the VM with the wheel's presence checked directly, not inferred.
+
+Note this is NOT the same failure as the Windows half of the cluster above: there the tap lands on the
+control and NOTHING moves at all (0 px). Here the control demonstrably receives the tap.
