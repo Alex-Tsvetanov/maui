@@ -55,6 +55,11 @@ name = "initial"
 name = "dragged-right"
 action = "drag"
 at = [0.5, 0.09]          # inner_slider_ thumb at its Value=50 midpoint
+# MACCATALYST: 0.09 is y=72, which sits between the slider and the "Toggle ScrollView
+# DelayContentTouches" button (band y[81..91]) — it drags nothing. The THUMB is its own band on this
+# lane: y[48..55] x[498..526] (the track is the full-width band y[42..46] just above it), centre
+# (512,51) -> 0.0638. A drag must start ON the thumb, not on the track beside it.
+at_macos-arm64 = [0.5, 0.0638]
 to = [0.85, 0.09]         # drags the thumb toward Maximum=100, well inside the edge-to-edge track
 steps = 20                # a deliberate pan, not a flick — matches carousel_page.toml's calibration
 duration = 0.5

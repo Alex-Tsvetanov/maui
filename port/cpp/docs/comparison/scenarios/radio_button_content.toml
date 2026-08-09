@@ -35,3 +35,10 @@ name = "initial"
 name = "selected"
 action = "click"
 at = [0.06, 0.14]         # option_a_ RadioButton ("Option A"), unselected ring
+# MACCATALYST: 0.06,0.14 resolves to (61,112), which is to the RIGHT of the ring (rings sit at
+# x~25 on this lane) AND in the vertical gap between "Option A" (y~75) and "Option C" (y~127) —
+# it selects nothing. Measured band for the whole Option A control: y[68..84] x[17..82], centre
+# (49,76) -> 0.0479, 0.0950. Aiming at the band centre rather than the ring is deliberate: a
+# RadioButton is hit-testable across ring AND label, so the centre carries more margin than the
+# ~16px ring if row spacing shifts.
+at_macos-arm64 = [0.0479, 0.095]

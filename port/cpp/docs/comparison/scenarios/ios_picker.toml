@@ -47,3 +47,9 @@ name = "initial"
 name = "opened"
 action = "click"
 at = [0.5, 0.09]          # the "Select a monkey" Picker — only Picker on the page
+# MACCATALYST: the iOS-calibrated 0.09 resolves to y=72 of 800, which on this lane is the "Toggle
+# Picker UpdateMode" BUTTON (measured band y[74..85]) — a different control, wired to a different
+# handler, so the tap "worked" and proved nothing about the Picker. The Picker itself is the first
+# content band, y[31..57], centre 44 -> 0.0550. Measured off captures/maccatalyst/maui/
+# ios_picker_light.png with a background-delta band scan, not by eye.
+at_macos-arm64 = [0.5, 0.055]
