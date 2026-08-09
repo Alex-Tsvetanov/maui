@@ -3431,3 +3431,58 @@ screenshot. It needs driving on the VM with the wheel's presence checked directl
 
 Note this is NOT the same failure as the Windows half of the cluster above: there the tap lands on the
 control and NOTHING moves at all (0 px). Here the control demonstrably receives the tap.
+
+### The Catalyst Picker defect, diagnosed: MAUI uses a DIFFERENT MECHANISM there, and the port has no branch
+
+`picker` and `ios_picker` both scored FAIL/frames-disagree on maccatalyst with the identical signature —
+MAUI repaints the whole frame, the port repaints only the field's own band. Two independent pages, two
+different Picker instances, so this is a handler defect, not a page one.
+
+WHAT THE PORT DOES. src/platform/ios/picker_handler.mm ports `PickerHandler.iOS.cs` faithfully: a
+MauiPicker UITextField whose `inputView` is a UIPickerView and whose `inputAccessoryView` is the Done
+toolbar; tapping it makes the field first responder and the inputView presents as the keyboard.
+
+WHAT IT ACTUALLY DOES ON CATALYST, looked at rather than inferred: the field gets a blue focus ring and
+nothing else. So it DOES become first responder — and the inputView still never appears, because Mac
+Catalyst has no software keyboard to present one into.
+
+WHAT MAUI DOES INSTEAD, from the oracle:
+
+    // PickerHandler.iOS.cs
+    #if !MACCATALYST
+        protected override MauiPicker CreatePlatformView() { ... InputView = _pickerView ... }
+    #else
+        protected override MauiPicker CreatePlatformView() =>
+            new MauiPicker(null) { BorderStyle = UITextBorderStyle.RoundedRect };   // NO inputView
+        void DisplayAlert(MauiPicker uITextField, int selectedIndex) { ... }
+    #endif
+
+On Catalyst the picker has NO inputView at all. It presents a `UIAlertController` (ActionSheet style,
+EMPTY title and message — the oracle comments that a non-empty title makes UIKit refuse to host the
+subview) with a "Done" UIAlertAction, and adds the UIPickerView as a SUBVIEW under explicit constraints:
+centerX to container, width equal to container, top = paddingTitle (25 when the picker has a Title, else
+0), height 240; plus a container height constraint of 240 + 90 for the Done button. PopoverPresentation
+SourceView/SourceRect are pinned to the text field, and it is presented from
+GetCurrentViewController(RootViewController) — walking PresentedViewController to the top. That is
+exactly the centred modal panel over a dimmed backdrop in captures/maccatalyst/maui/picker_light.png.
+
+WHY IT WAS MISSED, AND WHERE ELSE TO LOOK. This is not carelessness about Catalyst in general — the port
+already carries a full Catalyst implementation for DatePicker (25 TARGET_OS_MACCATALYST references) and
+TimePicker (21). The difference is WHERE MAUI PUT THE CODE:
+
+    DatePicker/TimePicker  Catalyst variant lives in its own file (DatePickerHandler.MacCatalyst.cs)
+                           -> visible while porting, and ported
+    Picker                 Catalyst variant is an `#else` INSIDE PickerHandler.iOS.cs
+                           -> the porter read the iOS branch and stopped
+
+Counted: PickerHandler.iOS.cs carries SEVEN `#if MACCATALYST` / `#if !MACCATALYST` branches; the port's
+picker_handler.mm has ZERO TARGET_OS_MACCATALYST references.
+
+OTHER FILES WITH THE SAME SHAPE, unaudited and worth the same check before trusting their Catalyst
+behaviour: WindowHandler.iOS.cs (2 branches), ViewHandler.iOS.cs (2), SwitchHandler.iOS.cs (1),
+ButtonHandler.iOS.cs (1). A branch count in the oracle against TARGET_OS_MACCATALYST occurrences in the
+matching .mm is a cheap screen for the whole class.
+
+THE FIX is a `#if TARGET_OS_MACCATALYST` arm in picker_handler.mm following the date_picker precedent in
+the same directory: no inputView, and an alert-controller presentation on focus. Not attempted in the
+same change as the diagnosis.
