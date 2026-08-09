@@ -3793,3 +3793,43 @@ NEXT DIAGNOSTIC, cheapest first: have the runner dump the exact click payload it
 already echoes {"x","y","at"}), and diff it against the by-hand call. If the points match, the remaining
 variable is timing — the runner's per-step settle versus the probe's fixed 3s — which a settle sweep on
 one page would settle.
+
+### ANSWERED: the Windows picker click is NON-DETERMINISTIC, which is why five explanations all failed
+
+Instrumenting the runner's agent call (a temporary trace on CoordinateDriver._agent, reverted) settled
+what it actually sends:
+
+    [trace] agent click [756, 104] -> {'ok': True, 'x': 756, 'y': 104, 'at': [756, 104], ...}
+
+756 = 244 + 0.5*1024 and 104 = 0 + 0.13*800, i.e. env.geom {244,0,1024,800} from config/windows.toml —
+window-relative (512,104), exactly on target. The agent reports ok. So the runner's point was never
+wrong, which is why the aim, the capture path, the verb choice, the staleness and the settle all came
+back clean in turn.
+
+THE MEASUREMENTS THAT ANSWER IT are three runs of the same interaction:
+
+    runner, settle 1.0s / 8.0s   click [756,104] after present(244,0)      0 px
+    by-hand, runner's exact pin  click [756,104] after present(244,0)    164 px
+    by-hand, agent default pin   click [640,134] after present(128,30)  1464 px, commits "Item 11"
+
+Same guest, same gallery.exe, same page, same window-relative point in all three. The results are 0, 164
+and 1464. THE INTERACTION IS NOT REPRODUCIBLE UNDER AN INJECTED CLICK — sometimes the flyout does not
+open, sometimes it opens and shows only a focus change, sometimes it opens and commits a row.
+
+That is the same CLASS motion_score already models for Android flings in NON_REPRODUCIBLE_DRIVE, whose
+comment says membership "is a MEASURED property of the lane's injector, not a preference". This is that
+measurement for the Windows ComboBox, and it explains the whole 8-page cluster in one stroke: those
+pages' scenarios all open platform chrome (picker, date picker, scroll-view drag, radio, entry focus),
+and a lane whose injector cannot reliably open it will score `not-driven` most of the time and something
+else occasionally.
+
+WHAT THIS DOES NOT MEAN. It is NOT evidence the port is correct on those pages — non-reproducibility
+cuts both ways, and the cells stay INVALID rather than being forgiven. The honest verdict is unchanged;
+what changes is that INVALID is now the RIGHT answer for a known reason instead of a placeholder.
+
+NEXT, if the cluster is worth recovering: (1) quantify it — run one page N times and count the outcome
+distribution, the same way NON_REPRODUCIBLE_DRIVE was established for Android; (2) if it is the pointer
+path rather than the click itself, try a hover-then-click or a slower synthetic press; (3) only then
+consider adding `windows` to NON_REPRODUCIBLE_DRIVE, which would move these cells from INVALID to
+INCONCLUSIVE — a more accurate label, and one that must be earned by the measurement in (1), not
+assumed from these three samples.
