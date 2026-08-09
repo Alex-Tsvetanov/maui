@@ -4,11 +4,11 @@
     <!-- The iOSSpecific VisualElement.BlurEffect knob is a platform-specific effect (no XAML dialect
          analog); the resting image + control column is reproduced. -->
     <VerticalStackLayout Margin="20" Spacing="12">
-        <Image Source="oasis.jpg" />
-        <Button Text="No Blur" />
-        <Button Text="Extra Light Blur" />
-        <Button Text="Light Blur" />
-        <Button Text="Dark Blur" />
-        <Label Text="BlurEffect: ExtraLight" />
+        <Image x:Name="BlurTarget" Source="oasis.jpg" />
+        <Button x:Name="NoBlurButton" Text="No Blur" />
+        <Button x:Name="ExtraLightButton" Text="Extra Light Blur" />
+        <Button x:Name="LightButton" Text="Light Blur" />
+        <Button x:Name="DarkButton" Text="Dark Blur" />
+        <Label x:Name="Readout" Text="BlurEffect: ExtraLight" />
     </VerticalStackLayout>
 </ContentPage>

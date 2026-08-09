@@ -1384,20 +1384,37 @@ namespace
         EXPECT_EQ(std::dynamic_pointer_cast<controls::label>(item_content)->text(), "cell");
     }
 
-    TEST(xaml_loader, chrome_shared_page_exposes_the_code_behind_anchors)
+    // THE ONE THING EVERY HAND-WRITTEN CODE-BEHIND SILENTLY DEPENDS ON.
+    // A shared page carries x:Name anchors purely so that MauiReference.Pages.<Page> (C#) and
+    // examples::Views::<page>_page (C++) can each find the SAME elements and wire the same handlers.
+    // BOTH sides guard their lookup with a null check and return an inert page rather than crashing —
+    // deliberately, so a markup change degrades instead of exploding. The cost of that choice is that
+    // deleting an x:Name makes all three board columns quietly stop reacting, with nothing failing
+    // anywhere.
+    //
+    // These are that missing failure. They assert on the SHARED bytes, the one artifact both frameworks
+    // read, so they cover the C# side too — no C++ test can execute ChromePage.xaml.cs, but it cannot
+    // resolve a name these tests prove absent either.
+    //
+    // TABLE-DRIVEN because this set only grows: each page whose twin gets wired adds a row, not a
+    // near-identical copy of the body.
+    struct anchored_page
     {
-        // THE ONE THING BOTH HAND-WRITTEN CODE-BEHINDS SILENTLY DEPEND ON.
-        // pages/chrome.xaml carries x:Name="ActionButton" / x:Name="Readout" purely so that
-        // MauiReference.Pages.ChromePage (C#) and examples::Views::chrome_page (C++) can each find the
-        // same two elements and wire the button to stamp the readout. BOTH sides guard their lookup with
-        // a null check and return an inert page rather than crashing — deliberately, so a markup change
-        // degrades instead of exploding. The cost of that choice is that deleting either x:Name makes
-        // all three board columns quietly stop reacting again, with nothing failing anywhere.
-        //
-        // This is that missing failure. It asserts on the SHARED bytes, which is the one artifact both
-        // frameworks read, so it covers the C# side too — no C++ test can execute ChromePage.xaml.cs,
-        // but it cannot resolve a name this file proves absent either.
-        const std::filesystem::path page_path = std::filesystem::path(SHARED_PAGES_DIR) / "chrome.xaml";
+        const char* page;          // shared page file, without .xaml
+        const char* button;        // an x:Name the code-behind resolves as a Button
+        const char* readout;       // the Label it writes to
+        const char* at_rest;       // that Label's at-rest text: the BEFORE half of the driven pair
+    };
+
+    class shared_page_anchors : public ::testing::TestWithParam<anchored_page>
+    {
+    };
+
+    TEST_P(shared_page_anchors, resolve_at_the_types_the_code_behind_asks_for)
+    {
+        const anchored_page& c = GetParam();
+        const std::filesystem::path page_path =
+            std::filesystem::path(SHARED_PAGES_DIR) / (std::string(c.page) + ".xaml");
         std::ifstream stream(page_path);
         ASSERT_TRUE(stream.is_open()) << "missing shared page: " << page_path;
         std::stringstream buffer;
@@ -1412,19 +1429,29 @@ namespace
 
         // Typed lookups, not just "a name is registered": the code-behind asks for these exact types
         // (find<button> / find<label>), and find_by_name_as returns nullptr on a type mismatch just as
-        // it does on a missing name — so an ActionButton that stopped being a Button would fail in
-        // exactly the same silent way.
-        const auto action = result.find_by_name<controls::button>("ActionButton");
-        const auto readout = result.find_by_name<controls::label>("Readout");
-        ASSERT_NE(action, nullptr) << "chrome.xaml lost x:Name=\"ActionButton\" (or it is no longer a "
-                                      "Button) — both code-behinds go inert and the board silently stops "
-                                      "reacting on this page";
-        ASSERT_NE(readout, nullptr) << "chrome.xaml lost x:Name=\"Readout\" (or it is no longer a Label)";
-        // The at-rest text is the BEFORE half of the driven comparison: the scenario's first frame shows
-        // "Ready" and its second must show "Last: Button pressed". If this default moves, the twins and
-        // examples/gallery/pages/chrome_page.hpp:44 have diverged.
-        EXPECT_EQ(readout->text(), "Ready");
+        // it does on a missing name — so a button that stopped being a Button would fail in exactly the
+        // same silent way.
+        const auto action = result.find_by_name<controls::button>(c.button);
+        const auto readout = result.find_by_name<controls::label>(c.readout);
+        ASSERT_NE(action, nullptr) << c.page << ".xaml lost x:Name=\"" << c.button << "\" (or it is no "
+                                      "longer a Button) — both code-behinds go inert and the board "
+                                      "silently stops reacting on this page";
+        ASSERT_NE(readout, nullptr) << c.page << ".xaml lost x:Name=\"" << c.readout << "\" (or it is no "
+                                       "longer a Label)";
+        // The at-rest text is the BEFORE half of the driven comparison. If it moves, the twins and the
+        // code-first page that owns the string have diverged.
+        EXPECT_EQ(readout->text(), c.at_rest);
     }
+
+    INSTANTIATE_TEST_SUITE_P(
+        wired_twins, shared_page_anchors,
+        ::testing::Values(
+            // chrome_page.hpp:44/75/126 — "Ready", then stamp() writes "Last: Button pressed".
+            anchored_page{"chrome", "ActionButton", "Readout", "Ready"},
+            // ios_blur_effect_page.hpp:146 — "BlurEffect: " + name_of(stored style); the twin seeds
+            // ExtraLight, and DarkButton takes it to "BlurEffect: Dark".
+            anchored_page{"ios_blur_effect", "DarkButton", "Readout", "BlurEffect: ExtraLight"}),
+        [](const ::testing::TestParamInfo<anchored_page>& i) { return std::string(i.param.page); });
 
     TEST(xaml_loader, header_footer_template_shared_page_hydrates_all_three_templates)
     {
