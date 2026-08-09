@@ -8,10 +8,10 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
 <tr><td>iOS</td><td>144</td><td>23</td><td>5</td><td>0</td><td>0</td><td>146</td><td>24</td><td>2</td><td>0</td><td>0</td></tr>
-<tr><td>macOS</td><td>139</td><td>28</td><td>5</td><td>0</td><td>0</td><td>137</td><td>30</td><td>5</td><td>0</td><td>0</td></tr>
+<tr><td>macOS</td><td>141</td><td>28</td><td>3</td><td>0</td><td>0</td><td>139</td><td>30</td><td>3</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>134</td><td>31</td><td>7</td><td>0</td><td>0</td><td>136</td><td>30</td><td>6</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>143</td><td>27</td><td>2</td><td>0</td><td>0</td><td>144</td><td>27</td><td>1</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>560</strong></td><td><strong>109</strong></td><td><strong>19</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>563</strong></td><td><strong>111</strong></td><td><strong>14</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>562</strong></td><td><strong>109</strong></td><td><strong>17</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>565</strong></td><td><strong>111</strong></td><td><strong>12</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -25,10 +25,10 @@ _Android **dark** is not currently comparable: the MAUI reference renders light 
 | Platform | Cells with motion evidence | ✅ PASS | ❌ FAIL | 🚫 INVALID | ❔ INCONCLUSIVE |
 | --- | --- | --- | --- | --- | --- |
 | iOS | 86 | 45 | 17 | 24 | 0 |
-| macOS | 86 | 37 | 11 | 38 | 0 |
+| macOS | 86 | 41 | 7 | 38 | 0 |
 | Android | 86 | 33 | 9 | 28 | 16 |
 | Windows | 86 | 32 | 6 | 47 | 1 |
-| **Total** | **344** | **147** | **43** | **137** | **17** |
+| **Total** | **344** | **151** | **39** | **137** | **17** |
 
 <details>
 <summary><h2>Artifact size — click to expand</h2></summary>
@@ -2826,9 +2826,9 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 139 | 137 |
+| 🟢 Match | 141 | 139 |
 | 🟡 Minor | 28 | 30 |
-| 🔴 Major | 5 | 5 |
+| 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -4270,24 +4270,24 @@ Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% o
 
 Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9965 at frame 1 'gif04' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-04-15_21_26, commit faa4d8c27c, 2026-08-04); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9966 at frame 1 'gif04' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
-### 91. Ios Picker — 🔴/🔴
+### 91. Ios Picker — 🟢/🟢
 <sub>ios_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/ios_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/ios_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/ios_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/ios_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/ios_picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/ios_picker_dark.png" /></td></tr></table>
 
 ports iOSPickerPage.xaml (+ iOSPickerPage.xaml.cs)
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-09-18_09_50 · 2026-08-09</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-09-18_28_29 · 2026-08-09</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-09-18_09_50, commit 7ac10f850f, 2026-08-09) — worst SSIM 0.9147 at frame 2 'opened' (94.20% pixels differ), mean SSIM 0.9563; per-frame diff% 0.09/94.20; self-motion MAUI 94.1802% (771524 px) vs C++ 0.8799% (7208 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_09_50, commit 7ac10f850f, 2026-08-09) — worst SSIM 0.7919 at frame 2 'opened' (3.00% pixels differ), mean SSIM 0.8949; per-frame diff% 0.08/3.00; self-motion MAUI 1.9984% (16371 px) vs C++ 1.0375% (8499 px)
+Light: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.08; self-motion MAUI 94.1802% (771524 px) vs C++ 94.1781% (771507 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9978 at frame 2 'opened' (0.08% pixels differ), mean SSIM 0.9979; per-frame diff% 0.08/0.08; self-motion MAUI 1.9984% (16371 px) vs C++ 1.9984% (16371 px)
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-09-18_09_50 · 2026-08-09</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-09-18_28_29 · 2026-08-09</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-09-18_09_50, commit 7ac10f850f, 2026-08-09) — worst SSIM 0.9135 at frame 2 'opened' (94.19% pixels differ), mean SSIM 0.9550; per-frame diff% 0.12/94.19; self-motion MAUI 94.1802% (771524 px) vs C++ &amp; XAML 0.8815% (7221 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_09_50, commit 7ac10f850f, 2026-08-09) — worst SSIM 0.7909 at frame 2 'opened' (3.04% pixels differ), mean SSIM 0.8938; per-frame diff% 0.11/3.04; self-motion MAUI 1.9984% (16371 px) vs C++ &amp; XAML 1.0375% (8499 px)
+Light: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9966; per-frame diff% 0.12/0.12; self-motion MAUI 94.1802% (771524 px) vs C++ &amp; XAML 94.1576% (771339 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 1.9984% (16371 px) vs C++ &amp; XAML 1.9984% (16371 px)
 
 ### 92. Ios Safe Area — 🟢/🟢
 <sub>ios_safe_area</sub>
@@ -4635,24 +4635,24 @@ Light: SSIM 0.9939, 0.30% pixels differ · Dark: SSIM 0.9952, 0.13% pixels diffe
 
 Light: SSIM 0.9965, 0.12% pixels differ · Dark: SSIM 0.9966, 0.11% pixels differ
 
-### 114. Picker — 🔴/🔴
+### 114. Picker — 🟢/🟢
 <sub>picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th><th>AppKit / C++</th><th>AppKit / C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/maccatalyst/maui/picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/picker_light.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/maccatalyst/maui/picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/cpp/picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/xaml/picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_cpp/picker_dark.png" /></td><td><img width="300px" src="captures/maccatalyst/appkit_xaml/picker_dark.png" /></td></tr></table>
 
 ports PickerPage.xaml (+ PickerPage.xaml.cs) A self-contained, code-first demo page for the Picker control (the C# gallery-page convention, mirroring the value_controls_page / pickers_page pattern)
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-09-18_01_15 · 2026-08-09</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-09-18_28_29 · 2026-08-09</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) — worst SSIM 0.8992 at frame 2 'opened' (97.51% pixels differ), mean SSIM 0.9485; per-frame diff% 0.09/97.51; self-motion MAUI 97.4930% (798663 px) vs C++ 0.8650% (7086 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) — worst SSIM 0.7601 at frame 2 'opened' (10.92% pixels differ), mean SSIM 0.8790; per-frame diff% 0.08/10.92; self-motion MAUI 9.8480% (80675 px) vs C++ 1.1077% (9074 px)
+Light: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.08; self-motion MAUI 97.4930% (798663 px) vs C++ 97.4908% (798645 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 9.8480% (80675 px) vs C++ 9.8481% (80676 px)
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-09-18_01_15 · 2026-08-09</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-09-18_28_29 · 2026-08-09</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) — worst SSIM 0.8980 at frame 2 'opened' (97.51% pixels differ), mean SSIM 0.9473; per-frame diff% 0.12/97.51; self-motion MAUI 97.4930% (798663 px) vs C++ &amp; XAML 0.8650% (7086 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_01_15, commit 32885d4719, 2026-08-09) — worst SSIM 0.7591 at frame 2 'opened' (10.96% pixels differ), mean SSIM 0.8779; per-frame diff% 0.11/10.96; self-motion MAUI 9.8480% (80675 px) vs C++ &amp; XAML 1.1102% (9095 px)
+Light: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 97.4930% (798663 px) vs C++ &amp; XAML 97.4703% (798477 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_28_29, commit b474a1f9bc, 2026-08-09) — worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 9.8480% (80675 px) vs C++ &amp; XAML 9.8481% (80676 px)
 
 ### 115. Pickers — 🟢/🟢
 <sub>pickers</sub>
