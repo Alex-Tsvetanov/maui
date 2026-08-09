@@ -3658,3 +3658,42 @@ column per run on this page, which is the right trade.
 To distinguish (a) from (b): drive the page over the VM agent and screenshot the SCREEN rather than the
 window. If a calendar popover is standing there, it is (b) and the fix belongs in the capture path
 (capture by screen rect, or by the popover's own window id) rather than in the coordinate.
+
+### RESOLVED: ios_date_picker's dropped frame is a CAPTURE-PATH gap, not a coordinate — and Windows may share it
+
+The distinguishing test recorded above was run on the mac VM. Result: cause (b), confirmed by looking at
+the screen rather than at the window.
+
+    launch MauiReference on ios_date_picker      window-id -> {"id": 466, "bounds": [244, 30, 1024, 548]}
+    click the DatePicker at its measured point   window-id -> {"id": 477, "bounds": [244, 30, 1024, 548]}
+
+The bounds are unchanged and the WINDOW ID CHANGED. A full-SCREEN screencapture shows why: the click
+opens a calendar popover ("Dec 2020" with the month grid) rendered in a SEPARATE TOP-LEVEL WINDOW,
+overlapping the app window's top-left corner. `present` foregrounds and pins the app's MAIN window (466);
+with a popover in front of it as a different window, that fails — hence "no window to capture" for all
+three columns. The click was always working.
+
+AND MY FIRST ATTEMPT AT THIS TEST WAS WRONG, which is worth recording because it nearly produced the
+opposite conclusion. I hand-derived the screen coordinate as window_origin + image_offset using the
+origin documented in scenarios/_selftest.py (x=128 for the macOS lane). The LIVE window reports x=244
+and height 548, not 128/800 — so my click landed 79px LEFT of the window entirely, and the window moved
+from y=30 to y=-506. Read alone, that looked like conclusive evidence for cause (a), "the click drags
+the window off-screen". It was evidence about my arithmetic. Re-deriving from the window's ACTUAL
+reported bounds gave the popover result above. The runner never had this bug — it resolves fractions
+against the live rect.
+
+WHY THIS MATTERS BEYOND ONE PAGE. The popover extends ABOVE and LEFT of the app window's own bounds, so
+even capturing window 466 by id would clip it. That is the same shape as the untested hypothesis
+recorded for the WINDOWS `not-driven` cluster — "the flyout renders in a separate top-level window that
+PrintWindow(PW_RENDERFULLCONTENT), which captures the target window's own backing store, does not
+include". Two lanes, two platforms, one root cause: PLATFORM CHROME LIVES OUTSIDE THE WINDOW THE CAPTURE
+PATH KNOWS ABOUT.
+
+Note it is NOT universal: the Picker's action-sheet on the same lane captured perfectly (b474a1f9bc,
+798663 px of full-frame change), because a UIAlertController presents INSIDE the app window. Only
+popovers that escape the window are affected.
+
+THE FIX, in the capture path rather than any scenario: when a driven step's `present` fails, fall back
+to a SCREEN-rect capture cropped to the app window's rect UNION any new windows the process owns —
+rather than dropping the frame. The evidence is on screen; only the window-scoped grab cannot reach it.
+Until then ios_date_picker/maccatalyst stays INVALID with its correct coordinate, which is honest.
