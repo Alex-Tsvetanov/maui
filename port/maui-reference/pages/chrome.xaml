@@ -8,7 +8,7 @@
          action button + the readout label. The toolbar/menu/context-flyout/tooltip surfaces cannot be
          expressed in the supported markup subset. -->
     <VerticalStackLayout Spacing="12">
-        <Button Text="Press or right-click me" />
-        <Label Text="Ready" />
+        <Button x:Name="ActionButton" Text="Press or right-click me" />
+        <Label x:Name="Readout" Text="Ready" />
     </VerticalStackLayout>
 </ContentPage>
