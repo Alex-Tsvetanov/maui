@@ -3623,3 +3623,38 @@ CHEAPEST NEXT STEP, in order of value per effort:
   1. declare rois on the 60 small-signal pages — mechanical, one measured box per lane per page;
   2. surface the asymmetry ratio in the review text so a 247x cell cannot read as a clean PASS;
   3. decide what an unpairable-frame population means for a verdict (today: silently excluded).
+
+### ios_date_picker/maccatalyst: the CORRECT coordinate makes the window uncapturable
+
+The measured Catalyst target for this page's DatePicker is the compact left-aligned "31.12.2020" field
+at image (37,39) — 0.036, 0.0488. Applied in 821e61f045 and captured in run 2026-08-09-19_45_06, ALL
+THREE columns produced the same log line:
+
+    ! ios_date_picker/<column>/light#2: DROPPED — present failed after self-heal (no window to capture)
+
+Only the `initial` frame banked; the driven step produced nothing in any column. The consistency across
+all three is what makes this a property of the interaction rather than of any one app.
+
+TWO CANDIDATE CAUSES, neither yet distinguished:
+
+  a. THE CLICK DISMISSES OR MINIMISES THE WINDOW. The DatePicker sits directly below the traffic-light
+     controls — lights at image y~16 x[9..70], the date field at y[34..44] x[0..74] — so (37,39) is
+     ~16px under the minimise button and horizontally inside its column. If that hit area extends, the
+     click minimises the app and there is genuinely no window left to capture.
+  b. THE CONTROL OPENS A CALENDAR POPOVER IN A SEPARATE WINDOW. `present` foregrounds and pins the
+     app's MAIN window; a modal popover in front of it would make that fail exactly this way. This is
+     the same family as the Picker defect fixed in b474a1f9bc — Catalyst renders these controls'
+     chrome outside the window the capture path knows about.
+
+(b) is the more likely reading precisely because (a) would be a coordinate problem and the measurement
+was taken off the control's own pixels.
+
+THE OVERRIDE IS KEPT, NOT REVERTED, and that is deliberate. Reverting returns the tap to the "Toggle
+DatePicker UpdateMode" button — a REAL, adjacent control that reacts, so the capture would look like a
+successful drive of the DatePicker while testing something else entirely. A DROPPED FRAME is honest (no
+evidence, the cell stays INVALID); a wrong-control tap is fabricated evidence. The cost is ~50s per
+column per run on this page, which is the right trade.
+
+To distinguish (a) from (b): drive the page over the VM agent and screenshot the SCREEN rather than the
+window. If a calendar popover is standing there, it is (b) and the fix belongs in the capture path
+(capture by screen rect, or by the popover's own window id) rather than in the coordinate.
