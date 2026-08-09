@@ -3733,3 +3733,27 @@ Two top-level windows, and the verb you ask decides which one you get. My first 
 click against window-id's rect and therefore clicked the wrong place — the same class of error as the
 macOS origin mistake in c2560159de, twice in one investigation. Any caller that presents one window and
 then computes coordinates from the other is aiming at nothing, and nothing in the agent says so.
+
+### …and the runner does NOT mix the two window verbs — checked, not assumed
+
+a94e499874 flagged that `present` and `window-id` disagree about which window gallery.exe means, and
+that a caller presenting one while computing coordinates from the other would aim at nothing — the exact
+silent signature the Windows cluster shows. run_comparison.py:933-949 was read to see whether it does:
+
+    win_id = win_rect = bounds = None
+    g = env.geom
+    if not env.present:
+        win = env.agent("window-id", pid, "--proc", ccfg["process"])
+        ...
+    surface = g if env.present else ({...bounds...})
+
+With `present` on — which config/windows.toml sets — the runner uses env.geom (the rect it PINS before
+every shot) and never calls window-id at all. Its own comment says why: a System Events query in between
+"steals key focus back and greys the traffic lights". That is precisely what probe3 did by hand, and the
+click worked. So the runner's coordinate space is right and this is a clean negative.
+
+THREE EXPLANATIONS ARE NOW ELIMINATED for the Windows `not-driven` cluster: the aim is on target
+(f994a7d42b measured box 1 at y[96..127] and the coordinate resolves to y=104), PrintWindow captures the
+reaction (a94e499874), and the runner resolves against the presented rect (this note). What remains is
+that the cluster describes the state of run 2026-08-07-01_18_39 rather than current behaviour — which is
+testable by re-capturing one page, and that is the next step rather than another hypothesis.
