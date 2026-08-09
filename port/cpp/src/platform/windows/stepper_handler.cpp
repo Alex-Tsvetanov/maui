@@ -67,6 +67,12 @@
 
 #include "maui/core/stepper_handler.hpp"
 
+// Primitives carries IButtonBase, where Button::Click actually lives. Without it MSVC reports
+// `error C3779: consume_..._IButtonBase<D>::Click: a function that returns 'auto' cannot be used
+// before it is defined` — the consume_ template is DECLARED by the Controls header and DEFINED by this
+// one, so a Click subscription compiles only when both are present. button_handler.cpp and
+// slider_handler.cpp include it for the same reason.
+#include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Microsoft.UI.Xaml.h>
