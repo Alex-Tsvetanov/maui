@@ -195,6 +195,20 @@ GREEN_DIFF = 1.0
 # Membership is a MEASURED property of the lane's injector, not a preference. Re-measure before editing:
 # launch one column twice, drive it, screenshot after settle, diff below the status bar.
 NON_REPRODUCIBLE_DRIVE = {"android"}
+# WHEN THE TWO COLUMNS' OWN MOTION DIFFERS BY THIS MUCH, SAY SO — even though the cell may still be a
+# legitimate PASS. Measured across the whole board (302 PASS theme-readings carrying a motion number),
+# 8 exceed 2x. The largest is gestures/android at 247x (MAUI 3311 px vs the port's 818452 in dark),
+# which is NOT a false green: its light theme reads 2985 vs 2883, and the dark review already says
+# "2 frame(s) had no partner and were NOT scored". The port's large change lives in frames that could
+# not be PAIRED, while every step that did pair agrees to 0.00%.
+#
+# That combination is the point. Self-motion is measured over each column's FULL sequence (deliberately
+# — a frozen column that dropped frames must not be able to hide), but the VERDICT is taken only on the
+# paired intersection. So a cell can carry a 247x asymmetry and pass every clause, and nothing in the
+# review said so. This does not change the verdict — the analysis above shows it would be wrong to —
+# it makes the cell SELF-REPORTING, so the board screen that found these does not have to be re-run by
+# hand to find the next one.
+ASYMMETRY_FLAG = 2.0
 # How far back to look for the run that produced the board's capture. Run dirs accumulate for weeks;
 # without a bound, a cell whose run was deleted would read every surviving run's frames to prove it.
 MAX_RUNS_SCANNED = 20
@@ -746,6 +760,19 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
               f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
               f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.4f}% ({px_m} px) vs "
               f"{label} {move_o:.4f}% ({px_o} px)")
+    # See ASYMMETRY_FLAG. Appended to the detail rather than folded into the verdict: a large ratio is a
+    # reason to LOOK, not a finding, and on the one cell where it is largest the pixels are innocent.
+    asym_hi, asym_lo = max(px_m, px_o), min(px_m, px_o)
+    if asym_lo > 0 and asym_hi / asym_lo >= ASYMMETRY_FLAG:
+        louder = "MAUI" if px_m > px_o else label
+        unpaired_note = (" Its own frames did not all pair (see the frame count above), so part of that "
+                         "motion was never compared at all." if dropped else "")
+        detail += (f"; !! SELF-MOTION ASYMMETRY {asym_hi / asym_lo:.0f}x — {louder} moved far more over "
+                   f"its OWN sequence than the other column did. The verdict is taken on the PAIRED "
+                   f"frames only, so this does not by itself contradict it, and it is not treated as a "
+                   f"defect.{unpaired_note} It is flagged because a ratio this size means the two "
+                   f"columns did visibly different amounts of work and the paired numbers cannot say "
+                   f"why")
     if roi_split:
         step_name, px_roi_m, px_roi_o = roi_split[0]
         reacted, silent = ("MAUI", label) if px_roi_m else (label, "MAUI")
@@ -1286,6 +1313,43 @@ def _selftest() -> int:
         r = score_cell("roiok", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("both react in the roi: not flagged", r["why"] == "roi-split", False)
         check("both react in the roi: PASS", r["verdict"], PASS)
+
+        # (23) A LARGE SELF-MOTION ASYMMETRY IS REPORTED BUT DOES NOT CHANGE THE VERDICT. Both columns
+        #      visit the same positions, so every paired frame agrees and the cell is a legitimate PASS
+        #      — but one column ALSO moves a second box the other never touches, so its own sequence
+        #      covers far more ground. That is exactly gestures/android's shape (247x, and innocent on
+        #      the paired evidence), and before this flag the review said nothing about it.
+        # Shaped to gestures/android's ACTUAL structure, which the first cut of this fixture missed: the
+        # extra motion must live in an UNPAIRED frame, so every paired frame still agrees and the cell is
+        # a legitimate PASS. (The first version simply gave MAUI a bigger box in a PAIRED frame — that
+        # scores frames-disagree, and would have tested the wrong clause. It also only reached 1.5x,
+        # under the flag, so it failed outright rather than passing hollowly.)
+        #
+        # gif02 is a 2px shift of a 50px box = ~200 changed px; gif03 is a full 5000px move (at (180,250) — the frame is 240x320, so a 50px box at
+        # (200,200) would overrun it) that only
+        # MAUI has. Paired: gif01+gif02, identical in both. Self-motion: MAUI 5000, port 200 -> 25x.
+        wide = [("initial", [(10, 10)]), ("gif01", [(10, 10)]), ("gif02", [(12, 10)]),
+                ("gif03", [(180, 250)])]
+        narrow = [("initial", [(10, 10)]), ("gif01", [(10, 10)]), ("gif02", [(12, 10)])]
+        dm = unit(run, "asym", "maui_xaml", "light", wide)
+        do = unit(run, "asym", "cpp", "light", narrow)
+        publish(comp, "asym", "maui", "light", dm / "0001.png")
+        publish(comp, "asym", "cpp", "light", do / "0001.png")
+        r = score_cell("asym", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("asymmetry: reported", "SELF-MOTION ASYMMETRY" in r["detail"], True)
+        check("asymmetry: says it is not a defect", "not treated as a defect" in r["detail"], True)
+        check("asymmetry: the cell still PASSES on its paired frames", r["verdict"], PASS)
+        check("asymmetry: not a mismatch (both moved)", r["mismatch"], False)
+        check("asymmetry: names the unpaired frames", "never compared at all" in r["detail"], True)
+
+        # (24) …and a SYMMETRIC pair says nothing, or every cell would carry the banner.
+        dm = unit(run, "sym", "maui_xaml", "light", narrow)
+        do = unit(run, "sym", "cpp", "light", narrow)
+        publish(comp, "sym", "maui", "light", dm / "0001.png")
+        publish(comp, "sym", "cpp", "light", do / "0001.png")
+        r = score_cell("sym", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("symmetric: silent", "SELF-MOTION ASYMMETRY" in r["detail"], False)
+        check("symmetric: PASS", r["verdict"], PASS)
 
         # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
         #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.
