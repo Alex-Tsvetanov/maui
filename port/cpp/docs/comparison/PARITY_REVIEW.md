@@ -3757,3 +3757,39 @@ THREE EXPLANATIONS ARE NOW ELIMINATED for the Windows `not-driven` cluster: the 
 reaction (a94e499874), and the runner resolves against the presented rect (this note). What remains is
 that the cluster describes the state of run 2026-08-07-01_18_39 rather than current behaviour — which is
 testable by re-capturing one page, and that is the next step rather than another hypothesis.
+
+### The Windows cluster: four explanations eliminated, and an exact contradiction left standing
+
+A FRESH capture of picker/windows (run 2026-08-09-20_13_27) reproduces the cluster: 0 px in all three
+columns. So "the evidence is merely old" joins the eliminated list. All four:
+
+  1. the aim misses           — box 1 is y[96..127]; the coordinate resolves to image y=104 (f994a7d42b)
+  2. PrintWindow can't see it — 1464 px changed, "Item 11" visible in BOTH capture paths (a94e499874)
+  3. the runner mixes verbs   — it uses env.geom when present=true and never calls window-id (93ff738ffb)
+  4. the capture is stale     — a fresh run reproduces 0 px exactly
+
+AND A FIFTH WAS TESTED AND DISPROVEN in the same pass. run_comparison calls `present` AFTER the click
+and immediately BEFORE the shot ("we activate + set an explicit rect right before EACH shot"), which
+looked like it should dismiss a transient flyout and restore the pre-click state — a clean explanation
+for 0 px. A/B tested on the guest:
+
+    ARM A  click -> shot              1464 px changed
+    ARM B  click -> present -> shot   1464 px changed
+
+Identical. `present` does not dismiss it.
+
+WHAT IS LEFT IS AN EXACT CONTRADICTION, and it is worth stating precisely rather than papering over:
+
+    by hand   launch -> present -> shot -> click(640,134) -> [present] -> shot   = 1464 px, "Item 11"
+    runner    launch -> present -> shot -> click(640,134) ->  present  -> shot   =    0 px, combo empty
+
+Same guest, same gallery.exe, same page, same computed screen point (env.geom {128,30,1024,800} gives
+0.5,0.13 -> 640,134 either way), same verbs in the same order. The runner's own frames show the first
+Picker EMPTY before and after; the by-hand probe commits a selection. I have not found the difference,
+and three of my four hypotheses about this cluster have now been disproven by measurement — so the
+honest state is an open question with a reproducible pair on both sides, not a fifth guess.
+
+NEXT DIAGNOSTIC, cheapest first: have the runner dump the exact click payload it sends (the agent
+already echoes {"x","y","at"}), and diff it against the by-hand call. If the points match, the remaining
+variable is timing — the runner's per-step settle versus the probe's fixed 3s — which a settle sweep on
+one page would settle.
