@@ -3961,3 +3961,49 @@ captures/windows/maui/<key>_light.png, find the control the scenario names, divi
 
 So the Windows cluster splits 2 / 6: two pages were a scoring blind spot and are now green; six are
 plain aim errors that were never measured on that lane.
+
+### ios_scroll_view/windows: the drag is delivered, starts ON the thumb, and the Slider does not move
+
+Two corrections were made and neither recovered the cell, so both are recorded with what they ruled out.
+
+FIRST, A REAL BUG OF MINE. 2220517ac4 gave the step `at_windows-x64 = [0.5, 0.0588]` (the thumb, y=47)
+but left `to = [0.85, 0.09]` — y=72, TWENTY-FIVE PIXELS BELOW THE TRACK. The gesture began on the
+control and was released off it. `to_windows-x64 = [0.85, 0.0588]` fixes that; a horizontal drag has to
+hold its y at both ends. Recaptured: still 0 px in all three columns, so the mismatch was real but not
+the cause.
+
+(maccatalyst carries the same mismatch — start 0.0638, end 0.09 — and DOES work, 1790 px in all three
+columns. Its Slider tolerates a 21px vertical drift where WinUI apparently does not. Left alone: that
+cell is green on real evidence and tidying a working coordinate is how a passing cell gets broken.)
+
+SECOND, THE COORDINATE IS RIGHT. Locating the control by its blue pixels in
+captures/windows/maui/ios_scroll_view_light.png:
+
+    track (filled)  x[8..516]    y[46..49]      ~504 px per row
+    THUMB           x[507..516]  y[43..52]      the taller cluster at the track's end
+
+Thumb centre (511,47); the scenario aims at (512,47). It is on the thumb.
+
+THIRD, THE GESTURE IS DELIVERED. Driving it by hand through the session-1 agent with the runner's exact
+argv form:
+
+    drag 756 47 1114 47 --steps 20 --duration 0.5
+    -> {'ok': True, 'gesture': 'drag', 'points': 20, 'to': [1114, 47], 'elapsed': 1.091, ...}
+
+Twenty points over 1.09s, agent reports success. The only pixels that change are x[1010..1011]
+y[48..697] — a scrollbar appearing at the window's right edge, i.e. the pointer moved and the app
+noticed. The Slider itself does not move.
+
+(An earlier attempt passed --steps/--duration POSITIONALLY and the agent rejected it with
+"unrecognized arguments" — worth noting because the failed call still produced that same 1300-px
+scrollbar change, which could easily be mistaken for a partial success.)
+
+SO: right control, right start point, right end point, gesture delivered, nothing moves. That is a
+different failure from every other page in this cluster, and it is specific to DRAG on this lane —
+clicks demonstrably work here (picker, radio_button_content, data_template_selector all react). The
+plausible remaining cause is that WinUI's Slider needs pointer capture that a synthetic SendInput drag
+does not establish, but that is untested and is NOT being asserted.
+
+carousel_page is the other unresolved page in the cluster and is also a gesture (a swipe), so it is
+likely the same question. Both stay INVALID/`not-driven`, which is honest: something was injected and no
+reaction was captured.

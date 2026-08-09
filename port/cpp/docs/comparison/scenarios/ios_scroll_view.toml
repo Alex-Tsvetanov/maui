@@ -65,5 +65,16 @@ at_macos-arm64 = [0.5, 0.0638]
 # track beside it drags nothing.
 at_windows-x64 = [0.5, 0.0588]
 to = [0.85, 0.09]         # drags the thumb toward Maximum=100, well inside the edge-to-edge track
+# WINDOWS: the END point needs the lane override too, and forgetting it is why the first corrected
+# aim still produced 0 px. `at_windows-x64` put the START on the thumb at y=47, while `to` kept the
+# portable y=0.09 -> y=72 — TWENTY-FIVE PIXELS BELOW THE TRACK. The gesture began on the control
+# and was released off it, so the slider never committed a value. A horizontal drag must hold its
+# y: same 0.0588 at both ends.
+#
+# maccatalyst has the same mismatch (start 0.0638, end 0.09) and DOES work — measured 1790 px in
+# all three columns — so its Slider tolerates a 21px vertical drift where WinUI does not. It is
+# left alone deliberately: that cell is green on real evidence, and "fixing" a working coordinate
+# to look tidier is how a passing cell gets broken.
+to_windows-x64 = [0.85, 0.0588]
 steps = 20                # a deliberate pan, not a flick — matches carousel_page.toml's calibration
 duration = 0.5
