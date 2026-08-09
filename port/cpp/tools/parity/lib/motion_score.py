@@ -390,6 +390,80 @@ def _has_action_scenario(key: str, comp: Path) -> bool:
         return False
 
 
+def _step_rois(key: str, comp: Path, plat_dir: str = "") -> dict:
+    """{step name: (x0, y0, x1, y1)} for every step declaring a `roi`, as 0..1 fractions.
+
+    WHY THIS EXISTS — a green this scorer earned honestly and that was still wrong. On
+    button/maccatalyst (run 2026-08-09-18_48_05) MAUI's column left its readout at "Taps: 0" while both
+    port columns advanced to "Taps: 1". The columns ended in DIFFERENT LOGICAL STATES and the cell
+    scored PASS, because the whole-frame numbers could not see it: one digit is ~41 px of 819,200,
+    about 0.005% of the frame, and worst-frame SSIM read 0.9897 with 0.40% differing — comfortably
+    inside the green bar.
+
+    No threshold tightening fixes that. The signal is not small NOISE, it is a small SIGNAL, and any
+    bar low enough to catch a changed digit would red every page with an antialiasing difference. What
+    is missing is not sensitivity but LOCATION: the scenario knows where its reaction is supposed to
+    appear, and nothing was asking it.
+
+    So a step may declare `roi = [x0, y0, x1, y1]` — the region that MUST react. Fractions of the frame,
+    the same space as `at`, so one declaration serves every lane. Deliberately GENEROUS rather than
+    tight: it is a "the readout lives around here" box, not a bounding box, and it only has to separate
+    the reaction area from the rest of the page.
+
+    PER-LANE, via `roi_<board platform>` (roi_ios / roi_android / roi_maccatalyst / roi_windows), and
+    that is FORCED rather than symmetric-with-`at` for tidiness. Measured on the `button` page, the
+    readout and the first button below it:
+
+        ios          readout y 0.088..0.103    first button starts 0.123
+        maccatalyst  readout y 0.055..0.066    first button starts 0.084
+        windows      readout y ~0.068          first button starts 0.088
+        android      readout y ~0.073..0.085   first button starts 0.102
+
+    iOS's readout sits BELOW maccatalyst's first button, so no single portable y-range can contain every
+    lane's readout while excluding every lane's buttons — and an ROI that swallows the button is worse
+    than none, because the button reacting would satisfy it and the gate would pass the very case it
+    exists to catch. Unlike `at`, this is resolved HERE rather than by run_comparison.for_lane: that
+    helper promotes only `at`/`to` and is keyed by ENV name, while this needs the BOARD platform, which
+    is what score_cell already has.
+
+    Missing file, unreadable TOML or no `roi` key all mean "no ROI declared", and the cell scores
+    exactly as it did before — this gate can only ever ADD a finding, never remove one."""
+    import tomllib
+    f = comp / "scenarios" / f"{key}.toml"
+    out = {}
+    try:
+        doc = tomllib.loads(f.read_text())
+    except (OSError, tomllib.TOMLDecodeError):
+        return out
+    for step in doc.get("steps", []):
+        name = step.get("name")
+        roi = step.get(f"roi_{plat_dir}") if plat_dir else None
+        if roi is None:
+            roi = step.get("roi")
+        if name and isinstance(roi, list) and len(roi) == 4:
+            out[str(name)] = tuple(float(v) for v in roi)
+    return out
+
+
+def _roi_changed(first_png: str, later_png: str, roi, crop_top: int) -> int:
+    """Changed pixels INSIDE `roi` between two frames of the SAME column. 0 when nothing moved there."""
+    import numpy as np  # noqa: PLC0415
+    import pixel_score  # noqa: PLC0415
+
+    ia, ib = pixel_score.load_pair(first_png, later_png)
+    w, h = ia.size
+    if crop_top > 0 and h > crop_top:
+        ia, ib = ia.crop((0, crop_top, w, h)), ib.crop((0, crop_top, w, h))
+        w, h = ia.size
+    x0, y0, x1, y1 = roi
+    box = (max(0, int(x0 * w)), max(0, int(y0 * h)), min(w, int(x1 * w)), min(h, int(y1 * h)))
+    if box[2] <= box[0] or box[3] <= box[1]:
+        return 0
+    a = np.asarray(ia.crop(box).convert("RGB"), dtype=np.int16)
+    b = np.asarray(ib.crop(box).convert("RGB"), dtype=np.int16)
+    return int((np.max(np.abs(a - b), axis=-1) > pixel_score.DIFF_THRESHOLD).sum())
+
+
 def _twin_cannot_react(key: str, comp: Path) -> bool:
     """Does this page's scenario declare that the MAUI ground-truth column is static by construction?
 
@@ -638,6 +712,23 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # frames green" cannot mean two different things.
     frames_agree = ssims[worst_i] >= GREEN_SSIM and scores[worst_i]["diff_pct"] <= GREEN_DIFF
     frames_disagree = not frames_agree
+    # ---- the DECLARED REACTION REGION (see _step_rois for the green this exists to stop) ------------
+    # For every paired step the scenario gave a `roi`, ask each column SEPARATELY whether anything moved
+    # inside it, measured against that column's own FIRST paired frame. A region that reacts in one
+    # column and not the other is a divergence no whole-frame number can carry: on button/maccatalyst
+    # the entire difference was one digit, 0.005% of the frame.
+    roi_by_step = _step_rois(key, comp, plat_dir)
+    roi_split = []          # (step, maui px, other px) for every region only ONE column reacted in
+    if roi_by_step and pairs:
+        first_m, first_o = pairs[0][1], pairs[0][2]
+        for step_name, path_m, path_o in pairs:
+            roi = roi_by_step.get(step_name)
+            if roi is None:
+                continue
+            px_roi_m = _roi_changed(first_m, path_m, roi, crop_top)
+            px_roi_o = _roi_changed(first_o, path_o, roi, crop_top)
+            if (px_roi_m > 0) != (px_roi_o > 0):
+                roi_split.append((step_name, px_roi_m, px_roi_o))
     phase_only = (plat_dir in NON_REPRODUCIBLE_DRIVE and frames_disagree
                   and not mismatch and m_moved and o_moved
                   and spread <= PHASE_SELF_MOTION_TOL and at_rest_diff <= PHASE_AT_REST_PCT)
@@ -655,6 +746,14 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
               f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
               f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.4f}% ({px_m} px) vs "
               f"{label} {move_o:.4f}% ({px_o} px)")
+    if roi_split:
+        step_name, px_roi_m, px_roi_o = roi_split[0]
+        reacted, silent = ("MAUI", label) if px_roi_m else (label, "MAUI")
+        detail = (f"!! DECLARED REACTION REGION SPLIT at step '{step_name}': {reacted} changed "
+                  f"{max(px_roi_m, px_roi_o)} px inside the scenario's `roi` and {silent} changed NONE. "
+                  f"The columns end in different logical states, and the whole-frame numbers below "
+                  f"cannot show it — a readout is a rounding error against a full page (measured: one "
+                  f"digit is ~41 px of 819,200, 0.005%). This is why the region is declared. {detail}")
     # The exemption applies ONLY in the authored direction — the port moved and MAUI did not. If MAUI
     # reacts and the PORT is frozen on such a page, the twin's omission cannot explain it and the
     # mismatch is exactly as damning as anywhere else, so it is left alone.
@@ -707,7 +806,11 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
                   f"ANIMATED. {cause} {detail}")
 
     # ---- the verdict. Order mirrors VERDICT_RANK, so the first clause that fires is the governing one.
-    if mismatch and not authored_asymmetry:
+    if roi_split:
+        # FIRST, ahead of every other clause: this is the one finding the whole-frame numbers actively
+        # HIDE, so anything that reads them — including the frames_agree test below — would overrule it.
+        verdict, why = FAIL, "roi-split"
+    elif mismatch and not authored_asymmetry:
         verdict, why = FAIL, "mismatch"
     elif both_frozen:
         # INVALID, never FAIL: two frozen columns agree perfectly and would otherwise read as a
@@ -1135,6 +1238,54 @@ def _selftest() -> int:
                                                     STILL, comp)["verdict"], FAIL)
         check("fling phase: INCONCLUSIVE", score_cell("phase", "android", "cpp", "light", 0,
                                                       STILL, comp)["verdict"], INCONCLUSIVE)
+
+        # (21) THE DECLARED REACTION REGION — reproducing the green that had to be reverted.
+        #      button/maccatalyst: both columns MOVED, so no mismatch; the frames agreed to 0.40%
+        #      differing at SSIM 0.9897, comfortably green; and MAUI's readout still said "Taps: 0"
+        #      while the port's said "Taps: 1". The whole-frame numbers cannot carry a one-digit
+        #      difference — 41 px of 819,200 — so the scenario has to say WHERE the reaction belongs.
+        #
+        #      Built to that shape deliberately: BOTH columns change by a large amount OUTSIDE the roi
+        #      (so every existing clause is satisfied and would score PASS), and only one changes
+        #      INSIDE it.
+        (comp / "scenarios").mkdir(exist_ok=True)
+        (comp / "scenarios" / "roisplit.toml").write_text(
+            '[[steps]]\nname = "initial"\n\n[[steps]]\nname = "after-tap"\naction = "click"\n'
+            'at = [0.5, 0.5]\nroi = [0.0, 0.0, 0.25, 0.25]\n')
+
+        def roi_frames(readout_moves):
+            # a big shared box far from the roi (both columns move it), plus a small box INSIDE the
+            # roi that only moves when readout_moves.
+            after = [(120, 120)] + ([(20, 20)] if readout_moves else [(5, 5)])
+            return [("initial", [(60, 120), (5, 5)]), ("after-tap", after)]
+
+        # size=3 IS THE POINT, not a detail. The first cut of this fixture used the default 50px box and
+        # the case failed for the WRONG REASON — a 50px box shifted 15px is a big whole-frame difference,
+        # so `frames-disagree` fired and the ROI clause was never what caught it. That would have been a
+        # test passing while proving nothing. At size 3 the in-roi difference is ~18 px of 76,800
+        # (0.023%), under the 1.0% green bar and invisible to SSIM — the same relationship the real
+        # button/maccatalyst digit had to its 819,200-pixel frame.
+        dm = unit(run, "roisplit", "maui_xaml", "light", roi_frames(False), size=3)   # readout frozen
+        do = unit(run, "roisplit", "cpp", "light", roi_frames(True), size=3)          # readout moved
+        publish(comp, "roisplit", "maui", "light", dm / "0001.png")
+        publish(comp, "roisplit", "cpp", "light", do / "0001.png")
+        r = score_cell("roisplit", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("roi split: FAIL, not PASS", r["verdict"], FAIL)
+        check("roi split: named", r["why"], "roi-split")
+        check("roi split: says which side was silent", "changed NONE" in r["detail"], True)
+        check("roi split: leads with it", r["detail"].startswith("!! DECLARED REACTION REGION"), True)
+
+        # (22) …and a region BOTH columns react in is not flagged. Without this the gate would red every
+        #      driven page that declares an roi at all, which is worse than not having it.
+        dm = unit(run, "roiok", "maui_xaml", "light", roi_frames(True), size=3)
+        do = unit(run, "roiok", "cpp", "light", roi_frames(True), size=3)
+        publish(comp, "roiok", "maui", "light", dm / "0001.png")
+        publish(comp, "roiok", "cpp", "light", do / "0001.png")
+        (comp / "scenarios" / "roiok.toml").write_text(
+            (comp / "scenarios" / "roisplit.toml").read_text())
+        r = score_cell("roiok", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("both react in the roi: not flagged", r["why"] == "roi-split", False)
+        check("both react in the roi: PASS", r["verdict"], PASS)
 
         # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
         #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.

@@ -25,10 +25,10 @@ _Android **dark** is not currently comparable: the MAUI reference renders light 
 | Platform | Cells with motion evidence | ✅ PASS | ❌ FAIL | 🚫 INVALID | ❔ INCONCLUSIVE |
 | --- | --- | --- | --- | --- | --- |
 | iOS | 86 | 45 | 17 | 24 | 0 |
-| macOS | 86 | 41 | 7 | 38 | 0 |
+| macOS | 86 | 41 | 9 | 36 | 0 |
 | Android | 86 | 33 | 9 | 28 | 16 |
 | Windows | 86 | 32 | 6 | 47 | 1 |
-| **Total** | **344** | **151** | **39** | **137** | **17** |
+| **Total** | **344** | **151** | **41** | **135** | **17** |
 
 <details>
 <summary><h2>Artifact size — click to expand</h2></summary>
@@ -3153,15 +3153,15 @@ ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-06_54_58 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `roi-split` · dark PASS / light FAIL · <sub>run 2026-08-09-18_48_05 · 2026-08-09</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) — worst SSIM 0.9904 at frame 1 'initial' (0.37% pixels differ), mean SSIM 0.9904; per-frame diff% 0.37/0.37; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) — worst SSIM 0.9906 at frame 1 'initial' (0.37% pixels differ), mean SSIM 0.9906; per-frame diff% 0.37/0.37; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
+Light: !! DECLARED REACTION REGION SPLIT at step 'after-tap': C++ changed 41 px inside the scenario's `roi` and MAUI changed NONE. The columns end in different logical states, and the whole-frame numbers below cannot show it — a readout is a rounding error against a full page (measured: one digit is ~41 px of 819,200, 0.005%). This is why the region is declared. MOTION 2 frames paired by step (run 2026-08-09-18_48_05, commit cd91ee19ec, 2026-08-09) — worst SSIM 0.9897 at frame 2 'after-tap' (0.40% pixels differ), mean SSIM 0.9900; per-frame diff% 0.37/0.40; self-motion MAUI 0.0228% (187 px) vs C++ 0.0050% (41 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_48_05, commit cd91ee19ec, 2026-08-09) — worst SSIM 0.9906 at frame 1 'initial' (0.37% pixels differ), mean SSIM 0.9906; per-frame diff% 0.37/0.37; self-motion MAUI 0.0059% (48 px) vs C++ 0.0059% (48 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-06_54_58 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `roi-split` · dark PASS / light FAIL · <sub>run 2026-08-09-18_48_05 · 2026-08-09</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) — worst SSIM 0.9892 at frame 1 'initial' (0.40% pixels differ), mean SSIM 0.9892; per-frame diff% 0.40/0.40; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-06_54_58, commit 5abe607545, 2026-08-07) — worst SSIM 0.9893 at frame 1 'initial' (0.40% pixels differ), mean SSIM 0.9893; per-frame diff% 0.40/0.40; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! DECLARED REACTION REGION SPLIT at step 'after-tap': C++ &amp; XAML changed 41 px inside the scenario's `roi` and MAUI changed NONE. The columns end in different logical states, and the whole-frame numbers below cannot show it — a readout is a rounding error against a full page (measured: one digit is ~41 px of 819,200, 0.005%). This is why the region is declared. MOTION 2 frames paired by step (run 2026-08-09-18_48_05, commit cd91ee19ec, 2026-08-09) — worst SSIM 0.9884 at frame 2 'after-tap' (0.43% pixels differ), mean SSIM 0.9888; per-frame diff% 0.40/0.43; self-motion MAUI 0.0228% (187 px) vs C++ &amp; XAML 0.0050% (41 px) · Dark: MOTION 2 frames paired by step (run 2026-08-09-18_48_05, commit cd91ee19ec, 2026-08-09) — worst SSIM 0.9893 at frame 1 'initial' (0.40% pixels differ), mean SSIM 0.9893; per-frame diff% 0.40/0.40; self-motion MAUI 0.0059% (48 px) vs C++ &amp; XAML 0.0059% (48 px)
 
 ### 22. Carousel Page — 🟡/🟡
 <sub>carousel_page</sub>

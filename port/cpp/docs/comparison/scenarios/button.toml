@@ -51,4 +51,25 @@ action = "click"
 at = [0.4983, 0.2128]     # the "Clicked" button (3rd) -> bumps the "Taps:" readout 0 -> 1
 at_macos-arm64 = [0.499, 0.1588]
 at_windows-x64 = [0.499, 0.2000]
+# THE DECLARED REACTION REGION — where the "Taps:" readout lives, per lane. A tap that does not change
+# THIS box did not do what this scenario claims, however much else moved on the page.
+#
+# WHY IT IS NEEDED HERE SPECIFICALLY: run 2026-08-09-18_48_05 scored this cell GREEN/PASS while MAUI's
+# readout still read "Taps: 0" and both port columns read "Taps: 1". Both columns had moved (so no
+# mismatch) and the frames agreed to 0.40% differing at SSIM 0.9897 — because the entire difference was
+# one digit, ~41 px of 819,200, about 0.005% of the frame. No threshold catches that; only a location
+# does.
+#
+# WHY PER-LANE, measured — the readout and the FIRST button below it:
+#   ios          readout y 0.088..0.103   first button starts 0.123
+#   maccatalyst  readout y 0.055..0.066   first button starts 0.084
+#   windows      readout y ~0.068         first button starts 0.088
+#   android      readout y ~0.073..0.085  first button starts 0.102
+# iOS's readout sits BELOW maccatalyst's first button, so no single portable box excludes every lane's
+# buttons — and an roi that swallows a button is WORSE than none, since the button reacting would
+# satisfy it and pass the very case this exists to catch.
+roi_ios = [0.0, 0.080, 0.42, 0.112]
+roi_android = [0.0, 0.065, 0.42, 0.095]
+roi_maccatalyst = [0.0, 0.048, 0.20, 0.074]
+roi_windows = [0.0, 0.055, 0.20, 0.080]
 automation_id = "clicked_button"   # used by the DevFlow driver if present; ignored by coordinates

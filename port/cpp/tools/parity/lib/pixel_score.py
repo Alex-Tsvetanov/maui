@@ -237,6 +237,18 @@ def classify(theme_scores):
         motion = {"verdict": governing, "themes": verdicts, "why": why,
                   "run": ev.get("run"), "commit": ev.get("commit"),
                   "captured_at": ev.get("captured_at")}
+        # A DECLARED-REGION SPLIT CANNOT BE GREEN EITHER, and this is a deliberate exception to the
+        # "do not AND motion into the colour" rule above. That rule exists because the motion layer
+        # FLAPS — 13 cells moved in one rescore — and a flapping signal must not drive the 100% layer.
+        # `roi-split` is not that kind of signal: the scenario AUTHORED the region its reaction must
+        # appear in, and one column did not change it. There is nothing to wobble.
+        #
+        # Capped at YELLOW rather than forced red on purpose. The pixels genuinely do agree (on
+        # button/maccatalyst, 0.40% differing at SSIM 0.9897) — the columns differ by one glyph, which
+        # is a real parity failure and a small visual one. Yellow says "not verified"; red would claim a
+        # magnitude the frames do not support.
+        if any(v.get("why") == "roi-split" for v in have.values()) and status == "green":
+            status = "yellow"
         # INVALID CANNOT BE GREEN. This is the plan's "never turn INVALID green to make the board look
         # complete", and it closes a real hole: a driven page whose run directory was pruned fell
         # through to `not_scored`, which returns the SINGLE-STILL number — so the cell scored a
@@ -526,6 +538,14 @@ def _selftest() -> int:
                              "dark": None})
     check("FAIL does not force red", st, "yellow")
     check("FAIL is still reported", mo["verdict"], motion_score.FAIL)
+
+    # (4b) AN roi-split CAPS AT YELLOW, and is the ONE motion verdict allowed to touch the colour.
+    #      Deliberate exception: unlike a whole-frame FAIL this one cannot flap — the scenario declared
+    #      the region and a column did not change it. Yellow, not red: the pixels really do agree.
+    st, _rev, mo = classify({"light": cell(GREEN, verdict=motion_score.FAIL, why="roi-split"),
+                             "dark": None})
+    check("roi-split caps a pixel-perfect cell at yellow", st, "yellow")
+    check("roi-split still reports FAIL", mo["verdict"], motion_score.FAIL)
 
     # (5) A CELL WITH NO MOTION EVIDENCE AT ALL carries no motion block — the ~158 static pages must
     #     not acquire an empty one.
