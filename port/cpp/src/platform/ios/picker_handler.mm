@@ -138,6 +138,82 @@ namespace
         return [field.inputView isKindOfClass:[UIPickerView class]] ? (UIPickerView*)field.inputView : nil;
     }
 
+#if TARGET_OS_MACCATALYST
+    // PickerHandler.iOS.cs's GetCurrentViewController: walk PresentedViewController to the TOP, so a
+    // picker opened over an already-presented sheet attaches to that sheet rather than to a controller
+    // UIKit will refuse to present from.
+    UIViewController* top_view_controller()
+    {
+        UIApplication* const app = [UIApplication sharedApplication];
+        UIViewController* controller = nil;
+        for (UIWindow* window in app.windows)
+        {
+            if (window.isKeyWindow)
+            {
+                controller = window.rootViewController;
+                break;
+            }
+        }
+        while (controller.presentedViewController != nil)
+        {
+            controller = controller.presentedViewController;
+        }
+        return controller;
+    }
+
+    // DisplayAlert (PickerHandler.iOS.cs's `#else` arm), ported. Builds a fresh UIPickerView + source
+    // each time, exactly as the oracle does — the Catalyst picker owns no persistent wheel.
+    //
+    // THE EMPTY TITLE AND MESSAGE ARE LOAD-BEARING, and the oracle says so in its own comment: UIKit
+    // only hosts an added subview when the alert is created with an empty string title, so passing
+    // VirtualView.Title here would silently produce an alert with no wheel in it. The Title is instead
+    // paid for as 25pt of TOP PADDING below.
+    UIAlertController* build_catalyst_picker_alert(UITextField* field, UIPickerView* wheel, bool has_title,
+                                                   void (^on_done)(void))
+    {
+        const CGFloat k_picker_height = 240;
+        const CGFloat k_done_button_height = 90;
+        const CGFloat padding_title = has_title ? 25 : 0;
+
+        UIAlertController* const controller =
+            [UIAlertController alertControllerWithTitle:@""
+                                                message:@""
+                                         preferredStyle:UIAlertControllerStyleActionSheet];
+        [controller addAction:[UIAlertAction actionWithTitle:@"Done"
+                                                       style:UIAlertActionStyleDefault
+                                                     handler:^(UIAlertAction*) {
+                                                       on_done();
+                                                     }]];
+        if (controller.view != nil)
+        {
+            [controller.view addSubview:wheel];
+            UIView* const container = controller.view;
+            wheel.translatesAutoresizingMaskIntoConstraints = NO;
+            [NSLayoutConstraint activateConstraints:@[
+                [wheel.centerXAnchor constraintEqualToAnchor:container.centerXAnchor],
+                [wheel.widthAnchor constraintEqualToAnchor:container.widthAnchor],
+                [wheel.topAnchor constraintEqualToAnchor:container.topAnchor constant:padding_title],
+                [wheel.heightAnchor constraintEqualToConstant:k_picker_height],
+            ]];
+            [container addConstraint:[NSLayoutConstraint constraintWithItem:container
+                                                                  attribute:NSLayoutAttributeHeight
+                                                                  relatedBy:NSLayoutRelationEqual
+                                                                     toItem:nil
+                                                                  attribute:NSLayoutAttributeNotAnAttribute
+                                                                 multiplier:1
+                                                                   constant:k_picker_height + k_done_button_height]];
+        }
+        // ActionSheet style is presented as a popover on Catalyst; without a source it throws.
+        UIPopoverPresentationController* const popover = controller.popoverPresentationController;
+        if (popover != nil)
+        {
+            popover.sourceView = field;
+            popover.sourceRect = field.bounds;
+        }
+        return controller;
+    }
+#endif // TARGET_OS_MACCATALYST
+
     MauiPickerSource* source_of(UITextField* field)
     {
         return (MauiPickerSource*)objc_getAssociatedObject(field, &k_source_key);
@@ -260,6 +336,16 @@ namespace
     {
         view->set_is_focused(true);
     }
+#if TARGET_OS_MACCATALYST
+    // MauiPickerProxy.OnStarted's `#if MACCATALYST` tail: DisplayAlert(PlatformView, SelectedIndex).
+    // AFTER the IsOpen/IsFocused raises, matching the oracle's order — user code reacting to IsOpen
+    // must see the same state it would on iOS, and a raise may destroy the handler, which is why the
+    // presenting call re-reads it through live_view rather than reusing anything captured above.
+    if (keep.handler != nullptr && maui::platform::ios::live_view(keep.handler) != nullptr)
+    {
+        keep.handler->present_catalyst_picker();
+    }
+#endif
 }
 
 - (void)onEnded:(id)sender
@@ -318,6 +404,19 @@ namespace maui::core
     picker_platform::~picker_platform()
     {
         detach_trampolines(*this); // before any CFRelease: the void* slot holds the last retain
+#if TARGET_OS_MACCATALYST
+        // DisconnectHandler's `#if MACCATALYST` block: dismiss the alert before dropping it. Leaving it
+        // presented over a destroyed handler is the worst outcome available here — a modal the user
+        // cannot dismiss, whose Done block would then reach a dead `this`. `animated:NO` because the
+        // owner is going away now and there is nothing left to animate against.
+        if (catalyst_controller != nullptr)
+        {
+            UIAlertController* const controller = (__bridge UIAlertController*)catalyst_controller;
+            [controller dismissViewControllerAnimated:NO completion:nil];
+            CFRelease(catalyst_controller);
+            catalyst_controller = nullptr;
+        }
+#endif
         if (native != nullptr)
         {
             CFRelease(native); // balances the __bridge_retained in create_platform_view
@@ -379,6 +478,74 @@ namespace maui::core
         }
     }
 
+    void picker_handler::present_catalyst_picker()
+    {
+#if TARGET_OS_MACCATALYST
+        auto* const platform = typed_platform_view();
+        auto* const view = virtual_view();
+        if (platform == nullptr || platform->native == nullptr || view == nullptr)
+        {
+            return;
+        }
+        // Already up: OnStarted can fire again while the alert holds focus. Presenting a second
+        // controller over the first is what leaves an undismissable modal behind.
+        if (platform->catalyst_controller != nullptr)
+        {
+            return;
+        }
+        UITextField* const field = as_field(platform->native);
+
+        // A FRESH wheel and source each time, exactly as DisplayAlert does — the Catalyst picker owns
+        // no persistent UIPickerView, so nothing here can outlive the alert that hosts it.
+        UIPickerView* const wheel = [[UIPickerView alloc] init];
+        MauiPickerSource* const source = [[MauiPickerSource alloc] init];
+        source.handler = this;
+        const int selected = view->selected_index();
+        source.selectedIndex = selected;
+        wheel.dataSource = source;
+        wheel.delegate = source;
+        // The source is weakly held by the wheel's dataSource/delegate; pin it to the wheel's lifetime.
+        objc_setAssociatedObject(wheel, &k_source_key, source, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        [wheel reloadAllComponents];
+        [wheel selectRow:std::max(selected, 0) inComponent:0 animated:YES];
+        [wheel reloadAllComponents];
+
+        picker_handler* const self = this;
+        UIAlertController* const controller = build_catalyst_picker_alert(field, wheel, !view->title().empty(), ^{
+          // FinishSelectItem + `IsFocused = IsOpen = false`. Routed through the SAME portable
+          // on_done channel the iOS Done accessory uses, so both lanes commit identically and the
+          // headless twin keeps one seam to test.
+          auto* const live = maui::platform::ios::live_view(self);
+          auto* const p = self->typed_platform_view();
+          if (p != nullptr && p->on_done)
+          {
+              p->on_done(static_cast<int>([wheel selectedRowInComponent:0]));
+          }
+          if (p != nullptr && p->catalyst_controller != nullptr)
+          {
+              CFBridgingRelease(p->catalyst_controller);
+              p->catalyst_controller = nullptr;
+          }
+          if (live != nullptr)
+          {
+              live->set_is_open(false);
+          }
+          if (auto* const still = maui::platform::ios::live_view(self))
+          {
+              still->set_is_focused(false);
+          }
+        });
+
+        UIViewController* const host = top_view_controller();
+        if (host == nil)
+        {
+            return; // no window (the spawned test process): stay inert rather than crash
+        }
+        platform->catalyst_controller = (__bridge_retained void*)controller;
+        [host presentViewController:controller animated:YES completion:nil];
+#endif
+    }
+
     std::unique_ptr<picker_platform> picker_handler::create_platform_view()
     {
         auto platform = std::make_unique<picker_platform>();
@@ -386,10 +553,19 @@ namespace maui::core
         // InputView = pickerView, InputAccessoryView = MauiDoneAccessoryView, Button traits }.
         UITextField* const field = [[MauiIosPicker alloc] initWithFrame:CGRectZero];
         field.borderStyle = UITextBorderStyleRoundedRect;
+#if TARGET_OS_MACCATALYST
+        // `#else` arm: `new MauiPicker(null) { BorderStyle = RoundedRect }` — NO inputView, NO wheel,
+        // NO Done accessory. Catalyst has no software keyboard, so an inputView is never presented;
+        // the wheel arrives later as a subview of a UIAlertController (see present_catalyst_wheel).
+        // MEASURED before this branch existed: tapping the field produced a blue focus ring and nothing
+        // else — first responder was reached and the inputView simply never appeared.
+        field.accessibilityTraits = UIAccessibilityTraitButton;
+#else
         UIPickerView* const wheel = [[UIPickerView alloc] initWithFrame:CGRectZero];
         field.inputView = wheel;
         field.inputView.autoresizingMask = UIViewAutoresizingFlexibleHeight;
         field.accessibilityTraits = UIAccessibilityTraitButton;
+#endif
         platform->native = (__bridge_retained void*)field; // the void* slot owns one reference
         return platform;
     }

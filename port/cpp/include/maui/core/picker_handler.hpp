@@ -38,6 +38,17 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
+#ifdef MAUI_PLATFORM_ANDROID
+namespace maui::platform::android
+{
+    // The click/dialog trampoline target the android partial owns (src/platform/android/
+    // android_dialog_ops.hpp). Forward-declared: this cross-platform header must not see the JNI seam,
+    // and a shared_ptr to an incomplete type is well-formed as long as it is only default-constructed
+    // and destroyed here (the android partial, which sees the definition, does the rest).
+    struct dialog_trampoline;
+} // namespace maui::platform::android
+#endif
+
 namespace maui::core
 {
     struct picker_platform : view_platform_base
@@ -65,6 +76,19 @@ namespace maui::core
         // Inbound channel (wired by the platform partial; headless tests invoke it directly): commit
         // the native wheel's pending row — the Done-tap / popup-action analog (FinishSelectItem).
         move_only_function<void(int row)> on_done;
+
+#ifdef MAUI_PLATFORM_IOS
+        // MAC CATALYST ONLY (the slot is declared for the whole iOS backend because the struct layout
+        // must not depend on TARGET_OS_MACCATALYST, which is a per-TU compiler define rather than a
+        // build-wide one like MAUI_PLATFORM_*): the presented UIAlertController hosting the wheel.
+        //
+        // Catalyst does not present a UITextField's inputView — it has no software keyboard to present
+        // one into — so PickerHandler.iOS.cs's `#else` arm gives the picker NO inputView and shows a
+        // UIAlertController instead. This holds that controller so a disconnect can dismiss it; leaving
+        // it up over a torn-down handler is a modal the user cannot dismiss and a dangling delegate.
+        // Retained through the same __bridge_retained convention as `native`; nullptr on iOS proper.
+        void* catalyst_controller = nullptr;
+#endif
 
 #ifdef MAUI_PLATFORM_WINDOWS
         // WinUI 3 backend: the three event registration tokens on_connect_handler produces
@@ -138,6 +162,15 @@ namespace maui::core
         void update_transform(const maui::core::transform_spec& value) override;
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_semantics(const maui::core::semantics* value) override;
+        // The single-choice android.app.AlertDialog the field's Click opens (PickerHandler.Android.cs's
+        // _dialog), pinned as a JNI global reference while it is shown; nullptr when no dialog is up —
+        // which is also OnClick's `_dialog == null` guard. Released (dismiss + DeleteGlobalRef) by
+        // release_dialog_seam from BOTH on_disconnect_handler and ~picker_platform.
+        void* dialog = nullptr;
+        // The trampoline the click listener and the dialog's row/dismiss listeners carry as their peer.
+        // Heap-allocated and registry-registered so a late callback into a torn-down handler resolves to
+        // nothing instead of dereferencing freed storage (android_dialog_ops.hpp's header).
+        std::shared_ptr<maui::platform::android::dialog_trampoline> dialog_peer;
 #endif
     };
 
@@ -156,6 +189,16 @@ namespace maui::core
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,
                                                             double height_constraint) const override;
         void platform_arrange(const maui::graphics::rect& frame) override;
+
+#ifdef MAUI_PLATFORM_IOS
+        // MAC CATALYST ONLY (see picker_platform::catalyst_controller for why the declaration is not
+        // itself guarded on TARGET_OS_MACCATALYST): present the UIAlertController that hosts the wheel.
+        // The iOS build compiles this to a no-op, so the editing-began path can call it unconditionally.
+        //
+        // PUBLIC because the Obj-C editing proxy — a file-scope class in the .mm, not a friend — calls
+        // it from EditingDidBegin, mirroring MauiPickerProxy.OnStarted's `#if MACCATALYST` tail.
+        void present_catalyst_picker();
+#endif
 
         // Property map functions (platform recipe). map_items is the C# Reload/UpdatePicker; the
         // selection map shares its body (both route through the UpdatePicker(picker, index) helper).
