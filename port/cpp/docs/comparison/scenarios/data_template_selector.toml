@@ -32,6 +32,11 @@ at = [0.5, 0.12]          # search_ SearchBar ("Day of Week Filter")
 # "Monday" at y=113) — inside the list, not on the SearchBar the step names. The SearchBar is the
 # full-width rounded field at y~55 (x[12..1010]), centre (511,55) -> 0.499, 0.0688.
 at_macos-arm64 = [0.499, 0.0688]
+# WINDOWS: 0.12 -> y=96, which is the first CollectionView row ("Sunday"), not the SearchBar the
+# step names. The SearchBar is the full-width field at y[40..65], centre y=52 -> 0.065. Measured off
+# captures/windows/maui/data_template_selector_light.png with a source-y ruler overlay; the band scan
+# used on maccatalyst does not work on this lane (no uniform background for it to key on).
+at_windows-x64 = [0.5, 0.065]
 
 [[steps]]
 name = "typed"

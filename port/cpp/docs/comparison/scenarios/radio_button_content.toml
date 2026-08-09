@@ -42,3 +42,8 @@ at = [0.06, 0.14]         # option_a_ RadioButton ("Option A"), unselected ring
 # RadioButton is hit-testable across ring AND label, so the centre carries more margin than the
 # ~16px ring if row spacing shifts.
 at_macos-arm64 = [0.0479, 0.095]
+# WINDOWS: 0.06,0.14 -> (61,112), in the vertical gap below "Option A" (whose ring sits at y~91) and
+# above the next explanatory Label. Option A's row runs x[34..160] at y=91; aiming at (100,91) puts
+# the click on the ring+label rather than the ring's 16px alone, the same margin argument as the
+# maccatalyst override above.
+at_windows-x64 = [0.098, 0.114]

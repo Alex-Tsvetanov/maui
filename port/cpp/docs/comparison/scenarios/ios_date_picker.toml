@@ -55,3 +55,8 @@ at = [0.5, 0.09]          # the DatePicker (MinimumDate 01/01/2020, MaximumDate 
 # already mirrors in date_picker_handler.mm's TARGET_OS_MACCATALYST branch — so a centred fraction
 # calibrated on the iOS bordered field can never hit it.
 at_macos-arm64 = [0.036, 0.0488]
+# WINDOWS: 0.5,0.09 -> (512,72), the blank gap above the "Toggle DatePicker UpdateMode" button. Like
+# maccatalyst, this lane renders the DatePicker as a COMPACT LEFT-ALIGNED box — "12/31/2020" with a
+# calendar glyph, spanning x[8..120] y[36..70] — so a centred fraction can never reach it. Centre
+# (64,53) -> 0.0625, 0.066.
+at_windows-x64 = [0.0625, 0.066]
