@@ -1450,7 +1450,11 @@ namespace
             anchored_page{"chrome", "ActionButton", "Readout", "Ready"},
             // ios_blur_effect_page.hpp:146 — "BlurEffect: " + name_of(stored style); the twin seeds
             // ExtraLight, and DarkButton takes it to "BlurEffect: Dark".
-            anchored_page{"ios_blur_effect", "DarkButton", "Readout", "BlurEffect: ExtraLight"}),
+            anchored_page{"ios_blur_effect", "DarkButton", "Readout", "BlurEffect: ExtraLight"},
+            // button_page.hpp:52/63-66/228-231 — "Taps: 0", then snprintf("Taps: %d") on each click.
+            // This page's anchors also RETIRED motion_score's `twin_cannot_react` exemption, so losing
+            // them would silently re-open the asymmetry that flag existed to paper over.
+            anchored_page{"button", "ClickedButton", "Readout", "Taps: 0"}),
         [](const ::testing::TestParamInfo<anchored_page>& i) { return std::string(i.param.page); });
 
     TEST(xaml_loader, header_footer_template_shared_page_hydrates_all_three_templates)

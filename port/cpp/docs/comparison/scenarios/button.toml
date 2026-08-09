@@ -1,26 +1,42 @@
 # Scenario for the `button` page: capture idle, tap the counter button, capture the reacted state.
 #
-# Coordinates are ABSOLUTE screen pixels, CALIBRATED FOR A 1512-WIDE DISPLAY (1512x950).
-# Geometry model (measured on the C++ gallery, Mac Catalyst): the window is 1024 pt wide, horizontally
-# centered, pinned to the top (y_origin = 30). So centered controls sit at screen x = display_width/2
-# = 756, and control y is measured from the fixed top (resolution-independent). Verified: this taps the
-# "Clicked" button, which bumps the "Taps:" readout (0 -> 1).
+# COORDINATE SPACE — fractions of the captured surface (0..1 both axes), the house convention. This
+# file was the LAST absolute-coordinate scenario in the directory, and being absolute cost it three
+# different ways, all observed rather than theorised:
 #
-# Re-calibrate if you change the display WIDTH (x = width/2) or the gallery window size. `automation_id`
-# is the forward-looking hook: the DevFlow driver taps it by name (resolution-independent, no coords);
+#   * maccatalyst pins its window at [128,30 1024x800], so the old `at = [756, 171]` resolved to image
+#     (628,141) — not the "Clicked" button, which that lane's capture puts at (511,127). The cell scored
+#     INVALID/`not-driven`: injected, no reaction, no information.
+#   * the appkit lane REFUSED the file outright — "SCENARIO SKIPPED macos/appkit/button: absolute screen
+#     coordinates, but this lane never PINS its window (present=false) … re-author as 0..1 fractions".
+#   * recapture's coordinate_space() classifies a file with ANY absolute pair as absolute and drops it
+#     from the DEVICE lanes BY NAME, so iOS and Android had never driven this page at all.
+#
+# MEASURED per lane — the "Clicked" button (3rd), centre / frame size:
+#
+#   ios          text band y[542..574] x[533..670]   centre (601,558) of 1206x2622  -> 0.4983, 0.2128
+#   android      button plate y[471..570]            centre (539,520) of 1080x2340  -> 0.4991, 0.2222
+#   maccatalyst  text band y[123..131] x[493..530]   centre (511,127) of 1024x800   -> 0.4990, 0.1588
+#   windows      button plate y[146..175]            centre (511,160) of 1024x800   -> 0.4990, 0.2000
+#
+# Android and Windows were measured by their button PLATE fill rather than their text, because both
+# render the page as one unbroken content band that a background-delta row scan cannot separate.
+#
+# THE PORTABLE VALUE MUST BE THE iOS ONE, and that is forced rather than conventional: only the VM lanes
+# have env names, so `at_<env>` can address maccatalyst and windows only — iOS and Android must share
+# the portable `at`. 0.2128 resolves to y=498 on Android, inside its plate [471..570]. The reverse does
+# not hold: Android's 0.2222 is y=583 on iOS, just past the "Clicked" band that ends at 574.
+#
+# `automation_id` stays as the forward-looking hook: the DevFlow driver taps by name (no coordinates);
 # the coordinate driver ignores it and uses `at`.
 
-# THE MAUI COLUMN CANNOT REACT TO THIS TAP. The shared XAML twin (port/maui-reference/pages/button.xaml)
-# carries a literal <Label Text="Taps: 0"/> next to "<!-- Clicked (handler omitted) -->", while the
-# port's code-first builder DOES wire the handler — measured on windows run 2026-08-07-01_18_39, the
-# port's readout goes "Taps: 0" -> "Taps: 1" (57 px) and MAUI's stays at 0 px. Driving this page can
-# therefore only ever produce a MOTION MISMATCH, and that mismatch is the twin's omission, not a port
-# defect: motion_score reads the flag below and says so instead of reddening the cell.
-#
-# RETIRE THIS BY FIXING THE TWIN, not by deleting the scenario — the batched twin-gesture-markup change
-# adds the Clicked handler on all four platforms, after which all three columns react and the flag comes
-# out. Until then the still capture and the port's own reaction are still worth having.
-twin_cannot_react = true
+# THE TWIN NOW REACTS, AND THIS FILE'S EXEMPTION IS RETIRED. It used to carry
+# `twin_cannot_react = true`, because pages/button.xaml declared `<Button Text="Clicked"/>` beside
+# `<!-- Clicked (handler omitted) -->` while the code-first builder DID wire it — so driving this page
+# could only ever produce a MOTION MISMATCH that blamed the port for the twin's omission. That flag's
+# own comment said "RETIRE THIS BY FIXING THE TWIN, not by deleting the scenario". The twin is fixed
+# (x:Name anchors + hand-written partials on both sides), so all three columns now go "Taps: 0" ->
+# "Taps: 1" on the same click and the scorer needs no exemption here.
 
 tag = "button"
 themes = ["light"]        # add "dark" to also sweep dark; frames continue the NNNN sequence
@@ -32,5 +48,7 @@ name = "initial"          # no action -> settle + screenshot
 [[steps]]
 name = "after-tap"
 action = "click"
-at = [756, 171]           # the "Clicked" button (3rd row) -> bumps the "Taps:" readout
+at = [0.4983, 0.2128]     # the "Clicked" button (3rd) -> bumps the "Taps:" readout 0 -> 1
+at_macos-arm64 = [0.499, 0.1588]
+at_windows-x64 = [0.499, 0.2000]
 automation_id = "clicked_button"   # used by the DevFlow driver if present; ignored by coordinates

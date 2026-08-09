@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.ButtonPage" Title="Button">
     <VerticalStackLayout Spacing="6" Padding="12">
-        <Label Text="Taps: 0" />
+        <Label x:Name="Readout" Text="Taps: 0" />
 
         <!-- Default -->
         <Button Text="Button" />
@@ -10,8 +10,8 @@
         <!-- Disabled -->
         <Button Text="Button (disabled)" IsEnabled="False" />
 
-        <!-- Clicked (handler omitted) -->
-        <Button Text="Clicked" />
+        <!-- Clicked -->
+        <Button x:Name="ClickedButton" Text="Clicked" />
 
         <!-- Command (binding omitted) -->
         <Button Text="Command" />
