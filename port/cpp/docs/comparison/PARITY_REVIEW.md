@@ -3538,3 +3538,46 @@ MEASURED targets for the re-author ("Clicked", the 3rd button):
 Windows and Android still need their own measurement — both render this page as one unbroken content
 band, so the row scan that worked on the other two lanes does not separate the buttons there and the
 targets have to be read off the images directly. Not guessed at here.
+
+### button/maccatalyst: a GREEN the scorer earned honestly and that is still WRONG
+
+After wiring the twin and re-authoring the coordinates (cd91ee19ec), run 2026-08-09-18_48_05:
+
+    maui_xaml   187 px   x[493..529] y[123..131]     the "Clicked" BUTTON's own text
+    cpp          41 px   x[ 40.. 45] y[ 44.. 51]     the last digit of the "Taps:" readout
+    cpp_xaml     41 px   x[ 40.. 45] y[ 44.. 51]
+
+pixel_score turned both cells yellow -> GREEN, motion INVALID -> PASS: both columns moved (so no
+mismatch), and the frames agree to 0.40% differing / SSIM 0.9897, comfortably inside the green bar.
+
+LOOKED AT, and the end states are NOT the same. MAUI's readout still reads "Taps: 0" and its "Clicked"
+button is rendered PRESSED (faded); the port reads "Taps: 1" with the button at rest. The two columns
+are in different logical states, and the pixel evidence cannot see it because one digit is ~41 px of
+819,200 — about 0.005% of the frame. The green was reverted rather than banked.
+
+THE MAUI APP IS NOT STALE — that was checked first, being the failure this session already hit once.
+The deployed managed assembly is /Users/testinguser/maui-comparison/apps/maui_xaml/MauiReference.app/
+Contents/MonoBundle/MauiReference.dll, dated Aug 9 18:47 (the fresh build) and containing `ClickedButton`
+three times. The handler is present.
+
+WHAT IT LOOKS LIKE INSTEAD: the injected click leaves MAUI's button in a held-down state, so `Clicked`
+— which fires on release inside the bounds — never runs. The button's faded render in the SETTLED frame
+(4s settle) is the evidence. The port's button reacts to the same injection, which is why only one
+column advanced.
+
+AND `chrome` WORKED WITH THE SAME MECHANISM (32885d4719: all three columns moved 517 px through the
+identical box), so this is not "the Catalyst driver cannot click MAUI buttons". The difference between
+the two pages is not yet identified. Candidates, untested: the target sits on the button's TEXT rather
+than its plate and MAUI's hit area may end sooner than the port's; chrome's button is the first control
+on its page and this one is third; the pages differ in how much layout sits above the target.
+
+TWO SEPARATE THINGS TO FIX, and they should not be conflated:
+
+  1. THE DRIVE. Until MAUI's column completes a click here, this cell has no valid evidence and INVALID/
+     `not-driven` is the correct verdict — which is exactly where it has been left.
+  2. THE SCORER. A cell whose columns end in different logical states should not be able to score PASS
+     because the difference is one glyph. The lattice already has the right vocabulary for it (FAIL),
+     but nothing computes it: worst-frame SSIM is a whole-frame measure and a readout is a rounding
+     error against a full page. A per-scenario ROI — "these coordinates are where the reaction must
+     appear" — is the smallest thing that would catch it, and it is the same idea the motion-parity
+     plan calls a required live ROI.
