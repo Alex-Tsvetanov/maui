@@ -10,8 +10,8 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <tr><td>iOS</td><td>144</td><td>23</td><td>5</td><td>0</td><td>0</td><td>146</td><td>24</td><td>2</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>137</td><td>32</td><td>3</td><td>0</td><td>0</td><td>136</td><td>34</td><td>2</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>134</td><td>31</td><td>7</td><td>0</td><td>0</td><td>136</td><td>30</td><td>6</td><td>0</td><td>0</td></tr>
-<tr><td>Windows</td><td>127</td><td>42</td><td>3</td><td>0</td><td>0</td><td>128</td><td>42</td><td>2</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>542</strong></td><td><strong>128</strong></td><td><strong>18</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>546</strong></td><td><strong>130</strong></td><td><strong>12</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td>Windows</td><td>142</td><td>27</td><td>3</td><td>0</td><td>0</td><td>143</td><td>27</td><td>2</td><td>0</td><td>0</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>557</strong></td><td><strong>113</strong></td><td><strong>18</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>561</strong></td><td><strong>115</strong></td><td><strong>12</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -27,8 +27,8 @@ _Android **dark** is not currently comparable: the MAUI reference renders light 
 | iOS | 86 | 45 | 17 | 24 | 0 |
 | macOS | 86 | 34 | 6 | 46 | 0 |
 | Android | 86 | 33 | 9 | 28 | 16 |
-| Windows | 86 | 0 | 0 | 86 | 0 |
-| **Total** | **344** | **112** | **32** | **184** | **16** |
+| Windows | 86 | 30 | 8 | 47 | 1 |
+| **Total** | **344** | **142** | **40** | **145** | **17** |
 
 <details>
 <summary><h2>Artifact size — click to expand</h2></summary>
@@ -8364,8 +8364,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 127 | 128 |
-| 🟡 Minor | 42 | 42 |
+| 🟢 Match | 142 | 143 |
+| 🟡 Minor | 27 | 27 |
 | 🔴 Major | 3 | 2 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -8385,36 +8385,24 @@ Light: SSIM 0.9954, 0.25% pixels differ · Dark: SSIM 0.9973, 0.25% pixels diffe
 
 Light: SSIM 0.9993, 0.06% pixels differ · Dark: SSIM 0.9997, 0.06% pixels differ
 
-### 2. Activity Indicator — 🟡/🟡
+### 2. Activity Indicator — 🟢/🟡
 <sub>activity_indicator</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/activity_indicator_light.png" /></td><td><img width="300px" src="captures/windows/cpp/activity_indicator_light.png" /></td><td><img width="300px" src="captures/windows/xaml/activity_indicator_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/activity_indicator_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/activity_indicator_dark.png" /></td></tr></table>
 
 ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9847 at frame 8 'gif08' (0.59% pixels differ), mean SSIM 0.9895; per-frame diff% 0.35/0.27/0.31/0.38/0.37/0.27/0.22/0.59/0.54; self-motion MAUI 0.5227% (4282 px) vs C++ 0.4957% (4061 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 12 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9870 at frame 1 'gif01' (0.50% pixels differ), mean SSIM 0.9896; per-frame diff% 0.50/0.48/0.48/0.23/0.31/0.36/0.29/0.31/0.32/0.49/0.28/0.32; self-motion MAUI 0.4888% (4004 px) vs C++ 0.5022% (4114 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9847 at frame 8 'gif08' (0.59% pixels differ), mean SSIM 0.9895; per-frame diff% 0.35/0.27/0.31/0.38/0.37/0.27/0.22/0.59/0.54; self-motion MAUI 0.5227% (4282 px) vs C++ 0.4957% (4061 px) · Dark: MOTION 12 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9870 at frame 1 'gif01' (0.50% pixels differ), mean SSIM 0.9896; per-frame diff% 0.50/0.48/0.48/0.23/0.31/0.36/0.29/0.31/0.32/0.49/0.28/0.32; self-motion MAUI 0.4888% (4004 px) vs C++ 0.5022% (4114 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · dark PASS / light FAIL · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9777 at frame 5 'gif05' (0.94% pixels differ), mean SSIM 0.9857; per-frame diff% 0.23/0.60/0.50/0.58/0.94/0.41/0.67/0.49/0.52; self-motion MAUI 0.5227% (4282 px) vs C++ &amp; XAML 0.4781% (3917 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 10 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9817 at frame 2 'gif02' (0.77% pixels differ), mean SSIM 0.9872; per-frame diff% 0.48/0.77/0.62/0.50/0.62/0.47/0.36/0.21/0.33/0.47; self-motion MAUI 0.4888% (4004 px) vs C++ &amp; XAML 0.5267% (4315 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9777 at frame 5 'gif05' (0.94% pixels differ), mean SSIM 0.9857; per-frame diff% 0.23/0.60/0.50/0.58/0.94/0.41/0.67/0.49/0.52; self-motion MAUI 0.5227% (4282 px) vs C++ &amp; XAML 0.4781% (3917 px) · Dark: MOTION 10 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9817 at frame 2 'gif02' (0.77% pixels differ), mean SSIM 0.9872; per-frame diff% 0.48/0.77/0.62/0.50/0.62/0.47/0.36/0.21/0.33/0.47; self-motion MAUI 0.4888% (4004 px) vs C++ &amp; XAML 0.5267% (4315 px)
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -8470,27 +8458,15 @@ ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 7. App Theme Binding — 🟢/🟢
 <sub>app_theme_binding</sub>
@@ -8687,36 +8663,24 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 20. Box View — 🟡/🟡
+### 20. Box View — 🟢/🟢
 <sub>box_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/box_view_light.png" /></td><td><img width="300px" src="captures/windows/cpp/box_view_light.png" /></td><td><img width="300px" src="captures/windows/xaml/box_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/box_view_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/box_view_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/box_view_dark.png" /></td></tr></table>
 
 ports BoxViewPage.xaml (+ BoxViewPage.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 12.8867% (105568 px) vs C++ 12.8875% (105574 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01; self-motion MAUI 12.9016% (105690 px) vs C++ 12.9026% (105698 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 12.8867% (105568 px) vs C++ 12.8875% (105574 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01; self-motion MAUI 12.9016% (105690 px) vs C++ 12.9026% (105698 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 12.8867% (105568 px) vs C++ &amp; XAML 12.8875% (105574 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01; self-motion MAUI 12.9016% (105690 px) vs C++ &amp; XAML 12.9026% (105698 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 12.8867% (105568 px) vs C++ &amp; XAML 12.8875% (105574 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9999 at frame 2 'scrolled-down' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01; self-motion MAUI 12.9016% (105690 px) vs C++ &amp; XAML 12.9026% (105698 px)
 
 ### 21. Button — 🟡/🟡
 <sub>button</sub>
@@ -8727,27 +8691,15 @@ ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❔ INCONCLUSIVE · `twin-cannot-react` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: AUTHORED ASYMMETRY, not a port defect: C++ reacted (57 px) and MAUI did not (0 px), on a page whose shared XAML twin deliberately OMITS the handler — the ground-truth column has nothing to react WITH, so no motion parity can be established here either way. Retire this by adding the handler to the twin, not by changing the port. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9997 at frame 2 'after-tap' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0070% (57 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: AUTHORED ASYMMETRY, not a port defect: C++ reacted (58 px) and MAUI did not (0 px), on a page whose shared XAML twin deliberately OMITS the handler — the ground-truth column has nothing to react WITH, so no motion parity can be established here either way. Retire this by adding the handler to the twin, not by changing the port. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9997 at frame 2 'after-tap' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0071% (58 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: AUTHORED ASYMMETRY, not a port defect: C++ reacted (57 px) and MAUI did not (0 px), on a page whose shared XAML twin deliberately OMITS the handler — the ground-truth column has nothing to react WITH, so no motion parity can be established here either way. Retire this by adding the handler to the twin, not by changing the port. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9997 at frame 2 'after-tap' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0070% (57 px) · Dark: AUTHORED ASYMMETRY, not a port defect: C++ reacted (58 px) and MAUI did not (0 px), on a page whose shared XAML twin deliberately OMITS the handler — the ground-truth column has nothing to react WITH, so no motion parity can be established here either way. Retire this by adding the handler to the twin, not by changing the port. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9997 at frame 2 'after-tap' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0071% (58 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — button.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 22. Carousel Page — 🟡/🟡
 <sub>carousel_page</sub>
@@ -8758,27 +8710,15 @@ Carousel Page
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — carousel_page.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 23. Chat Example — 🟢/🟢
 <sub>chat_example</sub>
@@ -8795,36 +8735,24 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 24. Check Box — 🟡/🟡
+### 24. Check Box — 🟢/🟢
 <sub>check_box</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/check_box_light.png" /></td><td><img width="300px" src="captures/windows/cpp/check_box_light.png" /></td><td><img width="300px" src="captures/windows/xaml/check_box_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/check_box_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/check_box_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/check_box_dark.png" /></td></tr></table>
 
 ports CheckBoxPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical stack of headlined CheckBox states — Default, Colored (Color=Purple), Disabled, Disabled+Colored+Checked — followed by a &amp;quot;Change IsChecked&amp;quot; row pairing a Button
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9990 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9990; per-frame diff% 0.04/0.04; self-motion MAUI 0.0457% (374 px) vs C++ 0.0457% (374 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9992 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.04/0.04; self-motion MAUI 0.0468% (383 px) vs C++ 0.0468% (383 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9990 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9990; per-frame diff% 0.04/0.04; self-motion MAUI 0.0457% (374 px) vs C++ 0.0457% (374 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9992 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.04/0.04; self-motion MAUI 0.0468% (383 px) vs C++ 0.0468% (383 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0457% (374 px) vs C++ &amp; XAML 0.0457% (374 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0468% (383 px) vs C++ &amp; XAML 0.0468% (383 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0457% (374 px) vs C++ &amp; XAML 0.0457% (374 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0468% (383 px) vs C++ &amp; XAML 0.0468% (383 px)
 
 ### 25. Chrome — 🟡/🟡
 <sub>chrome</sub>
@@ -8835,27 +8763,15 @@ a self-contained demo page for the W1-11 window-chrome family: page toolbar item
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/chrome.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 26. Clip — 🟡/🟡
 <sub>clip</sub>
@@ -8866,27 +8782,15 @@ ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an em
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9726 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9860% (114573 px) vs C++ 15.4509% (126574 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9725 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9611% (114369 px) vs C++ 15.4279% (126385 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9726 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9860% (114573 px) vs C++ 15.4509% (126574 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9725 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9611% (114369 px) vs C++ 15.4279% (126385 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9726 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9860% (114573 px) vs C++ &amp; XAML 15.4509% (126574 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9725 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9611% (114369 px) vs C++ &amp; XAML 15.4279% (126385 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9726 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9860% (114573 px) vs C++ &amp; XAML 15.4509% (126574 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9725 at frame 2 'scrolled-down' (2.40% pixels differ), mean SSIM 0.9859; per-frame diff% 0.04/2.40; self-motion MAUI 13.9611% (114369 px) vs C++ &amp; XAML 15.4279% (126385 px)
 
 ### 27. Clip Corner Radius — 🟢/🟢
 <sub>clip_corner_radius</sub>
@@ -8912,27 +8816,15 @@ ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.x
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9823 at frame 2 'scrolled-down' (2.31% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/2.31; self-motion MAUI 15.9281% (130483 px) vs C++ 16.2539% (133152 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9833 at frame 2 'scrolled-down' (2.30% pixels differ), mean SSIM 0.9916; per-frame diff% 0.00/2.30; self-motion MAUI 15.8035% (129462 px) vs C++ 16.1233% (132082 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9823 at frame 2 'scrolled-down' (2.31% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/2.31; self-motion MAUI 15.9281% (130483 px) vs C++ 16.2539% (133152 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9833 at frame 2 'scrolled-down' (2.30% pixels differ), mean SSIM 0.9916; per-frame diff% 0.00/2.30; self-motion MAUI 15.8035% (129462 px) vs C++ 16.1233% (132082 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9823 at frame 2 'scrolled-down' (2.31% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/2.31; self-motion MAUI 15.9281% (130483 px) vs C++ &amp; XAML 16.2539% (133152 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9833 at frame 2 'scrolled-down' (2.30% pixels differ), mean SSIM 0.9916; per-frame diff% 0.00/2.30; self-motion MAUI 15.8035% (129462 px) vs C++ &amp; XAML 16.1233% (132082 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9823 at frame 2 'scrolled-down' (2.31% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/2.31; self-motion MAUI 15.9281% (130483 px) vs C++ &amp; XAML 16.2539% (133152 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9833 at frame 2 'scrolled-down' (2.30% pixels differ), mean SSIM 0.9916; per-frame diff% 0.00/2.30; self-motion MAUI 15.8035% (129462 px) vs C++ &amp; XAML 16.1233% (132082 px)
 
 ### 29. Clip Views — 🟡/🟡
 <sub>clip_views</sub>
@@ -8943,27 +8835,15 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9981 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9981; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9987 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9981 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9981; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9987 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9981 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9981; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9987 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9981 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9981; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — clip_views.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9987 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 30. Clipping — 🟢/🟢
 <sub>clipping</sub>
@@ -9055,36 +8935,24 @@ Light: SSIM 0.9517, 2.32% pixels differ · Dark: SSIM 0.8422, 2.47% pixels diffe
 
 Light: SSIM 0.9517, 2.32% pixels differ · Dark: SSIM 0.8422, 2.47% pixels differ
 
-### 36. Controls Stack — 🟡/🟡
+### 36. Controls Stack — 🟢/🟢
 <sub>controls_stack</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/controls_stack_light.png" /></td><td><img width="300px" src="captures/windows/cpp/controls_stack_light.png" /></td><td><img width="300px" src="captures/windows/xaml/controls_stack_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/controls_stack_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/controls_stack_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/controls_stack_dark.png" /></td></tr></table>
 
 a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; demo (ComparePages.ControlsStack()), the shipped-.NET-MAUI reference for the visual-parity comparison: a VerticalStackLayout (Spacing 12, Padding 16) showcasing the basic widgets
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9973 at frame 2 'unchecked' (0.03% pixels differ), mean SSIM 0.9974; per-frame diff% 0.02/0.03; self-motion MAUI 0.0171% (140 px) vs C++ 0.0195% (160 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9980 at frame 2 'unchecked' (0.02% pixels differ), mean SSIM 0.9980; per-frame diff% 0.02/0.02; self-motion MAUI 0.0215% (176 px) vs C++ 0.0194% (159 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9973 at frame 2 'unchecked' (0.03% pixels differ), mean SSIM 0.9974; per-frame diff% 0.02/0.03; self-motion MAUI 0.0171% (140 px) vs C++ 0.0195% (160 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9980 at frame 2 'unchecked' (0.02% pixels differ), mean SSIM 0.9980; per-frame diff% 0.02/0.02; self-motion MAUI 0.0215% (176 px) vs C++ 0.0194% (159 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9974 at frame 2 'unchecked' (0.03% pixels differ), mean SSIM 0.9975; per-frame diff% 0.03/0.03; self-motion MAUI 0.0171% (140 px) vs C++ &amp; XAML 0.0214% (175 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9974 at frame 2 'unchecked' (0.03% pixels differ), mean SSIM 0.9977; per-frame diff% 0.02/0.03; self-motion MAUI 0.0215% (176 px) vs C++ &amp; XAML 0.0222% (182 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9974 at frame 2 'unchecked' (0.03% pixels differ), mean SSIM 0.9975; per-frame diff% 0.03/0.03; self-motion MAUI 0.0171% (140 px) vs C++ &amp; XAML 0.0214% (175 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9974 at frame 2 'unchecked' (0.03% pixels differ), mean SSIM 0.9977; per-frame diff% 0.02/0.03; self-motion MAUI 0.0215% (176 px) vs C++ &amp; XAML 0.0222% (182 px)
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -9155,27 +9023,15 @@ ports DataTemplateSelectorGallery.xaml (+ DataTemplateSelectorGallery.xaml.cs, i
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — data_template_selector.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 42. Date Picker — 🟢/🟢
 <sub>date_picker</sub>
@@ -9237,36 +9093,24 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 46. Editor — 🟡/🟡
+### 46. Editor — 🟢/🟢
 <sub>editor</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/editor_light.png" /></td><td><img width="300px" src="captures/windows/cpp/editor_light.png" /></td><td><img width="300px" src="captures/windows/xaml/editor_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/editor_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/editor_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/editor_dark.png" /></td></tr></table>
 
 ports EditorPage.xaml (Microsoft.Maui.Controls sample gallery)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01/0.03; self-motion MAUI 0.2701% (2213 px) vs C++ 0.2822% (2312 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9987 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.01/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ 0.2828% (2317 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01/0.03; self-motion MAUI 0.2701% (2213 px) vs C++ 0.2822% (2312 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9987 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.01/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ 0.2828% (2317 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01/0.03; self-motion MAUI 0.2701% (2213 px) vs C++ &amp; XAML 0.2822% (2312 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9987 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.01/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ &amp; XAML 0.2828% (2317 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01/0.03; self-motion MAUI 0.2701% (2213 px) vs C++ &amp; XAML 0.2822% (2312 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9987 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.01/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ &amp; XAML 0.2828% (2317 px)
 
 ### 47. Effects — 🟢/🟢
 <sub>effects</sub>
@@ -9322,27 +9166,15 @@ ports EmptyViewGalleries/EmptyViewLoadSimulateGallery.xaml (+ EmptyViewLoadSimul
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9928 at frame 1 'gif04' (0.15% pixels differ), mean SSIM 0.9928; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9925 at frame 1 'gif04' (0.16% pixels differ), mean SSIM 0.9925; per-frame diff% 0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9928 at frame 1 'gif04' (0.15% pixels differ), mean SSIM 0.9928; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9925 at frame 1 'gif04' (0.16% pixels differ), mean SSIM 0.9925; per-frame diff% 0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9928 at frame 1 'gif04' (0.15% pixels differ), mean SSIM 0.9928; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9925 at frame 1 'gif04' (0.16% pixels differ), mean SSIM 0.9925; per-frame diff% 0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9928 at frame 1 'gif04' (0.15% pixels differ), mean SSIM 0.9928; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9925 at frame 1 'gif04' (0.16% pixels differ), mean SSIM 0.9925; per-frame diff% 0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16/0.16; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 51. Empty View Null — 🟢/🟢
 <sub>empty_view_null</sub>
@@ -9359,67 +9191,43 @@ Light: SSIM 0.9943, 0.12% pixels differ · Dark: SSIM 0.9941, 0.13% pixels diffe
 
 Light: SSIM 0.9943, 0.12% pixels differ · Dark: SSIM 0.9941, 0.13% pixels differ
 
-### 52. Empty View Rtl — 🟡/🟡
+### 52. Empty View Rtl — 🟢/🟢
 <sub>empty_view_rtl</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/windows/cpp/empty_view_rtl_light.png" /></td><td><img width="300px" src="captures/windows/xaml/empty_view_rtl_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/empty_view_rtl_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/empty_view_rtl_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewRTLGallery.xaml (+ EmptyViewRTLGallery.xaml.cs)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9953 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9953; per-frame diff% 0.11/0.11/0.11; self-motion MAUI 0.2781% (2278 px) vs C++ 0.2781% (2278 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9952 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9952; per-frame diff% 0.11/0.11/0.11; self-motion MAUI 0.2809% (2301 px) vs C++ 0.2809% (2301 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9953 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9953; per-frame diff% 0.11/0.11/0.11; self-motion MAUI 0.2781% (2278 px) vs C++ 0.2781% (2278 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9952 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9952; per-frame diff% 0.11/0.11/0.11; self-motion MAUI 0.2809% (2301 px) vs C++ 0.2809% (2301 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9973 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9973; per-frame diff% 0.07/0.07/0.07; self-motion MAUI 0.2781% (2278 px) vs C++ &amp; XAML 0.2781% (2278 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9973 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9973; per-frame diff% 0.07/0.07/0.07; self-motion MAUI 0.2809% (2301 px) vs C++ &amp; XAML 0.2809% (2301 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9973 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9973; per-frame diff% 0.07/0.07/0.07; self-motion MAUI 0.2781% (2278 px) vs C++ &amp; XAML 0.2781% (2278 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9973 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9973; per-frame diff% 0.07/0.07/0.07; self-motion MAUI 0.2809% (2301 px) vs C++ &amp; XAML 0.2809% (2301 px)
 
-### 53. Empty View Selector — 🟡/🟡
+### 53. Empty View Selector — 🟢/🟢
 <sub>empty_view_selector</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/empty_view_selector_light.png" /></td><td><img width="300px" src="captures/windows/cpp/empty_view_selector_light.png" /></td><td><img width="300px" src="captures/windows/xaml/empty_view_selector_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/empty_view_selector_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/empty_view_selector_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/empty_view_selector_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewWithDataTemplateSelector.xaml (+ .xaml.cs, incl
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2670% (2187 px) vs C++ 0.2670% (2187 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2698% (2210 px) vs C++ 0.2698% (2210 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2670% (2187 px) vs C++ 0.2670% (2187 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2698% (2210 px) vs C++ 0.2698% (2210 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2670% (2187 px) vs C++ &amp; XAML 0.2670% (2187 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2698% (2210 px) vs C++ &amp; XAML 0.2698% (2210 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2670% (2187 px) vs C++ &amp; XAML 0.2670% (2187 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.2698% (2210 px) vs C++ &amp; XAML 0.2698% (2210 px)
 
 ### 54. Empty View Swap — 🟢/🟢
 <sub>empty_view_swap</sub>
@@ -9466,36 +9274,24 @@ Light: SSIM 0.9973, 0.07% pixels differ · Dark: SSIM 0.9973, 0.07% pixels diffe
 
 Light: SSIM 0.9973, 0.07% pixels differ · Dark: SSIM 0.9973, 0.07% pixels differ
 
-### 57. Entry — 🟡/🟡
+### 57. Entry — 🟢/🟢
 <sub>entry</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/entry_light.png" /></td><td><img width="300px" src="captures/windows/cpp/entry_light.png" /></td><td><img width="300px" src="captures/windows/xaml/entry_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/entry_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/entry_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/entry_dark.png" /></td></tr></table>
 
 ports EntryPage.xaml (Microsoft.Maui.Controls sample gallery)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2701% (2213 px) vs C++ 0.2870% (2351 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9984 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ 0.2876% (2356 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2701% (2213 px) vs C++ 0.2870% (2351 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9984 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ 0.2876% (2356 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2701% (2213 px) vs C++ &amp; XAML 0.2870% (2351 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9984 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ &amp; XAML 0.2876% (2356 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2701% (2213 px) vs C++ &amp; XAML 0.2870% (2351 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9984 at frame 3 'typed' (0.04% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.02/0.04; self-motion MAUI 0.2695% (2208 px) vs C++ &amp; XAML 0.2876% (2356 px)
 
 ### 58. Filter Collection — 🟢/🟢
 <sub>filter_collection</sub>
@@ -9602,36 +9398,24 @@ Light: SSIM 0.9983, 0.03% pixels differ · Dark: SSIM 0.9983, 0.03% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 65. Gestures — 🟡/🟡
+### 65. Gestures — 🟢/🟢
 <sub>gestures</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/gestures_light.png" /></td><td><img width="300px" src="captures/windows/cpp/gestures_light.png" /></td><td><img width="300px" src="captures/windows/xaml/gestures_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/gestures_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/gestures_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/gestures_dark.png" /></td></tr></table>
 
 ports GesturesPage.xaml (+ .xaml.cs) The MAUI GesturesPage.xaml is a *gallery navigation* page: a CollectionView listing gesture-demo sections that the shell navigates into
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0319% (261 px) vs C++ 0.0319% (261 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0314% (257 px) vs C++ 0.0314% (257 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0319% (261 px) vs C++ 0.0319% (261 px) · Dark: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0314% (257 px) vs C++ 0.0314% (257 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0319% (261 px) vs C++ &amp; XAML 0.0319% (261 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0314% (257 px) vs C++ &amp; XAML 0.0314% (257 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0319% (261 px) vs C++ &amp; XAML 0.0319% (261 px) · Dark: MOTION 14 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0314% (257 px) vs C++ &amp; XAML 0.0314% (257 px)
 
 ### 66. Gradient — 🟢/🟢
 <sub>gradient</sub>
@@ -9783,36 +9567,24 @@ Light: SSIM 0.9958, 0.24% pixels differ · Dark: SSIM 0.9960, 0.23% pixels diffe
 
 Light: SSIM 0.9958, 0.24% pixels differ · Dark: SSIM 0.9960, 0.23% pixels differ
 
-### 76. Hit Testing — 🟡/🟡
+### 76. Hit Testing — 🟢/🟢
 <sub>hit_testing</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/hit_testing_light.png" /></td><td><img width="300px" src="captures/windows/cpp/hit_testing_light.png" /></td><td><img width="300px" src="captures/windows/xaml/hit_testing_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/hit_testing_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/hit_testing_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/hit_testing_dark.png" /></td></tr></table>
 
 ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPage)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9855 at frame 1 'initial' (0.33% pixels differ), mean SSIM 0.9856; per-frame diff% 0.33/0.33; self-motion MAUI 0.0457% (374 px) vs C++ 0.0457% (374 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9878 at frame 1 'initial' (0.28% pixels differ), mean SSIM 0.9878; per-frame diff% 0.28/0.28; self-motion MAUI 0.0468% (383 px) vs C++ 0.0468% (383 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9855 at frame 1 'initial' (0.33% pixels differ), mean SSIM 0.9856; per-frame diff% 0.33/0.33; self-motion MAUI 0.0457% (374 px) vs C++ 0.0457% (374 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9878 at frame 1 'initial' (0.28% pixels differ), mean SSIM 0.9878; per-frame diff% 0.28/0.28; self-motion MAUI 0.0468% (383 px) vs C++ 0.0468% (383 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9855 at frame 1 'initial' (0.33% pixels differ), mean SSIM 0.9856; per-frame diff% 0.33/0.33; self-motion MAUI 0.0457% (374 px) vs C++ &amp; XAML 0.0457% (374 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9878 at frame 1 'initial' (0.28% pixels differ), mean SSIM 0.9878; per-frame diff% 0.28/0.28; self-motion MAUI 0.0468% (383 px) vs C++ &amp; XAML 0.0468% (383 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9855 at frame 1 'initial' (0.33% pixels differ), mean SSIM 0.9856; per-frame diff% 0.33/0.33; self-motion MAUI 0.0457% (374 px) vs C++ &amp; XAML 0.0457% (374 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9878 at frame 1 'initial' (0.28% pixels differ), mean SSIM 0.9878; per-frame diff% 0.28/0.28; self-motion MAUI 0.0468% (383 px) vs C++ &amp; XAML 0.0468% (383 px)
 
 ### 77. Horizontal Stack — 🟢/🟢
 <sub>horizontal_stack</sub>
@@ -9958,27 +9730,15 @@ ports iOSBlurEffectPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/Platf
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 87. Ios Date Picker — 🟡/🟡
 <sub>ios_date_picker</sub>
@@ -9989,27 +9749,15 @@ ports iOSDatePickerPage.xaml (+ iOSDatePickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_date_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 88. Ios Entry — 🟢/🟢
 <sub>ios_entry</sub>
@@ -10050,27 +9798,15 @@ ports iOSPanGestureRecognizerPage.xaml (+ .xaml.cs) The C# iOSPanGestureRecogniz
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 91. Ios Picker — 🟡/🟡
 <sub>ios_picker</sub>
@@ -10081,27 +9817,15 @@ ports iOSPickerPage.xaml (+ iOSPickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 92. Ios Safe Area — 🟢/🟢
 <sub>ios_safe_area</sub>
@@ -10127,27 +9851,15 @@ ports iOSScrollViewPage.xaml (+ iOSScrollViewPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — ios_scroll_view.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 94. Ios Search Bar — 🟢/🟢
 <sub>ios_search_bar</sub>
@@ -10188,27 +9900,15 @@ ports iOSSwipeViewTransitionModePage.xaml (+ .xaml.cs) The C# iOSSwipeViewTransi
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 97. Ios Time Picker — 🟢/🟢
 <sub>ios_time_picker</sub>
@@ -10414,27 +10114,15 @@ ports PanGestureEventsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PanG
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9986 at frame 1 'gif04' (0.06% pixels differ), mean SSIM 0.9986; per-frame diff% 0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9984 at frame 1 'gif04' (0.06% pixels differ), mean SSIM 0.9984; per-frame diff% 0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9986 at frame 1 'gif04' (0.06% pixels differ), mean SSIM 0.9986; per-frame diff% 0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9984 at frame 1 'gif04' (0.06% pixels differ), mean SSIM 0.9984; per-frame diff% 0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06/0.06; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 111. Path Aspect Gallery — 🟢/🟢
 <sub>path_aspect_gallery</sub>
@@ -10451,7 +10139,7 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 112. Path Gallery — 🟡/🟡
+### 112. Path Gallery — 🟡/🟢
 <sub>path_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/path_gallery_light.png" /></td><td><img width="300px" src="captures/windows/cpp/path_gallery_light.png" /></td><td><img width="300px" src="captures/windows/xaml/path_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/path_gallery_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/path_gallery_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/path_gallery_dark.png" /></td></tr></table>
@@ -10460,27 +10148,15 @@ ports PathGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Co
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9500 at frame 2 'scrolled-down' (1.59% pixels differ), mean SSIM 0.9750; per-frame diff% 0.00/1.59; self-motion MAUI 8.9327% (73177 px) vs C++ 9.4210% (77177 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9497 at frame 2 'scrolled-down' (1.70% pixels differ), mean SSIM 0.9748; per-frame diff% 0.00/1.70; self-motion MAUI 8.8046% (72127 px) vs C++ 9.3019% (76201 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9500 at frame 2 'scrolled-down' (1.59% pixels differ), mean SSIM 0.9750; per-frame diff% 0.00/1.59; self-motion MAUI 8.9327% (73177 px) vs C++ 9.4210% (77177 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9497 at frame 2 'scrolled-down' (1.70% pixels differ), mean SSIM 0.9748; per-frame diff% 0.00/1.70; self-motion MAUI 8.8046% (72127 px) vs C++ 9.3019% (76201 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 8.9327% (73177 px) vs C++ &amp; XAML 8.9329% (73178 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 8.8046% (72127 px) vs C++ &amp; XAML 8.7832% (71952 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 8.9327% (73177 px) vs C++ &amp; XAML 8.9329% (73178 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 8.8046% (72127 px) vs C++ &amp; XAML 8.7832% (71952 px)
 
 ### 113. Path Transform String — 🟢/🟢
 <sub>path_transform_string</sub>
@@ -10506,27 +10182,15 @@ ports PickerPage.xaml (+ PickerPage.xaml.cs) A self-contained, code-first demo p
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — picker.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 115. Pickers — 🟢/🟢
 <sub>pickers</sub>
@@ -10552,27 +10216,15 @@ ports PointerGestureGalleryPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Po
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 117. Polygon Gallery — 🟢/🟢
 <sub>polygon_gallery</sub>
@@ -10673,27 +10325,15 @@ ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the Ra
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — radio_button_content.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 124. Radio Button Group — 🟢/🟢
 <sub>radio_button_group</sub>
@@ -10740,36 +10380,24 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 127. Radio Content Properties — 🟡/🟡
+### 127. Radio Content Properties — 🟢/🟢
 <sub>radio_content_properties</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/radio_content_properties_light.png" /></td><td><img width="300px" src="captures/windows/cpp/radio_content_properties_light.png" /></td><td><img width="300px" src="captures/windows/xaml/radio_content_properties_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/radio_content_properties_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/radio_content_properties_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/radio_content_properties_dark.png" /></td></tr></table>
 
 ports ContentProperties.xaml A self-contained, code-first demo of how RadioButton propagates the standard Text/Font properties to its Content
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0251% (206 px) vs C++ 0.0251% (206 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0387% (317 px) vs C++ 0.0387% (317 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0251% (206 px) vs C++ 0.0251% (206 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0387% (317 px) vs C++ 0.0387% (317 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0251% (206 px) vs C++ &amp; XAML 0.0251% (206 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0387% (317 px) vs C++ &amp; XAML 0.0387% (317 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0251% (206 px) vs C++ &amp; XAML 0.0251% (206 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0387% (317 px) vs C++ &amp; XAML 0.0387% (317 px)
 
 ### 128. Radio Template From Style — 🟢/🟢
 <sub>radio_template_from_style</sub>
@@ -10861,67 +10489,43 @@ Light: SSIM 0.9974, 0.06% pixels differ · Dark: SSIM 0.9974, 0.06% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 134. Scroll To Group — 🟡/🟡
+### 134. Scroll To Group — 🟢/🟢
 <sub>scroll_to_group</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/windows/cpp/scroll_to_group_light.png" /></td><td><img width="300px" src="captures/windows/xaml/scroll_to_group_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/scroll_to_group_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/scroll_to_group_dark.png" /></td></tr></table>
 
 ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ 0.1337% (1095 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ 0.1337% (1095 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ 0.1337% (1095 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ 0.1337% (1095 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ &amp; XAML 0.1337% (1095 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ &amp; XAML 0.1337% (1095 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ &amp; XAML 0.1337% (1095 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.00% pixels differ), mean SSIM 0.9997; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.1289% (1056 px) vs C++ &amp; XAML 0.1337% (1095 px)
 
-### 135. Scroll View — 🟡/🟡
+### 135. Scroll View — 🟢/🟢
 <sub>scroll_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/scroll_view_light.png" /></td><td><img width="300px" src="captures/windows/cpp/scroll_view_light.png" /></td><td><img width="300px" src="captures/windows/xaml/scroll_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/scroll_view_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/scroll_view_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/scroll_view_dark.png" /></td></tr></table>
 
 ports ScrollViewPage.xaml (+ the ScrollViewPages sub-demos: ScrollViewOrientationPage / ScrollToEndPage / ScrollToFromConstructorPage), code-first
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0221% (8373 px) vs C++ 1.0221% (8373 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0790% (8839 px) vs C++ 1.0790% (8839 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0221% (8373 px) vs C++ 1.0221% (8373 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0790% (8839 px) vs C++ 1.0790% (8839 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0221% (8373 px) vs C++ &amp; XAML 1.0221% (8373 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0790% (8839 px) vs C++ &amp; XAML 1.0790% (8839 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0221% (8373 px) vs C++ &amp; XAML 1.0221% (8373 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 1.0790% (8839 px) vs C++ &amp; XAML 1.0790% (8839 px)
 
 ### 136. Search Bar — 🟡/🟡
 <sub>search_bar</sub>
@@ -10932,27 +10536,15 @@ ports SearchBarPage.xaml (Microsoft.Maui.Controls sample gallery)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — search_bar.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 137. Selection Command Param — 🟢/🟢
 <sub>selection_command_param</sub>
@@ -10969,36 +10561,24 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 138. Selection Synchronization — 🟡/🟡
+### 138. Selection Synchronization — 🟢/🟢
 <sub>selection_synchronization</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/selection_synchronization_light.png" /></td><td><img width="300px" src="captures/windows/cpp/selection_synchronization_light.png" /></td><td><img width="300px" src="captures/windows/xaml/selection_synchronization_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/selection_synchronization_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/selection_synchronization_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/selection_synchronization_dark.png" /></td></tr></table>
 
 ports SelectionSynchronization.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SelectionSynchronization)
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.6978% (22100 px) vs C++ 2.7018% (22133 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.8197% (23099 px) vs C++ 2.8243% (23137 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.6978% (22100 px) vs C++ 2.7018% (22133 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.8197% (23099 px) vs C++ 2.8243% (23137 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.6978% (22100 px) vs C++ &amp; XAML 2.7018% (22133 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.8197% (23099 px) vs C++ &amp; XAML 2.8243% (23137 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.6978% (22100 px) vs C++ &amp; XAML 2.7018% (22133 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 2.8197% (23099 px) vs C++ &amp; XAML 2.8243% (23137 px)
 
 ### 139. Semantics — 🟡/🟡
 <sub>semantics</sub>
@@ -11009,27 +10589,15 @@ ports SemanticsPage.xaml (+ SemanticsPage.xaml.cs) The C# SemanticsPage is an ac
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — semantics.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 140. Shadow Playground — 🟢/🟢
 <sub>shadow_playground</sub>
@@ -11100,27 +10668,15 @@ ports SliderPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance`
+**Motion:** 🚫 INVALID · `unpairable`
 
-Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance`
+**Motion:** 🚫 INVALID · `unpairable`
 
-Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page
 
 ### 145. Some Empty Groups — 🟢/🟢
 <sub>some_empty_groups</sub>
@@ -11176,27 +10732,15 @@ ports StepperPage.xaml (+ StepperPage.xaml.cs)
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `mismatch` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9901 at frame 2 'incremented' (0.16% pixels differ), mean SSIM 0.9902; per-frame diff% 0.15/0.16; self-motion MAUI 0.0005% (4 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9909 at frame 2 'incremented' (0.13% pixels differ), mean SSIM 0.9910; per-frame diff% 0.13/0.13; self-motion MAUI 0.0005% (4 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9901 at frame 2 'incremented' (0.16% pixels differ), mean SSIM 0.9902; per-frame diff% 0.15/0.16; self-motion MAUI 0.0005% (4 px) vs C++ 0.0000% (0 px) · Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9909 at frame 2 'incremented' (0.13% pixels differ), mean SSIM 0.9910; per-frame diff% 0.13/0.13; self-motion MAUI 0.0005% (4 px) vs C++ 0.0000% (0 px)
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `mismatch` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ &amp; XAML IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9901 at frame 2 'incremented' (0.16% pixels differ), mean SSIM 0.9902; per-frame diff% 0.15/0.16; self-motion MAUI 0.0005% (4 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ &amp; XAML IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9909 at frame 2 'incremented' (0.13% pixels differ), mean SSIM 0.9910; per-frame diff% 0.13/0.13; self-motion MAUI 0.0005% (4 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ &amp; XAML IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9901 at frame 2 'incremented' (0.16% pixels differ), mean SSIM 0.9902; per-frame diff% 0.15/0.16; self-motion MAUI 0.0005% (4 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ &amp; XAML IS FROZEN (0.0005% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9909 at frame 2 'incremented' (0.13% pixels differ), mean SSIM 0.9910; per-frame diff% 0.13/0.13; self-motion MAUI 0.0005% (4 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 149. Styles — 🟢/🟢
 <sub>styles</sub>
@@ -11222,27 +10766,15 @@ ports SwipeViewGestureRecognizerGallery.xaml (+ .xaml.cs) The MAUI SwipeViewGest
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 151. Swipe Item Position — 🟡/🟡
 <sub>swipe_item_position</sub>
@@ -11253,27 +10785,15 @@ ports SwipeItemPositionGallery.xaml A code-first port of the MAUI SwipeView sub-
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif04' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 152. Swipe Item Size — 🟢/🟢
 <sub>swipe_item_size</sub>
@@ -11299,27 +10819,15 @@ a self-contained demo page for the W2-20 swipe + refresh controls: a refresh_vie
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9934 at frame 1 'gif02' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9931 at frame 1 'gif02' (0.15% pixels differ), mean SSIM 0.9931; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9934 at frame 1 'gif02' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9931 at frame 1 'gif02' (0.15% pixels differ), mean SSIM 0.9931; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** 🚫 INVALID · `not-driven` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9934 at frame 1 'gif02' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9931 at frame 1 'gif02' (0.15% pixels differ), mean SSIM 0.9931; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9934 at frame 1 'gif02' (0.14% pixels differ), mean SSIM 0.9934; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here — swipe_refresh.toml declares one — and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9931 at frame 1 'gif02' (0.15% pixels differ), mean SSIM 0.9931; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 154. Swipe Threshold — 🟢/🟢
 <sub>swipe_threshold</sub>
@@ -11375,27 +10883,15 @@ ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance`
+**Motion:** 🚫 INVALID · `unpairable`
 
-Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance`
+**Motion:** 🚫 INVALID · `unpairable`
 
-Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page · Dark: SSIM 1.0000, 0.00% pixels differ (single frame only) — NOT motion-scored: run 2026-08-07-01_18_39 has 0 MAUI and 0 C++ &amp; XAML frames but NO step name occurs in both, so nothing can be paired — a comparison by frame index would be a guess. Re-capture this page
 
 ### 158. Switch Grouping — 🟢/🟢
 <sub>switch_grouping</sub>
@@ -11457,36 +10953,24 @@ Light: SSIM 0.9981, 0.05% pixels differ · Dark: SSIM 0.9980, 0.06% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 162. Title Bar — 🟡/🟡
+### 162. Title Bar — 🟢/🟢
 <sub>title_bar</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/title_bar_light.png" /></td><td><img width="300px" src="captures/windows/cpp/title_bar_light.png" /></td><td><img width="300px" src="captures/windows/xaml/title_bar_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/title_bar_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/title_bar_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/title_bar_dark.png" /></td></tr></table>
 
 ports TitleBarPage.xaml A self-contained, code-first demo of the TitleBar control
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ 0.0574% (470 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ 0.0574% (470 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ 0.0574% (470 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ 0.0574% (470 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `provenance` · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-07-01_18_39 · 2026-08-07</sub>
 
-Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ &amp; XAML 0.0574% (470 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block. · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ &amp; XAML 0.0574% (470 px) — LANE DECLARED STALE: C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block.
+Light: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ &amp; XAML 0.0574% (470 px) · Dark: MOTION 3 frames paired by step (run 2026-08-07-01_18_39, commit 3f70bd6e91, 2026-08-07) — worst SSIM 0.9996 at frame 2 'focus-field' (0.02% pixels differ), mean SSIM 0.9997; per-frame diff% 0.02/0.02/0.02; self-motion MAUI 0.0526% (431 px) vs C++ &amp; XAML 0.0574% (470 px)
 
 ### 163. Toolbar — 🟢/🟢
 <sub>toolbar</sub>

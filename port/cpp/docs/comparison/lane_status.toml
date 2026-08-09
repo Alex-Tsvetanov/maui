@@ -2,31 +2,45 @@
 #
 # Every provenance check in this pipeline binds a capture to its own run: motion_score._is_published_run
 # ties a run's frames to the still on the board byte-for-byte, and pixel_score.stills_fingerprint ties a
-# recorded verdict to the stills it was taken on. Both are sound and neither can see the failure declared
-# here — A BUILD HOST RENDERING SOURCE THAT IS NOT THIS TREE. Old code renders perfectly, is captured
+# recorded verdict to the stills it was taken on. Both are sound and neither can see the failure this file
+# is for — A BUILD HOST RENDERING SOURCE THAT IS NOT THIS TREE. Old code renders perfectly, is captured
 # perfectly, and hashes perfectly. Nothing downstream can tell.
 #
-# So it is declared, by a human, in one file. Read by pixel_score.declare_lane; retiring a declaration is
-# deleting a block, not sweeping 172 pages.
+# Read by pixel_score.declare_lane. Syntax:
 #
+#   [<board platform>]
 #   motion_invalid = true     every motion verdict on this lane becomes INVALID, whatever the frames say
 #   reason = "..."            appended to the review text of every affected cell
-
-[windows]
-motion_invalid = true
-reason = """C:/maui-src on the Windows VM is a TARBALL COPY, not a git checkout, and its SYNC_STAMP.txt
-was last measured SIX DAYS behind this tree. Everything the Windows column renders is therefore code of
-unknown age. Re-verify SYNC_STAMP.txt on the guest, rebuild MauiReference + gallery + gallery_xaml there,
-re-capture, and delete this block."""
-
-# SCOPE, STATED RATHER THAN LEFT TO BE DISCOVERED: this declaration caps MOTION verdicts only.
 #
-# That is NOT because the static Windows scores are trustworthy. They are not, and for exactly the same
-# reason: if the guest renders stale source, its still screenshots are stale too, and the whole Windows
-# column — 289 green cells at the last count — was rendered by code of unknown age. Motion is capped and
-# static is not for one deliberate reason and one only: the plan being implemented asks for motion, and
-# invalidating 289 static greens is a call for the board's owner to make, not a side effect of a scoring
-# change. The mechanism to do it is a `status_cap = "yellow"` key away.
+# NO LANE IS CURRENTLY DECLARED. That is a measurement, recorded below so nobody re-arms one from memory.
+
+# ---------------------------------------------------------------------------------------------------
+# WINDOWS — declared stale in 0e47d1d0fb, RETRACTED here. The declaration was WRONG and cost 34 green
+# cells. It is written up rather than quietly deleted because the mistake is a repeat of a named failure
+# mode, and the next person to reach for this file will be tempted by the same reasoning.
 #
-# The guest was unreachable when this file was written (ssh WINDOWS-VM.local: publickey/password denied),
-# so the six-day figure is the last VERIFIED reading, not today's. It cannot have got fresher on its own.
+# WHAT I DID: armed `[windows] motion_invalid = true` citing "SYNC_STAMP.txt last measured SIX DAYS
+# behind". That figure came from a note, not from the guest. The guest was unreachable at the time
+# (ssh: publickey/password denied), and I armed the declaration anyway on the grounds that a stale tree
+# "cannot have got fresher on its own". It had. The SSH failure was my own error — the guest user is
+# `Testings-VM` (config/windows.toml:46), not the host login I probed with.
+#
+# WHAT IS ACTUALLY TRUE, verified over SSH to Testings-VM@192.168.65.2 on 2026-08-08:
+#
+#   C:/maui-src/SYNC_STAMP.txt  ->  6814b588b9  hostsync-20260807
+#
+#   * 6814b588b9 IS the resync. Its own subject is "windows: the crash was a STALE GUEST TREE" — the
+#     commit that FOUND the staleness and fixed it, 2026-08-07 00:57:51.
+#   * The board's Windows captures come from run 2026-08-07-01_18_39 at commit 3f70bd6e91 — twenty-one
+#     minutes LATER, and that commit's subject is "windows/gestures: GREEN in both columns AFTER THE
+#     RESYNC". The captures were taken from the resynced guest.
+#   * Of the 26 commits between the guest's tree and HEAD, exactly three touch buildable source:
+#     CMakeLists.txt, android/gesture_platform_manager.cpp, ios/switch_handler.mm. The first is a
+#     `target_link_libraries(maui_core PUBLIC log)` INSIDE the android branch; the other two are Android
+#     and iOS backends. NOTHING in the Windows column's build is behind.
+#
+# THE LESSON, which is not "the note was out of date" — it is that a note is not a measurement, and the
+# right response to "I cannot verify this right now" is to leave the gate OFF and say so, not to arm it
+# and annotate the uncertainty. An unverified declaration is indistinguishable, downstream, from a
+# verified one: it invalidated 86 cells and capped 34 greens with the full authority of the mechanism.
+# Re-verify SYNC_STAMP.txt against `git log -1 <stamp-commit>` before ever arming this again.
