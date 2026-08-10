@@ -39,6 +39,7 @@
 #include "maui/core/event.hpp"
 #include "maui/core/i_element_handler.hpp"
 #include "maui/core/i_refresh_view.hpp"
+#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/thickness.hpp"
@@ -49,7 +50,12 @@
 
 namespace maui::controls
 {
-    class refresh_view : public view<maui::core::i_refresh_view>
+    // NOTE ON THE BASE: C# is `RefreshView : ContentView` (RefreshView.cs:17), and ContentView is
+    // `: TemplatedView, IContentView, ISafeAreaView2, ISafeAreaElement`. The port hand-rolls the content
+    // host here rather than deriving from controls::content_view, but it MUST still carry the
+    // ISafeAreaView2 half — see set_safe_area_insets below for why that is load-bearing rather than
+    // cosmetic.
+    class refresh_view : public view<maui::core::i_refresh_view>, public maui::core::i_safe_area_view2
     {
     public:
         refresh_view()
@@ -136,6 +142,27 @@ namespace maui::controls
         // ---- layout pass: MeasureContent / ArrangeContent within the padding (content_page recipe) ----
         maui::graphics::size measure(double width_constraint, double height_constraint) override;
         maui::graphics::size arrange(const maui::graphics::rect& bounds) override;
+
+        // ---- ISafeAreaView2: RELAY the page's realized insets to the content ----
+        // C# never needs this: on iOS the safe area propagates NATIVELY, every MauiView asking UIKit for
+        // its OWN safeAreaInsets, so the VerticalStackLayout inside a RefreshView is inset whether or not
+        // the RefreshView does anything. The port deliberately does not model per-view insets — app_host
+        // pushes ONE page-level inset and pushes it to the page's DIRECT CONTENT only (app_host.cpp:156,
+        // and see the long comment there). That simplification is invisible until a NON-INSETTING WRAPPER
+        // sits between the page and the layout that would have used the inset: the dynamic_cast to
+        // i_safe_area_view2 fails, the insets are dropped on the floor, and the layout arranges at y=0.
+        //
+        // MEASURED on `swipe_refresh`/ios, the one page in the board whose ContentPage content IS a
+        // RefreshView: MAUI's first content row is y79, the port's was y9 — the whole page ran 70px high,
+        // under the status bar. 16,126 px differed (0.51%); it read as a small number only because the
+        // page is mostly blank, and the cell's motion verdict ("NO MOTION EVIDENCE") hid it entirely.
+        //
+        // So: RELAY, do not consume. get_safe_area_regions_for_edge stays `none` and
+        // applies_safe_area_adjustments stays false, exactly like content_view — a RefreshView does not
+        // inset ITSELF (C# ContentView's SafeAreaEdges default is None), it just must not SWALLOW the
+        // inset on the way to a child that does. Any other non-insetting wrapper that becomes a page's
+        // direct content needs the same three lines.
+        void set_safe_area_insets(const maui::core::thickness& value) override;
 
     protected:
         void for_each_logical_child(const std::function<void(element&)>& visit) const override

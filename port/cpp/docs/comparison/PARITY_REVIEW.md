@@ -4151,3 +4151,51 @@ Checked rather than assumed: 32 twins changed between 07/06 (the old build) and 
 currently GREEN on maccatalyst, and four diverse ones — basic_grouping, header_footer_template, indicator,
 path_transform_string — were recaptured in both themes and rescored. All 8 cells held GREEN, 0 changed, 0
 frames dropped. The five-week reference jump did not move the board.
+
+### swipe_refresh: a real port defect the motion verdict was hiding, fixed to EXACT parity
+
+Chasing why `swipe_refresh` reads `not-driven` on all four lanes turned up a different bug entirely. The
+drag question is real but known and symmetric (the scenario header predicted it: a synthetic drag may not
+actuate a UIRefreshControl, and that non-reaction is the same in all three columns, so it cannot
+manufacture a red). Verified here on the simulator: at 0.6s/1.5s/2.5s, sampled MID-DRAG as well as after
+release, the port's RefreshView changes ZERO pixels. That stands as a harness limitation.
+
+But LOOKING at the page — instead of only reading its verdict — showed the port's content starting at the
+very top of the screen with "Ready" beside the status-bar clock, while MAUI's starts below it:
+
+    maui    first left-third dark row = y79
+    cpp     first left-third dark row = y9      <- the whole page ran 70px high, under the status bar
+
+16,126 px differed (0.510%). It reads as a small number only because the page is nearly blank, and the
+cell's review never showed it: the motion verdict ("NO MOTION EVIDENCE") occupies the whole review string,
+so a genuine layout defect sat behind an INVALID motion result on 8 cells.
+
+ROOT CAUSE, and it is structural rather than a nudge. C# is `RefreshView : ContentView`, and ContentView is
+`: TemplatedView, IContentView, ISafeAreaView2, ISafeAreaElement`. The port hand-rolls refresh_view as
+`view<i_refresh_view>` — no ISafeAreaView2 at all. That matters because of a documented simplification:
+MAUI propagates safe area NATIVELY (every MauiView asks UIKit for its own safeAreaInsets), whereas the port
+pushes ONE page-level inset and pushes it to the page's DIRECT CONTENT only (app_host.cpp:156). So
+
+    dynamic_cast<i_safe_area_view2*>(content_host->content())
+
+returns null whenever a NON-INSETTING WRAPPER sits between the page and the layout that would have used the
+inset. The insets are dropped on the floor and the VerticalStackLayout arranges at y=0.
+
+FIX: refresh_view implements ISafeAreaView2 and RELAYS — `get_safe_area_regions_for_edge` stays `none` and
+`applies_safe_area_adjustments` stays false, exactly like content_view, because a RefreshView does not inset
+ITSELF (ContentView's SafeAreaEdges default is None); it simply must not SWALLOW the inset on the way to a
+child that does. The RefreshView sits at the content origin with no offset, so the inset passes through
+unchanged — the same number UIKit would hand the inner layout natively.
+
+BLAST RADIUS MEASURED BEFORE TOUCHING IT: scanning every twin for the first element inside `<ContentPage>`,
+RefreshView is the page-level content on exactly ONE page of 172 (Border 1, TableView 1; ScrollView's 31 and
+every Layout already implement the interface). So this could not quietly move the board.
+
+RESULT — recaptured on iOS with the status bar pinned:
+
+    light  maui-vs-cpp 0 px    maui-vs-xaml 0 px
+    dark   maui-vs-cpp 0 px    maui-vs-xaml 0 px
+
+Byte-identical in both themes and both columns. Full headless suite green (3798 tests, 0 failures). The
+cells stay YELLOW on the motion verdict alone, which is the honest state — the still is now perfect and the
+drag remains undrivable.

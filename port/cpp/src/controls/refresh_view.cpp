@@ -309,6 +309,19 @@ namespace maui::controls
         }
         return {bounds.width, bounds.height};
     }
+
+    void refresh_view::set_safe_area_insets(const maui::core::thickness& value)
+    {
+        // Relay, do not consume — see the header. The RefreshView sits at the page's content origin with
+        // no offset of its own, so the page-level inset passes through UNCHANGED; that is the same number
+        // UIKit would hand the inner layout natively (a subview reports parent.safeAreaInsets minus its own
+        // offset, and this offset is zero). The cast is what selects a child that actually insets: a Layout
+        // (SafeAreaEdges default Container) takes it, a nested non-insetting wrapper relays it on in turn.
+        if (auto* safe_area_content = dynamic_cast<maui::core::i_safe_area_view2*>(content_))
+        {
+            safe_area_content->set_safe_area_insets(value);
+        }
+    }
 } // namespace maui::controls
 
 // Self-register the default handler for refresh_view (opt-in, PROFILE §6).
