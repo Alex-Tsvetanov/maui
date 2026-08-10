@@ -2262,6 +2262,33 @@ if(MAUI_BACKEND STREQUAL "android")
   # so no find_package(Python3) machinery needed — just the executable).
   find_program(MAUI_PYTHON3 NAMES python3 python REQUIRED)
 
+  # RE-CONFIGURE WHEN A SHARED TWIN CHANGES. Without this the codegen below runs at configure time and
+  # NOTHING ever re-runs it: `cmake --build` does not re-configure, so editing a page in
+  # port/maui-reference/pages/ silently keeps the OLD markup in this lane's binary. That is not
+  # hypothetical — it produced a false finding: a twin edit landed correctly in the maui and code-first
+  # columns and not in cpp_xaml, which reads exactly like a XAML-loader bug in the port. The bytes are
+  # right there in the .so to check, and the check is what saved it.
+  #
+  # BOTH statements are required and neither alone suffices: CONFIGURE_DEPENDS on the glob catches the
+  # RESULT SET changing (a page added or removed), while CMAKE_CONFIGURE_DEPENDS catches an existing
+  # page's CONTENT changing. Views/*.xaml.cpp is in the list because bytes mode READS the hand-written
+  # code-behind TUs and splices the byte array into them (e2e.py:360-366), so they are real inputs too.
+  # ${MAUI_E2E_TOOL} means editing the generator itself also re-runs it.
+  #
+  # Only this lane and the MSVC one need it: the committed TUs #embed the shared page directly, and clang
+  # emits embedded resources into the depfile, so ios/macos/headless already rebuild on a twin edit.
+  #
+  # KNOWN LIMITATION, deliberately not fixed here: adding a BRAND NEW page still needs a manual
+  # `e2e.py gen` in embed mode first, because the bytes branch returns before the code that writes
+  # Views/<name>.xaml.hpp and the gallery_pages.hpp aggregator (e2e.py:382). That fails LOUDLY as a
+  # missing-header compile error rather than silently as stale markup, which is the failure mode worth
+  # having.
+  file(GLOB GALLERY_XAML_INPUTS CONFIGURE_DEPENDS
+       ${CMAKE_CURRENT_SOURCE_DIR}/../maui-reference/pages/*.xaml
+       ${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery_xaml/Views/*.xaml.cpp)
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+               ${GALLERY_XAML_INPUTS} ${MAUI_E2E_TOOL})
+
   # Generate the bytes-mode .xaml.cpp TUs at CONFIGURE time (so file(GLOB) below sees them). A new/removed
   # page needs a re-configure to be picked up — the same convention gallery_xaml/CMakeLists.txt uses for
   # its #embed GLOB. The generator reads every page and emits one .xaml.cpp per page here.

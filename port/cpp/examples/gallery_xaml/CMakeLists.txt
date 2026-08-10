@@ -71,6 +71,16 @@ if(MSVC)
       "(-DMAUI_EXAMPLES_FRAMEWORK_DIR=...).")
   endif()
   find_program(MAUI_PYTHON3 NAMES python3 python REQUIRED)
+  # RE-CONFIGURE WHEN A SHARED TWIN CHANGES — see the long note at the matching site in
+  # port/cpp/CMakeLists.txt. Same defect, same fix: the codegen runs at CONFIGURE time and nothing re-runs
+  # it, so a twin edit silently keeps the old markup in this lane. CONFIGURE_DEPENDS catches the result set
+  # changing; CMAKE_CONFIGURE_DEPENDS catches an existing page's content changing; Views/*.xaml.cpp are
+  # real inputs because bytes mode splices the byte array into the hand-written code-behind TUs.
+  file(GLOB GALLERY_XAML_INPUTS CONFIGURE_DEPENDS
+       ${CMAKE_CURRENT_SOURCE_DIR}/../../../maui-reference/pages/*.xaml
+       ${CMAKE_CURRENT_SOURCE_DIR}/Views/*.xaml.cpp)
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+               ${GALLERY_XAML_INPUTS} ${MAUI_E2E_TOOL})
   execute_process(
     COMMAND ${MAUI_PYTHON3} ${MAUI_E2E_TOOL}
             gen --embed-mode=bytes --out-dir ${GALLERY_XAML_BYTES_DIR}
