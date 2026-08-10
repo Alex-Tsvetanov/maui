@@ -4268,3 +4268,45 @@ Board 1155 -> 1157 green, 29 -> 27 red.
 STILL OPEN, same mechanism: `image_button_handler.mm` keeps its own copy of the 1×1 per-state-image helper
 and uses it the same way, so an ImageButton with a CornerRadius is likely square for the same reason. Not
 touched here — it needs its own C# check and its own measurement.
+
+### image/android, the board's biggest RED (70%): a stale capture over a real cache defect
+
+The cpp column was missing the UriSource photo entirely — MAUI and cpp_xaml both render
+`https://aka.ms/campus.jpg`, the code-first column skipped straight to FileSource and every row below it
+shifted up, which is how one absent image becomes SSIM 0.4785 / 70%.
+
+Not a page-authoring difference: both sides call the SAME `image_source::from_uri` (the XAML loader
+converts the string through it at xaml_standard_types.cpp:128), and the code-first page's other remote
+fetch — the GifTwo URL — is behind a button, so at load each page pulls exactly one remote image.
+
+MEASURED ON THE EMULATOR rather than reasoned about, and the control is what made it legible:
+
+    cpp     @3s   65.90%      cpp   @8s  0.12%      cpp @20s  0.08%
+    xaml    @3s    0.10%      mauireference @3s     0.08%
+
+So it is NOT general slowness — the SAME framework in the xaml app, and MAUI itself, both have the photo
+up inside 3 seconds; only the code-first app needed 3-8. And a successful 20s load did NOT make the next
+3s launch succeed, which rules out "the first fetch is just slow".
+
+THE CONTROL THAT NAMED IT: `pm clear` on BOTH apps, then both launched cold at 3s —
+
+    xaml COLD @3s  0.10%      cpp COLD @3s  0.10%
+
+The code-first app is fast with NO cache and slow with a populated one. Its accumulated app data was
+making the load slower than having nothing at all, which is a cache path that costs time instead of saving
+it. That is a real defect and it is NOT fixed here — what is fixed is the capture, which had been banking
+the pre-load frame ever since 08/06.
+
+Recaptured on clean state: image/android RED -> GREEN, SSIM 0.9986 / 0.02% light, 0.9983 / 0.04% dark.
+Board 1157 -> 1158 green, 27 -> 26 red.
+
+OPEN, and worth its own session: why a warm disk cache makes a URI image slower than a cold one on the
+code-first host. The measurement above is the reproduction — `pm clear`, launch at 3s, then launch again
+at 3s and watch it regress.
+
+ALSO MEASURED AND NOT PURSUED: `image_button_handler.mm` keeps the same 1x1-per-state-image background the
+button fix removed, so the ImageButton CornerRadius was the obvious next suspect. It is NOT the page's
+problem — measured, the purple bands are IDENTICAL in both columns (top-row 1134, mid-row 968 each). The
+0.74% on image_button/ios is the COG GLYPH rendering larger in the port than in MAUI inside an
+identically-sized box — an AspectFit scaling difference, a separate finding. The mechanism divergence is
+real but has no measured symptom, so changing it would be risk without evidence.
