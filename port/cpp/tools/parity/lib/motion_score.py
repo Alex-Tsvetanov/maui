@@ -727,8 +727,21 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     roi_moved_m = roi_moved_o = False    # did EITHER column change inside any declared region at all
     if roi_by_step and pairs:
         first_m, first_o = pairs[0][1], pairs[0][2]
+        # TIME-LABELLED LANES GET THE REGION APPLIED TO EVERY PAIR. Keying by step name is the precise
+        # form and works wherever the runner labels each frame with the scenario step that produced it —
+        # the VM and iOS lanes do. ANDROID DOES NOT: capture_android's burst is time-based
+        # (`gif01@4s/12f` … `gif12@4s/12f`), so no declared name can ever match and the region was
+        # silently inert on the whole lane. Measured on stepper/android: an roi that should have fired
+        # produced "0 changed" because `roi_by_step.get("gif07@4s/12f")` is None for every frame.
+        #
+        # The fallback is sound rather than a fudge: an roi answers "did this region change at any point
+        # in the sequence", and applying it to every pair asks exactly that. The per-step form stays the
+        # default so a scenario that DOES name its steps keeps its precision.
+        named = any(step_name in roi_by_step for step_name, _pm, _po in pairs)
         for step_name, path_m, path_o in pairs:
             roi = roi_by_step.get(step_name)
+            if roi is None and not named:
+                roi = next(iter(roi_by_step.values()))
             if roi is None:
                 continue
             px_roi_m = _roi_changed(first_m, path_m, roi, crop_top)
@@ -1456,6 +1469,28 @@ def _selftest() -> int:
         r = score_cell("faintdead", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("faint dead page: still frozen", r["both_frozen"], True)
         check("faint dead page: INVALID", r["verdict"], INVALID)
+
+        # (27) A DECLARED REGION MUST REACH A TIME-LABELLED LANE. Android names its burst frames by
+        #      TIME (`gif01@4s/12f` …), never by scenario step, so `roi_by_step.get(step)` is None for
+        #      every frame and the region was silently inert on that whole lane. Measured on
+        #      stepper/android before the fallback: an roi that should have fired scored "0 changed".
+        (comp / "scenarios").mkdir(exist_ok=True)
+        (comp / "scenarios" / "roiburst.toml").write_text(
+            '[[steps]]\nname = "initial"\n\n[[steps]]\nname = "tapped"\naction = "click"\n'
+            'at = [0.5, 0.5]\nroi = [0.0, 0.0, 0.5, 0.5]\n')
+        # gif-named frames only: MAUI moves a box INSIDE the roi, the port does not. Both move a shared
+        # box outside it, so neither column is frozen and only the region can tell them apart.
+        burst_m = [("initial", [(10, 10), (150, 200)]), ("gif01", [(10, 10), (150, 250)]),
+                   ("gif02", [(40, 10), (150, 250)])]
+        burst_o = [("initial", [(10, 10), (150, 200)]), ("gif01", [(10, 10), (150, 250)]),
+                   ("gif02", [(10, 10), (150, 250)])]
+        dm = unit(run, "roiburst", "maui_xaml", "light", burst_m, plat="android")
+        do = unit(run, "roiburst", "cpp", "light", burst_o, plat="android")
+        publish(comp, "roiburst", "maui", "light", dm / "0001.png", plat="android")
+        publish(comp, "roiburst", "cpp", "light", do / "0001.png", plat="android")
+        r = score_cell("roiburst", "android", "cpp", "light", 0, STILL, comp)
+        check("time-labelled roi: split detected", r["why"], "roi-split")
+        check("time-labelled roi: FAIL", r["verdict"], FAIL)
 
         # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
         #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.

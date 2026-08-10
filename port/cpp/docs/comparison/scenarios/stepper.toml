@@ -68,3 +68,17 @@ at_macos-arm64 = [0.061, 0.0925]
 # added to capture_android.input_argv for this (the VM lanes get the equivalent from
 # run_comparison.for_lane; neither device lane has an env name to key on).
 at_android = [0.367, 0.13]
+# THE DECLARED REACTION REGION — the MINUS plate, which is where this scenario's reaction lives: one
+# tap on "+" takes Value 0 -> 1 and RE-ENABLES "-", repainting it grey -> black (this file's header
+# says so). Measured on run 2026-08-10-03_58_41, MAUI's reaction spans x[34..270] y[262..378].
+#
+# WHY IT IS NEEDED: that repaint is real but mostly SUB-THRESHOLD. At >0 it is 5696 px; at >25 — the
+# whole-frame visibility floor — only 391, which is 0.0165% of the frame and lands in the deliberate
+# dead band between FROZEN_PCT (0.012) and MOVED_PCT (0.020), so MAUI counts as NEITHER moved nor
+# frozen. Dark is worse (87 px), where the grey->black contrast is lower still, and the cell scored
+# INVALID/`not-driven` off the dark theme.
+#
+# WHAT IT REVEALS: the port changes ZERO pixels here even at threshold >0, while MAUI changes 5696.
+# That is a real difference — the port does not repaint the minus segment on increment — and the roi
+# is what lets the scorer say so instead of calling the whole cell undriven.
+roi_android = [0.03, 0.112, 0.25, 0.162]

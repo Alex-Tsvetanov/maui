@@ -4007,3 +4007,43 @@ does not establish, but that is untested and is NOT being asserted.
 carousel_page is the other unresolved page in the cluster and is also a gesture (a swipe), so it is
 likely the same question. Both stay INVALID/`not-driven`, which is honest: something was injected and no
 reaction was captured.
+
+### Android stepper: a REAL port defect, measured directly, that the scorer still cannot name
+
+With `at_android = [0.367, 0.13]` putting the tap on the "+" half (run 2026-08-10-03_58_41), measured
+at-rest -> gif12, status-bar cropped:
+
+    maui_xaml  >0: 5696 px   >25: 391 px   max 131   x[34..270] y[262..378]
+    cpp        >0:    0 px   >25:   0 px   max   0   —
+    cpp_xaml   >0:    0 px   >25:   0 px   max   0   —
+
+MAUI's reaction is exactly what stepper.toml's header predicts: at rest Value == Minimum == 0, so the
+native control greys the "-" segment; one tap on "+" takes Value to 1, RE-ENABLES "-" and repaints it
+grey -> black. That repaint is the whole durable diff this scenario exists to check.
+
+THE PORT DOES NOT REPAINT IT. Zero changed pixels even at threshold >0 — not a faint reaction, none at
+all. So the Android stepper handler does not re-evaluate its minus segment's enabled state when Value
+leaves Minimum. That is a genuine port defect and it is now measured on both sides.
+
+THE SCORER STILL CALLS THE CELL INVALID/`not-driven`, through THREE separate mechanisms, each of which
+had to be peeled back to see the next:
+
+  1. THE DEAD BAND. MAUI's 391 px at >25 is 0.0165% of the frame — between FROZEN_PCT (0.012) and
+     MOVED_PCT (0.020), the deliberate gap that keeps marginal animation out of both buckets. So MAUI
+     counts as neither moved nor frozen and `mismatch` cannot fire. In DARK the same repaint is only
+     87 px (lower grey-on-dark contrast), which IS below FROZEN_PCT, so dark scores both_frozen and the
+     aggregate takes it.
+  2. THE REGION COULD NOT REACH THIS LANE AT ALL. `_step_rois` keys by scenario step NAME, and Android
+     labels its burst by TIME (`gif01@4s/12f` …), so `roi_by_step.get(step)` was None for every frame
+     and any declared roi was silently inert. Fixed in this change: when no pair matches a declared
+     name, the region applies to every pair. Break-tested (case 27).
+  3. AND IT STILL DOES NOT FIRE HERE, because `_align` realigned this unit by +3 samples and dropped 6
+     unpaired frames, so `pairs[0]` — the frame the region measures against — is no longer the at-rest
+     frame, and the surviving span does not contain the transition. The region needs to measure against
+     the COLUMN'S OWN first frame (sel_m[0]) rather than the first surviving PAIR. Not changed here:
+     that is a third edit to the same function in one session and it deserves its own fixture rather
+     than being stacked on top of two others.
+
+Recorded rather than forced. The defect is real and measured; the cell staying INVALID is the honest
+state while the scorer cannot see it, and inventing a green would be the opposite of what this pass is
+for.
