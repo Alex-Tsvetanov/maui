@@ -210,7 +210,27 @@ def classify(theme_scores):
     # theme still reds the cell.
     if status == "red" and have and all(v.get("authored_asymmetry") for v in have.values()):
         status = "yellow"
-    if any(v.get("both_frozen") for v in have.values()) and status == "green":
+    # WAS MOTION EVER EXPECTED HERE? Computed once, because TWO different caps below would otherwise
+    # colour a page nobody ever drove — and the second one silently defeated the first when this ruling
+    # was first written (the rescore moved 0 cells until this hoist landed).
+    #
+    # `why == no-scenario` comes from motion_score's `driven_page = _has_action_scenario(key, comp)`,
+    # which reads the CHECKED-IN scenario files rather than the run directory. That provenance is the
+    # whole safety argument: a pruned or expired run directory yields `no-frames` / `unpairable` /
+    # `not-driven`, none of which is exempt, so no amount of missing evidence can manufacture this state.
+    # Requires EVERY scored theme to agree, so a half-authored scenario cannot buy a green.
+    never_expected = bool(have) and all(v.get("why") == motion_score.WHY_NO_SCENARIO for v in have.values())
+
+    # NEITHER column moved, on a page the board calls animated. Two frozen columns are byte-identical, so
+    # this arrives as a perfect score — the single most misleading green the board can produce when the
+    # page WAS driven. But this cap's own reasoning ("it says the page was never driven — no scenario, or
+    # an interaction this lane cannot reach") lumps together two states that deserve opposite colours:
+    #   - an interaction this lane could not reach  -> yellow: a reaction was authored and never observed;
+    #   - NO SCENARIO AT ALL                        -> both columns frozen is the CORRECT result. There
+    #     was no motion to miss. USER RULING 2026-08-10: do not expect motion that was never expected.
+    # This was the dominant distortion on the board: 70 cells, every one with a clean still (worst 0.60%
+    # at SSIM 0.9708, median 0.12%), coloured as though something differed.
+    if any(v.get("both_frozen") for v in have.values()) and status == "green" and not never_expected:
         status = "yellow"
     # ---- the motion verdict, and WHY IT IS NOT ANDed INTO THE COLOUR ----------------------------
     # The recovery plan this implements asks for "only static green AND motion PASS may render a green
@@ -249,12 +269,29 @@ def classify(theme_scores):
         # magnitude the frames do not support.
         if any(v.get("why") == "roi-split" for v in have.values()) and status == "green":
             status = "yellow"
-        # INVALID CANNOT BE GREEN. This is the plan's "never turn INVALID green to make the board look
-        # complete", and it closes a real hole: a driven page whose run directory was pruned fell
-        # through to `not_scored`, which returns the SINGLE-STILL number — so the cell scored a
-        # confident green off one resting frame while its review text said, in prose nobody aggregates,
-        # "NOT motion-scored". Measured at 6 cells on this board.
-        if governing == motion_score.INVALID and status == "green":
+        # INVALID CANNOT BE GREEN — EXCEPT WHERE NO MOTION WAS EVER EXPECTED.
+        #
+        # The rule exists to close a real hole: a DRIVEN page whose run directory was pruned fell through
+        # to `not_scored`, which returns the SINGLE-STILL number — so the cell scored a confident green off
+        # one resting frame while its review text said, in prose nobody aggregates, "NOT motion-scored".
+        # Measured at 6 cells. That hole stays shut below.
+        #
+        # But the rule was over-broad, and it was the single largest distortion on the board. USER RULING
+        # 2026-08-10: "we should not expect motions that are not expected." A page with NO action scenario
+        # was never driven by anything; there is no motion to have failed. Colouring it the same as a page
+        # that WAS driven and did not react states a difference the board never measured, and it did so on
+        # 70 cells — every one of which has a clean still (worst 0.60% at SSIM 0.9708; the median is 0.12%).
+        #
+        # THE EXEMPTION IS SAFE BECAUSE OF WHERE THE DISCRIMINATOR COMES FROM. `why == no-scenario` is
+        # decided by motion_score's `driven_page = _has_action_scenario(key, comp)`, which reads the
+        # CHECKED-IN scenario files — not the run directory. So the pruned-run case that motivated the
+        # original rule is `not-driven` / `unpairable` / `no-frames`, all still capped: a page that
+        # declares an action must still prove it reacted. Only the "nothing was ever aimed at this page"
+        # case is exempt, and no amount of missing or expired frames can manufacture that state.
+        #
+        # ALL scored themes must agree it was undriven — one theme carrying a real not-driven result still
+        # caps the cell, so a half-authored scenario cannot buy a green.
+        if governing == motion_score.INVALID and status == "green" and not never_expected:
             status = "yellow"
     parts = []
     for t in THEMES:
@@ -515,6 +552,44 @@ def _selftest() -> int:
                              "dark": None})
     check("INVALID caps a perfect cell at yellow", st, "yellow")
     check("INVALID is reported as the verdict", mo["verdict"], motion_score.INVALID)
+
+    # (1b) …BUT `no-scenario` IS EXEMPT (user ruling 2026-08-10: do not expect motion that was never
+    #      expected). Nothing was ever aimed at the page, so there is no motion to have failed, and the
+    #      still is what the cell actually measured. NOTE the fixture above uses `no-frames` — a DRIVEN
+    #      page whose frames expired — which is exactly the 6-cell hole and stays capped. These two cases
+    #      differ only in the why-code, which is why the pair has to exist: widening the exemption to all
+    #      INVALID passes (1b) and fails (1), and the version that caps everything passes (1) and fails
+    #      (1b). Neither test alone pins the rule.
+    #      EVERY FIXTURE HERE SETS both_frozen=True, and that is load-bearing rather than incidental: an
+    #      undriven page's two columns ARE both frozen, and the `both_frozen` cap runs BEFORE the INVALID
+    #      one. The first cut of these tests omitted it, so they passed against a rule that moved ZERO of
+    #      the 70 real cells — the earlier cap had already turned the cell yellow and the exemption under
+    #      test was never reached. A fixture that does not reproduce the cell's real shape proves nothing.
+    st, _rev, mo = classify({"light": cell(GREEN, verdict=motion_score.INVALID, both_frozen=True,
+                                           why=motion_score.WHY_NO_SCENARIO), "dark": None})
+    check("no-scenario INVALID with a clean still is GREEN", st, "green")
+    check("no-scenario INVALID still reports its verdict", mo["verdict"], motion_score.INVALID)
+
+    # (1c) A page that WAS driven and did not react keeps the cap, even beside an undriven theme — a
+    #      half-authored scenario must not buy a green.
+    st, _rev, _mo = classify({"light": cell(GREEN, verdict=motion_score.INVALID, both_frozen=True,
+                                            why=motion_score.WHY_NO_SCENARIO),
+                              "dark": cell(GREEN, verdict=motion_score.INVALID, both_frozen=True,
+                                           why=motion_score.WHY_NOT_DRIVEN)})
+    check("one not-driven theme still caps the cell", st, "yellow")
+
+    # (1d) …and a genuinely bad still is never rescued by the exemption.
+    st, _rev, _mo = classify({"light": cell(RED, verdict=motion_score.INVALID, both_frozen=True,
+                                            why=motion_score.WHY_NO_SCENARIO), "dark": None})
+    check("no-scenario exemption does not rescue a red still", st, "red")
+
+    # (1e) THE REGRESSION GUARD FOR THE HOIST ITSELF. A driven page whose columns are both frozen must
+    #      stay yellow through the `both_frozen` cap — this is the state (1b) is exempt from, and the two
+    #      differ ONLY in the why-code, so this pair is what pins the exemption to `no-scenario` rather
+    #      than to "frozen".
+    st, _rev, _mo = classify({"light": cell(GREEN, verdict=motion_score.INVALID, both_frozen=True,
+                                            why=motion_score.WHY_NOT_DRIVEN), "dark": None})
+    check("driven-but-frozen stays yellow", st, "yellow")
 
     # (2) …and PASS does NOT cap. The cap must be the exception, not a blanket tax on motion cells.
     st, _rev, mo = classify({"light": cell(GREEN, verdict=motion_score.PASS, why=""), "dark": None})
