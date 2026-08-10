@@ -4351,3 +4351,55 @@ The likely mechanism, for whoever rules on it: on a page whose content is TALLER
 Catalyst UIScrollView appears to leave contentOffset at 0 with the safe-area inset unapplied at rest, so
 the content starts under the chrome; the shorter ScrollView pages above never reveal it. Not verified —
 the measurement above is solid, that explanation is not.
+
+### hybrid_web_view/android (8.65%): the port WRAPS button text where MAUI truncates it to one line
+
+Root-caused, not fixed — and the path there is worth recording because two of my own checks were wrong
+before the third was right.
+
+WRONG TURN 1 — "stale MAUI capture". MAUI rendered short labels ("Send", "Invoke Async", "Test JS") while
+the shared twin declares long ones ("Send message to JS", "Test JS Exception"), so the obvious read was a
+stale MauiReference. It was not: the installed APK dated 08/10 03:26, the loose DLL contains the LONG
+strings and NOT the short ones, and PageDispatch maps `hybrid_web_view` -> HybridWebViewPage, the
+shared-XAML page. The binary is right.
+
+WRONG TURN 2 — "so it renders correctly now". A `uiautomator dump` of the live MauiReference showed
+`text="Send message to JS"`, and I read that as MAUI rendering the long label. IT DOES NOT MEAN THAT:
+uiautomator reports the TEXT PROPERTY, never the pixels. Both columns hold the identical string; only the
+RENDER differs. An accessibility dump can never settle a rendering question.
+
+WHAT IS ACTUALLY HAPPENING, from the frames: MAUI lays each button out on ONE line and drops the overflow
+("Send message to JS" -> "Send", "Invoke Async JS" -> "Invoke Async", "Test JS Exception" -> "Test JS",
+"Test JS Async Exception" -> "Test JS Async"), so its buttons are short and single-height. The port WRAPS
+to two lines, making every button taller and shifting the whole right-hand column. That is the 8.65%.
+
+CAUSE is the deviation this handler already documents at its head: the port builds a plain
+`android.widget.Button` because Material Components is a gradle/AAR dependency an APK-less backend cannot
+carry, while C# builds `MauiMaterialButton` (ButtonHandler.Android.cs:32). Neither MAUI's handler nor
+MauiMaterialButton.cs sets SingleLine/MaxLines anywhere — the single-line behaviour comes from the
+MaterialButton default STYLE inside the AAR, which a plain Button does not inherit. Same family as the
+flat-background compensation this file already carries (install_flat_material_background): the port
+reproduces MaterialButton's *look* piece by piece, and this piece is missing.
+
+FIX, scoped but NOT applied here: give the plain Button MaterialButton's line behaviour at construction
+(max lines 1 + END ellipsize) alongside the existing background compensation. Deliberately left for a
+clean run — this needs an Android gallery rebuild plus a recapture, and this session already banked one
+corrupted Android capture (below), so it should start from a settled emulator rather than be rushed in
+behind that.
+
+The remaining sliver after that will be the WebView's own error string — MAUI showed
+`net::ERR_INVALID_RESPONSE` and the port `net::ERR_ADDRESS_UNREACHABLE` for the same unreachable
+https://0.0.0.1/ — which is Chromium's failure classification for an unroutable address, not a port
+behaviour, and varies run to run.
+
+### A corrupted Android capture, caught and reverted
+
+The first hybrid_web_view recapture banked GARBAGE and scored it without complaint: the maui column got the
+Android HOME SCREEN (the app never came up) and the cpp column got the LABEL page (a different page
+entirely); only xaml was correct. Reverted with `git checkout` — board back to 1158/192/26, no damage.
+
+Cause was almost certainly my own doing: `pm clear`, repeated force-stops and an `adb install -r` in the
+minutes just before, leaving the emulator mid-churn. The lesson is the pipeline's, though: the still pass
+banked a home-screen frame and a wrong-page frame and reported neither. It already knows the page it asked
+for — a cheap assertion that the captured frame is not the launcher, and that the same frame is not filed
+under two page keys, would have refused both.
