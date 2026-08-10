@@ -4586,3 +4586,37 @@ Land these as their own change behind a full-lane rescore, or not at all. They a
 ALSO CORRECTED: the earlier attribution of swipe_item_size to "the harness top-crop of ruling 2" is FALSE —
 review.py:77 is `CROP_TOP = {"android": 140}` and there is no other crop in either tool tree; a harness crop
 would move all 176 pages, and 173 align at dy=0.
+
+### carousel paging: the deferral note names the wrong dependency, and the real blocker is architectural
+
+collection_view_handler.cpp:75 defers live swipe paging because "the android backend has no
+androidx.viewpager2". Checked against the oracle rather than taken at face value, and it is wrong twice:
+
+  1. MAUI DOES NOT USE ViewPager2 ON ANDROID. CarouselViewHandler.Android.cs:26-28 returns a
+     `MauiCarouselRecyclerView(Context, GetItemsLayout, CreateAdapter)` — a RecyclerView subclass. Paging
+     comes from SnapHelpers/SnapManager.cs, whose helpers are SingleSnapHelper : PagerSnapHelper and
+     NongreedySnapHelper : LinearSnapHelper. Both live in androidx.recyclerview, which this backend already
+     stages and which it already links for other reasons.
+  2. SO THE NAMED BLOCKER DOES NOT EXIST. Had I implemented against the note I would have wired ViewPager2 —
+     a widget MAUI never touches — and then measured the port against a mechanism the ground truth does not
+     use. This is the third deferral note this session whose stated cause did not survive reading src/.
+
+THE REAL BLOCKER IS ONE LAYER DOWN AND IT IS ARCHITECTURAL. The port's CollectionView/CarouselView is not a
+RecyclerView at all: collection_view_handler.cpp:1 hosts a plain android.widget.ScrollView with a
+hand-rolled content host, and its own header (:41-49) records that "NO RecyclerView view-recycling ... a
+faithful RecyclerView adapter is a future refinement". The carousel branch realizes ONLY the item at the
+current Position and frames it to the viewport. There is nothing for a SnapHelper to attach to.
+
+TWO ROUTES, and the choice is a real design decision rather than a detail:
+  A. FAITHFUL — build the RecyclerView items host MAUI has, then attach PagerSnapHelper. This is the
+     "future refinement" the header already anticipates, it fixes paging as a side effect, and it is the
+     only route that reproduces drag-follow and snap physics. It is also a rewrite of the Android
+     CollectionView backend, and it would touch every CV/CarouselView page on the board.
+  B. CHEAP — wire the existing gesture channel (gesture_platform_manager.cpp already carries working pan
+     and swipe recognizers) to advance Position past a horizontal-drag threshold, re-running the existing
+     arrange branch. Small, no new host. But it PAGES WITHOUT SLIDING: the board compares a 12-frame burst,
+     so a discrete jump would register motion where MAUI shows a transition. It would move
+     carousel_page/android off 0.0000% without making it match.
+
+Not started. Route A is too large to begin at the end of a long session without a decision, and route B
+buys a number rather than parity.
