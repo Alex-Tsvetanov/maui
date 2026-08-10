@@ -176,7 +176,26 @@ namespace maui::platform::android
         inline constexpr const char* k_dialog_class = "android/app/Dialog";
         inline constexpr const char* k_date_dialog_class = "android/app/DatePickerDialog";
         inline constexpr const char* k_time_dialog_class = "android/app/TimePickerDialog";
-        inline constexpr const char* k_alert_builder_class = "android/app/AlertDialog$Builder";
+        // PickerHandler.Android.cs builds its single-choice list on MaterialAlertDialogBuilder, not the
+        // framework AlertDialog.Builder. The port used the framework one because Material lived in an AAR
+        // this backend was said not to carry — stale: the AAR closure is staged and dexed in both app hosts
+        // (probed in the shipped classes.dex). The INTERACTION was already identical; what differed was the
+        // CHROME, and it measured 35.71% of differing pixels on picker/android once the dialog opened.
+        //
+        // EVERY DESCRIPTOR BELOW CHANGES WITH THIS, which is why it is not a one-line swap. Verified with
+        // javap against the staged jar rather than assumed:
+        //   MaterialAlertDialogBuilder extends androidx.appcompat.app.AlertDialog$Builder (NOT android.app),
+        //   its fluent setters are overridden to return MaterialAlertDialogBuilder, and create() returns
+        //   androidx.appcompat.app.AlertDialog. Covariant overrides do leave bridge methods with the
+        //   androidx return type, but this seam names the concrete Material overrides — they are the ones
+        //   javap lists as declared, so GetMethodID cannot miss them.
+        // The DOWNSTREAM path is unaffected: androidx.appcompat.app.AlertDialog derives from
+        // AppCompatDialog -> ComponentDialog -> android.app.Dialog, so show/dismiss/setOnDismissListener
+        // still resolve through k_dialog_class by superclass walking.
+        inline constexpr const char* k_alert_builder_class =
+            "com/google/android/material/dialog/MaterialAlertDialogBuilder";
+        inline constexpr const char* k_alert_builder_ret =
+            "Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;";
         inline constexpr const char* k_native_view_class = "android/view/View";
 
         // ---- the five trampolines (one native function per Java method, bound once) -----------------
@@ -578,7 +597,7 @@ namespace maui::platform::android
         }
         // SetTitle(VirtualView.Title ?? string.Empty).
         if (jmethodID set_title = cache.method(env.get(), detail::k_alert_builder_class, "setTitle",
-                                               "(Ljava/lang/CharSequence;)Landroid/app/AlertDialog$Builder;"))
+                                               "(Ljava/lang/CharSequence;)Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;"))
         {
             const local_ref<jstring> text = to_jstring(env.get(), title);
             const local_ref<jobject> chained{env.get(), env->CallObjectMethod(builder.get(), set_title, text.get())};
@@ -600,8 +619,8 @@ namespace maui::platform::android
         }
         jmethodID set_items = cache.method(
             env.get(), detail::k_alert_builder_class, "setSingleChoiceItems",
-            "([Ljava/lang/CharSequence;ILandroid/content/DialogInterface$OnClickListener;)Landroid/app/AlertDialog$"
-            "Builder;");
+            "([Ljava/lang/CharSequence;ILandroid/content/DialogInterface$OnClickListener;)"
+            "Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;");
         if (set_items == nullptr)
         {
             return nullptr;
@@ -620,7 +639,7 @@ namespace maui::platform::android
         jclass string_ids = cache.find_class(env.get(), "android/R$string");
         jmethodID set_negative =
             cache.method(env.get(), detail::k_alert_builder_class, "setNegativeButton",
-                         "(ILandroid/content/DialogInterface$OnClickListener;)Landroid/app/AlertDialog$Builder;");
+                         "(ILandroid/content/DialogInterface$OnClickListener;)Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;");
         if (string_ids != nullptr && set_negative != nullptr)
         {
             const jfieldID cancel_field = env->GetStaticFieldID(string_ids, "cancel", "I");
@@ -634,7 +653,7 @@ namespace maui::platform::android
             }
         }
         jmethodID create =
-            cache.method(env.get(), detail::k_alert_builder_class, "create", "()Landroid/app/AlertDialog;");
+            cache.method(env.get(), detail::k_alert_builder_class, "create", "()Landroidx/appcompat/app/AlertDialog;");
         if (create == nullptr)
         {
             return nullptr;

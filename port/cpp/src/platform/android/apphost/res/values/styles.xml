@@ -52,11 +52,26 @@
         <item name="materialButtonStyle">@style/MauiMaterialButton</item>
         <item name="checkboxStyle">@style/MauiCheckBox</item>
         <item name="android:textAllCaps">false</item>
+        <!-- Mirrors MAUI's own theme, src/Core/src/Platform/Android/Resources/values/styles.xml:18-19.
+             Both keys are needed: `alertDialogTheme` is what an AppCompat AlertDialog.Builder reads, and
+             `materialAlertDialogTheme` is what MaterialAlertDialogBuilder reads — the picker's dialog goes
+             through the latter, but a Builder constructed without an explicit theme falls back to the
+             former, so setting only one leaves a path on framework chrome. -->
+        <item name="alertDialogTheme">@style/MauiAlertDialogTheme</item>
+        <item name="materialAlertDialogTheme">@style/MauiAlertDialogTheme</item>
         <!-- Maui.MainTheme.NoActionBar. MAUI's Android gallery renders these native-default ContentPages
              with NO top app-title bar, and app_host.cpp's content_chrome_height_px reserves no action-bar
              height — it subtracts only the status bar (top) and navigation bar (bottom). -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Byte-for-byte MAUI's own, src/Core/src/Platform/Android/Resources/values/styles.xml:83-85. The
+         colorPrimary override is what makes the dialog's title and its Cancel button read as onSurface
+         rather than the app accent — without it the Material dialog is the right SHAPE but the wrong
+         colour, which on this board's neutralised #E0E0E0 palette would be an obvious miss. -->
+    <style name="MauiAlertDialogTheme" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="colorPrimary">?attr/colorOnSurface</item>
     </style>
 
     <style name="MauiMaterialButton" parent="Widget.MaterialComponents.Button.UnelevatedButton">

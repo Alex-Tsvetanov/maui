@@ -26,6 +26,20 @@ xamarin.androidx.arch.core.runtime/aar/androidx.arch.core.core-runtime.aar
 xamarin.androidx.resourceinspection.annotation/jar/androidx.resourceinspection.resourceinspection-annotation.jar
 xamarin.kotlin.stdlib/lib/net8.0-android34.0/Xamarin.Kotlin.StdLib.aar
 xamarin.jetbrains.annotations/lib/net8.0-android34.0/Xamarin.Jetbrains.Annotations.aar
+# kotlinx-coroutines. REQUIRED BY androidx.lifecycle, and its absence is invisible until something
+# actually CONSTRUCTS a lifecycle-aware object. Nothing did until the picker's dialog moved to
+# MaterialAlertDialogBuilder, whose androidx.appcompat.app.AlertDialog derives from ComponentDialog and
+# builds a LifecycleRegistry on show():
+#     NoClassDefFoundError: Lkotlinx/coroutines/flow/StateFlowKt;
+#       at androidx.lifecycle.LifecycleRegistry.<init>(LifecycleRegistry.jvm.kt:105)
+#       at androidx.activity.ComponentDialog.getLifecycleRegistry(ComponentDialog.kt:47)
+#       at androidx.appcompat.app.AlertDialog.onCreate(AlertDialog.java:277)
+# The lifecycle jars below were already staged and dexed, so a class-presence probe of the APK reported
+# everything "there" — the missing piece was a TRANSITIVE runtime dependency of code nobody had run yet.
+# core.jvm carries the implementation; .android adds the Main dispatcher; .core is the multiplatform
+# facade and is listed for completeness (android_aar_stage.py drops empty-classes facades anyway).
+xamarin.kotlinx.coroutines.core.jvm/lib/net8.0-android34.0/Xamarin.KotlinX.Coroutines.Core.Jvm.aar
+xamarin.kotlinx.coroutines.android/lib/net8.0-android34.0/Xamarin.KotlinX.Coroutines.Android.aar
 xamarin.androidx.tracing.tracing.android/aar/androidx.tracing.tracing-android.aar
 xamarin.androidx.versionedparcelable/aar/androidx.versionedparcelable.versionedparcelable.aar
 xamarin.androidx.core/aar/androidx.core.core.aar
