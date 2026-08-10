@@ -4100,3 +4100,47 @@ artifacts were rebuilt.
 pushes the row down, so Catalyst's y-fraction lands in the LABEL and the portable one lands past the
 track's right edge on bare grey. Three lanes, three different correct answers, one portable fraction
 that was only ever right for the phone it was measured on.
+
+### Catalyst button: the stale binary is ELIMINATED, and what is left is a harness asymmetry
+
+Correction to the entry above: I wrote that the light-only recapture trap is "systemic for every scenario
+page". It is not a standing board defect — it is a hazard of PARTIAL recaptures, which is what a `--only`
+run without `--themes` performs. Swept afterwards: 342 cells cite a run in both halves and ZERO now have a
+dark half older than their light half. The trap is real, the board-wide problem is not; do not go hunting
+for one.
+
+`button/maccatalyst` reads `roi-split` — the port changes the readout, MAUI does not. Having just proved
+that exact signature was a stale binary on Windows, the obvious move was to assume the same here. It is
+NOT the same, and the difference took eliminating both candidate causes:
+
+  - **STALE BINARY: eliminated.** The Catalyst MauiReference the lane deploys is the *Debug* artifact
+    (`artifact_release` is read only by measure_size.py, never by the runner), and it dated from 07/06 —
+    five weeks before the twins. Rebuilt; the deployed dll ON THE VM is 08/10 04:40 and carries 7
+    `Readout` references. MAUI now HAS the handler and still does not react.
+  - **WRONG AIM: eliminated.** Drawing the scenario's `at_macos-arm64` crosshair onto frame 1 of all
+    three columns puts it at (510,127) in every one, landing exactly on the "Clicked" button, over
+    pixel-identical layouts. The aim is right and it is right in all three columns.
+
+What is left is visible in the scored frames themselves: **MAUI's window has GREY traffic lights and both
+port windows have coloured ones.** MAUI's window is not key. On macOS the first click into an unfocused
+window activates it and does not reach the control, which would produce exactly this — port reacts, MAUI
+absorbs the click. Note the direction: the harness ADVANTAGES the port here. This is not a port defect,
+and scoring it as one would be backwards.
+
+NOT PROVEN, and I am recording it as a hypothesis rather than a fix. `present` does `set frontmost to
+true`, so the naive explanation is already contradicted; the docstring also notes any System Events call
+between present and the shot steals key focus back, which is a plausible mechanism but not one I have
+measured. My attempt to test it on the VM was INVALID and is worth recording as a trap: launching
+MauiReference by hand does not navigate to the page under test, so the click landed on a completely
+different page (an Entry, which took a focus ring) and the 6252-px "reaction" I measured was that Entry
+focusing — a perfectly plausible-looking number for the wrong reason. A real test has to drive the app
+the way the runner does, to the page under test.
+
+Two infrastructure facts learned here, both of which cost a full VM cycle each:
+  - **The .app directory mtime does not move when a rebuild replaces its contents.** The Catalyst bundle
+    still reads 07/06 while the dll inside it reads 08/10. Any staleness check must stat the DLL.
+  - **A rebuild resets the app's saved window frame**, and Catalyst then launches at its CONTENT height
+    (548) instead of 800. `present`'s resize lost that race 11 times in a row across two full runs
+    (`window shrank before capture: 1024x548`) until one manual `set size` stuck and macOS persisted it;
+    the very next run dropped ZERO frames. So after ANY MauiReference rebuild the window state needs
+    warming once, or the first run is guaranteed to bank nothing.
