@@ -4223,3 +4223,48 @@ gate, which fails exactly that case and nothing else. Third time this session a 
 not distinguish what it was supposed to test.
 
 picker/ios restored to green; board back to 1155.
+
+### button/ios: CornerRadius was being drawn and then not clipped — the sweep's one real hit
+
+The still-behind-a-motion-verdict sweep (see the correction below for how it nearly went wrong) left exactly
+one candidate above 0.5% on a lane where the metric is trustworthy: button/ios at 0.98%, SSIM 0.9816.
+Looking at it: `<Button Text="CornerRadius" BackgroundColor="Purple" CornerRadius="10"/>` renders with
+ROUNDED corners in MAUI and SQUARE corners in the port.
+
+    box            maui x[36..1169] y[1203..1295] h=93     port  IDENTICAL box
+    top row purple      1068 px                                  1134 px (the full width)
+    mid row purple      1047 px                                  1047 px
+
+Same geometry, same size — only the corners differ, which is why it never looked like a layout bug.
+
+CAUSE. map_corner_radius is byte-identical to ButtonExtensions.cs:26 and DOES set `layer.cornerRadius`. The
+port then painted the background somewhere that radius cannot reach: a 1×1 solid colour installed as a
+PER-STATE backgroundImage. A UIButton draws its backgroundImage itself, not through the layer, so
+`layer.cornerRadius` never clips it and the fill stays square under a correctly-rounded layer.
+
+C# does not do this. A non-Mac button routes to the SHARED UIView extension — ButtonHandler.iOS.cs:83
+`PlatformView.UpdateBackground(button.Background)` → ViewExtensions.cs:99 `platformView.BackgroundColor =
+backgroundColor.ToPlatform()`. The per-state image carried a comment justifying it — "a system UIButton
+ignores plain backgroundColor" — which is not true of the button the port creates:
+UIButton(UIButtonType.System) with NO UIButtonConfiguration (that branch is Mac-Catalyst-only,
+ButtonHandler.iOS.cs:55), and MAUI's own render of this page fills Purple/Green/Blue/Red through exactly
+that path. A plausible-sounding comment is not a measurement.
+
+FIX: solid paint sets the view's own BackgroundColor, matching C#; the null path clears both mechanisms; the
+now-dead 1×1 helper is deleted with it. No masksToBounds — C# never sets it, and it would also clip borders
+and shadows. Verified on device: the port's top-row purple count went 1134 -> 1068, EXACTLY MAUI's.
+
+RECAPTURED the six iOS pages with the most colour-bearing buttons. No regressions, two now exact:
+
+    button              yellow -> GREEN
+    image               RED    -> yellow   (3.91%, a separate pre-existing gap — improved, not solved)
+    clipping            SSIM 1.0000 / 0.00%
+    layout_is_enabled   SSIM 1.0000 / 0.00%
+    label               SSIM 0.9975 / 0.09%
+    clip_views          green
+
+Board 1155 -> 1157 green, 29 -> 27 red.
+
+STILL OPEN, same mechanism: `image_button_handler.mm` keeps its own copy of the 1×1 per-state-image helper
+and uses it the same way, so an ImageButton with a CornerRadius is likely square for the same reason. Not
+touched here — it needs its own C# check and its own measurement.

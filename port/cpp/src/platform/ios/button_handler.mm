@@ -312,34 +312,35 @@ namespace maui::core
         as_button(native).accessibilityIdentifier = raw != nil ? raw : @"";
     }
 
-    namespace
-    {
-        // A 1×1 image of a solid color. A UIButton(UIButtonType.System) ignores backgroundColor for its
-        // fill, so MAUI's ButtonHandler.MapBackground draws the BackgroundColor as a per-state
-        // backgroundImage — this mints that image.
-        UIImage* solid_color_image(UIColor* color)
-        {
-            UIGraphicsImageRenderer* const renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(1, 1)];
-            return [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
-              CGContextSetFillColorWithColor(context.CGContext, color.CGColor);
-              CGContextFillRect(context.CGContext, CGRectMake(0, 0, 1, 1));
-            }];
-        }
-    } // namespace
-
-    // ButtonExtensions.UpdateBackground: a system UIButton draws its BackgroundColor as a per-state
-    // backgroundImage (plain backgroundColor is ignored by the button's own drawing). A solid paint becomes
-    // a 1×1 colored image for every control state; a gradient/image paint defers to the shared layer-based
-    // apply_background; a null paint clears the override.
+    // ButtonHandler.iOS.cs:83 → ViewExtensions.UpdateBackground: a solid paint sets the view's own
+    // BackgroundColor; a gradient/image paint defers to the shared layer-based apply_background; a null
+    // paint clears the override. The 1×1-per-state-image helper that used to live here is gone with the
+    // mechanism it served — see update_background for why it was wrong and what it cost.
     void button_platform::update_background(const maui::graphics::paint* value)
     {
         UIButton* const button = as_button(native);
         if (const auto* const solid = dynamic_cast<const maui::graphics::solid_paint*>(value))
         {
-            UIImage* const image = solid_color_image(maui::platform::ios::to_ui_color(solid->color()));
+            // SOLID GOES ON THE LAYER, NOT INTO A PER-STATE backgroundImage. C# routes a non-Mac button
+            // straight to the SHARED UIView extension — ButtonHandler.iOS.cs:83 `PlatformView.UpdateBackground
+            // (button.Background)` → ViewExtensions.cs:99 `platformView.BackgroundColor =
+            // backgroundColor.ToPlatform()`. The per-state image this replaces was justified in a comment as
+            // "a system UIButton ignores plain backgroundColor", which is not true of the button the port
+            // actually creates: UIButton(UIButtonType.System) with NO UIButtonConfiguration (the
+            // configuration branch is Mac-Catalyst-only, ButtonHandler.iOS.cs:55), and MAUI's own render of
+            // this very page shows Purple/Green/Blue/Red buttons filled through exactly this path.
+            //
+            // IT COSTS THE CORNER RADIUS, which is how it surfaced. A UIButton's backgroundImage is drawn by
+            // the button, NOT by the layer, so `layer.cornerRadius` (set by map_corner_radius, byte-identical
+            // to ButtonExtensions.cs:26) never clips it. MEASURED on button/ios, `<Button Text="CornerRadius"
+            // BackgroundColor="Purple" CornerRadius="10"/>`: identical box x[36..1169] h=93 in both columns,
+            // but the box's TOP ROW held 1068 purple px in MAUI and the full 1134 in the port — MAUI rounds,
+            // the port squared it off. Setting the layer's own colour restores the clip for free, with no
+            // masksToBounds (which C# never sets, and which would also clip borders and shadows).
+            [button setBackgroundColor:maui::platform::ios::to_ui_color(solid->color())];
             for (const UIControlState state : k_control_states)
             {
-                [button setBackgroundImage:image forState:state];
+                [button setBackgroundImage:nil forState:state];
             }
         }
         else if (value != nullptr)
@@ -348,6 +349,11 @@ namespace maui::core
         }
         else
         {
+            // A null paint clears BOTH mechanisms — the layer colour this now sets, and any per-state image
+            // a gradient/image paint may have left behind. C#'s early `return` for a null paint on a
+            // non-Layout view (ViewExtensions.cs:89) leaves the platform default in place, which for a
+            // freshly-created System button is exactly nil/nil.
+            [button setBackgroundColor:nil];
             for (const UIControlState state : k_control_states)
             {
                 [button setBackgroundImage:nil forState:state];
