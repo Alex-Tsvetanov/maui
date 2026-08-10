@@ -84,6 +84,8 @@
 
 #include "maui/controls/items/collection_view_handler.hpp"
 
+#include <android/log.h>
+#include <cstdarg>
 #include <jni.h>
 
 #include <algorithm>
@@ -95,6 +97,7 @@
 #include <string>
 #include <vector>
 
+#include "android_items_ops.hpp"
 #include "android_visual_ops.hpp"
 #include "jni/app_context.hpp"
 #include "jni/jni_cache.hpp"
@@ -147,6 +150,11 @@ namespace
 
     constexpr jint k_match_parent = -1; // ViewGroup.LayoutParams.MATCH_PARENT
     constexpr jint k_wrap_content = -2; // ViewGroup.LayoutParams.WRAP_CONTENT
+
+    // The CarouselView host. MAUI's is MauiCarouselRecyclerView (CarouselViewHandler.Android.cs:26-28), a
+    // RecyclerView subclass; the port uses a plain RecyclerView and puts the paging behavior in
+    // MauiItemsAdapter.attach (a PagerSnapHelper, per SnapHelpers/SnapManager.cs).
+    constexpr const char* k_recycler_class = "androidx/recyclerview/widget/RecyclerView";
     // android.view.View.MeasureSpec modes.
     constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
     constexpr auto k_measure_spec_unspecified = static_cast<jint>(0x00000000U);
@@ -429,6 +437,41 @@ namespace
         clear_pending(env);
     }
 
+    // Re-frame a child that is ALREADY parented: measure Exactly + layout, with no detach/re-add.
+    //
+    // add_and_frame's detach-then-add is right for the eager path, where every child is rebuilt from scratch
+    // each pass anyway. It is wrong for a view that carries state across passes: detaching a RecyclerView
+    // runs onDetachedFromWindow, which stops an in-flight fling and releases its bound holders, so an arrange
+    // that happened to land mid-swipe would visibly halt the page. This is the same two-step tail without the
+    // re-parenting.
+    void frame_existing_child(JNIEnv* env, jobject child, jint left, jint top, jint right, jint bottom)
+    {
+        auto& cache = default_jni_cache();
+        jmethodID measure = cache.method(env, k_view_class, "measure", "(II)V");
+        jmethodID layout = cache.method(env, k_view_class, "layout", "(IIII)V");
+        jmethodID make_measure_spec = cache.static_method(env, k_measure_spec_class, "makeMeasureSpec", "(II)I");
+        jclass measure_spec_class = cache.find_class(env, k_measure_spec_class);
+        if (measure == nullptr || layout == nullptr || make_measure_spec == nullptr || measure_spec_class == nullptr)
+        {
+            return;
+        }
+        const jint width_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, right - left, k_measure_spec_exactly);
+        const jint height_spec =
+            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, bottom - top, k_measure_spec_exactly);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->CallVoidMethod(child, measure, width_spec, height_spec);
+        if (clear_pending(env))
+        {
+            return;
+        }
+        env->CallVoidMethod(child, layout, left, top, right, bottom);
+        clear_pending(env);
+    }
+
     // The CollectionView default "Selected" VisualState fill (the C# CommonStates Selected highlight). The
     // per-backend default selection color is NATIVE, not shared: iOS paints the cell's selectedBackgroundView
     // = systemGray while isSelected (src/platform/ios/collection_view_handler.mm), but ANDROID resolves the
@@ -682,6 +725,185 @@ namespace maui::controls
             view->measure(frame_dp.width, frame_dp.height);
             view->arrange(frame_dp);
         }
+        // ---- the CarouselView RecyclerView pager ----
+        //
+        // WHY THIS IS NOT THE EAGER PATH. Every other items shape on this backend realizes all of its content
+        // into the host panel and lets the port push absolute frames — the deliberate "favor render correctness
+        // over recycling" trade documented on collection_view_platform. A carousel cannot take that trade. Its
+        // entire behavior IS paging, and the eager path's single viewport-framed item renders a perfectly
+        // correct first page that then never moves, which is the whole defect: MAUI's carousel pages under a
+        // swipe and the port's did not. MAUI's Android carousel is MauiCarouselRecyclerView
+        // (CarouselViewHandler.Android.cs:26-28) — a RecyclerView paged by a PagerSnapHelper
+        // (SnapHelpers/SnapManager.cs), NOT a ViewPager2 — so the port builds the same thing.
+        //
+        // WHERE IT LIVES, AND WHY THAT IS FORCED. The pager is a CHILD of the existing MauiLayout host, filling
+        // the viewport, rather than a replacement for the composed ScrollView native. create_platform_view is
+        // STATIC (collection_view_handler.hpp:306), so it has no virtual view to branch on and cannot know at
+        // construction time that it is building a carousel. Nesting is also the smaller change: the outer
+        // ScrollView keeps owning teardown and `native` still aliases `scroll` for every caller that reads it.
+        // A horizontal pager inside a vertical scroller does not contend for gestures, and the host is sized to
+        // exactly one page, so the outer scroller has nothing to scroll.
+        //
+        // FAILURE IS ALL-OR-NOTHING. Every lookup below is checked and any miss returns false, leaving the
+        // caller on the eager path — which still renders the current page correctly and merely does not swipe.
+        // A half-wired RecyclerView (a view with no adapter, or an adapter whose natives never bound) renders
+        // NOTHING, so a partial success would trade a real page for a blank one.
+        // Every build_carousel_pager failure is SILENT by design — it falls back to a render that looks
+        // correct and merely does not swipe. That is the right degradation and the wrong thing to debug
+        // blind, because "the carousel does not page" has causes as far apart as a missing AAR and a JNI
+        // registration failure. One WARN per path makes logcat name the cause.
+        constexpr const char* k_pager_log_tag = "maui-carousel";
+        void log_pager(int priority, const char* fmt, ...) __attribute__((format(printf, 2, 3)));
+        void log_pager(int priority, const char* fmt, ...)
+        {
+            va_list args;
+            va_start(args, fmt);
+            __android_log_vprint(priority, k_pager_log_tag, fmt, args);
+            va_end(args);
+        }
+
+        [[nodiscard]] bool build_carousel_pager(collection_view_handler& handler, collection_view_platform& platform,
+                                                JNIEnv* env, bool horizontal)
+        {
+            namespace seam = maui::platform::android;
+            auto& cache = default_jni_cache();
+            jobject context = app_context();
+            if (context == nullptr)
+            {
+                log_pager(ANDROID_LOG_WARN, "no app context — carousel falls back to the static page");
+                return false;
+            }
+
+            jclass recycler_class = cache.find_class(env, k_recycler_class);
+            jclass adapter_class = cache.find_class(env, seam::detail::k_items_adapter_class);
+            jmethodID recycler_ctor = cache.method(env, k_recycler_class, "<init>", "(Landroid/content/Context;)V");
+            jmethodID adapter_ctor = cache.method(env, seam::detail::k_items_adapter_class, "<init>", "(J)V");
+            jmethodID attach = cache.method(env, seam::detail::k_items_adapter_class, "attach",
+                                            "(Landroidx/recyclerview/widget/RecyclerView;Z)V");
+            if (recycler_class == nullptr || adapter_class == nullptr || recycler_ctor == nullptr ||
+                adapter_ctor == nullptr || attach == nullptr)
+            {
+                clear_pending(env);
+                // The two realistic causes are opposite fixes — a missing androidx.recyclerview AAR (a
+                // packaging problem) vs a host dex built without MauiItemsAdapter (a build-script problem) —
+                // so name which lookup actually failed rather than making the next reader bisect it.
+                log_pager(ANDROID_LOG_WARN,
+                          "pager classes missing (recycler=%d adapter=%d rv_ctor=%d ad_ctor=%d attach=%d) — "
+                          "carousel falls back to the static page",
+                          recycler_class != nullptr, adapter_class != nullptr, recycler_ctor != nullptr,
+                          adapter_ctor != nullptr, attach != nullptr);
+                return false;
+            }
+            if (!seam::detail::register_items_natives(env, adapter_class))
+            {
+                log_pager(ANDROID_LOG_WARN, "RegisterNatives failed on MauiItemsAdapter — carousel falls back");
+                return false;
+            }
+
+            // The peer is built and REGISTERED before the adapter exists, because attach() below installs the
+            // adapter on the RecyclerView, which lays out immediately and calls straight back into
+            // getItemCount/onBindViewHolder. An unregistered peer at that moment resolves to nothing and the
+            // first frame renders empty.
+            auto peer = std::make_shared<seam::items_adapter_trampoline>();
+
+            peer->item_count = [&handler]() -> int {
+                const std::shared_ptr<i_items_view_source>& src = handler.items_view_source();
+                return src ? src->item_count() : 0;
+            };
+
+            peer->bind_holder = [&handler, &platform](int position, jobject cell) {
+                const scoped_env env_guard;
+                if (!env_guard)
+                {
+                    return;
+                }
+                JNIEnv* bind_env = env_guard.get();
+                const std::shared_ptr<i_items_view_source>& src = handler.items_view_source();
+                auto* view = handler.virtual_view();
+                if (!src || view == nullptr || position >= src->item_count())
+                {
+                    return; // a bind for a position whose data is already gone: blank, never a crash
+                }
+
+                const boxed_item value = src->item(index_path{.section = 0, .item = position});
+                const std::shared_ptr<data_template> item_t = view->item_template();
+                auto* container = dynamic_cast<maui::core::bindable_object*>(view);
+                const std::shared_ptr<data_template> resolved =
+                    item_t ? resolve_item_template(item_t, value, container) : nullptr;
+
+                jobject native = nullptr;
+                std::shared_ptr<maui::core::bindable_object> realized =
+                    realize_template_content(handler, resolved, value, &native);
+                local_ref<jobject> text_view;
+                if (native == nullptr)
+                {
+                    if (jobject cell_context = app_context(); cell_context != nullptr)
+                    {
+                        text_view = make_text_view(bind_env, cell_context, value.text());
+                        native = text_view.get();
+                    }
+                }
+                if (native == nullptr)
+                {
+                    return;
+                }
+
+                // Framed against the PAGE rect arrange_native published, not against the cell's own bounds:
+                // a bind arrives before RecyclerView has measured the holder, so the container reads 0x0 here.
+                const maui::graphics::rect page = platform.page_frame;
+                const float density = display_density(bind_env, cell);
+                const jint w = std::max<jint>(1, to_pixels(page.width, density));
+                const jint h = std::max<jint>(1, to_pixels(page.height, density));
+                add_and_frame(bind_env, cell, native, 0, 0, w, h);
+                // add_and_frame only lays out the realized ROOT; the templated Label inside it needs the
+                // cross-platform arrange over the same page rect (the eager path does this too).
+                arrange_realized_view(realized, maui::graphics::rect{0.0, 0.0, page.width, page.height});
+                if (realized && realized != value.as_bindable())
+                {
+                    platform.carousel_cells[position] = std::move(realized);
+                }
+            };
+
+            peer->recycle_holder = [&platform](int position) { platform.carousel_cells.erase(position); };
+
+            peer->page_settled = [&handler](int position) {
+                // Exactly what the iOS delegate does on scrollViewDidEndDecelerating
+                // (collection_view_handler.mm:1851): hand the settled index to the SHARED writeback, which
+                // owns the carousel-only guard, the empty-source guard, the initial_position_set gate and the
+                // CurrentItem round trip. Re-entrant, and the last thing this callback touches.
+                handler.set_position_from_scroll(position);
+            };
+
+            seam::register_items_peer(peer);
+
+            const local_ref<jobject> recycler{env, env->NewObject(recycler_class, recycler_ctor, context)};
+            if (clear_pending(env) || !recycler)
+            {
+                log_pager(ANDROID_LOG_WARN, "RecyclerView ctor threw — carousel falls back to the static page");
+                return false;
+            }
+            const local_ref<jobject> adapter{env,
+                                             env->NewObject(adapter_class, adapter_ctor, static_cast<jlong>(peer->id))};
+            if (clear_pending(env) || !adapter)
+            {
+                log_pager(ANDROID_LOG_WARN, "MauiItemsAdapter ctor threw — carousel falls back to the static page");
+                return false;
+            }
+            // attach() lays the RecyclerView out synchronously and binds through the peer registered above, so
+            // a throw here means the first binds already ran. Nothing is published to `platform` on this path,
+            // so the peer dies with `peer` and those cells are dropped — the fallback render is still clean.
+            env->CallVoidMethod(adapter.get(), attach, recycler.get(), static_cast<jboolean>(horizontal));
+            if (clear_pending(env))
+            {
+                log_pager(ANDROID_LOG_WARN, "adapter.attach threw — carousel falls back to the static page");
+                return false;
+            }
+
+            platform.recycler = env->NewGlobalRef(recycler.get()); // released in ~collection_view_platform
+            platform.adapter = env->NewGlobalRef(adapter.get());
+            platform.items_peer = std::move(peer);
+            return true;
+        }
     } // namespace
 
     // ---- creation + teardown ----
@@ -691,12 +913,27 @@ namespace maui::controls
         // Release the retained global refs. The scroll view owns the host MauiLayout (its document child),
         // so releasing the global ref to each is enough; the retained_natives subtrees free their own
         // handlers + native views when the vector clears.
+        // The carousel peer goes FIRST, before any Java object is released. Dropping it destroys the
+        // trampoline, whose destructor unregisters the id — so every callback arriving from here on resolves
+        // to nothing and returns, rather than reaching a handler whose natives are mid-teardown. Releasing
+        // the adapter first would leave the reverse window open.
+        items_peer.reset();
+        carousel_cells.clear();
+
         const scoped_env env; // any-thread teardown, like global_ref::reset
         if (env)
         {
             if (empty_view_native != nullptr)
             {
                 env->DeleteGlobalRef(static_cast<jobject>(empty_view_native));
+            }
+            if (adapter != nullptr)
+            {
+                env->DeleteGlobalRef(static_cast<jobject>(adapter));
+            }
+            if (recycler != nullptr)
+            {
+                env->DeleteGlobalRef(static_cast<jobject>(recycler));
             }
             if (host != nullptr)
             {
@@ -708,6 +945,8 @@ namespace maui::controls
             }
         }
         empty_view_native = nullptr;
+        adapter = nullptr;
+        recycler = nullptr;
         host = nullptr;
         scroll = nullptr;
         native = nullptr; // aliases `scroll` (not separately retained)
@@ -801,15 +1040,32 @@ namespace maui::controls
         auto& cache = default_jni_cache();
         const float density = display_density(env, scroll);
 
+        // Once a carousel's RecyclerView pager is hosted it is a PERSISTENT child: it owns its scroll
+        // position, its bound cells and any in-flight fling, and the clear-and-rebuild below is exactly what
+        // must not happen to it — removing and re-adding it every arrange pass would reset the state that
+        // makes it a pager.
+        //
+        // The gate is "the pager is ACTUALLY hosted", not "this is a carousel". Keying it on carousel-ness
+        // would skip the clear on the passes BEFORE the pager exists — the first pass has a 0x0 frame and
+        // takes the fallback path, which adds a cell to the host, and with the clear skipped that cell would
+        // still be there when the pager is added beside it on pass 2 (two overlapping renders). Worse, if the
+        // pager can never build (no androidx.recyclerview in the host dex), every pass would add another cell
+        // and grow retained_natives without bound. Gated this way the fallback keeps its original
+        // clear-and-rebuild semantics, which is what makes falling back to it safe.
+        const bool pager_hosted = platform->recycler != nullptr;
+
         // Drop the previous pass: clear the host's children and release the retained template subtrees (the
         // apple prepareForReuse analog — every realized native is rebuilt fresh this pass).
         jmethodID remove_all = cache.method(env, k_view_group_class, "removeAllViews", "()V");
-        if (remove_all != nullptr)
+        if (remove_all != nullptr && !pager_hosted)
         {
             env->CallVoidMethod(host, remove_all);
             clear_pending(env);
         }
-        platform->retained_natives.clear();
+        if (!pager_hosted)
+        {
+            platform->retained_natives.clear();
+        }
         if (platform->empty_view_native != nullptr)
         {
             env->DeleteGlobalRef(static_cast<jobject>(platform->empty_view_native));
@@ -990,42 +1246,112 @@ namespace maui::controls
             // CarouselView.Position clamped into [0, count-1] (the settled page; a fresh carousel is at 0).
             int position = carousel != nullptr ? carousel->position() : 0;
             position = std::clamp(position, 0, item_count - 1);
-            const boxed_item value = src->item(index_path{.section = 0, .item = position});
-            const std::shared_ptr<data_template> item_t = view->item_template();
-            const std::shared_ptr<data_template> resolved =
-                item_t ? resolve_item_template(item_t, value, container) : nullptr;
 
-            jobject native = nullptr;
-            std::shared_ptr<maui::core::bindable_object> realized =
-                realize_template_content(*this, resolved, value, &native);
-            local_ref<jobject> text_view;
-            if (native == nullptr)
+            // The page rect must be published BEFORE anything can bind: attach() below lays the RecyclerView
+            // out synchronously and calls straight back into bind_holder, which frames its cell against this.
+            platform->page_frame = maui::graphics::rect{0.0, 0.0, frame.width, frame.height};
+
+            // Built once, on the first pass that has a real frame. A zero-area frame would publish a 0x0 page
+            // and bind every cell at 1x1 — cheaper to wait one pass than to rebind them all later.
+            if (platform->recycler == nullptr && frame.width > 0.0 && frame.height > 0.0)
             {
-                jobject context = app_context();
-                if (context != nullptr)
+                const bool horizontal = platform->orientation == items_layout_orientation::horizontal;
+                if (build_carousel_pager(*this, *platform, env, horizontal))
                 {
-                    text_view = make_text_view(env, context, value.text());
-                    native = text_view.get();
+                    // Fills the viewport, and is the host's ONLY child — the eager path's clear is skipped for
+                    // a carousel, so nothing else is ever added beside it.
+                    const jint w = std::max<jint>(1, to_pixels(frame.width, density));
+                    const jint h = std::max<jint>(1, to_pixels(frame.height, density));
+                    add_and_frame(env, host, static_cast<jobject>(platform->recycler), 0, 0, w, h);
+                    // C# CarouselViewController2.UpdateInitialPosition: the initial page is established
+                    // WITHOUT writing back, then writeback is armed. Arming it before the scroll would let
+                    // RecyclerView's own settle callback for that programmatic scroll overwrite Position.
+                    if (position > 0)
+                    {
+                        if (jmethodID scroll_to = cache.static_method(
+                                env, maui::platform::android::detail::k_items_adapter_class, "scrollToPosition",
+                                "(Landroidx/recyclerview/widget/RecyclerView;I)V");
+                            scroll_to != nullptr)
+                        {
+                            jclass adapter_class =
+                                cache.find_class(env, maui::platform::android::detail::k_items_adapter_class);
+                            if (adapter_class != nullptr)
+                            {
+                                env->CallStaticVoidMethod(adapter_class, scroll_to,
+                                                          static_cast<jobject>(platform->recycler),
+                                                          static_cast<jint>(position));
+                                clear_pending(env);
+                            }
+                        }
+                    }
+                    mark_initial_position_set();
+                    platform->published_count = item_count;
                 }
             }
-            if (native != nullptr)
+
+            if (platform->recycler != nullptr)
             {
-                // Frame the single current item filling the WHOLE viewport rect (the C# CreateCarouselLayout's
-                // FractionalWidth(1)/FractionalHeight(1) item — one item per page). The page IS the viewport,
-                // so the cell spans the full frame in BOTH axes regardless of carousel orientation (width =
-                // frame.width, height = frame.height). The templated Label centers its own text (the gallery's
-                // cell stages center text alignment), so a page-sized cell reads as a big centered caption.
-                const jint w = std::max<jint>(1, to_pixels(frame.width, density));
-                const jint h = std::max<jint>(1, to_pixels(frame.height, density));
-                add_and_frame(env, host, native, 0, 0, w, h);
-                // Frame the realized cell's CHILDREN (the templated Label) via the cross-platform arrange over
-                // the page rect — add_and_frame only laid out the realized ROOT.
-                arrange_realized_view(realized, maui::graphics::rect{0.0, 0.0, frame.width, frame.height});
-                // Advance the content cursor by the viewport's MAIN extent so the host panel sizes to one page.
-                cursor_dp += main_viewport_dp;
-                if (realized && realized != value.as_bindable())
+                // A source whose length changed invalidates every bound position; notify once per change
+                // rather than per pass (notifyDataSetChanged rebinds everything and kills a fling).
+                //
+                // BEFORE the re-frame below, not after, and that order is load-bearing. notifyDataSetChanged
+                // only marks the RecyclerView dirty via requestLayout(), which propagates to the parent's
+                // onLayout — and this host's onLayout is the documented no-op, so nothing in the system will
+                // ever service that request. The explicit measure+layout below IS the layout pass; notifying
+                // after it would leave the rebind pending until some later arrange happened to come along.
+                if (platform->published_count != item_count)
                 {
-                    platform->retained_natives.push_back(std::move(realized));
+                    if (jmethodID refresh =
+                            cache.method(env, maui::platform::android::detail::k_items_adapter_class, "refresh", "()V");
+                        refresh != nullptr && platform->adapter != nullptr)
+                    {
+                        env->CallVoidMethod(static_cast<jobject>(platform->adapter), refresh);
+                        clear_pending(env);
+                    }
+                    platform->published_count = item_count;
+                }
+                // Re-frame each pass (the viewport can change), but WITHOUT detaching: add_and_frame detaches
+                // and re-adds, which on a RecyclerView cancels an in-flight fling and drops its cells.
+                frame_existing_child(env, static_cast<jobject>(platform->recycler), 0, 0,
+                                     std::max<jint>(1, to_pixels(frame.width, density)),
+                                     std::max<jint>(1, to_pixels(frame.height, density)));
+                // The host panel sizes to exactly one page, so the outer ScrollView never scrolls.
+                cursor_dp += main_viewport_dp;
+            }
+            else
+            {
+                // The pager could not be built (no androidx.recyclerview, no adapter class, or a zero frame on
+                // the first pass). Fall back to the pre-pager behavior: realize ONLY the current item, framed
+                // to the viewport. It renders the right page and does not swipe — strictly better than blank.
+                const boxed_item value = src->item(index_path{.section = 0, .item = position});
+                const std::shared_ptr<data_template> item_t = view->item_template();
+                const std::shared_ptr<data_template> resolved =
+                    item_t ? resolve_item_template(item_t, value, container) : nullptr;
+
+                jobject native = nullptr;
+                std::shared_ptr<maui::core::bindable_object> realized =
+                    realize_template_content(*this, resolved, value, &native);
+                local_ref<jobject> text_view;
+                if (native == nullptr)
+                {
+                    jobject context = app_context();
+                    if (context != nullptr)
+                    {
+                        text_view = make_text_view(env, context, value.text());
+                        native = text_view.get();
+                    }
+                }
+                if (native != nullptr)
+                {
+                    const jint w = std::max<jint>(1, to_pixels(frame.width, density));
+                    const jint h = std::max<jint>(1, to_pixels(frame.height, density));
+                    add_and_frame(env, host, native, 0, 0, w, h);
+                    arrange_realized_view(realized, maui::graphics::rect{0.0, 0.0, frame.width, frame.height});
+                    cursor_dp += main_viewport_dp;
+                    if (realized && realized != value.as_bindable())
+                    {
+                        platform->retained_natives.push_back(std::move(realized));
+                    }
                 }
             }
         }

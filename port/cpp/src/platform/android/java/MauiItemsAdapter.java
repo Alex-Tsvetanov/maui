@@ -30,6 +30,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 public final class MauiItemsAdapter extends RecyclerView.Adapter<MauiItemsAdapter.Holder> {
@@ -93,6 +95,58 @@ public final class MauiItemsAdapter extends RecyclerView.Adapter<MauiItemsAdapte
     @Override
     public int getItemCount() {
         return nativeGetItemCount(peer);
+    }
+
+    // Install this adapter on a RecyclerView as a PAGER: one item per page, snapped.
+    //
+    // ALL THREE PIECES ARE ATTACHED HERE, IN JAVA, ON PURPOSE. Both the LayoutManager and the scroll
+    // listener are abstract-or-open Java classes, so a C++ caller would need a JNI-side subclass of each —
+    // and JNI cannot subclass (the reason MauiItemsAdapter exists at all). Doing it in one Java method keeps
+    // the native seam at two calls instead of a dozen, and keeps the snap helper and the listener that reads
+    // it in the same scope, which is what makes the settled position trustworthy.
+    //
+    // PORTS SnapHelpers/SnapManager.cs: MAUI's CarouselView paging is a PagerSnapHelper on a plain
+    // RecyclerView (MauiCarouselRecyclerView, CarouselViewHandler.Android.cs:26-28), NOT a ViewPager2.
+    // PagerSnapHelper is what makes a fling settle on exactly one page boundary — a fling with no snap
+    // helper stops wherever momentum runs out, which is precisely the "does not move like MAUI" symptom.
+    public void attach(@NonNull RecyclerView recycler, boolean horizontal) {
+        final LinearLayoutManager manager = new LinearLayoutManager(
+                recycler.getContext(),
+                horizontal ? RecyclerView.HORIZONTAL : RecyclerView.VERTICAL,
+                false);
+        recycler.setLayoutManager(manager);
+        recycler.setAdapter(this);
+
+        final PagerSnapHelper snap = new PagerSnapHelper();
+        snap.attachToRecyclerView(recycler);
+
+        recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
+                // SETTLED only. Firing per-frame would write CarouselView.Position dozens of times during a
+                // single fling, and every one of those writes re-enters the cross-platform side.
+                if (newState != RecyclerView.SCROLL_STATE_IDLE) {
+                    return;
+                }
+                final View page = snap.findSnapView(manager);
+                if (page == null) {
+                    return;
+                }
+                onPageSettled(manager.getPosition(page));
+            }
+        });
+    }
+
+    // notifyDataSetChanged() wrapped rather than called over JNI: it is final on RecyclerView.Adapter, so a
+    // native GetMethodID would have to resolve through the superclass, and this is one line.
+    public void refresh() {
+        notifyDataSetChanged();
+    }
+
+    // The initial CarouselView.Position. scrollToPosition (not smoothScrollToPosition) because this is the
+    // at-rest starting page, not a user-visible move.
+    public static void scrollToPosition(@NonNull RecyclerView recycler, int position) {
+        recycler.scrollToPosition(position);
     }
 
     // Called by the RecyclerView.OnScrollListener the native side installs, once a swipe has SETTLED on a

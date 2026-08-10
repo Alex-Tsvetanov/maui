@@ -35,6 +35,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "maui/controls/items/boxed_item.hpp"
@@ -175,6 +176,34 @@ namespace maui::controls
         // The realized template-content subtrees currently hosted (owns handler + native view); cleared and
         // rebuilt each arrange_native pass, freed in the destructor (the apple _realizedContent analog).
         std::vector<std::shared_ptr<maui::core::bindable_object>> retained_natives;
+
+        // --- the CarouselView RecyclerView host ---
+        // A carousel does NOT use the scroll/host pair above. MAUI's Android CarouselView is
+        // MauiCarouselRecyclerView (CarouselViewHandler.Android.cs:26-28) — a RecyclerView whose paging comes
+        // from a PagerSnapHelper (SnapHelpers/SnapManager.cs) — so the port builds one too, and `native`
+        // aliases `recycler` instead of `scroll`. This is the ONE items path that is virtualized: paging is
+        // not a rendering nicety that the "favor render correctness over recycling" note above can trade
+        // away, it is the control's entire behavior. Everything else on this backend still realizes eagerly.
+        void* recycler = nullptr; // androidx.recyclerview.widget.RecyclerView (global ref; aliased by native)
+        void* adapter = nullptr;  // dev.mauicpp.MauiItemsAdapter (global ref)
+        // The items_adapter_trampoline holding the four native callbacks. Type-ERASED because the seam that
+        // defines it (src/platform/android/android_items_ops.hpp) is backend-private and must not leak into a
+        // public header; shared_ptr's deleter is type-erased too, so the real destructor still runs — and it
+        // is that destructor which unregisters the peer, so dropping this slot is what makes in-flight Java
+        // callbacks start resolving to nothing.
+        std::shared_ptr<void> items_peer;
+        // The realized cell subtree per BOUND position. Keyed rather than a flat vector because RecyclerView
+        // binds and recycles positions independently and out of order — the eager path's clear-and-rebuild
+        // has no meaning here.
+        std::unordered_map<int, std::shared_ptr<maui::core::bindable_object>> carousel_cells;
+        // The page rect, in DIP, published by arrange_native. A bind arrives BEFORE its container has been
+        // measured, so the cell is framed against this rather than against the container's own bounds.
+        maui::graphics::rect page_frame{};
+        // Last count handed to the adapter; a change drives refresh(). NOTE that the Position wiring is
+        // ONE-WAY: a settled swipe writes CarouselView.Position back, but a PROGRAMMATIC Position change does
+        // not scroll the pager (only the INITIAL position is applied, once, at build time). Wiring
+        // Position→scroll needs a mapper hook this does not add.
+        int published_count = -1;
 #endif
 
         // --- windows (the WinUI 3 non-virtualized realization stack) ---
