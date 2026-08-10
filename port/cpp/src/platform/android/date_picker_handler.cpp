@@ -3,12 +3,11 @@
 // VM-less twin, src/platform/apple/date_picker_handler.mm is the native-AppKit twin which translates to
 // NSDatePicker, and src/platform/ios/date_picker_handler.mm is the real iOS native render). The managed
 // platform view is a REAL android.widget.EditText made non-editable (held as a JNI global reference in
-// date_picker_platform::native): the field DISPLAYS the FORMATTED date and is read-only — the
-// DatePickerDialog interaction is DEFERRED (documented below, exactly as the picker partial defers its
-// MaterialAlertDialog and the editor partial its TextWatcher). The displayed string is produced by the
-// SAME cross-platform formatter the headless/ios mirrors use, so MAUI ┃ C++ ┃ C++&XAML render identical
-// text. The date_selected commit (the dialog's OnDateSet → VirtualView.Date) is DEFERRED but on_done
-// stays a live C++ callback for portable drives + a future dialog trampoline.
+// date_picker_platform::native): the field DISPLAYS the FORMATTED date and is read-only, and a TAP opens
+// the android.app.DatePickerDialog (a framework class — no AAR involved, unlike the picker's Material
+// builder). The displayed string is produced by the SAME cross-platform formatter the headless/ios
+// mirrors use, so MAUI ┃ C++ ┃ C++&XAML render identical text. The date_selected commit (the dialog's
+// OnDateSet → VirtualView.Date) flows through on_done, the same inbound channel portable drives use.
 //
 // Ported DIRECTLY from DatePickerHandler.Android.cs + Platform/Android/{DatePickerExtensions.cs
 // (UpdateFormat/UpdateDate both → SetText: Text ← Date?.ToString(Format) ?? string.Empty; UpdateTextColor
@@ -35,24 +34,23 @@
 //     intent (DefaultMovementMethod = null + PickerManager.Init, which makes the field non-focusable and
 //     click-only) is reproduced on the plain widget with setKeyListener(null) + setFocusable(false) +
 //     setClickable(true) (see create_platform_view) — the picker partial's exact recipe.
-//   - The DatePicker DIALOG is DEFERRED. C#'s MauiDatePicker.Initialize installs SetOnClickListener(this)
-//     → OnClick → ShowPicker → ShowPickerDialog, which builds an android.app.DatePickerDialog whose
-//     OnDateSet sets VirtualView.Date (then UpdateDate re-renders the field). The android click/dialog
-//     trampoline fan-out has not arrived (same class of gap as the picker's MaterialAlertDialog and the
-//     editor's TextWatcher), so no android.view.View.OnClickListener is installed yet; the field renders
-//     the current formatted date (the capture target) and on_done stays a live C++ callback (the
-//     cross-platform suite + a future dialog trampoline drive it → set_date → UpdateDate). MapIsOpen /
-//     ShowPickerDialog / HidePickerDialog have no dialog to present and are no-ops for the same reason —
-//     the control-level is_open()/Opened/Closed are the observable result.
-//     // TODO: verify against src/Core/src/Handlers/DatePicker/DatePickerHandler.Android.cs
-//     (ShowPickerDialog → DatePickerDialog.OnDateSet → VirtualView.Date) + the android click/dialog
-//     trampoline seam when it lands.
-//   - Minimum/MaximumDate are kept ONLY as headless mirrors (no field push). In C# MapMinimumDate /
+//   - The DatePicker DIALOG is BUILT FRESH ON EVERY SHOW rather than cached in the handler. C# keeps a
+//     `_dialog` field, pre-builds it in CreatePlatformView when Date is set, and re-shows that instance —
+//     but its OWN comment on MapMinimumDate/MapMaximumDate says Android's DatePickerDialog caches min/max
+//     internally, "making it unreliable to update them after the dialog is created", so both mappers force
+//     a ResetDialog (dismiss + drop) and the next show rebuilds it anyway. Building fresh at show time
+//     reaches the same observable state — a dialog seeded with the CURRENT date and the CURRENT
+//     Minimum/MaximumDate — without the reset dance, and it makes `platform.dialog == nullptr` an exact
+//     stand-in for C#'s `_dialog is null || !_dialog.IsShowing` guard. The one behavior not replicated:
+//     C# DISMISSES a shown dialog when MinimumDate/MaximumDate is written while it is open; here the open
+//     dialog keeps the bounds it was built with (the next open picks the new ones up).
+//   - Minimum/MaximumDate keep their headless mirrors AND now reach the dialog. In C# MapMinimumDate /
 //     MapMaximumDate write the DIALOG's DatePicker.MinDate / MaxDate (UpdateMinimumDate/UpdateMaximumDate
-//     take a DatePickerDialog? and no-op when it is null) — they NEVER touch the field. With the dialog
-//     deferred there is nothing native to set; the mirrors keep the bounds for the future dialog and for
-//     the control's own date coercion. Byte-for-byte the headless partial's map_minimum_date /
-//     map_maximum_date.
+//     take a DatePickerDialog? and no-op when it is null) — they NEVER touch the field. Because the dialog
+//     is built at show time, the mappers stay mirror-only and show_dialog applies the bounds through
+//     getDatePicker().setMinDate/setMaxDate (epoch millis, exactly C#'s
+//     `value.ToUniversalTime().Subtract(DateTime.MinValue.AddYears(1969)).TotalMilliseconds`), falling back
+//     to the DateTime.MinValue/MaxValue millis C# pushes for a null bound.
 //   - The native EditText color setter takes a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList in UpdateTextColor). The plain-widget cut uses the
 //     single-int overload setTextColor(int) — the ColorStateList path's enabled-state coloring is an
@@ -66,6 +64,14 @@
 //     font registrar yet, on any backend): family → Typeface.create(family, style), then the API-28+
 //     Typeface.create(base, weight, italic) refinement — the exact CreateTypeface tail. Byte-for-byte the
 //     picker / editor / button partials' map_font.
+//
+// LIFETIME (the risk this file's dialog introduces): a shown android.app.Dialog is owned by the window
+// manager and outlives the handler unless the handler tears it down. The click listener and the dialog's
+// OnDateSet/OnDismiss listeners are ONE dev.mauicpp.MauiDialogBridge whose peer is a registry-registered
+// dialog_trampoline (NOT the platform struct address) — see android_dialog_ops.hpp's header for the four
+// rules that make a late callback a no-op. Teardown (release_dialog_seam: uninstall the listener, clear
+// the callbacks, dismiss + release the dialog, drop the peer) runs from BOTH on_disconnect_handler AND
+// ~date_picker_platform, so a handler destroyed without a disconnect is covered too.
 //
 // VM-less degradation (identical to the picker / editor / button partials): the android preset also runs
 // the PURE-NATIVE cross-platform suite on the emulator (tools/android-emu-run.sh) where no Java VM exists.
@@ -87,6 +93,7 @@
 #include <string_view>
 
 #include "android_clip_ops.hpp"
+#include "android_dialog_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -371,12 +378,57 @@ namespace maui::core
                 push_display(env.get(), widget_of(*platform), view);
             }
         }
+
+        // DatePickerHandler.ShowPickerDialog: seed the android.app.DatePickerDialog with the virtual Date
+        // (today's components when it is unset — C#'s `date?.Year ?? DateTime.Today.Year`), apply
+        // Minimum/MaximumDate to its DatePicker, show it, then flag the virtual view open.
+        // Re-entrancy: platform.dialog is assigned BEFORE set_is_open(true), so the map_is_open that write
+        // re-enters finds a live dialog and returns instead of stacking a second modal; and set_is_open is
+        // the LAST statement, because it can run user code that destroys this handler.
+        void show_picker_dialog(date_picker_platform& platform, i_date_picker& view)
+        {
+            if (platform.dialog != nullptr || !platform.dialog_peer)
+            {
+                // already showing (C#'s `_dialog is not null && _dialog.IsShowing`), or not connected
+                return;
+            }
+            const date_time seed = view.date().value_or(date_time::today());
+            const auto minimum = view.minimum_date();
+            const auto maximum = view.maximum_date();
+            platform.dialog = maui::platform::android::show_date_dialog(
+                app_context(), platform.dialog_peer.get(), seed.year(), maui::platform::android::to_dialog_month(seed),
+                static_cast<int>(seed.day()),
+                minimum ? maui::platform::android::to_epoch_millis(*minimum)
+                        : maui::platform::android::k_date_min_value_millis,
+                maximum ? maui::platform::android::to_epoch_millis(*maximum)
+                        : maui::platform::android::k_date_max_value_millis);
+            if (platform.dialog != nullptr && !view.is_open())
+            {
+                view.set_is_open(true);
+            }
+        }
+
+        // DatePickerHandler.HidePickerDialog: hide the dialog, then IsOpen = false. The is_open() guard
+        // keeps the map_is_open this write re-enters from recursing.
+        void hide_picker_dialog(date_picker_platform& platform, i_date_picker& view)
+        {
+            maui::platform::android::dismiss_dialog(platform.dialog);
+            if (view.is_open())
+            {
+                view.set_is_open(false);
+            }
+        }
     } // namespace
 
     // Releases the global reference pinning the android.widget.EditText (the JNI shape of the
     // pimpl-owned-native-view doctrine; the apple twin CFReleases its NSDatePicker here).
     date_picker_platform::~date_picker_platform()
     {
+        // The dialog seam FIRST and unconditionally: a handler destroyed without a disconnect must not
+        // leave a shown DatePickerDialog holding a bridge whose peer is about to become freed storage.
+        // release_dialog_seam uninstalls the click listener, clears the callbacks, dismisses + releases
+        // the dialog and drops the peer (unregistering it), in that order — see android_dialog_ops.hpp.
+        maui::platform::android::release_dialog_seam(native, dialog, dialog_peer);
         if (native != nullptr)
         {
             const scoped_env env; // any-thread teardown, exactly like global_ref::reset
@@ -734,12 +786,11 @@ namespace maui::core
     {
         // DatePickerHandler.Android ConnectHandler installs MauiDatePicker.ShowPicker = ShowPickerDialog
         // (fired by the field's OnClick), which builds the android.app.DatePickerDialog whose OnDateSet
-        // sets VirtualView.Date. That dialog and the android click trampoline are deferred (header
-        // deviations), EXACTLY like the picker partial defers its MaterialAlertDialog and the editor its
-        // TextWatcher — but on_done stays a live C++ callback so the VM-less cross-platform suite (and a
-        // future dialog trampoline) can drive a commit: OnDateSet → VirtualView.Date = the dialog's value,
-        // which the headless mirror holds in platform.date; set_date re-runs UpdateDate (re-rendering the
-        // field). The control's own coercion clamps the committed date into [MinimumDate, MaximumDate].
+        // sets VirtualView.Date. on_done stays the portable commit channel the VM-less cross-platform
+        // suite drives — and it is ALSO the path the dialog's OnDateSet takes, so a native pick and a
+        // portable drive land through exactly one code path: platform.date = the committed value, then
+        // set_date → UpdateDate re-renders the field. The control's own coercion clamps the committed date
+        // into [MinimumDate, MaximumDate].
         platform.on_done = [this] {
             auto* view = virtual_view();
             auto* typed = typed_platform_view();
@@ -749,13 +800,67 @@ namespace maui::core
             }
             view->set_date(typed->date);
         };
+
+        // The click/dialog trampoline. The peer is a registry-registered dialog_trampoline, NOT this
+        // struct's address: a dialog that outlives its handler then resolves to nothing instead of
+        // dereferencing freed storage (android_dialog_ops.hpp). Every callback below performs its
+        // re-entrant call LAST, because that call can destroy this handler.
+        platform.dialog_peer = maui::platform::android::make_dialog_peer();
+        platform.dialog_peer->on_click = [this] {
+            // MauiDatePicker.OnClick → ShowPicker?.Invoke() → ShowPickerDialog.
+            auto* view = virtual_view();
+            auto* typed = typed_platform_view();
+            if (view != nullptr && typed != nullptr)
+            {
+                show_picker_dialog(*typed, *view);
+            }
+        };
+        platform.dialog_peer->on_date_set = [this](int year, int month0, int day) {
+            // CreateDatePickerDialog's OnDateSet: VirtualView.Date = e.Date. Java hands back a 0-BASED
+            // month (java.util.Calendar's convention), which from_dialog_date converts back to 1-based.
+            auto* typed = typed_platform_view();
+            if (typed == nullptr || !typed->on_done)
+            {
+                return;
+            }
+            typed->date = maui::platform::android::from_dialog_date(year, month0, day);
+            typed->on_done();
+        };
+        platform.dialog_peer->on_dismiss = [this] {
+            // OnDialogDismiss → HidePickerDialog. The dialog dismissed ITSELF (OK/Cancel/back), so only
+            // the pin is dropped here — calling dismiss() again would be redundant.
+            auto* view = virtual_view();
+            auto* typed = typed_platform_view();
+            if (typed != nullptr)
+            {
+                maui::platform::android::release_dialog(typed->dialog);
+            }
+            if (view != nullptr && view->is_open())
+            {
+                view->set_is_open(false);
+            }
+        };
+        if (platform.native != nullptr)
+        {
+            const scoped_env env;
+            if (env)
+            {
+                // MauiDatePicker.Initialize's SetOnClickListener(this) — the read-only field is tappable
+                // (create_platform_view already set setClickable(true)) and a tap opens the dialog.
+                maui::platform::android::install_dialog_click_listener(env.get(), widget_of(platform),
+                                                                       platform.dialog_peer.get());
+            }
+        }
     }
 
     void date_picker_handler::on_disconnect_handler(date_picker_platform& platform)
     {
-        // DisconnectHandler: ShowPicker/HidePicker = null; ResetDialog disposes the DatePickerDialog (the
-        // native click/dialog uninstall lands with the deferred trampoline fan-out).
+        // DisconnectHandler: ShowPicker/HidePicker = null + ResetDialog (dismiss + drop the dialog).
+        // release_dialog_seam is the whole teardown in the documented order — uninstall the click
+        // listener, clear the callbacks, dismiss + release the dialog, drop (and so unregister) the peer.
+        // ~date_picker_platform runs the same call, so a handler dropped without a disconnect is covered.
         platform.on_done = nullptr;
+        maui::platform::android::release_dialog_seam(platform.native, platform.dialog, platform.dialog_peer);
     }
 
     void date_picker_handler::map_format(date_picker_handler& handler, i_date_picker& view)
@@ -937,14 +1042,24 @@ namespace maui::core
         }
     }
 
-    void date_picker_handler::map_is_open(date_picker_handler& /*handler*/, i_date_picker& /*view*/)
+    void date_picker_handler::map_is_open(date_picker_handler& handler, i_date_picker& view)
     {
-        // DatePickerHandler.MapIsOpen → ShowPickerDialog/HidePickerDialog (the android.app.DatePickerDialog
-        // Show/Hide). The dialog is deferred with the click trampoline (header deviations), so there is no
-        // native dialog to present/dismiss; this is a genuine no-op — the control-level
-        // is_open()/Opened/Closed are the observable result.
-        // TODO: verify against DatePickerHandler.Android.cs (ShowPickerDialog/HidePickerDialog) when the
-        // dialog trampoline lands.
+        // DatePickerHandler.MapIsOpen: `if (datePicker.IsOpen) ShowPickerDialog(datePicker.Date) else
+        // HidePickerDialog()`. C# also gates on handler.IsConnected(); here an unconnected handler has no
+        // dialog_peer, which show_picker_dialog checks.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        if (view.is_open())
+        {
+            show_picker_dialog(*platform, view);
+        }
+        else
+        {
+            hide_picker_dialog(*platform, view);
+        }
     }
 
     maui::graphics::size date_picker_handler::get_desired_size(double width_constraint, double height_constraint) const

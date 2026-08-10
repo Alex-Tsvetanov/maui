@@ -35,6 +35,17 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
+#ifdef MAUI_PLATFORM_ANDROID
+namespace maui::platform::android
+{
+    // The click/dialog trampoline target the android partial owns (src/platform/android/
+    // android_dialog_ops.hpp). Forward-declared: this cross-platform header must not see the JNI seam,
+    // and a shared_ptr to an incomplete type is well-formed as long as it is only default-constructed
+    // and destroyed here (the android partial, which sees the definition, does the rest).
+    struct dialog_trampoline;
+} // namespace maui::platform::android
+#endif
+
 namespace maui::core
 {
     struct time_picker_platform : view_platform_base
@@ -132,6 +143,15 @@ namespace maui::core
         void update_clip(const maui::graphics::i_shape* value) override;
         // The clip borrow platform_arrange re-resolves against the live bounds (null = no clip). Android-gated.
         const maui::graphics::i_shape* clip_shape = nullptr;
+        // The android.app.TimePickerDialog MauiTimePicker's OnClick opens (TimePickerHandler.Android.cs's
+        // _dialog), pinned as a JNI global reference while it is shown; nullptr when no dialog is up —
+        // which is also ShowPickerDialog's "already showing" guard. Released (dismiss + DeleteGlobalRef)
+        // by release_dialog_seam from BOTH on_disconnect_handler and ~time_picker_platform.
+        void* dialog = nullptr;
+        // The trampoline the click listener and the dialog's OnTimeSet/OnDismiss listeners carry as their
+        // peer. Heap-allocated and registry-registered so a late callback into a torn-down handler
+        // resolves to nothing instead of dereferencing freed storage (android_dialog_ops.hpp's header).
+        std::shared_ptr<maui::platform::android::dialog_trampoline> dialog_peer;
 #endif
     };
 

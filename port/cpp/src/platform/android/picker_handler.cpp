@@ -3,12 +3,11 @@
 // src/platform/headless/picker_handler.cpp is the VM-less twin, and src/platform/apple/picker_handler.mm
 // is the native-AppKit twin). The managed platform view is a REAL android.widget.EditText made
 // non-editable (held as a JNI global reference in picker_platform::native): the field DISPLAYS the
-// selected item's text and shows the Title as its hint — the selection-dialog interaction is DEFERRED
-// (documented below, exactly as the button partial defers its OnTouchListener and the editor partial
-// defers its TextWatcher). The items/selection maps run the C# PickerExtensions.UpdatePickerCore
-// algorithm against both the headless mirrors AND the real widget; a native row pick still flows back
-// through i_picker::set_selected_index — that inbound channel (on_done / FinishSelectItem) stays
-// invokable for portable drives and a future dialog trampoline.
+// selected item's text and shows the Title as its hint, and a TAP opens the single-choice selection
+// dialog (on the FRAMEWORK android.app.AlertDialog rather than MAUI's Material builder — documented
+// below). The items/selection maps run the C# PickerExtensions.UpdatePickerCore algorithm against both
+// the headless mirrors AND the real widget; a row pick flows back through i_picker::set_selected_index
+// via on_done (FinishSelectItem), the same inbound channel portable drives use.
 //
 // Ported DIRECTLY from PickerHandler.Android.cs + Platform/Android/{PickerExtensions.cs (UpdatePickerCore
 // = Hint←Title, Text←GetItem(SelectedIndex) or null; UpdateTitle/UpdateSelectedIndex→UpdatePicker;
@@ -33,18 +32,22 @@
 //     navigation because the field is read-only); we reproduce the read-only intent with
 //     setKeyListener(null) + setFocusable(false) + setClickable(true) (see create_platform_view) — the
 //     MovementMethod knob has no plain-widget setter analog and is approximated by the KeyListener removal.
-//   - The selection DIALOG is DEFERRED. C#'s ConnectHandler wires platformView.Click += OnClick, and
-//     OnClick builds a MaterialAlertDialogBuilder single-choice list (Google.Android.Material) that, on a
-//     row tap, sets VirtualView.SelectedIndex and re-runs UpdatePicker. The Material dialog is an AAR this
-//     backend lacks (same class of gap as the editor's deferred TextWatcher), AND the per-control gesture/
-//     click trampoline fan-out has not arrived. So no android.view.View.OnClickListener is installed yet;
-//     the field renders the current selection (the capture target the task calls out) and on_done stays a
-//     live C++ callback (the cross-platform suite + a future dialog trampoline drive it → set_selected_index
-//     → UpdatePicker). MapIsOpen / ShowDialog / DismissDialog have no widget to present and are no-ops for
-//     the same reason — the control-level is_open()/Opened/Closed are the observable result.
-//     // TODO: verify against src/Core/src/Handlers/Picker/PickerHandler.Android.cs (OnClick →
-//     MaterialAlertDialogBuilder single-choice, OnDialogShown/OnDialogDismiss) + the android click/dialog
-//     trampoline seam when it lands.
+//   - The selection dialog is the FRAMEWORK android.app.AlertDialog, not MaterialAlertDialogBuilder.
+//     C#'s ConnectHandler wires platformView.Click += OnClick, and OnClick builds a
+//     MaterialAlertDialogBuilder single-choice list (Google.Android.Material) that, on a row tap, sets
+//     VirtualView.SelectedIndex and re-runs UpdatePicker. That builder lives in an AAR this APK-less
+//     backend does not carry — the same gradle/AAR gap as the plain-EditText-for-MauiPicker deviation
+//     above — so the click listener IS installed (dev.mauicpp.MauiDialogBridge, see the LIFETIME note)
+//     and the dialog is built with android.app.AlertDialog.Builder, which exposes the exact three calls
+//     MAUI uses: SetTitle(Title), SetSingleChoiceItems(items, SelectedIndex, rowTapped) and
+//     SetNegativeButton(android.R.string.cancel), plus SetCanceledOnTouchOutside(true). The interaction
+//     (single-choice list, radio marks, Cancel, tap-outside dismiss, row tap → SelectedIndex +
+//     UpdatePicker + dismiss, dismiss → IsOpen/IsFocused false) is identical; the CHROME is the framework
+//     theme's rather than Material 3's. Two Material-only trimmings ride along: the ForegroundColorSpan
+//     TitleColor tint (C# spans the title when TitleColor is set — skipped, the port's colors are
+//     non-nullable so there is no "is set" branch here, the same collapse the title/text-color mappers
+//     already document) and MaterialAlertDialog's flow-direction pass (_dialog.UpdateFlowDirection).
+//     MapIsOpen / ShowDialog / DismissDialog now drive the real dialog.
 //   - The native EditText color setters take a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList in UpdateTextColor / UpdateTitleColorCore). The
 //     plain-widget cut uses the single-int overloads setTextColor(int) / setHintTextColor(int) — the
@@ -66,6 +69,14 @@
 //     headless/apple twins keep only the mirror (the AppKit popup has no vertical analog), so the android
 //     partial is the faithful one here.
 //
+// LIFETIME (the risk the dialog introduces): a shown android.app.Dialog is owned by the window manager
+// and outlives the handler unless the handler tears it down. The click listener, the single-choice row
+// listener and the dismiss listener are ONE dev.mauicpp.MauiDialogBridge whose peer is a
+// registry-registered dialog_trampoline (NOT the platform struct address) — see android_dialog_ops.hpp's
+// header for the four rules that make a late callback a no-op. Teardown (release_dialog_seam: uninstall
+// the listener, clear the callbacks, dismiss + release the dialog, drop the peer) runs from BOTH
+// on_disconnect_handler AND ~picker_platform, so a handler destroyed without a disconnect is covered too.
+//
 // VM-less degradation (identical to the editor/button partials): the android preset also runs the
 // PURE-NATIVE cross-platform suite on the emulator (tools/android-emu-run.sh) where no Java VM exists.
 // Every JNI path here checks scoped_env/app_context() and quietly skips, while the headless mirrors
@@ -86,6 +97,7 @@
 #include <string_view>
 #include <vector>
 
+#include "android_dialog_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -399,12 +411,57 @@ namespace maui::core
                 push_display(env.get(), widget_of(*platform), view);
             }
         }
+
+        // PickerHandler.OnClick / ShowDialog: `if (_dialog == null && VirtualView != null)` build the
+        // single-choice list from the CURRENT items + SelectedIndex, show it, and set IsOpen = true.
+        // (C#'s ShowDialog routes through PlatformView.CallOnClick() when the field is clickable, which is
+        // just a longer way to reach OnClick — the port calls the same body directly.) Re-entrancy:
+        // platform.dialog is assigned BEFORE set_is_open(true), so the map_is_open that write re-enters
+        // finds a live dialog and returns instead of stacking a second modal; set_is_open is the LAST
+        // statement, because it can run user code that destroys this handler.
+        void show_selection_dialog(picker_platform& platform, i_picker& view)
+        {
+            if (platform.dialog != nullptr || !platform.dialog_peer)
+            {
+                return; // C#'s `_dialog == null` guard, or not connected
+            }
+            platform.dialog = maui::platform::android::show_items_dialog(
+                app_context(), platform.dialog_peer.get(), platform.items, view.title(), view.selected_index());
+            if (platform.dialog == nullptr)
+            {
+                return;
+            }
+            // OnDialogShown: IsFocused = true. C# hangs that on the dialog's ShowEvent; the dialog is up
+            // by the time show_items_dialog returns, so the extra listener would buy nothing.
+            view.set_is_focused(true);
+            if (!view.is_open())
+            {
+                view.set_is_open(true);
+            }
+        }
+
+        // PickerHandler.DismissDialog: `_dialog?.Dismiss()`. OnDialogDismiss is what actually clears
+        // IsFocused/IsOpen, and it arrives through the bridge's onDismiss; the is_open() guard below keeps
+        // the map_is_open this write re-enters from recursing when no dialog was up to fire it.
+        void dismiss_selection_dialog(picker_platform& platform, i_picker& view)
+        {
+            maui::platform::android::dismiss_dialog(platform.dialog);
+            if (view.is_open())
+            {
+                view.set_is_open(false);
+            }
+        }
     } // namespace
 
     // Releases the global reference pinning the android.widget.EditText (the JNI shape of the
     // pimpl-owned-native-view doctrine; the apple twin CFReleases its NSPopUpButton here).
     picker_platform::~picker_platform()
     {
+        // The dialog seam FIRST and unconditionally: a handler destroyed without a disconnect must not
+        // leave a shown AlertDialog holding a bridge whose peer is about to become freed storage.
+        // release_dialog_seam uninstalls the click listener, clears the callbacks, dismisses + releases
+        // the dialog and drops the peer (unregistering it), in that order — see android_dialog_ops.hpp.
+        maui::platform::android::release_dialog_seam(native, dialog, dialog_peer);
         if (native != nullptr)
         {
             const scoped_env env; // any-thread teardown, exactly like global_ref::reset
@@ -659,9 +716,8 @@ namespace maui::core
         // click, never accepting keyboard input (DefaultMovementMethod = null disables cursor navigation).
         // Reproduce the read-only intent on the plain widget (header deviations): setKeyListener(null)
         // makes it ignore key input (Android's canonical "read-only EditText" recipe), setFocusable(false)
-        // keeps the keyboard from opening, and setClickable(true) keeps it tappable for the (deferred)
-        // selection dialog. The capture target — the field SHOWING the selected item / title — needs only
-        // these; the dialog Click listener is the deferred half.
+        // keeps the keyboard from opening, and setClickable(true) keeps it tappable — on_connect_handler
+        // installs the Click listener that opens the selection dialog on that tap.
         jmethodID set_key_listener =
             cache.method(env.get(), k_edit_text_class, "setKeyListener", "(Landroid/text/method/KeyListener;)V");
         if (set_key_listener != nullptr)
@@ -731,12 +787,11 @@ namespace maui::core
     void picker_handler::on_connect_handler(picker_platform& platform)
     {
         // PickerHandler.Android ConnectHandler installs platformView.Click += OnClick, which builds the
-        // MaterialAlertDialogBuilder single-choice list. That dialog (a Google.Android.Material AAR) and
-        // the android click trampoline are deferred (header deviations), EXACTLY like the editor partial
-        // defers its TextWatcher and the button partial its OnTouchListener — but on_done stays a live
-        // C++ callback so the VM-less cross-platform suite (and a future dialog trampoline) can drive a
-        // row commit. FinishSelectItem: an unset (-1) row with items present commits row 0, then the pick
-        // lands on the virtual view through UpdatePicker (which also re-pushes the display to the widget).
+        // single-choice list. on_done stays the portable commit channel the VM-less cross-platform suite
+        // drives — and it is ALSO the path the dialog's row tap takes, so a native pick and a portable
+        // drive land through exactly one code path. FinishSelectItem: an unset (-1) row with items present
+        // commits row 0, then the pick lands on the virtual view through UpdatePicker (which also
+        // re-pushes the display to the widget).
         platform.on_done = [this](int row) {
             auto* view = virtual_view();
             if (view == nullptr)
@@ -749,13 +804,76 @@ namespace maui::core
             }
             update_picker(*this, *view, row);
         };
+
+        // The click/dialog trampoline. The peer is a registry-registered dialog_trampoline, NOT this
+        // struct's address: a dialog that outlives its handler then resolves to nothing instead of
+        // dereferencing freed storage (android_dialog_ops.hpp).
+        platform.dialog_peer = maui::platform::android::make_dialog_peer();
+        platform.dialog_peer->on_click = [this] {
+            // OnClick: build + show the dialog if one is not already up.
+            auto* view = virtual_view();
+            auto* typed = typed_platform_view();
+            if (view != nullptr && typed != nullptr)
+            {
+                show_selection_dialog(*typed, *view);
+            }
+        };
+        platform.dialog_peer->on_item_selected = [this](int row) {
+            // SetSingleChoiceItems' callback, in C#'s order: SelectedIndex + UpdatePicker FIRST, then
+            // `_dialog?.Dismiss()`. on_done runs user code (SelectedIndexChanged) that may destroy this
+            // handler, so the dismiss that follows it is gated on the peer's `dead` flag — read through
+            // the strong ref this callback is already holding, never through the handler.
+            auto* typed = typed_platform_view();
+            if (typed == nullptr || !typed->on_done)
+            {
+                return;
+            }
+            const std::shared_ptr<maui::platform::android::dialog_trampoline> peer = typed->dialog_peer;
+            typed->on_done(row);
+            if (peer && !peer->dead)
+            {
+                maui::platform::android::dismiss_dialog(typed->dialog);
+            }
+        };
+        platform.dialog_peer->on_dismiss = [this] {
+            // OnDialogDismiss: IsFocused = false, IsOpen = false, _dialog = null. The dialog dismissed
+            // ITSELF (row tap / Cancel / outside tap / back), so only the pin is dropped here.
+            auto* view = virtual_view();
+            auto* typed = typed_platform_view();
+            if (typed != nullptr)
+            {
+                maui::platform::android::release_dialog(typed->dialog);
+            }
+            if (view != nullptr)
+            {
+                view->set_is_focused(false); // OnDialogDismiss: IsFocused = false, then IsOpen = false
+                if (view->is_open())
+                {
+                    view->set_is_open(false);
+                }
+            }
+        };
+        if (platform.native != nullptr)
+        {
+            const scoped_env env;
+            if (env)
+            {
+                // `platformView.Click += OnClick` — the read-only field is tappable (create_platform_view
+                // already set setClickable(true)) and a tap opens the dialog.
+                maui::platform::android::install_dialog_click_listener(env.get(), widget_of(platform),
+                                                                       platform.dialog_peer.get());
+            }
+        }
     }
 
     void picker_handler::on_disconnect_handler(picker_platform& platform)
     {
-        // DisconnectHandler: Click -= OnClick; dispose the dialog (the native click/dialog uninstall
-        // lands with the deferred trampoline fan-out).
+        // DisconnectHandler: Click -= OnClick; unhook ShowEvent/DismissEvent, Dismiss the dialog, drop it.
+        // release_dialog_seam is the whole teardown in the documented order — uninstall the click
+        // listener, clear the callbacks, dismiss + release the dialog, drop (and so unregister) the peer.
+        // ~picker_platform runs the same call, so a handler dropped without a disconnect is covered.
         platform.on_done = nullptr;
+        maui::platform::android::release_dialog_seam(platform.native, platform.dialog, platform.dialog_peer);
     }
 
     void picker_handler::map_items(picker_handler& handler, i_picker& view)
@@ -1039,13 +1157,24 @@ namespace maui::core
         clear_pending(env.get());
     }
 
-    void picker_handler::map_is_open(picker_handler& /*handler*/, i_picker& /*view*/)
+    void picker_handler::map_is_open(picker_handler& handler, i_picker& view)
     {
-        // PickerHandler.MapIsOpen → ShowDialog/DismissDialog (CallOnClick → the MaterialAlertDialog). The
-        // dialog is deferred with the click trampoline (header deviations), so there is no native dialog
-        // to present/dismiss; this is a genuine no-op — the control-level is_open()/Opened/Closed are the
-        // observable result. // TODO: verify against PickerHandler.Android.cs (ShowDialog/DismissDialog)
-        // when the dialog trampoline lands.
+        // PickerHandler.MapIsOpen: `if (picker.IsOpen) ShowDialog() else DismissDialog()`. C# also gates
+        // on handler.IsConnected(); here an unconnected handler has no dialog_peer, which
+        // show_selection_dialog checks.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        if (view.is_open())
+        {
+            show_selection_dialog(*platform, view);
+        }
+        else
+        {
+            dismiss_selection_dialog(*platform, view);
+        }
     }
 
     maui::graphics::size picker_handler::get_desired_size(double width_constraint, double height_constraint) const

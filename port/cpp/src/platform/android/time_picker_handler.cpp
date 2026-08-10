@@ -3,12 +3,10 @@
 // src/platform/headless/time_picker_handler.cpp is the VM-less twin, and src/platform/apple/
 // time_picker_handler.mm is the native-AppKit twin). The managed platform view is a REAL
 // android.widget.EditText made non-editable (held as a JNI global reference in
-// time_picker_platform::native): the field DISPLAYS the formatted time — the selection-dialog
-// interaction (TimePickerDialog) is DEFERRED (documented below, exactly as the picker partial
-// defers its MaterialAlertDialog and the editor partial defers its TextWatcher). A native pick
-// still flows back through i_time_picker::set_time → that inbound channel (on_done /
-// SetVirtualViewTime, seconds dropped) stays invokable for portable drives and a future dialog
-// trampoline.
+// time_picker_platform::native): the field DISPLAYS the formatted time, and a TAP opens the
+// android.app.TimePickerDialog (a framework class — no AAR involved, unlike the picker's Material
+// builder). A native pick flows back through i_time_picker::set_time via on_done
+// (SetVirtualViewTime, seconds dropped), the same inbound channel portable drives use.
 //
 // Ported DIRECTLY from TimePickerHandler.Android.cs + Platform/Android/{TimePickerExtensions.cs
 // (SetTimeImpl: editText.Text = time?.ToFormattedString(format) — UpdateFormat AND UpdateTime BOTH
@@ -36,28 +34,24 @@
 //     touch-off); we reproduce the read-only intent with setKeyListener(null) + setFocusable(false) +
 //     setClickable(true) + setCursorVisible(false) (see create_platform_view) — identical to the picker
 //     partial, whose MauiPickerBase shares the same read-only-EditText recipe.
-//   - The selection DIALOG is DEFERRED. C#'s MauiTimePicker.Initialize wires SetOnClickListener(this) →
-//     OnClick → ShowPicker → TimePickerHandler.ShowPickerDialog, which builds a TimePickerDialog (an
-//     android.app dialog) seeded with hour/minute + Use24HourView and, on a time set, sets
-//     VirtualView.Time = new TimeSpan(args.HourOfDay, args.Minute, 0). The android click trampoline /
-//     dialog fan-out has not arrived (same class of gap as the picker's deferred MaterialAlertDialog),
-//     so no android.view.View.OnClickListener is installed yet; the field renders the formatted time (the
-//     capture target the task calls out) and on_done stays a live C++ callback (the cross-platform suite +
-//     a future dialog trampoline drive it → set_time → re-render). MapIsOpen → ShowPickerDialog/
-//     HidePickerDialog has no dialog to present and is a no-op for the same reason — the control-level
-//     is_open()/Opened/Closed are the observable result.
-//     // TODO: verify against TimePickerHandler.Android.cs (OnClick → TimePickerDialog,
-//     CreateTimePickerDialog/onTimeSetCallback, ShowPickerDialog/HidePickerDialog) + the android click/
-//     dialog trampoline seam when it lands.
+//   - The selection DIALOG is IMPLEMENTED against the FRAMEWORK android.app.TimePickerDialog (no AAR is
+//     involved — unlike the picker's Material builder). C#'s MauiTimePicker.Initialize wires
+//     SetOnClickListener(this) → OnClick → ShowPicker → TimePickerHandler.ShowPickerDialog, which builds
+//     the dialog seeded with hour/minute + Use24HourView and, on a time set, sets VirtualView.Time =
+//     new TimeSpan(args.HourOfDay, args.Minute, 0) — ported 1:1 here, with the commit routed through the
+//     existing on_done channel so a native pick and a portable drive share one code path. C# builds the
+//     dialog fresh on every show too (`_dialog = CreateTimePickerDialog(hour, minute)` in
+//     ShowPickerDialog), so there is no cached-dialog divergence to document on this control.
 //   - THE 12h/24h DEFAULT — derived, never invented. The DISPLAYED text is purely
 //     ToFormattedString(format): an empty Format falls back to the culture short-time pattern, the port's
 //     invariant collapse of which is "t" → "h:mm tt" (12-HOUR, en-US — see format_time_span /
 //     format_date_time in date_time.cpp, the SAME helper the headless + iOS mirrors use). The C# handler's
-//     Use24HourView / IsCustom24HourFormat ("HH" Ordinal-contains) logic governs ONLY the deferred
-//     TimePickerDialog's wheel mode — it does NOT touch the displayed field text — so it lives entirely in
-//     the deferred-dialog half and is documented, not implemented, here. We reuse format_time_span exactly
-//     (the headless mirror already formats the time): NO format is invented, and the "12h default" the iOS
-//     parity notes flagged is the port-wide invariant rendering of "t", consistent across all backends.
+//     Use24HourView / IsCustom24HourFormat ("HH" Ordinal-contains) logic governs ONLY the TimePickerDialog's
+//     WHEEL mode — it does NOT touch the displayed field text. It is now implemented (in
+//     android_dialog_ops.hpp's use_24_hour_view: empty → 12h, "t" → DateFormat.is24HourFormat(Context),
+//     otherwise 24h iff the format contains "HH" — an ORDINAL, case-sensitive test, since "hh" is the
+//     12-hour specifier), and it feeds the dialog only. The field text still comes from format_time_span,
+//     so the "12h default" the iOS parity notes flagged remains the port-wide invariant rendering of "t".
 //   - The native EditText color setter takes a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList in UpdateTextColorImpl). The plain-widget cut uses the
 //     single-int overload setTextColor(int) — the ColorStateList path's enabled-state coloring is an
@@ -70,6 +64,14 @@
 //     font registrar yet, on any backend): family → Typeface.create(family, style), then the API-28+
 //     Typeface.create(base, weight, italic) refinement — the exact CreateTypeface tail. Byte-for-byte the
 //     picker/editor/button partials' map_font.
+//
+// LIFETIME (the risk the dialog introduces): a shown android.app.Dialog is owned by the window manager
+// and outlives the handler unless the handler tears it down. The click listener and the dialog's
+// OnTimeSet/OnDismiss listeners are ONE dev.mauicpp.MauiDialogBridge whose peer is a registry-registered
+// dialog_trampoline (NOT the platform struct address) — see android_dialog_ops.hpp's header for the four
+// rules that make a late callback a no-op. Teardown (release_dialog_seam: uninstall the listener, clear
+// the callbacks, dismiss + release the dialog, drop the peer) runs from BOTH on_disconnect_handler AND
+// ~time_picker_platform, so a handler destroyed without a disconnect is covered too.
 //
 // VM-less degradation (identical to the picker/editor/button partials): the android preset also runs the
 // PURE-NATIVE cross-platform suite on the emulator (tools/android-emu-run.sh) where no Java VM exists.
@@ -90,6 +92,7 @@
 #include <string_view>
 
 #include "android_clip_ops.hpp"
+#include "android_dialog_ops.hpp"
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -347,12 +350,53 @@ namespace maui::core
                 push_text(env.get(), widget_of(*platform), platform->text);
             }
         }
+
+        // TimePickerHandler.ShowPickerDialog: `_dialog = CreateTimePickerDialog(time?.Hours ?? 0,
+        // time?.Minutes ?? 0); _dialog.Show(); VirtualView.IsOpen = true`, with Use24HourView deciding the
+        // wheel mode. Re-entrancy: platform.dialog is assigned BEFORE set_is_open(true) (so the
+        // map_is_open that write re-enters finds a live dialog and returns), and set_is_open is the LAST
+        // statement, because it can run user code that destroys this handler.
+        void show_picker_dialog(time_picker_platform& platform, i_time_picker& view)
+        {
+            if (platform.dialog != nullptr || !platform.dialog_peer)
+            {
+                // already showing (C#'s `_dialog is not null && _dialog.IsShowing`), or not connected
+                return;
+            }
+            const auto time = view.time();
+            const scoped_env env;
+            const bool is_24_hour = maui::platform::android::use_24_hour_view(
+                view.format(), env ? maui::platform::android::system_is_24_hour(env.get(), app_context()) : false);
+            platform.dialog = maui::platform::android::show_time_dialog(app_context(), platform.dialog_peer.get(),
+                                                                        time ? time->hours() : 0,
+                                                                        time ? time->minutes() : 0, is_24_hour);
+            if (platform.dialog != nullptr && !view.is_open())
+            {
+                view.set_is_open(true);
+            }
+        }
+
+        // TimePickerHandler.HidePickerDialog: hide + drop the dialog, then IsOpen = false. The is_open()
+        // guard keeps the map_is_open this write re-enters from recursing.
+        void hide_picker_dialog(time_picker_platform& platform, i_time_picker& view)
+        {
+            maui::platform::android::dismiss_dialog(platform.dialog);
+            if (view.is_open())
+            {
+                view.set_is_open(false);
+            }
+        }
     } // namespace
 
     // Releases the global reference pinning the android.widget.EditText (the JNI shape of the
     // pimpl-owned-native-view doctrine; the apple twin CFReleases its NSDatePicker here).
     time_picker_platform::~time_picker_platform()
     {
+        // The dialog seam FIRST and unconditionally: a handler destroyed without a disconnect must not
+        // leave a shown TimePickerDialog holding a bridge whose peer is about to become freed storage.
+        // release_dialog_seam uninstalls the click listener, clears the callbacks, dismisses + releases
+        // the dialog and drops the peer (unregistering it), in that order — see android_dialog_ops.hpp.
+        maui::platform::android::release_dialog_seam(native, dialog, dialog_peer);
         if (native != nullptr)
         {
             const scoped_env env; // any-thread teardown, exactly like global_ref::reset
@@ -424,7 +468,7 @@ namespace maui::core
         }
         // ViewExtensions.UpdateIsEnabled: platformView.Enabled = view.IsEnabled. The time field is a
         // read-only, click-driven EditText (focusable false), so — like the picker partial — we push
-        // Enabled + Clickable (so the disabled field stops opening the deferred dialog) and keep Focusable
+        // Enabled + Clickable (so a disabled field stops opening the dialog) and keep Focusable
         // false to preserve the non-editable construction.
         jobject widget = widget_of(*this);
         call_void_bool(env.get(), widget, "setEnabled", static_cast<jboolean>(value));
@@ -635,9 +679,8 @@ namespace maui::core
         // and PickerManager.Init disables the cursor / makes it focusable-on-touch-off). Reproduce the
         // read-only intent on the plain widget (header deviations) — identical to the picker partial:
         // setKeyListener(null) makes it ignore key input (Android's canonical "read-only EditText" recipe),
-        // setFocusable(false) keeps the keyboard from opening, and setClickable(true) keeps it tappable for
-        // the (deferred) dialog. The capture target — the field SHOWING the formatted time — needs only
-        // these; the dialog Click listener is the deferred half.
+        // setFocusable(false) keeps the keyboard from opening, and setClickable(true) keeps it tappable —
+        // on_connect_handler installs the Click listener that opens the TimePickerDialog on that tap.
         jmethodID set_key_listener =
             cache.method(env.get(), k_edit_text_class, "setKeyListener", "(Landroid/text/method/KeyListener;)V");
         if (set_key_listener != nullptr)
@@ -710,13 +753,11 @@ namespace maui::core
     {
         // TimePickerHandler.Android ConnectHandler wires ShowPicker/HidePicker (the MauiTimePicker.OnClick
         // → ShowPickerDialog path) which builds a TimePickerDialog seeded with hour/minute + Use24HourView.
-        // That dialog (an android.app.TimePickerDialog) and the android click trampoline are deferred
-        // (header deviations), EXACTLY like the picker partial defers its MaterialAlertDialog and the
-        // editor partial its TextWatcher — but on_done stays a live C++ callback so the VM-less
-        // cross-platform suite (and a future dialog trampoline) can drive a commit. SetVirtualViewTime:
-        // commit the wheel's current value with the SECONDS DROPPED — C# builds
-        // `new TimeSpan(args.HourOfDay, args.Minute, 0)`. The set_time write re-runs map_time → update_time
-        // (which re-renders the field).
+        // on_done stays the portable commit channel the VM-less cross-platform suite drives — and it is
+        // ALSO the path the dialog's OnTimeSet takes, so a native pick and a portable drive land through
+        // exactly one code path. SetVirtualViewTime: commit the wheel's current value with the SECONDS
+        // DROPPED — C# builds `new TimeSpan(args.HourOfDay, args.Minute, 0)`. The set_time write re-runs
+        // map_time → update_time (which re-renders the field).
         platform.on_done = [this] {
             auto* view = virtual_view();
             auto* typed = typed_platform_view();
@@ -726,13 +767,78 @@ namespace maui::core
             }
             view->set_time(time_span(typed->time.hours(), typed->time.minutes(), 0));
         };
+
+        // The click/dialog trampoline. The peer is a registry-registered dialog_trampoline, NOT this
+        // struct's address: a dialog that outlives its handler then resolves to nothing instead of
+        // dereferencing freed storage (android_dialog_ops.hpp). Every callback below performs its
+        // re-entrant call LAST, because that call can destroy this handler.
+        platform.dialog_peer = maui::platform::android::make_dialog_peer();
+        platform.dialog_peer->on_click = [this] {
+            // MauiTimePicker.OnClick → ShowPicker?.Invoke() → ShowPickerDialog.
+            auto* view = virtual_view();
+            auto* typed = typed_platform_view();
+            if (view != nullptr && typed != nullptr)
+            {
+                show_picker_dialog(*typed, *view);
+            }
+        };
+        platform.dialog_peer->on_time_set = [this](int hour, int minute) {
+            // onTimeSetCallback: VirtualView.Time = new TimeSpan(args.HourOfDay, args.Minute, 0) — the
+            // seconds drop is on_done's own body, so the wheel value only has to land in the mirror.
+            auto* typed = typed_platform_view();
+            if (typed == nullptr || !typed->on_done)
+            {
+                return;
+            }
+            const std::shared_ptr<maui::platform::android::dialog_trampoline> peer = typed->dialog_peer;
+            typed->time = time_span(hour, minute, 0);
+            typed->on_done();
+            // ... then `VirtualView.IsFocused = false`, in C#'s order. on_done runs user code that may
+            // destroy this handler, so the second write is gated on the peer's `dead` flag — read through
+            // the strong ref this callback is already holding, never through the handler.
+            if (peer && !peer->dead)
+            {
+                if (auto* view = virtual_view())
+                {
+                    view->set_is_focused(false);
+                }
+            }
+        };
+        platform.dialog_peer->on_dismiss = [this] {
+            // OnDialogDismiss → HidePickerDialog. The dialog dismissed ITSELF (OK/Cancel/back), so only
+            // the pin is dropped here — calling dismiss() again would be redundant.
+            auto* view = virtual_view();
+            auto* typed = typed_platform_view();
+            if (typed != nullptr)
+            {
+                maui::platform::android::release_dialog(typed->dialog);
+            }
+            if (view != nullptr && view->is_open())
+            {
+                view->set_is_open(false);
+            }
+        };
+        if (platform.native != nullptr)
+        {
+            const scoped_env env;
+            if (env)
+            {
+                // MauiTimePicker.Initialize's SetOnClickListener(this) — the read-only field is tappable
+                // (create_platform_view already set setClickable(true)) and a tap opens the dialog.
+                maui::platform::android::install_dialog_click_listener(env.get(), widget_of(platform),
+                                                                       platform.dialog_peer.get());
+            }
+        }
     }
 
     void time_picker_handler::on_disconnect_handler(time_picker_platform& platform)
     {
-        // DisconnectHandler: ShowPicker/HidePicker = null; dismiss + dispose the dialog (the native
-        // click/dialog uninstall lands with the deferred trampoline fan-out).
+        // DisconnectHandler: ShowPicker/HidePicker = null; dismiss + drop the dialog. release_dialog_seam
+        // is the whole teardown in the documented order — uninstall the click listener, clear the
+        // callbacks, dismiss + release the dialog, drop (and so unregister) the peer.
+        // ~time_picker_platform runs the same call, so a handler dropped without a disconnect is covered.
         platform.on_done = nullptr;
+        maui::platform::android::release_dialog_seam(platform.native, platform.dialog, platform.dialog_peer);
     }
 
     void time_picker_handler::map_format(time_picker_handler& handler, i_time_picker& view)
@@ -893,13 +999,24 @@ namespace maui::core
         }
     }
 
-    void time_picker_handler::map_is_open(time_picker_handler& /*handler*/, i_time_picker& /*view*/)
+    void time_picker_handler::map_is_open(time_picker_handler& handler, i_time_picker& view)
     {
-        // TimePickerHandler.MapIsOpen → ShowPickerDialog/HidePickerDialog (the android.app.TimePickerDialog).
-        // The dialog is deferred with the click trampoline (header deviations), so there is no native dialog
-        // to present/dismiss; this is a genuine no-op — the control-level is_open()/Opened/Closed are the
-        // observable result. // TODO: verify against TimePickerHandler.Android.cs (ShowPickerDialog/
-        // HidePickerDialog) when the dialog trampoline lands.
+        // TimePickerHandler.MapIsOpen: `if (timePicker.IsOpen) ShowPickerDialog() else HidePickerDialog()`.
+        // C# also gates on handler.IsConnected(); here an unconnected handler has no dialog_peer, which
+        // show_picker_dialog checks.
+        auto* platform = handler.typed_platform_view();
+        if (platform == nullptr)
+        {
+            return;
+        }
+        if (view.is_open())
+        {
+            show_picker_dialog(*platform, view);
+        }
+        else
+        {
+            hide_picker_dialog(*platform, view);
+        }
     }
 
     maui::graphics::size time_picker_handler::get_desired_size(double width_constraint, double height_constraint) const
