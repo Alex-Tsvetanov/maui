@@ -4310,3 +4310,44 @@ problem — measured, the purple bands are IDENTICAL in both columns (top-row 11
 0.74% on image_button/ios is the COG GLYPH rendering larger in the port than in MAUI inside an
 identically-sized box — an AspectFit scaling difference, a separate finding. The mechanism divergence is
 real but has no measured symptom, so changing it would be risk without evidence.
+
+### swipe_item_size/maccatalyst (23%, the largest remaining red): a MAUI-side quirk — NEEDS A USER RULING
+
+NOT a stale capture, unlike the last two reds. Recaptured fresh on the VM (run 2026-08-10-07_09_33, 0
+frames dropped) and it reproduces exactly: 23.09% cpp / 23.12% cpp_xaml against the board's 23.02%.
+
+IT IS A PURE 32px VERTICAL TRANSLATION, not a rendering difference. Sweeping the alignment:
+
+    dy =   0   ->  23.09% differ
+    dy = -32   ->   0.62% differ      (i.e. the port's row y matches MAUI's row y-32)
+
+32px is exactly the Mac Catalyst top inset this port already documents (41pt = 32px, see the per-view
+safe-area notes). LOOKING at the frames says which side moved: MAUI's window shows the title bar and then
+a CLIPPED "Different icon sizes", with the page's first label — "Swipe a row left to reveal Delete" —
+missing entirely, under the title bar. The port shows the full header. So MAUI is the column running its
+content beneath the chrome; the port insets it.
+
+THE CONTROL SAYS THIS IS NOT THE PORT'S SCROLLVIEW INSET IN GENERAL. Six other ScrollView-root pages that
+are GREEN on maccatalyst all align at dy=0 with ~0.09% residual — dispatcher, transformations,
+scroll_view, slider, layout_is_enabled, content_view. The port's inset matches MAUI everywhere else on
+this lane; this page is the exception.
+
+AND THE CROSS-LANE CHECK IS UNAMBIGUOUS — the port is byte-identical to MAUI on every other platform:
+
+    ios          SSIM 1.0000, 0.00%        android      SSIM 1.0000, 0.00%
+    windows      SSIM 1.0000, 0.00%        maccatalyst  SSIM 0.7397, 23.02%   <- only lane that differs
+
+Three lanes at EXACTLY zero. The port renders the authored page correctly; MAUI Mac Catalyst alone puts
+the content 32px higher and eats its own first label. That is the shape of the ruling-10 family (Catalyst
+renders less than the authored content while iOS+Android render it fully and the port matches them), but
+it is a SAFE-AREA/scroll-offset case rather than one of the content/init gaps ruling 10 enumerates.
+
+SO IT IS FLAGGED, NOT ACTED ON, per ruling 3: a MAUI-side quirk not covered by the existing list goes in
+maui_quirks and PAUSES for a user ruling — neither auto-ignored nor auto-fixed. Making the port replicate
+it would mean deliberately hiding a label under the title bar on one platform, and would break the exact
+agreement the other three lanes currently have.
+
+The likely mechanism, for whoever rules on it: on a page whose content is TALLER than the viewport, a
+Catalyst UIScrollView appears to leave contentOffset at 0 with the safe-area inset unapplied at rest, so
+the content starts under the chrome; the shorter ScrollView pages above never reveal it. Not verified —
+the measurement above is solid, that explanation is not.
