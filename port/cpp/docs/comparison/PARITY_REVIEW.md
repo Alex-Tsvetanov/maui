@@ -4438,6 +4438,9 @@ moved when pixel_score was run directly. Twice. Not chased here.
 
 ### The iOS scroll-driven reds (clip, box_view, path_gallery): the port SCROLLS FURTHER than MAUI
 
+> **RETRACTED 2026-08-10 — see "The scroll-overshoot findings were MEASUREMENT NOISE" at the end of
+> this file. The measurements below reproduce exactly; the INFERENCE from them does not.**
+
 Three of the five remaining iOS reds share one signature, and it is not a rendering difference at all. Each
 scores 0.00% on frame 1 `initial` — byte-identical AT REST — and only diverges after the scroll step.
 Aligning the two scrolled frames vertically says why:
@@ -4500,6 +4503,9 @@ identically) and still overshoots by 60 px, so its scroll difference is real and
 
 ### box_view: same overshoot shape as clip, but NO content explanation
 
+> **RETRACTED 2026-08-10 — see "The scroll-overshoot findings were MEASUREMENT NOISE" at the end of
+> this file. The measurements below reproduce exactly; the INFERENCE from them does not.**
+
     maui_xaml  travel 2024 px      cpp  travel 2084 px      cpp_xaml  travel 2024 px
 
 Identical pattern to clip — the builder page travels 60 px further than MAUI while the XAML page on the same
@@ -4531,3 +4537,52 @@ HYPOTHESIS, explicitly not verified: maui::controls::scroll_view's iOS content-s
 something MAUI's does not — a padding counted twice, or a safe-area inset folded into contentSize. The check
 is a headless measure test over a fixed-height stack: assert the scroll_view's reported content height
 equals the sum of children + spacing + padding exactly, with no device involved.
+
+### The scroll-overshoot findings were MEASUREMENT NOISE — retracting two entries above
+
+An 11-agent review with adversarial verification reproduced my numbers exactly and then destroyed the
+inference built on them. Recording the refutation in full, because the measurements were right and that is
+precisely what made the conclusion so convincing.
+
+WHAT I CLAIMED: the port's iOS ScrollView exposes ~60px more scrollable extent than MAUI for identical
+content (box_view: MAUI 2024px, port 2084px), and clip's 180px was that same over-report plus real content.
+
+WHY IT IS WRONG — three independent replications, none of which I had done:
+
+  1. THE SAMPLE SIZE WAS ONE. Across all six archived box_view/ios samples the port-minus-MAUI delta is
+     -28, +89, +62, -10, -2, +70 px. THE SIGN FLIPS THREE TIMES. I measured the +62 run and read a
+     systematic defect off a single draw.
+  2. THE REFERENCE ITSELF IS NOT STABLE. maui_xaml — an UNCHANGED binary, identical page, identical
+     injected gesture — spans 2023..2170 px across runs. A 147px spread swallows the 60px whole.
+  3. NOTHING REACHED THE CLAMP. box_view.toml drives ONE `dy=-400` fling against 4590px of content, so the
+     captured offset measures UIScrollView deceleration and capture timing, not contentSize. The 18 stop
+     positions never repeat; a clamped scroll pins to one value.
+
+AND THE CONTENT HEIGHTS ARE PROVABLY EQUAL. Computed from the twin (Spacing 6, Padding 12): 36 + 8*51 +
+8*480 + 15*18 + 36 = 4590px at 3x, with content y=0 at screen y=186 in every column. The last box's bottom
+edge then lands where that predicts, exactly, in 3 of the 4 archived frames where it is on-screen. No clamp
+reasoning needed: MAUI's content height and the port's are the same number.
+
+THE DECISIVE CASE IS clip, AND IT VINDICATES THE ONE FIX I DID MAKE. clip CLAMPS — zero jitter, two runs,
+both themes. Before `8240af33ac` removed the builder's extra toggle + status, cpp travelled 1263 px vs 1083
+for both other columns. After, ALL THREE travel exactly 1083 and cpp's driven frame is byte-identical to
+cpp_xaml. That is a clamped, deterministic port-vs-MAUI contentSize comparison, and it comes out EQUAL TO
+WITHIN 1px. A 60px over-report would have left cpp at 1143. So the clip finding was right (real extra
+content, real 180px) and the generalisation from it was not.
+
+THREE REAL src/-DIVERGENCES turned up in passing, all filed and DEFERRED because none explains anything
+measured, and each would move currently-byte-identical pages:
+  - scroll_view_handler.mm:453 builds extent from CGRectGetMaxY(content.frame), carrying the safe-area
+    origin; C# returns an origin-free bounds.Size (LayoutExtensions.cs:261). INERT on the overflow branch
+    (safe_y == 0), would inject safe_area.top on the fits branch — i.e. most short iOS pages, all green today.
+  - scroll_view.cpp:240-243 builds content_size_ from content_frame + margin, dropping the ScrollView's own
+    padding; C# returns the padded bounds.Size. Cross-platform, unverified consumers.
+  - scroll_view_handler.mm:106 feeds set_system_adjusted_content_inset() from self.adjustedContentInset
+    where C# uses AdjustedContentInset - ContentInset. Inert at rest: contentInset is written only by
+    ios_keyboard_auto_manager.mm.
+Land these as their own change behind a full-lane rescore, or not at all. They are the classic
+"obviously correct against src/" edit that produces surprise reds.
+
+ALSO CORRECTED: the earlier attribution of swipe_item_size to "the harness top-crop of ruling 2" is FALSE —
+review.py:77 is `CROP_TOP = {"android": 140}` and there is no other crop in either tool tree; a harness crop
+would move all 176 pages, and 173 align at dy=0.
