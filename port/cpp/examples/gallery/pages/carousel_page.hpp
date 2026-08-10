@@ -34,14 +34,14 @@
 
 #include "maui/controls/border.hpp"
 #include "maui/controls/content_page.hpp"
-#include "maui/core/safe_area_edges.hpp"
-#include "maui/core/safe_area_regions.hpp"
 #include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/templates/data_template.hpp"
 #include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/observable_collection.hpp"
+#include "maui/core/safe_area_edges.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/text_alignment.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/graphics/colors.hpp"
@@ -64,10 +64,30 @@ namespace maui::samples
                 set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::purple));
                 set_stroke_thickness(2);
                 set_padding(maui::core::thickness(16));
-                label_.set_text("Card");
                 label_.set_horizontal_text_alignment(maui::core::text_alignment::center);
                 label_.set_vertical_text_alignment(maui::core::text_alignment::center);
                 set_content(label_);
+            }
+
+        protected:
+            // The cell's text is the ITEM, not a literal — matching the twin's {Binding .}. Both sides
+            // used to paint the constant "Card" for every item (as the original CoreGallery page does),
+            // which made this page's scenario UNFALSIFIABLE: the ItemsSource is Card 1 / Card 2 / Card 3,
+            // so paging produced a byte-identical destination frame and a pixel diff could not tell "did
+            // not page" from "paged". carousel_page.toml drives exactly that swipe.
+            //
+            // The idiom is basic_grouping_page's group-header cell: propagate to children FIRST, then read
+            // the typed binding context. Deliberately not a set_binding on the template — carousel_card
+            // owns its label as a member (data_template::of<> activates the cell type, and the template
+            // has no per-instance hook to reach a nested child), which is the same reason chat_example's
+            // bubble and basic_grouping's header take this route.
+            void on_binding_context_changed() override
+            {
+                maui::controls::border::on_binding_context_changed();
+                if (const auto item = binding_context<std::string>())
+                {
+                    label_.set_text(*item);
+                }
             }
 
         private:

@@ -18,7 +18,19 @@
         <CarouselView.ItemTemplate>
             <DataTemplate>
                 <Border Stroke="Purple" StrokeThickness="2" Padding="16">
-                    <Label Text="Card" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                    <!-- BOUND, not the literal "Card" the original CoreGallery paints. The literal made
+                         this page's own test unfalsifiable: the ItemsSource is Card 1 / Card 2 / Card 3,
+                         so every item rendered IDENTICALLY, and paging from item 0 to item 1 produced a
+                         byte-identical destination frame. carousel_page.toml drives exactly that swipe,
+                         so the scenario could neither pass nor fail — a pixel diff cannot tell "did not
+                         page" from "paged to a card that looks the same". It read as 0px on every desktop
+                         lane and was nearly written up as an injector limitation.
+                         {Binding .} is the established twin convention for a string ItemsSource (see
+                         collectionview.xaml:36, adaptive_collection, cv_visual_states, empty_view_null)
+                         and the loader supports it, so this lands on the MAUI column and the cpp_xaml
+                         column from the same shared bytes. The card text is now the only thing that
+                         changes when the control pages, which is exactly what the scenario measures. -->
+                    <Label Text="{Binding .}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
                 </Border>
             </DataTemplate>
         </CarouselView.ItemTemplate>
