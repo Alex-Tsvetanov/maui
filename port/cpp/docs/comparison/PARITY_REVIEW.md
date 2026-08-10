@@ -4047,3 +4047,56 @@ had to be peeled back to see the next:
 Recorded rather than forced. The defect is real and measured; the cell staying INVALID is the honest
 state while the scorer cannot see it, and inventing a green would be the opposite of what this pass is
 for.
+
+### Windows: a RED that was three layers of my own stale guest, and the dark-theme trap behind it
+
+`button/windows` scored RED with a `roi-split` reading "C++ changed 57 px inside the roi and MAUI
+changed NONE". That is the exact shape of a real port defect — the port reacting where MAUI does not —
+and it was entirely an artifact. Peeled in order, each layer hidden by the one above it:
+
+  1. **MauiReference.exe on the guest was built 8/7 01:11**, and the tap-counting twins were wired 8/9.
+     The guest's `button.xaml` still carried a bare `<Label Text="Taps: 0"/>` with NO `x:Name` and a
+     code-behind with no handler. The MAUI column was not failing to react — it was *incapable* of
+     reacting. `recapture.py` builds the C++ framework and the galleries and NOTHING ELSE, so nothing
+     in the pipeline would ever have caught this (memory: `recapture-never-builds-mauireference`).
+  2. **The gallery_xaml sources were stale too**, one layer over: the guest's `Views/*.xaml.cpp` were
+     from 8/1, and `gallery_xaml.exe` was linked 8/9 17:14 — BEFORE the chrome (17:27) and button
+     (18:45) code-behind commits. So even after fixing (1), `cpp_xaml` still read amplitude 6.
+  3. **`src/platform/windows/stepper_handler.cpp` had never been on the guest at all** — 411 lines of
+     Windows Stepper handler written this session, never once rendered by the lane that scores it.
+
+Nine drifted files, synced; cmake RECONFIGURED (a new TU only enters the build at configure time on
+this lane); framework + both galleries + MauiReference rebuilt. Two build traps worth keeping: the
+first build died with `C1060: compiler is out of heap space` (8 GB RAM, 696 MB page file, 10 CPUs — 8
+concurrent `cl.exe` on WinRT's generated headers do not fit; `-Jobs 3` builds clean), and the link then
+died with `LNK1168` because TEN orphaned `gallery.exe` processes from the previous night still held the
+output.
+
+MEASURED AFTER, at-rest -> after-action, all three columns:
+
+    button    57 / 57 / 57 px      bbox (20,49,1003,176) vs (20,49,1004,176)
+    chrome   565 / 565 / 565 px    bbox identical in all three
+    switch   715 / 715 / 715 px    bbox (8,173,48,193) — exactly the toggle track
+    stepper    4 / 4 / 4 px        bbox (20,75,83,106)
+
+**AND THE FIRST RESCORE STILL SAID RED.** Because the scenarios pin `themes = ["light"]`, the recapture
+produced light frames only, and the scorer fell back to whatever older run last held DARK frames — for
+these pages, 2026-08-07, i.e. the pre-twin binaries all over again. Light read SSIM 1.0000 and dark
+read "MAUI IS FROZEN" in the SAME cell, and the aggregate takes the worse half. This is systemic: EVERY
+scenario page's dark cell is scored against a stale run unless the recapture is asked for both themes.
+`--themes light,dark` fixed all of them at once.
+
+Also repaired here: `run_comparison.py --selftest` had been dead since `for_lane` landed — the
+`_RecordingEnv` stub has no `.name`, so every assert raised AttributeError instead of running. That is
+the guard that resolves every checked-in coordinate; it is the reason a bad `at` is supposed to be an
+offline authoring error rather than a wasted VM run. Restored and break-tested (a deliberately
+out-of-rect click is caught with the right message).
+
+RESULT: `button/windows` RED -> GREEN, plus chrome x2 and switch x2 yellow -> GREEN. Board 1149 -> 1155
+green, 30 -> 29 red. The guest's SYNC_STAMP now records the real synced commit and that all four
+artifacts were rebuilt.
+
+`switch/windows` also needed a third aim: same 1024x800 rect as Catalyst, but the WinUI title bar
+pushes the row down, so Catalyst's y-fraction lands in the LABEL and the portable one lands past the
+track's right edge on bare grey. Three lanes, three different correct answers, one portable fraction
+that was only ever right for the phone it was measured on.

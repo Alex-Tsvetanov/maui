@@ -58,3 +58,22 @@ duration = 0.6           # HELD: an instantaneous tap actuates neither column (s
 # "absolute", and device_scenarios then drops it from the iOS lane BY NAME. Writing [23,127] here
 # would silently delete the iOS held-press finding this file documents above.
 at_macos-arm64 = [0.023, 0.159]
+
+# WINDOWS NEEDS A THIRD AIM, and NOT because the fraction is wrong — because the window is the same
+# 1024x800 as Catalyst but the CONTENT sits lower. Catalyst's blue track is y[117..137]; the WinUI
+# window reserves a title bar (`present` pins env.geom {244,0,1024,800}), so the same row lands at
+# y[163..202] — Catalyst's 0.159 resolves to y=127, which on this lane is still up in the
+# "BackgroundColor" LABEL, not the control. The portable 0.078 is worse: x=79 is past the track's
+# right edge (x max 47), on bare page grey (measured RGB 244,244,244).
+#
+# MEASURED 2026-08-10 on run 2026-08-10-04_18_48 by scanning the frame for accent pixels: the blue
+# BackgroundColor block spans x[8..47] y[163..202], IDENTICALLY in maui_xaml, cpp AND cpp_xaml (same
+# 1492-px band, same bbox in all three), with the thumb at the LEFT (off). Centre (27,182) of
+# 1024x800 -> this fraction. A ToggleSwitch toggles on a click anywhere along its track, so the
+# centre is the safe aim rather than the thumb itself.
+#
+# This miss is why the pre-fix run scored switch/windows 0 px in EVERY column — the same
+# all-columns-zero signature Android and Catalyst each produced from their own version of this
+# mistake, which is worth noting: three lanes, three different right answers, one portable fraction
+# that was only ever correct for the phone it was measured on.
+at_windows-x64 = [0.0264, 0.2275]

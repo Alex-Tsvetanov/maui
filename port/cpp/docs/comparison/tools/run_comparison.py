@@ -1229,6 +1229,13 @@ def _selftest() -> int:
     # PRE-EXISTING verbs are pinned first: a regression there silently corrupts a five-hour board run
     # for the ~165 pages that never asked for an interaction in the first place.
     class _RecordingEnv:
+        # `name` is what for_lane() keys `at_<env>` / `to_<env>` overrides off. A stub without it made
+        # EVERY selftest assert raise AttributeError instead of running, so the one guard that resolves
+        # every checked-in coordinate was silently dead. Any name that matches no override works here:
+        # these asserts test the driver's payloads, and a lane override would substitute the point out
+        # from under them. The override resolution itself is covered by for_lane's own cases.
+        name = "_selftest"
+
         def __init__(self, ok=True, error="cliclick: command not found"):
             self.calls: list[tuple] = []
             self.reply = {"ok": ok} if ok else {"ok": False, "error": error}
