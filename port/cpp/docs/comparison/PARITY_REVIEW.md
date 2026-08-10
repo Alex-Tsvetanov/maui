@@ -4467,3 +4467,33 @@ TWO MEASUREMENT TRAPS I WALKED INTO HERE, both caught before they became finding
      plausible culprit (style_image's Start alignment). It was nonsense: the two columns were at different
      scroll positions, so I was comparing different rows of the page. The 0.00% initial frame already
      ruled alignment out, and the +180 alignment residual of 1.90% confirms it.
+
+### clip: the scroll overshoot is an AUTHORED divergence, not a defect — needs a ruling
+
+Pulling the thread from the previous entry (cpp travels 1264 px where MAUI and cpp_xaml travel 1084) lands
+on content, not on the ScrollView. The builder page is ~180 px TALLER because it appends two children the
+twin does not have: a "Clipped"/"Cleared" status Label and a "Toggle clip on/off" Button. MAUI and the twin
+clamp at the end of a shorter page; the port has further to travel. The 1.90% residual after a +180 shift is
+the whole story.
+
+THE BUILDER IS THE ODD ONE OUT, and I checked the origin rather than assuming: the ORIGINAL
+`src/Controls/samples/Controls.Sample/Pages/Core/ClipPage.xaml` contains ZERO Buttons and ends after the
+PathGeometry image — exactly like the twin. So this is not ruling 12 (a twin degrading original content);
+the twin is faithful and the builder adds something the original never had.
+
+IT IS ALSO DELIBERATE AND TESTED. clip_page.hpp's own header says "this port ADDS a 'Toggle clip' button +
+a status label", and gallery_structure_equivalence_tests.cpp lists `clip` under "cluster E — builder ADDS a
+gallery-convention interactivity widget the twin omits (AUTHORING.md rule 3: no event attributes in shared
+XAML)". That suite asserts divergence BIDIRECTIONALLY, so removing the widgets also means de-listing the key
+or the test fails with "divergence closed".
+
+RECOMMENDATION, not applied: drop the status Label + Toggle Button from the builder page and de-list `clip`,
+which makes all three columns match the original and should clear 3 red cells. NOT done unilaterally,
+because it deletes interactive demo content that a test documents as an intentional gallery convention —
+that is a product decision, not a defect fix, and ruling 1 ("content differences are port bugs") was written
+about the port diverging from MAUI's render, not about deliberately-authored gallery affordances. One line
+from the user settles it either way.
+
+`box_view` is NOT this. It passes the STRICT structure-equivalence test (builder and twin describe
+identically) and still overshoots by 60 px, so its scroll difference is real and unexplained.
+`path_gallery` is on the divergence list AND keeps an 11.48% residual after alignment, so it has both.
