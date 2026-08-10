@@ -80,6 +80,208 @@
   doi       = {10.1145/3121245.3121250}
 }
 
+% --- Методът: диференциално / N-версийно / golden-master тестване ------------
+% Цялата методика (§V, Увода) е диференциално тестване: едно описание, две
+% независими реализации, сравнени една с друга. Ето първоизточниците на подхода.
+@article{mckeeman1998differential,
+  author  = {McKeeman, William M.},
+  title   = {Differential Testing for Software},
+  journal = {Digital Technical Journal},
+  volume  = {10},
+  number  = {1},
+  pages   = {100--107},
+  year    = {1998}
+}
+
+% N-версийно програмиране — независими реализации на една спецификация. Оригиналът
+% (FTCS-8, 1978); страниците не са сверени по първоизточник и затова са пропуснати.
+@inproceedings{chen1978nversion,
+  author    = {Chen, Liming and Avizienis, Algirdas},
+  title     = {{N-Version} Programming: A Fault-Tolerance Approach to Reliability of Software Operation},
+  booktitle = {Digest of Papers, {FTCS-8}: Eighth International Symposium on Fault-Tolerant Computing},
+  address   = {Toulouse, France},
+  year      = {1978}
+}
+
+% Golden-master / characterization тестване — зряла реализация като меродавен еталон.
+@book{feathers2004legacy,
+  author    = {Feathers, Michael C.},
+  title     = {Working Effectively with Legacy Code},
+  publisher = {Prentice Hall},
+  year      = {2004},
+  isbn      = {978-0-13-117705-5}
+}
+
+% --- Санитайзери (§IV) --------------------------------------------------------
+@inproceedings{serebryany2012asan,
+  author    = {Serebryany, Konstantin and Bruening, Derek and Potapenko, Alexander and Vyukov, Dmitry},
+  title     = {{AddressSanitizer}: A Fast Address Sanity Checker},
+  booktitle = {2012 USENIX Annual Technical Conference (USENIX ATC 12)},
+  pages     = {309--318},
+  publisher = {USENIX Association},
+  year      = {2012}
+}
+
+@inproceedings{serebryany2009tsan,
+  author    = {Serebryany, Konstantin and Iskhodzhanov, Timur},
+  title     = {{ThreadSanitizer}: Data Race Detection in Practice},
+  booktitle = {Proceedings of the Workshop on Binary Instrumentation and Applications (WBIA '09)},
+  pages     = {62--71},
+  publisher = {ACM},
+  year      = {2009},
+  doi       = {10.1145/1791194.1791203}
+}
+
+@inproceedings{stepanov2015msan,
+  author    = {Stepanov, Evgeniy and Serebryany, Konstantin},
+  title     = {{MemorySanitizer}: Fast Detector of Uninitialized Memory Use in {C++}},
+  booktitle = {2015 IEEE/ACM International Symposium on Code Generation and Optimization (CGO)},
+  pages     = {46--55},
+  publisher = {IEEE},
+  year      = {2015},
+  doi       = {10.1109/CGO.2015.7054186}
+}
+
+% --- Методология на измерването на производителност (§V, §VI) ----------------
+% Забавянето е явление на опашката — средната стойност го крие.
+@article{dean2013tail,
+  author  = {Dean, Jeffrey and Barroso, Luiz Andr{\'e}},
+  title   = {The Tail at Scale},
+  journal = {Communications of the ACM},
+  volume  = {56},
+  number  = {2},
+  pages   = {74--80},
+  year    = {2013},
+  doi     = {10.1145/2408776.2408794}
+}
+
+% Разпределения и повторения вместо единични числа; студен срещу топъл старт.
+@inproceedings{georges2007rigorous,
+  author    = {Georges, Andy and Buytaert, Dries and Eeckhout, Lieven},
+  title     = {Statistically Rigorous {Java} Performance Evaluation},
+  booktitle = {Proceedings of the 22nd Annual ACM SIGPLAN Conference on Object-Oriented Programming Systems, Languages and Applications (OOPSLA '07)},
+  pages     = {57--76},
+  publisher = {ACM},
+  year      = {2007},
+  doi       = {10.1145/1297027.1297033}
+}
+
+% Перцептуална разлика в цвета — за да се обоснове ЗАЩО НЕ се използва тук (§V).
+@article{sharma2005ciede2000,
+  author  = {Sharma, Gaurav and Wu, Wencheng and Dalal, Edul N.},
+  title   = {The {CIEDE2000} Color-Difference Formula: Implementation Notes, Supplementary Test Data, and Mathematical Observations},
+  journal = {Color Research \& Application},
+  volume  = {30},
+  number  = {1},
+  pages   = {21--30},
+  year    = {2005},
+  doi     = {10.1002/col.20070}
+}
+
+% LLM-като-съдия — практиката, изоставена в §V заради невъзпроизводимост.
+@inproceedings{zheng2023judge,
+  author        = {Zheng, Lianmin and Chiang, Wei-Lin and Sheng, Ying and Zhuang, Siyuan and Wu, Zhanghao and Zhuang, Yonghao and Lin, Zi and Li, Zhuohan and Li, Dacheng and Xing, Eric P. and Zhang, Hao and Gonzalez, Joseph E. and Stoica, Ion},
+  title         = {Judging {LLM-as-a-Judge} with {MT-Bench} and Chatbot Arena},
+  booktitle     = {Advances in Neural Information Processing Systems 36 (NeurIPS 2023)},
+  volume        = {36},
+  year          = {2023},
+  eprint        = {2306.05685},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CL}
+}
+
+% --- Езикова/архитектурна теория (§II, §III, §IV) ----------------------------
+% RAII / детерминистично освобождаване — първоизточник на идиома.
+@book{stroustrup2013cpp,
+  author    = {Stroustrup, Bjarne},
+  title     = {The {C++} Programming Language},
+  edition   = {4th},
+  publisher = {Addison-Wesley},
+  year      = {2013},
+  isbn      = {978-0-321-56384-2}
+}
+
+% Шаблони за проектиране — Observer (система от свойства), Bridge (handler).
+@book{gamma1994patterns,
+  author    = {Gamma, Erich and Helm, Richard and Johnson, Ralph and Vlissides, John},
+  title     = {Design Patterns: Elements of Reusable Object-Oriented Software},
+  publisher = {Addison-Wesley},
+  year      = {1994},
+  isbn      = {978-0-201-63361-0}
+}
+
+% Разработка, водена от тестове (§IV: тестовете се пренасят преди реализацията).
+@book{beck2003tdd,
+  author    = {Beck, Kent},
+  title     = {Test-Driven Development: By Example},
+  publisher = {Addison-Wesley},
+  year      = {2003},
+  isbn      = {978-0-321-14653-3}
+}
+
+% Събирачите на боклук не освобождават цикли — обосновка на ръчната собственост (§II).
+@book{jones2011gchandbook,
+  author    = {Jones, Richard and Hosking, Antony and Moss, Eliot},
+  title     = {The Garbage Collection Handbook: The Art of Automatic Memory Management},
+  publisher = {Chapman and Hall/CRC},
+  year      = {2011},
+  isbn      = {978-1-4200-8279-1}
+}
+
+% Pimpl / компилационна преграда — непрозрачният слот към native обекта (§IV).
+@book{lakos1996largescale,
+  author    = {Lakos, John},
+  title     = {Large-Scale {C++} Software Design},
+  publisher = {Addison-Wesley},
+  year      = {1996},
+  isbn      = {978-0-201-63362-7}
+}
+
+% Безопасност на ниво език чрез проверка на заемането (§II, Rust).
+@article{jung2018rustbelt,
+  author  = {Jung, Ralf and Jourdan, Jacques-Henri and Krebbers, Robbert and Dreyer, Derek},
+  title   = {{RustBelt}: Securing the Foundations of the {Rust} Programming Language},
+  journal = {Proceedings of the ACM on Programming Languages},
+  volume  = {2},
+  number  = {POPL},
+  pages   = {1--34},
+  year    = {2018},
+  doi     = {10.1145/3158154}
+}
+
+% Регионно/арена управление на паметта — индекси вместо указатели (§II).
+@article{tofte1997region,
+  author  = {Tofte, Mads and Talpin, Jean-Pierre},
+  title   = {Region-Based Memory Management},
+  journal = {Information and Computation},
+  volume  = {132},
+  number  = {2},
+  pages   = {109--176},
+  year    = {1997},
+  doi     = {10.1006/inco.1996.2613}
+}
+
+% MVVM / presentation model — системата от свойства и свързването на данни (§III).
+@misc{fowler2004presentation,
+  author       = {Fowler, Martin},
+  title        = {Presentation Model},
+  year         = {2004},
+  howpublished = {\url{https://martinfowler.com/eaaDev/PresentationModel.html}},
+  note         = {публикувана на 19 юли 2004 г.; посетена на 10 август 2026 г.}
+}
+
+% „Тестването показва наличието, не отсъствието на дефекти“ (§IV).
+@incollection{dijkstra1972notes,
+  author    = {Dijkstra, Edsger W.},
+  title     = {Notes on Structured Programming},
+  booktitle = {Structured Programming},
+  editor    = {Dahl, Ole-Johan and Dijkstra, Edsger W. and Hoare, C. A. R.},
+  publisher = {Academic Press},
+  address   = {London},
+  pages     = {1--82},
+  year      = {1972}
+}
+
 % ============================================================================
 % ПЪРВОИЗТОЧНИЦИ И ДОКУМЕНТАЦИЯ
 % ============================================================================
@@ -119,11 +321,25 @@
   note         = {посетен на 4 август 2026 г.}
 }
 
+@misc{xamarin_forms_docs,
+  author       = {{Microsoft}},
+  title        = {{Xamarin.Forms} documentation},
+  howpublished = {\url{https://learn.microsoft.com/xamarin/xamarin-forms/}},
+  note         = {посетен на 10 август 2026 г.}
+}
+
 @misc{flutter_docs,
   author       = {{Google}},
   title        = {Flutter documentation},
   howpublished = {\url{https://docs.flutter.dev/}},
   note         = {посетен на 4 август 2026 г.}
+}
+
+@misc{slint_docs,
+  author       = {{SixtyFPS GmbH}},
+  title        = {{Slint} Documentation},
+  howpublished = {\url{https://docs.slint.dev/}},
+  note         = {посетен на 10 август 2026 г.}
 }
 
 @misc{qt_docs,

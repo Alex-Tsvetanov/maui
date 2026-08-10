@@ -152,10 +152,11 @@
 \phantomsection
 \addcontentsline{toc}{section}{ЛИТЕРАТУРА}
 % \nocite{*} МАХНАТ (2026-08-04): в текста вече има реални \cite{}, така че списъкът
-% отразява действително цитираното. Източниците от документацията, които още не са
-% цитирани поименно в изложението, се цитират при попълване на §1.2.
-\nocite{maui_docs,maui_repo,maui_handlers,iso_cpp23,cppreference,flutter_docs,qt_docs,
-        avalonia_docs,reactnative_docs,uikit_docs,android_views,winui_docs}
+% отразява действително цитираното. §1.2 вече цитира поименно всички фреймуорци
+% (maui, xamarin, flutter, qt, avalonia, slint, react native), затова те са извадени
+% оттук. Остават само платформените първоизточници, споменати във фигурите/текста, но
+% още нецитирани поименно.
+\nocite{maui_repo,iso_cpp23,cppreference,uikit_docs,android_views,winui_docs}
 \bibliographystyle{ieeetr}
 \bibliography{references}
 \newpage
