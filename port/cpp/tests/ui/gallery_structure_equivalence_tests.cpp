@@ -276,12 +276,18 @@ namespace
             "path_gallery",
             "border_clip_playground",
             // cluster E — builder ADDS a gallery-convention interactivity widget the twin omits
-            // (AUTHORING.md rule 3: no event attributes in shared XAML). "clip"'s builder page appends a
-            // "Toggle clip on/off" Button + a status Label after the five images (clip_page.hpp header);
-            // NOTE this is UNRELATED to the Image.Clip XAML-registration gap, which is closed as of
-            // 2026-07 (register_xaml_geometries.cpp) — clip_corner_radius/clip_gallery/clip_views were
-            // de-listed for that fix; "clip" itself would still diverge even with a perfect Clip port.
-            "clip",
+            // (AUTHORING.md rule 3: no event attributes in shared XAML). NOW EMPTY: "clip" was its only
+            // member and was DE-LISTED on 2026-08-10 when the builder's "Toggle clip on/off" Button and
+            // status Label were deleted. They cost real parity — they made the builder page ~180px taller
+            // than the twin, so the same injected scroll travelled further and the page scored RED on
+            // ios + maccatalyst purely from the resulting offset (aligning the columns at +180 left
+            // 1.90%). The original Controls.Sample/Pages/Core/ClipPage.xaml has ZERO Buttons and ends at
+            // the fifth image, so the convention was adding what the ported page never had; ruling 1
+            // (MAUI's render is ground truth for page CONTENT) decides it against the convention.
+            //
+            // The precedent for anyone re-adding an observable readout: it must not change the page's
+            // HEIGHT. On a ScrollView-rooted page the content height is itself a measured output, so an
+            // "extra" widget is not free the way it is on a page that fits the viewport.
         };
         for (const std::string_view k : keys)
         {

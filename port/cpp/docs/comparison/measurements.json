@@ -149,7 +149,7 @@
    }
   }
  },
- "size_measured_at": "2026-08-10T04:59:01Z",
+ "size_measured_at": "2026-08-10T08:11:47Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -236,23 +236,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     2.822,
-     1.4,
-     2.259,
-     1.992,
-     1.896,
-     2.118,
-     1.36,
-     1.987,
-     2.115,
-     1.959
+     2.148,
+     2.089,
+     2.041,
+     2.045,
+     2.048,
+     2.083,
+     2.067,
+     2.074,
+     2.037,
+     2.061
     ],
-    "poll_resolution_s": 0.245,
+    "poll_resolution_s": 0.226,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.36,
-    "median_s": 1.99,
-    "p95_s": 2.259,
-    "max_s": 2.822
+    "min_s": 2.037,
+    "median_s": 2.064,
+    "p95_s": 2.089,
+    "max_s": 2.148
    },
    "cpp": {
     "measured": true,
@@ -261,22 +261,22 @@
     "n": 9,
     "misses": 1,
     "samples_s": [
-     1.111,
-     1.237,
-     1.249,
-     1.148,
-     1.214,
-     1.128,
-     1.196,
-     1.039,
-     1.037
+     1.294,
+     1.217,
+     1.2,
+     1.188,
+     1.211,
+     1.204,
+     1.191,
+     1.229,
+     1.211
     ],
-    "poll_resolution_s": 0.239,
+    "poll_resolution_s": 0.229,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.037,
-    "median_s": 1.148,
-    "p95_s": 1.237,
-    "max_s": 1.249,
+    "min_s": 1.188,
+    "median_s": 1.211,
+    "p95_s": 1.229,
+    "max_s": 1.294,
     "miss_reasons": [
      "no content frame within 30s (last state: unchanged)"
     ]
@@ -288,22 +288,22 @@
     "n": 9,
     "misses": 1,
     "samples_s": [
-     1.17,
-     1.092,
-     1.201,
-     1.359,
-     1.21,
-     1.195,
-     1.212,
-     1.217,
-     1.216
+     1.199,
+     1.464,
+     1.341,
+     1.262,
+     1.364,
+     1.26,
+     1.247,
+     1.272,
+     1.094
     ],
-    "poll_resolution_s": 0.238,
+    "poll_resolution_s": 0.249,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.092,
-    "median_s": 1.21,
-    "p95_s": 1.217,
-    "max_s": 1.359,
+    "min_s": 1.094,
+    "median_s": 1.262,
+    "p95_s": 1.364,
+    "max_s": 1.464,
     "miss_reasons": [
      "no content frame within 30s (last state: unchanged)"
     ]

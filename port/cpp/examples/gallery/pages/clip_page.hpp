@@ -19,11 +19,18 @@
 //   - GeometryGroup{ EllipseGeometry… }  -> shapes::geometry_group (FillRule even_odd, four ellipse children)
 //   - PathGeometry(Figures="…")          -> shapes::path_geometry, figures parsed from the markup
 //
-// The XAML has no interaction (no code-behind), but the gallery convention is an observable readout, so
-// this port ADDS a "Toggle clip" button + a status label: the button clears every image's clip (and
-// re-applies it on the next press), and the status echoes "Clipped" / "Cleared" — the same five clip
-// geometries, now toggled so the clip surface is exercised programmatically (the shapes render clipped
-// when on; headless has no pixels but the clip property and re-host are driven deterministically).
+// THE PAGE ENDS AT THE FIFTH IMAGE — no readout, no toggle. This port USED TO append a "Toggle clip"
+// button plus a "Clipped"/"Cleared" status label under the gallery's observable-readout convention. They
+// are gone, and the reason is measured rather than stylistic: they made this page ~180px TALLER than both
+// the shared twin and real MAUI, so the same injected scroll travelled further here (iOS: MAUI 1084px,
+// this page 1264px) and the page scored RED on ios + maccatalyst purely from the offset — aligning the two
+// columns at +180 collapsed the difference to 1.90%, i.e. nothing else differed at all.
+//
+// The original is the arbiter: src/Controls/samples/Controls.Sample/Pages/Core/ClipPage.xaml contains ZERO
+// Buttons and ends after the PathGeometry image, exactly like the twin. So the convention was adding what
+// the page it ports never had. Ruling 1 — MAUI's render is ground truth for page content — settles it
+// against the convention here. If a future page needs an observable readout, it must not change the
+// page's HEIGHT, because on a ScrollView-rooted page height is itself a measured output.
 //
 // HEADLESS-SAFE maui:: API only; the page OWNS its whole element tree (the generic mount in app_host.hpp
 // attaches every owned view's handler and hosts the tree).
@@ -38,7 +45,6 @@
 #include <memory>
 #include <string>
 
-#include "maui/controls/button.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/file_image_source.hpp"
 #include "maui/controls/image.hpp"
@@ -70,7 +76,7 @@ namespace maui::samples
             page_.set_title("Clip");
             stack_.set_spacing(6);
 
-            // ---- the four clip geometries, built once and kept so the toggle can re-apply them ----
+            // ---- the four clip geometries, built once and held so each image's clip outlives the ctor ----
             // RectangleGeometry Rect="0, 15, 150, 150".
             rect_clip_ =
                 std::make_shared<maui::controls::shapes::rectangle_geometry>(maui::graphics::rect{0, 15, 150, 150});
@@ -120,15 +126,7 @@ namespace maui::samples
             path_image_.set_clip(path_clip_);
             stack_.add(path_image_);
 
-            // ---- the gallery readout + toggle (the observable extension; see header) ----
-            status_.set_text("Clipped");
-            stack_.add(status_);
-
-            // A real button so the click is observable; bottom-up attach handles it.
-            toggle_.set_text("Toggle clip on/off");
-            toggle_.clicked.connect([this]() { on_toggle(); });
-            stack_.add(toggle_);
-
+            // The page ends here, at the fifth image — matching ClipPage.xaml and the twin. See header.
             scroll_.set_content(stack_);
             page_.set_content(scroll_);
         }
@@ -146,14 +144,6 @@ namespace maui::samples
         [[nodiscard]] maui::controls::scroll_view& scroll()
         {
             return scroll_;
-        }
-        [[nodiscard]] maui::controls::label& status()
-        {
-            return status_;
-        }
-        [[nodiscard]] maui::controls::button& toggle()
-        {
-            return toggle_;
         }
         [[nodiscard]] maui::controls::image& rect_image()
         {
@@ -173,18 +163,6 @@ namespace maui::samples
         }
 
     private:
-        // Toggle every clipped image's geometry off (set null) or back on (re-apply the stored geometry),
-        // echoing the new state into the status label. The first (bare) image stays unclipped throughout.
-        void on_toggle()
-        {
-            clipped_ = !clipped_;
-            rect_image_.set_clip(clipped_ ? rect_clip_ : nullptr);
-            ellipse_image_.set_clip(clipped_ ? ellipse_clip_ : nullptr);
-            group_image_.set_clip(clipped_ ? group_clip_ : nullptr);
-            path_image_.set_clip(clipped_ ? path_clip_ : nullptr);
-            status_.set_text(clipped_ ? "Clipped" : "Cleared");
-        }
-
         // The XAML <Style TargetType="Image">: LightGray background, AspectFill, 200x200, Start alignment
         // (the source bitmap is best-effort; see header).
         static void style_image(maui::controls::image& picture)
@@ -208,8 +186,6 @@ namespace maui::samples
             stack_.add(text);
         }
 
-        bool clipped_ = true;
-
         maui::controls::content_page page_;
         maui::controls::scroll_view scroll_;
         maui::controls::vertical_stack_layout stack_;
@@ -225,10 +201,7 @@ namespace maui::samples
         maui::controls::label path_label_;
         maui::controls::image path_image_;
 
-        maui::controls::label status_;
-        maui::controls::button toggle_;
-
-        // The four clip geometries (kept so the toggle can re-apply them after clearing).
+        // The four clip geometries, held so each image's clip outlives the ctor.
         std::shared_ptr<maui::controls::shapes::rectangle_geometry> rect_clip_;
         std::shared_ptr<maui::controls::shapes::ellipse_geometry> ellipse_clip_;
         std::shared_ptr<maui::controls::shapes::geometry_group> group_clip_;
