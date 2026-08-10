@@ -4515,3 +4515,19 @@ explains most but not all of it.
 Not chased further this session. The next step is to compare the two columns' full CONTENT heights (not just
 the visible frame) — e.g. drive the scroll to the clamp on each and diff the final frames — which localises
 the extra 60 px to a specific control rather than guessing at it.
+
+**Sharpened.** The two box_view pages are not merely structurally equivalent, they are DIMENSIONALLY
+identical: 8 Labels with the same text, 8 BoxViews all WidthRequest/HeightRequest 160, Spacing 6, Padding 12
+on both sides. There is no extra content to find. So the 60 px is not content — the port's ScrollView
+exposes ~60 px (20 pt at 3x) MORE scrollable extent than MAUI's for provably identical content, i.e. it
+computes a taller content size.
+
+That reframes clip too: its builder genuinely carries ~120 pt of extra widgets, and its measured overshoot
+was 180 px — consistent with real extra content PLUS the same ~60 px over-computation seen here. Worth
+testing directly on a third page rather than assuming; path_gallery's +416 does not obviously fit, but it
+also carries a separate 11.48% residual.
+
+HYPOTHESIS, explicitly not verified: maui::controls::scroll_view's iOS content-size computation adds
+something MAUI's does not — a padding counted twice, or a safe-area inset folded into contentSize. The check
+is a headless measure test over a fixed-height stack: assert the scroll_view's reported content height
+equals the sum of children + spacing + padding exactly, with no device involved.
