@@ -4403,3 +4403,35 @@ minutes just before, leaving the emulator mid-churn. The lesson is the pipeline'
 banked a home-screen frame and a wrong-page frame and reported neither. It already knows the page it asked
 for — a cheap assertion that the captured frame is not the launcher, and that the same frame is not filed
 under two page keys, would have refused both.
+
+### The Android button single-line fix, landed — and three more corrupted frames caught on the way
+
+`apply_material_max_lines` gives the plain android.widget.Button the one-line cap MaterialButton's default
+style carries: setMaxLines(1), and deliberately NOT setEllipsize — zoomed, MAUI shows no "…" anywhere and
+each rendered label is exactly the FIRST WRAPPED LINE of the full string, which is what maxLines over a
+normally wrapped layout produces.
+
+    hybrid_web_view/android   light 8.65% -> 0.47%    dark 14.57% -> 0.47%
+                              pixel RED -> GREEN, pixel_xaml RED -> GREEN        board 26 -> 24 red
+
+BOTH GALLERY BUILD SCRIPTS ALSO CAPTURE, worth knowing before running one: build_android_apphost.sh and its
+_xaml twin rebuild AND re-shoot every page, LIGHT ONLY. Dark needs a separate recapture.py pass — which is
+why the first rescore showed a fixed light half and a stale dark half in the same cell.
+
+EACH BUILD RUN BANKED EXACTLY ONE LAUNCHER FRAME, both `absolute_layout_light.png` — the sweep's first page,
+before the app is warm. Found by diffing every changed capture against a known home-screen frame. A second
+sweep, hashing for one frame filed under two page keys, caught `activity_indicator_light.png` holding the
+LABEL page (56.57% off its own MAUI, where label was 0.58% off its own). All three reverted. That sweep also
+flagged `gap_*` and `empty_view_template`/`empty_view_view`, which are NOT corruption — already identical at
+HEAD, the gap pages sharing one placeholder. Regression sweep over all 279 changed captures: ZERO worse by
+more than 1pt against their own MAUI counterpart.
+
+HONEST COST: `activity_indicator/android` went GREEN -> YELLOW and stays there. Its dark half now reads
+"PHASE ONLY, NOT DECIDABLE — MAUI and C++ both moved and moved the SAME distance": a spinning
+ActivityIndicator sampled at different phases, which the scorer rightly refuses to judge. The old green was
+two runs happening to catch the same phase. Reverting its captures would buy the green back and mean
+nothing, so it stands.
+
+ALSO RECORDED: the pipeline's own `board: pixel_score android` step wrote an EMPTY log and left stale
+numbers in place — the recapture reported success while the scoring silently did nothing, and the cells only
+moved when pixel_score was run directly. Twice. Not chased here.

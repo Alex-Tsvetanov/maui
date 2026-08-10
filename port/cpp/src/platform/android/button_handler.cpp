@@ -253,6 +253,35 @@ namespace
     // tried and COLLAPSED the default (no-size-request) buttons to nothing (they lost their intrinsic size) —
     // so the inset/corner cleanup is deferred to the android container/measure fan-out that will supply the
     // sizing independently. The shadow strip below is the safe, self-contained part.
+    // MaterialButton's default style caps the label at ONE LINE; a plain android.widget.Button does not,
+    // so the port rendered multi-line labels where MAUI renders one. Same family as strip_elevation and
+    // install_flat_material_background below: the AAR-less backend reproduces MaterialButton's look one
+    // piece at a time, and this piece was missing.
+    //
+    // MEASURED on hybrid_web_view/android, whose five buttons carry labels too long for their Grid column:
+    //
+    //     label                       MAUI renders     port rendered
+    //     "Send message to JS"        "Send"           all three lines
+    //     "Invoke Async JS"           "Invoke Async"   two lines
+    //     "Test JS Exception"         "Test JS"        two lines
+    //     "Test JS Async Exception"   "Test JS Async"  two lines
+    //
+    // Every MAUI string is exactly the FIRST WRAPPED LINE of the full label — not a mid-glyph clip and not
+    // an ellipsis (zoomed: there is no "…" anywhere). That is precisely setMaxLines(1) over a normally
+    // wrapped layout, so that is what this sets, and deliberately NOT setEllipsize: adding TruncateAt.END
+    // would render "Send mes…" and match nothing. The taller wrapped buttons shifted the page's whole
+    // right-hand column, which is the bulk of that cell's 8.65%.
+    void apply_material_max_lines(JNIEnv* env, jobject widget)
+    {
+        auto& cache = default_jni_cache();
+        // TextView.setMaxLines(int) — Button extends TextView, so this resolves on the button class.
+        if (jmethodID set_max_lines = cache.method(env, k_button_class, "setMaxLines", "(I)V"))
+        {
+            env->CallVoidMethod(widget, set_max_lines, static_cast<jint>(1));
+            clear_pending(env);
+        }
+    }
+
     void strip_elevation(JNIEnv* env, jobject widget)
     {
         auto& cache = default_jni_cache();
@@ -991,6 +1020,10 @@ namespace maui::core
         // the native-default MAUI reference (see strip_elevation). Harmless on the plain-ctor fallback (that
         // widget has no animator/elevation, so the calls are no-ops).
         strip_elevation(env.get(), widget.get());
+        // Cap the label at one line, the way MaterialButton's default style does — see
+        // apply_material_max_lines for the per-label measurement that pins this to maxLines and not to an
+        // ellipsize. Harmless on the plain-ctor fallback (setMaxLines is a TextView method either way).
+        apply_material_max_lines(env.get(), widget.get());
         // Replace the framework Material InsetDrawable with MAUI's flat edge-to-edge #E0E0E0 fill (~4dp
         // corners) and re-supply the content padding it carried — see install_flat_material_background. This
         // is the safe form of the header's DEFERRED inset/corner cleanup: the padding re-supply provides the
