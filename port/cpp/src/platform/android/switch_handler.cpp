@@ -98,7 +98,12 @@ namespace
 
     // All instance methods are resolved through the widget's own class (GetMethodID walks the
     // superclasses, so the CompoundButton/TextView/View surface resolves through android/widget/Switch).
-    constexpr const char* k_switch_class = "android/widget/Switch";
+    // SwitchHandler.Android.cs:6 aliases ASwitch to AndroidX.AppCompat.Widget.SwitchCompat and :15
+    // constructs `new ASwitch(Context)` — so MAUI's Switch is an APPCOMPAT widget on the plain (Context)
+    // ctor, not android.widget.Switch. The AAR carrying it is ALREADY staged and dexed in both app hosts
+    // (verified by probing the shipped APK's classes.dex for Landroidx/appcompat/widget/SwitchCompat;),
+    // so the long-standing "no gradle, no maven egress" note that justified the framework widget is stale.
+    constexpr const char* k_switch_class = "androidx/appcompat/widget/SwitchCompat";
     constexpr const char* k_style_class = "android/R$style";
     // The concrete platform style that carries the Switch's thumb + track drawables, resolved
     // theme-independently as a defStyleRes so the bare app_process testhost (and the app host) construct a
@@ -515,9 +520,31 @@ namespace maui::core
         // android.R.style.Widget_CompoundButton_Switch (a concrete style resource that CARRIES the thumb +
         // track drawables — read with GetStaticFieldID since it is a static field). Then fall back to the
         // 3-arg defStyleAttr=0 form, and finally the plain (Context) ctor, so the widget is never null.
+        // APPCOMPAT INVERTS THE CHAIN, and getting this backwards fails SILENTLY. The order below was built
+        // for a FRAMEWORK widget, whose plain (Context) ctor resolves `switchStyle` off the theme and so
+        // throws on the Activity-less widget-test Context — hence "styled 4-arg first, plain last".
+        // SwitchCompat has NO 4-arg (Context, AttributeSet, int, int) ctor at all, and its 3-arg form with
+        // defStyleAttr=0 CONSTRUCTS FINE while resolving no style — so the old order would have skipped
+        // straight past the correct ctor to a working-but-unstyled toggle, and reported success.
+        //
+        // MAUI's form is the plain (Context) ctor (SwitchHandler.Android.cs:15), which resolves
+        // ?attr/switchStyle against the app theme — and this app host's theme already parents on
+        // Theme.MaterialComponents.DayNight (apphost/res/values/styles.xml:48). So try plain FIRST here and
+        // keep the styled forms only as the Activity-less fallback the widget tests need.
         jobject created = nullptr;
-        jmethodID ctor_styled = cache.method(env.get(), k_switch_class, "<init>",
-                                             "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
+        if (jmethodID ctor_plain_first =
+                cache.method(env.get(), k_switch_class, "<init>", "(Landroid/content/Context;)V"))
+        {
+            created = env->NewObject(switch_class, ctor_plain_first, context);
+            if (clear_pending(env.get()))
+            {
+                created = nullptr; // Activity-less context (widget test host) — fall through to the pins
+            }
+        }
+        jmethodID ctor_styled = created != nullptr
+                                    ? nullptr
+                                    : cache.method(env.get(), k_switch_class, "<init>",
+                                                   "(Landroid/content/Context;Landroid/util/AttributeSet;II)V");
         jclass style_class = cache.find_class(env.get(), k_style_class);
         jfieldID style_field =
             style_class != nullptr ? env->GetStaticFieldID(style_class, k_switch_style_field, "I") : nullptr;
