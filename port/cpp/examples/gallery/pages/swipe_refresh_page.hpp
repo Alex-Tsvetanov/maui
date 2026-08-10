@@ -18,6 +18,7 @@
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/refresh_view.hpp"
+#include "maui/controls/scroll_view.hpp"
 #include "maui/controls/swipe_item.hpp"
 #include "maui/controls/swipe_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
@@ -64,7 +65,16 @@ namespace maui::samples
             column_.set_spacing(8);
             column_.add(swipe_);
             column_.add(readout_);
-            refresh_.set_content(column_);
+            // THE ScrollView IS LOAD-BEARING — matching the twin and the ORIGINAL
+            // (src/Controls/samples/Controls.Sample/Pages/Controls/RefreshViewPage.xaml:63 wraps its
+            // content in a ScrollView inside the RefreshView). MAUI's iOS RefreshView locates the scroller
+            // it attaches to by recursing the subview tree (MauiRefreshView.TryInsertRefresh:132, taking
+            // the `view is UIScrollView` branch at :141 and otherwise walking Subviews at :169-176,
+            // returning FALSE when it finds none). With a bare stack under the RefreshView, no
+            // UIRefreshControl is inserted in ANY column, which is why swipe_refresh.toml scored
+            // INVALID/not-driven on all 8 cells: the pull it drives could not exist to be compared.
+            scroll_.set_content(column_);
+            refresh_.set_content(scroll_);
 
             page_.set_content(refresh_);
         }
@@ -78,6 +88,10 @@ namespace maui::samples
         [[nodiscard]] maui::controls::refresh_view& refresh()
         {
             return refresh_;
+        }
+        [[nodiscard]] maui::controls::scroll_view& scroll()
+        {
+            return scroll_;
         }
         [[nodiscard]] maui::controls::vertical_stack_layout& column()
         {
@@ -107,6 +121,7 @@ namespace maui::samples
     private:
         maui::controls::content_page page_;
         maui::controls::refresh_view refresh_;
+        maui::controls::scroll_view scroll_;           // the RefreshView needs a scroller (see ctor)
         maui::controls::vertical_stack_layout column_; // hosts the swipe_view + the readout (refresh content)
         maui::controls::swipe_view swipe_;
         maui::controls::swipe_item delete_item_; // owned: the swipe collection is non-owning

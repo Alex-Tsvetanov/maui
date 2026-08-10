@@ -7,6 +7,20 @@
          the RESTING appearance (the Delete item is hidden until a swipe; the pull-to-refresh spinner is
          also hidden at rest). -->
     <RefreshView>
+        <!-- THE ScrollView IS LOAD-BEARING, not decoration. MAUI's iOS RefreshView finds the scroller it
+             attaches to by RECURSING THE SUBVIEW TREE for one: MauiRefreshView.TryInsertRefresh:132 hands
+             the UIRefreshControl to `view is UIScrollView scrollView` (:141) or a WKWebView (:162), and
+             otherwise walks Subviews (:169-176) and returns FALSE if it never finds either. With a bare
+             VerticalStackLayout under the RefreshView there is no UIScrollView anywhere in the subtree, so
+             NO REFRESH CONTROL IS EVER INSERTED — in MAUI's own column as much as the port's.
+             That made swipe_refresh.toml structurally unfalsifiable: 8 cells, every lane, both themes, all
+             reading 0px on all three columns and scoring INVALID/not-driven. A pull that cannot exist
+             cannot be compared, and re-aiming the drag coordinates — the obvious next move — would never
+             have helped.
+             The ORIGINAL page is the arbiter and it has this ScrollView:
+             src/Controls/samples/Controls.Sample/Pages/Controls/RefreshViewPage.xaml:63 wraps its content
+             in <ScrollView> inside the <RefreshView>. The twin dropped it; restoring it is faithful. -->
+        <ScrollView>
         <VerticalStackLayout Spacing="8">
             <SwipeView>
                 <SwipeView.Content>
@@ -15,5 +29,6 @@
             </SwipeView>
             <Label Text="Ready" />
         </VerticalStackLayout>
+        </ScrollView>
     </RefreshView>
 </ContentPage>

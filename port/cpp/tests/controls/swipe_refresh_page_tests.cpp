@@ -15,9 +15,20 @@ namespace
     {
         swipe_refresh_page demo;
         EXPECT_EQ(demo.page().content(), &demo.refresh());
-        // The refresh_view now hosts a column holding BOTH the swipe row and the readout (so the readout
-        // stays visible), instead of the bare swipe_view.
-        EXPECT_EQ(demo.refresh().content(), &demo.column());
+        // The refresh_view hosts a SCROLL VIEW over a column holding BOTH the swipe row and the readout
+        // (so the readout stays visible), instead of the bare swipe_view.
+        //
+        // THE SCROLL VIEW IS REQUIRED, not stylistic, and this assertion is the guard on it. MAUI's iOS
+        // RefreshView finds the scroller it attaches its UIRefreshControl to by RECURSING THE SUBVIEW TREE
+        // (MauiRefreshView.TryInsertRefresh:132 → the `view is UIScrollView` branch at :141, else walk
+        // Subviews at :169-176, else return FALSE). With a bare stack under the refresh_view there is no
+        // UIScrollView in the subtree, so NO refresh control is inserted — in MAUI's own column as much as
+        // the port's — and swipe_refresh.toml's pull cannot exist to be compared. That scored INVALID/
+        // not-driven on all 8 of its cells, on every lane and both themes, and re-aiming the drag would
+        // never have fixed it. The ORIGINAL page carries this ScrollView too:
+        // src/Controls/samples/Controls.Sample/Pages/Controls/RefreshViewPage.xaml:63.
+        EXPECT_EQ(demo.refresh().content(), &demo.scroll());
+        EXPECT_EQ(demo.scroll().content(), &demo.column());
         EXPECT_EQ(demo.column().count(), 2);
         EXPECT_EQ(&demo.column().at(0), &demo.swipe());
         EXPECT_EQ(&demo.column().at(1), &demo.readout());
