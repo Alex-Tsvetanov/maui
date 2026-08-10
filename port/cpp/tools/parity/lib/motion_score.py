@@ -76,6 +76,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -737,10 +738,27 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
         # The fallback is sound rather than a fudge: an roi answers "did this region change at any point
         # in the sequence", and applying it to every pair asks exactly that. The per-step form stays the
         # default so a scenario that DOES name its steps keeps its precision.
-        named = any(step_name in roi_by_step for step_name, _pm, _po in pairs)
+        # GATED ON THE LABEL SHAPE, not on "nothing matched". The first cut of this fallback fired whenever
+        # NO pair name matched a declared one, and that is a different condition than "this lane labels by
+        # time": it also catches a STEP-LABELLED run whose names have simply DRIFTED from the scenario. It
+        # did, immediately — picker/ios declares its roi on step 'opened' while a 2026-08-07 run labels its
+        # frames 'initial'/'driven', so the region got applied to every pair of a lane it was never measured
+        # against and flipped that cell green -> yellow on a stale run, with the FRAMES UNCHANGED. A scorer
+        # edit that moves a cell whose pixels nobody touched is a false positive by construction.
+        #
+        # So recognise the Android burst by its own labels (`gif07@4s/12f`, `at-rest`) instead. A name that
+        # does not match under step-labelling is a scenario/run mismatch and must stay inert — recapture is
+        # the fix there, not a guess about which step the author meant.
+        # `gif01@4s/12f` in production, `gif01` in the fixture below — match the STEM so the guard is
+        # testing the same predicate the real lane exercises, not a prettier one.
+        def _time_labelled(step_name: str) -> bool:
+            return bool(re.match(r"^gif\d+", step_name)) or step_name == "at-rest"
+
+        burst = all(_time_labelled(step_name) or step_name == "initial" for step_name, _pm, _po in pairs) \
+            and any(_time_labelled(step_name) for step_name, _pm, _po in pairs)
         for step_name, path_m, path_o in pairs:
             roi = roi_by_step.get(step_name)
-            if roi is None and not named:
+            if roi is None and burst:
                 roi = next(iter(roi_by_step.values()))
             if roi is None:
                 continue
@@ -1491,6 +1509,27 @@ def _selftest() -> int:
         r = score_cell("roiburst", "android", "cpp", "light", 0, STILL, comp)
         check("time-labelled roi: split detected", r["why"], "roi-split")
         check("time-labelled roi: FAIL", r["verdict"], FAIL)
+
+        # (27b) …AND IT MUST NOT REACH A STEP-LABELLED LANE WHOSE NAMES HAVE MERELY DRIFTED. The first
+        #       cut of (27) fired whenever NO pair name matched, which is a strictly weaker condition
+        #       than "this lane labels by time" — it also catches a step-labelled run captured before a
+        #       step was renamed. It did: picker/ios declares its roi on 'opened' while a 2026-08-07 run
+        #       labels frames 'initial'/'driven', and the region got applied to a lane it was never
+        #       measured against, flipping that cell green -> yellow WITH THE FRAMES UNCHANGED. A scorer
+        #       edit that moves a cell whose pixels nobody touched is a false positive by construction,
+        #       and (27) alone could not see it — same shape, different labels. Recapture is the fix for
+        #       drift; the region must stay inert until the names line up.
+        drift_m = [("initial", [(10, 10), (150, 200)]), ("driven", [(40, 10), (150, 250)])]
+        drift_o = [("initial", [(10, 10), (150, 200)]), ("driven", [(10, 10), (150, 250)])]
+        (comp / "scenarios" / "roidrift.toml").write_text(
+            '[[steps]]\nname = "initial"\n\n[[steps]]\nname = "opened"\naction = "click"\n'
+            'at = [0.5, 0.5]\nroi = [0.0, 0.0, 0.5, 0.5]\n')
+        dm = unit(run, "roidrift", "maui_xaml", "light", drift_m, plat="ios")
+        do = unit(run, "roidrift", "cpp", "light", drift_o, plat="ios")
+        publish(comp, "roidrift", "maui", "light", dm / "0001.png", plat="ios")
+        publish(comp, "roidrift", "cpp", "light", do / "0001.png", plat="ios")
+        r = score_cell("roidrift", "ios", "cpp", "light", 0, STILL, comp)
+        check("drifted step names: region stays inert", r["why"] != "roi-split", True)
 
         # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
         #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.

@@ -4199,3 +4199,27 @@ RESULT — recaptured on iOS with the status bar pinned:
 Byte-identical in both themes and both columns. Full headless suite green (3798 tests, 0 failures). The
 cells stay YELLOW on the motion verdict alone, which is the honest state — the still is now perfect and the
 drag remains undrivable.
+
+### The ROI fallback I shipped was too wide, and the board caught me
+
+Rescoring after the refresh_view fix moved TWO cells the wrong way — `picker/ios` green -> yellow — and the
+review cited THE SAME RUN before and after. Frames unchanged, verdict changed: that is a scorer bug by
+construction, not a finding.
+
+Cause was my own time-labelled ROI fallback from earlier this session. It fired whenever NO pair name
+matched a declared roi step, which is strictly weaker than "this lane labels by time": it also catches a
+STEP-labelled run whose names have simply DRIFTED from the scenario. picker.toml declares its roi on step
+'opened'; the 2026-08-07 run labels its frames 'initial'/'driven'. Nothing matched, so the region was
+applied to every pair of a lane it had never been measured against, and reported a split.
+
+Now gated on the LABEL SHAPE — `gif<N>`/`at-rest`, the Android burst's own naming — rather than on absence
+of a match. A step-labelled run whose names drifted stays inert, which is right: recapture is the fix for
+drift, not a guess about which step the author meant.
+
+The part worth keeping: **the original fixture passed the whole time.** Case 27 and the broken gate have the
+same shape and differ only in labels, so the suite could not tell them apart. Added case 27b — step-labelled
+pairs whose names miss the declared roi step must NOT produce a split — and break-tested it by reverting the
+gate, which fails exactly that case and nothing else. Third time this session a fixture that "passed" could
+not distinguish what it was supposed to test.
+
+picker/ios restored to green; board back to 1155.
