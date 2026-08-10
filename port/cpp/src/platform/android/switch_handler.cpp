@@ -12,12 +12,11 @@
 //
 // DOCUMENTED DEVIATIONS from the C# Android oracle (each a library or infrastructure gap, not a
 // behavior guess):
-//   - The widget is a plain android.widget.Switch, not SwitchHandler.Android.cs's
-//     `AndroidX.AppCompat.Widget.SwitchCompat` (the `ASwitch` alias): AppCompat is a gradle/AAR
-//     dependency this APK-less backend does not carry. SwitchCompat IS a subclass of the framework
-//     Switch (CompoundButton → Button → TextView → View), so the entire mapped surface used here —
-//     setChecked / isChecked / getTrackDrawable / setThumbTintList / the generic View pushes — resolves
-//     identically against android/widget/Switch. The Material `MSwitch` (MaterialSwitch) overloads of
+//   - The widget IS SwitchHandler.Android.cs's `AndroidX.AppCompat.Widget.SwitchCompat` (the `ASwitch`
+//     alias) as of 2026-08-10. It was a plain android.widget.Switch, justified by "AppCompat is a
+//     gradle/AAR dependency this APK-less backend does not carry" — which was stale: the AAR closure
+//     is staged and dexed in both app hosts (probed in the shipped APK). The Material `MSwitch`
+//     (MaterialSwitch) overloads of
 //     UpdateTrackColor/UpdateThumbColor are likewise Material-only and unreachable; this partial always
 //     takes the plain-ASwitch branch (UpdateTrackColor via TrackDrawable.SetColorFilter, UpdateThumbColor
 //     via ThumbTintList) — exactly the branch C# takes for a non-Material SwitchCompat.
@@ -32,18 +31,18 @@
 //     collapse exactly as in the apple/ios partials: an UNSET TrackColor (the default-black sentinel) and
 //     an unset ThumbColor keep the widget's DEFAULT track/thumb — UpdateThumbColor(ASwitch)'s C# body only
 //     sets a tint when a custom color is present (no else branch).
-//   - PARITY (UNSET default = MAUI's gray, not this host's dark-blue accent): real MAUI renders the toggle
-//     as a SwitchCompat under Theme.MaterialComponents.DayNight, whose unset track/thumb resolve to the
-//     Material light GRAYS (#B2B2B2 track / #ECECEC thumb — measured off the maui-compare baseline). This
-//     AAR-less host uses the framework Theme.DeviceDefault.Light, whose colorAccent is the DeviceDefault
-//     INDIGO, so a bare Switch draws its CHECKED thumb (+ a faint blue track tint) in dark navy. To
-//     reproduce MAUI's RENDERED default, create_platform_view seeds those Material grays as the Switch's
-//     baseline tints (seed_default_material_tints); map_track_color's UNSET branch re-applies the same
-//     track gray instead of ClearColorFilter (which would restore the accent), and map_thumb_color's UNSET
-//     branch leaves the seeded thumb gray. This is NOT a deviation from SwitchExtensions — MAUI leaves the
-//     native default *because that default is already gray*; the port pins the equivalent gray because its
-//     host theme's default is not. An explicit TrackColor/ThumbColor still overrides via the mappers (the
-//     BackgroundColor/OnColor/ThumbColor rows verify this). The Switch twin of the slider fix (bbb632f301).
+//   - NO TINT SEEDING (removed 2026-08-10, together with the framework-Switch deviation above). This
+//     partial used to pin hardcoded Material grays (#B2B2B2 track / #ECECEC thumb) as the UNSET baseline,
+//     because a framework android.widget.Switch on Theme.DeviceDefault.Light drew its checked thumb in the
+//     DeviceDefault indigo. BOTH premises died with the SwitchCompat swap: the widget now resolves its own
+//     tints, and the host theme parents Theme.MaterialComponents.DayNight
+//     (apphost/res/values/styles.xml:48). The seed had become an invention MAUI never performs, and it was
+//     ACTIVELY WRONG in three measured ways — it froze the LIGHT greys into DARK (MAUI thumb 185, port
+//     231-236), rendered IsEnabled="False" identically to the enabled rows (the opaque filter masking the
+//     disabled state of abc_tint_switch_track), and swallowed an explicit BackgroundColor (MAUI track 77,
+//     port 178). Dark whole-frame diff was 0.872% against light's 0.193%.
+//     map_track_color's unset branch now ClearColorFilters exactly as SwitchExtensions.cs:33 does, and
+//     map_thumb_color's unset branch leaves the tint alone exactly as :89-99 does (no else branch).
 //   - The OnCheckedChangeListener (CheckedChangeListener → OnCheckedChanged → VirtualView.IsOn write,
 //     guarded against echo) is DEFERRED with the gesture/event fan-out, exactly like button_handler.cpp
 //     defers the OnTouchListener. on_value_changed stays a wired, invokable C++ callback carrying that
@@ -148,8 +147,6 @@ namespace
     // track transition (#B2B2B2 off → #DCDCDC on); the neutral off-state gray is the faithful "unset
     // baseline" (the same single-value choice the slider made for its track), and it removes the offending
     // blue entirely.
-    constexpr int k_material_track_gray = 0xB2; // #B2B2B2 — MAUI default track (measured, off state)
-    constexpr int k_material_thumb_gray = 0xEC; // #ECECEC — MAUI default thumb (measured)
 
     // android.view.View visibility states (ViewExtensions.ToPlatformVisibility's targets).
     constexpr jint k_view_visible = 0;
@@ -330,14 +327,30 @@ namespace
     // accent. Called once at construction; map_track_color / map_thumb_color override either when the
     // developer sets an explicit color, and map_track_color's unset branch re-applies this same gray (so an
     // UNSET track never falls back to the theme accent via ClearColorFilter).
-    void seed_default_material_tints(JNIEnv* env, jobject widget)
+    // SwitchExtensions.UpdateTrackColor's ELSE branch, which this partial never had:
+    // `aSwitch.TrackDrawable?.ClearColorFilter()` (SwitchExtensions.cs:33). Set-or-clear, no third state.
+    bool clear_track_filter(JNIEnv* env, jobject widget)
     {
-        const auto track =
-            maui::graphics::color::from_rgb(k_material_track_gray, k_material_track_gray, k_material_track_gray);
-        const auto thumb =
-            maui::graphics::color::from_rgb(k_material_thumb_gray, k_material_thumb_gray, k_material_thumb_gray);
-        apply_track_filter(env, widget, track);
-        apply_thumb_tint(env, widget, thumb);
+        auto& cache = default_jni_cache();
+        jmethodID get_track_drawable =
+            cache.method(env, k_switch_class, "getTrackDrawable", "()Landroid/graphics/drawable/Drawable;");
+        if (get_track_drawable == nullptr)
+        {
+            return false;
+        }
+        const local_ref<jobject> drawable{env, env->CallObjectMethod(widget, get_track_drawable)};
+        if (clear_pending(env) || !drawable)
+        {
+            return true; // C#'s `TrackDrawable?.` null-conditional no-op
+        }
+        jmethodID clear_color_filter = cache.method(env, k_drawable_class, "clearColorFilter", "()V");
+        if (clear_color_filter == nullptr)
+        {
+            return false;
+        }
+        env->CallVoidMethod(drawable.get(), clear_color_filter);
+        clear_pending(env);
+        return true;
     }
 } // namespace
 
@@ -617,11 +630,16 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
-        // PARITY: pin the Material light-theme default track + thumb grays so the UNSET Switch chrome
-        // matches real MAUI instead of the DeviceDefault dark-blue accent this bare-framework host inherits
-        // (see the k_material_*_gray / seed_default_material_tints note). The TrackColor / ThumbColor mappers
-        // override either of these when an explicit color is set. Mirrors the slider's seed (bbb632f301).
-        seed_default_material_tints(env.get(), widget.get());
+        // NO TINT SEEDING. This used to pin hardcoded Material grays as the UNSET baseline, because a
+        // framework android.widget.Switch on Theme.DeviceDefault.Light drew its checked thumb in the
+        // DeviceDefault indigo. BOTH premises are now false: the widget is SwitchCompat and the host theme
+        // parents Theme.MaterialComponents.DayNight (apphost/res/values/styles.xml:48), so the widget
+        // resolves its own theme-correct tints — and MAUI seeds nothing at all.
+        //
+        // MEASURED on the post-swap captures, which is what turned this from tidy-up into a defect: the
+        // seed froze the LIGHT grays into DARK (MAUI thumb 185, port 231-236), rendered IsEnabled="False"
+        // identically to the enabled rows, and its opaque SRC_ATOP filter obliterated an explicit
+        // BackgroundColor (MAUI track 77, port 178). Dark whole-frame diff 0.872% against light's 0.193%.
         platform->native = env->NewGlobalRef(widget.get()); // released in ~switch_platform
         return platform;
     }
@@ -695,20 +713,18 @@ namespace maui::core
         // SwitchExtensions.UpdateTrackColor (the plain-ASwitch overload): TrackDrawable?.SetColorFilter
         // (trackColor, FilterMode.SrcAtop) when set, else TrackDrawable?.ClearColorFilter(). The color is
         // non-nullable in the port, so `trackColor is not null` becomes `!= color{}` (the default-black
-        // sentinel = unset). PARITY: on the unset branch the port does NOT ClearColorFilter (that would
-        // restore the DeviceDefault indigo track); instead it re-applies the seeded Material gray
-        // (k_material_track_gray) — the same "leave the MAUI-matching default" outcome the slider achieves,
-        // since MAUI's own default is already that gray (see the seed note). An explicit TrackColor takes
-        // the SrcAtop filter with that color (BackgroundColor/OnColor rows on the switch page verify it).
+        // sentinel = unset). The unset branch now CLEARS the filter, exactly as C# does — it used to
+        // re-apply a hardcoded Material gray to avoid the DeviceDefault indigo a framework Switch on
+        // Theme.DeviceDefault.Light would show. On SwitchCompat under Theme.MaterialComponents.DayNight
+        // there is no indigo to avoid, and holding an opaque filter over the track is what froze the light
+        // greys into dark and swallowed IsEnabled=false and BackgroundColor (see create_platform_view).
         if (view.track_color() != maui::graphics::color{})
         {
             apply_track_filter(env.get(), widget, view.track_color());
         }
         else
         {
-            apply_track_filter(
-                env.get(), widget,
-                maui::graphics::color::from_rgb(k_material_track_gray, k_material_track_gray, k_material_track_gray));
+            clear_track_filter(env.get(), widget);
         }
     }
 
@@ -728,7 +744,8 @@ namespace maui::core
         // color is present (C#: `if (thumbColor is not null) ThumbTintList = CreateDefault(...)`, NO else
         // branch — the default thumb keeps the theme tint). The port's color is non-nullable, so the gate
         // is `!= color{}` (the default-black sentinel = unset). PARITY: an UNSET thumb early-returns and so
-        // KEEPS the Material gray (k_material_thumb_gray) seed_default_material_tints installed at
+        // leaves the widget's own theme-resolved thumb tint alone, matching SwitchExtensions.cs:89-99, which has
+        // no else branch. It formerly kept a hardcoded gray seeded at
         // construction — that is the port's "theme default" here, matching MAUI's light thumb rather than
         // the DeviceDefault indigo. An explicit ThumbColor overrides it via the shared apply_thumb_tint
         // (ThumbColor row on the switch page verifies the orange override).
