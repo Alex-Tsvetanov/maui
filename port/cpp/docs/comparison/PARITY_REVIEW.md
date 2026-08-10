@@ -4620,3 +4620,25 @@ TWO ROUTES, and the choice is a real design decision rather than a detail:
 
 Not started. Route A is too large to begin at the end of a long session without a decision, and route B
 buys a number rather than parity.
+
+### carousel Route A: the blast radius is three pages, not two — and I counted it wrong
+
+My staging baseline scanned port/maui-reference/pages/*.xaml for CarouselView and reported 2 carousel pages
+against 44 CollectionView pages, concluding the is_carousel branch was nearly free to change. That scan was
+incomplete: it looked only at the TWINS, and the CODE-FIRST builder pages are a separate source of carousels.
+
+examples/gallery/pages/indicator_page.hpp:141-160 puts a real carousel_view in the visual tree (3 string
+items, no ItemTemplate so the default make_text_view cell, height 100, loop off) to drive the IndicatorView
+dots. `indicator` is on the board and is GREEN on android: pixel SSIM 0.9860 / 0.76%, dark 0.9838 / 0.71%.
+So any change to the is_carousel branch — host type, cell sizing, measure path — re-renders a green page
+whose margin is under 1%.
+
+The exposure is the CPP COLUMN ONLY, and that asymmetry is worth stating because it is the kind of detail
+that turns into a wrong conclusion later: port/maui-reference/pages/indicator.xaml has NO CarouselView
+element. Its single "CarouselView" hit is the LABEL TEXT at :46 ("Using with CarouselView"), which is also
+why a naive grep -c reports 1 and suggests the twin has one. pixel_xaml on that page is unaffected.
+
+REVISED RADIUS for the is_carousel branch: carousel_page (both columns, RED), carousel_view (both columns,
+unscored), indicator (cpp column only, GREEN at 0.76%). The acceptance bar for the RecyclerView host is
+therefore not just "carousel_page moves" — it is "carousel_page moves AND indicator/android/pixel does not
+regress from 0.76%".
