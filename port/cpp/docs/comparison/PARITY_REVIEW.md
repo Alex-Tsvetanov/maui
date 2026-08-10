@@ -4144,3 +4144,10 @@ Two infrastructure facts learned here, both of which cost a full VM cycle each:
     (`window shrank before capture: 1024x548`) until one manual `set size` stuck and macOS persisted it;
     the very next run dropped ZERO frames. So after ANY MauiReference rebuild the window state needs
     warming once, or the first run is guaranteed to bank nothing.
+
+**Rebuild verified neutral.** Replacing the Catalyst reference changed the deployed binary for all 172
+pages while only three were rescored, which is the inverse of the staleness trap this session documented.
+Checked rather than assumed: 32 twins changed between 07/06 (the old build) and today, 22 of them are
+currently GREEN on maccatalyst, and four diverse ones — basic_grouping, header_footer_template, indicator,
+path_transform_string — were recaptured in both themes and rescored. All 8 cells held GREEN, 0 changed, 0
+frames dropped. The five-week reference jump did not move the board.
