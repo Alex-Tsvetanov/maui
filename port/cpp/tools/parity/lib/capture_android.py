@@ -389,6 +389,19 @@ def input_argv(step: dict, size: tuple[int, int]) -> list[str] | None:
             raise ValueError(f"unsafe text {text!r}: `adb shell input text` goes through a remote "
                              f"shell, so only [A-Za-z0-9 _.,:@/+-] survives it verbatim")
         return ["shell", "input", "text", text.replace(" ", "%s")]  # a bare space splits the argv
+    # PER-LANE OVERRIDE, the same mechanism the VM lanes get from run_comparison.for_lane — promoted
+    # here rather than there because this lane never goes through that runner.
+    #
+    # WHY IT IS NEEDED: `at` is shared by iOS and Android (neither has an ENV name, so neither can use
+    # run_comparison's `at_<env>` keys), and the two lanes do not always agree on where a control is.
+    # stepper is the case that forced it: the portable 0.21,0.13 lands on the "+" half on iOS, where the
+    # cell is GREEN, and on the "-" half on Android, where a tap at Value==Minimum is a clamped no-op
+    # with no repaint — 0 changed pixels, scored INVALID/`not-driven`. Without this key the only way to
+    # fix Android was to break iOS.
+    #
+    # Keyed `at_android` / `to_android` by BOARD PLATFORM, matching motion_score's `roi_<platform>`.
+    # A step with no such key is returned untouched, so every existing scenario behaves exactly as before.
+    step = {**step, **{k: step[f"{k}_android"] for k in ("at", "to") if f"{k}_android" in step}}
     w, h = size
     x, y = to_pixels(step["at"], size)
     if not (0 <= x < w and 0 <= y < h):
@@ -673,6 +686,26 @@ def _selftest() -> None:
     # run_step reports a hover instead of silently dropping it (and never touches adb to do so).
     assert run_step({"name": "peek", "action": "hover", "at": [0.5, 0.5]}, size).startswith("SKIPPED")
     assert run_steps([{"name": "initial"}], size) == ["idle"]
+    # PER-LANE OVERRIDE. `at_android` must beat the portable `at`, and its ABSENCE must change nothing.
+    # The defect this guards is the one that motivated the key: stepper's portable point is correct on
+    # iOS (green) and lands on the wrong half of the control on Android, so a lane-specific value is the
+    # only fix that does not break the other lane. A silent failure to promote would look exactly like a
+    # scenario nobody had corrected yet.
+    size = (1080, 2340)
+    plain = {"name": "t", "action": "click", "at": [0.21, 0.13]}
+    # 0.21*1080 = 226.8 -> 227: to_pixels ROUNDS. Worth pinning, because the crosshair sheet used
+    # to locate these targets TRUNCATES, so a by-eye measurement and the driver can differ by a
+    # pixel — harmless here (the plate is ~220px wide) and not harmless on a 16px radio ring.
+    assert input_argv(plain, size) == ["shell", "input", "tap", "227", "304"], input_argv(plain, size)
+    over = {**plain, "at_android": [0.367, 0.13]}
+    assert input_argv(over, size) == ["shell", "input", "tap", "396", "304"], input_argv(over, size)
+    assert input_argv(plain, size) != input_argv(over, size), "the override made no difference"
+    # …and a DRAG promotes both ends independently.
+    drag = {"name": "d", "action": "swipe", "at": [0.5, 0.5], "to": [0.9, 0.5],
+            "at_android": [0.1, 0.2], "to_android": [0.8, 0.2]}
+    argv = input_argv(drag, size)
+    assert argv[:3] == ["shell", "input", "swipe"] and argv[3:7] == ["108", "468", "864", "468"], argv
+
     print("capture_android selftest: coordinate scaling + adb argv OK")
 
 

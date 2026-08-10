@@ -37,6 +37,12 @@ name = "initial"
 name = "toggled-on"
 action = "click"
 at = [0.078, 0.214]      # bg_color_switch_ Switch — the blue on-track, measured from the at-rest still
+# ANDROID: 0.078,0.214 resolves to (84,500), which on this lane is the blue BACKGROUND of the row,
+# not the toggle. Android lays a Switch out with its label (or empty space) filling the row and the
+# CONTROL pinned to the RIGHT edge — the BackgroundColor row is a full-width blue band with the
+# thumb at x~995 — so a left-hand fraction taken from a lane that centres the control lands on
+# paint. Measured thumb centre (995,586) of 1080x2340 -> 0.921, 0.2504.
+at_android = [0.921, 0.2504]
 duration = 0.6           # HELD: an instantaneous tap actuates neither column (see the table above)
 
 # CATALYST NEEDS ITS OWN AIM. The `at` above is a fraction of a 402x874 PORTRAIT PHONE, and the same
