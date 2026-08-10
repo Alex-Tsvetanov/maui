@@ -4435,3 +4435,35 @@ nothing, so it stands.
 ALSO RECORDED: the pipeline's own `board: pixel_score android` step wrote an EMPTY log and left stale
 numbers in place — the recapture reported success while the scoring silently did nothing, and the cells only
 moved when pixel_score was run directly. Twice. Not chased here.
+
+### The iOS scroll-driven reds (clip, box_view, path_gallery): the port SCROLLS FURTHER than MAUI
+
+Three of the five remaining iOS reds share one signature, and it is not a rendering difference at all. Each
+scores 0.00% on frame 1 `initial` — byte-identical AT REST — and only diverges after the scroll step.
+Aligning the two scrolled frames vertically says why:
+
+    page           dy=0        best shift        residual after shift
+    clip           26.83%      +180 px            1.90%
+    box_view        8.58%      + 60 px            2.76%
+    path_gallery   17.81%      +416 px           11.48%
+
+For clip and box_view a single vertical translation collapses the whole difference — same content, same
+layout, same everything, the port's ScrollView simply ended up further down the page for the identical
+injected gesture (measured absolute travel on clip: MAUI 1084 px, port 1264 px, xaml 1084 px).
+path_gallery shares the overshoot but keeps an 11.48% residual on top, so it has a second, real difference
+underneath that this does not explain.
+
+NOTE THE THIRD COLUMN: cpp_xaml travels 1084 px — exactly MAUI's — on the same page and the same backend.
+So whatever differs is not the iOS ScrollView handler as such; the code-first page and the XAML page behave
+differently under the same drag. That is the thread to pull next.
+
+TWO MEASUREMENT TRAPS I WALKED INTO HERE, both caught before they became findings:
+
+  1. A shift search capped at 400 px reported "cpp scrolled 0 px, residual 30.43%" — which reads as "the
+     port does not scroll at all", a dramatic and completely false conclusion. The true shift was 1264,
+     outside the window. A best-fit at the edge of its own search range is not a result.
+  2. Eyeballing the scrolled frames side by side, the port's content looked INDENTED and centred while
+     MAUI's hugged the left edge — a tidy "the code-first page centres its children" story, complete with a
+     plausible culprit (style_image's Start alignment). It was nonsense: the two columns were at different
+     scroll positions, so I was comparing different rows of the page. The 0.00% initial frame already
+     ruled alignment out, and the +180 alignment residual of 1.90% confirms it.
