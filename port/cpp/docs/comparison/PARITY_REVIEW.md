@@ -4497,3 +4497,21 @@ from the user settles it either way.
 `box_view` is NOT this. It passes the STRICT structure-equivalence test (builder and twin describe
 identically) and still overshoots by 60 px, so its scroll difference is real and unexplained.
 `path_gallery` is on the divergence list AND keeps an 11.48% residual after alignment, so it has both.
+
+### box_view: same overshoot shape as clip, but NO content explanation
+
+    maui_xaml  travel 2024 px      cpp  travel 2084 px      cpp_xaml  travel 2024 px
+
+Identical pattern to clip — the builder page travels 60 px further than MAUI while the XAML page on the same
+backend matches MAUI exactly — but WITHOUT clip's explanation. box_view passes the STRICT
+structure-equivalence test (builder and twin describe the same tree; it is not on the divergence list), and
+its `initial` frame is 0.00%, so at rest the two columns are byte-identical.
+
+That leaves a below-the-fold SIZING difference of ~60 px: structure equivalence compares the element tree,
+not rendered heights, so a control measuring slightly taller in the builder than in the twin would produce
+exactly this and be invisible above the fold. Aligning the scrolled frames at +60 leaves 2.76%, so the shift
+explains most but not all of it.
+
+Not chased further this session. The next step is to compare the two columns' full CONTENT heights (not just
+the visible frame) — e.g. drive the scroll to the clamp on each and diff the final frames — which localises
+the extra 60 px to a specific control rather than guessing at it.
