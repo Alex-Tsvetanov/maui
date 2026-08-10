@@ -149,7 +149,7 @@
    }
   }
  },
- "size_measured_at": "2026-08-10T14:59:49Z",
+ "size_measured_at": "2026-08-10T21:52:23Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -159,50 +159,48 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.949,
-     1.512,
-     1.51,
-     1.513,
-     1.392,
-     1.435,
-     1.566,
-     1.542,
-     1.504,
-     11.034
+     9.011,
+     8.001,
+     8.456,
+     7.689,
+     7.323,
+     7.693,
+     8.398,
+     7.439,
+     7.189,
+     8.027
     ],
-    "poll_resolution_s": 0.279,
+    "poll_resolution_s": 0.637,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.392,
-    "median_s": 1.512,
-    "p95_s": 1.949,
-    "max_s": 11.034
+    "min_s": 7.189,
+    "median_s": 7.847,
+    "p95_s": 8.456,
+    "max_s": 9.011
    },
    "cpp": {
     "measured": true,
     "start_kind": "cold",
     "page": "label",
-    "n": 9,
-    "misses": 1,
+    "n": 10,
+    "misses": 0,
     "samples_s": [
-     9.56,
-     9.966,
-     10.726,
-     7.569,
-     3.876,
-     2.451,
-     1.284,
-     1.314,
-     1.381
+     8.037,
+     8.688,
+     7.112,
+     3.131,
+     7.785,
+     3.536,
+     3.349,
+     7.824,
+     7.928,
+     8.803
     ],
-    "poll_resolution_s": 0.642,
+    "poll_resolution_s": 2.422,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.284,
-    "median_s": 3.876,
-    "p95_s": 9.966,
-    "max_s": 10.726,
-    "miss_reasons": [
-     "no content frame within 30s (last state: unchanged)"
-    ]
+    "min_s": 3.131,
+    "median_s": 7.804,
+    "p95_s": 8.688,
+    "max_s": 8.803
    },
    "cpp_xaml": {
     "measured": true,
@@ -211,23 +209,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.72,
-     1.37,
-     1.237,
-     1.351,
-     1.39,
-     1.49,
-     1.407,
-     1.438,
-     1.376,
-     1.435
+     9.895,
+     8.362,
+     3.668,
+     3.266,
+     9.7,
+     8.494,
+     3.488,
+     8.465,
+     8.843,
+     9.468
     ],
-    "poll_resolution_s": 0.233,
+    "poll_resolution_s": 2.377,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.237,
-    "median_s": 1.398,
-    "p95_s": 1.49,
-    "max_s": 1.72
+    "min_s": 3.266,
+    "median_s": 8.479,
+    "p95_s": 9.7,
+    "max_s": 9.895
    }
   },
   "ios": {

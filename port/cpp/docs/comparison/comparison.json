@@ -3606,12 +3606,12 @@
             "dark": "captures/android/maui/carousel_page_dark.gif"
           },
           "cpp": {
-            "light": "captures/android/cpp/carousel_page_light.png",
-            "dark": "captures/android/cpp/carousel_page_dark.png"
+            "light": "captures/android/cpp/carousel_page_light.gif",
+            "dark": "captures/android/cpp/carousel_page_dark.gif"
           },
           "xaml": {
-            "light": "captures/android/xaml/carousel_page_light.png",
-            "dark": "captures/android/xaml/carousel_page_dark.png"
+            "light": "captures/android/xaml/carousel_page_light.gif",
+            "dark": "captures/android/xaml/carousel_page_dark.gif"
           }
         },
         "sonnet": {
@@ -3623,34 +3623,34 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (2.2421% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 10 frames paired by step (run 2026-08-10-18_30_26, commit c25ad0d135, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9841 at frame 1 'gif03@4s/12f' (0.74% pixels differ), mean SSIM 0.9841; per-frame diff% 0.74/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73; self-motion MAUI 2.2421% (53273 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (2.2514% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 10 frames paired by step (run 2026-08-10-18_30_26, commit c25ad0d135, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9887 at frame 1 'gif03@4s/12f' (0.74% pixels differ), mean SSIM 0.9889; per-frame diff% 0.74/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73; self-motion MAUI 2.2514% (53494 px) vs C++ 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (2.2319% vs 2.2265% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9517 at frame 3 'gif02@4s/12f' (2.41% pixels differ), mean SSIM 0.9582; per-frame diff% 0.73/0.73/2.41/2.41/2.41/2.41/2.41/2.41/2.41/2.41; self-motion MAUI 2.2319% (53031 px) vs C++ 2.2265% (52902 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (2.2412% vs 2.2366% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9614 at frame 3 'gif02@4s/12f' (2.42% pixels differ), mean SSIM 0.9669; per-frame diff% 0.73/0.73/2.42/2.42/2.42/2.42/2.42/2.42/2.42/2.42; self-motion MAUI 2.2412% (53252 px) vs C++ 2.2366% (53142 px)",
           "motion": {
-            "verdict": "FAIL",
+            "verdict": "INCONCLUSIVE",
             "themes": {
-              "light": "FAIL",
-              "dark": "FAIL"
+              "light": "INCONCLUSIVE",
+              "dark": "INCONCLUSIVE"
             },
-            "why": "mismatch",
-            "run": "2026-08-10-18_30_26",
-            "commit": "c25ad0d135",
-            "captured_at": "2026-08-10",
+            "why": "phase-only",
+            "run": "2026-08-11-00_25_52",
+            "commit": "6e82a6f4b7",
+            "captured_at": "2026-08-11",
             "stills": "b3ca21b69d25f07f"
           }
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ & XAML IS FROZEN (2.2421% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 10 frames paired by step (run 2026-08-10-18_30_26, commit c25ad0d135, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9841 at frame 1 'gif03@4s/12f' (0.74% pixels differ), mean SSIM 0.9841; per-frame diff% 0.74/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73; self-motion MAUI 2.2421% (53273 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ & XAML IS FROZEN (2.2514% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 10 frames paired by step (run 2026-08-10-18_30_26, commit c25ad0d135, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9887 at frame 1 'gif03@4s/12f' (0.74% pixels differ), mean SSIM 0.9889; per-frame diff% 0.74/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73/0.73; self-motion MAUI 2.2514% (53494 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (2.2319% vs 2.2265% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.72%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9519 at frame 3 'gif02@4s/12f' (2.41% pixels differ), mean SSIM 0.9584; per-frame diff% 0.72/0.72/2.41/2.41/2.41/2.41/2.41/2.41/2.41/2.41; self-motion MAUI 2.2319% (53031 px) vs C++ & XAML 2.2265% (52902 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (2.2412% vs 2.2263% of their own frame, 0.7% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9614 at frame 3 'gif02@4s/12f' (2.42% pixels differ), mean SSIM 0.9669; per-frame diff% 0.73/0.73/2.42/2.42/2.42/2.42/2.42/2.42/2.42/2.42; self-motion MAUI 2.2412% (53252 px) vs C++ & XAML 2.2263% (52897 px)",
           "motion": {
-            "verdict": "FAIL",
+            "verdict": "INCONCLUSIVE",
             "themes": {
-              "light": "FAIL",
-              "dark": "FAIL"
+              "light": "INCONCLUSIVE",
+              "dark": "INCONCLUSIVE"
             },
-            "why": "mismatch",
-            "run": "2026-08-10-18_30_26",
-            "commit": "c25ad0d135",
-            "captured_at": "2026-08-10",
+            "why": "phase-only",
+            "run": "2026-08-11-00_25_52",
+            "commit": "6e82a6f4b7",
+            "captured_at": "2026-08-11",
             "stills": "00a425084d5a8caa"
           }
         }
@@ -6063,7 +6063,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9601, 1.50% pixels differ \u00b7 Dark: SSIM 0.7276, 17.19% pixels differ"
+          "review": "Light: SSIM 0.9599, 1.50% pixels differ \u00b7 Dark: SSIM 0.7276, 17.19% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -6257,19 +6257,19 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) \u2014 worst SSIM 0.9975 at frame 1 'at-rest' (0.04% pixels differ), mean SSIM 0.9984; per-frame diff% 0.04/0.02/0.07/0.04/0.05/0.05/0.01/0.06/0.04/0.05/0.06/0.02/0.07; self-motion MAUI 0.1468% (3488 px) vs C++ 0.1553% (3691 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9950 at frame 1 'at-rest' (0.26% pixels differ), mean SSIM 0.9962; per-frame diff% 0.26/0.20/0.23/0.23/0.12/0.24/0.15/0.19/0.20/0.14/0.22; self-motion MAUI 0.2075% (4930 px) vs C++ 0.2382% (5659 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9995, 0.10% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9950 at frame 1 'at-rest' (0.26% pixels differ), mean SSIM 0.9962; per-frame diff% 0.26/0.20/0.23/0.23/0.12/0.24/0.15/0.19/0.20/0.14/0.22; self-motion MAUI 0.2075% (4930 px) vs C++ 0.2382% (5659 px)",
           "motion": {
-            "verdict": "PASS",
+            "verdict": "INVALID",
             "themes": {
-              "light": "PASS",
+              "light": "INVALID",
               "dark": "PASS"
             },
-            "why": "",
+            "why": "provenance",
             "run": "2026-08-07-13_30_41",
             "commit": "92b4421539",
             "captured_at": "2026-08-07",
-            "stills": "f2fa099197ee8342"
+            "stills": "5cdb605046c128df"
           }
         },
         "pixel_xaml": {
@@ -9432,7 +9432,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9992, 0.05% pixels differ \u00b7 Dark: SSIM 0.9990, 0.12% pixels differ"
+          "review": "Light: SSIM 0.9993, 0.05% pixels differ \u00b7 Dark: SSIM 0.9990, 0.12% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -10116,7 +10116,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9921, 0.23% pixels differ \u00b7 Dark: SSIM 0.9915, 0.27% pixels differ"
+          "review": "Light: SSIM 0.9923, 0.31% pixels differ \u00b7 Dark: SSIM 0.9915, 0.27% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -13394,8 +13394,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9986, 0.02% pixels differ \u00b7 Dark: SSIM 0.9983, 0.04% pixels differ"
+          "status": "red",
+          "review": "Light: SSIM 0.4781, 70.00% pixels differ \u00b7 Dark: SSIM 0.9983, 0.04% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -13983,7 +13983,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9996, 0.05% pixels differ \u00b7 Dark: SSIM 0.9998, 0.10% pixels differ"
+          "review": "Light: SSIM 0.9993, 0.05% pixels differ \u00b7 Dark: SSIM 0.9998, 0.10% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
