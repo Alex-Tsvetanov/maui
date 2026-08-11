@@ -322,6 +322,27 @@ capture_one() {
   # 4s and IDENTICAL to the other two columns' settle so all three are photographed in the same state of
   # Android's FADING SCROLLBARS — see the long note in build_android_apphost.sh.
   sleep 4
+  # ASSERT WHAT IS ACTUALLY ON SCREEN, after the settle and before the shutter.
+  #
+  # `wait_displayed` above proves the app CAME UP and says nothing about what is in front 4 seconds
+  # later, and its failure path literally says "capturing anyway". That combination banked 20 wrong
+  # PNGs on the board: context_flyout's WebView escaped to an ACTION_VIEW intent, Chrome opened OVER
+  # the gallery, and every later page in this column recorded Chrome's first-run screen. Ten of them
+  # were byte-identical to each other and read as port bugs to a reviewer. A rerun after that handler
+  # fix then recorded the LAUNCHER on the same pages — a different wrong picture, which is exactly why
+  # "no longer shows Chrome" is not a test and this asserts the POSITIVE instead.
+  #
+  # Matched against this emulator's REAL dumpsys wording, not the documented one: API 34 prints
+  # `topResumedActivity=` / `ResumedActivity:` and never `mResumedActivity`, so a check written from
+  # the field name everyone greps for matches nothing and passes silently forever.
+  _fg="$("${maui_adb}" -s "${maui_serial}" shell dumpsys activity activities 2>/dev/null \
+        | sed -n 's/.*[Rr]esumedActivity[=:][^u]*u[0-9][0-9]* \([A-Za-z0-9_.]*\)\/.*/\1/p' | head -1)"
+  if [[ -n "${_fg}" && "${_fg}" != "${pkg}" ]]; then
+    # DROP the frame. A missing capture is a loud, fixable gap; a wrong one scores as a port defect.
+    echo "[apphost-xaml] !! ${key}${suffix}: foreground is ${_fg}, expected ${pkg} — frame DROPPED" >&2
+    echo "@@PARITY END ${key} xaml ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   echo "@@PARITY END ${key} xaml ${appearance} $((SECONDS - _parity_t0))"
   echo "[apphost-xaml] wrote ${out_dir}/${key}${suffix}.png" >&2
