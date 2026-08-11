@@ -13,6 +13,7 @@
 #include <string_view>
 
 #include "maui/fixed_string.hpp"
+#include "maui/xaml/xaml_static_check.hpp"
 #include "maui/xaml_build.hpp"
 
 namespace
@@ -24,6 +25,8 @@ namespace
 #embed "../../../../maui-reference/pages/borderless.xaml"
     };
     constexpr maui::fixed_string borderless_xaml{borderless_xaml_bytes};
+
+    MAUI_XAML_REJECT_EVENT_ATTRIBUTES(borderless_xaml);
 
     // Compile-time naming-triple lock: the embedded bytes must be a ContentPage whose x:Class matches
     // this page's key-derived MAUI partial class (the lint's runtime check, enforced by the compiler).

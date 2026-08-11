@@ -5,12 +5,12 @@
          shared/tier-1 pages because the port hydrates a static tree with no event-attribute support; this
          tier-2 gap page pins that exact limitation deliberately, per rule 6. Verified: xaml_loader::
          load_into throws "Cannot assign property 'Clicked': Property does not exist" — Clicked is
-         rejected as an unrecognized property, not silently ignored. NOTE: e2e.py lint's EVENT_RE
-         regex-rejects this attribute name UNCONDITIONALLY for every page under pages/ (it has no tier-2
-         carve-out), so this file intentionally is NOT run through `e2e.py gen`/`lint` — see this gap's
-         manifest.json row (notes) for how it's verified instead. GapEventAttributePage.xaml.cs is
-         hand-written (has OnClicked) so real MAUI still renders + behaves correctly (the acceptance
-         gate). -->
+         rejected as an unrecognized property, not silently ignored. This page IS run through `e2e.py
+         gen`/`lint`: both carve it out BY NAME (lint's EVENT_RE check, and gen's STATIC_CHECK_EXEMPT,
+         which omits the MAUI_XAML_REJECT_EVENT_ATTRIBUTES static_assert that would otherwise make this
+         page un-compilable). The gallery host degrades instead, via xaml_load_options::exception_handler.
+         GapEventAttributePage.xaml.cs is hand-written (has OnClicked) so real MAUI still renders +
+         behaves correctly (the acceptance gate). -->
     <VerticalStackLayout Margin="12" Spacing="8">
         <Label Text="Gap probe: Clicked=&quot;OnClicked&quot; event attribute" />
         <Button Text="Click me" Clicked="OnClicked" />

@@ -1400,10 +1400,10 @@ namespace
     // near-identical copy of the body.
     struct anchored_page
     {
-        const char* page;          // shared page file, without .xaml
-        const char* button;        // an x:Name the code-behind resolves as a Button
-        const char* readout;       // the Label it writes to
-        const char* at_rest;       // that Label's at-rest text: the BEFORE half of the driven pair
+        const char* page;    // shared page file, without .xaml
+        const char* button;  // an x:Name the code-behind resolves as a Button
+        const char* readout; // the Label it writes to
+        const char* at_rest; // that Label's at-rest text: the BEFORE half of the driven pair
     };
 
     class shared_page_anchors : public ::testing::TestWithParam<anchored_page>
@@ -1433,10 +1433,12 @@ namespace
         // same silent way.
         const auto action = result.find_by_name<controls::button>(c.button);
         const auto readout = result.find_by_name<controls::label>(c.readout);
-        ASSERT_NE(action, nullptr) << c.page << ".xaml lost x:Name=\"" << c.button << "\" (or it is no "
+        ASSERT_NE(action, nullptr) << c.page << ".xaml lost x:Name=\"" << c.button
+                                   << "\" (or it is no "
                                       "longer a Button) — both code-behinds go inert and the board "
                                       "silently stops reacting on this page";
-        ASSERT_NE(readout, nullptr) << c.page << ".xaml lost x:Name=\"" << c.readout << "\" (or it is no "
+        ASSERT_NE(readout, nullptr) << c.page << ".xaml lost x:Name=\"" << c.readout
+                                    << "\" (or it is no "
                                        "longer a Label)";
         // The at-rest text is the BEFORE half of the driven comparison. If it moves, the twins and the
         // code-first page that owns the string have diverged.
@@ -1848,6 +1850,39 @@ namespace
 <Label xmlns="http://schemas.microsoft.com/dotnet/2021/maui" Clicked="onButtonClicked"/>)xml");
         });
         EXPECT_TRUE(message.contains("Cannot assign property \"Clicked\"")) << message;
+    }
+
+    TEST(xaml_loader, event_wiring_under_an_exception_handler_skips_the_property_and_keeps_the_page)
+    {
+        // ApplyPropertiesVisitor.cs:286-300 + SetPropertyValue (364-383): with a handler installed
+        // (C#'s doNotThrow / Hot Reload knob) an unassignable property is REPORTED and SKIPPED, and
+        // hydration continues — the comment at :288-295 records that re-throwing here corrupts Shell
+        // state and crashes the app (#35018). The rest of the page must therefore still be built.
+        std::vector<std::string> collected;
+        controls::content_page page;
+        const xaml_load_result result =
+            xaml_loader::load_into(page, R"xml(
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+  <VerticalStackLayout>
+    <Label Text="Gap probe" />
+    <Button Text="Click me" Clicked="OnClicked" />
+  </VerticalStackLayout>
+</ContentPage>)xml",
+                                   {.exception_handler = [&collected](const xaml_parse_exception& error) {
+                                       collected.emplace_back(error.unformatted_message());
+                                   }});
+
+        ASSERT_EQ(collected.size(), 1U);
+        EXPECT_TRUE(collected.front().contains("Cannot assign property \"Clicked\"")) << collected.front();
+
+        // NOT blank: the offending property is dropped, every sibling property and the whole subtree
+        // survive (the failure mode the gallery host must degrade into).
+        const auto* const stack = dynamic_cast<const controls::vertical_stack_layout*>(page.content());
+        ASSERT_NE(stack, nullptr);
+        ASSERT_EQ(stack->count(), 2);
+        const auto* const button = dynamic_cast<const controls::button*>(&stack->at(1));
+        ASSERT_NE(button, nullptr);
+        EXPECT_EQ(button->text(), "Click me");
     }
 
     // ---- load (XamlLoader.Create): the root is minted from markup ---------------------------------

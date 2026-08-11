@@ -14,6 +14,7 @@
 #include <string_view>
 
 #include "maui/fixed_string.hpp"
+#include "maui/xaml/xaml_static_check.hpp"
 #include "maui/xaml_build.hpp"
 
 namespace
@@ -25,6 +26,11 @@ namespace
 #embed "../../../../maui-reference/pages/gap_event_attribute.xaml"
     };
     constexpr maui::fixed_string gap_event_attribute_xaml{gap_event_attribute_xaml_bytes};
+
+    // NO MAUI_XAML_REJECT_EVENT_ATTRIBUTES here: this is the deliberate gap probe for inline event
+    // attributes (AUTHORING.md rule 6), so it is the one page that must still CONTAIN one. The loader
+    // reports it at load time instead — the host's xaml_load_options::exception_handler skips the
+    // property and renders the rest of the page (see examples/gallery_xaml/main.cpp).
 
     // Compile-time naming-triple lock: the embedded bytes must be a ContentPage whose x:Class matches
     // this page's key-derived MAUI partial class (the lint's runtime check, enforced by the compiler).

@@ -21,6 +21,7 @@
 
 #include "Views/gallery_pages.hpp"
 
+#include <cstdio> // the loader-error log line (see the exception_handler below)
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -76,8 +77,19 @@ public:
         // {AppThemeBinding} resolves against the requested theme seeded above AND re-applies on every
         // RequestedThemeChanged — the C# AppThemeBinding contract. The app outlives the page it owns,
         // so the load's theme subscriptions (owned by the page's load result) disconnect first.
-        set_content(ui::view_ref<maui::controls::content_page>{std::shared_ptr<maui::controls::content_page>{
-            make_selected_page(maui::xaml::xaml_load_options{.application = this})}});
+        //
+        // exception_handler is C#'s doNotThrow knob (HydrationContext.ExceptionHandler, wired from
+        // ResourceLoader.ExceptionHandler2 in XamlLoader.cs:101-107). WITHOUT it the loader RE-THROWS
+        // (hydration_context::handle) and one unsupported attribute — e.g. gap_event_attribute's
+        // Clicked="OnClicked", which needs the reflection the port does not have — escapes to
+        // std::terminate and kills the gallery. WITH it the offending property is skipped and the rest
+        // of the tree still renders, exactly as MAUI degrades. The gallery is a demo host, so it takes
+        // MAUI's collect-and-continue branch; the loader keeps throwing by default for everyone else.
+        set_content(ui::view_ref<maui::controls::content_page>{
+            std::shared_ptr<maui::controls::content_page>{make_selected_page(maui::xaml::xaml_load_options{
+                .application = this, .exception_handler = [](const maui::xaml::xaml_parse_exception& error) {
+                    std::fprintf(stderr, "[maui-xaml] unsupported markup skipped: %s\n", error.what());
+                }})}});
         set_title("MAUI C++ — gallery (XAML)");
     }
 };

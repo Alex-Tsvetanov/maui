@@ -14,6 +14,7 @@
 #include <string_view>
 
 #include "maui/fixed_string.hpp"
+#include "maui/xaml/xaml_static_check.hpp"
 #include "maui/xaml_build.hpp"
 
 namespace
@@ -25,6 +26,8 @@ namespace
 #embed "../../../../maui-reference/pages/scroll_mode_test.xaml"
     };
     constexpr maui::fixed_string scroll_mode_test_xaml{scroll_mode_test_xaml_bytes};
+
+    MAUI_XAML_REJECT_EVENT_ATTRIBUTES(scroll_mode_test_xaml);
 
     // Compile-time naming-triple lock: the embedded bytes must be a ContentPage whose x:Class matches
     // this page's key-derived MAUI partial class (the lint's runtime check, enforced by the compiler).

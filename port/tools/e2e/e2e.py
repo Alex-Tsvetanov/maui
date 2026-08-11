@@ -140,6 +140,7 @@ CPP_SHARED = '''// {name}.xaml.cpp — implements examples::Views::{name}_page()
 #include <string_view>
 
 #include "maui/fixed_string.hpp"
+#include "maui/xaml/xaml_static_check.hpp"
 #include "maui/xaml_build.hpp"
 
 namespace
@@ -151,6 +152,8 @@ namespace
 #embed "{embed_rel}/{name}.xaml"
     }};
     constexpr maui::fixed_string {name}_xaml{{{name}_xaml_bytes}};
+
+{static_check}
 
     // Compile-time naming-triple lock: the embedded bytes must be a ContentPage whose x:Class matches
     // this page's key-derived MAUI partial class (the lint's runtime check, enforced by the compiler).
@@ -240,6 +243,7 @@ BYTES_CPP = '''// {name}.xaml.cpp — implements examples::Views::{name}_page() 
 #include "Views/{name}.xaml.hpp"
 
 #include "maui/fixed_string.hpp"
+#include "maui/xaml/xaml_static_check.hpp"
 #include "maui/xaml_build.hpp"
 
 namespace
@@ -251,6 +255,8 @@ namespace
 {byte_rows}
     }};
     constexpr maui::fixed_string {name}_xaml{{{name}_xaml_bytes}};
+
+{static_check}
 }} // namespace
 
 namespace examples::Views
@@ -262,6 +268,33 @@ namespace examples::Views
     }}
 }} // namespace examples::Views
 '''
+
+# The compile-time half of the event-attribute ban. MAUI's own XamlC rejects an unbindable event at BUILD
+# time (SetPropertiesVisitor.ConnectEvent -> BuildException(MissingEventHandler), Build.Tasks:1319), so
+# failing the COMPILE is the faithful behavior — not merely a nicety. Emitted into every generated page TU
+# in both delivery modes, so it covers the committed #embed TUs (desktop/iOS/macOS) and the generated
+# bytes-mode TUs (Android NDK) alike.
+STATIC_CHECK = "    MAUI_XAML_REJECT_EVENT_ATTRIBUTES({name}_xaml);"
+
+# gap_event_attribute is the ONE page that must keep its event attribute: it is a deliberate P3 tier-2 gap
+# probe (AUTHORING.md rule 6) whose entire purpose is to pin the port's rejection of inline event
+# attributes, and real MAUI still renders it via a hand-written code-behind. Emitting the static_assert
+# there would make the page un-compilable and take the whole gallery_xaml target — and with it the Android
+# XAML capture column — down with it. Same carve-out the runtime lint already applies (cmd_lint below), by
+# the same name, so the two cannot drift apart.
+STATIC_CHECK_EXEMPT = {"gap_event_attribute"}
+STATIC_CHECK_EXEMPT_NOTE = """    // NO MAUI_XAML_REJECT_EVENT_ATTRIBUTES here: this is the deliberate gap probe for inline event
+    // attributes (AUTHORING.md rule 6), so it is the one page that must still CONTAIN one. The loader
+    // reports it at load time instead — the host's xaml_load_options::exception_handler skips the
+    // property and renders the rest of the page (see examples/gallery_xaml/main.cpp)."""
+
+
+def static_check_for(name: str) -> str:
+    """The compile-time event-attribute rejection for `name`, or the exemption note for the gap probe."""
+    if name in STATIC_CHECK_EXEMPT:
+        return STATIC_CHECK_EXEMPT_NOTE
+    return STATIC_CHECK.format(name=name)
+
 
 AGGREGATOR = '''#pragma once
 // gallery_pages.hpp — the single aggregator main.cpp's page switcher consumes. It (1) pulls in every
@@ -375,7 +408,8 @@ def cmd_gen(args: argparse.Namespace) -> int:
             else:
                 rewrote += _write_if_changed(
                     os.path.join(out_dir, name + ".xaml.cpp"),
-                    BYTES_CPP.format(name=name, byte_rows=_byte_rows(src), mark=GENERATED_MARK))
+                    BYTES_CPP.format(name=name, byte_rows=_byte_rows(src), mark=GENERATED_MARK,
+                                     static_check=static_check_for(name)))
         print(f"generated {len(names)} bytes-mode TUs into {out_dir} "
               f"({len(shared)} shared, {len(legacy)} legacy, {kept_bytes} hand-written code-behind preserved; "
               f"{rewrote} rewritten, {len(names) - rewrote} unchanged)")
@@ -401,7 +435,8 @@ def cmd_gen(args: argparse.Namespace) -> int:
                     continue
         template = CPP_SHARED if name in shared else CPP_LEGACY
         with open(cpp_path, "w") as fh:
-            fh.write(template.format(name=name, pascal=pascal(name), embed_rel=EMBED_REL, mark=GENERATED_MARK))
+            fh.write(template.format(name=name, pascal=pascal(name), embed_rel=EMBED_REL, mark=GENERATED_MARK,
+                                     static_check=static_check_for(name)))
         written.append(cpp_path)
 
     includes = "\n".join(f'#include "Views/{n}.xaml.hpp"' for n in names)
@@ -435,13 +470,26 @@ def cmd_gen(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------- lint ------------------------------
 # Event-ish attributes banned in shared XAML (interactivity lives in code-behind via x:Name, so the
 # port — which has no event-attribute support — hydrates the identical static tree).
-EVENT_ATTRS = (
-    "Clicked|Pressed|Released|Tapped|TextChanged|ValueChanged|Toggled|CheckedChanged|SelectedIndexChanged|"
-    "SelectionChanged|ItemSelected|ItemTapped|Scrolled|ScrollToRequested|Refreshing|SearchButtonPressed|"
-    "DateSelected|TimeSelected|Completed|Unfocused|Focused|Loaded|Unloaded|Appearing|Disappearing|"
-    "NavigatedTo|NavigatingFrom|NavigatedFrom|PositionChanged|CurrentItemChanged|RemainingItemsThresholdReached|"
-    "SwipeStarted|SwipeChanging|SwipeEnded|DragStarting|DropCompleted|Navigating|Navigated"
-)
+#
+# The names are NOT listed here: they are read from the C++ header that also enforces them at COMPILE
+# time (include/maui/xaml/xaml_static_check.hpp). That header is the single source of truth, so this
+# lint and the static_assert baked into every generated page TU can never disagree about what counts as
+# an event attribute. A second hand-maintained copy here is exactly the drift this avoids.
+STATIC_CHECK_HPP = os.path.join(PORT, "cpp", "include", "maui", "xaml", "xaml_static_check.hpp")
+
+
+def event_attr_names() -> list[str]:
+    """The event-attribute names, parsed out of the C++ header's marked block (one "Name", per line)."""
+    with open(STATIC_CHECK_HPP, encoding="utf-8") as fh:
+        text = fh.read()
+    block = text.split("MAUI_EVENT_ATTRIBUTE_NAMES BEGIN")[1].split("MAUI_EVENT_ATTRIBUTE_NAMES END")[0]
+    names = re.findall(r'"([A-Za-z]+)"', block)
+    if not names:
+        raise SystemExit(f"error: no event-attribute names found in {STATIC_CHECK_HPP}")
+    return names
+
+
+EVENT_ATTRS = "|".join(event_attr_names())
 EVENT_RE = re.compile(r"\b(?:" + EVENT_ATTRS + r')\s*=\s*"')
 XCLASS_RE = re.compile(r'x:Class\s*=\s*"([^"]+)"')
 X2006 = "http://schemas.microsoft.com/winfx/2006/xaml"

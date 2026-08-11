@@ -14,6 +14,7 @@
 #include <string_view>
 
 #include "maui/fixed_string.hpp"
+#include "maui/xaml/xaml_static_check.hpp"
 #include "maui/xaml_build.hpp"
 
 namespace
@@ -25,6 +26,8 @@ namespace
 #embed "../../../../maui-reference/pages/scattered_radio_button.xaml"
     };
     constexpr maui::fixed_string scattered_radio_button_xaml{scattered_radio_button_xaml_bytes};
+
+    MAUI_XAML_REJECT_EVENT_ATTRIBUTES(scattered_radio_button_xaml);
 
     // Compile-time naming-triple lock: the embedded bytes must be a ContentPage whose x:Class matches
     // this page's key-derived MAUI partial class (the lint's runtime check, enforced by the compiler).

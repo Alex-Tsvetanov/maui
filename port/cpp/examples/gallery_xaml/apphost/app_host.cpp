@@ -32,6 +32,7 @@
 // displaying is never torn down under it. Single-page capture host: one page per process, re-launched per
 // key by the capture pipeline.
 
+#include <android/log.h> // the skipped-markup warning (see loader_options)
 #include <jni.h>
 
 #include <cstring>
@@ -53,6 +54,7 @@
 #include "maui/hosting/app_host.hpp"
 #include "maui/hosting/maui_app.hpp"
 #include "maui/hosting/maui_app_builder.hpp"
+#include "maui/xaml/xaml_loader.hpp" // xaml_load_options — the exception_handler knob (see loader_options)
 
 // The compile-time-XAML page factories + the MAUI_XAML_GALLERY_PAGES(X) dispatch macro (single-sourced).
 // The gallery_xaml example root is on the include path so this "Views/..." include resolves.
@@ -71,19 +73,41 @@ namespace
     };
     size2 display_size(JNIEnv* env);
 
+    // The loader knobs every page load on this host runs under. The ONLY one set is C#'s doNotThrow knob
+    // (HydrationContext.ExceptionHandler, wired from ResourceLoader.ExceptionHandler2 in
+    // XamlLoader.cs:101-107): without it the loader RE-THROWS (hydration_context::handle) and ONE
+    // unsupported attribute — e.g. gap_event_attribute's Clicked="OnClicked", which needs the reflection
+    // the port does not have — escapes to std::terminate and SIGABRTs this process. The capture pipeline
+    // then photographs whatever came forward (the launcher), so the crash reads as a capture bug. With the
+    // handler installed the offending property is skipped, the rest of the tree still renders, and the
+    // error is logged — MAUI's own collect-and-continue branch.
+    //
+    // `application` is deliberately left unset: the loader falls back to maui::controls::application::
+    // current(), which is what this host has always relied on (apphost_app seeds the theme in its page_
+    // mem-initializer, BEFORE the application object it would pass is fully constructed).
+    [[nodiscard]] maui::xaml::xaml_load_options loader_options()
+    {
+        maui::xaml::xaml_load_options options;
+        options.exception_handler = [](const maui::xaml::xaml_parse_exception& error) {
+            __android_log_print(ANDROID_LOG_WARN, "maui-xaml", "unsupported markup skipped: %s", error.what());
+        };
+        return options;
+    }
+
     // Build the selected XAML page (a fully-hydrated content_page) for `key`, via the single-sourced
     // MAUI_XAML_GALLERY_PAGES dispatch — the same table gallery_xaml/main.cpp uses. An unknown key falls
     // back to value_controls (the gallery's own default), so a typo never aborts the capture.
     std::unique_ptr<maui::controls::content_page> make_selected_page(const std::string& key)
     {
+        const maui::xaml::xaml_load_options options = loader_options();
 #define MAUI_XAML_APPHOST_DISPATCH(name)                                                                               \
     if (key == #name)                                                                                                  \
     {                                                                                                                  \
-        return examples::Views::name##_page();                                                                         \
+        return examples::Views::name##_page(options);                                                                  \
     }
         MAUI_XAML_GALLERY_PAGES(MAUI_XAML_APPHOST_DISPATCH)
 #undef MAUI_XAML_APPHOST_DISPATCH
-        return examples::Views::value_controls_page();
+        return examples::Views::value_controls_page(options);
     }
 
     // The single application the builder mints: owns the selected XAML page + the window, hosts the page in

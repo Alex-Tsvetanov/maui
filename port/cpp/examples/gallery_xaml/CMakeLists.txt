@@ -111,3 +111,14 @@ target_link_libraries(gallery_xaml PRIVATE maui::xaml)
 if(NOT MSVC)
   target_compile_options(gallery_xaml PRIVATE -Wno-c23-extensions)
 endif()
+# NO /constexpr:steps flag here, deliberately. MAUI_XAML_REJECT_EVENT_ATTRIBUTES
+# (maui/xaml/xaml_static_check.hpp) evaluates in a CONSTANT EXPRESSION, so it does spend constexpr steps
+# proportional to each page's .xaml size — but it is not what makes these TUs expensive. Measured with
+# clang on the largest page (selection_synchronization.xaml, 10556 B), -fsyntax-only on the REAL
+# generated TU: 200000-250000 steps WITHOUT the check (the constexpr fixed_string construction over the
+# embedded bytes dominates), 200000-300000 WITH it. So the page TUs already exceeded MSVC's
+# /constexpr:steps default of 100000 long before this check existed, and the Windows lane builds anyway —
+# meaning that default is not the binding constraint here. Adding an untested MSVC-only flag to "fix" a
+# limit the evidence says is not being hit would risk breaking configure on the one lane it targets.
+# If the Windows XAML lane ever DOES report a constexpr step limit, the fix is /constexpr:steps<N> on
+# this target and the compiler error names the flag.
