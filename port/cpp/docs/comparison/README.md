@@ -9,9 +9,9 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
 <tr><td>iOS</td><td>156</td><td>12</td><td>4</td><td>0</td><td>0</td><td>157</td><td>12</td><td>3</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>152</td><td>18</td><td>2</td><td>0</td><td>0</td><td>150</td><td>17</td><td>5</td><td>0</td><td>0</td></tr>
-<tr><td>Android</td><td>146</td><td>22</td><td>4</td><td>0</td><td>0</td><td>147</td><td>21</td><td>4</td><td>0</td><td>0</td></tr>
+<tr><td>Android</td><td>146</td><td>23</td><td>3</td><td>0</td><td>0</td><td>147</td><td>22</td><td>3</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>159</td><td>11</td><td>2</td><td>0</td><td>0</td><td>160</td><td>11</td><td>1</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>613</strong></td><td><strong>63</strong></td><td><strong>12</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>614</strong></td><td><strong>61</strong></td><td><strong>13</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>613</strong></td><td><strong>64</strong></td><td><strong>11</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>614</strong></td><td><strong>62</strong></td><td><strong>12</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -26,9 +26,9 @@ _Android **dark** is not currently comparable: the MAUI reference renders light 
 | --- | --- | --- | --- | --- | --- |
 | iOS | 86 | 50 | 18 | 18 | 0 |
 | macOS | 86 | 45 | 9 | 32 | 0 |
-| Android | 86 | 37 | 8 | 22 | 19 |
+| Android | 86 | 37 | 7 | 22 | 20 |
 | Windows | 86 | 48 | 8 | 30 | 0 |
-| **Total** | **344** | **180** | **43** | **102** | **19** |
+| **Total** | **344** | **180** | **42** | **102** | **20** |
 
 <details>
 <summary><h2>Artifact size — click to expand</h2></summary>
@@ -5596,8 +5596,8 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
 | 🟢 Match | 146 | 147 |
-| 🟡 Minor | 22 | 21 |
-| 🔴 Major | 4 | 4 |
+| 🟡 Minor | 23 | 22 |
+| 🔴 Major | 3 | 3 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -5625,15 +5625,15 @@ ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❔ INCONCLUSIVE · `phase-only` · dark INCONCLUSIVE / light PASS · <sub>run 2026-08-10-09_40_34 · 2026-08-10</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · dark FAIL / light PASS · <sub>run 2026-08-10-09_40_34 · 2026-08-10</sub>
 
-Light: MOTION 12 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10) — worst SSIM 0.9938 at frame 1 'gif01@4s/12f' (0.78% pixels differ), mean SSIM 0.9957; per-frame diff% 0.78/0.57/0.40/0.40/0.50/0.73/0.25/0.33/0.37/0.59/0.52/0.23; self-motion MAUI 1.5071% (35808 px) vs C++ 1.7104% (40640 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (1.6215% vs 1.7628% of their own frame, 8.0% apart) from a resting frame that already agreed to 0.30%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 11 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9814 at frame 8 'gif08@4s/12f' (1.41% pixels differ), mean SSIM 0.9892; per-frame diff% 0.30/0.78/1.17/1.08/0.69/0.36/0.96/1.41/0.58/0.70/0.58; self-motion MAUI 1.6215% (38528 px) vs C++ 1.7628% (41885 px)
+Light: MOTION 12 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10) — worst SSIM 0.9938 at frame 1 'gif01@4s/12f' (0.78% pixels differ), mean SSIM 0.9957; per-frame diff% 0.78/0.57/0.40/0.40/0.50/0.73/0.25/0.33/0.37/0.59/0.52/0.23; self-motion MAUI 1.5071% (35808 px) vs C++ 1.7104% (40640 px) · Dark: MOTION 11 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9814 at frame 8 'gif08@4s/12f' (1.41% pixels differ), mean SSIM 0.9892; per-frame diff% 0.30/0.78/1.17/1.08/0.69/0.36/0.96/1.41/0.58/0.70/0.58; self-motion MAUI 1.6215% (38528 px) vs C++ 1.7628% (41885 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · dark INCONCLUSIVE / light FAIL · <sub>run 2026-08-10-09_40_34 · 2026-08-10</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-10-09_40_34 · 2026-08-10</sub>
 
-Light: MOTION 12 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10) — worst SSIM 0.9917 at frame 11 'gif11@4s/12f' (1.12% pixels differ), mean SSIM 0.9949; per-frame diff% 0.68/0.49/0.40/0.41/0.49/0.85/0.35/0.46/0.54/1.04/1.12/0.25; self-motion MAUI 1.5071% (35808 px) vs C++ &amp; XAML 1.6970% (40320 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (1.6215% vs 1.7531% of their own frame, 7.5% apart) from a resting frame that already agreed to 0.33%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 11 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9813 at frame 8 'gif08@4s/12f' (1.42% pixels differ), mean SSIM 0.9890; per-frame diff% 0.33/0.87/1.19/1.08/0.70/0.36/0.96/1.42/0.59/0.66/0.60; self-motion MAUI 1.6215% (38528 px) vs C++ &amp; XAML 1.7531% (41653 px)
+Light: MOTION 12 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10) — worst SSIM 0.9917 at frame 11 'gif11@4s/12f' (1.12% pixels differ), mean SSIM 0.9949; per-frame diff% 0.68/0.49/0.40/0.41/0.49/0.85/0.35/0.46/0.54/1.04/1.12/0.25; self-motion MAUI 1.5071% (35808 px) vs C++ &amp; XAML 1.6970% (40320 px) · Dark: MOTION 11 frames paired by step (run 2026-08-10-09_40_34, commit 48e09a14fc, 2026-08-10); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9813 at frame 8 'gif08@4s/12f' (1.42% pixels differ), mean SSIM 0.9890; per-frame diff% 0.33/0.87/1.19/1.08/0.70/0.36/0.96/1.42/0.59/0.66/0.60; self-motion MAUI 1.6215% (38528 px) vs C++ &amp; XAML 1.7531% (41653 px)
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -5943,13 +5943,13 @@ Carousel Page
 
 **Motion:** ❔ INCONCLUSIVE · `phase-only` · <sub>run 2026-08-11-00_25_52 · 2026-08-11</sub>
 
-Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (2.2319% vs 2.2265% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9517 at frame 3 'gif02@4s/12f' (2.41% pixels differ), mean SSIM 0.9582; per-frame diff% 0.73/0.73/2.41/2.41/2.41/2.41/2.41/2.41/2.41/2.41; self-motion MAUI 2.2319% (53031 px) vs C++ 2.2265% (52902 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (2.2412% vs 2.2366% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9614 at frame 3 'gif02@4s/12f' (2.42% pixels differ), mean SSIM 0.9669; per-frame diff% 0.73/0.73/2.42/2.42/2.42/2.42/2.42/2.42/2.42/2.42; self-motion MAUI 2.2412% (53252 px) vs C++ 2.2366% (53142 px)
+Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (2.2319% vs 2.2265% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.72%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9517 at frame 3 'gif02@4s/12f' (2.41% pixels differ), mean SSIM 0.9582; per-frame diff% 0.73/0.73/2.41/2.41/2.41/2.41/2.41/2.41/2.41/2.41; self-motion MAUI 2.2319% (53031 px) vs C++ 2.2265% (52902 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (2.2412% vs 2.2366% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.72%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9614 at frame 3 'gif02@4s/12f' (2.42% pixels differ), mean SSIM 0.9669; per-frame diff% 0.73/0.73/2.42/2.42/2.42/2.42/2.42/2.42/2.42/2.42; self-motion MAUI 2.2412% (53252 px) vs C++ 2.2366% (53142 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
 **Motion:** ❔ INCONCLUSIVE · `phase-only` · <sub>run 2026-08-11-00_25_52 · 2026-08-11</sub>
 
-Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (2.2319% vs 2.2265% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.72%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9519 at frame 3 'gif02@4s/12f' (2.41% pixels differ), mean SSIM 0.9584; per-frame diff% 0.72/0.72/2.41/2.41/2.41/2.41/2.41/2.41/2.41/2.41; self-motion MAUI 2.2319% (53031 px) vs C++ &amp; XAML 2.2265% (52902 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (2.2412% vs 2.2263% of their own frame, 0.7% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9614 at frame 3 'gif02@4s/12f' (2.42% pixels differ), mean SSIM 0.9669; per-frame diff% 0.73/0.73/2.42/2.42/2.42/2.42/2.42/2.42/2.42/2.42; self-motion MAUI 2.2412% (53252 px) vs C++ &amp; XAML 2.2263% (52897 px)
+Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (2.2319% vs 2.2265% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.72%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9519 at frame 3 'gif02@4s/12f' (2.41% pixels differ), mean SSIM 0.9584; per-frame diff% 0.72/0.72/2.41/2.41/2.41/2.41/2.41/2.41/2.41/2.41; self-motion MAUI 2.2319% (53031 px) vs C++ &amp; XAML 2.2265% (52902 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (2.2412% vs 2.2263% of their own frame, 0.7% apart) from a resting frame that already agreed to 0.72%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 10 frames paired by step (run 2026-08-11-00_25_52, commit 6e82a6f4b7, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9614 at frame 3 'gif02@4s/12f' (2.42% pixels differ), mean SSIM 0.9669; per-frame diff% 0.73/0.73/2.42/2.42/2.42/2.42/2.42/2.42/2.42/2.42; self-motion MAUI 2.2412% (53252 px) vs C++ &amp; XAML 2.2263% (52897 px)
 
 ### 23. Chat Example — 🟢/🟢
 <sub>chat_example</sub>
@@ -6057,24 +6057,24 @@ Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and mo
 
 Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (40.8378% vs 40.7814% of their own frame, 0.1% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) — worst SSIM 0.7084 at frame 4 'gif03@4s/12f' (11.44% pixels differ), mean SSIM 0.7607; per-frame diff% 0.00/0.00/5.85/11.44/11.44/11.44/11.44/11.44/11.44/11.44/11.44/11.44/11.44; self-motion MAUI 40.8378% (970305 px) vs C++ &amp; XAML 40.7814% (968967 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (37.8776% vs 37.8693% of their own frame, 0.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) — worst SSIM 0.6887 at frame 3 'gif02@4s/12f' (13.39% pixels differ), mean SSIM 0.7799; per-frame diff% 0.00/0.00/13.39/8.09/8.09/8.09/8.09/8.09/8.09/8.09/8.09/8.09/8.09; self-motion MAUI 37.8776% (899972 px) vs C++ &amp; XAML 37.8693% (899775 px)
 
-### 29. Clip Views — 🔴/🔴
+### 29. Clip Views — 🟡/🟡
 <sub>clip_views</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/clip_views_light.gif" /></td><td><img width="300px" src="captures/android/cpp/clip_views_light.gif" /></td><td><img width="300px" src="captures/android/xaml/clip_views_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/clip_views_dark.gif" /></td><td><img width="300px" src="captures/android/cpp/clip_views_dark.gif" /></td><td><img width="300px" src="captures/android/xaml/clip_views_dark.gif" /></td></tr></table>
 
 ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipViewsGallery.xaml; no code-behind beyond an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that proves the Clip surface (VisualElement.C
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · dark FAIL / light INCONCLUSIVE · <sub>run 2026-08-11-11_56_44 · 2026-08-11</sub>
+**Motion:** ❔ INCONCLUSIVE · `phase-only` · <sub>run 2026-08-11-19_31_34 · 2026-08-11</sub>
 
-Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (7.6702% vs 7.5451% of their own frame, 1.6% apart) from a resting frame that already agreed to 0.57%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9222 at frame 2 'gif02@4s/12f' (4.29% pixels differ), mean SSIM 0.9808; per-frame diff% 0.57/4.29/1.06/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62; self-motion MAUI 7.6702% (182245 px) vs C++ 7.5451% (179272 px) · Dark: MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.8091 at frame 2 'gif02@4s/12f' (24.47% pixels differ), mean SSIM 0.9624; per-frame diff% 3.76/24.47/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64; self-motion MAUI 96.3794% (2289974 px) vs C++ 23.7959% (565391 px); !! SELF-MOTION ASYMMETRY 4x — MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why
+Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (7.6702% vs 7.5163% of their own frame, 2.0% apart) from a resting frame that already agreed to 0.57%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11) — worst SSIM 0.8788 at frame 3 'gif02@4s/12f' (8.41% pixels differ), mean SSIM 0.9784; per-frame diff% 0.57/0.58/8.41/0.63/0.63/0.63/0.63/0.63/0.62/0.62/0.62/0.62/0.62; self-motion MAUI 7.6702% (182245 px) vs C++ 7.5163% (178588 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (20.8250% vs 20.6650% of their own frame, 0.8% apart) from a resting frame that already agreed to 0.63%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11) — worst SSIM 0.9677 at frame 3 'gif02@4s/12f' (0.97% pixels differ), mean SSIM 0.9756; per-frame diff% 0.63/0.68/0.97/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.64; self-motion MAUI 20.8250% (494803 px) vs C++ 20.6650% (491000 px)
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · dark FAIL / light INCONCLUSIVE · <sub>run 2026-08-11-11_56_44 · 2026-08-11</sub>
+**Motion:** ❔ INCONCLUSIVE · `phase-only` · <sub>run 2026-08-11-19_31_34 · 2026-08-11</sub>
 
-Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (7.6702% vs 7.5163% of their own frame, 2.0% apart) from a resting frame that already agreed to 0.57%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9222 at frame 2 'gif02@4s/12f' (4.29% pixels differ), mean SSIM 0.9815; per-frame diff% 0.57/4.29/0.75/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62; self-motion MAUI 7.6702% (182245 px) vs C++ &amp; XAML 7.5163% (178588 px) · Dark: MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.8103 at frame 2 'gif02@4s/12f' (21.34% pixels differ), mean SSIM 0.9625; per-frame diff% 3.76/21.34/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64; self-motion MAUI 96.3794% (2289974 px) vs C++ &amp; XAML 23.7959% (565391 px); !! SELF-MOTION ASYMMETRY 4x — MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why
+Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (7.6702% vs 7.5163% of their own frame, 2.0% apart) from a resting frame that already agreed to 0.57%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11) — worst SSIM 0.8786 at frame 3 'gif02@4s/12f' (8.42% pixels differ), mean SSIM 0.9784; per-frame diff% 0.57/0.58/8.42/0.63/0.63/0.63/0.63/0.63/0.62/0.62/0.62/0.62/0.62; self-motion MAUI 7.6702% (182245 px) vs C++ &amp; XAML 7.5163% (178588 px) · Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both moved and moved the SAME distance (20.8250% vs 20.6650% of their own frame, 0.8% apart) from a resting frame that already agreed to 0.63%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance — measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest — so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11) — worst SSIM 0.9677 at frame 3 'gif02@4s/12f' (0.97% pixels differ), mean SSIM 0.9756; per-frame diff% 0.63/0.68/0.97/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.64; self-motion MAUI 20.8250% (494803 px) vs C++ &amp; XAML 20.6650% (491000 px)
 
 ### 30. Clipping — 🟢/🟢
 <sub>clipping</sub>
@@ -6160,7 +6160,7 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9601, 1.50% pixels differ · Dark: SSIM 0.7276, 17.19% pixels differ
+Light: SSIM 0.8279, 16.70% pixels differ · Dark: SSIM 0.7276, 17.19% pixels differ
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -6175,15 +6175,15 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-13_30_41 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-11-19_31_34 · 2026-08-11</sub>
 
-Light: MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) — worst SSIM 0.9975 at frame 1 'at-rest' (0.04% pixels differ), mean SSIM 0.9984; per-frame diff% 0.04/0.02/0.07/0.04/0.05/0.05/0.01/0.06/0.04/0.05/0.06/0.02/0.07; self-motion MAUI 0.1468% (3488 px) vs C++ 0.1553% (3691 px) · Dark: MOTION 11 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9950 at frame 1 'at-rest' (0.26% pixels differ), mean SSIM 0.9962; per-frame diff% 0.26/0.20/0.23/0.23/0.12/0.24/0.15/0.19/0.20/0.14/0.22; self-motion MAUI 0.2075% (4930 px) vs C++ 0.2382% (5659 px)
+Light: MOTION 13 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11) — worst SSIM 0.9975 at frame 9 'gif08@4s/12f' (0.22% pixels differ), mean SSIM 0.9983; per-frame diff% 0.12/0.11/0.15/0.17/0.17/0.15/0.12/0.19/0.22/0.14/0.17/0.15/0.21; self-motion MAUI 0.1657% (3938 px) vs C++ 0.1480% (3516 px) · Dark: MOTION 10 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9962 at frame 1 'gif03@4s/12f' (0.40% pixels differ), mean SSIM 0.9972; per-frame diff% 0.40/0.29/0.31/0.28/0.28/0.30/0.24/0.30/0.29/0.28; self-motion MAUI 0.1988% (4723 px) vs C++ 0.2213% (5258 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-13_30_41 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-11-19_31_34 · 2026-08-11</sub>
 
-Light: MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) — worst SSIM 0.9976 at frame 1 'at-rest' (0.04% pixels differ), mean SSIM 0.9981; per-frame diff% 0.04/0.03/0.08/0.05/0.10/0.10/0.02/0.08/0.03/0.11/0.10/0.11/0.11; self-motion MAUI 0.1468% (3488 px) vs C++ &amp; XAML 0.1582% (3759 px) · Dark: MOTION 12 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9949 at frame 2 'gif01@4s/12f' (0.27% pixels differ), mean SSIM 0.9961; per-frame diff% 0.16/0.27/0.17/0.17/0.21/0.22/0.22/0.17/0.19/0.22/0.22/0.21; self-motion MAUI 0.2075% (4930 px) vs C++ &amp; XAML 0.2135% (5073 px)
+Light: MOTION 12 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9965 at frame 2 'gif02@4s/12f' (0.24% pixels differ), mean SSIM 0.9984; per-frame diff% 0.11/0.24/0.19/0.11/0.16/0.19/0.16/0.13/0.12/0.15/0.18/0.12; self-motion MAUI 0.1657% (3938 px) vs C++ &amp; XAML 0.1488% (3535 px) · Dark: MOTION 10 frames paired by step (run 2026-08-11-19_31_34, commit f9b6d86f64, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9959 at frame 1 'at-rest' (0.35% pixels differ), mean SSIM 0.9970; per-frame diff% 0.35/0.30/0.27/0.31/0.32/0.30/0.23/0.28/0.32/0.32; self-motion MAUI 0.1988% (4723 px) vs C++ &amp; XAML 0.2364% (5616 px)
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -6273,11 +6273,11 @@ ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9956, 0.57% pixels differ · Dark: SSIM 0.9697, 0.76% pixels differ
+Light: SSIM 0.9956, 0.57% pixels differ · Dark: SSIM 0.9698, 0.75% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9956, 0.57% pixels differ · Dark: SSIM 0.9697, 0.76% pixels differ
+Light: SSIM 0.9956, 0.57% pixels differ · Dark: SSIM 0.9698, 0.75% pixels differ
 
 ### 43. Device — 🟢/🟢
 <sub>device</sub>
@@ -6469,11 +6469,11 @@ ports EmptyViewGalleries/EmptyViewSwapGallery.xaml (+ .xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9992, 0.05% pixels differ · Dark: SSIM 0.9990, 0.12% pixels differ
+Light: SSIM 0.9993, 0.05% pixels differ · Dark: SSIM 0.9994, 0.15% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9992, 0.05% pixels differ · Dark: SSIM 0.9990, 0.12% pixels differ
+Light: SSIM 0.9993, 0.05% pixels differ · Dark: SSIM 0.9994, 0.15% pixels differ
 
 ### 55. Empty View Template — 🟢/🟢
 <sub>empty_view_template</sub>
@@ -6533,11 +6533,11 @@ ports FilterCollectionView.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9921, 0.23% pixels differ · Dark: SSIM 0.9915, 0.27% pixels differ
+Light: SSIM 0.9923, 0.31% pixels differ · Dark: SSIM 0.9915, 0.27% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9994, 0.01% pixels differ · Dark: SSIM 0.9990, 0.03% pixels differ
+Light: SSIM 0.9996, 0.10% pixels differ · Dark: SSIM 0.9990, 0.03% pixels differ
 
 ### 59. Filter Selection — 🟢/🟢
 <sub>filter_selection</sub>
@@ -6856,11 +6856,11 @@ ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9986, 0.02% pixels differ · Dark: SSIM 0.9983, 0.04% pixels differ
+Light: SSIM 0.9984, 0.12% pixels differ · Dark: SSIM 0.9979, 0.18% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9986, 0.02% pixels differ · Dark: SSIM 0.9983, 0.04% pixels differ
+Light: SSIM 0.9984, 0.12% pixels differ · Dark: SSIM 0.9979, 0.18% pixels differ
 
 ### 80. Image Button — 🟢/🟢
 <sub>image_button</sub>
@@ -6916,11 +6916,11 @@ ports InputTransparentPage.xaml (Maui.Controls.Sample.Pages.InputTransparentPage
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9996, 0.05% pixels differ · Dark: SSIM 0.9998, 0.10% pixels differ
+Light: SSIM 0.9993, 0.05% pixels differ · Dark: SSIM 0.9998, 0.10% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9996, 0.05% pixels differ · Dark: SSIM 0.9998, 0.10% pixels differ
+Light: SSIM 0.9993, 0.05% pixels differ · Dark: SSIM 0.9998, 0.10% pixels differ
 
 ### 84. Invalidate Brush — 🟢/🟢
 <sub>invalidate_brush</sub>
@@ -7304,7 +7304,7 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9972, 0.15% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 108. Navigation Gallery — 🟢/🟢
 <sub>navigation_gallery</sub>
@@ -7432,7 +7432,7 @@ a self-contained demo page for the W1-06 picker set: picker, date_picker and tim
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9946, 0.21% pixels differ · Dark: SSIM 0.9944, 0.23% pixels differ
+Light: SSIM 0.9947, 0.20% pixels differ · Dark: SSIM 0.9946, 0.22% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
