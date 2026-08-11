@@ -13,13 +13,16 @@
 // VM-less cross-platform suite, so its navigation tests still observe the recipe.
 //
 // DOCUMENTED DEVIATIONS from the C# Android oracle (each an infrastructure gap, NOT a behavior guess):
-//   - No MauiWebViewClient / MauiWebChromeClient: C# installs a WebViewClient that forwards
+//   - No MauiWebViewClient SUBCLASS / no MauiWebChromeClient: C# installs a WebViewClient that forwards
 //     onPageStarted/onPageFinished/shouldOverrideUrlLoading into Navigating/Navigated and a WebChromeClient
 //     for the JS dialogs (the android analog of the WKNavigationDelegate / WKUIDelegate the apple .mm
-//     installs). Those clients are dev.mauicpp Java classes the AAR-less app_process backend does not carry
-//     yet, so the REAL native navigation callbacks (and the JS alert/confirm/prompt panels) are NOT wired —
-//     remote-URL navigation events + the JS bridge are DEFERRED. The static HtmlWebViewSource render needs
-//     none of them. The headless mirror still drives the simulated navigation channel for the unit suite.
+//     installs). Those *subclasses* are dev.mauicpp Java classes the AAR-less app_process backend does not
+//     carry yet, so the REAL native navigation CALLBACKS (and the JS alert/confirm/prompt panels) are NOT
+//     wired — remote-URL navigation EVENTS + the JS bridge are DEFERRED. The headless mirror still drives
+//     the simulated navigation channel for the unit suite.
+//     The BASE android.webkit.WebViewClient IS installed, though (create_platform_view), because that part
+//     is load-bearing for the RENDER and needs no Java class: see the k_web_view_client_class block for why
+//     a client-less WebView escapes a remote navigation to the system browser.
 //   - UserAgent: WebView's user agent is on android.webkit.WebSettings (getUserAgentString /
 //     setUserAgentString) rather than WKWebView's CustomUserAgent KVC. map_user_agent pushes a set value to
 //     WebSettings.setUserAgentString and reads the default back into the virtual view (the bidirectional
@@ -83,6 +86,7 @@ namespace
     // the android.view.View surface resolves through android/webkit/WebView too).
     constexpr const char* k_web_view_class = "android/webkit/WebView";
     constexpr const char* k_web_settings_class = "android/webkit/WebSettings";
+    constexpr const char* k_web_view_client_class = "android/webkit/WebViewClient";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
 
     // MauiWebView.AssetBaseUrl — the base url an html source with no BaseUrl falls back to.
@@ -415,6 +419,32 @@ namespace maui::core
             return platform; // WebView.<init> threw (no provider / data dir) — headless mirror it is
         }
         const local_ref<jobject> widget{env.get(), created};
+        // WebViewHandler.Android.MapWebViewClient: `SetWebViewClient(new MauiWebViewClient(handler))`. The
+        // port installs the BASE android.webkit.WebViewClient, which needs no dev.mauicpp Java class:
+        // MauiWebViewClient.ShouldOverrideUrlLoading returns NavigatingCanceled(url) — i.e. FALSE for every
+        // navigation the Navigating event does not cancel — and false is exactly what the base client
+        // returns, so the RESTING render is oracle-identical.
+        // Installing SOME client is load-bearing, not cosmetic. With NO client set, android.webkit.WebView
+        // hands any navigation it did not itself originate — notably a server redirect, e.g.
+        // https://bing.com -> https://www.bing.com/ — to the ActivityManager, which fires ACTION_VIEW and
+        // launches the SYSTEM BROWSER over the app. That is what put Chrome's first-run screen on top of the
+        // gallery for context_flyout (the page's <WebView Source="https://bing.com">), while a static
+        // HtmlWebViewSource (the web_view page) never redirects and so never escaped.
+        // Installed HERE rather than from a mapper so it is in place before map_source drives the first load.
+        jclass client_class = cache.find_class(env.get(), k_web_view_client_class);
+        jmethodID client_ctor = cache.method(env.get(), k_web_view_client_class, "<init>", "()V");
+        jmethodID set_web_view_client =
+            cache.method(env.get(), k_web_view_class, "setWebViewClient", "(Landroid/webkit/WebViewClient;)V");
+        if (client_class != nullptr && client_ctor != nullptr && set_web_view_client != nullptr)
+        {
+            const local_ref<jobject> client{env.get(), env->NewObject(client_class, client_ctor)};
+            if (!clear_pending(env.get()) && client)
+            {
+                // setWebViewClient retains the client java-side, so a local ref is right here.
+                env->CallVoidMethod(widget.get(), set_web_view_client, client.get());
+                clear_pending(env.get());
+            }
+        }
         // WebViewHandler.Android.CreatePlatformView applies EXACTLY these WebSettings and no more:
         //   Settings.JavaScriptEnabled = true; Settings.DomStorageEnabled = true;
         //   Settings.SetSupportMultipleWindows(true);
