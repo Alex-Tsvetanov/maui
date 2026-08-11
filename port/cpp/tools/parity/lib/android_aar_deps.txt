@@ -57,6 +57,14 @@ xamarin.androidx.profileinstaller.profileinstaller/aar/androidx.profileinstaller
 xamarin.androidx.emoji2/aar/androidx.emoji2.emoji2.aar
 xamarin.androidx.emoji2.viewshelper/aar/androidx.emoji2.emoji2-views-helper.aar
 xamarin.androidx.interpolator/aar/androidx.interpolator.interpolator.aar
+# swiperefreshlayout — MAUI's Android RefreshView IS AndroidX.SwipeRefreshLayout
+# (src/Core/src/Platform/Android/MauiSwipeRefreshLayout.cs:17). HERE, immediately after interpolator,
+# because those are exactly its two non-annotation dependencies (androidx.core, line 45, and
+# androidx.interpolator, the line above) and dependency order is what this file's overlay precedence
+# means. It owns resources (attr/swipeRefreshLayoutProgressSpinnerBackgroundColor +
+# styleable/SwipeRefreshLayout) so android_aar_stage.py emits it an R.java, but it collides with
+# nothing appcompat/material define, so nothing later needs to overlay it.
+xamarin.androidx.swiperefreshlayout/aar/androidx.swiperefreshlayout.swiperefreshlayout.aar
 xamarin.androidx.cursoradapter/aar/androidx.cursoradapter.cursoradapter.aar
 xamarin.androidx.customview/aar/androidx.customview.customview.aar
 xamarin.androidx.customview.poolingcontainer/aar/androidx.customview.customview-poolingcontainer.aar

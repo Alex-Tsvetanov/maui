@@ -15,6 +15,9 @@
 //
 // PLATFORM notes (documented):
 //   - iOS: a real UIRefreshControl on the hosted scroll content (the MauiRefreshView recipe).
+//   - Android: a real androidx.swiperefreshlayout.widget.SwipeRefreshLayout wrapping a MauiLayout
+//     content host (MAUI's MauiSwipeRefreshLayout), with the pull driving request_refresh() through a
+//     Java listener shim. See src/platform/android/refresh_view_handler.cpp's header.
 //   - macOS (AppKit): AppKit has NO native pull-to-refresh control, so the apple twin is a documented
 //     deviation — IsRefreshing drives a stored spinner-overlay flag (no native spinner widget); the
 //     content is hosted on a plain NSView; request_refresh() still flips IsRefreshing for parity.
@@ -38,6 +41,18 @@
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
+
+#ifdef MAUI_PLATFORM_ANDROID
+namespace maui::platform::android
+{
+    // The pull-to-refresh trampoline target the android partial owns (src/platform/android/
+    // android_refresh_ops.hpp). Forward-declared: this cross-platform header must not see the JNI seam,
+    // and a shared_ptr to an incomplete type is well-formed as long as it is only default-constructed
+    // here and destroyed in the out-of-line ~refresh_view_platform (which does see the definition) —
+    // the same shape picker_handler.hpp uses for dialog_trampoline.
+    struct refresh_trampoline;
+} // namespace maui::platform::android
+#endif
 
 namespace maui::core
 {
@@ -92,15 +107,14 @@ namespace maui::core
 #endif
 
 #ifdef MAUI_PLATFORM_ANDROID
-        // Android backend: push the generic IView properties to the real dev.mauicpp.MauiLayout refresh
-        // host (defined in src/platform/android/refresh_view_handler.cpp). The host hosts the single
-        // scrollable Content as its child — the STATIC render the gallery captures need (the live
-        // pull-to-refresh gesture + the spinner are the documented deviation: MAUI's
-        // MauiSwipeRefreshLayout : AndroidX.SwipeRefreshLayout is unavailable on this AAR-less backend,
-        // so the host is a plain MauiLayout with no pull recognizer / spinner widget; see the .cpp
-        // header). is_enabled is intentionally NOT overridden — a plain ViewGroup host has no enabled
-        // state, matching the apple/ios twins. Each override calls the view_platform_base body FIRST (the
-        // VM-less cross-platform suite observes the headless mirror), then pushes to the ViewGroup when one
+        // Android backend: `native` is a real androidx SwipeRefreshLayout (MAUI's MauiSwipeRefreshLayout)
+        // wrapping the dev.mauicpp.MauiLayout in `content_host`, which is what actually parents the single
+        // Content child — see src/platform/android/refresh_view_handler.cpp's header for why the two are
+        // nested rather than collapsed, and for the all-or-nothing fallback in which `native` is the
+        // MauiLayout itself and `content_host` stays null. is_enabled is intentionally NOT overridden —
+        // the generic IsEnabled has no ViewGroup analog here, matching the apple/ios twins (IsRefreshEnabled
+        // is what gates the pull). Each override calls the view_platform_base body FIRST (the VM-less
+        // cross-platform suite observes the headless mirror), then pushes to the native host when one
         // exists. Visibility/opacity/automation_id push directly;
         // transform/flow_direction/background/semantics push through the shared android ops. Shadow / Clip
         // / InputTransparent keep ONLY the base mirror (WrapperView-only on Android, no plain-View analog —
@@ -112,6 +126,17 @@ namespace maui::core
         void update_flow_direction(maui::core::flow_direction value) override;
         void update_background(const maui::graphics::paint* value) override;
         void update_semantics(const maui::core::semantics* value) override;
+
+        // The dev.mauicpp.MauiLayout that parents the Content (global ref), when `native` is a
+        // SwipeRefreshLayout. NULL — never aliasing `native` — on the fallback path, so the destructor's
+        // two DeleteGlobalRef calls can never double-release the same object, and so that a single null
+        // check answers "did the SwipeRefreshLayout get built?".
+        void* content_host = nullptr;
+        // The trampoline the SwipeRefreshLayout's OnRefreshListener carries as its peer. Heap-allocated and
+        // registry-registered so a pull arriving after teardown resolves to nothing instead of
+        // dereferencing freed storage (src/platform/android/android_refresh_ops.hpp). Null on the fallback
+        // path (no listener to drive).
+        std::shared_ptr<maui::platform::android::refresh_trampoline> refresh_peer;
 #endif
     };
 
@@ -124,6 +149,15 @@ namespace maui::core
         static command_mapper<i_refresh_view, refresh_view_handler>& command_mapper();
 
         static std::unique_ptr<refresh_view_platform> create_platform_view();
+
+#ifdef MAUI_PLATFORM_ANDROID
+        // ConnectHandler's `platformView.Refresh += OnSwipeRefresh` (RefreshViewHandler.Android.cs:21) —
+        // but only its LAST step. create_platform_view already built, registered and installed the whole
+        // JNI listener stack (it has to: the all-or-nothing fallback decides which host to return), so
+        // all that is left is binding the callback body, which needs the handler `this`. No JNI here, so
+        // nothing in it can fail — which is exactly why the fallible half lives in create_platform_view.
+        void on_connect_handler(refresh_view_platform& platform);
+#endif
 
         // A refresh view computes its own size through the control (which ports MeasureContent).
         [[nodiscard]] maui::graphics::size get_desired_size(double width_constraint,
