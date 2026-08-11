@@ -26,7 +26,9 @@
 #include <string>
 #include <vector>
 
+#include "maui/controls/border.hpp"
 #include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/collection_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
@@ -37,13 +39,18 @@
 #include "maui/controls/label.hpp"
 #include "maui/controls/scroll_to_position.hpp"
 #include "maui/controls/templates/data_template.hpp"
+#include "maui/core/border_handler.hpp"
 #include "maui/core/handler_registry.hpp"
 #include "maui/core/i_maui_context.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/label_handler.hpp"
 #include "maui/core/observable_collection.hpp"
 #include "maui/core/service_registry.hpp"
+#include "maui/core/text_alignment.hpp"
+#include "maui/core/thickness.hpp"
+#include "maui/graphics/colors.hpp"
 #include "maui/graphics/rect.hpp"
+#include "maui/graphics/solid_paint.hpp"
 #include "tests/support/run_loop_pump.hpp"
 #include <gtest/gtest.h>
 
@@ -469,6 +476,150 @@ namespace
         EXPECT_DOUBLE_EQ(native.origin.y, slot.y);
         EXPECT_DOUBLE_EQ(native.size.width, slot.width);
         EXPECT_DOUBLE_EQ(native.size.height, slot.height);
+        (void)window;
+    }
+
+    // ---- CarouselView paging (the AppKit flow-layout realization of LayoutFactory2.CreateCarouselLayout) ----
+
+    // The carousel twin of `rig`: 3 cards, the shape port/maui-reference/pages/carousel_page.xaml
+    // authors. A carousel_view defaults to a HORIZONTAL layout (carousel_view.cpp:30), so the page
+    // pitch is the viewport WIDTH.
+    struct carousel_rig
+    {
+        std::shared_ptr<string_collection> items; // publisher FIRST (§8)
+        test_context ctx;
+        maui::controls::carousel_view view;
+        std::shared_ptr<collection_view_handler> handler = std::make_shared<collection_view_handler>();
+
+        carousel_rig()
+            : items(std::make_shared<string_collection>(std::vector<std::string>{"Card 1", "Card 2", "Card 3"}))
+        {
+            handler->set_maui_context(&ctx);
+            view.set_items_source(items);
+            view.set_handler(handler);
+        }
+
+        NSWindow* mount(double width = 200, double height = 400) const
+        {
+            NSWindow* const window = make_host_window();
+            NSScrollView* const scroll = native_scroll(handler);
+            window.contentView = scroll;
+            [window makeKeyAndOrderFront:nil];
+            handler->native_force_layout(width, height);
+            pump_until([&] { return handler->native_visible_cell_count() > 0; });
+            return window;
+        }
+    };
+
+    // THE DEFECT this covers: with no carousel branch the flow layout sized every item at the fixed
+    // k_estimated_item_extent, so the three cards rendered as narrow vertical strips down the left edge
+    // instead of one viewport-sized page. The page must be the full viewport on the SCROLL axis (the
+    // iOS FractionalWidth(1) analog) with zero spacing, so page N starts at exactly N * page.
+    TEST(collection_view_appkit, carousel_item_is_one_full_page)
+    {
+        const carousel_rig r;
+        NSWindow* const window = r.mount(200, 400);
+        auto* layout = (NSCollectionViewFlowLayout*)native_collection_view(r.handler).collectionViewLayout;
+
+        EXPECT_EQ(layout.scrollDirection, NSCollectionViewScrollDirectionHorizontal);
+        // Scroll axis: the VIEWPORT width, not the content width (3 pages) and not the 44pt estimate.
+        EXPECT_DOUBLE_EQ(layout.itemSize.width, 200);
+        // Cross axis: the viewport height less the strict-less-than slack the flow layout demands.
+        EXPECT_GT(layout.itemSize.height, 380);
+        EXPECT_LE(layout.itemSize.height, 400);
+        // Zero gutters, so a page boundary is an exact multiple of the page.
+        EXPECT_DOUBLE_EQ(layout.minimumLineSpacing, 0);
+        EXPECT_DOUBLE_EQ(layout.minimumInteritemSpacing, 0);
+        (void)window;
+    }
+
+    // A plain CollectionView must NOT take the carousel branch (the generic flow path is what every
+    // other green page renders through).
+    TEST(collection_view_appkit, plain_collection_view_keeps_the_estimated_item_extent)
+    {
+        rig r;
+        r.view.set_items_layout(std::make_shared<linear_items_layout>(items_layout_orientation::horizontal));
+        NSWindow* const window = r.mount(200, 400);
+        auto* layout = (NSCollectionViewFlowLayout*)native_collection_view(r.handler).collectionViewLayout;
+        EXPECT_LT(layout.itemSize.width, 200); // the fixed estimate, NOT a full page
+        (void)window;
+    }
+
+    // The settled page is written back to CarouselView.Position through the SHARED seam. NOTE: the
+    // notification is posted SYNTHETICALLY — AppKit posts it only for user-driven scrolls, which no
+    // headless test (and no capture lane) can produce.
+    TEST(collection_view_appkit, settled_scroll_writes_position_back)
+    {
+        carousel_rig r;
+        NSWindow* const window = r.mount(200, 400);
+        ASSERT_EQ(r.view.position(), 0);
+
+        NSScrollView* const scroll = native_scroll(r.handler);
+        [scroll.contentView scrollToPoint:NSMakePoint(200, 0)]; // page 1
+        [scroll reflectScrolledClipView:scroll.contentView];
+        [NSNotificationCenter.defaultCenter postNotificationName:NSScrollViewDidEndLiveScrollNotification
+                                                          object:scroll];
+        pump_run_loop(0.1);
+
+        EXPECT_EQ(r.view.position(), 1);
+        EXPECT_EQ(r.view.current_item().text(), "Card 2");
+        (void)window;
+    }
+
+    // A COMPOSITE cell — a Border owning a Label, the shape both the gallery page
+    // (examples/gallery/pages/carousel_page.hpp) and the shared twin author. Only the template ROOT gets
+    // a handler from the realize step; without the descendant mount the Border hosts nothing and paints
+    // an empty box, which is exactly what the first fixed AppKit capture showed (full-viewport card, no
+    // text). The label's native NSTextField must end up inside the realized subtree.
+    TEST(collection_view_appkit, carousel_border_cell_renders_its_label)
+    {
+        struct card final : maui::controls::border
+        {
+            card()
+            {
+                set_stroke(std::make_shared<maui::graphics::solid_paint>(maui::graphics::colors::purple));
+                set_stroke_thickness(2);
+                set_padding(maui::core::thickness(16));
+                label_.set_horizontal_text_alignment(maui::core::text_alignment::center);
+                label_.set_vertical_text_alignment(maui::core::text_alignment::center);
+                set_content(label_);
+            }
+
+        protected:
+            void on_binding_context_changed() override
+            {
+                maui::controls::border::on_binding_context_changed();
+                if (const auto item = binding_context<std::string>())
+                {
+                    label_.set_text(*item);
+                }
+            }
+
+        private:
+            label label_;
+        };
+
+        const auto items = std::make_shared<string_collection>(std::vector<std::string>{"Card 1", "Card 2", "Card 3"});
+        test_context ctx;
+        ctx.handlers().register_handler<card, maui::core::border_handler>();
+        maui::controls::carousel_view view;
+        const auto handler = std::make_shared<collection_view_handler>();
+        handler->set_maui_context(&ctx);
+        view.set_item_template(maui::controls::data_template::of<card>());
+        view.set_items_source(items);
+        view.set_handler(handler);
+
+        NSWindow* const window = make_host_window();
+        window.contentView = native_scroll(handler);
+        [window makeKeyAndOrderFront:nil];
+        handler->native_force_layout(200, 400);
+        pump_until([&] { return handler->native_visible_cell_count() > 0; });
+        handler->native_force_layout(480, 700); // re-layout at the page's real geometry (the app's order)
+        pump_run_loop(0.2);
+
+        // The cell's displayed text comes from the first NSTextField in the realized subtree — empty
+        // means the Border's Label never made it into the cell at all.
+        EXPECT_EQ(handler->native_cell_text(maui::controls::index_path{.section = 0, .item = 0}), "Card 1");
         (void)window;
     }
 } // namespace

@@ -27,17 +27,50 @@
 // semantics are faithful. The cross-platform simulator (collection_view_handler.cpp) still runs as the
 // in-memory state mirror on this backend; these natives are what the apple seam suite asserts against.
 //
+// DOCUMENTED DEVIATION — the CarouselView (there is no MAUI AppKit CarouselView to copy; MAUI's macOS
+// IS Mac Catalyst/UIKit, so the CONTRACT comes from the cross-platform CarouselView plus the iOS
+// handler's behaviour, and this is its AppKit realisation):
+//   * MIRRORED from iOS (src/platform/ios/collection_view_handler.mm build_compositional_layout, the
+//     LayoutFactory2.CreateCarouselLayout port): a carousel PAGES — one item per page filling the
+//     viewport on BOTH axes, detected by `dynamic_cast<carousel_view*>` (the same predicate the iOS
+//     layout factory and the scroll writeback use), so the generic flow path is untouched. iOS spells
+//     that FractionalWidth(1)/FractionalHeight(1); the flow layout has no fractional dimension, so the
+//     port sets itemSize from the mapped VIEWPORT extent and zeroes the item/line spacing, which puts
+//     every page boundary on an exact multiple of the page.
+//   * MIRRORED from iOS: the settled page is written back through the SHARED seam
+//     collection_view_handler::set_position_from_scroll (which owns the carousel-only guard, the
+//     empty-source guard, the initial-position gate and the suppress gate) — never reimplemented here.
+//   * WHAT APPKIT CANNOT DO (1) — a deceleration-end callback. UIKit's scrollViewDidEndDecelerating has
+//     no AppKit analog: NSScrollView posts NSScrollViewDidEndLiveScrollNotification at the END OF LIVE
+//     TRACKING (fingers up), and momentum may carry past it (NSScrollView.h:156-158). The port writes
+//     back on that notification only. A drag/wheel/scroller settle therefore lands exactly; a
+//     momentum-carried page lands on the next settle. Writing back on every didLiveScroll instead would
+//     be WRONG, not merely chatty: carousel_view::raise_position_changed re-issues ScrollTo(center), so
+//     a mid-drag writeback would programmatically fight the user's live scroll.
+//   * WHAT APPKIT CANNOT DO (2) — a guaranteed snap. AppKit's ONLY declared snap seam is
+//     -[NSCollectionViewLayout targetContentOffsetForProposedContentOffset:withScrollingVelocity:]
+//     ("for layouts that want snap-to-point scrolling behavior", NSCollectionViewLayout.h:145).
+//     MauiCarouselFlowLayout below implements it — the platform's own mechanism, not an invented one —
+//     but nothing in AppKit documents that NSScrollView consults it for user-driven momentum (macOS
+//     deceleration lives in NSScrollView, which has no UIScrollView-style deceleration-target
+//     protocol), and it is UNVERIFIED on device: exercising it needs a real momentum gesture, which the
+//     capture lane cannot synthesise. No timer/debounce "snap" is faked in its place.
+//
 // Obj-C++ with ARC. The platform struct's native slots are __bridge_retained voids released in the
 // backend-defined destructor.
 
 #import <AppKit/AppKit.h>
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include "maui/controls/element.hpp"
 #include "maui/controls/items/boxed_item.hpp"
+#include "maui/controls/items/carousel_view.hpp"
 #include "maui/controls/items/collection_view_handler.hpp"
 #include "maui/controls/items/grid_items_layout.hpp"
 #include "maui/controls/items/groupable_items_view.hpp"
@@ -59,6 +92,7 @@
 #include "maui/core/i_maui_context.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/type_tag.hpp"
 #include "maui/graphics/rect.hpp"
 
 namespace
@@ -258,6 +292,41 @@ namespace
 }
 @end
 
+// ---- the carousel paging layout (used ONLY on the carousel branch of build_flow_layout) ----
+// The flow layout the carousel pages with. Identical to NSCollectionViewFlowLayout except that it
+// implements AppKit's declared snap seam, -targetContentOffsetForProposedContentOffset:
+// withScrollingVelocity: ("return a point at which to rest after scrolling - for layouts that want
+// snap-to-point scrolling behavior", NSCollectionViewLayout.h:145) — the closest AppKit gets to the
+// Android PagerSnapHelper / UICollectionView paging. The page pitch is itemSize on the scroll axis,
+// which is exact because the carousel branch zeroes the line/interitem spacing and the section inset.
+// See the file header: whether AppKit actually consults this for user-driven momentum is UNVERIFIED.
+@interface MauiCarouselFlowLayout : NSCollectionViewFlowLayout
+@end
+
+@implementation MauiCarouselFlowLayout
+- (NSPoint)targetContentOffsetForProposedContentOffset:(NSPoint)proposedContentOffset
+                                 withScrollingVelocity:(NSPoint)velocity
+{
+    (void)velocity; // the carousel snaps to the NEAREST page, not a velocity-projected one
+    const BOOL horizontal = self.scrollDirection == NSCollectionViewScrollDirectionHorizontal;
+    const CGFloat page = horizontal ? self.itemSize.width : self.itemSize.height;
+    if (page < 1)
+    {
+        return proposedContentOffset; // degenerate page extent (unsized viewport) — leave the offset be
+    }
+    NSPoint snapped = proposedContentOffset;
+    if (horizontal)
+    {
+        snapped.x = std::round(proposedContentOffset.x / page) * page;
+    }
+    else
+    {
+        snapped.y = std::round(proposedContentOffset.y / page) * page;
+    }
+    return snapped;
+}
+@end
+
 // ---- the empty-view host marker (NSView.tag is read-only, unlike UIView.tag, so the empty host is
 //      a distinct subclass the test/teardown locates by class — the C# EmptyTag analog) ----
 @interface MauiCollectionEmptyHostView : NSView
@@ -285,6 +354,10 @@ namespace maui::controls
 // Every distinct item instance the recycler has ever vended (by pointer): the apple seam suite checks
 // this stays bounded under scroll while the visible-item paths sweep the whole source.
 @property(nonatomic, strong) NSMutableSet<NSValue*>* seenItemPointers;
+// The end-of-live-scroll settle — the AppKit stand-in for the iOS controller's
+// scrollViewDidEndDecelerating (see the file header's carousel deviation). Resolves the settled page and
+// hands it to the SHARED collection_view_handler::set_position_from_scroll, which owns every guard.
+- (void)scrollViewDidEndLiveScroll:(NSNotification*)notification;
 @end
 
 namespace maui::controls
@@ -347,9 +420,18 @@ namespace maui::controls
             const bool horizontal =
                 platform != nullptr && platform->orientation == items_layout_orientation::horizontal;
             const int span = platform != nullptr ? std::max(1, platform->span) : 1;
-            const CGFloat item_spacing = platform != nullptr ? static_cast<CGFloat>(platform->item_spacing) : 0;
+            // A CAROUSEL pages: one item per page filling the viewport (the iOS
+            // FractionalWidth(1)/FractionalHeight(1) shape — see the file header). Detected by the same
+            // dynamic_cast predicate iOS uses, so nothing here changes for a plain CollectionView.
+            const bool is_carousel = dynamic_cast<carousel_view*>(handler.virtual_view()) != nullptr;
+            // Zero spacing on a carousel so a page boundary lands on an exact multiple of the page
+            // (MauiCarouselFlowLayout's snap arithmetic depends on that, and MAUI's carousel has no
+            // inter-page gutter — the iOS layout gets its pitch from the full-viewport group).
+            const CGFloat item_spacing =
+                (platform != nullptr && !is_carousel) ? static_cast<CGFloat>(platform->item_spacing) : 0;
 
-            NSCollectionViewFlowLayout* const layout = [[NSCollectionViewFlowLayout alloc] init];
+            NSCollectionViewFlowLayout* const layout =
+                is_carousel ? [[MauiCarouselFlowLayout alloc] init] : [[NSCollectionViewFlowLayout alloc] init];
             layout.scrollDirection =
                 horizontal ? NSCollectionViewScrollDirectionHorizontal : NSCollectionViewScrollDirectionVertical;
             layout.minimumLineSpacing = item_spacing;
@@ -375,8 +457,20 @@ namespace maui::controls
             constexpr CGFloat k_cross_margin = 4; // comfortable strict-less-than slack
             const CGFloat available = std::max<CGFloat>(1, cross - k_cross_margin - (item_spacing * (span - 1)));
             const CGFloat per = std::max<CGFloat>(1, available / span);
-            layout.itemSize =
-                horizontal ? NSMakeSize(k_estimated_item_extent, per) : NSMakeSize(per, k_estimated_item_extent);
+            // The SCROLL-axis extent. A plain CollectionView flows items at the fixed estimate; a
+            // carousel's item IS the page, so it takes the whole mapped viewport on the scroll axis.
+            // The MIRROR is the only honest source here: the live NSCollectionView is the scroll view's
+            // DOCUMENT view, whose scroll-axis bounds is the CONTENT extent (all pages), not the
+            // viewport — reading it would grow the page by a factor of the item count on every rebuild.
+            // (The cross axis keeps the k_cross_margin slack the generic path reserves: AppKit requires
+            // the item cross-extent to be STRICTLY less than the collection's, so a page is 4pt short of
+            // the viewport across — the flow layout's price for the deviation.)
+            const CGFloat main =
+                is_carousel
+                    ? std::max<CGFloat>(1, static_cast<CGFloat>(platform != nullptr ? platform->viewport_main_extent
+                                                                                    : k_estimated_item_extent))
+                    : k_estimated_item_extent;
+            layout.itemSize = horizontal ? NSMakeSize(main, per) : NSMakeSize(per, main);
 
             // Section header/footer span the cross axis, reserving the same margin as items so the flow
             // layout never reports the boundary supplementary exceeding the collection width.
@@ -415,6 +509,46 @@ namespace maui::controls
             return candidate;
         }
 
+        // On-demand mount of a realized template's DESCENDANTS. A composite cell (the carousel's Border
+        // owning a Label, cv_visual_states' line_item_cell, HeaderFooterTemplate's Grid+Image+Label)
+        // gets only its TOP-LEVEL handler attached below; its children are not logical children of the
+        // page tree, so the page-level mount (app_host::mount_tree) never builds their native views and
+        // the composite renders as an EMPTY container — the AppKit carousel's blank card. Straight port
+        // of the iOS ensure_mounted (src/platform/ios/collection_view_handler.mm:873, itself the Android
+        // twin), and it mirrors app_host::mount_tree exactly: depth-first POST-ORDER (each child's
+        // native view exists before its parent hosts it), attach by the element's runtime
+        // handler_type_tag with SetMauiContext before SetVirtualView (the C# order), then re-fire the
+        // container host command so the now-attached children are hosted. Idempotent — an element that
+        // already carries a handler is skipped, since re-attaching would rebuild and orphan its native
+        // view. A leaf template (a bare Label) has no children, so this is a cheap no-op there.
+        void ensure_mounted(maui::core::i_maui_context* context, maui::controls::element& root)
+        {
+            if (context == nullptr)
+            {
+                return;
+            }
+            root.visit_logical_children([context](maui::controls::element& child) { ensure_mounted(context, child); });
+
+            auto* element_face = dynamic_cast<maui::core::i_element*>(&root);
+            if (element_face == nullptr)
+            {
+                return;
+            }
+            if (!element_face->handler()) // skip an already-mounted element (idempotent re-mount guard)
+            {
+                if (const std::optional<maui::core::type_tag> tag = root.handler_type_tag(); tag.has_value())
+                {
+                    if (std::shared_ptr<maui::core::i_element_handler> handler =
+                            context->handlers().create_handler(*tag))
+                    {
+                        handler->set_maui_context(context);            // SetMauiContext precedes SetVirtualView (C#)
+                        element_face->set_handler(std::move(handler)); // the view owns its handler (PROFILE §11)
+                    }
+                }
+            }
+            root.mount_into_handler(); // re-host the (now-attached) children's native views
+        }
+
         // Realize a type-activated template's content into a native NSView (the C# TemplatedCell2.Bind:
         // `CreateContent(...) as View` → set BindingContext → `view.ToPlatform(mauiContext)`). Returns the
         // realized content (which OWNS its attached handler + native view — the caller keeps it alive for
@@ -449,6 +583,13 @@ namespace maui::controls
             }
             child_handler->set_maui_context(context);
             element->set_handler(child_handler); // creates the platform view + runs the mapper
+
+            // Build the composite template's own children on demand (see ensure_mounted above) — without
+            // this a Border/Grid cell hosts nothing and paints an empty box.
+            if (auto* content_element = dynamic_cast<maui::controls::element*>(content.get()))
+            {
+                ensure_mounted(context, *content_element);
+            }
 
             if (auto* view_handler = dynamic_cast<maui::core::i_view_handler*>(child_handler.get()))
             {
@@ -708,6 +849,11 @@ namespace maui::controls
         // view has the new bounds, rebuild once more so the item cross-extent matches exactly.
         native_rebuild_layout();
         [collection_view layoutSubtreeIfNeeded];
+        // C# CarouselViewController2.UpdateInitialPosition flips InitialPositionSet true once the view is
+        // loaded and laid out; this layout pass is the port's analog (the same site the iOS partial uses,
+        // native_force_layout). After it, scroll-end settles are allowed to write Position back
+        // (set_position_from_scroll's initial_position_set_ guard).
+        mark_initial_position_set();
         return static_cast<int>(collection_view.visibleItems.count);
     }
 
@@ -893,6 +1039,15 @@ namespace maui::controls
         MauiCollectionDataSource* const source = [[MauiCollectionDataSource alloc] init];
         source.seenItemPointers = [NSMutableSet set];
         // The back-pointer is wired in on_connect_handler (create_platform_view is static).
+        // The carousel's settled-page writeback (see the file header): registered HERE, exactly once per
+        // platform view, because this is the only site that owns both objects and runs once — the
+        // observer reads the handler back-pointer at fire time, so it does not need it yet. The gate is
+        // in the callback (carousel only), never in the registration: an items_layout can change under
+        // the mappers, and a plain CollectionView's callback is a single dynamic_cast that returns.
+        [[NSNotificationCenter defaultCenter] addObserver:source
+                                                 selector:@selector(scrollViewDidEndLiveScroll:)
+                                                     name:NSScrollViewDidEndLiveScrollNotification
+                                                   object:scroll];
 
         platform->scroll = (__bridge_retained void*)scroll;
         platform->data_source = (__bridge_retained void*)source;
@@ -907,6 +1062,13 @@ namespace maui::controls
 
 // ---- the data source + delegate implementation (reads through the C++ handler) ----
 @implementation MauiCollectionDataSource
+
+- (void)dealloc
+{
+    // Drop the live-scroll observer registered in create_platform_view (deterministic teardown — the
+    // §8 doctrine; NSNotificationCenter's zeroing-weak observers would tolerate it, house style does not).
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
 
 - (maui::controls::collection_view_handler*)handler
 {
@@ -1044,6 +1206,51 @@ namespace maui::controls
         handler->simulate_deselect(maui::controls::index_path{.section = static_cast<int>(indexPath.section),
                                                               .item = static_cast<int>(indexPath.item)});
     }
+}
+
+// ---- carousel settled-page writeback (the AppKit scroll seam) ----
+//
+// The iOS twin is the controller's scrollViewDidEndDecelerating → writeBackCenteredPosition
+// (src/platform/ios/collection_view_handler.mm). AppKit has no deceleration-end callback, so the port
+// settles on NSScrollViewDidEndLiveScrollNotification — see the file header's carousel deviation for
+// what that costs (momentum) and why writing back mid-scroll would be wrong rather than merely chatty.
+//
+// The settled PAGE is the offset in page units: the carousel branch of build_flow_layout makes the page
+// pitch exactly itemSize on the scroll axis (zero spacing, zero section inset), so this needs no
+// per-item layout-attribute sweep — unlike iOS, whose compositional pages carry the peek insets.
+// EVERY guard (carousel-only, empty source, initial position, range, the batch-update suppress) lives
+// in the shared set_position_from_scroll; nothing is re-implemented here.
+- (void)scrollViewDidEndLiveScroll:(NSNotification*)notification
+{
+    auto* handler = [self handler];
+    if (handler == nullptr || handler->typed_platform_view() == nullptr ||
+        dynamic_cast<maui::controls::carousel_view*>(handler->virtual_view()) == nullptr)
+    {
+        return; // only the carousel writes scroll position back; a plain collection does not
+    }
+    NSScrollView* const scroll = (NSScrollView*)notification.object;
+    if (![scroll isKindOfClass:[NSScrollView class]])
+    {
+        return;
+    }
+    NSCollectionViewFlowLayout* const layout =
+        (NSCollectionViewFlowLayout*)((NSCollectionView*)scroll.documentView).collectionViewLayout;
+    if (![layout isKindOfClass:[NSCollectionViewFlowLayout class]])
+    {
+        return;
+    }
+    const BOOL horizontal =
+        handler->typed_platform_view()->orientation == maui::controls::items_layout_orientation::horizontal;
+    const CGFloat page = horizontal ? layout.itemSize.width : layout.itemSize.height;
+    if (page < 1)
+    {
+        return; // degenerate page extent (viewport never sized) — no page to resolve
+    }
+    // NSCollectionView is flipped, so the document-visible origin grows with the item ordinal on both
+    // axes; the nearest page to the settled origin is the item now on screen.
+    const NSRect visible = scroll.documentVisibleRect;
+    const CGFloat offset = horizontal ? NSMinX(visible) : NSMinY(visible);
+    handler->set_position_from_scroll(static_cast<int>(std::lround(offset / page)));
 }
 
 @end
