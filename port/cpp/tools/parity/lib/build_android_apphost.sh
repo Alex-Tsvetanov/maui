@@ -359,6 +359,28 @@ capture_one() {
   # a pure capture race that was contributing 43-79% of the pixel diff on clip / hit_testing / the pickers.
   # Measured on the emulator: the bar is still faintly present at 1.5s and completely gone by 4s.
   sleep 4
+  # ASSERT WHAT IS ACTUALLY ON SCREEN, after the settle and before the shutter. Twin of the guard in
+  # build_android_apphost_xaml.sh; see that file for the full incident.
+  #
+  # Short version, because this column has not been bitten YET and that is the only difference:
+  # `wait_displayed` above proves the app CAME UP and says nothing about 4 seconds later, and its
+  # failure path literally says "capturing anyway". In the xaml column that combination banked 20
+  # committed PNGs of CHROME — a WebView escaped to an ACTION_VIEW intent and a browser covered the
+  # gallery — and a later rerun banked the LAUNCHER on the same pages, because the app was crashing.
+  # Both were invisible: the lane wrote a foreign window as the port's render and said nothing.
+  # Nothing about that mechanism is xaml-specific; only the page set was.
+  #
+  # Matched against this emulator's REAL dumpsys wording: API 34 prints `topResumedActivity=` /
+  # `ResumedActivity:` and never `mResumedActivity`, the field name every guide greps for — a check
+  # written from that name matches nothing and passes silently forever.
+  _fg="$("${maui_adb}" -s "${maui_serial}" shell dumpsys activity activities 2>/dev/null \
+        | sed -n 's/.*[Rr]esumedActivity[=:][^u]*u[0-9][0-9]* \([A-Za-z0-9_.]*\)\/.*/\1/p' | head -1)"
+  if [[ -n "${_fg}" && "${_fg}" != "${pkg}" ]]; then
+    # DROP the frame. A missing capture is a loud fixable gap; a wrong one scores as a port defect.
+    echo "[apphost] !! ${key}${suffix}: foreground is ${_fg}, expected ${pkg} — frame DROPPED" >&2
+    echo "@@PARITY END ${key} cpp ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   echo "@@PARITY END ${key} cpp ${appearance} $((SECONDS - _parity_t0))"
   echo "[apphost] wrote ${out_dir}/${key}${suffix}.png" >&2
