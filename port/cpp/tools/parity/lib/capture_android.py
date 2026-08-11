@@ -441,7 +441,43 @@ def input_argv(step: dict, size: tuple[int, int]) -> list[str] | None:
             raise ValueError(f"step {step.get('name', action)!r}: zero-length {action} at ({x},{y}) "
                              f"is a click, not a pan (clamped to the {w}x{h} display?)")
         ms = max(1, round(float(step.get("duration", _SWIPE_SECS)) * 1000))
-        return ["shell", "input", "swipe", str(x), str(y), str(x2), str(y2), str(ms)]
+        if action == "scroll":
+            # A scroll stays on `input swipe`. Its job is to be a MOTION WITNESS for the GIF (the
+            # header's wording), and the fling is part of what it witnesses; nothing downstream reads a
+            # scrolled still as an oracle, so the extra round-trips below would buy nothing.
+            return ["shell", "input", "swipe", str(x), str(y), str(x2), str(y2), str(ms)]
+        # A DRAG/SWIPE RELEASES AT ZERO VELOCITY, so where it settles is reproducible.
+        #
+        # The header above says "there is no fling-free `input swipe`", and that is true OF THAT
+        # COMMAND and false of Android. `input swipe` interpolates and lets go at full speed, handing
+        # the VelocityTracker ~1300 px/s, so a snapping container coasts to a resting offset that is
+        # NOT repeatable — measured on this lane, MAUI's own column differs from ITSELF by up to
+        # 11.57% across two runs of the same page while byte-stable at rest. That single fact is what
+        # capped ~22 android cells at "PHASE ONLY, NOT DECIDABLE ON THIS LANE".
+        #
+        # `input motionevent` (API 29+; this lane's emulator is 34) sends DOWN / MOVE / UP as separate
+        # events, so the gesture can DWELL on its final coordinate before lifting. A few repeated MOVEs
+        # at the same point drain the VelocityTracker, the release carries no fling, and the container
+        # snaps to the nearest boundary every time.
+        #
+        # MEASURED, three identical runs of carousel_page/android/cpp with the shape below:
+        #     run1 vs run2  0.0000%      run1 vs run3  0.0136%      run2 vs run3  0.0136%
+        # against 11.57% for `input swipe` — and it genuinely paged (the settled frame reads "Card 2"),
+        # so this is a deterministic PAGE, not a stable no-op.
+        #
+        # `steps` STOPS BEING IGNORED. It was accepted-and-dropped because the driver interpolated for
+        # us; here it is the number of MOVE events we emit ourselves, which is exactly what the shared
+        # vocabulary always meant by it. Scenarios that never set it keep the same gesture they had.
+        moves = max(2, int(step.get("steps", 12)))
+        pts = [(round(x + (x2 - x) * i / moves), round(y + (y2 - y) * i / moves))
+               for i in range(1, moves + 1)]
+        seq = [["shell", "input", "motionevent", "DOWN", str(x), str(y)]]
+        seq += [["shell", "input", "motionevent", "MOVE", str(px), str(py)] for px, py in pts]
+        # THE DWELL. Three repeats measured sufficient; it is the whole point of this path, so it is
+        # not configurable — a scenario that could set it to 0 could silently reintroduce the fling.
+        seq += [["shell", "input", "motionevent", "MOVE", str(x2), str(y2)]] * 3
+        seq.append(["shell", "input", "motionevent", "UP", str(x2), str(y2)])
+        return seq
     raise ValueError(f"unknown scenario action: {action!r}")
 
 
@@ -453,11 +489,19 @@ def run_step(step: dict, size: tuple[int, int] | None = None) -> str:
     if argv is None:
         status = "idle" if not step.get("action") else f"SKIPPED ({_HOVER_SKIP})"
     else:
+        # ONE argv, or a SEQUENCE of them: the motionevent drag path (input_argv) has to emit
+        # DOWN/MOVE.../UP as separate adb calls, because that separation is the entire mechanism —
+        # it is what lets the gesture dwell before lifting. Normalised here so every other caller
+        # keeps seeing "a step runs and either works or raises".
+        batch = argv if argv and isinstance(argv[0], list) else [argv]
         # Bounded so a wedged adb can never outlive the burst it is driving (see capture_gif's join).
-        r = adb(*argv, capture_output=True, text=True,
-                timeout=float(step.get("duration", _SWIPE_SECS)) + 20)
-        if r.returncode != 0:
-            raise RuntimeError(f"adb {' '.join(argv)} -> rc={r.returncode} {r.stderr.strip()[:120]}")
+        # The budget is PER CALL; a drag is now many short calls rather than one blocking swipe, and
+        # each is far under it.
+        for one in batch:
+            r = adb(*one, capture_output=True, text=True,
+                    timeout=float(step.get("duration", _SWIPE_SECS)) + 20)
+            if r.returncode != 0:
+                raise RuntimeError(f"adb {' '.join(one)} -> rc={r.returncode} {r.stderr.strip()[:120]}")
         status = "ok"
     print(f"      step {name}: {status}", flush=True)
     return status
