@@ -258,6 +258,53 @@ def _wait_ready(pkg: str) -> None:
         time.sleep(0.25)
 
 
+def foreground_package() -> str:
+    """The package owning the RESUMED activity, or "" if the device would not say.
+
+    Returning "" on an unreadable dumpsys is deliberate: the caller treats it as "cannot assert" and
+    proceeds, because a guard that fails CLOSED on a parsing quirk would wedge the whole lane. The
+    failure this exists to catch is loud and unambiguous — a DIFFERENT package in front — not a
+    missing reading."""
+    out = adb("shell", "dumpsys", "activity", "activities", capture_output=True, text=True).stdout or ""
+    # MEASURED against this emulator's real output rather than the documented spelling, because the
+    # documented spelling does not appear on it. API 34 prints BOTH of:
+    #     topResumedActivity=ActivityRecord{1f1c698 u0 dev.mauicpp.apphost.xaml/.MauiHostActivity …}
+    #       ResumedActivity: ActivityRecord{1f1c698 u0 dev.mauicpp.apphost.xaml/.MauiHostActivity …}
+    # and NEITHER is `mResumedActivity`, the field name every guide greps for — a regex written from
+    # that name matches nothing, returns "", and leaves this guard permanently inert while looking
+    # correct. (`cmd activity get-foreground-activity` does not exist here either.) So match the
+    # optional `top` prefix and either separator, and anchor on the `uN ` that precedes the package.
+    m = re.search(r"(?:top)?ResumedActivity[=:][^\n]*?\bu\d+\s+([A-Za-z0-9_.]+)/", out)
+    return m.group(1) if m else ""
+
+
+def assert_foreground(pkg: str, where: str) -> None:
+    """Refuse to bank a frame when `pkg` is not the app on screen.
+
+    WHY THIS EXISTS, measured 2026-08-11. The port's Android WebView had no WebViewClient, so
+    context_flyout's `<WebView Source="https://bing.com">` handed its redirect to the ActivityManager,
+    which fired ACTION_VIEW and launched CHROME over the gallery. Chrome then stayed foreground, and
+    every page captured after it in that column recorded Chrome's first-run interstitial instead of the
+    app: 20 files (the light+dark pairs of ten gap_* pages) were committed to the board showing a
+    FOREIGN APP, byte-identical to each other, and they read as port bugs to any reviewer.
+    Ten of them were still 100% identical to that Chrome frame when this guard was written.
+
+    The handler bug is fixed, but that is not what makes this a lane defect. The lane ACCEPTED a
+    foreign window silently and banked it as the port's render — the same failure family as every other
+    fabricated capture this board has produced (a month-stale MauiReference, a --skip-build freeze,
+    mid-edit binaries). A capture is only evidence of the app that was actually on screen, and until
+    now nothing checked which app that was.
+
+    Raises rather than returning a flag: the caller's contract is "a step runs or it raises", and a
+    dropped frame is always better than a wrong one that scores."""
+    fg = foreground_package()
+    if fg and fg != pkg:
+        raise RuntimeError(
+            f"{where}: foreground is {fg!r}, expected {pkg!r} — refusing to capture another app's "
+            f"window. If a page navigated away (a WebView escaping to a browser is the known cause), "
+            f"fix that rather than relaxing this check")
+
+
 ANIM_KEYS = ("window_animation_scale", "transition_animation_scale", "animator_duration_scale")
 
 
@@ -562,6 +609,11 @@ def capture_gif(app: str, key: str, theme: str, secs: float = 4.0, settle: float
     adb("shell", "am", "broadcast", "-a", "android.intent.action.CLOSE_SYSTEM_DIALOGS",
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(settle)
+    # AFTER the settle, not before it. _wait_ready returns on the `Displayed` logcat marker, which
+    # says the app DID come up — it cannot say the app is still in front once the page has run for
+    # `settle` seconds, and that gap is exactly where a page navigating away (Chrome, over the
+    # gallery) put a foreign window on screen. Assert what is actually being photographed.
+    assert_foreground(pkg, f"{app}/{key}/{theme}")
 
     # A BURST OF STILLS, not `screenrecord`. On this emulator screenrecord returns an mp4 carrying a
     # single frame with no timebase at all (r_frame_rate=1/0, duration=0), which ffmpeg's fps filter
