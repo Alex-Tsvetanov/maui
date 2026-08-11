@@ -376,6 +376,22 @@ def _align(pairs, crop_top: int):
     the WRONG ORDER score as well as one that matches, which is the property this board exists to catch.
     The offset is chosen on the cheap changed-pixel metric (no SSIM in the search) and reported, so a
     reader can see how far the columns drifted rather than infer it.
+
+    AND THE OFFSET MUST NOT DISCARD THE SEQUENCE. That guarantee — wrong order cannot score as well as
+    right order — is only worth anything while the frames the offset KEEPS outnumber the ones it throws
+    away. A shift of `s` keeps exactly `len(pairs) - |s|`, so on a SHORT sequence the ±3 window is a
+    licence to be judged on a hand-picked minority: at 5 frames an offset of -3 keeps 2, and a port that
+    moves and then springs back (MAUI 10,70,70,70,70 vs port 10,70,10,10,10) is scored on the two frames
+    where it happens to agree. The old floor could not catch that. `len(pairs) - MAX_PHASE_SHIFT` is
+    satisfied BY CONSTRUCTION at every length — `|off| <= MAX_PHASE_SHIFT` already bounds the discard —
+    so the guard only ever said "keep 2", at 12 frames and at 4 alike.
+
+    THE 3/5 IS DERIVED, NOT TASTE. MAX_PHASE_SHIFT was calibrated on the 12-frame burst, where ±3
+    discards 25%; a keep-fraction must therefore leave that window fully intact wherever the calibration
+    applies and bind only BELOW it. Keeping ±3 legal at 8 frames needs a fraction <= 5/8; refusing a
+    3-of-7 discard needs > 4/7; 3/5 is the round number in (4/7, 5/8]. Max |off| becomes 0,1,1,2,2,2,3
+    at lengths 2..8 and stays 3 for every longer sequence: the 12- and 13-frame bursts are untouched,
+    2-frame step-paired lanes were already pinned to 0, and only the 4..7 band tightens.
     """
     if len(pairs) < 2:
         return pairs, 0
@@ -383,7 +399,7 @@ def _align(pairs, crop_top: int):
     for off in range(-MAX_PHASE_SHIFT, MAX_PHASE_SHIFT + 1):
         overlap = [(pairs[i][0], pairs[i][1], pairs[i + off][2])
                    for i in range(len(pairs)) if 0 <= i + off < len(pairs)]
-        if len(overlap) < max(2, len(pairs) - MAX_PHASE_SHIFT):
+        if len(overlap) < max(2, (3 * len(pairs) + 4) // 5):   # (3L+4)//5 == ceil(0.6 * L)
             continue                     # too little left to judge: a shift that discards the sequence
         cost = sum(_changed(a, b, crop_top)[0] for _s, a, b in overlap) / len(overlap)
         if best is None or cost < best[0]:
@@ -689,6 +705,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
                            f"NO step name occurs in both, so nothing can be paired — a comparison by "
                            f"frame index would be a guess. Re-capture this page"))
 
+    # THE UNSHIFTED FIRST PAIR, captured because the next line REBINDS `pairs`. The phase gate's third
+    # clause needs the one reading _align did not touch — see at_rest_diff below for why that matters.
+    rest_pair = pairs[0]
     # PHASE-INVARIANT: shift column B by the offset that makes the sequences agree best before scoring.
     # A sampling drift is a shift, not a defect; see _align for the measurements that forced this.
     pairs, phase_shift = _align(pairs, crop_top)
@@ -807,7 +826,24 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # graded from SSIM, because the SSIM is 1.0 — it has to be its own verdict.
     both_frozen = m_frozen and o_frozen
     # See the PHASE_* block: both moved, by the same amount, from an already-matching resting frame.
-    at_rest_diff = scores[0]["diff_pct"] if scores else 100.0
+    # FROM `rest_pair`, NOT `scores[0]` — and the difference IS the clause. `pairs` was rebound by
+    # _align above, so on a NONZERO offset `scores[0]` is (maui[max(0,-off)], other[max(0,off)]): one
+    # column has had its head dropped, and the two frames being compared are from different moments.
+    # That is not an at-rest reading at all.
+    #
+    # It also failed in the direction that FORGIVES. _align CHOOSES the offset that minimises mean
+    # changed-pixel cost, so `scores[0]` is a minimised quantity — the gate was asking the aligner to
+    # grade its own work, and a port whose RESTING layout is wrong got that error shifted out of the
+    # comparison. This clause is the one the PHASE_* block above calls "what keeps it honest"; it can
+    # only do that from a reading independent of the alignment.
+    #
+    # MEASURED on the 2026-08-11 android board: 10 of 170 theme-readings carry a nonzero offset, and
+    # exactly one changes verdict — activity_indicator/dark reads 0.30% aligned against 1.29%
+    # unshifted, where MAUI's OWN frame0->frame1 self-change is 1.28%, i.e. one sample of spinner
+    # rotation. Zero cells change colour, and the sweep over all 75 nonzero-offset readings loosens
+    # NONE. `_compare` rather than `_changed` deliberately: it is the same function `scores` is built
+    # from, so on every zero-offset cell this is bit-identical to what the old line produced.
+    at_rest_diff = _compare(rest_pair[1], rest_pair[2], crop_top)["diff_pct"]
     widest = max(move_m, move_o)
     spread = abs(move_m - move_o) / widest if widest > 0 else 1.0
     # The board's OWN green bar, imported rather than restated. This used to be two module constants
@@ -1260,6 +1296,39 @@ def _selftest() -> int:
         publish(comp, "diverge", "cpp", "light", do / "0001.png")
         r = score_cell("diverge", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("real divergence: still scores badly", r["ssim"] < 0.99, True)
+
+        # (14b) AND THE SHIFT MAY NOT DISCARD THE SEQUENCE TO FIND ITS AGREEMENT. MAUI moves and stays
+        #       put; the port moves and SPRINGS BACK — the wrong-order case _align's docstring promises
+        #       cannot score as well as a match. At 5 frames the old floor (max(2, L - MAX_PHASE_SHIFT),
+        #       which |off| <= MAX_PHASE_SHIFT already satisfies at EVERY length, so it only ever said
+        #       "keep 2") let an offset of -3 keep exactly the 2 frames where the two columns agree.
+        #
+        #       ASSERT THE OFFSET, NOT THE VERDICT. The verdict here flips under at least three
+        #       unrelated changes (this floor; reading at_rest_diff from pairs[0] BEFORE the shift;
+        #       dropping the phase gate) — only the offset and the paired-frame count name THIS defect.
+        #       The sign is deliberately NOT asserted: -3 and +3 cost exactly the same on this fixture
+        #       and the winner is decided by loop order, which is a separate defect.
+        dm = unit(run, "springback", "maui_xaml", "light", seq([10, 70, 70, 70, 70]))
+        do = unit(run, "springback", "cpp", "light", seq([10, 70, 10, 10, 10]))
+        publish(comp, "springback", "maui", "light", dm / "0001.png")
+        publish(comp, "springback", "cpp", "light", do / "0001.png")
+        r = score_cell("springback", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("spring-back: does not shift", "realigned by" in r["detail"], False)
+        check("spring-back: every frame judged", "MOTION 5 frames" in r["detail"], True)
+
+        # (14c) …and the floor is NOT "never shift a short sequence". Same length, same box, but a real
+        #       2-sample drift through the SAME positions: the shift must still be found, keeping 3 of
+        #       5. That is the exact boundary the fraction was chosen at (ceil(0.6 * 5) == 3), so this
+        #       fails the moment the floor is tightened past 3/5 — and it fails if _align is gutted to
+        #       always return 0, which (14b) on its own would happily accept.
+        dm = unit(run, "drift2", "maui_xaml", "light", seq([10, 40, 70, 100, 130]))
+        do = unit(run, "drift2", "cpp", "light", seq([70, 100, 130, 160, 190]))
+        publish(comp, "drift2", "maui", "light", dm / "0001.png")
+        publish(comp, "drift2", "cpp", "light", do / "0001.png")
+        r = score_cell("drift2", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("2-sample drift: shift still found", "realigned by -2 sample(s)" in r["detail"], True)
+        check("2-sample drift: keeps the 3-frame overlap", "MOTION 3 frames" in r["detail"], True)
+        check("2-sample drift: scores as agreeing", r["ssim"] > 0.99, True)
 
         # (10) STEP-PAIRED frames have no encoder in them, so they get no percentage floor at all —
         #      moved iff any pixel changed. A 2x2 box is 8 changed px of 76800 = 0.0104%, UNDER
