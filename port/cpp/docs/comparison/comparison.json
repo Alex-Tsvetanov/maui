@@ -983,35 +983,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/animation.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/animation.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/animation.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "f3ec71942164f975"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "20b8065d17287c0f"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/animation.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/animation.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/animation.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "1258d1285678c1d8"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "3d3dc98b61c44d1c"
           }
         }
       },
@@ -5132,35 +5132,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9846, 0.65% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-07-13_30_41 (2026-08-07), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (20.8373% vs 20.6873% of their own frame, 0.7% apart) from a resting frame that already agreed to 0.63%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) \u2014 worst SSIM 0.9544 at frame 3 'gif02@4s/12f' (1.46% pixels differ), mean SSIM 0.9745; per-frame diff% 0.63/0.64/1.46/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66; self-motion MAUI 20.8373% (495095 px) vs C++ 20.6873% (491531 px)",
+          "status": "red",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (7.6702% vs 7.5451% of their own frame, 1.6% apart) from a resting frame that already agreed to 0.57%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9222 at frame 2 'gif02@4s/12f' (4.29% pixels differ), mean SSIM 0.9808; per-frame diff% 0.57/4.29/1.06/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62; self-motion MAUI 7.6702% (182245 px) vs C++ 7.5451% (179272 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.8091 at frame 2 'gif02@4s/12f' (24.47% pixels differ), mean SSIM 0.9624; per-frame diff% 3.76/24.47/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64; self-motion MAUI 96.3794% (2289974 px) vs C++ 23.7959% (565391 px); !! SELF-MOTION ASYMMETRY 4x \u2014 MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "FAIL",
             "themes": {
-              "light": "INVALID",
-              "dark": "INCONCLUSIVE"
+              "light": "INCONCLUSIVE",
+              "dark": "FAIL"
             },
-            "why": "provenance",
-            "run": "2026-08-07-13_30_41",
-            "commit": "92b4421539",
-            "captured_at": "2026-08-07",
-            "stills": "bbf308c2b614ff20"
+            "why": "frames-disagree",
+            "run": "2026-08-11-11_56_44",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "f18590cb8af354aa"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9846, 0.65% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-07-13_30_41 (2026-08-07), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (20.8373% vs 20.6873% of their own frame, 0.7% apart) from a resting frame that already agreed to 0.63%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) \u2014 worst SSIM 0.9544 at frame 3 'gif02@4s/12f' (1.46% pixels differ), mean SSIM 0.9745; per-frame diff% 0.63/0.64/1.46/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66/0.66; self-motion MAUI 20.8373% (495095 px) vs C++ & XAML 20.6873% (491531 px)",
+          "status": "red",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (7.6702% vs 7.5163% of their own frame, 2.0% apart) from a resting frame that already agreed to 0.57%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9222 at frame 2 'gif02@4s/12f' (4.29% pixels differ), mean SSIM 0.9815; per-frame diff% 0.57/4.29/0.75/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62/0.62; self-motion MAUI 7.6702% (182245 px) vs C++ & XAML 7.5163% (178588 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-11-11_56_44, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.8103 at frame 2 'gif02@4s/12f' (21.34% pixels differ), mean SSIM 0.9625; per-frame diff% 3.76/21.34/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64/0.64; self-motion MAUI 96.3794% (2289974 px) vs C++ & XAML 23.7959% (565391 px); !! SELF-MOTION ASYMMETRY 4x \u2014 MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "FAIL",
             "themes": {
-              "light": "INVALID",
-              "dark": "INCONCLUSIVE"
+              "light": "INCONCLUSIVE",
+              "dark": "FAIL"
             },
-            "why": "provenance",
-            "run": "2026-08-07-13_30_41",
-            "commit": "92b4421539",
-            "captured_at": "2026-08-07",
-            "stills": "508b03568ae677fc"
+            "why": "frames-disagree",
+            "run": "2026-08-11-11_56_44",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "2fcf867f03a8e23c"
           }
         }
       },
@@ -6063,7 +6063,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: SSIM 0.9599, 1.50% pixels differ \u00b7 Dark: SSIM 0.7276, 17.19% pixels differ"
+          "review": "Light: SSIM 0.9601, 1.50% pixels differ \u00b7 Dark: SSIM 0.7276, 17.19% pixels differ"
         },
         "pixel_xaml": {
           "status": "red",
@@ -6257,19 +6257,19 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9995, 0.10% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9950 at frame 1 'at-rest' (0.26% pixels differ), mean SSIM 0.9962; per-frame diff% 0.26/0.20/0.23/0.23/0.12/0.24/0.15/0.19/0.20/0.14/0.22; self-motion MAUI 0.2075% (4930 px) vs C++ 0.2382% (5659 px)",
+          "status": "green",
+          "review": "Light: MOTION 13 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07) \u2014 worst SSIM 0.9975 at frame 1 'at-rest' (0.04% pixels differ), mean SSIM 0.9984; per-frame diff% 0.04/0.02/0.07/0.04/0.05/0.05/0.01/0.06/0.04/0.05/0.06/0.02/0.07; self-motion MAUI 0.1468% (3488 px) vs C++ 0.1553% (3691 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9950 at frame 1 'at-rest' (0.26% pixels differ), mean SSIM 0.9962; per-frame diff% 0.26/0.20/0.23/0.23/0.12/0.24/0.15/0.19/0.20/0.14/0.22; self-motion MAUI 0.2075% (4930 px) vs C++ 0.2382% (5659 px)",
           "motion": {
-            "verdict": "INVALID",
+            "verdict": "PASS",
             "themes": {
-              "light": "INVALID",
+              "light": "PASS",
               "dark": "PASS"
             },
-            "why": "provenance",
+            "why": "",
             "run": "2026-08-07-13_30_41",
             "commit": "92b4421539",
             "captured_at": "2026-08-07",
-            "stills": "5cdb605046c128df"
+            "stills": "f2fa099197ee8342"
           }
         },
         "pixel_xaml": {
@@ -8603,35 +8603,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9954, 0.20% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 12 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05) \u2014 worst SSIM 0.9954 at frame 1 'gif01@4s/12f' (0.22% pixels differ), mean SSIM 0.9954; per-frame diff% 0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9954 at frame 1 'gif04@4s/12f' (0.20% pixels differ), mean SSIM 0.9954; per-frame diff% 0.20/0.20/0.20/0.20/0.20/0.20/0.20/0.20/0.20; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 12 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11) \u2014 worst SSIM 0.9954 at frame 1 'gif01@4s/12f' (0.22% pixels differ), mean SSIM 0.9954; per-frame diff% 0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "1324305b1242e15e"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "ec22a1faffe5e709"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9954, 0.20% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 12 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05) \u2014 worst SSIM 0.9954 at frame 1 'gif01@4s/12f' (0.22% pixels differ), mean SSIM 0.9954; per-frame diff% 0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9954 at frame 1 'gif04@4s/12f' (0.20% pixels differ), mean SSIM 0.9954; per-frame diff% 0.20/0.20/0.20/0.20/0.20/0.20/0.20/0.20/0.20; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 12 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11) \u2014 worst SSIM 0.9954 at frame 1 'gif01@4s/12f' (0.22% pixels differ), mean SSIM 0.9954; per-frame diff% 0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22/0.22; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "69b186d0513b18d6"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "7a3a35ebd3ca200b"
           }
         }
       },
@@ -9432,7 +9432,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9993, 0.05% pixels differ \u00b7 Dark: SSIM 0.9990, 0.12% pixels differ"
+          "review": "Light: SSIM 0.9992, 0.05% pixels differ \u00b7 Dark: SSIM 0.9990, 0.12% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -10116,7 +10116,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9923, 0.31% pixels differ \u00b7 Dark: SSIM 0.9915, 0.27% pixels differ"
+          "review": "Light: SSIM 0.9921, 0.23% pixels differ \u00b7 Dark: SSIM 0.9915, 0.27% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -13394,8 +13394,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.4781, 70.00% pixels differ \u00b7 Dark: SSIM 0.9983, 0.04% pixels differ"
+          "status": "green",
+          "review": "Light: SSIM 0.9986, 0.02% pixels differ \u00b7 Dark: SSIM 0.9983, 0.04% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -13983,7 +13983,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: SSIM 0.9993, 0.05% pixels differ \u00b7 Dark: SSIM 0.9998, 0.10% pixels differ"
+          "review": "Light: SSIM 0.9996, 0.05% pixels differ \u00b7 Dark: SSIM 0.9998, 0.10% pixels differ"
         },
         "pixel_xaml": {
           "status": "green",
@@ -14472,34 +14472,34 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9758, 0.48% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9708 at frame 1 'gif04@4s/12f' (0.60% pixels differ), mean SSIM 0.9708; per-frame diff% 0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9760 at frame 1 'gif04@4s/12f' (0.48% pixels differ), mean SSIM 0.9760; per-frame diff% 0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9709 at frame 1 'gif04@4s/12f' (0.60% pixels differ), mean SSIM 0.9709; per-frame diff% 0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "c382c09513dece82"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "5a578f75d2892dd6"
           }
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9758, 0.48% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9708 at frame 1 'gif04@4s/12f' (0.60% pixels differ), mean SSIM 0.9708; per-frame diff% 0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9760 at frame 1 'gif04@4s/12f' (0.48% pixels differ), mean SSIM 0.9760; per-frame diff% 0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9709 at frame 1 'gif04@4s/12f' (0.60% pixels differ), mean SSIM 0.9709; per-frame diff% 0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60/0.60; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "30e2500b66c7fa6b"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "8e1c8f0f3b382dad"
           }
         }
       },
@@ -15251,35 +15251,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "cc7e1497fb031e59"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "fa66d1dcf6fc854b"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "e1a6add2cd3a5422"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "a9c65c16a8a3f175"
           }
         }
       },
@@ -16421,35 +16421,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "7b6fe05c0a03cef4"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "eda07100a4d4f8cc"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "132b1e45cdce8811"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "83c092b99105864d"
           }
         }
       },
@@ -18575,35 +18575,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9967, 0.13% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9967 at frame 1 'gif04@4s/12f' (0.13% pixels differ), mean SSIM 0.9967; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9967 at frame 1 'gif04@4s/12f' (0.13% pixels differ), mean SSIM 0.9967; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9967 at frame 1 'gif04@4s/12f' (0.13% pixels differ), mean SSIM 0.9967; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "e565c3a9d76daf02"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "b4b5c040543d340d"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "0e3b367f671f4ce9"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "89faf6de3d878691"
           }
         }
       },
@@ -19745,35 +19745,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "d17ec57c2f588bd8"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "67222f16c9583f53"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "35f6288836f3ba01"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "26dff71d66ec69bf"
           }
         }
       },
@@ -25314,7 +25314,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: MOTION 10 frames paired by step (run 2026-08-10-03_58_41, commit e8a0069c14, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9993 at frame 2 'gif01@4s/12f' (0.02% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02; self-motion MAUI 0.0165% (391 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (87 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 stepper.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-10-03_58_41, commit e8a0069c14, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9992 at frame 1 'gif03@4s/12f' (0.03% pixels differ), mean SSIM 0.9992; per-frame diff% 0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03; self-motion MAUI 0.0037% (87 px) vs C++ 0.0000% (0 px)",
+          "review": "Light: MOTION 10 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9989 at frame 3 'gif02@4s/12f' (0.02% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.00/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02; self-motion MAUI 0.0165% (391 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (87 px vs 12 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 stepper.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 4 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9989 at frame 3 'gif04@4s/12f' (0.03% pixels differ), mean SSIM 0.9992; per-frame diff% 0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03; self-motion MAUI 0.0037% (87 px) vs C++ 0.0005% (12 px); !! SELF-MOTION ASYMMETRY 7x \u2014 MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -25322,15 +25322,15 @@
               "dark": "INVALID"
             },
             "why": "not-driven",
-            "run": "2026-08-10-03_58_41",
-            "commit": "e8a0069c14",
-            "captured_at": "2026-08-10",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
             "stills": "df311125d0da1d95"
           }
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: MOTION 10 frames paired by step (run 2026-08-10-03_58_41, commit e8a0069c14, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9993 at frame 2 'gif01@4s/12f' (0.02% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02; self-motion MAUI 0.0165% (391 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (87 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 stepper.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-10-03_58_41, commit e8a0069c14, 2026-08-10); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9992 at frame 1 'gif03@4s/12f' (0.03% pixels differ), mean SSIM 0.9992; per-frame diff% 0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03; self-motion MAUI 0.0037% (87 px) vs C++ & XAML 0.0000% (0 px)",
+          "review": "Light: MOTION 10 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9989 at frame 3 'gif02@4s/12f' (0.02% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.00/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02; self-motion MAUI 0.0165% (391 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (87 px vs 12 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 stepper.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 4 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9989 at frame 3 'gif04@4s/12f' (0.03% pixels differ), mean SSIM 0.9992; per-frame diff% 0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03; self-motion MAUI 0.0037% (87 px) vs C++ & XAML 0.0005% (12 px); !! SELF-MOTION ASYMMETRY 7x \u2014 MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -25338,9 +25338,9 @@
               "dark": "INVALID"
             },
             "why": "not-driven",
-            "run": "2026-08-10-03_58_41",
-            "commit": "e8a0069c14",
-            "captured_at": "2026-08-10",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
             "stills": "2b01c37e63b26cba"
           }
         }
@@ -25703,35 +25703,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "6867b3e93184d623"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "6a6e846e8e42632f"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "0e9d662d2b1ab433"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "f1d6225b5c7dd7a5"
           }
         }
       },
@@ -25946,35 +25946,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif02@4s/12f' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif02@4s/12f' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "d170be83d17ee369"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "77b16094edce55ac"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 1.0000, 0.00% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-05-03_38_50 (2026-08-05), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-05-03_38_50, commit 501eb45287, 2026-08-05); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif02@4s/12f' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif04@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif02@4s/12f' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
               "light": "INVALID",
               "dark": "INVALID"
             },
-            "why": "provenance",
-            "run": "2026-08-05-03_38_50",
-            "commit": "501eb45287",
-            "captured_at": "2026-08-05",
-            "stills": "440e42568725778e"
+            "why": "no-scenario",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
+            "stills": "62ecfe6123bf289b"
           }
         }
       },
@@ -26337,7 +26337,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -26345,15 +26345,15 @@
               "dark": "INVALID"
             },
             "why": "not-driven",
-            "run": "2026-08-07-13_30_41",
-            "commit": "92b4421539",
-            "captured_at": "2026-08-07",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
             "stills": "80c9ec7cf031b903"
           }
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-07-13_30_41, commit 92b4421539, 2026-08-07); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-11-11_07_17, commit 36e2159cf0, 2026-08-11); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -26361,9 +26361,9 @@
               "dark": "INVALID"
             },
             "why": "not-driven",
-            "run": "2026-08-07-13_30_41",
-            "commit": "92b4421539",
-            "captured_at": "2026-08-07",
+            "run": "2026-08-11-11_07_17",
+            "commit": "36e2159cf0",
+            "captured_at": "2026-08-11",
             "stills": "e5a61867e044c234"
           }
         }
