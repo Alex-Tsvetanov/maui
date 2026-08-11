@@ -12,6 +12,7 @@
 #include "maui/controls/button.hpp"
 #include "maui/controls/grid.hpp"
 #include "maui/controls/refresh_view.hpp"
+#include "maui/controls/scroll_view.hpp"
 #include "maui/controls/swipe_item.hpp"
 #include "maui/controls/swipe_items.hpp"
 #include "maui/controls/swipe_view.hpp"
@@ -20,6 +21,7 @@
 #include "maui/core/layout_handler.hpp"
 #include "maui/core/open_swipe_item.hpp"
 #include "maui/core/refresh_view_handler.hpp"
+#include "maui/core/scroll_view_handler.hpp"
 #include "maui/core/swipe_direction.hpp"
 #include "maui/core/swipe_mode.hpp"
 #include "maui/core/swipe_view_handler.hpp"
@@ -240,6 +242,40 @@ namespace
         EXPECT_TRUE(handler->typed_platform_view()->refreshing);
         view.set_is_refreshing(false); // -> endRefreshing
         EXPECT_FALSE(handler->typed_platform_view()->refreshing);
+    }
+
+    // MauiRefreshView.TryInsertRefresh:132-180 recurses Subviews (:169-177) — the scroller does NOT have to
+    // be the RefreshView's direct child. And :155 turns on AlwaysBounceVertical, without which a scroller
+    // whose content is shorter than its frame cannot overscroll, so the pull never reaches the control.
+    TEST(ios_swipe_refresh_seam, refresh_finds_a_nested_scroller_and_bounces)
+    {
+        using maui::controls::scroll_view;
+        using maui::controls::vertical_stack_layout;
+        using maui::core::layout_handler;
+        using maui::core::scroll_view_handler;
+
+        button child;
+        auto child_handler = std::make_shared<button_handler>();
+        scroll_view scroller;
+        auto scroller_handler = std::make_shared<scroll_view_handler>();
+        vertical_stack_layout wrapper; // the INTERMEDIATE view a direct-child-only check would miss
+        auto wrapper_handler = std::make_shared<layout_handler>();
+        refresh_view view;
+        auto handler = std::make_shared<refresh_view_handler>();
+
+        // Handlers first (bottom-up), then wire the tree so each set/add hosts a real native view.
+        child.set_handler(child_handler);
+        scroller.set_handler(scroller_handler);
+        wrapper.set_handler(wrapper_handler);
+        view.set_handler(handler);
+        scroller.set_content(child);
+        wrapper.add(scroller);
+        view.set_content(wrapper);
+
+        auto* const native_scroller = (__bridge UIScrollView*)scroller_handler->typed_platform_view()->native;
+        ASSERT_TRUE([native_scroller isKindOfClass:[UIScrollView class]]);
+        EXPECT_NE(native_scroller.refreshControl, nil); // found through the wrapper
+        EXPECT_TRUE(native_scroller.alwaysBounceVertical);
     }
 
     TEST(ios_swipe_refresh_seam, request_refresh_writes_back_and_runs_command)

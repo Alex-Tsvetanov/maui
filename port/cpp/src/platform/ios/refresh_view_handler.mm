@@ -6,11 +6,14 @@
 //     (RefreshControl.IsRefreshing).
 //   - MapRefreshColor sets the UIRefreshControl.tintColor (UpdateRefreshColor).
 //   - MapIsRefreshEnabled enables/disables the gesture (the refresh control's userInteractionEnabled).
-// If the hosted content is a UIScrollView the refresh control attaches to it (the C# native parenting);
-// otherwise it sits on the host (the headless / non-scroll content path). Compiled as Objective-C++ with
-// ARC only for the `ios` backend.
+// The refresh control is attached by RECURSING the hosted subtree for a scroller, exactly as
+// MauiRefreshView.TryInsertRefresh does (see try_insert_refresh below) — a RefreshView whose ScrollView
+// sits under an intermediate wrapper still gets one. When the subtree holds no scroller the control stays
+// detached (the refreshing flag is still mirrored and request_refresh() still works). Compiled as
+// Objective-C++ with ARC only for the `ios` backend.
 
 #import <UIKit/UIKit.h>
+#import <WebKit/WebKit.h>
 #import <objc/runtime.h>
 
 #include <memory>
@@ -71,6 +74,56 @@ namespace
     UIRefreshControl* refresh_control(UIView* host)
     {
         return (UIRefreshControl*)objc_getAssociatedObject(host, &k_refresh_control_key);
+    }
+
+    // The depth cap on the scroller search below. A UIView tree cannot cycle (a view has exactly one
+    // superview), so this only bounds pathological nesting; the C# original has no cap.
+    const int k_max_subview_depth = 64;
+
+    // MauiRefreshView.TryInsertRefresh (src/Core/src/Platform/iOS/MauiRefreshView.cs:132-180). The node
+    // itself is tested FIRST, then its children in index order, first hit winning:
+    //   :141  a UIScrollView takes the control — a UIRefreshControl is ONLY valid on a scroller (UIKit
+    //         asserts if it is added to a plain UIView),
+    //   :163  a WKWebView hands it to its own scrollView, by INSERTION rather than the property,
+    //   :169-177  otherwise recurse Subviews (pre-order, index order),
+    //   :179  false when the subtree holds neither — the control stays detached, which is the documented
+    //         no-native-pull fallback (the refreshing flag is still mirrored, request_refresh still works).
+    // Not ported, deliberately: the :134 ShouldAllowRefreshGesture gate (the port keeps the control
+    // attached and drives UIRefreshControl.enabled from MapIsRefreshEnabled instead); the :143-146
+    // CanUseRefreshControlProperty() fork, whose predicate is
+    // `navigationController?.navigationBar.prefersLargeTitles ?? true` and which degenerates to the `??
+    // true` property path here because the port hosts pages without a UINavigationController; the :149-153
+    // bounds nudge, which is `-contentOffset.Y` and so a no-op at attach time; and :157-158, which only
+    // feed TryOffsetRefresh (:75-103, the programmatic-IsRefreshing scroll offset the port does not run).
+    bool try_insert_refresh(UIView* view, UIRefreshControl* control, NSInteger index, int depth)
+    {
+        if (view == nil || control == nil || depth > k_max_subview_depth)
+        {
+            return false;
+        }
+        if ([view isKindOfClass:[UIScrollView class]])
+        {
+            UIScrollView* const scroller = (UIScrollView*)view;
+            scroller.refreshControl = control; // :143-144
+            // :155 — without this a scroller whose content is shorter than its frame refuses to overscroll,
+            // so the pull can never reach the control and the spinner never runs.
+            scroller.alwaysBounceVertical = YES;
+            return true;
+        }
+        if ([view isKindOfClass:[WKWebView class]])
+        {
+            [((WKWebView*)view).scrollView insertSubview:control atIndex:index]; // :165
+            return true;
+        }
+        NSArray<UIView*>* const children = view.subviews;
+        for (NSUInteger i = 0; i < children.count; ++i)
+        {
+            if (try_insert_refresh(children[i], control, static_cast<NSInteger>(i), depth + 1)) // :172-176
+            {
+                return true;
+            }
+        }
+        return false; // :179
     }
 } // namespace
 
@@ -181,15 +234,11 @@ namespace maui::core
         [subview removeFromSuperview];
         [host addSubview:subview];
 
-        // C# native parenting: a UIScrollView content owns the refresh control directly (pull-to-refresh
-        // on the scroller). A UIRefreshControl is ONLY valid on a scroll view — UIKit asserts if it is
-        // added to a plain UIView — so non-scrollable content leaves the control detached (the documented
-        // no-native-pull fallback; the refreshing flag is still mirrored and request_refresh still works).
-        UIRefreshControl* const control = refresh_control(host);
-        if ([subview isKindOfClass:[UIScrollView class]])
-        {
-            ((UIScrollView*)subview).refreshControl = control;
-        }
+        // C# native parenting (UpdateContent:71 → TryInsertRefresh): walk the hosted subtree for the
+        // scroller that takes the control, so a scroller under an intermediate wrapper is found too. The
+        // bool is ignored here exactly as it is in UpdateContent — "no scroller anywhere" is the
+        // documented detached fallback, not an error.
+        try_insert_refresh(subview, refresh_control(host), 0, 0);
     }
 
     void refresh_view_handler::update_is_refreshing()
