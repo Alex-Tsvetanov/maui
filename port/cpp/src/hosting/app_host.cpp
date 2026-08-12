@@ -27,6 +27,7 @@
 #include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/safe_area_regions.hpp"
 #include "maui/core/thickness.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/rect.hpp"
@@ -148,10 +149,33 @@ namespace maui::hosting
         // the frame, which is not set until arrange, so the host seeds the root content layout from the rect
         // the platform already handed it — the difference between the full and safe-area rects. Headless and
         // AppKit pass the two rects equal ⇒ zero insets ⇒ every safe-area path downstream is a no-op.
-        maui::core::thickness realized_insets{
+        const maui::core::thickness realized_insets{
             safe_area_bounds.x - full_bounds.x, safe_area_bounds.y - full_bounds.y,
             (full_bounds.x + full_bounds.width) - (safe_area_bounds.x + safe_area_bounds.width),
             (full_bounds.y + full_bounds.height) - (safe_area_bounds.y + safe_area_bounds.height)};
+        // The PAGE gets first refusal on the insets (C# MauiView.ValidateSafeArea, MauiView.cs:764-771:
+        // the host stores SafeAreaInsets on the ISafeAreaView2 it hosts, and that view decides). Seeded
+        // HERE rather than from the handler's safeAreaInsetsDidChange so content_page::layout_inset()
+        // sees a current value on THIS pass — set_safe_area_insets is a plain property store and
+        // schedules no relayout of its own.
+        //
+        // Whatever the page consumes is then withheld from the child push below — the port's analog of
+        // C# MauiView.IsParentHandlingSafeArea (MauiView.cs:505-526), per edge, "a view never insets an
+        // edge an ancestor already inset". Mac Catalyst is the only platform where the page consumes
+        // anything (UseSafeArea defaults true there — ios_specific::page::use_safe_area_default); on
+        // iOS/Android/headless every edge is None, child_insets == realized_insets, and this is inert.
+        maui::core::thickness child_insets = realized_insets;
+        if (auto* safe_area_page = dynamic_cast<maui::core::i_safe_area_view2*>(page))
+        {
+            safe_area_page->set_safe_area_insets(realized_insets);
+            const auto consumed = [safe_area_page](int edge) {
+                return safe_area_page->get_safe_area_regions_for_edge(edge) != maui::core::safe_area_regions::none;
+            };
+            child_insets = maui::core::thickness{
+                consumed(0) ? 0.0 : realized_insets.left, consumed(1) ? 0.0 : realized_insets.top,
+                consumed(2) ? 0.0 : realized_insets.right, consumed(3) ? 0.0 : realized_insets.bottom};
+        }
+
         if (const auto* content_host = dynamic_cast<const maui::core::i_content_view*>(page))
         {
             if (auto* safe_area_content = dynamic_cast<maui::core::i_safe_area_view2*>(content_host->content()))
@@ -176,13 +200,13 @@ namespace maui::hosting
                 if (const auto* content_view = dynamic_cast<const maui::core::i_view*>(content_host->content()))
                 {
                     const maui::core::thickness margin = content_view->margin();
-                    realized_insets = maui::core::thickness{std::max(0.0, realized_insets.left - margin.left),
-                                                            std::max(0.0, realized_insets.top - margin.top),
-                                                            std::max(0.0, realized_insets.right - margin.right),
-                                                            std::max(0.0, realized_insets.bottom - margin.bottom)};
+                    child_insets = maui::core::thickness{std::max(0.0, child_insets.left - margin.left),
+                                                         std::max(0.0, child_insets.top - margin.top),
+                                                         std::max(0.0, child_insets.right - margin.right),
+                                                         std::max(0.0, child_insets.bottom - margin.bottom)};
                 }
 #endif
-                safe_area_content->set_safe_area_insets(realized_insets);
+                safe_area_content->set_safe_area_insets(child_insets);
             }
         }
 

@@ -17,6 +17,10 @@
 #include <concepts>
 #include <string_view>
 
+#ifdef __APPLE__
+    #include <TargetConditionals.h> // TARGET_OS_MACCATALYST — UseSafeArea's per-platform default below
+#endif
+
 #include "maui/controls/platform_configuration/configuration.hpp"
 #include "maui/controls/platform_configuration/element_concepts.hpp"
 #include "maui/controls/platform_configuration/ios_specific/large_title_display_mode.hpp"
@@ -90,12 +94,25 @@ namespace maui::controls::platform_configuration::ios_specific::page
         return cfg;
     }
 
-    // ---- UseSafeArea (bool, default false; the C# MACCATALYST build defaults true — not a port target).
+    // ---- UseSafeArea (bool) ----
+    // C# Page.cs:120-125 forks the DEFAULT by platform, and it is the only switch that makes a
+    // ContentPage obey the safe area out of the box:
+    //     #if MACCATALYST  default true   #else  default false  #endif
+    // So on Mac Catalyst the PAGE consumes the titlebar inset (ContentPage.GetSafeAreaRegionsForEdge
+    // -> Container), while iOS/Android pages run edge-to-edge (-> None) and their CONTENT does the
+    // insetting per view. Missing this fork left every Catalyst page centered in the full window
+    // instead of below the 41pt titlebar (measured: border 16px high).
     // C# marks the whole knob obsolete in favor of per-edge SafeAreaEdges; the port keeps the legacy
     // surface (SafeAreaEdges is not ported). ----
+#if defined(TARGET_OS_MACCATALYST) && TARGET_OS_MACCATALYST
+    inline constexpr bool use_safe_area_default = true;
+#else
+    inline constexpr bool use_safe_area_default = false;
+#endif
+
     [[nodiscard]] inline bool get_use_safe_area(const element& target)
     {
-        return target.platform_spec<bool>(use_safe_area_key, false);
+        return target.platform_spec<bool>(use_safe_area_key, use_safe_area_default);
     }
     inline void set_use_safe_area(element& target, bool value)
     {

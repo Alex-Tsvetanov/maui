@@ -15,6 +15,7 @@
 #include "maui/controls/border.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/label.hpp"
+#include "maui/controls/platform_configuration/ios_specific/page.hpp"
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 #include "maui/controls/window.hpp"
@@ -62,6 +63,48 @@ namespace
         maui::controls::window window_;
         maui::controls::content_page page_;
         maui::controls::label label_;
+    };
+
+    // page -> vertical_stack_layout -> label. The root-child-is-a-Layout shape (148 of the 172 gallery
+    // pages), which is the one where the page and the child can both try to inset the same edge.
+    class stack_root_app final : public maui::controls::application
+    {
+    public:
+        stack_root_app()
+        {
+            leaf_label_.set_text("leaf");
+            stack_.add(leaf_label_);
+            page_.set_content(stack_);
+            window_.set_content(page_);
+        }
+
+        maui::core::i_window* create_window() override
+        {
+            return &window_;
+        }
+
+        maui::controls::window& win()
+        {
+            return window_;
+        }
+        maui::controls::content_page& page()
+        {
+            return page_;
+        }
+        maui::controls::label& leaf_label()
+        {
+            return leaf_label_;
+        }
+        maui::controls::vertical_stack_layout& stack()
+        {
+            return stack_;
+        }
+
+    private:
+        maui::controls::window window_;
+        maui::controls::content_page page_;
+        maui::controls::vertical_stack_layout stack_;
+        maui::controls::label leaf_label_;
     };
 
     // A deeper tree: page -> scroll_view -> vertical_stack_layout -> { leaf_label, border -> nested_label }.
@@ -371,4 +414,44 @@ TEST(app_host, drive_layout_is_idempotent_over_a_nested_tree)
     EXPECT_EQ(nested->stack().frame(), stack1);
     EXPECT_EQ(nested->border().frame(), border1);
     EXPECT_EQ(nested->nested_label().frame(), leaf1);
+}
+
+// --- safe area: the page and its root child must never BOTH inset the same edge -------------------
+//
+// C# MauiView.IsParentHandlingSafeArea (MauiView.cs:505-526): "a view never insets an edge an ancestor
+// already inset". The port has two paths that meet at the page — content_page::layout_inset() (live when
+// UseSafeArea makes the page's region Container, which C# Page.cs:120-125 defaults TRUE on Mac Catalyst)
+// and drive_layout's push to the root child (which a Layout consumes, region Container). Exactly ONE of
+// them must run, and the resulting ABSOLUTE content position must be the same either way — that is what
+// makes flipping the Catalyst default a no-op for every page whose root is a Layout.
+//
+// Frames are host-relative (a child of a host at y=40 reports y=0), so the invariant is asserted on the
+// SUM: page inset + child inset == the realized inset, once.
+//
+// Backend-agnostic: drives the two-rect drive_layout directly, so headless covers it.
+TEST(app_host, safe_area_is_applied_once_whichever_view_consumes_it)
+{
+    constexpr double k_inset = 40.0;
+    const maui::graphics::rect full{0, 0, 400, 800};
+    const maui::graphics::rect safe{0, k_inset, 400, 800 - k_inset};
+
+    for (const bool page_uses_safe_area : {false, true})
+    {
+        auto app = build_app<stack_root_app>();
+        auto* rooted = app->application_as<stack_root_app>().get();
+        ASSERT_NE(rooted, nullptr);
+        maui::hosting::mount_window(*app, rooted->win());
+        maui::controls::platform_configuration::ios_specific::page::set_use_safe_area(rooted->page(),
+                                                                                      page_uses_safe_area);
+
+        maui::hosting::drive_layout(rooted->win(), full, safe);
+
+        // The page itself always spans the FULL bounds — it is the CONTENT that clears the unsafe band.
+        EXPECT_DOUBLE_EQ(rooted->page().frame().y, 0.0) << "use_safe_area=" << page_uses_safe_area;
+        // Applied exactly once: k_inset, not 0 (nobody applied it) and not 2 * k_inset (both did).
+        const double content_top = rooted->stack().frame().y + rooted->leaf_label().frame().y;
+        EXPECT_DOUBLE_EQ(content_top, k_inset) << "use_safe_area=" << page_uses_safe_area;
+        // ...and WHICH view consumed it decides where the seam falls, without moving the content.
+        EXPECT_DOUBLE_EQ(rooted->stack().frame().y, page_uses_safe_area ? k_inset : 0.0);
+    }
 }
