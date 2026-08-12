@@ -104,6 +104,14 @@ namespace maui::controls
         // pushed real insets, so every headless path is unaffected.
         [[nodiscard]] maui::core::thickness effective_safe_area() const;
 
+        // i_safe_area_view2: expose that same _safeArea to the native host. Android's ScrollView owns its
+        // child's layout, so its handler applies these as native padding (MAUI's own mechanism — see the
+        // interface comment); returning effective_safe_area() keeps the two in lockstep by construction.
+        [[nodiscard]] maui::core::thickness applied_safe_area_insets() const override
+        {
+            return effective_safe_area();
+        }
+
         // True when UIKit already applied the inset via its own contentInset (the content overflows). Then
         // the content arranges at 0-origin with only the SIZE reduced — UIKit supplies the visual offset,
         // and re-adding the origin would double it.
