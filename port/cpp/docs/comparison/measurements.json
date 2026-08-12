@@ -149,7 +149,7 @@
    }
   }
  },
- "size_measured_at": "2026-08-11T22:52:05Z",
+ "size_measured_at": "2026-08-12T01:08:02Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -159,23 +159,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.211,
-     1.263,
-     1.308,
-     1.252,
-     1.236,
-     1.224,
-     1.22,
+     1.736,
+     1.298,
      1.129,
-     1.287,
-     1.219
+     1.45,
+     1.333,
+     1.349,
+     1.313,
+     1.28,
+     1.223,
+     1.323
     ],
-    "poll_resolution_s": 0.256,
+    "poll_resolution_s": 0.285,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
     "min_s": 1.129,
-    "median_s": 1.23,
-    "p95_s": 1.287,
-    "max_s": 1.308
+    "median_s": 1.318,
+    "p95_s": 1.45,
+    "max_s": 1.736
    },
    "cpp": {
     "measured": true,
@@ -184,23 +184,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
+     1.555,
+     1.508,
      1.652,
-     1.437,
-     1.272,
-     1.393,
-     1.316,
-     1.449,
-     1.414,
-     1.358,
-     1.284,
-     1.402
+     1.443,
+     1.59,
+     1.538,
+     1.684,
+     1.425,
+     1.74,
+     1.495
     ],
-    "poll_resolution_s": 0.25,
+    "poll_resolution_s": 0.304,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.272,
-    "median_s": 1.397,
-    "p95_s": 1.449,
-    "max_s": 1.652
+    "min_s": 1.425,
+    "median_s": 1.546,
+    "p95_s": 1.684,
+    "max_s": 1.74
    },
    "cpp_xaml": {
     "measured": true,
@@ -209,104 +209,37 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.503,
-     1.456,
-     1.593,
-     1.426,
-     1.388,
-     1.245,
-     1.357,
-     1.539,
-     1.42,
-     1.375
+     2.26,
+     1.429,
+     1.669,
+     1.396,
+     1.576,
+     1.685,
+     1.527,
+     1.472,
+     1.564,
+     1.621
     ],
-    "poll_resolution_s": 0.267,
+    "poll_resolution_s": 0.296,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.245,
-    "median_s": 1.423,
-    "p95_s": 1.539,
-    "max_s": 1.593
+    "min_s": 1.396,
+    "median_s": 1.57,
+    "p95_s": 1.685,
+    "max_s": 2.26
    }
   },
   "ios": {
    "maui_xaml": {
-    "measured": true,
-    "start_kind": "cold",
-    "page": "label",
-    "n": 10,
-    "misses": 0,
-    "samples_s": [
-     1.977,
-     1.355,
-     1.506,
-     1.573,
-     1.474,
-     1.389,
-     1.363,
-     1.483,
-     1.384,
-     1.477
-    ],
-    "poll_resolution_s": 0.277,
-    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.355,
-    "median_s": 1.476,
-    "p95_s": 1.573,
-    "max_s": 1.977
+    "measured": false,
+    "reason": "app not installed (dev.mauicpp.mauireference)"
    },
    "cpp": {
-    "measured": true,
-    "start_kind": "cold",
-    "page": "label",
-    "n": 9,
-    "misses": 1,
-    "samples_s": [
-     1.229,
-     1.312,
-     1.296,
-     1.299,
-     1.24,
-     1.298,
-     1.329,
-     1.409,
-     1.312
-    ],
-    "poll_resolution_s": 0.249,
-    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.229,
-    "median_s": 1.299,
-    "p95_s": 1.329,
-    "max_s": 1.409,
-    "miss_reasons": [
-     "no content frame within 30s (last state: unchanged)"
-    ]
+    "measured": false,
+    "reason": "app not installed (dev.maui-cpp.ios-gallery)"
    },
    "cpp_xaml": {
-    "measured": true,
-    "start_kind": "cold",
-    "page": "label",
-    "n": 9,
-    "misses": 1,
-    "samples_s": [
-     1.362,
-     1.257,
-     1.441,
-     1.285,
-     1.47,
-     1.288,
-     1.249,
-     1.183,
-     1.258
-    ],
-    "poll_resolution_s": 0.273,
-    "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.183,
-    "median_s": 1.285,
-    "p95_s": 1.441,
-    "max_s": 1.47,
-    "miss_reasons": [
-     "no content frame within 30s (last state: unchanged)"
-    ]
+    "measured": false,
+    "reason": "app not installed (dev.maui-cpp.ios-gallery-xaml)"
    }
   },
   "maccatalyst": {
