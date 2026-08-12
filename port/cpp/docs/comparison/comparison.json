@@ -334,16 +334,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/activity_indicator_light.gif",
-            "dark": "captures/windows/maui/activity_indicator_dark.gif"
+            "light": "captures/windows/maui/activity_indicator_light.png",
+            "dark": "captures/windows/maui/activity_indicator_dark.png"
           },
           "cpp": {
-            "light": "captures/windows/cpp/activity_indicator_light.gif",
-            "dark": "captures/windows/cpp/activity_indicator_dark.gif"
+            "light": "captures/windows/cpp/activity_indicator_light.png",
+            "dark": "captures/windows/cpp/activity_indicator_dark.png"
           },
           "xaml": {
-            "light": "captures/windows/xaml/activity_indicator_light.gif",
-            "dark": "captures/windows/xaml/activity_indicator_dark.gif"
+            "light": "captures/windows/xaml/activity_indicator_light.png",
+            "dark": "captures/windows/xaml/activity_indicator_dark.png"
           }
         },
         "sonnet": {
@@ -3363,7 +3363,7 @@
             "dark": "captures/android/maui/button_dark.gif"
           },
           "cpp": {
-            "light": "captures/android/cpp/button_light.png",
+            "light": "captures/android/cpp/button_light.gif",
             "dark": "captures/android/cpp/button_dark.png"
           },
           "xaml": {
@@ -4244,7 +4244,7 @@
           },
           "xaml": {
             "light": "captures/android/xaml/chrome_light.png",
-            "dark": "captures/android/xaml/chrome_dark.png"
+            "dark": "captures/android/xaml/chrome_dark.gif"
           }
         },
         "sonnet": {
@@ -11227,16 +11227,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/gestures_light.gif",
-            "dark": "captures/windows/maui/gestures_dark.gif"
+            "light": "captures/windows/maui/gestures_light.png",
+            "dark": "captures/windows/maui/gestures_dark.png"
           },
           "cpp": {
-            "light": "captures/windows/cpp/gestures_light.gif",
-            "dark": "captures/windows/cpp/gestures_dark.gif"
+            "light": "captures/windows/cpp/gestures_light.png",
+            "dark": "captures/windows/cpp/gestures_dark.png"
           },
           "xaml": {
-            "light": "captures/windows/xaml/gestures_light.gif",
-            "dark": "captures/windows/xaml/gestures_dark.gif"
+            "light": "captures/windows/xaml/gestures_light.png",
+            "dark": "captures/windows/xaml/gestures_dark.png"
           }
         },
         "sonnet": {
@@ -13234,7 +13234,7 @@
             "dark": "captures/android/cpp/hybrid_web_view_dark.png"
           },
           "xaml": {
-            "light": "captures/android/xaml/hybrid_web_view_light.png",
+            "light": "captures/android/xaml/hybrid_web_view_light.gif",
             "dark": "captures/android/xaml/hybrid_web_view_dark.png"
           }
         },
@@ -19728,7 +19728,7 @@
             "dark": "captures/android/maui/pointer_gesture_dark.png"
           },
           "cpp": {
-            "light": "captures/android/cpp/pointer_gesture_light.png",
+            "light": "captures/android/cpp/pointer_gesture_light.gif",
             "dark": "captures/android/cpp/pointer_gesture_dark.png"
           },
           "xaml": {
@@ -26315,16 +26315,16 @@
       "android": {
         "screenshots": {
           "maui": {
-            "light": "captures/android/maui/swipe_refresh_light.png",
-            "dark": "captures/android/maui/swipe_refresh_dark.png"
+            "light": "captures/android/maui/swipe_refresh_light.gif",
+            "dark": "captures/android/maui/swipe_refresh_dark.gif"
           },
           "cpp": {
-            "light": "captures/android/cpp/swipe_refresh_light.png",
-            "dark": "captures/android/cpp/swipe_refresh_dark.png"
+            "light": "captures/android/cpp/swipe_refresh_light.gif",
+            "dark": "captures/android/cpp/swipe_refresh_dark.gif"
           },
           "xaml": {
-            "light": "captures/android/xaml/swipe_refresh_light.png",
-            "dark": "captures/android/xaml/swipe_refresh_dark.png"
+            "light": "captures/android/xaml/swipe_refresh_light.gif",
+            "dark": "captures/android/xaml/swipe_refresh_dark.gif"
           }
         },
         "sonnet": {
