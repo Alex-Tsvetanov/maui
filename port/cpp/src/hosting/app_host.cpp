@@ -195,29 +195,8 @@ namespace maui::hosting
                 // content at inset + margin, and subtracting the margin moved it 20pt too high (measured:
                 // ios_blur_effect green 0.12% -> red 8.8%). The two platforms genuinely differ (ruling 1 —
                 // match each platform's render); same theme as the CollectionView .Never fork. See
-                // PARITY_REVIEW.md item 3.
-                //
-                // NOT on ANDROID either, and this one is an ORACLE rule rather than a measurement:
-                // SafeAreaExtensions.ApplyAdjustedSafeAreaInsetsPx (src/Core/src/Platform/Android/
-                // SafeAreaExtensions.cs:152-163) says verbatim "This ensures margins and safe area insets
-                // are ADDITIVE rather than overlapping. For example: 20px margin + 30px safe area = 50px
-                // total offset" — and it gets there by moving the VIEW for the overlap test
-                // (`viewTop = Math.Max(0, viewTop - margins.Top)`) while the inset it applies as padding
-                // stays the full one. Android's status bar does not overlay a fitted content view the way
-                // iOS's does, so there is nothing to double-count.
-                //
-                // Hence the fork is fenced to MAUI_PLATFORM_IOS (defined PUBLIC on maui_core by the ios
-                // preset — CMakeLists.txt:834) MINUS Catalyst, not to "everything that is not Catalyst".
-                // The wider form was inert on android only because that host passed full == safe bounds
-                // (zero insets); the moment it started passing a real inset, the subtraction would have
-                // moved every margined-root page up by its own margin — 26 such pages exist under
-                // maui-reference/pages, 12 of which are keys on the 172-page android board and so are the
-                // ones a parity sweep can actually score (border_styles and the gap_* family are not board
-                // keys). Verified on device: those 12 moved 0.000pp. Headless/windows still push
-                // zero insets in the app, so this is a no-op there either way — but the headless TEST
-                // drives the two-rect form directly (app_host_tests.cpp
-                // a_margined_root_layout_is_additive_with_the_safe_area) and pins the additive result.
-#if defined(MAUI_PLATFORM_IOS) && (!defined(TARGET_OS_MACCATALYST) || !TARGET_OS_MACCATALYST)
+                // PARITY_REVIEW.md item 3. Headless (non-Apple) pushes zero insets, so this is a no-op there.
+#if !defined(TARGET_OS_MACCATALYST) || !TARGET_OS_MACCATALYST
                 if (const auto* content_view = dynamic_cast<const maui::core::i_view*>(content_host->content()))
                 {
                     const maui::core::thickness margin = content_view->margin();

@@ -51,7 +51,6 @@
 #include <string>
 
 #include "jni/app_context.hpp"
-#include "jni/host_layout_rects.hpp" // the FULL + SAFE window rects the two-rect drive_layout takes
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
@@ -74,6 +73,15 @@
 namespace
 {
     using maui::platform::android::to_utf8;
+
+    // The Activity's display size in framework POINTS (px / density), forward-declared so mount_gallery can
+    // size the first layout pass with it; defined after mount_gallery for locality (the JNI walk is long).
+    struct size2
+    {
+        double width;
+        double height;
+    };
+    size2 display_size(JNIEnv* env);
 
     // ---- the selected-page holder (the examples/gallery/main.cpp shape, replicated per the resume doc) ----
     // A type-erased owner of one demo page: the X-macro picks the concrete page type from the runtime
@@ -208,14 +216,15 @@ namespace
         //     mount_window the headless/apple lanes use; app_host.hpp).
         maui::hosting::mount_window(app, *window);
 
-        // (4) One layout pass over the window's bounds (the android analog of the native run loop's first
-        //     layout), driven through the TWO-RECT drive_layout: the FULL window plus the safe-area rect
-        //     inside it, both in framework points. The Activity is edge-to-edge, so the full rect really is
-        //     the whole window and each view applies the inset for itself — a Layout root insets its
-        //     children, a `Border` root (SafeAreaEdges None) centres on the window mid-line. See
-        //     jni/host_layout_rects.hpp for the derivation and the `border`-page measurement.
-        const auto [full_bounds, safe_bounds] = maui::platform::android::layout_rects(env);
-        maui::hosting::drive_layout(*window, full_bounds, safe_bounds);
+        // (4) One layout pass over the window's content bounds, sized to the device display (the android
+        //     analog of the native run loop's first layout). The Activity is full-screen, so the display
+        //     metrics width/height are the content size. drive_layout takes points; android widgets size in
+        //     pixels, but the framework's layout is in density-independent points and the android handlers
+        //     to_pixels at the seam, so we pass the metrics directly (the integrator should confirm the
+        //     px/dp convention here — see the uncertainties list). Falls back to the headless default
+        //     phone-ish size if the metrics could not be read.
+        const auto [width, height] = display_size(env);
+        maui::hosting::drive_layout(*window, width, height);
 
         // (4b) Register that same pass as the process' RELAYOUT hook (jni/relayout.hpp). A real run loop
         //      re-lays-out whenever a view's desired size changes; this one-shot host cannot, so the few
@@ -224,7 +233,7 @@ namespace
         //      captured window is safe: `app` is deliberately leaked for the process lifetime (see the
         //      header), so it outlives every callback.
         maui::platform::android::set_relayout_hook(
-            [window, full_bounds, safe_bounds] { maui::hosting::drive_layout(*window, full_bounds, safe_bounds); });
+            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
 
         // (4c) ALSO install the general window::request_relayout hook (window.hpp), generalizing the same
         //      idea above onto every backend instead of just this Android-only slot: view<>::invalidate_measure
@@ -235,7 +244,7 @@ namespace
         //      this backend even though they are real everywhere else. The pre-existing android-specific
         //      hook above is untouched (still the image handler's async-decode path, out of scope here).
         window->set_relayout_hook(
-            [window, full_bounds, safe_bounds] { maui::hosting::drive_layout(*window, full_bounds, safe_bounds); });
+            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
 
         // (5) Reach the native FrameLayout through the window's now-attached handler and return it. This is
         //     the apple host's typed_platform_view()->native step, except the void* is the content-view
@@ -253,6 +262,241 @@ namespace
         // The pimpl owns `native` as a global ref for the process; hand a fresh LOCAL ref back to Java (the
         // JNI return-value contract — the Activity adds it as its content view, which retains it).
         return env->NewLocalRef(native);
+    }
+
+    // The system-chrome height (in PIXELS) the Activity's content view does NOT get: the status bar ABOVE
+    // the content frame plus the system navigation bar BELOW it. (NO action/title bar — see below.)
+    //
+    // NO ACTION BAR (2026-07-01): MauiHostActivity now uses MauiAppHost.Theme, which parents on the
+    // NoActionBar framework theme (res/values/styles.xml). Real .NET MAUI's Android gallery renders these
+    // native-default ContentPages with NO top app-title bar, so the port previously painting one (the
+    // "MAUI C++ Gallery" toolbar) was a parity DIFF; MAUI's render is the ground truth, so the bar is gone.
+    // Consequently this function NO LONGER measures/subtracts the theme's actionBarSize — with NoActionBar
+    // there is no title bar above setContentView's content frame, and the content starts directly below the
+    // status bar (exactly where a native-default MAUI ContentPage's content starts). The action-bar
+    // measurement block was removed; only the status bar (top) + navigation bar (bottom) remain.
+    //
+    // display_size lays the page out over the device display, so without this subtraction a page whose
+    // bottom child is anchored to the content bottom (a Grid `*`-over-`Auto` row, or a FlexLayout column's
+    // FOOTER after a Grow="1" body) is placed BELOW the visible content frame and never appears — the
+    // FlexLayout footer bug this height reconciles. Both remaining heights are read from the framework's
+    // `status_bar_height` / `navigation_bar_height` dimen resources (getIdentifier/getDimensionPixelSize).
+    // Returns 0 on any failure (page still mounts, over the full display as before). Note:
+    // `navigation_bar_height` is the classic (3-button) inset value; on a gesture-nav device the bottom
+    // inset is smaller, so this may over-subtract a little there — the safe direction (the footer sits just
+    // inside the content bottom, never off it).
+    [[nodiscard]] jint content_chrome_height_px(JNIEnv* env, jobject activity)
+    {
+        if (env == nullptr || activity == nullptr)
+        {
+            return 0;
+        }
+        const auto clear = [&]() {
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+            }
+        };
+        jint total = 0;
+        const maui::platform::android::local_ref<jclass> activity_class{env, env->GetObjectClass(activity)};
+        if (!activity_class)
+        {
+            clear();
+            return 0;
+        }
+        jmethodID get_resources =
+            env->GetMethodID(activity_class.get(), "getResources", "()Landroid/content/res/Resources;");
+        if (get_resources == nullptr)
+        {
+            clear();
+            return 0;
+        }
+        const maui::platform::android::local_ref<jobject> resources{env,
+                                                                    env->CallObjectMethod(activity, get_resources)};
+        if (env->ExceptionCheck() == JNI_TRUE || !resources)
+        {
+            clear();
+            return 0;
+        }
+        const maui::platform::android::local_ref<jclass> resources_class{env, env->GetObjectClass(resources.get())};
+
+        // --- status bar (top) + navigation bar (bottom): for each, getDimensionPixelSize(getIdentifier(
+        //     "<name>", "dimen", "android")). Both framework dimens read identically; sum whichever resolve. ---
+        jmethodID get_identifier = env->GetMethodID(resources_class.get(), "getIdentifier",
+                                                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I");
+        jmethodID get_dimension_pixel_size = env->GetMethodID(resources_class.get(), "getDimensionPixelSize", "(I)I");
+        if (get_identifier != nullptr && get_dimension_pixel_size != nullptr)
+        {
+            const maui::platform::android::local_ref<jstring> deftype{env, env->NewStringUTF("dimen")};
+            const maui::platform::android::local_ref<jstring> defpkg{env, env->NewStringUTF("android")};
+            for (const char* const dimen_name : {"status_bar_height", "navigation_bar_height"})
+            {
+                const maui::platform::android::local_ref<jstring> name{env, env->NewStringUTF(dimen_name)};
+                const jint res_id =
+                    env->CallIntMethod(resources.get(), get_identifier, name.get(), deftype.get(), defpkg.get());
+                if (env->ExceptionCheck() == JNI_TRUE)
+                {
+                    clear();
+                    continue;
+                }
+                if (res_id <= 0)
+                {
+                    continue;
+                }
+                const jint bar_px = env->CallIntMethod(resources.get(), get_dimension_pixel_size, res_id);
+                if (env->ExceptionCheck() == JNI_TRUE)
+                {
+                    clear();
+                    continue;
+                }
+                if (bar_px > 0)
+                {
+                    total += bar_px;
+                }
+            }
+        }
+
+        // NO action/title-bar measurement: MauiAppHost.Theme is NoActionBar (res/values/styles.xml), so
+        // there is no title bar above the content frame to reserve height for. Removed 2026-07-01 to match
+        // MAUI's Android gallery, which renders these native-default ContentPages with no top app-title bar.
+        return total;
+    }
+
+    // MauiHostActivity.usableContentHeightPx() via JNI — the window's usable content height in PIXELS
+    // (getCurrentWindowMetrics().getBounds().height() minus the system-bar insets, API 30+). This is what
+    // MAUI lays out into; using it directly avoids the double-subtract of the chrome (DisplayMetrics.heightPixels
+    // already excludes the bars on API 30+). Returns 0 on older API / any failure, so display_size falls back
+    // to the legacy DisplayMetrics - content_chrome_height_px path.
+    [[nodiscard]] jint usable_content_height_px(JNIEnv* env, jobject activity)
+    {
+        if (env == nullptr || activity == nullptr)
+        {
+            return 0;
+        }
+        const auto clear = [&]() {
+            if (env->ExceptionCheck() == JNI_TRUE)
+            {
+                env->ExceptionClear();
+            }
+        };
+        const maui::platform::android::local_ref<jclass> activity_class{env, env->GetObjectClass(activity)};
+        if (!activity_class)
+        {
+            clear();
+            return 0;
+        }
+        const jmethodID mid = env->GetMethodID(activity_class.get(), "usableContentHeightPx", "()I");
+        if (mid == nullptr)
+        {
+            clear();
+            return 0;
+        }
+        const jint px = env->CallIntMethod(activity, mid);
+        if (env->ExceptionCheck() == JNI_TRUE)
+        {
+            clear();
+            return 0;
+        }
+        return px > 0 ? px : 0;
+    }
+
+    // The Activity's display metrics (widthPixels x heightPixels) via JNI:
+    // activity.getResources().getDisplayMetrics().{widthPixels,heightPixels}, divided by the metrics
+    // `density` to yield framework POINTS. The height is reduced by the system chrome the content view does
+    // not receive (status bar + navigation bar; NO action bar — see content_chrome_height_px). Falls back to a portrait
+    // phone viewport (the headless/ios default) when any step fails, so the mount still settles. The
+    // Activity is reached through app_context() — the JNI export below pinned it as the process context.
+    size2 display_size(JNIEnv* env)
+    {
+        constexpr size2 fallback{402.0, 874.0}; // the ios/headless gallery default (host_run.cpp)
+        jobject activity = maui::platform::android::app_context();
+        if (env == nullptr || activity == nullptr)
+        {
+            return fallback;
+        }
+        // activity.getResources() : android.content.res.Resources
+        const maui::platform::android::local_ref<jclass> context_class{env, env->GetObjectClass(activity)};
+        if (!context_class)
+        {
+            return fallback;
+        }
+        jmethodID get_resources =
+            env->GetMethodID(context_class.get(), "getResources", "()Landroid/content/res/Resources;");
+        if (get_resources == nullptr || env->ExceptionCheck() == JNI_TRUE)
+        {
+            env->ExceptionClear();
+            return fallback;
+        }
+        const maui::platform::android::local_ref<jobject> resources{env,
+                                                                    env->CallObjectMethod(activity, get_resources)};
+        if (env->ExceptionCheck() == JNI_TRUE || !resources)
+        {
+            env->ExceptionClear();
+            return fallback;
+        }
+        // resources.getDisplayMetrics() : android.util.DisplayMetrics
+        const maui::platform::android::local_ref<jclass> resources_class{env, env->GetObjectClass(resources.get())};
+        jmethodID get_metrics =
+            env->GetMethodID(resources_class.get(), "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
+        if (get_metrics == nullptr || env->ExceptionCheck() == JNI_TRUE)
+        {
+            env->ExceptionClear();
+            return fallback;
+        }
+        const maui::platform::android::local_ref<jobject> metrics{env,
+                                                                  env->CallObjectMethod(resources.get(), get_metrics)};
+        if (env->ExceptionCheck() == JNI_TRUE || !metrics)
+        {
+            env->ExceptionClear();
+            return fallback;
+        }
+        const maui::platform::android::local_ref<jclass> metrics_class{env, env->GetObjectClass(metrics.get())};
+        jfieldID width_field = env->GetFieldID(metrics_class.get(), "widthPixels", "I");
+        jfieldID height_field = env->GetFieldID(metrics_class.get(), "heightPixels", "I");
+        jfieldID density_field = env->GetFieldID(metrics_class.get(), "density", "F");
+        if (width_field == nullptr || height_field == nullptr)
+        {
+            env->ExceptionClear();
+            return fallback;
+        }
+        const jint width_px = env->GetIntField(metrics.get(), width_field);
+        const jint height_px = env->GetIntField(metrics.get(), height_field);
+        // density (px per dp) converts the device PIXELS the metrics report into the density-independent
+        // POINTS the framework lays out in (the android handlers to_pixels back at the seam). A metrics
+        // object always carries density; guard anyway and treat <=0 as 1.0 (px == dp).
+        jfloat density = density_field != nullptr ? env->GetFloatField(metrics.get(), density_field) : 1.0F;
+        if (density <= 0.0F)
+        {
+            density = 1.0F;
+        }
+        if (width_px <= 0 || height_px <= 0)
+        {
+            return fallback;
+        }
+        // The content view never receives the system chrome (status bar + navigation/gesture bar; NO action
+        // bar — NoActionBar theme). Prefer the TRUE usable content height from the window metrics
+        // (MauiHostActivity.usableContentHeightPx() = getCurrentWindowMetrics().getBounds().height() minus the
+        // systemBars insets, API 30+) — this is exactly what MAUI lays out into, and it AVOIDS the
+        // double-subtract bug: on API 30+ DisplayMetrics.heightPixels ALREADY excludes the bars, so the legacy
+        // `heightPixels - content_chrome_height_px` path subtracted the ~200px chrome twice (a bottom-anchored
+        // row / *-star grid then stopped ~200px short of the gesture-nav pill the real MAUI app reaches).
+        // Fallback (older API / helper unavailable): the legacy heightPixels - dimen-chrome, clamped so a bogus
+        // read can never zero/invert the height (this still fixes the update_path_data bottom-row case there).
+        jint content_height_px = height_px;
+        const jint usable_px = usable_content_height_px(env, activity);
+        if (usable_px > 0)
+        {
+            content_height_px = usable_px;
+        }
+        else
+        {
+            const jint chrome_px = content_chrome_height_px(env, activity);
+            if (chrome_px > 0 && chrome_px < height_px)
+            {
+                content_height_px -= chrome_px;
+            }
+        }
+        return {static_cast<double>(width_px) / density, static_cast<double>(content_height_px) / density};
     }
 } // namespace
 

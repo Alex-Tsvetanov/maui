@@ -52,7 +52,6 @@
 #include "jni/jni_env.hpp"
 #include "jni/jni_ref.hpp"
 #include "jni/jni_string.hpp"
-#include "maui/core/i_safe_area_view.hpp"
 #include "maui/core/i_scroll_view.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
@@ -548,44 +547,6 @@ namespace maui::core
             return;
         }
         const float density = display_density(env.get(), scroller);
-
-        // The SAFE AREA is applied as NATIVE PADDING, not as the content's arrange origin. Android's
-        // ScrollView is a FrameLayout: the measure/layout pair below makes it re-lay-out its single child
-        // at (paddingLeft, paddingTop), DISCARDING the origin scroll_view::arrange just gave that child.
-        // So the cross-platform offset alone renders nothing — measured: border_stroke lost its whole
-        // 136 px top inset and hid its first label behind the status bar.
-        //
-        // WHY THIS WAS INVISIBLE UNTIL NOW, and why the padding must stay even if the host reverts to a
-        // single pre-inset rect: the offset that gets discarded is `safe_y`, and `safe_y` was ALWAYS ZERO
-        // on this backend, because the apphost passed full == safe bounds to drive_layout and every
-        // downstream safe-area path collapsed to a no-op. Discarding zero is not observable. scroll_view
-        // is ALSO the only host in the port that expresses the inset as an origin on its CHILD'S frame —
-        // layout::arrange insets its own children inside itself (host_relative), and MauiLayout.onLayout
-        // replays those cached child frames, so a native ViewGroup cannot overwrite them. That asymmetry
-        // is why ScrollView roots were the only ones that broke. Anyone who makes the page-level inset
-        // nonzero for ANY reason walks straight back into this, so the mechanism is recorded here rather
-        // than left to be rediscovered from a 32-page red column.
-        //
-        // This is MAUI's mechanism, not a workaround: SafeAreaExtensions.ApplyAdjustedSafeAreaInsetsPx
-        // (src/Core/src/Platform/Android/SafeAreaExtensions.cs) ends in `view.SetPadding(...)` on the
-        // MauiScrollView, whose OnLayout then just calls base.OnLayout. (MAUI's own ScrollView.Padding is
-        // a SEPARATE layer there — a ContentViewGroup "paddingShim" between scroller and content,
-        // ScrollViewHandler.Android.cs:240-250 — so it is deliberately NOT folded in here.)
-        // The cross-platform origin stays as-is: the native layout simply wins, and both agree on the
-        // same number because applied_safe_area_insets() IS effective_safe_area().
-        if (const auto* safe_area_view = dynamic_cast<const maui::core::i_safe_area_view2*>(virtual_view()))
-        {
-            const maui::core::thickness safe_area = safe_area_view->applied_safe_area_insets();
-            if (jmethodID set_padding = cache.method(env.get(), k_scroll_view_class, "setPadding", "(IIII)V");
-                set_padding != nullptr)
-            {
-                env->CallVoidMethod(scroller, set_padding, to_pixels(safe_area.left, density),
-                                    to_pixels(safe_area.top, density), to_pixels(safe_area.right, density),
-                                    to_pixels(safe_area.bottom, density));
-                clear_pending(env.get());
-            }
-        }
-
         const jint left = to_pixels(frame.x, density);
         const jint top = to_pixels(frame.y, density);
         const jint width = to_pixels(frame.width, density);

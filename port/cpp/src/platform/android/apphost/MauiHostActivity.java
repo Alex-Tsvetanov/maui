@@ -27,34 +27,26 @@ public final class MauiHostActivity extends Activity {
     // connects a maui window to it, and returns the window's content FrameLayout (or null on failure).
     private native View nativeMount(String pageKey, String appearance);
 
-    // The window's FULL bounds and its system-bar INSETS, in PIXELS, as
-    // {width, height, insetLeft, insetTop, insetRight, insetBottom} — via the timing-safe
-    // WindowManager.getCurrentWindowMetrics() (API 30+, valid at mount time, no view-attachment dependency).
-    //
-    // Both halves, kept SEPARATE on purpose. MAUI on net10.0-android is edge-to-edge and applies the safe
-    // area per view (SafeAreaExtensions.ApplyAdjustedSafeAreaInsetsPx), so the native host needs the whole
-    // window AND the insets and lets each view decide — a root Layout insets its children, a root Border
-    // (SafeAreaEdges None) is centered on the WINDOW mid-line. This method used to return only the
-    // pre-subtracted usable height, which collapsed the two and centred every root inside the shrunken
-    // canvas; see src/platform/android/jni/host_layout_rects.hpp for the measurement.
-    //
-    // Returns null on older APIs / any failure, so the caller falls back to the legacy
-    // DisplayMetrics - dimen-chrome single-rect path. Called via JNI ("windowMetricsPx" "()[I").
-    public int[] windowMetricsPx() {
+    // The window's USABLE CONTENT height in PIXELS = getCurrentWindowMetrics().getBounds().height() minus the
+    // system-bar insets (status bar top + navigation/gesture bar bottom), via the timing-safe
+    // WindowManager.getCurrentWindowMetrics() (API 30+, valid at mount time — no view-attachment dependency).
+    // This is exactly the area MAUI lays its content into. The native display_size uses it DIRECTLY instead of
+    // DisplayMetrics.heightPixels - navigation_bar_height dimen, which double-subtracted the chrome on API 30+
+    // (DisplayMetrics.heightPixels already excludes the bars there), leaving *-row / auto-sized pages ~200px
+    // short of the gesture-nav pill the real MAUI app reaches. Returns 0 on older APIs / any failure, so the
+    // caller falls back to the legacy DisplayMetrics - dimen-chrome path. Called via JNI ("usableContentHeightPx" "()I").
+    public int usableContentHeightPx() {
         try {
             if (android.os.Build.VERSION.SDK_INT >= 30) {
                 android.view.WindowMetrics wm = getWindowManager().getCurrentWindowMetrics();
                 android.graphics.Insets bars = wm.getWindowInsets()
                     .getInsets(android.view.WindowInsets.Type.systemBars());
-                return new int[] {
-                    wm.getBounds().width(), wm.getBounds().height(),
-                    bars.left, bars.top, bars.right, bars.bottom
-                };
+                return wm.getBounds().height() - bars.top - bars.bottom;
             }
         } catch (Throwable t) {
-            // fall through to null -> native dimen fallback
+            // fall through to 0 -> native dimen fallback
         }
-        return null;
+        return 0;
     }
 
     @Override
@@ -96,21 +88,6 @@ public final class MauiHostActivity extends Activity {
         // residual being the status-bar strip (MAUI 189,189,189 vs the port's 18,18,18). The comment that
         // was here already said "no values-night, so both themes" — it was correct and I overrode it.
         // Verify against captures/android/maui/*_dark.png before changing this again.
-        // EDGE-TO-EDGE, exactly as MAUI's net10.0-android host runs. Without this the system FITS the content
-        // view below the status bar and above the navigation bar, which pre-insets the canvas and makes the
-        // per-view safe area (windowMetricsPx above) impossible to express — a root that declines the inset
-        // still ended up inside the shrunken band. With it, the content view spans the whole window and
-        // maui::hosting::drive_layout gets a real full/safe pair.
-        //
-        // The status-bar COLOR below is unaffected and still load-bearing: setStatusBarColor keeps working
-        // under setDecorFitsSystemWindows(false) on API 30..34 (it is only ignored from API 35, where
-        // edge-to-edge is enforced and the bar is forced transparent). MAUI renders the SAME light-gray bar
-        // in both themes (Maui.MainTheme's colorPrimaryDark = #BDBDBD, no values-night), so if a future API
-        // level drops this, the bar must be re-established some other way rather than left to the page
-        // surface — a dark page showing through the top 136 px was a measured 6.33% regression on label_dark.
-        if (android.os.Build.VERSION.SDK_INT >= 30) {
-            getWindow().setDecorFitsSystemWindows(false);
-        }
         getWindow().setStatusBarColor(0xFFBDBDBD);
         android.view.View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(

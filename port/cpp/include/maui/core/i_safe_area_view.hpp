@@ -63,24 +63,6 @@ namespace maui::core
             return false;
         }
 
-        // The insets this view is CURRENTLY applying (C# MauiView._safeArea / MauiScrollView._safeArea) —
-        // the SETTER's counterpart, after the per-edge region filtering. Zero unless the view both received
-        // insets and obeys them, so the default is exact for every implementer that never applies.
-        //
-        // WHO READS IT: a native host whose ViewGroup OWNS its children's layout, and which therefore has
-        // to express the inset the way the platform does instead of relying on the cross-platform child
-        // offset. On Android that is MAUI's own mechanism — SafeAreaExtensions.ApplyAdjustedSafeAreaInsetsPx
-        // ends in `view.SetPadding(left, top, right, bottom)`, and MauiScrollView.OnLayout then just calls
-        // base.OnLayout so the native ScrollView positions its child inside that padding. The port's
-        // android scroll_view_handler::platform_arrange does the same, because android's ScrollView
-        // (a FrameLayout) re-lays-out its single child at paddingTop and would otherwise DISCARD the
-        // origin scroll_view::arrange gave it — measured: border_stroke rendered 136 px high, its first
-        // label hidden behind the status bar.
-        [[nodiscard]] virtual thickness applied_safe_area_insets() const
-        {
-            return {};
-        }
-
     protected:
         i_safe_area_view2() = default;
         i_safe_area_view2(const i_safe_area_view2&) = default;
