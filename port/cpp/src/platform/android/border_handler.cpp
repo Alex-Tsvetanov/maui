@@ -98,6 +98,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "android_canvas.hpp"
@@ -150,6 +151,9 @@ namespace
     constexpr const char* k_layout_params_class = "android/view/ViewGroup$LayoutParams";
     constexpr const char* k_gradient_drawable_class = "android/graphics/drawable/GradientDrawable";
     constexpr const char* k_gradient_orientation_class = "android/graphics/drawable/GradientDrawable$Orientation";
+    // The wrapper carrying the StrokeShape's own 0.5 DIP/side self-inset on the GradientDrawable route —
+    // see border_drawable_self_inset_px + apply_border_drawable_inset below.
+    constexpr const char* k_inset_drawable_class = "android/graphics/drawable/InsetDrawable";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
 
     // GradientDrawable.GradientType.RADIAL_GRADIENT (LINEAR_GRADIENT is the drawable's constructed default = 0).
@@ -272,10 +276,15 @@ namespace
     // the installed one (View.getBackground() instanceof GradientDrawable identifies ours), installing a
     // fresh one only when `install` is set. An empty ref means "not installed and not asked to install"
     // (or a JNI failure). The button partial's maui_background_drawable, kept standalone here.
+    //
+    // A STROKED border's drawable is wrapped in an InsetDrawable (apply_border_drawable_inset below), so
+    // the background is EITHER the bare GradientDrawable or that wrapper — unwrap it, since every setter
+    // below (setStroke / setCornerRadius / setColor) must reach the GradientDrawable itself.
     [[nodiscard]] local_ref<jobject> maui_border_drawable(JNIEnv* env, jobject host, bool install)
     {
         auto& cache = default_jni_cache();
         jclass gradient_class = cache.find_class(env, k_gradient_drawable_class);
+        jclass inset_class = cache.find_class(env, k_inset_drawable_class);
         jmethodID get_background =
             cache.method(env, k_maui_layout_class, "getBackground", "()Landroid/graphics/drawable/Drawable;");
         if (gradient_class == nullptr || get_background == nullptr)
@@ -286,6 +295,23 @@ namespace
         if (clear_pending(env))
         {
             return {};
+        }
+        if (current && inset_class != nullptr && env->IsInstanceOf(current.get(), inset_class) == JNI_TRUE)
+        {
+            // DrawableWrapper.getDrawable() (API 23; minSdk is 24) — the wrapped GradientDrawable.
+            jmethodID get_drawable =
+                cache.method(env, k_inset_drawable_class, "getDrawable", "()Landroid/graphics/drawable/Drawable;");
+            if (get_drawable == nullptr)
+            {
+                return {};
+            }
+            local_ref<jobject> wrapped{env, env->CallObjectMethod(current.get(), get_drawable)};
+            if (clear_pending(env) || !wrapped)
+            {
+                return {};
+            }
+            return env->IsInstanceOf(wrapped.get(), gradient_class) == JNI_TRUE ? std::move(wrapped)
+                                                                                : local_ref<jobject>{};
         }
         if (current && env->IsInstanceOf(current.get(), gradient_class) == JNI_TRUE)
         {
@@ -313,6 +339,97 @@ namespace
             return {};
         }
         return fresh;
+    }
+
+    // The StrokeShape's own 0.5 DIP/side self-inset, in whole PIXELS, for the GradientDrawable route.
+    //
+    // WHY THIS EXISTS SEPARATELY FROM border_shape_path_points. maui::core::shape_self_inset is already
+    // applied on the CANVAS route (border_shape_path_points), but shape_needs_canvas() sends every
+    // round-rect / rectangle / ellipse StrokeShape — i.e. every Border on the parity board — down the
+    // GradientDrawable background instead, which that helper never touches. 4e93abf373 ("the shape
+    // self-inset was missing on iOS/Catalyst/AppKit/Android too") therefore landed on a path the common
+    // case does not take; the fix was INCOMPLETE on Android, not regressed (shape_needs_canvas predates
+    // it: 9ec9a14240 / bdfaddea5a). A GradientDrawable draws its stroke centred on its bounds deflated by
+    // strokeWidth/2, so its OUTER edge is flush with the view box; MAUI's MauiDrawable traces a path that
+    // is deflated by the same strokeWidth/2 AND by the Shape's own 0.5 (Shape.PathForBounds with the
+    // Controls Shape default StrokeThickness 1.0). Insetting the whole drawable by 0.5 DIP reproduces
+    // that, and carries the fill + the corner-radius origin with it exactly as MAUI's single path does.
+    //
+    // MEASURED on the android board columns (density 2.75, 5 DIP stroke): MAUI's `border` box spans
+    // 279.0 DIP outer edge to outer edge for a WidthRequest of 280 with the stroke centreline 3.0 DIP
+    // (= 2.5 + 0.5) inside the box, where the port spanned the full 280.0 with the centreline at 2.5;
+    // and on `border_stroke` MAUI leaves a 2 px white gap between vertically adjacent Grid Borders where
+    // the port had them abutting (a merged 17 px red run vs MAUI's 3 + gap + 14).
+    //
+    // QUANTIZATION (a documented residual, not a derivation): Drawable bounds are integer px, so the
+    // 1.375 px this is at density 2.75 rounds to 1 — 0.36 DIP instead of 0.5, leaving ~0.375 px/side.
+    // ROUND, not the ContextExtensions.ToPixels CEIL `to_pixels` uses elsewhere: MAUI never converts this
+    // inset to px at all (MauiDrawable strokes a float canvas path), so there is no ToPixels convention to
+    // mirror here, and rounding is simply the nearest reachable geometry. Exactness on this route would
+    // require abandoning the GradientDrawable for the canvas draw, which would also drop its dash,
+    // gradient-fill and Outline-shadow support — see the header's deviation list.
+    [[nodiscard]] jint border_drawable_self_inset_px(const maui::core::border_stroke_spec& spec, double thickness,
+                                                     float density)
+    {
+        if (!spec.shape_self_insets)
+        {
+            return 0; // the Frame facade's synthesized StrokeShape — see i_border_stroke::shape_self_insets
+        }
+        if (thickness <= 0.0)
+        {
+            return 0; // Border.UpdateStrokeShape latched the shape's own thickness to 0 — shape_self_inset's gate
+        }
+        const maui::graphics::rect inset = maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, 0.0, 0.0}, 1.0);
+        return static_cast<jint>(std::lround(inset.x * static_cast<double>(density)));
+    }
+
+    // Ensure the host's background carries `inset_px` on every side, wrapping/unwrapping the maui
+    // GradientDrawable in an InsetDrawable as needed. There is only ONE non-zero inset value (the constant
+    // above), so "is it wrapped?" fully determines the current inset — no getPadding round-trip needed.
+    // InsetDrawable's insets are fixed at construction before API 29, hence the re-install on a flip; the
+    // flip only happens when a Border gains or loses its stroke, so it is not a per-push cost.
+    void apply_border_drawable_inset(JNIEnv* env, jobject host, jobject drawable, jint inset_px)
+    {
+        auto& cache = default_jni_cache();
+        jclass inset_class = cache.find_class(env, k_inset_drawable_class);
+        jmethodID get_background =
+            cache.method(env, k_maui_layout_class, "getBackground", "()Landroid/graphics/drawable/Drawable;");
+        jmethodID set_background =
+            cache.method(env, k_maui_layout_class, "setBackground", "(Landroid/graphics/drawable/Drawable;)V");
+        if (inset_class == nullptr || get_background == nullptr || set_background == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> current{env, env->CallObjectMethod(host, get_background)};
+        if (clear_pending(env))
+        {
+            return;
+        }
+        const bool wrapped = current && env->IsInstanceOf(current.get(), inset_class) == JNI_TRUE;
+        if (wrapped == (inset_px > 0))
+        {
+            return; // already in the wanted shape
+        }
+        if (inset_px <= 0)
+        {
+            env->CallVoidMethod(host, set_background, drawable); // unwrap: the bare GradientDrawable
+            clear_pending(env);
+            return;
+        }
+        jmethodID ctor =
+            cache.method(env, k_inset_drawable_class, "<init>", "(Landroid/graphics/drawable/Drawable;IIII)V");
+        if (ctor == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> wrapper{
+            env, env->NewObject(inset_class, ctor, drawable, inset_px, inset_px, inset_px, inset_px)};
+        if (clear_pending(env) || !wrapper)
+        {
+            return;
+        }
+        env->CallVoidMethod(host, set_background, wrapper.get());
+        clear_pending(env);
     }
 
     // The ordered gradient stop colors as a jint[] (ARGB), for GradientDrawable.setColors(int[]). Mirrors
@@ -785,6 +902,13 @@ namespace
         }
         auto& cache = default_jni_cache();
         const float density = display_density(env.get(), host);
+        // The StrokeShape's own 0.5 DIP/side self-inset — the GradientDrawable-route twin of the
+        // shape_self_inset border_shape_path_points takes on the canvas route (derivation + the measured
+        // evidence: border_drawable_self_inset_px). Gated on the brush-gated `thickness`, the same
+        // convention border_shape_path_points uses, so a "thickness set but no Stroke brush" border is
+        // treated as unstroked here too.
+        apply_border_drawable_inset(env.get(), host, drawable.get(),
+                                    border_drawable_self_inset_px(spec, thickness, density));
         const jint width_px = to_pixels(geometry_thickness, density);
         const jint argb = spec.has_stroke ? static_cast<jint>(spec.stroke_color.to_int()) : 0;
         // StrokeExtensions.UpdateStrokeColor/Thickness + MauiDrawable.SetBorderDash → the stroke outline.

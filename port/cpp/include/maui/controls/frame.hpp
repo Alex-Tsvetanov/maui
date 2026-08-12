@@ -38,6 +38,14 @@ namespace maui::controls
     public:
         frame();
 
+        // A Frame's StrokeShape is SYNTHESIZED by this facade (FrameRenderer.SetupLayer's corner radius,
+        // see frame.cpp), not a Controls Shape the developer set on a Border — so it carries no Shape
+        // StrokeThickness and takes no self-inset. Derivation + the measured evidence: i_border_stroke.hpp.
+        [[nodiscard]] bool shape_self_insets() const override
+        {
+            return false;
+        }
+
         // Shared bindable-property descriptors. padding_property shadows border's with the Frame
         // default (20 — Frame's IPaddingElement.PaddingDefaultValueCreator).
         static const maui::core::bindable_property<maui::core::thickness>& padding_property();

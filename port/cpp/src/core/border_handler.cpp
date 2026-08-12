@@ -74,6 +74,7 @@ namespace maui::core
         spec.dash_offset = view.stroke_dash_offset();
         spec.miter_limit = view.stroke_miter_limit();
         spec.shape = view.shape();
+        spec.shape_self_insets = view.shape_self_insets();
         return spec;
     }
 

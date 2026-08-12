@@ -61,6 +61,7 @@ namespace maui::core
         float dash_offset = 0;                          // StrokeDashOffset
         float miter_limit = 0;                          // StrokeMiterLimit
         const maui::graphics::i_shape* shape = nullptr; // non-owning borrow (the control owns it)
+        bool shape_self_insets = true;                  // i_border_stroke::shape_self_insets (Frame: false)
     };
 
     // The extra 0.5 DIP/side inset MAUI's DEFAULT Border.StrokeShape carries — applied by each backend to
