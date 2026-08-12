@@ -7,11 +7,11 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <table>
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
-<tr><td>iOS</td><td>156</td><td>11</td><td>5</td><td>0</td><td>0</td><td>157</td><td>12</td><td>3</td><td>0</td><td>0</td></tr>
+<tr><td>iOS</td><td>149</td><td>17</td><td>6</td><td>0</td><td>0</td><td>157</td><td>11</td><td>4</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>153</td><td>16</td><td>3</td><td>0</td><td>0</td><td>152</td><td>17</td><td>3</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>146</td><td>22</td><td>4</td><td>0</td><td>0</td><td>147</td><td>21</td><td>4</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>160</td><td>10</td><td>2</td><td>0</td><td>0</td><td>161</td><td>10</td><td>1</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>615</strong></td><td><strong>59</strong></td><td><strong>14</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>617</strong></td><td><strong>60</strong></td><td><strong>11</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>608</strong></td><td><strong>65</strong></td><td><strong>15</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>617</strong></td><td><strong>59</strong></td><td><strong>12</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -24,11 +24,11 @@ _Android **dark** is not currently comparable: the MAUI reference renders light 
 
 | Platform | Cells with motion evidence | ✅ PASS | ❌ FAIL | 🚫 INVALID | ❔ INCONCLUSIVE |
 | --- | --- | --- | --- | --- | --- |
-| iOS | 86 | 50 | 18 | 18 | 0 |
+| iOS | 86 | 47 | 21 | 18 | 0 |
 | macOS | 86 | 47 | 9 | 30 | 0 |
 | Android | 86 | 37 | 7 | 24 | 18 |
 | Windows | 86 | 48 | 8 | 30 | 0 |
-| **Total** | **344** | **182** | **42** | **102** | **18** |
+| **Total** | **344** | **179** | **45** | **102** | **18** |
 
 <details>
 <summary><h2>Artifact size — click to expand</h2></summary>
@@ -57,9 +57,9 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 156 | 157 |
-| 🟡 Minor | 11 | 12 |
-| 🔴 Major | 5 | 3 |
+| 🟢 Match | 149 | 157 |
+| 🟡 Minor | 17 | 11 |
+| 🔴 Major | 6 | 4 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -87,15 +87,15 @@ ports ActivityIndicatorPage.xaml (+ ActivityIndicatorPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 8 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.01/0.00/0.00; self-motion MAUI 0.1384% (4376 px) vs C++ 0.1359% (4298 px) · Dark: MOTION 8 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 2 'gif01333' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.04/0.04/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.1869% (5911 px) vs C++ 0.1882% (5951 px)
+Light: MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 5 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 3 'gif01333' (0.02% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.00/0.02/0.00/0.00/0.02/0.01/0.00/0.02; self-motion MAUI 0.1285% (4063 px) vs C++ 0.1362% (4307 px) · Dark: MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 5 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 3 'gif01333' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.04/0.04/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.1718% (5433 px) vs C++ 0.1758% (5559 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 8 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 7 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9998 at frame 2 'gif01333' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.01/0.00/0.00; self-motion MAUI 0.1384% (4376 px) vs C++ &amp; XAML 0.1362% (4307 px) · Dark: MOTION 8 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 2 'gif01333' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.04/0.04/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.1869% (5911 px) vs C++ &amp; XAML 0.1851% (5853 px)
+Light: MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 5 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 3 'gif01333' (0.02% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.00/0.02/0.00/0.00/0.02/0.01/0.00/0.02; self-motion MAUI 0.1285% (4063 px) vs C++ &amp; XAML 0.1361% (4305 px) · Dark: MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 5 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 3 'gif01333' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.04/0.04/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.1718% (5433 px) vs C++ &amp; XAML 0.1773% (5608 px)
 
 ### 3. Adaptive Collection — 🟢/🟢
 <sub>adaptive_collection</sub>
@@ -145,21 +145,21 @@ Light: SSIM 0.9958, 0.14% pixels differ · Dark: SSIM 0.9990, 0.14% pixels diffe
 ### 6. Animation — 🟢/🟢
 <sub>animation</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/animation_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/animation_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/animation_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/animation_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/animation_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/animation_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/animation_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/animation_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/animation_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/animation_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/animation_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/animation_dark.gif" /></td></tr></table>
 
 ports AnimationPage.xaml (+ AnimationPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (60 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9997 at frame 1 'gif01000' (0.14% pixels differ), mean SSIM 0.9997; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0019% (60 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (56 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9996 at frame 1 'gif01000' (0.14% pixels differ), mean SSIM 0.9996; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0018% (56 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (60 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9997 at frame 1 'gif01000' (0.14% pixels differ), mean SSIM 0.9997; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0019% (60 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (56 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 1 'gif00667' (0.15% pixels differ), mean SSIM 0.9996; per-frame diff% 0.15/0.14/0.14; self-motion MAUI 0.0018% (56 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (60 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9997 at frame 1 'gif01000' (0.14% pixels differ), mean SSIM 0.9997; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0019% (60 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (56 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9996 at frame 1 'gif01000' (0.14% pixels differ), mean SSIM 0.9996; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0018% (56 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (60 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9997 at frame 1 'gif01000' (0.14% pixels differ), mean SSIM 0.9997; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0019% (60 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (56 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/animation.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9995 at frame 1 'gif00667' (0.15% pixels differ), mean SSIM 0.9996; per-frame diff% 0.15/0.14/0.14; self-motion MAUI 0.0018% (56 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 7. App Theme Binding — 🟢/🟢
 <sub>app_theme_binding</sub>
@@ -356,24 +356,24 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 20. Box View — 🔴/🔴
+### 20. Box View — 🟡/🔴
 <sub>box_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/box_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/box_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/box_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/box_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/box_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/box_view_dark.png" /></td></tr></table>
 
 ports BoxViewPage.xaml (+ BoxViewPage.xaml.cs)
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-10-11_02_17 · 2026-08-10</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-10-11_02_17, commit 3ea2203f06, 2026-08-10) — worst SSIM 0.9754 at frame 2 'driven' (1.38% pixels differ), mean SSIM 0.9877; per-frame diff% 0.00/1.38; self-motion MAUI 39.6244% (1252977 px) vs C++ 40.1211% (1268683 px) · Dark: MOTION 2 frames paired by step (run 2026-08-10-11_02_17, commit 3ea2203f06, 2026-08-10) — worst SSIM 0.8728 at frame 2 'driven' (9.84% pixels differ), mean SSIM 0.9364; per-frame diff% 0.00/9.84; self-motion MAUI 39.6268% (1253051 px) vs C++ 40.1193% (1268626 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9454 at frame 2 'driven' (7.40% pixels differ), mean SSIM 0.9727; per-frame diff% 0.00/7.40; self-motion MAUI 39.6251% (1252999 px) vs C++ 40.0294% (1265782 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9496 at frame 2 'driven' (2.66% pixels differ), mean SSIM 0.9748; per-frame diff% 0.00/2.66; self-motion MAUI 39.6268% (1253051 px) vs C++ 40.0796% (1267369 px)
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-10-11_02_17 · 2026-08-10</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-10-11_02_17, commit 3ea2203f06, 2026-08-10) — worst SSIM 0.9567 at frame 2 'driven' (2.90% pixels differ), mean SSIM 0.9784; per-frame diff% 0.00/2.90; self-motion MAUI 39.6244% (1252977 px) vs C++ &amp; XAML 39.6679% (1254352 px) · Dark: MOTION 2 frames paired by step (run 2026-08-10-11_02_17, commit 3ea2203f06, 2026-08-10) — worst SSIM 0.8501 at frame 2 'driven' (12.72% pixels differ), mean SSIM 0.9250; per-frame diff% 0.00/12.72; self-motion MAUI 39.6268% (1253051 px) vs C++ &amp; XAML 39.6601% (1254104 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9463 at frame 2 'driven' (9.36% pixels differ), mean SSIM 0.9731; per-frame diff% 0.00/9.36; self-motion MAUI 39.6251% (1252999 px) vs C++ &amp; XAML 39.6685% (1254369 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.8412 at frame 2 'driven' (13.99% pixels differ), mean SSIM 0.9206; per-frame diff% 0.00/13.99; self-motion MAUI 39.6268% (1253051 px) vs C++ &amp; XAML 36.8567% (1165458 px)
 
 ### 21. Button — 🟢/🟢
 <sub>button</sub>
@@ -384,15 +384,15 @@ ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ 0.0129% (407 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ 0.0129% (407 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ 0.0129% (407 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ 0.0129% (407 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ &amp; XAML 0.0129% (407 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ &amp; XAML 0.0129% (407 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ &amp; XAML 0.0129% (407 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9824 at frame 1 'initial' (0.95% pixels differ), mean SSIM 0.9824; per-frame diff% 0.95/0.95; self-motion MAUI 0.0129% (407 px) vs C++ &amp; XAML 0.0129% (407 px)
 
 ### 22. Carousel Page — 🟡/🟡
 <sub>carousel_page</sub>
@@ -403,15 +403,15 @@ Carousel Page
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 8 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07); 5 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9588 at frame 3 'gif00000' (2.22% pixels differ), mean SSIM 0.9695; per-frame diff% 0.34/0.39/2.22/2.16/2.16/2.16/2.16/2.16; self-motion MAUI 2.2930% (72508 px) vs C++ 2.3315% (73724 px) · Dark: MOTION 11 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9580 at frame 11 'gif02667' (2.29% pixels differ), mean SSIM 0.9706; per-frame diff% 0.00/2.16/0.00/0.00/2.16/2.15/2.16/2.15/2.16/2.16/2.29; self-motion MAUI 2.3296% (73666 px) vs C++ 2.4412% (77193 px)
+Light: MOTION 11 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9584 at frame 11 'gif02667' (2.23% pixels differ), mean SSIM 0.9701; per-frame diff% 0.05/2.17/0.05/0.05/2.17/2.16/2.17/2.16/2.17/2.17/2.23; self-motion MAUI 2.2927% (72497 px) vs C++ 2.4189% (76490 px) · Dark: MOTION 10 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 1 frame(s) had no partner and were NOT scored — worst SSIM 0.9585 at frame 10 'gif02333' (2.26% pixels differ), mean SSIM 0.9762; per-frame diff% 0.05/2.17/0.05/0.05/0.11/2.22/1.64/2.17/2.18/2.26; self-motion MAUI 2.3298% (73671 px) vs C++ 2.4535% (77584 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 8 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07); 5 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9588 at frame 3 'gif00000' (2.22% pixels differ), mean SSIM 0.9695; per-frame diff% 0.34/0.39/2.22/2.16/2.16/2.16/2.16/2.16; self-motion MAUI 2.2930% (72508 px) vs C++ &amp; XAML 2.3315% (73724 px) · Dark: MOTION 11 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9579 at frame 11 'gif02667' (2.22% pixels differ), mean SSIM 0.9705; per-frame diff% 0.00/2.16/0.00/0.00/2.24/2.23/2.23/2.23/2.23/2.16/2.22; self-motion MAUI 2.3296% (73666 px) vs C++ &amp; XAML 2.4416% (77206 px)
+Light: MOTION 11 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9585 at frame 11 'gif02667' (2.23% pixels differ), mean SSIM 0.9770; per-frame diff% 0.05/2.17/0.05/0.05/0.11/0.10/2.17/2.16/2.17/2.17/2.23; self-motion MAUI 2.2927% (72497 px) vs C++ &amp; XAML 2.3456% (74170 px) · Dark: MOTION 10 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 1 frame(s) had no partner and were NOT scored — worst SSIM 0.9587 at frame 10 'gif02333' (2.17% pixels differ), mean SSIM 0.9710; per-frame diff% 0.05/2.17/0.05/0.05/2.18/2.22/2.17/2.16/2.24/2.17; self-motion MAUI 2.3298% (73671 px) vs C++ &amp; XAML 2.4550% (77629 px)
 
 ### 23. Chat Example — 🟢/🟢
 <sub>chat_example</sub>
@@ -437,15 +437,15 @@ ports CheckBoxPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical s
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9986 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9986; per-frame diff% 0.07/0.07; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9986 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9986; per-frame diff% 0.07/0.07; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9986 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9986; per-frame diff% 0.07/0.07; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9986 at frame 1 'initial' (0.07% pixels differ), mean SSIM 0.9986; per-frame diff% 0.07/0.07; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px)
 
 ### 25. Chrome — 🟢/🟢
 <sub>chrome</sub>
@@ -456,15 +456,15 @@ a self-contained demo page for the W1-11 window-chrome family: page toolbar item
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-10-03_19_51 · 2026-08-10</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 4 frames paired by step (run 2026-08-10-03_19_51, commit 92da7bdd1c, 2026-08-10); 1 frame(s) had no partner and were NOT scored — worst SSIM 0.9957 at frame 4 'gif00333' (0.27% pixels differ), mean SSIM 0.9989; per-frame diff% 0.00/0.00/0.00/0.27; self-motion MAUI 0.2824% (8931 px) vs C++ 0.2331% (7370 px) · Dark: MOTION 5 frames paired by step (run 2026-08-10-03_19_51, commit 92da7bdd1c, 2026-08-10) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.2338% (7392 px) vs C++ 0.2328% (7362 px)
+Light: MOTION 5 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.2728% (8627 px) vs C++ 0.2420% (7653 px) · Dark: MOTION 5 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9999 at frame 5 'gif00667' (0.03% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.03; self-motion MAUI 0.2071% (6549 px) vs C++ 0.2343% (7408 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-10-03_19_51 · 2026-08-10</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 4 frames paired by step (run 2026-08-10-03_19_51, commit 92da7bdd1c, 2026-08-10); 1 frame(s) had no partner and were NOT scored — worst SSIM 0.9957 at frame 4 'gif00333' (0.27% pixels differ), mean SSIM 0.9989; per-frame diff% 0.00/0.00/0.00/0.27; self-motion MAUI 0.2824% (8931 px) vs C++ &amp; XAML 0.2420% (7653 px) · Dark: MOTION 5 frames paired by step (run 2026-08-10-03_19_51, commit 92da7bdd1c, 2026-08-10) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.2338% (7392 px) vs C++ &amp; XAML 0.2461% (7782 px)
+Light: MOTION 5 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.2728% (8627 px) vs C++ &amp; XAML 0.2420% (7653 px) · Dark: MOTION 5 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9999 at frame 5 'gif00667' (0.05% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.05; self-motion MAUI 0.2071% (6549 px) vs C++ &amp; XAML 0.2548% (8056 px)
 
 ### 26. Clip — 🟢/🟢
 <sub>clip</sub>
@@ -475,15 +475,15 @@ ports ClipPage.xaml The C# page (Pages/Core/ClipPage.xaml; its .xaml.cs is an em
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5206% (1249692 px) vs C++ 39.5210% (1249705 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5216% (1249726 px) vs C++ 39.5220% (1249739 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5206% (1249692 px) vs C++ 39.5210% (1249705 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5216% (1249726 px) vs C++ 39.5220% (1249739 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5206% (1249692 px) vs C++ &amp; XAML 39.5210% (1249705 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5216% (1249726 px) vs C++ &amp; XAML 39.5220% (1249739 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5206% (1249692 px) vs C++ &amp; XAML 39.5210% (1249705 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 39.5216% (1249726 px) vs C++ &amp; XAML 39.5220% (1249739 px)
 
 ### 27. Clip Corner Radius — 🟢/🟢
 <sub>clip_corner_radius</sub>
@@ -500,24 +500,24 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 28. Clip Gallery — 🟡/🟡
+### 28. Clip Gallery — 🔴/🔴
 <sub>clip_gallery</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/clip_gallery_light.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_gallery_light.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_gallery_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/clip_gallery_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/clip_gallery_dark.png" /></td></tr></table>
 
 ports ClipGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipGallery.xaml; its .xaml.cs is an empty InitializeComponent) is a ScrollView over a StackLayout (Padding=12) that shows the SAME &amp;quot;oasis.jpg&amp;quot; image SEVEN times — one bare
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9643 at frame 2 'driven' (1.01% pixels differ), mean SSIM 0.9822; per-frame diff% 0.00/1.01; self-motion MAUI 38.2543% (1209650 px) vs C++ 38.2360% (1209072 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9626 at frame 2 'driven' (1.01% pixels differ), mean SSIM 0.9813; per-frame diff% 0.00/1.01; self-motion MAUI 34.7536% (1098954 px) vs C++ 34.7767% (1099684 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.8650 at frame 2 'driven' (3.95% pixels differ), mean SSIM 0.9325; per-frame diff% 0.00/3.95; self-motion MAUI 38.2536% (1209629 px) vs C++ 38.2838% (1210583 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9062 at frame 2 'driven' (2.60% pixels differ), mean SSIM 0.9531; per-frame diff% 0.00/2.60; self-motion MAUI 34.8028% (1100509 px) vs C++ 34.8271% (1101278 px)
 
-#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · dark PASS / light FAIL · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9643 at frame 2 'driven' (1.01% pixels differ), mean SSIM 0.9822; per-frame diff% 0.00/1.01; self-motion MAUI 38.2543% (1209650 px) vs C++ &amp; XAML 38.2638% (1209953 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 34.7536% (1098954 px) vs C++ &amp; XAML 34.7756% (1099649 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.8280 at frame 2 'driven' (5.50% pixels differ), mean SSIM 0.9140; per-frame diff% 0.00/5.50; self-motion MAUI 38.2536% (1209629 px) vs C++ &amp; XAML 38.3056% (1211274 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9061 at frame 2 'driven' (2.60% pixels differ), mean SSIM 0.9530; per-frame diff% 0.00/2.60; self-motion MAUI 34.8028% (1100509 px) vs C++ &amp; XAML 34.8243% (1101191 px)
 
 ### 29. Clip Views — 🟢/🟢
 <sub>clip_views</sub>
@@ -528,15 +528,15 @@ ports ClipViewsGallery.xaml The C# page (Pages/Controls/ShapesGalleries/ClipView
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-10-06_14_06 · 2026-08-10</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-10-06_14_06, commit 4df79f3237, 2026-08-10) — worst SSIM 0.9991 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9991; per-frame diff% 0.04/0.04; self-motion MAUI 0.5673% (17940 px) vs C++ 0.5673% (17940 px) · Dark: MOTION 2 frames paired by step (run 2026-08-10-06_14_06, commit 4df79f3237, 2026-08-10) — worst SSIM 0.9990 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9990; per-frame diff% 0.04/0.04; self-motion MAUI 0.5676% (17949 px) vs C++ 0.5676% (17949 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9991 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9991; per-frame diff% 0.04/0.04; self-motion MAUI 0.5673% (17940 px) vs C++ 0.5673% (17940 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9990 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9990; per-frame diff% 0.04/0.04; self-motion MAUI 0.5676% (17949 px) vs C++ 0.5676% (17949 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-10-06_14_06 · 2026-08-10</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-10-06_14_06, commit 4df79f3237, 2026-08-10) — worst SSIM 0.9991 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9991; per-frame diff% 0.04/0.04; self-motion MAUI 0.5673% (17940 px) vs C++ &amp; XAML 0.5673% (17940 px) · Dark: MOTION 2 frames paired by step (run 2026-08-10-06_14_06, commit 4df79f3237, 2026-08-10) — worst SSIM 0.9990 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9990; per-frame diff% 0.04/0.04; self-motion MAUI 0.5676% (17949 px) vs C++ &amp; XAML 0.5676% (17949 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9991 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9991; per-frame diff% 0.04/0.04; self-motion MAUI 0.5673% (17940 px) vs C++ &amp; XAML 0.5673% (17940 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9990 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9990; per-frame diff% 0.04/0.04; self-motion MAUI 0.5676% (17949 px) vs C++ &amp; XAML 0.5676% (17949 px)
 
 ### 30. Clipping — 🟢/🟢
 <sub>clipping</sub>
@@ -547,11 +547,11 @@ compare oracle ~/maui-compare/Pages/ClippingPage.cs (itself written to mirror th
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9938, 0.18% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9938, 0.18% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 31. Collectionview — 🟢/🟢
 <sub>collectionview</sub>
@@ -622,11 +622,11 @@ ports ContextFlyoutPage.xaml (+ ContextFlyoutPage.xaml.cs) The C# page attaches 
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9998, 0.04% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9998, 0.04% pixels differ
 
 ### 36. Controls Stack — 🟢/🟢
 <sub>controls_stack</sub>
@@ -637,15 +637,15 @@ a faithful reproduction of the maui-compare &amp;quot;controls_stack&amp;quot; d
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9954 at frame 2 'driven' (0.21% pixels differ), mean SSIM 0.9956; per-frame diff% 0.18/0.21; self-motion MAUI 0.0630% (1993 px) vs C++ 0.0166% (524 px); !! SELF-MOTION ASYMMETRY 4x — MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9949 at frame 2 'driven' (0.22% pixels differ), mean SSIM 0.9951; per-frame diff% 0.19/0.22; self-motion MAUI 0.0642% (2030 px) vs C++ 0.0218% (690 px); !! SELF-MOTION ASYMMETRY 3x — MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9959 at frame 1 'initial' (0.19% pixels differ), mean SSIM 0.9959; per-frame diff% 0.19/0.19; self-motion MAUI 0.0595% (1881 px) vs C++ 0.0595% (1881 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9955 at frame 1 'initial' (0.17% pixels differ), mean SSIM 0.9955; per-frame diff% 0.17/0.17; self-motion MAUI 0.0642% (2029 px) vs C++ 0.0642% (2029 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9954 at frame 2 'driven' (0.22% pixels differ), mean SSIM 0.9956; per-frame diff% 0.18/0.22; self-motion MAUI 0.0630% (1993 px) vs C++ &amp; XAML 0.0218% (688 px); !! SELF-MOTION ASYMMETRY 3x — MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9949 at frame 2 'driven' (0.22% pixels differ), mean SSIM 0.9951; per-frame diff% 0.19/0.22; self-motion MAUI 0.0642% (2030 px) vs C++ &amp; XAML 0.0218% (690 px); !! SELF-MOTION ASYMMETRY 3x — MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9958 at frame 1 'initial' (0.19% pixels differ), mean SSIM 0.9959; per-frame diff% 0.19/0.19; self-motion MAUI 0.0595% (1881 px) vs C++ &amp; XAML 0.0630% (1991 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9954 at frame 2 'driven' (0.18% pixels differ), mean SSIM 0.9954; per-frame diff% 0.17/0.18; self-motion MAUI 0.0642% (2029 px) vs C++ &amp; XAML 0.0687% (2173 px)
 
 ### 37. Custom Layout — 🟢/🟢
 <sub>custom_layout</sub>
@@ -656,22 +656,22 @@ ports CustomLayoutPage.xaml (+ CustomLayoutPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9935, 0.21% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 38. Custom Size Swipe — 🟡/🟢
+### 38. Custom Size Swipe — 🟢/🟢
 <sub>custom_size_swipe</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/ios/cpp/custom_size_swipe_light.png" /></td><td><img width="300px" src="captures/ios/xaml/custom_size_swipe_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/custom_size_swipe_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/custom_size_swipe_dark.png" /></td></tr></table>
 
 ports CustomSizeSwipeViewGallery.xaml (+ .xaml.cs) The MAUI CustomSizeSwipeViewGallery is a single SwipeView whose Left / Right / Top item collections each reveal CUSTOM-SIZED content: a SwipeItemView wrapping a Grid/StackLayout with an exp
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9705, 5.82% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -716,15 +716,15 @@ ports DataTemplateSelectorGallery.xaml (+ DataTemplateSelectorGallery.xaml.cs, i
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.1850% (5850 px) vs C++ 0.1954% (6179 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.2282% (7217 px) vs C++ 0.2362% (7469 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.1850% (5850 px) vs C++ 0.1954% (6179 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.2282% (7217 px) vs C++ 0.2362% (7469 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.1850% (5850 px) vs C++ &amp; XAML 0.1954% (6179 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.2282% (7217 px) vs C++ &amp; XAML 0.2362% (7469 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.1850% (5850 px) vs C++ &amp; XAML 0.1954% (6179 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9989 at frame 1 'initial' (0.10% pixels differ), mean SSIM 0.9994; per-frame diff% 0.10/0.00; self-motion MAUI 0.2282% (7217 px) vs C++ &amp; XAML 0.2362% (7469 px)
 
 ### 42. Date Picker — 🟢/🟢
 <sub>date_picker</sub>
@@ -735,11 +735,11 @@ ports DatePickerPage.xaml (+ DatePickerPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9881, 0.71% pixels differ · Dark: SSIM 0.9915, 0.45% pixels differ
+Light: SSIM 0.9911, 0.46% pixels differ · Dark: SSIM 0.9909, 0.47% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9940, 0.37% pixels differ · Dark: SSIM 0.9939, 0.38% pixels differ
+Light: SSIM 0.9937, 0.39% pixels differ · Dark: SSIM 0.9936, 0.39% pixels differ
 
 ### 43. Device — 🟢/🟢
 <sub>device</sub>
@@ -795,15 +795,15 @@ ports EditorPage.xaml (Microsoft.Maui.Controls sample gallery)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9987 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.5541% (17520 px) vs C++ 0.5541% (17520 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9984 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9984; per-frame diff% 0.09/0.09; self-motion MAUI 0.5528% (17479 px) vs C++ 0.5528% (17479 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9987 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.5541% (17520 px) vs C++ 0.5541% (17520 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9984 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9984; per-frame diff% 0.09/0.09; self-motion MAUI 0.5528% (17479 px) vs C++ 0.5528% (17479 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9987 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.5541% (17520 px) vs C++ &amp; XAML 0.5541% (17520 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9984 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9984; per-frame diff% 0.09/0.09; self-motion MAUI 0.5528% (17479 px) vs C++ &amp; XAML 0.5528% (17479 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9987 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9987; per-frame diff% 0.09/0.09; self-motion MAUI 0.5541% (17520 px) vs C++ &amp; XAML 0.5541% (17520 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9984 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9984; per-frame diff% 0.09/0.09; self-motion MAUI 0.5528% (17479 px) vs C++ &amp; XAML 0.5528% (17479 px)
 
 ### 47. Effects — 🟢/🟢
 <sub>effects</sub>
@@ -853,21 +853,21 @@ Light: SSIM 0.9997, 0.03% pixels differ · Dark: SSIM 0.9997, 0.03% pixels diffe
 ### 50. Empty View Load Simulate — 🟢/🟢
 <sub>empty_view_load_simulate</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/empty_view_load_simulate_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/empty_view_load_simulate_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/empty_view_load_simulate_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/empty_view_load_simulate_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/empty_view_load_simulate_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/empty_view_load_simulate_dark.gif" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/empty_view_load_simulate_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/empty_view_load_simulate_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/empty_view_load_simulate_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/empty_view_load_simulate_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/empty_view_load_simulate_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/empty_view_load_simulate_dark.png" /></td></tr></table>
 
 ports EmptyViewGalleries/EmptyViewLoadSimulateGallery.xaml (+ EmptyViewLoadSimulateGallery.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (31 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0010% (31 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (29 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0009% (29 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (31 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0010% (31 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (29 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0009% (29 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (31 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0010% (31 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (29 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0009% (29 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (31 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0010% (31 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (29 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0009% (29 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 51. Empty View Null — 🟢/🟢
 <sub>empty_view_null</sub>
@@ -893,15 +893,15 @@ ports EmptyViewGalleries/EmptyViewRTLGallery.xaml (+ EmptyViewRTLGallery.xaml.cs
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9966 at frame 1 'initial' (0.16% pixels differ), mean SSIM 0.9968; per-frame diff% 0.16/0.13; self-motion MAUI 0.1158% (3661 px) vs C++ 0.1185% (3746 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9965 at frame 1 'initial' (0.16% pixels differ), mean SSIM 0.9967; per-frame diff% 0.16/0.13; self-motion MAUI 0.1573% (4973 px) vs C++ 0.1598% (5054 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9966 at frame 1 'initial' (0.16% pixels differ), mean SSIM 0.9968; per-frame diff% 0.16/0.13; self-motion MAUI 0.1158% (3661 px) vs C++ 0.1185% (3746 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9965 at frame 1 'initial' (0.16% pixels differ), mean SSIM 0.9967; per-frame diff% 0.16/0.13; self-motion MAUI 0.1573% (4973 px) vs C++ 0.1598% (5054 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1158% (3661 px) vs C++ &amp; XAML 0.1185% (3746 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1573% (4973 px) vs C++ &amp; XAML 0.1598% (5054 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1158% (3661 px) vs C++ &amp; XAML 0.1185% (3746 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1573% (4973 px) vs C++ &amp; XAML 0.1598% (5054 px)
 
 ### 53. Empty View Selector — 🟢/🟢
 <sub>empty_view_selector</sub>
@@ -912,15 +912,15 @@ ports EmptyViewGalleries/EmptyViewWithDataTemplateSelector.xaml (+ .xaml.cs, inc
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1132% (3579 px) vs C++ 0.1154% (3650 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1551% (4905 px) vs C++ 0.1568% (4959 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1132% (3579 px) vs C++ 0.1154% (3650 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1551% (4905 px) vs C++ 0.1568% (4959 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1132% (3579 px) vs C++ &amp; XAML 0.1154% (3650 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1551% (4905 px) vs C++ &amp; XAML 0.1568% (4959 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1132% (3579 px) vs C++ &amp; XAML 0.1154% (3650 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.03% pixels differ), mean SSIM 0.9999; per-frame diff% 0.03/0.00; self-motion MAUI 0.1551% (4905 px) vs C++ &amp; XAML 0.1568% (4959 px)
 
 ### 54. Empty View Swap — 🟢/🟢
 <sub>empty_view_swap</sub>
@@ -976,15 +976,15 @@ ports EntryPage.xaml (Microsoft.Maui.Controls sample gallery)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9986 at frame 2 'driven' (0.06% pixels differ), mean SSIM 0.9993; per-frame diff% 0.00/0.06; self-motion MAUI 0.5993% (18951 px) vs C++ 0.6626% (20952 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9986 at frame 2 'driven' (0.06% pixels differ), mean SSIM 0.9993; per-frame diff% 0.00/0.06; self-motion MAUI 0.6010% (19003 px) vs C++ 0.6642% (21004 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9986 at frame 2 'driven' (0.06% pixels differ), mean SSIM 0.9993; per-frame diff% 0.00/0.06; self-motion MAUI 0.5993% (18951 px) vs C++ 0.6626% (20952 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9986 at frame 2 'driven' (0.06% pixels differ), mean SSIM 0.9993; per-frame diff% 0.00/0.06; self-motion MAUI 0.6010% (19003 px) vs C++ 0.6642% (21004 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5993% (18951 px) vs C++ &amp; XAML 0.5993% (18951 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6010% (19003 px) vs C++ &amp; XAML 0.6010% (19003 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5993% (18951 px) vs C++ &amp; XAML 0.5993% (18951 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6010% (19003 px) vs C++ &amp; XAML 0.6010% (19003 px)
 
 ### 58. Filter Collection — 🟢/🟢
 <sub>filter_collection</sub>
@@ -1094,21 +1094,21 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 ### 65. Gestures — 🟢/🟢
 <sub>gestures</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/gestures_light.png" /></td><td><img width="300px" src="captures/ios/cpp/gestures_light.png" /></td><td><img width="300px" src="captures/ios/xaml/gestures_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/gestures_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/gestures_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/gestures_dark.gif" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/gestures_light.png" /></td><td><img width="300px" src="captures/ios/cpp/gestures_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/gestures_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/gestures_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/gestures_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/gestures_dark.gif" /></td></tr></table>
 
 ports GesturesPage.xaml (+ .xaml.cs) The MAUI GesturesPage.xaml is a *gallery navigation* page: a CollectionView listing gesture-demo sections that the shell navigates into
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 4 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ 0.1244% (3935 px) · Dark: MOTION 4 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ 0.1244% (3935 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 14 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9966 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9983; per-frame diff% 0.12/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ 0.1244% (3935 px) · Dark: MOTION 4 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 1 frame(s) had no partner and were NOT scored — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ 0.1978% (6255 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 4 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07); 1 frame(s) had no partner and were NOT scored — worst SSIM 0.9966 at frame 2 'driven' (0.13% pixels differ), mean SSIM 0.9991; per-frame diff% 0.00/0.13/0.00/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ &amp; XAML 0.1512% (4782 px) · Dark: MOTION 4 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07); 1 frame(s) had no partner and were NOT scored — worst SSIM 0.9966 at frame 2 'driven' (0.13% pixels differ), mean SSIM 0.9991; per-frame diff% 0.00/0.13/0.00/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ &amp; XAML 0.1514% (4786 px)
+Light: MOTION 4 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 2 frame(s) had no partner and were NOT scored — worst SSIM 0.9966 at frame 2 'driven' (0.13% pixels differ), mean SSIM 0.9991; per-frame diff% 0.00/0.13/0.00/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ &amp; XAML 0.1512% (4782 px) · Dark: MOTION 4 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 1 frame(s) had no partner and were NOT scored — worst SSIM 0.9966 at frame 2 'driven' (0.13% pixels differ), mean SSIM 0.9991; per-frame diff% 0.00/0.13/0.00/0.00; self-motion MAUI 0.1244% (3935 px) vs C++ &amp; XAML 0.1514% (4786 px)
 
 ### 66. Gradient — 🟢/🟢
 <sub>gradient</sub>
@@ -1269,15 +1269,15 @@ ports HitTestingPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.HitTestingPag
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ 0.0414% (1309 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9999 at frame 1 'initial' (0.04% pixels differ), mean SSIM 0.9999; per-frame diff% 0.04/0.04; self-motion MAUI 0.0414% (1309 px) vs C++ &amp; XAML 0.0414% (1309 px)
 
 ### 77. Horizontal Stack — 🟢/🟢
 <sub>horizontal_stack</sub>
@@ -1417,40 +1417,40 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 0.9985, 0.13% pixels diffe
 ### 86. Ios Blur Effect — 🟢/🟢
 <sub>ios_blur_effect</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_blur_effect_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_blur_effect_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_blur_effect_dark.gif" /></td></tr></table>
 
 ports iOSBlurEffectPage.xaml The .NET MAUI PlatformSpecifics sample (Pages/PlatformSpecifics/iOS/iOSBlurEffectPage.xaml + .xaml.cs): an Image (Source=&amp;quot;oasis.jpg&amp;quot;) carrying the iOSSpecific VisualElement.BlurEffect knob (XAML seeds it to Extr
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (76 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9954 at frame 1 'gif01000' (0.13% pixels differ), mean SSIM 0.9954; per-frame diff% 0.13/0.13/0.13; self-motion MAUI 0.0024% (76 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (66 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 4 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9952 at frame 1 'gif01000' (0.13% pixels differ), mean SSIM 0.9952; per-frame diff% 0.13/0.13/0.13/0.13; self-motion MAUI 0.0021% (66 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (76 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9954 at frame 1 'gif01000' (0.13% pixels differ), mean SSIM 0.9954; per-frame diff% 0.13/0.13/0.13; self-motion MAUI 0.0024% (76 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (76 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9954 at frame 1 'gif01000' (0.13% pixels differ), mean SSIM 0.9954; per-frame diff% 0.13/0.13/0.13; self-motion MAUI 0.0024% (76 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (66 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 4 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9952 at frame 1 'gif01000' (0.13% pixels differ), mean SSIM 0.9952; per-frame diff% 0.13/0.13/0.13/0.13; self-motion MAUI 0.0021% (66 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (76 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9954 at frame 1 'gif01000' (0.13% pixels differ), mean SSIM 0.9954; per-frame diff% 0.13/0.13/0.13; self-motion MAUI 0.0024% (76 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
-### 87. Ios Date Picker — 🟢/🟢
+### 87. Ios Date Picker — 🔴/🟢
 <sub>ios_date_picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_date_picker_light.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_date_picker_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_date_picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_date_picker_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_date_picker_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_date_picker_dark.png" /></td></tr></table>
 
 ports iOSDatePickerPage.xaml (+ iOSDatePickerPage.xaml.cs)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · dark PASS / light FAIL · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 24.3039% (768521 px) vs C++ 24.3152% (768879 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 5.3755% (169979 px) vs C++ 5.3868% (170337 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9615 at frame 2 'driven' (24.52% pixels differ), mean SSIM 0.9808; per-frame diff% 0.00/24.52; self-motion MAUI 24.5073% (774954 px) vs C++ 0.0113% (358 px); !! SELF-MOTION ASYMMETRY 2165x — MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 5.3755% (169979 px) vs C++ 5.3868% (170337 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 24.3039% (768521 px) vs C++ &amp; XAML 24.3152% (768879 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 5.3755% (169979 px) vs C++ &amp; XAML 5.3868% (170337 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 24.5073% (774954 px) vs C++ &amp; XAML 24.5186% (775312 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 5.3755% (169979 px) vs C++ &amp; XAML 5.3868% (170337 px)
 
 ### 88. Ios Entry — 🟢/🟢
 <sub>ios_entry</sub>
@@ -1485,21 +1485,21 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 ### 90. Ios Pan Gesture — 🟢/🟢
 <sub>ios_pan_gesture</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_pan_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_pan_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_pan_gesture_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_pan_gesture_dark.gif" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_pan_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_pan_gesture_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_pan_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_pan_gesture_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_pan_gesture_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_pan_gesture_dark.png" /></td></tr></table>
 
 ports iOSPanGestureRecognizerPage.xaml (+ .xaml.cs) The C# iOSPanGestureRecognizerPage is a StackLayout with: a bold message Label (_messageLabel), a &amp;quot;Toggle Simultaneous Gesture Recognition&amp;quot; Button, and a grouped ListView of employees whos
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (106 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.12% pixels differ), mean SSIM 0.9999; per-frame diff% 0.12/0.12; self-motion MAUI 0.0034% (106 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (84 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.12% pixels differ), mean SSIM 0.9999; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.0027% (84 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (106 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.12% pixels differ), mean SSIM 0.9999; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.0034% (106 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (106 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.12% pixels differ), mean SSIM 0.9999; per-frame diff% 0.12/0.12; self-motion MAUI 0.0034% (106 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (84 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.12% pixels differ), mean SSIM 0.9999; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.0027% (84 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (106 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.12% pixels differ), mean SSIM 0.9999; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.0034% (106 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_pan_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 91. Ios Picker — 🟢/🟢
 <sub>ios_picker</sub>
@@ -1510,15 +1510,15 @@ ports iOSPickerPage.xaml (+ iOSPickerPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 24.3039% (768521 px) vs C++ 24.3153% (768881 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 4.8412% (153085 px) vs C++ 4.8526% (153445 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 24.5073% (774954 px) vs C++ 24.5187% (775314 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 4.8412% (153085 px) vs C++ 4.8526% (153445 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 24.3039% (768521 px) vs C++ &amp; XAML 24.3153% (768881 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 4.8412% (153085 px) vs C++ &amp; XAML 4.8526% (153445 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 24.5073% (774954 px) vs C++ &amp; XAML 24.5187% (775314 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 4.8412% (153085 px) vs C++ &amp; XAML 4.8526% (153445 px)
 
 ### 92. Ios Safe Area — 🟢/🟢
 <sub>ios_safe_area</sub>
@@ -1544,15 +1544,15 @@ ports iOSScrollViewPage.xaml (+ iOSScrollViewPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.2291% (7244 px) vs C++ 0.2291% (7244 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6066% (19180 px) vs C++ 0.6066% (19180 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.2342% (7406 px) vs C++ 0.2341% (7404 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9985 at frame 2 'driven' (0.08% pixels differ), mean SSIM 0.9992; per-frame diff% 0.00/0.08; self-motion MAUI 0.6066% (19180 px) vs C++ 0.6151% (19450 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.2291% (7244 px) vs C++ &amp; XAML 0.2291% (7244 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6066% (19180 px) vs C++ &amp; XAML 0.6065% (19178 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9995 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.01; self-motion MAUI 0.2342% (7406 px) vs C++ &amp; XAML 0.2291% (7244 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6066% (19180 px) vs C++ &amp; XAML 0.6066% (19180 px)
 
 ### 94. Ios Search Bar — 🟢/🟢
 <sub>ios_search_bar</sub>
@@ -1587,21 +1587,21 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 ### 96. Ios Swipe Transition — 🟢/🟢
 <sub>ios_swipe_transition</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_swipe_transition_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_swipe_transition_light.png" /></td><td><img width="300px" src="captures/ios/xaml/ios_swipe_transition_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_swipe_transition_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/ios_swipe_transition_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_swipe_transition_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/ios_swipe_transition_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_swipe_transition_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_swipe_transition_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/ios_swipe_transition_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/ios_swipe_transition_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/ios_swipe_transition_dark.gif" /></td></tr></table>
 
 ports iOSSwipeViewTransitionModePage.xaml (+ .xaml.cs) The C# iOSSwipeViewTransitionModePage is a StackLayout with: a horizontal row holding a &amp;quot;SwipeTransitionMode:&amp;quot; Label + an EnumPicker over the SwipeTransitionMode enum (Reveal / Drag, Se
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (281 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 4 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9998 at frame 1 'gif01000' (0.04% pixels differ), mean SSIM 0.9998; per-frame diff% 0.04/0.04/0.04/0.04; self-motion MAUI 0.0089% (281 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (281 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9998 at frame 1 'gif01000' (0.04% pixels differ), mean SSIM 0.9998; per-frame diff% 0.04/0.04/0.04; self-motion MAUI 0.0089% (281 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (265 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9998 at frame 1 'gif01000' (0.04% pixels differ), mean SSIM 0.9998; per-frame diff% 0.04/0.04/0.04; self-motion MAUI 0.0084% (265 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (281 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 4 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9998 at frame 1 'gif01000' (0.04% pixels differ), mean SSIM 0.9998; per-frame diff% 0.04/0.04/0.04/0.04; self-motion MAUI 0.0089% (281 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (281 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9998 at frame 1 'gif01000' (0.04% pixels differ), mean SSIM 0.9998; per-frame diff% 0.04/0.04/0.04; self-motion MAUI 0.0089% (281 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (265 px vs 265 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/ios_swipe_transition.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 4 frame(s) had no partner and were NOT scored — worst SSIM 0.9999 at frame 2 'gif00333' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01; self-motion MAUI 0.0084% (265 px) vs C++ &amp; XAML 0.0084% (265 px)
 
 ### 97. Ios Time Picker — 🟢/🟢
 <sub>ios_time_picker</sub>
@@ -1801,21 +1801,21 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 ### 110. Pan Gesture Events — 🟢/🟢
 <sub>pan_gesture_events</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/pan_gesture_events_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/ios/xaml/pan_gesture_events_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/pan_gesture_events_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/pan_gesture_events_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/pan_gesture_events_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/ios/cpp/pan_gesture_events_light.png" /></td><td><img width="300px" src="captures/ios/xaml/pan_gesture_events_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/pan_gesture_events_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/pan_gesture_events_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/pan_gesture_events_dark.png" /></td></tr></table>
 
 ports PanGestureEventsGallery.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PanGestureEventsGallery)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-03_35_23 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (40 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-05-03_35_23, commit 501eb45287, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9950 at frame 1 'gif00667' (0.23% pixels differ), mean SSIM 0.9950; per-frame diff% 0.23/0.23; self-motion MAUI 0.0013% (40 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (37 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-03_35_23, commit 501eb45287, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9950 at frame 1 'gif00667' (0.23% pixels differ), mean SSIM 0.9950; per-frame diff% 0.23/0.23/0.23; self-motion MAUI 0.0012% (37 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 8 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 8 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9970 at frame 1 'gif01333' (0.11% pixels differ), mean SSIM 0.9970; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (37 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9950 at frame 1 'gif00667' (0.23% pixels differ), mean SSIM 0.9950; per-frame diff% 0.23/0.23/0.23; self-motion MAUI 0.0012% (37 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-03_35_23 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (40 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-05-03_35_23, commit 501eb45287, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9980 at frame 1 'gif00667' (0.14% pixels differ), mean SSIM 0.9980; per-frame diff% 0.14/0.14; self-motion MAUI 0.0013% (40 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (37 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-03_35_23, commit 501eb45287, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9979 at frame 1 'gif00667' (0.14% pixels differ), mean SSIM 0.9979; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0012% (37 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (37 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pan_gesture_events.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9979 at frame 1 'gif00667' (0.14% pixels differ), mean SSIM 0.9979; per-frame diff% 0.14/0.14/0.14; self-motion MAUI 0.0012% (37 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 111. Path Aspect Gallery — 🟢/🟢
 <sub>path_aspect_gallery</sub>
@@ -1841,15 +1841,15 @@ ports PathGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Co
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.6466 at frame 2 'driven' (18.00% pixels differ), mean SSIM 0.8233; per-frame diff% 0.00/18.00; self-motion MAUI 17.7346% (560793 px) vs C++ 18.6526% (589819 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.6478 at frame 2 'driven' (17.39% pixels differ), mean SSIM 0.8239; per-frame diff% 0.00/17.39; self-motion MAUI 17.2892% (546708 px) vs C++ 18.4011% (581868 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.6241 at frame 2 'driven' (18.49% pixels differ), mean SSIM 0.8120; per-frame diff% 0.00/18.49; self-motion MAUI 17.7346% (560793 px) vs C++ 18.2675% (577644 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.6166 at frame 2 'driven' (17.93% pixels differ), mean SSIM 0.8083; per-frame diff% 0.00/17.93; self-motion MAUI 17.3548% (548783 px) vs C++ 17.9530% (567697 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · dark PASS / light FAIL · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9707 at frame 2 'driven' (1.94% pixels differ), mean SSIM 0.9853; per-frame diff% 0.00/1.94; self-motion MAUI 17.7346% (560793 px) vs C++ &amp; XAML 17.8726% (565156 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9360 at frame 2 'driven' (2.69% pixels differ), mean SSIM 0.9680; per-frame diff% 0.00/2.69; self-motion MAUI 17.2892% (546708 px) vs C++ &amp; XAML 17.4510% (551825 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9705 at frame 2 'driven' (1.94% pixels differ), mean SSIM 0.9852; per-frame diff% 0.00/1.94; self-motion MAUI 17.7346% (560793 px) vs C++ &amp; XAML 17.8726% (565156 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 17.3548% (548783 px) vs C++ &amp; XAML 17.4703% (552434 px)
 
 ### 113. Path Transform String — 🟢/🟢
 <sub>path_transform_string</sub>
@@ -1866,24 +1866,24 @@ Light: SSIM 0.9878, 0.54% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 114. Picker — 🟢/🟢
+### 114. Picker — 🟡/🟢
 <sub>picker</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/picker_light.png" /></td><td><img width="300px" src="captures/ios/cpp/picker_light.png" /></td><td><img width="300px" src="captures/ios/xaml/picker_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/picker_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/picker_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/picker_dark.png" /></td></tr></table>
 
 ports PickerPage.xaml (+ PickerPage.xaml.cs) A self-contained, code-first demo page for the Picker control (the C# gallery-page convention, mirroring the value_controls_page / pickers_page pattern)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · dark PASS / light FAIL · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9996 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.01; self-motion MAUI 24.4139% (772001 px) vs C++ 24.4249% (772349 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 10.6787% (337675 px) vs C++ 10.6901% (338035 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9760 at frame 2 'driven' (1.09% pixels differ), mean SSIM 0.9880; per-frame diff% 0.00/1.09; self-motion MAUI 24.6171% (778426 px) vs C++ 24.3301% (769351 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 10.6787% (337675 px) vs C++ 10.6901% (338035 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9996 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.01; self-motion MAUI 24.4139% (772001 px) vs C++ &amp; XAML 24.4249% (772348 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 10.6787% (337675 px) vs C++ &amp; XAML 10.6901% (338035 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9996 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.01; self-motion MAUI 24.6171% (778426 px) vs C++ &amp; XAML 24.6284% (778781 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 10.6787% (337675 px) vs C++ &amp; XAML 10.6901% (338035 px)
 
 ### 115. Pickers — 🟢/🟢
 <sub>pickers</sub>
@@ -1894,7 +1894,7 @@ a self-contained demo page for the W1-06 picker set: picker, date_picker and tim
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9956, 0.18% pixels differ · Dark: SSIM 0.9955, 0.18% pixels differ
+Light: SSIM 0.9948, 0.21% pixels differ · Dark: SSIM 0.9947, 0.21% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -1903,21 +1903,21 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 ### 116. Pointer Gesture — 🟢/🟢
 <sub>pointer_gesture</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/pointer_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/pointer_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/pointer_gesture_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/pointer_gesture_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/pointer_gesture_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/ios/cpp/pointer_gesture_light.png" /></td><td><img width="300px" src="captures/ios/xaml/pointer_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/pointer_gesture_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/pointer_gesture_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/pointer_gesture_dark.gif" /></td></tr></table>
 
 ports PointerGestureGalleryPage.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.PointerGestureGalleryPage)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (250 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0079% (250 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (247 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0078% (247 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (247 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00; self-motion MAUI 0.0078% (247 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (250 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0079% (250 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (247 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0078% (247 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (247 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/pointer_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00; self-motion MAUI 0.0078% (247 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 117. Polygon Gallery — 🟢/🟢
 <sub>polygon_gallery</sub>
@@ -2018,15 +2018,15 @@ ports RadioButtonContentGallery.xaml A self-contained, code-first demo of the Ra
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9762; per-frame diff% 1.35/1.35; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9774; per-frame diff% 1.18/1.18; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9762; per-frame diff% 1.35/1.35; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9774; per-frame diff% 1.18/1.18; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9762; per-frame diff% 1.35/1.35; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9774; per-frame diff% 1.18/1.18; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9762; per-frame diff% 1.35/1.35; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9774; per-frame diff% 1.18/1.18; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px)
 
 ### 124. Radio Button Group — 🟢/🟢
 <sub>radio_button_group</sub>
@@ -2082,15 +2082,15 @@ ports ContentProperties.xaml A self-contained, code-first demo of how RadioButto
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9697 at frame 1 'initial' (1.31% pixels differ), mean SSIM 0.9697; per-frame diff% 1.31/1.31; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9698 at frame 1 'initial' (1.26% pixels differ), mean SSIM 0.9698; per-frame diff% 1.26/1.26; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9697 at frame 1 'initial' (1.31% pixels differ), mean SSIM 0.9697; per-frame diff% 1.31/1.31; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9698 at frame 1 'initial' (1.26% pixels differ), mean SSIM 0.9698; per-frame diff% 1.26/1.26; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9697 at frame 1 'initial' (1.31% pixels differ), mean SSIM 0.9697; per-frame diff% 1.31/1.31; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9698 at frame 1 'initial' (1.26% pixels differ), mean SSIM 0.9698; per-frame diff% 1.26/1.26; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9697 at frame 1 'initial' (1.31% pixels differ), mean SSIM 0.9697; per-frame diff% 1.31/1.31; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9698 at frame 1 'initial' (1.26% pixels differ), mean SSIM 0.9698; per-frame diff% 1.26/1.26; self-motion MAUI 0.0280% (885 px) vs C++ &amp; XAML 0.0280% (885 px)
 
 ### 128. Radio Template From Style — 🟢/🟢
 <sub>radio_template_from_style</sub>
@@ -2191,34 +2191,34 @@ ports ScrollToGalleries/ScrollToGroup.xaml (+ .xaml.cs) of the C# CollectionView
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ 0.5238% (16564 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ 0.5238% (16564 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ 0.5238% (16564 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ 0.5238% (16564 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ &amp; XAML 0.5238% (16564 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ &amp; XAML 0.5238% (16564 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ &amp; XAML 0.5238% (16564 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ &amp; XAML 0.5238% (16564 px)
 
-### 135. Scroll View — 🔴/🟡
+### 135. Scroll View — 🟡/🟡
 <sub>scroll_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/scroll_view_light.png" /></td><td><img width="300px" src="captures/ios/cpp/scroll_view_light.png" /></td><td><img width="300px" src="captures/ios/xaml/scroll_view_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/scroll_view_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/scroll_view_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/scroll_view_dark.png" /></td></tr></table>
 
 ports ScrollViewPage.xaml (+ the ScrollViewPages sub-demos: ScrollViewOrientationPage / ScrollToEndPage / ScrollToFromConstructorPage), code-first
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9028 at frame 2 'driven' (3.03% pixels differ), mean SSIM 0.9509; per-frame diff% 0.03/3.03; self-motion MAUI 3.0724% (97154 px) vs C++ 3.1938% (100993 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.8999 at frame 2 'driven' (3.09% pixels differ), mean SSIM 0.9495; per-frame diff% 0.03/3.09; self-motion MAUI 2.6216% (82898 px) vs C++ 3.1958% (101054 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9007 at frame 2 'driven' (3.11% pixels differ), mean SSIM 0.9499; per-frame diff% 0.03/3.11; self-motion MAUI 3.0663% (96960 px) vs C++ 3.0194% (95477 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9354 at frame 2 'driven' (2.39% pixels differ), mean SSIM 0.9672; per-frame diff% 0.03/2.39; self-motion MAUI 3.1010% (98058 px) vs C++ 3.2554% (102941 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_28_20 · 2026-08-12</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9026 at frame 2 'driven' (3.04% pixels differ), mean SSIM 0.9513; per-frame diff% 0.00/3.04; self-motion MAUI 3.0724% (97154 px) vs C++ &amp; XAML 2.9630% (93695 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_28_20, commit 30318c0bfb, 2026-08-12) — worst SSIM 0.9421 at frame 2 'driven' (2.20% pixels differ), mean SSIM 0.9710; per-frame diff% 0.00/2.20; self-motion MAUI 2.6216% (82898 px) vs C++ &amp; XAML 2.9288% (92612 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9295 at frame 2 'driven' (2.56% pixels differ), mean SSIM 0.9647; per-frame diff% 0.00/2.56; self-motion MAUI 3.0663% (96960 px) vs C++ &amp; XAML 3.2035% (101298 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9013 at frame 2 'driven' (3.04% pixels differ), mean SSIM 0.9506; per-frame diff% 0.00/3.04; self-motion MAUI 3.1010% (98058 px) vs C++ &amp; XAML 3.1970% (101092 px)
 
 ### 136. Search Bar — 🟢/🟢
 <sub>search_bar</sub>
@@ -2229,26 +2229,26 @@ ports SearchBarPage.xaml (Microsoft.Maui.Controls sample gallery)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9984 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9984; per-frame diff% 0.15/0.15; self-motion MAUI 0.0677% (2140 px) vs C++ 0.0677% (2140 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9984 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9984; per-frame diff% 0.15/0.15; self-motion MAUI 0.0630% (1993 px) vs C++ 0.0630% (1993 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9984 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9984; per-frame diff% 0.15/0.15; self-motion MAUI 0.0677% (2140 px) vs C++ 0.0677% (2140 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9984 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9984; per-frame diff% 0.15/0.15; self-motion MAUI 0.0630% (1993 px) vs C++ 0.0630% (1993 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9982 at frame 2 'driven' (0.16% pixels differ), mean SSIM 0.9983; per-frame diff% 0.15/0.16; self-motion MAUI 0.0677% (2140 px) vs C++ &amp; XAML 0.0784% (2478 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.9984 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9984; per-frame diff% 0.15/0.15; self-motion MAUI 0.0630% (1993 px) vs C++ &amp; XAML 0.0630% (1993 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9984 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9984; per-frame diff% 0.15/0.15; self-motion MAUI 0.0677% (2140 px) vs C++ &amp; XAML 0.0677% (2140 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9984 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9984; per-frame diff% 0.15/0.15; self-motion MAUI 0.0630% (1993 px) vs C++ &amp; XAML 0.0630% (1993 px)
 
-### 137. Selection Command Param — 🟢/🟢
+### 137. Selection Command Param — 🟡/🟢
 <sub>selection_command_param</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/selection_command_param_light.png" /></td><td><img width="300px" src="captures/ios/cpp/selection_command_param_light.png" /></td><td><img width="300px" src="captures/ios/xaml/selection_command_param_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/selection_command_param_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/selection_command_param_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/selection_command_param_dark.png" /></td></tr></table>
 
 ports SelectionChangedCommandParameter.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SelectionChangedCommandParameter)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9518, 1.44% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -2263,90 +2263,90 @@ ports SelectionSynchronization.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.Col
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `mismatch` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.8513 at frame 2 'driven' (10.59% pixels differ), mean SSIM 0.9256; per-frame diff% 0.00/10.59; self-motion MAUI 23.0890% (730106 px) vs C++ 23.2749% (735982 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.8547 at frame 2 'driven' (6.34% pixels differ), mean SSIM 0.9274; per-frame diff% 0.00/6.34; self-motion MAUI 23.1377% (731645 px) vs C++ 23.1558% (732216 px)
+Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (22.3221% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.8459 at frame 1 'initial' (16.10% pixels differ), mean SSIM 0.8804; per-frame diff% 16.10/6.24; self-motion MAUI 22.3221% (705853 px) vs C++ 0.0000% (0 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.8276 at frame 2 'driven' (8.50% pixels differ), mean SSIM 0.9138; per-frame diff% 0.00/8.50; self-motion MAUI 22.6911% (717523 px) vs C++ 22.4552% (710063 px)
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.8533 at frame 2 'driven' (11.64% pixels differ), mean SSIM 0.9266; per-frame diff% 0.00/11.64; self-motion MAUI 23.0890% (730106 px) vs C++ &amp; XAML 23.1973% (733530 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 0.8533 at frame 2 'driven' (6.52% pixels differ), mean SSIM 0.9266; per-frame diff% 0.00/6.52; self-motion MAUI 23.1377% (731645 px) vs C++ &amp; XAML 23.0976% (730377 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9101 at frame 2 'driven' (3.61% pixels differ), mean SSIM 0.9550; per-frame diff% 0.00/3.61; self-motion MAUI 22.3221% (705853 px) vs C++ &amp; XAML 22.5481% (713002 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.7767 at frame 2 'driven' (12.99% pixels differ), mean SSIM 0.8883; per-frame diff% 0.00/12.99; self-motion MAUI 22.6911% (717523 px) vs C++ &amp; XAML 23.0307% (728261 px)
 
-### 139. Semantics — 🟢/🟢
+### 139. Semantics — 🔴/🟢
 <sub>semantics</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/semantics_light.png" /></td><td><img width="300px" src="captures/ios/cpp/semantics_light.png" /></td><td><img width="300px" src="captures/ios/xaml/semantics_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/semantics_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/semantics_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/semantics_dark.png" /></td></tr></table>
 
 ports SemanticsPage.xaml (+ SemanticsPage.xaml.cs) The C# SemanticsPage is an accessibility showcase: a long VerticalStackLayout where nearly every control carries SemanticProperties.Description / .Hint, plus a block of labels exercising Se
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ❌ FAIL · `mismatch` · dark PASS / light FAIL · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5541% (17520 px) vs C++ 0.5541% (17520 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5541% (17520 px) vs C++ 0.5541% (17520 px)
+Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.5541% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.8703 at frame 2 'driven' (4.18% pixels differ), mean SSIM 0.8724; per-frame diff% 3.63/4.18; self-motion MAUI 0.5541% (17520 px) vs C++ 0.0000% (0 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5541% (17520 px) vs C++ 0.5541% (17520 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5541% (17520 px) vs C++ &amp; XAML 0.5541% (17520 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5541% (17520 px) vs C++ &amp; XAML 0.5541% (17520 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9998 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 0.5541% (17520 px) vs C++ &amp; XAML 0.5634% (17816 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5541% (17520 px) vs C++ &amp; XAML 0.5541% (17520 px)
 
-### 140. Shadow Playground — 🟢/🟢
+### 140. Shadow Playground — 🟡/🟢
 <sub>shadow_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/shadow_playground_light.png" /></td><td><img width="300px" src="captures/ios/cpp/shadow_playground_light.png" /></td><td><img width="300px" src="captures/ios/xaml/shadow_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/shadow_playground_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/shadow_playground_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/shadow_playground_dark.png" /></td></tr></table>
 
 ports ShadowPlaygroundPage.xaml A self-contained, code-first demo of the view Shadow surface, mirroring the C# core gallery page (Pages/Core/ShadowGalleries/ShadowPlaygroundPage.xaml + .xaml.cs)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9243, 4.05% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 141. Shape App Theme — 🟢/🟢
+### 141. Shape App Theme — 🟡/🟢
 <sub>shape_app_theme</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/ios/cpp/shape_app_theme_light.png" /></td><td><img width="300px" src="captures/ios/xaml/shape_app_theme_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/shape_app_theme_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/shape_app_theme_dark.png" /></td></tr></table>
 
 ports ShapeAppThemeGallery.xaml A code-first port of the MAUI Shapes sub-gallery Pages/Controls/ShapesGalleries/ShapeAppThemeGallery.xaml: a StackLayout (Padding 12) holding a caption Label and a 200x80 Rectangle, all themed via {AppThemeBi
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9704, 4.71% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 142. Shapes — 🟢/🟢
+### 142. Shapes — 🟡/🟢
 <sub>shapes</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/shapes_light.png" /></td><td><img width="300px" src="captures/ios/cpp/shapes_light.png" /></td><td><img width="300px" src="captures/ios/xaml/shapes_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/shapes_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/shapes_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/shapes_dark.png" /></td></tr></table>
 
 a faithful reproduction of the maui-compare &amp;quot;shapes&amp;quot; demo (ComparePages.Shapes()), the shipped-.NET-MAUI reference for the visual-parity comparison: a ScrollView over a vertical stack of four LABELLED shapes, each bold-captioned and Start-a
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9373, 5.84% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
 Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
-### 143. Single Bound Selection — 🟢/🟢
+### 143. Single Bound Selection — 🟡/🟢
 <sub>single_bound_selection</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/single_bound_selection_light.png" /></td><td><img width="300px" src="captures/ios/cpp/single_bound_selection_light.png" /></td><td><img width="300px" src="captures/ios/xaml/single_bound_selection_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/single_bound_selection_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/single_bound_selection_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/single_bound_selection_dark.png" /></td></tr></table>
 
 ports SingleBoundSelection.xaml (+ .xaml.cs) (Maui.Controls.Sample.Pages.CollectionViewGalleries.SelectionGalleries.SingleBoundSelection)
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 0.9623, 1.15% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
@@ -2361,15 +2361,15 @@ ports SliderPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_37_22 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_37_22, commit 47bc2da748, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.2813% (8894 px) vs C++ 0.2813% (8894 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_37_22, commit 47bc2da748, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6595% (20854 px) vs C++ 0.6595% (20854 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9995 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.01; self-motion MAUI 0.2813% (8894 px) vs C++ 0.2863% (9054 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9988 at frame 2 'driven' (0.05% pixels differ), mean SSIM 0.9994; per-frame diff% 0.00/0.05; self-motion MAUI 0.6595% (20854 px) vs C++ 0.6646% (21016 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_37_22 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_37_22, commit 47bc2da748, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.2813% (8894 px) vs C++ &amp; XAML 0.2813% (8894 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_37_22, commit 47bc2da748, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.6595% (20854 px) vs C++ &amp; XAML 0.6595% (20854 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.2813% (8894 px) vs C++ &amp; XAML 0.2813% (8894 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9990 at frame 2 'driven' (0.04% pixels differ), mean SSIM 0.9995; per-frame diff% 0.00/0.04; self-motion MAUI 0.6595% (20854 px) vs C++ &amp; XAML 0.6629% (20962 px)
 
 ### 145. Some Empty Groups — 🟢/🟢
 <sub>some_empty_groups</sub>
@@ -2425,15 +2425,15 @@ ports StepperPage.xaml (+ StepperPage.xaml.cs)
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0074% (234 px) vs C++ 0.0074% (234 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0064% (203 px) vs C++ 0.0064% (203 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0074% (234 px) vs C++ 0.0074% (234 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0064% (203 px) vs C++ 0.0064% (203 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0074% (234 px) vs C++ &amp; XAML 0.0074% (234 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0064% (203 px) vs C++ &amp; XAML 0.0064% (203 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0074% (234 px) vs C++ &amp; XAML 0.0074% (234 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0064% (203 px) vs C++ &amp; XAML 0.0064% (203 px)
 
 ### 149. Styles — 🟢/🟢
 <sub>styles</sub>
@@ -2453,40 +2453,40 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 ### 150. Swipe Gesture — 🟢/🟢
 <sub>swipe_gesture</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_gesture_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/swipe_gesture_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_gesture_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_gesture_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_gesture_light.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_gesture_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/swipe_gesture_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_gesture_dark.gif" /></td></tr></table>
 
 ports SwipeViewGestureRecognizerGallery.xaml (+ .xaml.cs) The MAUI SwipeViewGestureRecognizerGallery is a CollectionView of &amp;quot;message&amp;quot; rows; each row&amp;#x27;s DataTemplate is a SwipeView wired three ways, proving gesture recognizers AND swipe-item
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (113 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0036% (113 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 97 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 2 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored — worst SSIM 0.9999 at frame 1 'gif00333' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0031% (97 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (113 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0036% (113 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (113 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0036% (113 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (113 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 12 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0036% (113 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_gesture.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 151. Swipe Item Position — 🟢/🟢
 <sub>swipe_item_position</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_item_position_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_item_position_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_item_position_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_item_position_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_item_position_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_item_position_dark.gif" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_item_position_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_item_position_light.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_item_position_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_item_position_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/swipe_item_position_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_item_position_dark.gif" /></td></tr></table>
 
 ports SwipeItemPositionGallery.xaml A code-first port of the MAUI SwipeView sub-gallery Pages/Controls/SwipeViewGalleries/SwipeItemPositionGallery.xaml: a 2-row Grid (Auto / *) with a Picker on top and one SwipeView below that carries TWO S
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (87 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 4 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00/0.00; self-motion MAUI 0.0028% (87 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (27 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0009% (27 px) vs C++ 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (87 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0028% (87 px) vs C++ 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-05-02_43_29 · 2026-08-05</sub>
+**Motion:** 🚫 INVALID · `no-scenario` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (87 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 4 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif01000' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00/0.00; self-motion MAUI 0.0028% (87 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (27 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-05-02_43_29, commit 058cf424b9, 2026-08-05); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0009% (27 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (87 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 3 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 11 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9999 at frame 1 'gif00667' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00; self-motion MAUI 0.0028% (87 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ &amp; XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page — docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` — so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 1.0000 at frame 1 'gif01333' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 0.0000% (0 px)
 
 ### 152. Swipe Item Size — 🟢/🟢
 <sub>swipe_item_size</sub>
@@ -2506,21 +2506,21 @@ Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels diffe
 ### 153. Swipe Refresh — 🔴/🔴
 <sub>swipe_refresh</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_refresh_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_refresh_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_refresh_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/swipe_refresh_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/swipe_refresh_light.png" /></td><td><img width="300px" src="captures/ios/cpp/swipe_refresh_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_refresh_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/swipe_refresh_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/swipe_refresh_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/swipe_refresh_dark.gif" /></td></tr></table>
 
 a self-contained demo page for the W2-20 swipe + refresh controls: a refresh_view wrapping a swipe_view (which itself wraps a labeled row), with a readout label reflecting the latest interaction
 
 #### 🔴 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `mismatch` · <sub>run 2026-08-11-13_53_33 · 2026-08-11</sub>
+**Motion:** ❌ FAIL · `mismatch` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.5957% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 7 frames paired by step (run 2026-08-11-13_53_33, commit 15f16eefcd, 2026-08-11); 13 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9816 at frame 5 'gif01000' (0.60% pixels differ), mean SSIM 0.9872; per-frame diff% 0.00/0.57/0.00/0.54/0.60/0.58/0.57; self-motion MAUI 0.5957% (18838 px) vs C++ 0.0000% (0 px) · Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ IS FROZEN (0.5919% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 8 frames paired by step (run 2026-08-11-13_53_33, commit 15f16eefcd, 2026-08-11); 11 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9814 at frame 5 'gif01000' (0.59% pixels differ), mean SSIM 0.9863; per-frame diff% 0.00/0.57/0.00/0.52/0.59/0.59/0.58/0.56; self-motion MAUI 0.5919% (18718 px) vs C++ 0.0000% (0 px)
+Light: !! MOTION MISMATCH: C++ ANIMATES and MAUI IS FROZEN (1.2804% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 11 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 4 frame(s) had no partner and were NOT scored — worst SSIM 0.9670 at frame 6 'gif01333' (1.28% pixels differ), mean SSIM 0.9823; per-frame diff% 0.00/0.76/0.00/1.15/1.15/1.28/1.05/0.77/0.77/0.77/0.76; self-motion MAUI 0.0000% (0 px) vs C++ 1.2804% (40487 px) · Dark: !! MOTION MISMATCH: C++ ANIMATES and MAUI IS FROZEN (1.2797% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 11 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 4 frame(s) had no partner and were NOT scored — worst SSIM 0.9671 at frame 6 'gif01333' (1.28% pixels differ), mean SSIM 0.9828; per-frame diff% 0.00/0.76/0.00/1.18/1.18/1.28/1.02/0.76/0.76/0.76/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 1.2797% (40466 px)
 
 #### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `mismatch` · <sub>run 2026-08-11-13_53_33 · 2026-08-11</sub>
+**Motion:** ❌ FAIL · `mismatch` · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: !! MOTION MISMATCH: MAUI ANIMATES and C++ &amp; XAML IS FROZEN (0.5957% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 6 frames paired by step (run 2026-08-11-13_53_33, commit 15f16eefcd, 2026-08-11); 15 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9816 at frame 4 'gif01000' (0.60% pixels differ), mean SSIM 0.9879; per-frame diff% 0.00/0.57/0.00/0.60/0.59/0.57; self-motion MAUI 0.5957% (18838 px) vs C++ &amp; XAML 0.0000% (0 px) · Dark: !! MOTION MISMATCH: MAUI ANIMATES and C++ &amp; XAML IS FROZEN (0.5919% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 9 frames paired by step (run 2026-08-11-13_53_33, commit 15f16eefcd, 2026-08-11); 9 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) — a sampling drift, not a defect (see _align) — worst SSIM 0.9814 at frame 5 'gif01000' (0.59% pixels differ), mean SSIM 0.9858; per-frame diff% 0.00/0.57/0.00/0.52/0.59/0.59/0.58/0.56/0.56; self-motion MAUI 0.5919% (18718 px) vs C++ &amp; XAML 0.0000% (0 px)
+Light: !! MOTION MISMATCH: C++ &amp; XAML ANIMATES and MAUI IS FROZEN (1.2457% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 13 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 2 frame(s) had no partner and were NOT scored — worst SSIM 0.9683 at frame 7 'gif01667' (1.25% pixels differ), mean SSIM 0.9767; per-frame diff% 0.00/1.22/0.00/1.14/1.14/1.22/1.25/1.22/1.22/1.22/0.56/0.56/0.56; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 1.2457% (39391 px) · Dark: !! MOTION MISMATCH: C++ &amp; XAML ANIMATES and MAUI IS FROZEN (1.2764% vs 0.0000% of its own frame changed across the sequence) — the end state may match while the animation does not. MOTION 13 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12); 2 frame(s) had no partner and were NOT scored — worst SSIM 0.9672 at frame 8 'gif02000' (1.28% pixels differ), mean SSIM 0.9752; per-frame diff% 0.00/1.22/0.00/1.19/1.19/1.22/1.24/1.28/1.21/1.27/0.56/0.56/0.55; self-motion MAUI 0.0000% (0 px) vs C++ &amp; XAML 1.2764% (40363 px)
 
 ### 154. Swipe Threshold — 🟢/🟢
 <sub>swipe_threshold</sub>
@@ -2576,15 +2576,15 @@ ports SwitchPage.xaml (+ .xaml.cs) Mirrors the MAUI gallery page: a vertical sta
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-09_05_32 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-09_05_32, commit 4ef0358f85, 2026-08-07) — worst SSIM 0.9985 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9985; per-frame diff% 0.22/0.22; self-motion MAUI 0.3908% (12358 px) vs C++ 0.3908% (12358 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-09_05_32, commit 4ef0358f85, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9997; per-frame diff% 0.22/0.22; self-motion MAUI 0.3906% (12350 px) vs C++ 0.3907% (12354 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9985 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9985; per-frame diff% 0.22/0.22; self-motion MAUI 0.3908% (12358 px) vs C++ 0.3908% (12358 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9997; per-frame diff% 0.22/0.22; self-motion MAUI 0.3906% (12350 px) vs C++ 0.3907% (12354 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-09_05_32 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-09_05_32, commit 4ef0358f85, 2026-08-07) — worst SSIM 0.9985 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9985; per-frame diff% 0.22/0.22; self-motion MAUI 0.3908% (12358 px) vs C++ &amp; XAML 0.3908% (12358 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-09_05_32, commit 4ef0358f85, 2026-08-07) — worst SSIM 0.9997 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9997; per-frame diff% 0.22/0.22; self-motion MAUI 0.3906% (12350 px) vs C++ &amp; XAML 0.3907% (12354 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9985 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9985; per-frame diff% 0.22/0.22; self-motion MAUI 0.3908% (12358 px) vs C++ &amp; XAML 0.3908% (12358 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 0.9997 at frame 1 'initial' (0.22% pixels differ), mean SSIM 0.9997; per-frame diff% 0.22/0.22; self-motion MAUI 0.3906% (12350 px) vs C++ &amp; XAML 0.3907% (12354 px)
 
 ### 158. Switch Grouping — 🟢/🟢
 <sub>switch_grouping</sub>
@@ -2655,15 +2655,15 @@ ports TitleBarPage.xaml A self-contained, code-first demo of the TitleBar contro
 
 #### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ 0.5600% (17709 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ 0.5600% (17709 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ 0.5600% (17709 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ 0.5600% (17709 px)
 
 #### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-07-05_11_52 · 2026-08-07</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-12-08_48_33 · 2026-08-12</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ &amp; XAML 0.5600% (17709 px) · Dark: MOTION 2 frames paired by step (run 2026-08-07-05_11_52, commit f234801943, 2026-08-07) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ &amp; XAML 0.5600% (17709 px)
+Light: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ &amp; XAML 0.5600% (17709 px) · Dark: MOTION 2 frames paired by step (run 2026-08-12-08_48_33, commit d3ad163d26, 2026-08-12) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5600% (17709 px) vs C++ &amp; XAML 0.5600% (17709 px)
 
 ### 163. Toolbar — 🟢/🟢
 <sub>toolbar</sub>
