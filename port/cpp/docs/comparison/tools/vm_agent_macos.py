@@ -24,6 +24,7 @@ import argparse
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -260,6 +261,26 @@ def cmd_launch(a) -> int:
     # `open -g -n --env ...`: background (no focus theft), new instance. Find the new pid by diffing
     # pgrep before/after (mirrors e2e.py::_launch_background).
     cleared = _clear_saved_state(a.bundle)
+    # Reap instances left over from earlier pages BEFORE launching a new one.
+    #
+    # Finding a window is pid-safe (Quartz, _window_info_quartz). PRESENTING it is not: cmd_present sizes
+    # the window with AppleScript `window 1 of application process <name>`, keyed on the PROCESS NAME,
+    # which cannot tell two live instances apart. So one leaked instance silently captures every present
+    # from then on and the real window is never framed — the run reports "present failed after self-heal
+    # (no window to capture)" and DROPS the frame. It does not fail loudly and it does not fake a picture;
+    # it just quietly stops producing motion frames for that column.
+    #
+    # On 2026-08-13 two instances leaked at 19:07/19:08 on the catalyst lane and cost 125 dropped frames
+    # across ~33 pages before anyone looked. `open -n` always starts a fresh instance, so anything already
+    # running under this name is by definition stale and safe to kill.
+    stale = _pgrep(a.proc)
+    for pid in stale:
+        try:
+            os.kill(int(pid), signal.SIGKILL)
+        except (OSError, ValueError):
+            pass
+    if stale:
+        time.sleep(0.3)  # let them leave the process table, or the pgrep diff below re-finds them as "fresh"
     before = _pgrep(a.proc)
     cmd = [OPEN, "-g", "-n"]
     for kv in a.env or []:
