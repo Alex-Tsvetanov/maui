@@ -4867,3 +4867,42 @@ rebuild (each lane builds its own MauiReference binary):
     maccatalyst  header_footer_view_dark   -3.25pp
 The android fix here is the recipe: rebuild that lane's MauiReference, reinstall, recapture those pages,
 and confirm with reference_guard.py.
+
+
+### The other five: the android recipe does NOT transfer. Triaged.
+
+Rebuilt MauiReference for net10.0-maccatalyst from current source (binary 2026-08-14 18:19, replacing the
+2026-08-10 04:40 one) and recaptured. Output was BYTE-IDENTICAL to the broken state — 19.38 / 19.35 / 11.55 /
+10.48. So unlike android, these are NOT a bad build; they reproduce from current source. The twins are also
+unchanged since before the good Aug-4 reference, so the markup is not it either.
+
+The discriminator the guard cannot apply on its own: ink loss against a baseline is only a regression if the
+BASELINE was right. Ask which version the PORT agrees with.
+
+| capture | MAUI Aug 4 | MAUI now | port | reading |
+|---|---|---|---|---|
+| swipe_item_size_light | 23.54% | 19.38% | **23.54%** | port matches Aug 4 -> REAL reference regression |
+| swipe_item_size_dark | 23.52% | 19.35% | **23.52%** | REAL reference regression |
+| header_footer_view_light | 14.86% | 11.55% | **11.56%** | port matches NOW -> Aug 4 was the OUTLIER |
+| header_footer_view_dark | 13.73% | 10.48% | **10.48%** | not a regression |
+
+**header_footer_view is NOT a regression** and needs no action: the port and current MAUI agree to 0.01pp,
+and the Aug-4 reference is the odd one out. Dismissed.
+
+**swipe_item_size IS a real reference regression** — the port renders 23.54%/23.52%, matching the Aug-4 MAUI
+exactly, while the current reference renders less. But it survives a clean rebuild, so the cause is NOT the
+binary. swipe_item_size's content depends on a SWIPE having been performed, and neither page has a scenario
+file, so the next place to look is the DRIVE: whether the swipe still fires on the Catalyst VM, and whether
+the settle/gesture path changed between Aug 4 and the Aug 14 board pass. Not yet diagnosed.
+
+**windows/drag_drop_dark (-17.84pp) untouched.** That lane has NO build stage — it launches prebuilt
+artifacts from C:/maui-src, a scp'd tarball rather than a checkout — so the recipe cannot apply as written.
+Check SYNC_STAMP.txt on the guest first: a stale guest tree explains a lost render as well as a bad build
+does, and that tree has silently gone stale before. drag_drop also lost a 20.4%-of-frame BLACK region while
+its coloured blocks stayed put, which is as consistent with a drag that never fired as with a bad binary.
+
+SCORECARD for the 11 corrupted references found by reference_guard.py:
+  6 android  — FIXED (d798f98916), values restored exactly, guard exits 0
+  2 maccatalyst swipe_item_size  — real regression, NOT a build issue, drive path unexamined
+  2 maccatalyst header_footer_view — NOT a regression, dismissed (baseline was the outlier)
+  1 windows drag_drop_dark — unexamined, needs the guest-tree check first
