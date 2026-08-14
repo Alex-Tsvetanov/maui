@@ -325,9 +325,14 @@ def size_table(meas):
     if not rows:
         return ""
     out = ["<details>", "<summary><h2>Artifact size — click to expand</h2></summary>", "",
-           "Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. "
-           "`Stripped` is a *measured* `strip -S -x` of the main binary, not an estimate — the raw "
-           "on-disk figure for a native build is mostly debug information.", ""]
+           "Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Stripped` is "
+           "always measured, never estimated, but it is obtained differently per platform because "
+           "debug information lives in different places: on Apple lanes it is an actual "
+           "`strip -S -x` of a copy of the main binary (symbols sit *inside* the Mach-O); on "
+           "Windows it is total minus the sidecar `.pdb` files, which is exact since they are never "
+           "deployed. Android APKs report no stripped figure — read their `native_libs` bucket "
+           "instead, which is where an unstripped `lib/*.so` hides. The Windows rows are walked on "
+           "the guest over SSH; every other lane is measured locally.", ""]
     if provisional:
         out += ["> **⚠ PROVISIONAL — no ratio may be quoted from this table yet.** Rows marked ⚠ are "
                 "not release-grade: the managed reference is a `Debug` build and the native builds "
