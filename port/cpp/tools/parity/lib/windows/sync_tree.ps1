@@ -1,0 +1,108 @@
+<#
+.SYNOPSIS
+  Mirror a source tree from the read-only host share (Z:\) onto the guest's local disk.
+
+.DESCRIPTION
+  Dot-source this and call Sync-Tree. It exists because BOTH Windows build lanes turned out to need a
+  local copy, for different reasons, and a second hand-written copy of this logic would drift:
+
+    * MSBUILD CANNOT ENUMERATE THE SHARE. `<ProbeZ Include="Z:\...\**\*.cs" />` matches 1 file where
+      Python walking the same tree finds 210. MSBuild's FileMatcher falls back to treating a pattern
+      as a literal path when enumeration fails, so the build dies with
+      `CS2001: Source file '**/*.cs' could not be found`. No property fixes that.
+
+    * CMAKE CONFIGURE IS FLAKY ON THE SHARE. Configure stats every source named by an
+      add_library/add_executable -- ~2000 in a burst -- and a few intermittently fail, which CMake
+      reports as "Cannot find source file" naming a file that is demonstrably present:
+          run 1 -> src/essentials/main_thread.cpp, tests/controls/indicator_view_tests.cpp
+          run 2 -> src/controls/items/items_source_factory.cpp
+          run 3 -> src/platform/windows/editor_handler.cpp, src/controls/items/collection_view.cpp
+      Different files every time, all present, and a retry did NOT clear it. Sequential checking is
+      fine -- a 505-file EXISTS sweep misses none, in both mixed and forward-slash path forms -- so
+      it is the burst, not the paths or the tree.
+
+  READING the share is reliable; driving a BUILD off it is not. So the share stays the source of
+  truth (it IS the host repo, which is what makes a stale guest tree structurally impossible) and the
+  build reads a local mirror refreshed from it on every build.
+
+  Not robocopy: it cannot pair files across this share, reporting a tree whose 196 of 196 names are
+  already present as 196 "New File" PLUS 197 "*EXTRA File". Get-ChildItem reports correctly.
+#>
+
+function Sync-Tree {
+    <#
+    .PARAMETER From    source root on the share
+    .PARAMETER To      destination root on local disk
+    .PARAMETER Exclude directory NAMES pruned at any depth (never entered, so their size is irrelevant)
+    .OUTPUTS @(copied, removed, total)
+    #>
+    param(
+        [Parameter(Mandatory)][string]$From,
+        [Parameter(Mandatory)][string]$To,
+        [string[]]$Exclude = @("bin", "obj", "build", "build-win", "captures", "docs", ".git")
+    )
+
+    function Walk-Tree {
+        param([string]$Root, [string[]]$Skip)
+        $map = @{}
+        if (-not (Test-Path $Root)) { return $map }
+        $prefix = (Resolve-Path $Root).Path.TrimEnd('\') + '\'
+        $stack = New-Object System.Collections.Stack
+        $stack.Push((Resolve-Path $Root).Path)
+        while ($stack.Count -gt 0) {
+            $dir = $stack.Pop()
+            foreach ($i in Get-ChildItem -LiteralPath $dir -Force -ErrorAction SilentlyContinue) {
+                if ($i.PSIsContainer) {
+                    # PRUNE, never filter afterwards. Get-ChildItem -Recurse descends first and
+                    # filters its output, which on this tree means walking port/cpp/docs -- 10 GB of
+                    # committed board PNGs against ~19 MB of source. That ran 76 minutes once.
+                    if ($Skip -notcontains $i.Name -and $i.Name -notlike "build-*") { $stack.Push($i.FullName) }
+                }
+                else { $map[$i.FullName.Substring($prefix.Length)] = $i }
+            }
+        }
+        return $map
+    }
+
+    $s = Walk-Tree -Root $From -Skip $Exclude
+
+    # FIRST COPY ONLY: hand the bulk to robocopy /MT. Its defect on this share is PAIRING an existing
+    # destination file with its source, which is irrelevant when the destination is empty -- there is
+    # nothing to pair. Copying itself is fine and vastly faster multithreaded: measured 0.044 s/file
+    # at /MT:32 against 0.43 s/file for sequential Copy-Item, i.e. ~2.5 min instead of ~25 for this
+    # tree. /PURGE is deliberately NOT passed, so this can only ever add files.
+    if (-not (Test-Path $To) -or -not (Get-ChildItem -LiteralPath $To -Recurse -File -ErrorAction SilentlyContinue | Select-Object -First 1)) {
+        $rc = @($From, $To, "/E", "/MT:32", "/NFL", "/NDL", "/NJH", "/NJS", "/NP", "/R:1", "/W:1")
+        foreach ($e in $Exclude) { $rc += @("/XD", $e) }
+        $rc += @("/XD", "build-*")
+        robocopy @rc | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "robocopy bulk copy failed ($LASTEXITCODE): $From -> $To" }
+    }
+
+    $d = Walk-Tree -Root $To -Skip $Exclude
+    $copied = 0
+    foreach ($rel in $s.Keys) {
+        $si = $s[$rel]; $di = $d[$rel]
+        # 2s tolerance: WebDAV timestamps are coarser than NTFS, so exact equality would copy forever.
+        if ($null -eq $di -or $si.Length -ne $di.Length -or
+            [Math]::Abs(($si.LastWriteTimeUtc - $di.LastWriteTimeUtc).Ticks) -gt [TimeSpan]::FromSeconds(2).Ticks) {
+            $dst = Join-Path $To $rel
+            $dir = Split-Path $dst -Parent
+            if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+            # File.Copy carries the source timestamp across, which keeps the NEXT sync cheap and the
+            # build incremental: an unchanged file never gets a new mtime, so nothing recompiles.
+            Copy-Item -LiteralPath $si.FullName -Destination $dst -Force
+            $copied++
+        }
+    }
+    # Removal is correctness, not tidiness: CMake and MSBuild both glob, so a source deleted on the
+    # host but left here keeps getting compiled.
+    $removed = 0
+    foreach ($rel in $d.Keys) {
+        if (-not $s.ContainsKey($rel)) {
+            Remove-Item -LiteralPath $d[$rel].FullName -Force -ErrorAction SilentlyContinue
+            $removed++
+        }
+    }
+    return @($copied, $removed, $s.Count)
+}

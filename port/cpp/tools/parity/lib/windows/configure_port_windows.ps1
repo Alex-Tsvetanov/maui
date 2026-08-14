@@ -31,7 +31,8 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$SourceDir = "Z:\port\cpp",
+    [string]$ShareDir  = "Z:\port\cpp",
+    [string]$SourceDir = "C:\maui-build\src\cpp",
     [string]$BuildDir  = "C:\maui-build\cpp",
     [string]$BuildType = "Release"
 )
@@ -39,6 +40,29 @@ param(
 $ErrorActionPreference = "Continue"
 function Info($m) { Write-Host "[port] $m" -ForegroundColor Cyan }
 function Warn($m) { Write-Host "[port] !   $m" -ForegroundColor Yellow }
+
+
+# STAGED TO LOCAL DISK, NOT BUILT OFF THE SHARE. Reading Z:\ is reliable; driving a CMake configure off
+# it is not. Configure stats every source named by an add_library/add_executable -- ~2000 in a burst --
+# and a few intermittently fail, which CMake reports as "Cannot find source file" naming a file that is
+# demonstrably present. Four consecutive fresh configures, each a DIFFERENT set:
+#     src/essentials/main_thread.cpp, tests/controls/indicator_view_tests.cpp
+#     src/controls/items/items_source_factory.cpp
+#     src/platform/windows/editor_handler.cpp, src/controls/items/collection_view.cpp
+#     benchmarks/graphics/path_bench.cpp, src/controls/vertical_stack_layout.cpp, data_package.cpp
+# A retry does NOT clear it. Ruled out by measurement, not argument: the tree (every file present on
+# host and guest), the path form (CMake's mixed Z:\port\cpp/src/... vs all-forward-slash, 505 files
+# each, 0 missing both ways) and sequential stat reliability (1010 checks, 0 failures). It is the burst.
+#
+# The share remains the SOURCE OF TRUTH -- it is the host repo, which is what makes a stale guest tree
+# impossible -- and the mirror is refreshed inside the build, never as a step to remember. That
+# distinction is the whole lesson of the C:/maui-src tarball that went six days stale unnoticed.
+. (Join-Path $PSScriptRoot "sync_tree.ps1")
+$sw = [Diagnostics.Stopwatch]::StartNew()
+$r = Sync-Tree -From $ShareDir -To $SourceDir
+$sw.Stop()
+Write-Host ("[port] staged {0} -> {1}: {2} of {3} file(s) updated, {4} removed ({5:N1}s)" -f `
+            $ShareDir, $SourceDir, $r[0], $r[2], $r[1], $sw.Elapsed.TotalSeconds) -ForegroundColor Cyan
 
 $ninja = (Get-Command ninja -ErrorAction SilentlyContinue).Source
 if (-not $ninja) { $ninja = "C:\Users\Testings-VM\AppData\Local\Microsoft\WinGet\Links\ninja.exe" }
@@ -116,47 +140,22 @@ $cmakeArgs = @(
     "-DMAUI_WEBVIEW2=$webview2",
     "-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
 )
-# WARM THE SHARE BEFORE CMAKE STATS IT. Configure checks the existence of every source named by an
-# add_library/add_executable -- ~2000 stats in a burst -- and on a COLD SPICE WebDAV mount a few of
-# them intermittently fail. CMake reports a failed stat as "Cannot find source file", so configure
-# dies naming a file that is demonstrably there:
+# CONFIGURE IS FLAKY ON A FRESH BUILD DIR, AND ONE RETRY FIXES IT. CMake checks the existence of
+# every source named by an add_library/add_executable -- ~2000 stats in a burst -- and against the
+# SPICE WebDAV mount a few intermittently fail. CMake reports a failed stat as "Cannot find source
+# file", so it dies naming a file that is demonstrably present:
 #
-#   run 1 (fresh build dir)  -> src/essentials/main_thread.cpp, tests/controls/indicator_view_tests.cpp
-#   run 2 (fresh build dir)  -> src/controls/items/items_source_factory.cpp   (22079 bytes, Test-Path True)
-#   run 3 (dir already warm) -> configure exit 0
+#   run 1  fresh build dir  -> src/essentials/main_thread.cpp, tests/controls/indicator_view_tests.cpp
+#   run 2  fresh build dir  -> src/controls/items/items_source_factory.cpp  (22079 bytes, Test-Path True)
+#   run 3  existing dir     -> exit 0, no retry needed
 #
-# DIFFERENT files each time and all of them present, which is what makes this a transport flake rather
-# than a source problem. Reading each file once populates the redirector's cache: measured 25 ms/file
-# cold against 1.2 ms/file warm, and a 505-file CMake stat sweep over an already-warm tree missed none.
-# Enumeration alone is NOT enough -- Get-ChildItem is batched and does not fault the per-file metadata
-# that a stat needs.
-# SCOPE THIS TIGHTLY. The first version warmed everything under $SourceDir, which on this tree means
-# port/cpp/docs -- 10 GB of committed board PNGs against ~19 MB of actual source. Over a WebDAV mount
-# that ran for 76 minutes before it was killed, and it would have warmed nothing CMake ever stats.
-# Only the directories the top-level CMakeLists names are walked, and only source-shaped files in them.
-$WARM_DIRS = @("src", "include", "tests", "benchmarks", "cmake")
-$WARM_EXT = @(".cpp", ".hpp", ".h", ".mm", ".m", ".c", ".cc", ".inc", ".cmake", ".in", ".java", ".txt")
-function Warm-Share {
-    param([string]$Root)
-    $sw = [Diagnostics.Stopwatch]::StartNew()
-    $n = 0
-    foreach ($d in $WARM_DIRS) {
-        $p = Join-Path $Root $d
-        if (-not (Test-Path $p)) { continue }
-        foreach ($f in Get-ChildItem -LiteralPath $p -Recurse -File -ErrorAction SilentlyContinue) {
-            if ($WARM_EXT -notcontains $f.Extension.ToLower()) { continue }
-            # OpenRead faults in the per-file metadata a stat needs; enumeration alone is batched and
-            # does not. One byte is enough -- this is about the cache entry, not the contents.
-            try { $s = [IO.File]::OpenRead($f.FullName); [void]$s.ReadByte(); $s.Dispose(); $n++ } catch { }
-        }
-    }
-    $sw.Stop()
-    return @($n, $sw.Elapsed.TotalSeconds)
-}
-Info "warming the share's metadata cache before cmake stats it"
-$w = Warm-Share -Root $SourceDir
-Info ("warmed {0} file(s) in {1:N1}s" -f $w[0], $w[1])
-
+# DIFFERENT files each time and every one present, which is what makes it transport rather than tree.
+# Both failures were on a FRESH dir, where vcpkg does its manifest install during the configure; the
+# retry then runs with vcpkg already cached, which matches run 3.
+#
+# A warm-up pass (reading every source first) was tried and REMOVED: it cost over five minutes of
+# I/O-bound wall time on every configure, to fix by hypothesis what one retry fixes by evidence.
+# A genuinely missing source fails identically twice, so the retry cannot turn a real error green.
 Info ("cmake " + ($cmakeArgs -join " "))
 & cmake @cmakeArgs 2>&1 | Select-Object -Last 40
 $code = $LASTEXITCODE
@@ -164,9 +163,7 @@ $code = $LASTEXITCODE
 # so the retry costs one configure and never converts a real error into a green run -- whereas without
 # it a transport flake looks exactly like a broken source tree.
 if ($code -ne 0) {
-    Warn "configure failed (exit $code) - re-warming and retrying ONCE (see the Warm-Share comment)"
-    $w = Warm-Share -Root $SourceDir
-    Info ("re-warmed {0} file(s) in {1:N1}s" -f $w[0], $w[1])
+    Warn "configure failed (exit $code) - retrying ONCE (see the comment above this cmake call)"
     & cmake @cmakeArgs 2>&1 | Select-Object -Last 40
     $code = $LASTEXITCODE
     if ($code -eq 0) { Warn "the retry SUCCEEDED - the first failure was a share flake, not the tree" }
