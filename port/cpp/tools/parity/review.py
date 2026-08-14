@@ -257,7 +257,13 @@ def phase_integrity(platforms, keys, themes) -> tuple[list[str], set, list[str],
 # --------------------------------------------------------------------------- measurements
 SIZE_ENV = {"macos-arm64": ("maccatalyst", ("maui_xaml", "cpp", "cpp_xaml")),
             "macos-appkit": ("maccatalyst", ("appkit_cpp", "appkit_xaml")),
-            "windows-x64": ("windows", ("maui_xaml", "cpp", "cpp_xaml"))}
+            "windows-x64": ("windows", ("maui_xaml", "cpp", "cpp_xaml")),
+            # iOS and Android measure through config/mobile.toml. Until they did, this table did not
+            # list them, so the coverage check below correctly reported both as captured-but-never-
+            # measured -- the "gap since day 1" it exists to catch. Adding them here is what lets
+            # that finding CLEAR; leaving it out would keep asserting a gap that is now closed.
+            "ios": ("ios", ("maui_xaml", "cpp", "cpp_xaml")),
+            "android": ("android", ("maui_xaml", "cpp", "cpp_xaml"))}
 
 
 def phase_measurements(platforms) -> list[str]:
