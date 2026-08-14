@@ -22,7 +22,7 @@ EVIDENCE CLASSES across the 233 non-green cells (2026-08-14):
 |---|---|---|---|---|---|---|
 | 1 | windows | carousel_page | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 2 | windows | clip | — | YEL | yes | BLOCKED needs-windows-vm: scroll EXTENT 42px too large. Changed-region bbox MAUI (8,32,261,750) vs port (8,32,261,792); same x/top, port ends 42px lower. Port stamps panel.Height() from view->content_size() (windows/scroll_view_handler.cpp:348-354) where MAUI's ScrollViewer measures content natively |
-| 3 | windows | clip_gallery | — | YEL | yes | OPEN |
+| 3 | windows | clip_gallery | — | YEL | yes | BLOCKED needs-windows-vm: NOT the clip extent bug — scroll extent MATCHES MAUI exactly (both bbox (20,32,313,792)). Port renders 2.3pp LESS lightgray (211,211,211): MAUI 6.6% vs port 4.3%, concentrated in rows 616-792. A clipped shape under-fills in the revealed lower rows |
 | 4 | windows | clip_views | — | YEL | yes | OPEN |
 | 5 | windows | ios_scroll_view | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 6 | windows | path_gallery | — | YEL | yes | OPEN |
