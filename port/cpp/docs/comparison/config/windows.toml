@@ -96,9 +96,13 @@ python3 = "py"
 # cross-built from macOS). `artifact_remote` therefore points at the guest-side build output and the
 # runner uses it in place instead of deploying from the host.
 #   1. tools/parity/windows/provision_dotnet.ps1      (once: .NET SDK + maui-windows workload)
-#   2. sync port/maui-reference to C:/maui-src, then build_maui_reference.ps1
+#   2. build_maui_reference.ps1   -- NO SYNC STEP. It builds straight off Z:\port\maui-reference\app,
+#      the read-only UTM mount of the host repo, so this column cannot render a stale tree. The guest
+#      previously held an scp'd tarball at C:/maui-src which silently went six days old and produced a
+#      full day of scores read as port defects; that copy is gone. Only build OUTPUT lives on the
+#      guest now, under C:/maui-build.
 [environments.windows-x64.columns.maui_xaml]
-artifact_remote = "C:/maui-src/maui-reference/app/bin/Debug/net10.0-windows10.0.19041.0/win-arm64"
+artifact_remote = "C:/maui-build/maui-reference/bin/Debug/net10.0-windows10.0.19041.0/win-arm64"
 artifact  = "port/maui-reference/app"   # host path, unused while artifact_remote is set (kept for reference)
 process   = "MauiReference.exe"
 page_env  = "MAUI_COMPARE_PAGE"
@@ -116,7 +120,7 @@ driver = "coordinate"
 # other control still has its headless mirror and renders NOTHING. Pages built from other controls are
 # therefore expected to be blank or partial - that is the fan-out being incomplete, not a regression.
 [environments.windows-x64.columns.cpp]
-artifact_remote = "C:/maui-src/cpp/examples/build-win/gallery"
+artifact_remote = "C:/maui-build/examples/gallery"
 artifact  = "port/cpp/examples/gallery"   # host path, unused while artifact_remote is set
 process   = "gallery.exe"
 page_env  = "MAUI_SAMPLE_PAGE"
@@ -131,7 +135,7 @@ driver = "coordinate"
 # examples/gallery_xaml/CMakeLists.txt regenerates each page TU as a byte-array literal fed through the
 # same fixed_string/build_page path the android lane uses.
 [environments.windows-x64.columns.cpp_xaml]
-artifact_remote = "C:/maui-src/cpp/examples/build-win/gallery_xaml"
+artifact_remote = "C:/maui-build/examples/gallery_xaml"
 artifact  = "port/cpp/examples/gallery_xaml"   # host path, unused while artifact_remote is set
 process   = "gallery_xaml.exe"
 page_env  = "MAUI_SAMPLE_PAGE"

@@ -15,7 +15,20 @@
   could not be swapped by copying files.
 
 .PARAMETER SourceDir
-  The synced copy of port/maui-reference/app on the guest.
+  port/maui-reference/app ON THE READ-ONLY HOST SHARE. Z:\ is the host repo itself rather than a copy,
+  so this column cannot render stale code -- the failure that went unnoticed for a full day on
+  2026-08-11 while SYNC_STAMP.txt claimed the tree was current.
+
+.PARAMETER OutputRoot
+  Where bin/ and obj/ go. UNLIKE the CMake lanes, MSBuild is NOT out-of-source: it writes obj/ and bin/
+  beside the project by default, which a read-only source makes impossible. BaseIntermediateOutputPath
+  and BaseOutputPath move both, and are passed to RESTORE as well as BUILD -- restore writes
+  project.assets.json and the generated .nuget.g.props/.targets into obj/, and if the two commands
+  disagree about where obj/ is, the build fails looking for assets restore already wrote elsewhere.
+  Both MUST keep their trailing backslash; MSBuild concatenates these as string prefixes.
+  Deliberately NOT `dotnet --artifacts-path`, which would also work but renames the leaf directory to
+  <Config>_<tfm>_<rid> -- windows.toml pins a static artifact path, and this keeps the familiar
+  bin/<Config>/<tfm>/<rid>/ layout it already encodes.
 
 .PARAMETER Configuration
   Debug (default) or Release. Debug matches what the other lanes capture.
@@ -24,11 +37,12 @@
   Windows target framework moniker; must match the csproj.
 
 .EXAMPLE
-  .\build_maui_reference.ps1 -SourceDir C:\maui-src\maui-reference\app
+  .\build_maui_reference.ps1
 #>
 [CmdletBinding()]
 param(
-    [string]$SourceDir = "C:\maui-src\maui-reference\app",
+    [string]$SourceDir = "Z:\port\maui-reference\app",
+    [string]$OutputRoot = "C:\maui-build\maui-reference",
     [string]$Configuration = "Debug",
     [string]$Tfm = "net10.0-windows10.0.19041.0"
 )
@@ -66,20 +80,31 @@ Info "sdk    : $((& $dotnet --version 2>&1) -join ' ')"
 $rid = if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { "win-arm64" } else { "win-x64" }
 Info "rid    : $rid ($Configuration, $Tfm)"
 
+# Trailing backslashes are load-bearing: MSBuild treats these as string prefixes, so without them the
+# output lands in a sibling named e.g. "maui-referencebin". Passed to BOTH commands -- see .PARAMETER
+# OutputRoot for why splitting them breaks restore.
+$objDir = (Join-Path $OutputRoot "obj") + "\"
+$binDir = (Join-Path $OutputRoot "bin") + "\"
+$outArgs = @("-p:BaseIntermediateOutputPath=$objDir", "-p:BaseOutputPath=$binDir")
+New-Item -ItemType Directory -Force -Path $OutputRoot | Out-Null
+Info "obj    : $objDir"
+Info "bin    : $binDir"
+
 Info "restoring (TargetFrameworks pinned to $Tfm so the mobile TFMs are never evaluated)"
 $ErrorActionPreference = $nativeEAP
-& $dotnet restore $csproj.FullName -p:TargetFrameworks=$Tfm -r $rid 2>&1 |
+& $dotnet restore $csproj.FullName -p:TargetFrameworks=$Tfm -r $rid @outArgs 2>&1 |
     Select-Object -Last 8
 if ($LASTEXITCODE -ne 0) { throw "restore failed with exit code $LASTEXITCODE" }
 
 Info "building (first build pulls the Windows App SDK; several minutes)"
 & $dotnet build $csproj.FullName -p:TargetFrameworks=$Tfm -f $Tfm -c $Configuration -r $rid `
-    --no-restore --nologo -v minimal 2>&1 | Select-Object -Last 30
+    @outArgs --no-restore --nologo -v minimal 2>&1 | Select-Object -Last 30
 if ($LASTEXITCODE -ne 0) { throw "build failed with exit code $LASTEXITCODE" }
 
 # Locate the produced exe. The layout is bin/<Config>/<tfm>/<rid>/<AppName>.exe, but the RID folder name
 # has changed across SDK bands (win10-arm64 vs win-arm64), so search rather than assume.
-$binRoot = Join-Path $SourceDir "bin\$Configuration\$Tfm"
+# Rooted at $OutputRoot, NOT $SourceDir -- the share is read-only and nothing is produced there.
+$binRoot = Join-Path $binDir "$Configuration\$Tfm"
 $exe = Get-ChildItem -Path $binRoot -Filter "MauiReference.exe" -Recurse -ErrorAction SilentlyContinue |
        Select-Object -First 1
 if (-not $exe) { throw "build reported success but MauiReference.exe was not found under $binRoot" }

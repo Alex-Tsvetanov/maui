@@ -15,9 +15,12 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$SourceDir = "C:\maui-src\cpp\examples",
-    [string]$FrameworkDir = "C:\maui-src\cpp",
-    [string]$BuildDir = "C:\maui-src\cpp\examples\build-win",
+    # Source is the read-only host share (Z:\ is the repo itself, so the guest cannot render stale code);
+    # every byte written goes under C:\maui-build. CMake is out-of-source by construction and the XAML
+    # bytes-mode codegen already targets CMAKE_CURRENT_BINARY_DIR, so nothing needs the source writable.
+    [string]$SourceDir = "Z:\port\cpp\examples",
+    [string]$FrameworkDir = "Z:\port\cpp",
+    [string]$BuildDir = "C:\maui-build\examples",
     [string]$BuildType = "Debug",
     [string[]]$Targets = @("gallery"),
     [int]$Jobs = 8

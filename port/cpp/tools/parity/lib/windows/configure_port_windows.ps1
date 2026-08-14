@@ -21,11 +21,18 @@
   3. ABI AUTO-DETECTION. Prefer a native arm64 toolchain when present, else arm64_x64 (native host, x64
      target). The MAUI reference board was captured NATIVE arm64, so a non-native build must warn: a
      score across two ABIs compares two rendering paths, not parity.
+
+  4. SOURCE IS THE READ-ONLY SHARE. Z:\ is the host repo mounted by UTM, not a copy of it, so the guest
+     cannot render stale code -- the failure that cost a full day on 2026-08-11 and that SYNC_STAMP.txt
+     was supposed to catch. Nothing is written into the source tree: CMake is an out-of-source build by
+     construction, and the XAML bytes-mode codegen already emits into CMAKE_CURRENT_BINARY_DIR.
+     Warm reads off the share measured 1.2 ms/file, FASTER than the guest's own C: (5.8 ms/file); only
+     the first touch of a file is slow (~25 ms), and that cost is paid once per boot.
 #>
 [CmdletBinding()]
 param(
-    [string]$SourceDir = "C:\maui-src\cpp",
-    [string]$BuildDir  = "C:\maui-src\cpp\build-win",
+    [string]$SourceDir = "Z:\port\cpp",
+    [string]$BuildDir  = "C:\maui-build\cpp",
     [string]$BuildType = "Debug"
 )
 

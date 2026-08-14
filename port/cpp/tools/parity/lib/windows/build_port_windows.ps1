@@ -12,7 +12,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$BuildDir = "C:\maui-src\cpp\build-win",
+    [string]$BuildDir = "C:\maui-build\cpp",
     [string[]]$Targets = @("maui_graphics", "maui_core", "maui_controls", "maui_layouts", "maui_hosting"),
     [int]$Jobs = 8
 )
