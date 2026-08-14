@@ -303,9 +303,11 @@ def size_table(meas):
     rows, provisional = [], False
     for lane, cols in sizes.items():
         for col, r in cols.items():
-            if r.get("remote_only"):
-                rows.append(f"| {lane} | `{col}` | — | — | — | _built on the guest; not measured from "
-                            f"the host_ |")
+            # remote_only says WHERE it was measured, not WHETHER. A guest artifact measured over SSH
+            # renders like any other row; only one that could not be reached or does not exist yet
+            # falls back to em-dashes, and it says WHICH so the two are not confused.
+            if r.get("remote_only") and not r.get("exists"):
+                rows.append(f"| {lane} | `{col}` | — | — | — | _{r.get('note', 'not measured')}_ |")
                 continue
             if not r.get("exists"):
                 rows.append(f"| {lane} | `{col}` | — | — | — | _artifact missing_ |")

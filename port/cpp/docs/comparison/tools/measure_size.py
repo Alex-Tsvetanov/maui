@@ -160,6 +160,190 @@ def detect_build_config(artifact: Path) -> tuple[str, bool, str]:
     return "unknown", False, "not determined"
 
 
+# ------------------------------------------------------------------ the Windows (guest-side) lane
+# Windows artifacts are built ON the guest and cannot be reached from here, so until now the three
+# Windows rows in the README were literal em-dashes. Measuring the HOST-side `artifact` instead is not
+# an option and never was: it points at a SOURCE directory, and doing so once produced 1170.9 MB for
+# the managed column against 2.2 MB for the native one -- a fabricated 500x ratio that would have gone
+# into the README as the study's headline.
+#
+# The split of labour is deliberate. The guest does ENUMERATION ONLY (walk the tree, report name and
+# size); every judgement -- bucketing, the debug split, build-config grading -- happens here, on the
+# same code path the local lanes use. Nothing about "what counts as resources" gets a second
+# implementation that can drift from the first.
+#
+# PE debug info is the one genuine difference from Mach-O, and it makes the Windows number STRONGER
+# rather than weaker. On Apple platforms symbols live INSIDE the binary, so an honest figure needs a
+# real `strip` on a copy. On Windows they live in separate .pdb files that are never deployed, so
+# excluding them is exact rather than estimated -- no strip, no approximation.
+WINDOWS_DEBUG_EXT = {".pdb", ".ipdb", ".iobj"}
+WINDOWS_CODE_EXT = {".exe", ".dll", ".winmd", ".so", ".pyd"}
+WINDOWS_RESOURCE_EXT = RESOURCE_EXT | {".pri", ".xbf", ".resw", ".resjson", ".ttc", ".xaml"}
+
+
+def bucket_windows(name: str) -> str:
+    """Bucket a PE-lane file by extension alone -- the guest reported a name and a size, nothing more.
+
+    Note this does NOT reuse bucket(): that one puts .exe/.dll/.pdb in "managed" (correct for the
+    Catalyst lanes, where a .dll only appears in the managed column) and probes the local filesystem
+    via is_macho/os.access. On Windows BOTH columns are .exe + .dll, so that split would label the
+    native C++ gallery "managed" and quietly invert the study's headline.
+    """
+    ext = os.path.splitext(name)[1].lower()
+    if ext in WINDOWS_DEBUG_EXT:
+        return "debug"
+    if ext in WINDOWS_CODE_EXT:
+        return "code"
+    if ext in WINDOWS_RESOURCE_EXT:
+        return "resources"
+    return "other"
+
+
+def _ssh_python(host: str, user: str, python3: str, script: str) -> str:
+    """Run `script` under the guest's Python and return stdout.
+
+    The program is piped to STDIN (`py -`) rather than passed with -c. The guest's DefaultShell is
+    PowerShell, so a -c argument containing quotes, backslashes and newlines has to survive two
+    incompatible quoting layers; stdin has no quoting layer at all. The artifact path is baked into
+    the script text host-side for the same reason -- it contains both `\\` and `:`.
+    """
+    try:
+        r = subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+                            f"{user}@{host}", f"{python3} -"],
+                           input=script.encode(), capture_output=True, timeout=300)
+        return r.stdout.decode("utf-8", "replace") if r.returncode == 0 else ""
+    except Exception:
+        return ""
+
+
+def _remote_listing(host: str, user: str, python3: str, root: str) -> list | None:
+    """[[relative path, size], ...] for the artifact tree on the guest, or None if unreachable."""
+    script = (
+        "import os, json\n"
+        f"root = {root!r}\n"
+        f"SKIP_DIRS = {sorted(SKIP_DIRS)!r}\n"
+        f"SKIP_SUFFIX = {sorted(SKIP_SUFFIX)!r}\n"
+        f"SKIP_NAMES = {sorted(SKIP_NAMES)!r}\n"
+        "out = []\n"
+        "if os.path.isdir(root):\n"
+        "    for dp, dn, fn in os.walk(root):\n"
+        "        dn[:] = [d for d in dn if d not in SKIP_DIRS]\n"
+        "        for f in fn:\n"
+        "            if f in SKIP_NAMES or os.path.splitext(f)[1] in SKIP_SUFFIX:\n"
+        "                continue\n"
+        "            p = os.path.join(dp, f)\n"
+        "            try:\n"
+        "                out.append([os.path.relpath(p, root), os.path.getsize(p)])\n"
+        "            except OSError:\n"
+        "                pass\n"
+        "print(json.dumps({'exists': os.path.isdir(root), 'files': out}))\n"
+    )
+    raw = _ssh_python(host, user, python3, script)
+    if not raw.strip():
+        return None
+    try:
+        return json.loads(raw.strip().splitlines()[-1])
+    except (json.JSONDecodeError, IndexError):
+        return None
+
+
+def _remote_build_config(host: str, user: str, python3: str, artifact: str) -> tuple[str, bool, str]:
+    """Build config for a guest artifact, mirroring detect_build_config's rules.
+
+    A path segment settles it for the MSBuild column (bin/Debug/...). The CMake columns have no such
+    segment, so CMakeCache.txt has to be read ON the guest -- and an EMPTY CMAKE_BUILD_TYPE stays
+    NOT release-grade here exactly as it is locally, since it means no -O and no NDEBUG.
+    """
+    parts = {s.lower() for s in artifact.replace("\\", "/").split("/")}
+    if "debug" in parts:
+        return "Debug", False, "path segment"
+    if "release" in parts:
+        return "Release", True, "path segment"
+    script = (
+        "import os, json\n"
+        f"a = {artifact!r}.replace('\\\\', '/')\n"
+        "cur, found = a, None\n"
+        "for _ in range(8):\n"
+        "    c = os.path.join(cur, 'CMakeCache.txt')\n"
+        "    if os.path.isfile(c):\n"
+        "        found = c\n"
+        "        break\n"
+        "    nxt = os.path.dirname(cur)\n"
+        "    if nxt == cur:\n"
+        "        break\n"
+        "    cur = nxt\n"
+        "val = None\n"
+        "if found:\n"
+        "    for line in open(found, errors='replace'):\n"
+        "        if line.startswith('CMAKE_BUILD_TYPE:'):\n"
+        "            val = line.split('=', 1)[1].strip()\n"
+        "            break\n"
+        "print(json.dumps({'cache': found, 'value': val}))\n"
+    )
+    raw = _ssh_python(host, user, python3, script)
+    try:
+        got = json.loads(raw.strip().splitlines()[-1])
+    except Exception:
+        return "unknown", False, "not determined (remote probe failed)"
+    if not got.get("cache"):
+        return "unknown", False, "not determined (no CMakeCache.txt on the guest)"
+    val = got.get("value")
+    if not val:
+        return "(unset)", False, "CMakeCache.txt: CMAKE_BUILD_TYPE empty - no -O, no NDEBUG"
+    return val, val.lower() in ("release", "relwithdebinfo", "minsizerel"), "CMakeCache.txt (guest)"
+
+
+def measure_remote_artifact(host: str, user: str, python3: str, artifact: str,
+                            process: str | None) -> dict:
+    """The guest-side twin of measure_artifact(), for a Windows PE tree."""
+    listing = _remote_listing(host, user, python3, artifact)
+    if listing is None:
+        return {"artifact": artifact, "exists": False, "remote_only": True,
+                "note": "guest unreachable over SSH - not measured (NOT zero)",
+                "build_config": "unknown", "release_grade": False,
+                "build_config_detected_from": "n/a (unreachable)"}
+    if not listing.get("exists"):
+        return {"artifact": artifact, "exists": False, "remote_only": True,
+                "note": "artifact directory does not exist on the guest - build it first",
+                "build_config": "unknown", "release_grade": False,
+                "build_config_detected_from": "n/a (absent)"}
+
+    files = listing["files"]
+    buckets: dict[str, int] = {}
+    for rel, size in files:
+        b = bucket_windows(rel)
+        buckets[b] = buckets.get(b, 0) + size
+    total = sum(buckets.values())
+    cfg_label, release_grade, how = _remote_build_config(host, user, python3, artifact)
+
+    rec: dict = {
+        "artifact": artifact, "exists": True, "measured_on": "guest (ssh)",
+        "total_bytes": total, "file_count": len(files), "buckets": buckets,
+        "build_config": cfg_label, "release_grade": release_grade,
+        "build_config_detected_from": how,
+    }
+    # The deployable size. Exact, not an estimate: .pdb files are simply not shipped.
+    debug_bytes = buckets.get("debug", 0)
+    rec["total_bytes_stripped"] = total - debug_bytes
+
+    # Prefer the column's declared process over "largest .exe" -- the runner already names the binary
+    # it launches, and on the managed column the biggest .exe is not necessarily it.
+    exes = [(rel, size) for rel, size in files if rel.lower().endswith(".exe")]
+    main = None
+    if process:
+        main = next((e for e in exes if os.path.basename(e[0]).lower() == process.lower()), None)
+    if main is None and exes:
+        main = max(exes, key=lambda e: e[1])
+    if main:
+        stem = os.path.splitext(main[0])[0].lower()
+        pdb = next((size for rel, size in files if os.path.splitext(rel)[0].lower() == stem
+                    and rel.lower().endswith(".pdb")), 0)
+        rec["main_binary"] = {"name": os.path.basename(main[0]), "bytes": main[1],
+                              "linkedit_bytes": pdb,     # the PE analogue: symbols in a sidecar .pdb
+                              "stripped_bytes": main[1]}  # a PE carries no symbols to strip
+    return rec
+
+
 def measure_artifact(path: Path) -> dict:
     files = list(walk_files(path))
     buckets: dict[str, int] = {}
@@ -209,17 +393,23 @@ def collect(env_filter: str | None) -> dict:
                 # straight into the README as the study's headline. A lane we cannot measure from
                 # here is recorded as unmeasured; it is not measured wrongly.
                 if ccfg.get("artifact_remote"):
-                    out.setdefault(env_name, {})[col] = {
-                        "artifact": ccfg["artifact_remote"],
-                        "exists": False,
-                        "remote_only": True,
-                        "note": "built on the guest — needs guest-side measurement over SSH "
-                                "(host `artifact` is a source path, not the built artifact)",
-                        "build_config": "unknown",
-                        "release_grade": False,
-                        "build_config_detected_from": "n/a (remote)",
-                        "config_file": cfg_path.name,
-                    }
+                    conn = (env.get("connection") or {})
+                    host, user = conn.get("host"), conn.get("user")
+                    if not host or not user:
+                        out.setdefault(env_name, {})[col] = {
+                            "artifact": ccfg["artifact_remote"], "exists": False, "remote_only": True,
+                            "note": "no [connection] host/user in the config - cannot measure remotely",
+                            "build_config": "unknown", "release_grade": False,
+                            "build_config_detected_from": "n/a (remote)",
+                            "config_file": cfg_path.name,
+                        }
+                        continue
+                    py = (env.get("tools") or {}).get("python3") or "py"
+                    rec = measure_remote_artifact(host, user, py, ccfg["artifact_remote"],
+                                                  ccfg.get("process"))
+                    rec["remote_only"] = True
+                    rec["config_file"] = cfg_path.name
+                    out.setdefault(env_name, {})[col] = rec
                     continue
                 # PREFER a release-grade artifact when the column declares one. `artifact` stays
                 # untouched because run_comparison.py DEPLOYS from it — the parity board and the size
@@ -279,7 +469,16 @@ def main(argv=None) -> int:
         return 1
 
     doc = json.loads(a.json.read_text()) if a.json.exists() else {}
-    doc["size"] = sizes
+    # A FULL run is authoritative and replaces the map, so a lane dropped from the configs stops being
+    # reported. A --env run must MERGE: it only looked at one lane, and overwriting the map with that
+    # single result silently deleted the other lanes' rows from the README -- five macOS rows would go
+    # blank on any `--env windows-x64` iteration, which is the very command this lane invites.
+    if a.env:
+        merged = doc.get("size") or {}
+        merged.update(sizes)
+        doc["size"] = merged
+    else:
+        doc["size"] = sizes
     doc["size_measured_at"] = subprocess.run(["date", "-u", "+%Y-%m-%dT%H:%M:%SZ"],
                                              capture_output=True, text=True).stdout.strip()
     a.json.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
@@ -287,8 +486,11 @@ def main(argv=None) -> int:
     for env_name, cols in sizes.items():
         print(f"\n{env_name}")
         for col, r in cols.items():
-            if r.get("remote_only"):
-                print(f"  {col:12} REMOTE   {r['artifact']}  (guest-side, not measured)")
+            # remote_only marks WHERE it was measured, not WHETHER. A guest artifact that was actually
+            # walked falls through to the normal reporting below; only an unreachable or absent one
+            # is called out here.
+            if r.get("remote_only") and not r.get("exists"):
+                print(f"  {col:12} REMOTE   {r['artifact']}  ({r.get('note', 'not measured')})")
                 continue
             if not r["exists"]:
                 print(f"  {col:12} MISSING  {r['artifact']}")
