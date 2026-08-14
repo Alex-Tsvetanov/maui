@@ -40,9 +40,21 @@ platform = "windows"            # path segment: …/<tag>/windows/<column>/NNNN.
 # PrintWindow are all per-session, so the agent is started IN session 1 (schtasks /it) and reached over
 # an SSH tunnel - tools/parity/windows/session1.py. Nothing here needs to change for that; it is how the
 # agent is transported, not what it is asked to do.
-host = "WINDOWS-VM.local"   # Windows 11 answers mDNS for its own hostname, so this survives a
-                            # DHCP change (the vmnet lease was 192.168.65.2). Falls back to the
-                            # raw IP if mDNS is ever unreliable on your network.
+# NOT resolved by mDNS or /etc/hosts any more: this is an ~/.ssh/config ALIAS.
+#     Host WINDOWS-VM.local windows-vm
+#       HostName 127.0.0.1
+#       Port 2222
+#       User Testings-VM
+# The guest is on UTM's EMULATED VLAN (slirp) with host 2222 -> guest 22 forwarded, so the host cannot
+# route to the guest's own address (10.0.2.15) at all -- only forwarded ports are reachable. That is the
+# point: there is no guest IP left anywhere in this repo to go stale, which is what stranded the previous
+# VM when a VPN flipped the vmnet subnet 64<->65.
+# The alias, rather than a `port` key here, because NONE of the three callers accepts one -- they all
+# build `ssh <user>@<host>` verbatim (run_comparison.py Env._ssh, windows/session1.py Session1Agent._ssh
+# including its `ssh -N -L` tunnel, and lib/device_state.py _ssh). ssh_config is the single place a port
+# can live without touching all three. Any stale `192.168.*.* WINDOWS-VM.local` line in /etc/hosts is
+# dead but harmless: ssh matches the Host pattern on the NAME you typed and never consults /etc/hosts.
+host = "WINDOWS-VM.local"
 user = "Testings-VM"
 connect_timeout_seconds = 10
 
