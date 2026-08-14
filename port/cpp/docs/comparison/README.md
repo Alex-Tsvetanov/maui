@@ -33,7 +33,9 @@ _Android **dark** is not currently comparable: the MAUI reference renders light 
 <details>
 <summary><h2>Artifact size — click to expand</h2></summary>
 
-Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Stripped` is a *measured* `strip -S -x` of the main binary, not an estimate — the raw on-disk figure for a native build is mostly debug information.
+Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Stripped` is always measured, never estimated, but it is obtained differently per platform because debug information lives in different places: on Apple lanes it is an actual `strip -S -x` of a copy of the main binary (symbols sit *inside* the Mach-O); on Windows it is total minus the sidecar `.pdb` files, which is exact since they are never deployed. Android APKs report no stripped figure — read their `native_libs` bucket instead, which is where an unstripped `lib/*.so` hides. The Windows rows are walked on the guest over SSH; every other lane is measured locally.
+
+> **⚠ PROVISIONAL — no ratio may be quoted from this table yet.** Rows marked ⚠ are not release-grade: the managed reference is a `Debug` build and the native builds have an empty `CMAKE_BUILD_TYPE` (no `-O`, no `NDEBUG`). Comparing them is a strawman in *both* directions. H1 stays open until both sides are rebuilt release-grade (managed: `-c Release` + trimming + AOT; native: `CMAKE_BUILD_TYPE=Release` + strip).
 
 | Lane | Column | On disk | Stripped | Build config | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -42,9 +44,15 @@ Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Strippe
 | macos-arm64 | `cpp_xaml` | 22.1 MB | 22.1 MB | Release | symbols 6.7 MB |
 | macos-appkit | `appkit_cpp` | 9.0 MB | 9.0 MB | Release | symbols 0.9 MB |
 | macos-appkit | `appkit_xaml` | 21.9 MB | 21.9 MB | Release | symbols 6.7 MB |
-| windows-x64 | `maui_xaml` | — | — | — | _built on the guest; not measured from the host_ |
-| windows-x64 | `cpp` | — | — | — | _built on the guest; not measured from the host_ |
-| windows-x64 | `cpp_xaml` | — | — | — | _built on the guest; not measured from the host_ |
+| windows-x64 | `maui_xaml` | 149.4 MB | 149.2 MB | Debug ⚠ | symbols 0.3 MB |
+| windows-x64 | `cpp` | 340.2 MB | 74.0 MB | Debug ⚠ | symbols 266.2 MB |
+| windows-x64 | `cpp_xaml` | 437.5 MB | 83.2 MB | Debug ⚠ | symbols 354.2 MB |
+| ios | `maui_xaml` | 97.4 MB | 95.1 MB | Debug ⚠ | symbols 2.4 MB |
+| ios | `cpp` | 57.1 MB | 24.8 MB | (unset) ⚠ | symbols 38.5 MB |
+| ios | `cpp_xaml` | 98.8 MB | 47.9 MB | (unset) ⚠ | symbols 69.2 MB |
+| android | `maui_xaml` | 28.9 MB | — | Release |  |
+| android | `cpp` | 360.0 MB | — | Debug ⚠ |  |
+| android | `cpp_xaml` | 161.3 MB | — | Debug ⚠ |  |
 
 </details>
 
