@@ -4642,3 +4642,52 @@ REVISED RADIUS for the is_carousel branch: carousel_page (both columns, RED), ca
 unscored), indicator (cpp column only, GREEN at 0.76%). The acceptance bar for the RecyclerView host is
 therefore not just "carousel_page moves" — it is "carousel_page moves AND indicator/android/pixel does not
 regress from 0.76%".
+
+---
+
+## maui_quirk CANDIDATE — Android default selection highlight is absent for SelectionMode="Multiple"
+
+**Needs a user ruling (CLAUDE.md ruling 3: flag, do not act).** Raised 2026-08-14 while working the
+light-theme android reds.
+
+Measured on the committed board, `captures/android/{maui,cpp}/*_light.png` / `*_dark.png`, counting pixels
+on the activated-highlight orange (#F17A0A):
+
+| page | SelectionMode | MAUI light | MAUI dark | port light | port dark |
+|---|---|---|---|---|---|
+| `preselected_item`  | Single   | **3.5%** | **3.5%** | 3.5% | 0.0% |
+| `preselected_items` | Multiple | **0.0%** | **0.0%** | **5.0%** | 0.0% |
+
+So MAUI paints the default highlight for **Single** and paints **nothing** for **Multiple**; the port paints
+it for both. Confirmed by eye, not just by histogram: the port renders cells 2/4/5 solid orange where MAUI
+renders plain white.
+
+**Why this is not obviously a port bug.** The C# oracle says MAUI *should* paint it in both modes:
+`SelectableItemsViewAdapter.GetSelectedPositions()` (Handlers/Items/Android/Adapters/, :137-166) has an
+explicit `case SelectionMode.Multiple` returning a position per `SelectedItems` entry, and
+`SelectableViewHolder.IsSelected` (:42-54) sets `ItemView.Activated = true` and installs the
+`state_activated` StateListDrawable built from `colorActivatedHighlight` (:99-118). The port resolves the
+same framework attribute — verified `0x01010390 == android.R.attr.colorActivatedHighlight` against
+android.jar, so a wrong-attr-id explanation is ruled out.
+
+**The likely cause is the shared-XAML twin, which puts this in ruling 12 territory.** `preselected_items.xaml`
+has no code-behind, so it declares the preselection inline:
+
+    <CollectionView.SelectedItems>
+      <x:Array Type="{x:Type x:String}"> ... </x:Array>
+    </CollectionView.SelectedItems>
+
+while the original CoreGallery page does `SelectedItems.Add(Items.Skip(n))` in code-behind. If the inline
+array does not actually apply (new instances rather than the ItemsSource entries), MAUI has **no selection at
+all** here — in which case it is painting correctly and the port is the one inventing a selection.
+
+**The render cannot settle it**: this page's two Labels are static text, not bound readouts, so neither
+column displays what it believes is selected. Deciding needs either a bound readout added to the twin, or a
+ruling.
+
+**Do not "fix" the port to suppress the Multiple highlight before this is ruled on** — under ruling 1 the port
+would be matching a MAUI render that may itself be a twin artifact. Scope if ruled a port bug: also covers
+`multiple_bound_selection` (4.73% light, likewise SelectionMode="Multiple").
+
+Unrelated and separately actionable from the same table: **the port paints NO highlight on `preselected_item`
+dark (0.0%) where MAUI paints 3.5%.** That direction is a straightforward port bug and does not need a ruling.
