@@ -30,7 +30,7 @@ EVIDENCE CLASSES across the 233 non-green cells (2026-08-14):
 | 8 | windows | semantics | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 9 | windows | slider | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 10 | windows | swipe_refresh | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
-| 11 | windows | context_flyout | 52.78 | RED |  | OPEN |
+| 11 | windows | context_flyout | 52.78 | RED |  | BLOCKED exemption-questioned: the context_flyout EXEMPT ruling was written for ANDROID (port rendered Chrome's first-run screen — live external content). On WINDOWS neither column shows browser content; palettes nearly match (MAUI 35.9/26.2 vs port 39.0/23.2) and 39.46% light / 59.94% dark differ over the whole frame (8,46,1016,792). Looks like LAYOUT, not live content. Needs a look before exempting |
 | 12 | ios | box_view | — | RED | yes | OPEN |
 | 13 | ios | carousel_page | — | YEL | yes | OPEN |
 | 14 | ios | clip_gallery | — | RED | yes | OPEN |
