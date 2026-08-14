@@ -31,7 +31,8 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$ShareDir  = "Z:\port\cpp",
+    [string]$ShareDir  = "Z:\port",
+    [string]$StageRoot = "C:\maui-build\src",
     [string]$SourceDir = "C:\maui-build\src\cpp",
     [string]$BuildDir  = "C:\maui-build\cpp",
     [string]$BuildType = "Release"
@@ -57,12 +58,19 @@ function Warn($m) { Write-Host "[port] !   $m" -ForegroundColor Yellow }
 # The share remains the SOURCE OF TRUTH -- it is the host repo, which is what makes a stale guest tree
 # impossible -- and the mirror is refreshed inside the build, never as a step to remember. That
 # distinction is the whole lesson of the C:/maui-src tarball that went six days stale unnoticed.
+#
+# STAGE THE PARENT, port\, NOT JUST cpp\. The examples reach OUTSIDE their own tree: gallery_xaml's
+# CMakeLists resolves web_view.xaml's asset as
+# examples/gallery_xaml/../gallery/../../../maui-reference/app/Resources/Raw/welcome.html, i.e.
+# port/maui-reference beside port/cpp. Staging cpp/ alone left that sibling absent and the configure
+# failed with "welcome.html staged beside the exe; it is missing". Same shape as build_maui_reference's
+# ../pages case -- these projects are siblings by design, so the mirror has to preserve that.
 . (Join-Path $PSScriptRoot "sync_tree.ps1")
 $sw = [Diagnostics.Stopwatch]::StartNew()
-$r = Sync-Tree -From $ShareDir -To $SourceDir
+$r = Sync-Tree -From $ShareDir -To $StageRoot
 $sw.Stop()
 Write-Host ("[port] staged {0} -> {1}: {2} of {3} file(s) updated, {4} removed ({5:N1}s)" -f `
-            $ShareDir, $SourceDir, $r[0], $r[2], $r[1], $sw.Elapsed.TotalSeconds) -ForegroundColor Cyan
+            $ShareDir, $StageRoot, $r[0], $r[2], $r[1], $sw.Elapsed.TotalSeconds) -ForegroundColor Cyan
 
 $ninja = (Get-Command ninja -ErrorAction SilentlyContinue).Source
 if (-not $ninja) { $ninja = "C:\Users\Testings-VM\AppData\Local\Microsoft\WinGet\Links\ninja.exe" }

@@ -20,7 +20,8 @@ param(
     # bytes-mode codegen already targets CMAKE_CURRENT_BINARY_DIR, so nothing needs the source writable.
     # Staged, not read off the share -- see configure_port_windows.ps1's comment. Same tree, so a
     # run that follows a configure re-syncs in seconds.
-    [string]$ShareDir = "Z:\port\cpp",
+    [string]$ShareDir = "Z:\port",
+    [string]$StageRoot = "C:\maui-build\src",
     [string]$SourceDir = "C:\maui-build\src\cpp\examples",
     [string]$FrameworkDir = "C:\maui-build\src\cpp",
     [string]$BuildDir = "C:\maui-build\examples",
@@ -31,10 +32,10 @@ param(
 
 . (Join-Path $PSScriptRoot "sync_tree.ps1")
 $swSync = [Diagnostics.Stopwatch]::StartNew()
-$rSync = Sync-Tree -From $ShareDir -To $FrameworkDir
+$rSync = Sync-Tree -From $ShareDir -To $StageRoot
 $swSync.Stop()
 Write-Host ("[gallery] staged {0} -> {1}: {2} of {3} file(s) updated, {4} removed ({5:N1}s)" -f `
-            $ShareDir, $FrameworkDir, $rSync[0], $rSync[2], $rSync[1], $swSync.Elapsed.TotalSeconds)
+            $ShareDir, $StageRoot, $rSync[0], $rSync[2], $rSync[1], $swSync.Elapsed.TotalSeconds)
 
 $ErrorActionPreference = "Continue"
 # Re-split on commas. Invoked as `powershell -File this.ps1 -Targets gallery,gallery_xaml`, PowerShell
