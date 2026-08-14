@@ -28,7 +28,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 16 | ios | radio_button_content | — | YEL | yes | OPEN |
 | 17 | ios | radio_content_properties | — | YEL | yes | OPEN |
 | 18 | ios | scroll_view | — | YEL | yes | OPEN |
-| 19 | ios | selection_synchronization | — | RED | yes | BLOCKED reference-defect: android MAUI ref lost the selection highlight (orange 11.77%->0.42%) in eb1c33abd8; recapture the ref |
+| 19 | ios | selection_synchronization | — | RED | yes | OPEN (ref restored 89b30d0c62; port was always correct) |
 | 20 | ios | swipe_refresh | — | RED | yes | OPEN |
 | 21 | ios | header_footer_grid_horizontal | 0.70 | YEL |  | OPEN |
 | 22 | ios | border_resize_content | 1.13 | YEL |  | OPEN |
@@ -42,7 +42,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 30 | maccatalyst | path_gallery | — | RED | yes | OPEN |
 | 31 | maccatalyst | pointer_gesture | — | YEL | yes | OPEN |
 | 32 | maccatalyst | radio_content_properties | — | YEL | yes | OPEN |
-| 33 | maccatalyst | selection_synchronization | — | YEL | yes | BLOCKED reference-defect: android MAUI ref lost the selection highlight (orange 11.77%->0.42%) in eb1c33abd8; recapture the ref |
+| 33 | maccatalyst | selection_synchronization | — | YEL | yes | OPEN (ref restored 89b30d0c62; port was always correct) |
 | 34 | maccatalyst | swipe_refresh | — | YEL | yes | OPEN |
 | 35 | maccatalyst | ios_date_picker | 0.12 | YEL |  | OPEN |
 | 36 | maccatalyst | header_footer_grid_horizontal | 0.74 | YEL |  | OPEN |
@@ -68,7 +68,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 56 | android | picker | — | YEL | yes | OPEN |
 | 57 | android | scroll_view | — | YEL | yes | OPEN |
 | 58 | android | search_bar | — | YEL | yes | OPEN |
-| 59 | android | selection_synchronization | — | RED | yes | BLOCKED reference-defect: android MAUI ref lost the selection highlight (orange 11.77%->0.42%) in eb1c33abd8; recapture the ref |
+| 59 | android | selection_synchronization | — | RED | yes | OPEN (ref restored 89b30d0c62; port was always correct) |
 | 60 | android | semantics | — | YEL | yes | OPEN |
 | 61 | android | slider | — | RED | yes | OPEN |
 | 62 | android | stepper | — | RED | yes | OPEN |
@@ -107,12 +107,12 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 95 | android | custom_layout | 6.09 | YEL |  | OPEN |
 | 96 | android | indicator | 6.44 | YEL |  | OPEN |
 | 97 | android | items | 6.73 | YEL |  | OPEN |
-| 98 | android | multiple_bound_selection | 9.31 | RED |  | BLOCKED reference-defect: MAUI ref lost the Multiple highlight in eb1c33abd8; port is correct, recapture the ref |
+| 98 | android | multiple_bound_selection | 9.31 | RED |  | OPEN (ref restored 89b30d0c62; port was always correct) |
 | 99 | android | focus | 23.27 | RED |  | OPEN |
 | 100 | android | selection_command_param | 33.52 | RED |  | OPEN |
 | 101 | android | layout_is_enabled | 37.78 | RED |  | OPEN |
 | 102 | android | border_playground | 40.62 | RED |  | OPEN |
-| 103 | android | preselected_items | 45.31 | RED |  | BLOCKED reference-defect: MAUI ref lost the Multiple highlight in eb1c33abd8; port is correct, recapture the ref |
+| 103 | android | preselected_items | 45.31 | RED |  | OPEN (ref restored 89b30d0c62; port was always correct) |
 | 104 | android | transform_playground | 62.99 | RED |  | OPEN |
 | 105 | android | image | 68.62 | RED |  | OPEN |
 | 106 | android | border_clip_playground | 71.03 | RED |  | OPEN |

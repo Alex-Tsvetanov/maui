@@ -4831,3 +4831,39 @@ drag_drop, swipe_item_size and header_footer_view are all pages whose content de
 async load having happened. header_footer_view also lost a quarter of its palette (23157 -> 17494 colours),
 which is the signature of an IMAGE failing to render rather than a state not applying. These are unexamined
 and are NOT included in the three android rows blocked above.
+
+
+### RESOLVED: the Aug 10 APK was a bad build. A clean rebuild restores the reference exactly.
+
+Rebuilt MauiReference for net10.0-android from current source (new APK 2026-08-14 18:10, replacing the
+2026-08-10 17:21 one), reinstalled, and recaptured the three pages. Every value returned to its EXACT
+pre-regression figure:
+
+| capture | Aug 4 (good) | broken | after rebuild |
+|---|---|---|---|
+| selection_synchronization_light | 11.77% | 0.42% | **11.77%** |
+| selection_synchronization_dark | 11.77% | 0.42% | **11.77%** |
+| preselected_items_light | 5.08% | 0.00% | **5.08%** |
+| preselected_items_dark | 5.07% | 0.00% | **5.07%** |
+| multiple_bound_selection_light | 4.38% | 0.00% | **4.38%** |
+| multiple_bound_selection_dark | 4.37% | 0.00% | **4.37%** |
+
+`reference_guard.py --base d5c2b93e13 --platforms android` now exits 0 across all 344 captures.
+
+So the second branch (shipped MAUI no longer applies inline SelectedItems on android) is DEAD. Same source,
+same MauiVersion pin, same twin XAML — only the binary differed. The Aug 10 build was bad, most likely from
+the workload/SDK skew visible on this host (`dotnet 10.0.301`, maui workload built for SDK 10.0.300).
+
+**THE PORT WAS CORRECT THROUGHOUT.** It rendered 5.08%/4.38% — matching the restored reference exactly — and
+was never changed. The SelectionMode="Multiple" flag raised earlier is fully withdrawn: there was no MAUI
+quirk and no port bug, only a corrupted ground truth. All three rows are unblocked.
+
+STILL OPEN — the same guard found five more losses on the OTHER lanes, unexamined and NOT fixed by this
+rebuild (each lane builds its own MauiReference binary):
+    windows      drag_drop_dark            -17.84pp
+    maccatalyst  swipe_item_size_dark      -4.17pp
+    maccatalyst  swipe_item_size_light     -4.16pp
+    maccatalyst  header_footer_view_light  -3.32pp  (palette 23157 -> 17494 — an image failing to render)
+    maccatalyst  header_footer_view_dark   -3.25pp
+The android fix here is the recipe: rebuild that lane's MauiReference, reinstall, recapture those pages,
+and confirm with reference_guard.py.
