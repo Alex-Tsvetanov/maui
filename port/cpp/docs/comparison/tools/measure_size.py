@@ -43,7 +43,11 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 COMPARISON = HERE.parent
 REPO = COMPARISON.parents[3]          # …/maui
-CONFIGS = [COMPARISON / "config" / "local.toml", COMPARISON / "config" / "windows.toml"]
+CONFIGS = [COMPARISON / "config" / "local.toml", COMPARISON / "config" / "windows.toml",
+           # Size-only declarations for the iOS/Android lanes. Those are captured through
+           # recapture.py's own lane table rather than run_comparison.py, so they had no config at
+           # all and were missing from the size table entirely -- not even an em-dash row.
+           COMPARISON / "config" / "mobile.toml"]
 OUT = COMPARISON / "measurements.json"
 
 # Extension → decomposition bucket. Anything unmatched lands in "other".
@@ -344,7 +348,68 @@ def measure_remote_artifact(host: str, user: str, python3: str, artifact: str,
     return rec
 
 
+# ------------------------------------------------------------------------------------ the APK lane
+# An APK is a ZIP, so `du` on it reports one number and attributes nothing. That is not good enough
+# here, because the raw Android figures point the OPPOSITE way to every other lane: the port's Debug
+# apphost measures ~360 MB against the MAUI reference's ~81 MB. Reported as a bare total that reads
+# "the native port is 4x LARGER", which would be a real finding only if it were about shipped code --
+# and it is not. It is unstripped DWARF inside lib/*.so. Splitting the archive is what separates
+# "native code is bigger" (false) from "this Debug build carries its debug info" (true).
+#
+# Sizes are COMPRESSED (what the file actually weighs), so the buckets sum to the APK on disk.
+APK_MANAGED_PREFIX = ("assemblies/",)
+APK_RESOURCE_PREFIX = ("res/", "assets/")
+
+
+def bucket_apk(name: str) -> str:
+    low = name.lower()
+    if low.startswith("lib/") and low.endswith(".so"):
+        return "native_libs"
+    if low.startswith(APK_MANAGED_PREFIX) or low.endswith(".dll"):
+        return "managed"
+    if low.endswith(".dex"):
+        return "code"
+    if low.startswith(APK_RESOURCE_PREFIX) or low == "resources.arsc":
+        return "resources"
+    return "other"
+
+
+def measure_apk(path: Path) -> dict:
+    """Decompose an .apk by reading its zip directory. No extraction, no android tooling."""
+    import zipfile  # stdlib; imported here so the module still loads where APKs are irrelevant
+
+    buckets: dict[str, int] = {}
+    entries = 0
+    biggest_so = ("", 0)
+    try:
+        with zipfile.ZipFile(path) as z:
+            for i in z.infolist():
+                if i.is_dir():
+                    continue
+                entries += 1
+                buckets[bucket_apk(i.filename)] = buckets.get(bucket_apk(i.filename), 0) + i.compress_size
+                if i.filename.lower().endswith(".so") and i.compress_size > biggest_so[1]:
+                    biggest_so = (i.filename, i.compress_size)
+    except (zipfile.BadZipFile, OSError) as exc:
+        return {"total_bytes": path.stat().st_size, "file_count": 1, "buckets": {},
+                "note": f"could not read the APK zip directory: {exc}"}
+
+    rec: dict = {
+        # The APK's real on-disk size, NOT the sum of buckets: the zip's own central directory and
+        # alignment padding are part of what ships and belong in the headline number.
+        "total_bytes": path.stat().st_size,
+        "file_count": entries,
+        "buckets": buckets,
+    }
+    if biggest_so[0]:
+        rec["main_binary"] = {"name": os.path.basename(biggest_so[0]), "bytes": biggest_so[1],
+                              "linkedit_bytes": 0, "stripped_bytes": None}
+    return rec
+
+
 def measure_artifact(path: Path) -> dict:
+    if path.is_file() and path.suffix.lower() == ".apk":
+        return measure_apk(path)
     files = list(walk_files(path))
     buckets: dict[str, int] = {}
     for f in files:

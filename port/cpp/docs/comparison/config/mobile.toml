@@ -1,0 +1,55 @@
+# Artifact declarations for the iOS and Android lanes -- SIZE MEASUREMENT ONLY.
+#
+# WHY THIS FILE EXISTS. measure_size.py reads its artifact paths out of the E2E configs, and only
+# local.toml (macOS) and windows.toml existed. iOS and Android are not driven by run_comparison.py at
+# all -- they are captured through recapture.py's own lane table (capture_ios_clean.py, the android
+# adb path), which never needed an artifact declaration. The consequence was that those two lanes were
+# not merely unmeasured but ABSENT from the README's size table: no row, no em-dash, nothing to
+# notice. This gives them the same declaration the other lanes already had.
+#
+# NOT AN E2E CONFIG. There is deliberately no [connection], [staging] or [capture] section: nothing
+# here is reachable over SSH and nothing drives a device. run_comparison.py visits every environment
+# in the config it is HANDED, so passing this file to it would be a mistake -- it is only ever read by
+# measure_size.py, which needs `artifact` and nothing else.
+#
+# These artifacts are all LOCAL to the Mac, so they are measured directly, unlike windows.toml's
+# `artifact_remote` columns which are walked on the guest over SSH.
+
+version = 1
+
+# --- iOS ------------------------------------------------------------------------------------------
+# .app bundles: directories of Mach-O + resources, so the existing walk/strip path applies unchanged.
+# The measured `strip -S -x` matters most here -- an unstripped simulator build is mostly __LINKEDIT.
+[environments.ios]
+platform = "ios"
+
+[environments.ios.columns.maui_xaml]
+artifact = "port/maui-reference/app/bin/Debug/net10.0-ios/iossimulator-arm64/MauiReference.app"
+
+[environments.ios.columns.cpp]
+artifact = "port/cpp/examples/build-ios/gallery/gallery.app"
+
+[environments.ios.columns.cpp_xaml]
+artifact = "port/cpp/examples/build-ios/gallery_xaml/gallery_xaml.app"
+
+# --- Android --------------------------------------------------------------------------------------
+# APKs are single FILES, decomposed by reading the zip directory (measure_size.py bucket_apk).
+#
+# READ THE DECOMPOSITION, NOT THE TOTAL, ON THIS LANE. The port's Debug apphost APK is several times
+# LARGER than the MAUI reference APK -- the opposite of every other lane -- because its lib/*.so still
+# carries full DWARF. That is a property of the build, not of the implementation strategy, and the
+# `release_grade` flag keeps any ratio out of the README until both sides are comparable builds.
+#
+# The MAUI column points at the -Signed.apk: the unsigned intermediate beside it is not what installs.
+[environments.android]
+platform = "android"
+
+[environments.android.columns.maui_xaml]
+artifact = "port/maui-reference/app/bin/Debug/net10.0-android/dev.mauicpp.mauireference-Signed.apk"
+artifact_release = "port/maui-reference/app/bin/Release/net10.0-android/dev.mauicpp.mauireference-Signed.apk"
+
+[environments.android.columns.cpp]
+artifact = "port/cpp/build/android/maui_android_apphost.apk"
+
+[environments.android.columns.cpp_xaml]
+artifact = "port/cpp/build/android/maui_android_apphost_xaml.apk"
