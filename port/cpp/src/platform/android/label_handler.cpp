@@ -219,6 +219,77 @@ namespace
     // per-TU self-contained doctrine); the only change is k_text_view_class (TextView.setTextColor(ColorStateList)
     // is a plain TextView method). Returns false (caller falls back to a flat setTextColor) on any JNI failure
     // or the VM-less path. Every ref is local; pending exceptions are cleared.
+    // The DISABLED entry of a label's text ColorStateList = the enabled colour with its ALPHA SCALED by the
+    // theme's android:disabledAlpha, which is what Android's own textColorPrimary/Secondary state lists do.
+    // MAUI installs no CSL here at all — UpdateTextColor is a no-op on a null TextColor — so the THEME's list
+    // is what renders, and attenuation is its mechanism.
+    //
+    // Measured on layout_is_enabled_light (darkest glyph of the two "All children are enabled" labels):
+    //     enabled    MAUI (117,117,117)   port (117,117,117)   both #8A000000, 54% black over white
+    //     disabled   MAUI (219,219,219)   port (158,158,158)   port was a FLAT black@38% (0x61000000)
+    // 255*(1-0.38) = 158 exactly, confirming the old constant; MAUI's 219 is 0x8A attenuated (138*0.26 = 36
+    // = 0x24, 255-36 = 219). Replacing the colour instead of attenuating it is also wrong for any
+    // EXPLICITLY-coloured label: a disabled red label must fade toward the background, not turn grey.
+    //
+    // MEMOIZED process-wide, mirroring selected_highlight_argb (collection_view_handler.cpp): a theme attr
+    // does not change under us, and resolving per label would put four JNI calls in the text-colour hot path.
+    constexpr jint k_attr_disabled_alpha = 0x01010030; // android.R.attr.disabledAlpha
+
+    [[nodiscard]] float theme_disabled_alpha(JNIEnv* env, jobject widget)
+    {
+        constexpr float k_fallback = 0.26F; // measured on this board's theme; used only if the resolve fails
+        static std::atomic<float> memoized{0.0F};
+        if (const float cached = memoized.load(std::memory_order_relaxed); cached > 0.0F)
+        {
+            return cached;
+        }
+        auto& cache = default_jni_cache();
+        jmethodID get_context = cache.method(env, k_text_view_class, "getContext", "()Landroid/content/Context;");
+        jmethodID get_theme =
+            cache.method(env, "android/content/Context", "getTheme", "()Landroid/content/res/Resources$Theme;");
+        jclass tv_class = cache.find_class(env, "android/util/TypedValue");
+        jmethodID tv_ctor = cache.method(env, "android/util/TypedValue", "<init>", "()V");
+        jmethodID get_float = cache.method(env, "android/util/TypedValue", "getFloat", "()F");
+        jmethodID resolve = cache.method(env, "android/content/res/Resources$Theme", "resolveAttribute",
+                                         "(ILandroid/util/TypedValue;Z)Z");
+        if (get_context == nullptr || get_theme == nullptr || tv_class == nullptr || tv_ctor == nullptr
+            || get_float == nullptr || resolve == nullptr)
+        {
+            return k_fallback;
+        }
+        local_ref<jobject> context{env, env->CallObjectMethod(widget, get_context)};
+        if (clear_pending(env) || !context)
+        {
+            return k_fallback;
+        }
+        local_ref<jobject> theme{env, env->CallObjectMethod(context.get(), get_theme)};
+        local_ref<jobject> tv{env, env->NewObject(tv_class, tv_ctor)};
+        if (clear_pending(env) || !theme || !tv)
+        {
+            return k_fallback;
+        }
+        const jboolean ok = env->CallBooleanMethod(theme.get(), resolve, k_attr_disabled_alpha, tv.get(), JNI_TRUE);
+        if (clear_pending(env) || ok != JNI_TRUE)
+        {
+            return k_fallback;
+        }
+        const float alpha = env->CallFloatMethod(tv.get(), get_float);
+        if (clear_pending(env) || !(alpha > 0.0F) || alpha > 1.0F)
+        {
+            return k_fallback;
+        }
+        memoized.store(alpha, std::memory_order_relaxed);
+        return alpha;
+    }
+
+    // Scale an ARGB's alpha channel, leaving RGB untouched — the attenuation described above.
+    [[nodiscard]] jint scale_alpha(jint argb, float factor)
+    {
+        const auto a = static_cast<unsigned>((static_cast<unsigned>(argb) >> 24U) & 0xFFU);
+        const auto scaled = std::min(static_cast<unsigned>(static_cast<float>(a) * factor + 0.5F), 0xFFU);
+        return static_cast<jint>((scaled << 24U) | (static_cast<unsigned>(argb) & 0x00FFFFFFU));
+    }
+
     [[nodiscard]] bool set_text_color_state_list(JNIEnv* env, jobject widget, jint default_argb, jint disabled_argb)
     {
         auto& cache = default_jni_cache();
@@ -925,8 +996,9 @@ namespace maui::core
             // keep the exact 0xB8FFFFFF seed (the many green pages are unchanged). Fall back to a flat
             // setTextColor(0xB8FFFFFF) if the CSL can't be built (missing class / VM-less).
             jobject widget = widget_of(*platform);
+            const float disabled_alpha = theme_disabled_alpha(env.get(), widget);
             if (!set_text_color_state_list(env.get(), widget, static_cast<jint>(0xB8FFFFFFU),
-                                           static_cast<jint>(0x61FFFFFFU)))
+                                           scale_alpha(static_cast<jint>(0xB8FFFFFFU), disabled_alpha)))
             {
                 call_void_int(env.get(), widget, "setTextColor", static_cast<jint>(0xB8FFFFFFU));
             }
@@ -949,8 +1021,9 @@ namespace maui::core
             // seed collapsing the stateful behavior. Enabled labels keep the exact 0x8A000000 seed (the many
             // green pages are unchanged). Fall back to a flat setTextColor(0x8A000000) if the CSL can't be built.
             jobject widget = widget_of(*platform);
+            const float disabled_alpha = theme_disabled_alpha(env.get(), widget);
             if (!set_text_color_state_list(env.get(), widget, static_cast<jint>(0x8A000000U),
-                                           static_cast<jint>(0x61000000U)))
+                                           scale_alpha(static_cast<jint>(0x8A000000U), disabled_alpha)))
             {
                 call_void_int(env.get(), widget, "setTextColor", static_cast<jint>(0x8A000000U));
             }
