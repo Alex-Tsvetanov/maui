@@ -81,27 +81,31 @@ if (-not (Test-Path $ShareRoot)) {
 $TOLERANCE = [TimeSpan]::FromSeconds(2)
 
 function Get-Entries {
+    <#
+      An explicit walk rather than `Get-ChildItem -Recurse`, because -Recurse DESCENDS FIRST and any
+      filtering happens on its output. maui-reference\app carries 3.3 GB of bin/obj, so the obvious
+      version enumerates every one of those files over WebDAV and only then discards them -- the scan
+      never finished. Pruning at the directory boundary means an excluded tree is never entered.
+    #>
     param([string]$Root, [bool]$Recurse, [string[]]$Exclude)
     if (-not (Test-Path $Root)) { return @{} }
-    $items = if ($Recurse) { Get-ChildItem $Root -File -Recurse -ErrorAction SilentlyContinue }
-             else          { Get-ChildItem $Root -File -ErrorAction SilentlyContinue }
     $map = @{}
     $prefix = (Resolve-Path $Root).Path.TrimEnd('\') + '\'
-    foreach ($i in $items) {
-        $rel = $i.FullName.Substring($prefix.Length)
-        if ($Exclude) {
-            $parts = $rel.Split('\')
-            # Only the DIRECTORY components, so a file literally named "bin" is not mistaken for the
-            # bin directory. Guarded on Count -gt 1 because PowerShell wraps negative indices:
-            # for a root-level file $parts[0..-1] would span the whole array and match the filename.
-            $skip = $false
-            if ($parts.Count -gt 1) {
-                $dirs = $parts[0..($parts.Count - 2)]
-                foreach ($e in $Exclude) { if ($dirs -contains $e) { $skip = $true; break } }
+    $stack = New-Object System.Collections.Stack
+    $stack.Push((Resolve-Path $Root).Path)
+    while ($stack.Count -gt 0) {
+        $dir = $stack.Pop()
+        foreach ($i in Get-ChildItem -LiteralPath $dir -Force -ErrorAction SilentlyContinue) {
+            if ($i.PSIsContainer) {
+                if (-not $Recurse) { continue }
+                # Matched on the DIRECTORY name, so a file called "bin" is never confused for bin\.
+                if ($Exclude -and ($Exclude -contains $i.Name)) { continue }
+                $stack.Push($i.FullName)
             }
-            if ($skip) { continue }
+            else {
+                $map[$i.FullName.Substring($prefix.Length)] = $i
+            }
         }
-        $map[$rel] = $i
     }
     return $map
 }
