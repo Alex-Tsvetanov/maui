@@ -392,11 +392,64 @@ class Client:
 
 
 # --------------------------------------------------------------------------- report
-def write_report(path: Path, args, findings, missing, tally, meas, verdicts) -> None:
+def parse_comparisons(path: Path) -> dict:
+    """Section 3's rows from an EXISTING report, keyed by (platform, page, comparison).
+
+    Section 3 is the only part of this report that costs API calls, and a run almost never covers all
+    of it: --resume skips scored pages, --limit stops spending, --examples/--platforms scope it
+    deliberately, and a quota failure truncates it outright. Every one of those used to overwrite the
+    whole section with just what that run produced.
+
+    Measured on 2026-08-15: a run whose key hit its rate limit after 21 comparisons rewrote this file
+    from 2305 lines to 85, discarding ~2250 recorded findings. It exited 0 and the result was
+    well-formed, so nothing looked wrong -- it surfaced only as '2244 deletions' in a commit diff.
+
+    Reading the old rows back is what makes a partial run additive instead of destructive. The detail
+    column has its pipes replaced with '/' when written, so splitting on '|' is safe.
+    """
+    if not path.is_file():
+        return {}
+    rows, in_section = {}, False
+    for line in path.read_text(errors="replace").splitlines():
+        if line.startswith("## 3."):
+            in_section = True
+            continue
+        # "### Tally" is derived, not data: it is recomputed from whatever the merge produces.
+        if in_section and (line.startswith("## ") or line.startswith("### ")):
+            break
+        if not in_section or not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 6 or cells[0] in ("platform", "---"):
+            continue
+        plat, key, comp, status, source, detail = cells[:6]
+        rows[(plat, key, comp)] = {"platform": plat, "key": key, "comparison": comp,
+                                   "status": status, "source": source, "review": detail,
+                                   # Reports written before the `scored` column existed have no date;
+                                   # empty is honest, and reads as "older than this column".
+                                   "scored": cells[6] if len(cells) > 6 else ""}
+    return rows
+
+
+def write_report(path: Path, args, findings, missing, tally, meas, verdicts,
+                 partial_reason: str = "") -> None:
+    examples = getattr(args, "examples", "all")
     lines = [f"# Parity inconsistencies — {datetime.now():%Y-%m-%d %H:%M}", "",
              f"`review.py --platforms {args.platforms} --comparisons {args.comparisons}"
-             f"{' --no-judge' if args.no_judge else ''}`", "",
-             "## 1. Capture integrity", ""]
+             f"{'' if examples == 'all' else ' --examples ' + examples}"
+             f"{' --no-judge' if args.no_judge else ''}`", ""]
+    # Sections 1 and 2 are regenerated from THIS run's scope, so a narrowed run narrows them. Unlike
+    # section 3 that costs nothing to put right -- both phases are free -- but it is invisible unless
+    # said out loud, and a reader would otherwise take a short list as "few problems" rather than
+    # "few pages looked at".
+    scoped = [f"`--{n} {v}`" for n, v in (("platforms", args.platforms), ("examples", examples),
+                                          ("comparisons", args.comparisons))
+              if v != "all" and "," not in v]
+    if scoped:
+        lines += [f"> **Scoped run** ({', '.join(scoped)}). Sections 1 and 2 below describe only that "
+                  "scope, not the whole board — re-run without the narrowing flags to refresh them "
+                  "(both phases are free). Section 3 is merged across runs and is NOT narrowed.", ""]
+    lines += ["## 1. Capture integrity", ""]
     if findings:
         lines += [f"**{len(findings)} page(s) share a frame with a DIFFERENT page.** One capture filed "
                   "under two names is how a wrong-page frame gets scored as a port defect. A few demo "
@@ -422,14 +475,34 @@ def write_report(path: Path, args, findings, missing, tally, meas, verdicts) -> 
 
     lines += ["## 2. Measurements coverage", ""]
     lines += ([f"- {m}" for m in meas] if meas else ["Every captured platform/column is measured. ✅"])
-    lines += ["", "## 3. Comparisons", "",
-              "| platform | page | comparison | status | source | detail |",
-              "| --- | --- | --- | --- | --- | --- |"]
+    # MERGE, never replace. This run is authoritative only for the pairs it actually scored; every
+    # other row stays exactly as the run that produced it left it. See parse_comparisons().
+    today = f"{datetime.now():%Y-%m-%d}"
+    merged = parse_comparisons(path)
+    carried_before = len(merged)
     for v in verdicts:
+        merged[(v["platform"], v["key"], v["comparison"])] = {**v, "scored": today}
+    rows = sorted(merged.values(), key=lambda r: (r["platform"], r["key"], r["comparison"]))
+    carried = len(rows) - len(verdicts)
+
+    lines += ["", "## 3. Comparisons", ""]
+    if partial_reason:
+        lines += [f"> **⚠ PARTIAL RUN — {partial_reason}.** {len(verdicts)} comparison(s) were scored "
+                  f"here; the other {carried} row(s) below are CARRIED OVER from earlier runs and were "
+                  "not re-checked now. Their `scored` date says when each was last judged. Re-run "
+                  "without the interruption to refresh them.", ""]
+    elif carried:
+        lines += [f"> {len(verdicts)} comparison(s) scored in this run; {carried} row(s) carried over "
+                  "from earlier runs (this run's scope did not include them). The `scored` column "
+                  "dates each row.", ""]
+    lines += ["| platform | page | comparison | status | source | detail | scored |",
+              "| --- | --- | --- | --- | --- | --- | --- |"]
+    for v in rows:
         detail = v["review"].replace("|", "/")[:160]
         lines.append(f"| {v['platform']} | {v['key']} | {v['comparison']} | {v['status']} | "
-                     f"{v['source']} | {detail} |")
-    counts = Counter((v["comparison"], v["status"]) for v in verdicts)
+                     f"{v['source']} | {detail} | {v.get('scored', '')} |")
+    # Tally over the MERGED set: a tally of only this run's rows would disagree with the table above it.
+    counts = Counter((v["comparison"], v["status"]) for v in rows)
     lines += ["", "### Tally", "", "| comparison | green | yellow | red | blank |", "| --- | --- | --- | --- | --- |"]
     for name in COMPARISONS:
         if any(c[0] == name for c in counts):
@@ -460,7 +533,32 @@ def selftest() -> int:
     # Verdict folding: the WORST theme wins, so a page that is fine in light and broken in dark is red.
     assert max(("green", "red"), key=lambda s: _SEV[s]) == "red"
     assert CATEGORY_TO_BOARD["columns_differ"] == "red" and CATEGORY_TO_BOARD["complete"] == "green"
-    print("review selftest: slots + appkit scoping + pixel prefilter OK")
+
+    # Section 3 MERGES; a partial run must never drop rows it did not score. On 2026-08-15 a run whose
+    # API key hit its rate limit after 21 comparisons rewrote the report from 2305 lines to 85,
+    # silently discarding ~2250 findings, and exited 0. This is that scenario in miniature.
+    import tempfile  # noqa: PLC0415  selftest-only
+    args = argparse.Namespace(platforms="ios", comparisons="maui_cpp", no_judge=False)
+    def v(key, status, review, source="pixel"):
+        return {"platform": "ios", "key": key, "comparison": "maui_cpp", "status": status,
+                "review": review, "source": source, "slot": "gemini"}
+    with tempfile.TemporaryDirectory() as td:
+        rep = Path(td) / "r.md"
+        write_report(rep, args, [], [], Counter(), [], [v("button", "green", "first run"),
+                                                        v("label", "red", "first run")])
+        assert len(parse_comparisons(rep)) == 2
+        # A later run that scored ONLY `button`, then died on quota.
+        write_report(rep, args, [], [], Counter(), [], [v("button", "red", "rescored", "gemini")],
+                     "the run stopped early: all models exhausted")
+        rows = parse_comparisons(rep)
+        assert len(rows) == 2, f"carried row lost: {sorted(rows)}"
+        assert rows[("ios", "button", "maui_cpp")]["status"] == "red"        # rescore wins
+        assert rows[("ios", "label", "maui_cpp")]["review"] == "first run"   # untouched
+        assert "PARTIAL RUN" in rep.read_text()
+        # The tally must count the MERGED rows, not just this run's, or it contradicts its own table.
+        assert "| maui_cpp | 0 | 0 | 2 | 0 |" in rep.read_text(), rep.read_text()
+
+    print("review selftest: slots + appkit scoping + pixel prefilter + section-3 merge OK")
     return 0
 
 
@@ -522,6 +620,9 @@ def main(argv=None) -> int:
     by_name = {p.get("name"): p for p in board}
     client = None
     limit_hit = False
+    # Why section 3 is incomplete, if it is. Drives the PARTIAL banner and, more importantly, the
+    # decision to MERGE rather than replace -- see parse_comparisons().
+    partial_reason = ""
     verdicts = []
     print(f"phase 3: {len(units)} comparison(s)", flush=True)
     for platform, key, comp in units:
@@ -551,6 +652,7 @@ def main(argv=None) -> int:
             # still worth recording; only the ones needing a call are skipped. Say so once.
             if not limit_hit:
                 limit_hit = True
+                partial_reason = f"--limit {a.limit} reached, so pairs needing an API call were skipped"
                 print(f"  --limit {a.limit} reached: pairs needing a call are skipped from here "
                       f"(re-run with --resume to continue)", flush=True)
             continue
@@ -561,7 +663,9 @@ def main(argv=None) -> int:
                 status, review = judge_pair(client, plat, col_a, col_b, key, themes, structural)
                 source = "gemini"
             except gemini.Quota as q:
-                print(f"  STOP: {q} — reporting what is scored so far", flush=True)
+                partial_reason = f"the run stopped early: {q}"
+                print(f"  STOP: {q} — reporting what is scored so far "
+                      f"(section 3 will MERGE, not overwrite)", flush=True)
                 break
             except gemini.Failed as e:
                 print(f"  ! {plat}/{key}/{comp}: {e}", flush=True)
@@ -584,7 +688,7 @@ def main(argv=None) -> int:
         print(f"wrote {wrote} verdict(s) into comparison.json")
 
     report = Path(a.report)
-    write_report(report, a, findings, missing, tally, meas, verdicts)
+    write_report(report, a, findings, missing, tally, meas, verdicts, partial_reason)
     print(f"\nreport -> {report.relative_to(CPP) if report.is_relative_to(CPP) else report}")
     print(f"{len(findings)} wrong-page finding(s), {len(meas)} measurement gap(s), "
           f"{len(verdicts)} comparison(s) scored"
