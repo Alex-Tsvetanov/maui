@@ -56,7 +56,99 @@ function Info($m) { Write-Host "[maui-ref] $m" -ForegroundColor Cyan }
 function Ok($m)   { Write-Host "[maui-ref] OK  $m" -ForegroundColor Green }
 function Warn($m) { Write-Host "[maui-ref] !   $m" -ForegroundColor Yellow }
 
-if (-not (Test-Path $SourceDir)) { throw "SourceDir not found: $SourceDir (sync it from the host first)" }
+if (-not (Test-Path $SourceDir)) { throw "SourceDir not found: $SourceDir (is the Z: share mounted?)" }
+
+# --- stage the project onto C: -------------------------------------------------------------------
+# MSBUILD CANNOT ENUMERATE THE SHARE RECURSIVELY, so unlike the CMake lanes this one cannot build in
+# place. Measured with an otherwise identical probe project:
+#
+#     <ProbeZ Include="Z:\port\maui-reference\app\**\*.cs" />   ->  1 match
+#     <ProbeC Include="C:\maui-build\cpp\**\*.txt" />           ->  8 matches
+#
+# while Python walking the same Z: tree finds 239 files, 210 of them .cs (4 top-level, 206 nested).
+# MSBuild's FileMatcher falls back to treating a pattern as a LITERAL path when enumeration fails,
+# which is why the build died with `CS2001: Source file '**/*.cs' could not be found` -- the glob
+# reached csc verbatim. No MSBuild property fixes that; the enumeration itself is what fails.
+# CMake is unaffected and globs the share correctly (it resolves all 505 .cpp under src/), so ONLY
+# this lane stages.
+#
+# The staging is part of the BUILD, deliberately, not a step someone remembers to run. A separate
+# manual sync is exactly what failed on 2026-08-11: the tree drifted six days and the column rendered
+# old code for a full day while SYNC_STAMP.txt claimed otherwise.
+#
+# Not robocopy: it cannot pair files across this share at all, reporting a tree whose 196 of 196 names
+# are already present as 196 "New File" plus 197 "*EXTRA File". Get-ChildItem reports correctly.
+#
+# THE WHOLE maui-reference DIRECTORY IS STAGED, not just app/. Three things outside the project dir
+# are load-bearing, and staging app/ alone silently produced a project that compiled no XAML at all:
+#   * ../pages/*.xaml -- THE canonical shared pages (ruling 6), pulled in by the csproj as
+#     `<MauiXaml Include="..\pages\*.xaml" Link="Pages\%(Filename).xaml" />`. With app/ alone that
+#     glob resolved to a directory that did not exist, so every page silently produced no generated
+#     partial and the build died with ~200 x CS0103 "InitializeComponent does not exist" -- an error
+#     that names the code-behind and says nothing about the missing XAML.
+#   * ../Directory.Build.props|targets -- deliberately EMPTY isolation stubs whose entire job is to
+#     stop MSBuild's upward traversal from reaching the dotnet/maui repo's arcade infrastructure.
+#     Omitting them does not fail loudly; it changes what the reference app builds against.
+#   * ../NuGet.config -- the package sources for restore.
+# captures/ is excluded: 151 MB of PNGs that are output, not input.
+function Sync-Tree {
+    param([string]$From, [string]$To)
+    $exclude = @("bin", "obj", "captures")
+    function Walk([string]$Root) {
+        $map = @{}
+        if (-not (Test-Path $Root)) { return $map }
+        $prefix = (Resolve-Path $Root).Path.TrimEnd('\') + '\'
+        $stack = New-Object System.Collections.Stack
+        $stack.Push((Resolve-Path $Root).Path)
+        while ($stack.Count -gt 0) {
+            $dir = $stack.Pop()
+            foreach ($i in Get-ChildItem -LiteralPath $dir -Force -ErrorAction SilentlyContinue) {
+                # Prune, never filter afterwards: descending into bin/obj would walk MSBuild output
+                # that is orders of magnitude larger than the sources.
+                if ($i.PSIsContainer) {
+                    if ($exclude -notcontains $i.Name) { $stack.Push($i.FullName) }
+                }
+                else { $map[$i.FullName.Substring($prefix.Length)] = $i }
+            }
+        }
+        return $map
+    }
+    $s = Walk $From
+    $d = Walk $To
+    $copied = 0
+    foreach ($rel in $s.Keys) {
+        $si = $s[$rel]; $di = $d[$rel]
+        # 2s tolerance: WebDAV timestamps are coarser than NTFS, so exact equality would copy forever.
+        if ($null -eq $di -or $si.Length -ne $di.Length -or
+            [Math]::Abs(($si.LastWriteTimeUtc - $di.LastWriteTimeUtc).Ticks) -gt [TimeSpan]::FromSeconds(2).Ticks) {
+            $dst = Join-Path $To $rel
+            $dir = Split-Path $dst -Parent
+            if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+            # File.Copy carries the source timestamp over, which keeps the NEXT run cheap and keeps
+            # MSBuild incremental -- an unchanged file never gets a new mtime, so nothing recompiles.
+            Copy-Item -LiteralPath $si.FullName -Destination $dst -Force
+            $copied++
+        }
+    }
+    # Removal is not tidiness: MSBuild's default item globs are recursive, so a .cs deleted on the
+    # host but left here would still be compiled.
+    $removed = 0
+    foreach ($rel in $d.Keys) {
+        if (-not $s.ContainsKey($rel)) { Remove-Item -LiteralPath $d[$rel].FullName -Force -ErrorAction SilentlyContinue; $removed++ }
+    }
+    return @($copied, $removed, $s.Count)
+}
+
+$stageSrc = Split-Path $SourceDir -Parent          # ...\maui-reference  (app/ AND pages/ AND the stubs)
+$stageDst = Join-Path $OutputRoot "src"
+$sw = [Diagnostics.Stopwatch]::StartNew()
+$r = Sync-Tree -From $stageSrc -To $stageDst
+$sw.Stop()
+# Rebase onto the stage: everything downstream (csproj lookup, restore, build) uses the LOCAL copy.
+$SourceDir = Join-Path $stageDst (Split-Path $SourceDir -Leaf)
+Info ("staged {0} -> {1}: {2} of {3} file(s) updated, {4} removed ({5:N1}s)" -f `
+      $stageSrc, $stageDst, $r[0], $r[2], $r[1], $sw.Elapsed.TotalSeconds)
+Info "project root: $SourceDir"
 
 $dotnet = "C:\dotnet\dotnet.exe"
 if (-not (Test-Path $dotnet)) {
