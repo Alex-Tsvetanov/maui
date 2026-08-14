@@ -23,7 +23,9 @@
      "linkedit_bytes": 33325056,
      "stripped_bytes": 33018592
     },
-    "total_bytes_stripped": 49585400
+    "total_bytes_stripped": 49585400,
+    "built_at": "2026-08-11",
+    "built_at_from": "newest measured file"
    },
    "cpp": {
     "artifact": "port/cpp/examples/build-maccatalyst-release/gallery/gallery.app",
@@ -45,7 +47,9 @@
      "linkedit_bytes": 901120,
      "stripped_bytes": 9058312
     },
-    "total_bytes_stripped": 9589554
+    "total_bytes_stripped": 9589554,
+    "built_at": "2026-08-03",
+    "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
     "artifact": "port/cpp/examples/build-maccatalyst-release/gallery_xaml/gallery_xaml.app",
@@ -67,7 +71,9 @@
      "linkedit_bytes": 7045120,
      "stripped_bytes": 22673968
     },
-    "total_bytes_stripped": 23205188
+    "total_bytes_stripped": 23205188,
+    "built_at": "2026-08-03",
+    "built_at_from": "newest measured file"
    }
   },
   "macos-appkit": {
@@ -91,7 +97,9 @@
      "linkedit_bytes": 901120,
      "stripped_bytes": 8891656
     },
-    "total_bytes_stripped": 9421513
+    "total_bytes_stripped": 9421513,
+    "built_at": "2026-08-03",
+    "built_at_from": "newest measured file"
    },
    "appkit_xaml": {
     "artifact": "port/cpp/examples/build-apple-release/gallery_xaml",
@@ -113,7 +121,9 @@
      "linkedit_bytes": 7045120,
      "stripped_bytes": 22474336
     },
-    "total_bytes_stripped": 23004193
+    "total_bytes_stripped": 23004193,
+    "built_at": "2026-08-03",
+    "built_at_from": "newest measured file"
    }
   },
   "windows-x64": {
@@ -121,22 +131,24 @@
     "artifact": "C:/maui-build/maui-reference/bin/Debug/net10.0-windows10.0.19041.0/win-arm64",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 156691154,
+    "total_bytes": 156691534,
     "file_count": 440,
     "buckets": {
      "other": 3603634,
      "resources": 3743528,
-     "code": 149067824,
-     "debug": 276168
+     "code": 149068336,
+     "debug": 276036
     },
     "build_config": "Debug",
     "release_grade": false,
     "build_config_detected_from": "path segment",
-    "total_bytes_stripped": 156414986,
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file (guest)",
+    "total_bytes_stripped": 156415498,
     "main_binary": {
      "name": "MauiReference.exe",
      "bytes": 267264,
-     "linkedit_bytes": 276168,
+     "linkedit_bytes": 276036,
      "stripped_bytes": 267264
     },
     "remote_only": true,
@@ -156,6 +168,8 @@
     "build_config": "Debug",
     "release_grade": false,
     "build_config_detected_from": "CMakeCache.txt (guest)",
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file (guest)",
     "total_bytes_stripped": 77580473,
     "main_binary": {
      "name": "gallery.exe",
@@ -181,6 +195,8 @@
     "build_config": "Debug",
     "release_grade": false,
     "build_config_detected_from": "CMakeCache.txt (guest)",
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file (guest)",
     "total_bytes_stripped": 87287573,
     "main_binary": {
      "name": "gallery_xaml.exe",
@@ -216,7 +232,9 @@
      "linkedit_bytes": 2555904,
      "stripped_bytes": 2638368
     },
-    "total_bytes_stripped": 99680910
+    "total_bytes_stripped": 99680910,
+    "built_at": "2026-08-10",
+    "built_at_from": "newest measured file"
    },
    "cpp": {
     "artifact": "port/cpp/examples/build-ios/gallery/gallery.app",
@@ -239,7 +257,9 @@
      "linkedit_bytes": 40353792,
      "stripped_bytes": 25396696
     },
-    "total_bytes_stripped": 26035858
+    "total_bytes_stripped": 26035858,
+    "built_at": "2026-08-13",
+    "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
     "artifact": "port/cpp/examples/build-ios/gallery_xaml/gallery_xaml.app",
@@ -261,7 +281,9 @@
      "linkedit_bytes": 72581120,
      "stripped_bytes": 49722064
     },
-    "total_bytes_stripped": 50253284
+    "total_bytes_stripped": 50253284,
+    "built_at": "2026-08-13",
+    "built_at_from": "newest measured file"
    }
   },
   "android": {
@@ -286,7 +308,9 @@
      "bytes": 4794166,
      "linkedit_bytes": 0,
      "stripped_bytes": null
-    }
+    },
+    "built_at": "2026-08-11",
+    "built_at_from": "sibling file (artifact carries a reproducible-build epoch stamp)"
    },
    "cpp": {
     "artifact": "port/cpp/build/android/maui_android_apphost.apk",
@@ -309,7 +333,9 @@
      "bytes": 370634560,
      "linkedit_bytes": 0,
      "stripped_bytes": null
-    }
+    },
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
     "artifact": "port/cpp/build/android/maui_android_apphost_xaml.apk",
@@ -332,11 +358,13 @@
      "bytes": 162244952,
      "linkedit_bytes": 0,
      "stripped_bytes": null
-    }
+    },
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-14T21:09:18Z",
+ "size_measured_at": "2026-08-14T21:14:03Z",
  "ttff": {
   "android": {
    "maui_xaml": {

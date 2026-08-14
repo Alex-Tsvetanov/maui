@@ -39,20 +39,20 @@ Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Strippe
 
 | Lane | Column | On disk | Stripped | Build config | Notes |
 | --- | --- | --- | --- | --- | --- |
-| macos-arm64 | `maui_xaml` | 78.7 MB | 47.3 MB | Release | symbols 31.8 MB |
-| macos-arm64 | `cpp` | 9.1 MB | 9.1 MB | Release | symbols 0.9 MB |
-| macos-arm64 | `cpp_xaml` | 22.1 MB | 22.1 MB | Release | symbols 6.7 MB |
-| macos-appkit | `appkit_cpp` | 9.0 MB | 9.0 MB | Release | symbols 0.9 MB |
-| macos-appkit | `appkit_xaml` | 21.9 MB | 21.9 MB | Release | symbols 6.7 MB |
-| windows-x64 | `maui_xaml` | 149.4 MB | 149.2 MB | Debug ⚠ | symbols 0.3 MB |
-| windows-x64 | `cpp` | 340.2 MB | 74.0 MB | Debug ⚠ | symbols 266.2 MB |
-| windows-x64 | `cpp_xaml` | 437.5 MB | 83.2 MB | Debug ⚠ | symbols 354.2 MB |
-| ios | `maui_xaml` | 97.4 MB | 95.1 MB | Debug ⚠ | symbols 2.4 MB |
-| ios | `cpp` | 57.1 MB | 24.8 MB | (unset) ⚠ | symbols 38.5 MB |
-| ios | `cpp_xaml` | 98.8 MB | 47.9 MB | (unset) ⚠ | symbols 69.2 MB |
-| android | `maui_xaml` | 28.9 MB | — | Release |  |
-| android | `cpp` | 360.0 MB | — | Debug ⚠ |  |
-| android | `cpp_xaml` | 161.3 MB | — | Debug ⚠ |  |
+| macos-arm64 | `maui_xaml` | 78.7 MB | 47.3 MB | Release | symbols 31.8 MB · built 2026-08-11 |
+| macos-arm64 | `cpp` | 9.1 MB | 9.1 MB | Release | symbols 0.9 MB · built 2026-08-03 |
+| macos-arm64 | `cpp_xaml` | 22.1 MB | 22.1 MB | Release | symbols 6.7 MB · built 2026-08-03 |
+| macos-appkit | `appkit_cpp` | 9.0 MB | 9.0 MB | Release | symbols 0.9 MB · built 2026-08-03 |
+| macos-appkit | `appkit_xaml` | 21.9 MB | 21.9 MB | Release | symbols 6.7 MB · built 2026-08-03 |
+| windows-x64 | `maui_xaml` | 149.4 MB | 149.2 MB | Debug ⚠ | symbols 0.3 MB · built 2026-08-14 |
+| windows-x64 | `cpp` | 340.2 MB | 74.0 MB | Debug ⚠ | symbols 266.2 MB · built 2026-08-14 |
+| windows-x64 | `cpp_xaml` | 437.5 MB | 83.2 MB | Debug ⚠ | symbols 354.2 MB · built 2026-08-14 |
+| ios | `maui_xaml` | 97.4 MB | 95.1 MB | Debug ⚠ | symbols 2.4 MB · built 2026-08-10 |
+| ios | `cpp` | 57.1 MB | 24.8 MB | (unset) ⚠ | symbols 38.5 MB · built 2026-08-13 |
+| ios | `cpp_xaml` | 98.8 MB | 47.9 MB | (unset) ⚠ | symbols 69.2 MB · built 2026-08-13 |
+| android | `maui_xaml` | 28.9 MB | — | Release | built 2026-08-11 |
+| android | `cpp` | 360.0 MB | — | Debug ⚠ | built 2026-08-14 |
+| android | `cpp_xaml` | 161.3 MB | — | Debug ⚠ | built 2026-08-14 |
 
 </details>
 

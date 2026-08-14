@@ -38,6 +38,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -185,6 +186,40 @@ WINDOWS_CODE_EXT = {".exe", ".dll", ".winmd", ".so", ".pyd"}
 WINDOWS_RESOURCE_EXT = RESOURCE_EXT | {".pri", ".xbf", ".resw", ".resjson", ".ttc", ".xaml"}
 
 
+def artifact_built_at(path: Path, newest_walked: float | None) -> tuple[str, str]:
+    """→ (ISO date, how it was determined). A size is only as current as the binary it came from.
+
+    WHY THIS IS NOT JUST st_mtime. The Android Release APK reports mtime AND birthtime of
+    1981-01-01 01:01:02 -- the ZIP epoch, written deliberately by reproducible Android packaging.
+    Its own stamp therefore says nothing at all about when it was built, while its sibling
+    MauiReference.dll in the same directory reads 2026-08-11. Taking the file's timestamp at face
+    value would have dated the study's only release-grade mobile row to 1981.
+
+    This exists because the session that added these rows was itself about a stale tree publishing a
+    day of wrong scores. A number whose artifact cannot be dated is the same failure one layer up.
+    """
+    try:
+        own = path.stat().st_mtime
+    except OSError:
+        return "unknown", "artifact not stat-able"
+    candidates = [t for t in (own, newest_walked) if t]
+    best, how = max(candidates), "newest measured file"
+    # Any pre-2000 stamp is a build-determinism artifact, not a date. Fall back to the directory the
+    # artifact sits in, which the build tool writes normally.
+    if best < 946684800:  # 2000-01-01
+        sibs = []
+        try:
+            sibs = [p.stat().st_mtime for p in path.parent.iterdir() if p.is_file()]
+        except OSError:
+            pass
+        newer = [t for t in sibs if t >= 946684800]
+        if newer:
+            return (datetime.fromtimestamp(max(newer), tz=timezone.utc).strftime("%Y-%m-%d"),
+                    "sibling file (artifact carries a reproducible-build epoch stamp)")
+        return "unknown", "artifact carries a reproducible-build epoch stamp"
+    return datetime.fromtimestamp(best, tz=timezone.utc).strftime("%Y-%m-%d"), how
+
+
 def bucket_windows(name: str) -> str:
     """Bucket a PE-lane file by extension alone -- the guest reported a name and a size, nothing more.
 
@@ -221,7 +256,7 @@ def _ssh_python(host: str, user: str, python3: str, script: str) -> str:
 
 
 def _remote_listing(host: str, user: str, python3: str, root: str) -> list | None:
-    """[[relative path, size], ...] for the artifact tree on the guest, or None if unreachable."""
+    """[[relative path, size, mtime], ...] for the artifact tree on the guest, or None if unreachable."""
     script = (
         "import os, json\n"
         f"root = {root!r}\n"
@@ -237,7 +272,7 @@ def _remote_listing(host: str, user: str, python3: str, root: str) -> list | Non
         "                continue\n"
         "            p = os.path.join(dp, f)\n"
         "            try:\n"
-        "                out.append([os.path.relpath(p, root), os.path.getsize(p)])\n"
+        "                out.append([os.path.relpath(p, root), os.path.getsize(p), os.path.getmtime(p)])\n"
         "            except OSError:\n"
         "                pass\n"
         "print(json.dumps({'exists': os.path.isdir(root), 'files': out}))\n"
@@ -312,7 +347,8 @@ def measure_remote_artifact(host: str, user: str, python3: str, artifact: str,
                 "build_config": "unknown", "release_grade": False,
                 "build_config_detected_from": "n/a (absent)"}
 
-    files = listing["files"]
+    files = [(rel, size) for rel, size, _ in listing["files"]]
+    newest = max((m for _, _, m in listing["files"]), default=None)
     buckets: dict[str, int] = {}
     for rel, size in files:
         b = bucket_windows(rel)
@@ -325,6 +361,10 @@ def measure_remote_artifact(host: str, user: str, python3: str, artifact: str,
         "total_bytes": total, "file_count": len(files), "buckets": buckets,
         "build_config": cfg_label, "release_grade": release_grade,
         "build_config_detected_from": how,
+        # Dated from the guest's own newest measured file: the host cannot stat the artifact at all.
+        "built_at": (datetime.fromtimestamp(newest, tz=timezone.utc).strftime("%Y-%m-%d")
+                     if newest else "unknown"),
+        "built_at_from": "newest measured file (guest)",
     }
     # The deployable size. Exact, not an estimate: .pdb files are simply not shipped.
     debug_bytes = buckets.get("debug", 0)
@@ -404,6 +444,7 @@ def measure_apk(path: Path) -> dict:
     if biggest_so[0]:
         rec["main_binary"] = {"name": os.path.basename(biggest_so[0]), "bytes": biggest_so[1],
                               "linkedit_bytes": 0, "stripped_bytes": None}
+    rec["built_at"], rec["built_at_from"] = artifact_built_at(path, None)
     return rec
 
 
@@ -435,6 +476,8 @@ def measure_artifact(path: Path) -> dict:
         if stripped is not None:
             # What the bundle WOULD weigh with the main binary stripped. The honest native number.
             rec["total_bytes_stripped"] = total - main.stat().st_size + stripped
+    newest = max((f.stat().st_mtime for f in files), default=None)
+    rec["built_at"], rec["built_at_from"] = artifact_built_at(path, newest)
     return rec
 
 

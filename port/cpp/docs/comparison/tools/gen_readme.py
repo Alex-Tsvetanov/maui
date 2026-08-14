@@ -317,11 +317,16 @@ def size_table(meas):
             stripped = r.get("total_bytes_stripped")
             main = r.get("main_binary") or {}
             sym = main.get("linkedit_bytes") or 0
+            # The build DATE belongs beside the number. A size is only as current as the binary it
+            # came from, and one of these artifacts stamps itself 1981 (reproducible Android
+            # packaging writes the ZIP epoch), so "it looked recent" is not a check anyone can do.
+            note = " · ".join(x for x in (("symbols " + mb(sym)) if sym else "",
+                                          f"built {r['built_at']}" if r.get("built_at") else "") if x)
             rows.append(
                 f"| {lane} | `{col}` | {mb(r['total_bytes'])} | "
                 f"{mb(stripped) if stripped else '—'} | "
                 f"{r['build_config']}{'' if r.get('release_grade') else ' ⚠'} | "
-                f"{('symbols ' + mb(sym)) if sym else ''} |")
+                f"{note} |")
     if not rows:
         return ""
     out = ["<details>", "<summary><h2>Artifact size — click to expand</h2></summary>", "",
