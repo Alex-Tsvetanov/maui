@@ -32,7 +32,7 @@ EVIDENCE CLASSES across the 233 non-green cells (2026-08-14):
 | 10 | windows | swipe_refresh | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 11 | windows | context_flyout | 52.78 | RED |  | BLOCKED exemption-questioned: the context_flyout EXEMPT ruling was written for ANDROID (port rendered Chrome's first-run screen — live external content). On WINDOWS neither column shows browser content; palettes nearly match (MAUI 35.9/26.2 vs port 39.0/23.2) and 39.46% light / 59.94% dark differ over the whole frame (8,46,1016,792). Looks like LAYOUT, not live content. Needs a look before exempting |
 | 12 | ios | box_view | — | RED | yes | BLOCKED needs-ios-diagnosis: BoxViews cover 2.2pp MORE area. Self-motion extent IDENTICAL (both bbox (38,0,1197,2622)) and every named colour matches exactly (pink 14.6%, amber 7.3%, orange 7.3%); only WHITE differs, MAUI 65.8% vs port 63.6%. A BoxView SIZING difference, not layout or colour |
-| 13 | ios | carousel_page | — | YEL | yes | OPEN |
+| 13 | ios | carousel_page | — | YEL | yes | BLOCKED scorer-limitation-phase: self-motion MATCHES (MAUI 2.2927% vs port 2.3455% light; 2.3298% vs 2.4518% dark) so behaviour agrees. Per-frame diffs alternate 0.05/2.17/0.05/0.05/2.17... — an irregular animation PHASE offset that _align could not correct (no realignment applied). Not a port defect |
 | 14 | ios | clip_gallery | — | RED | yes | OPEN |
 | 15 | ios | path_gallery | — | RED | yes | OPEN |
 | 16 | ios | radio_button_content | — | YEL | yes | OPEN |
