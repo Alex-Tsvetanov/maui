@@ -36,7 +36,7 @@ at = [0.5, 0.2]           # search_ SearchBar ("Filter")
 #   maccatalyst  field centre y=85  of 800 -> 0.106
 #   windows      field centre y=104 of 800 -> 0.130  (the chrome strip the Catalyst capture omits)
 at_macos-arm64 = [0.5, 0.106]
-at_windows-x64 = [0.5, 0.130]
+at_windows-arm64 = [0.5, 0.130]
 
 [[steps]]
 name = "typed"

@@ -24,11 +24,11 @@ timestamp_format = "%Y-%m-%d-%H_%M_%S"
 # NOTE: this guest is ARM64 (Windows 11 24H2, aarch64 under UTM/QEMU). The mingw-cross smoke exe
 # and core probe are x86-64 PE and run under the OS's x64 emulation (Prism) — fine for validating
 # the pipeline. The WinUI 3 parity lane should build NATIVE ARM64 with MSVC on the guest.
-[environments.windows-x64]
+[environments.windows-arm64]
 os = "windows"                  # picks the vm_agent_windows.py guest agent
 platform = "windows"            # path segment: …/<tag>/windows/<column>/NNNN.png
 
-[environments.windows-x64.connection]
+[environments.windows-arm64.connection]
 # Windows 10/11 ships OpenSSH Server as an optional feature; enable it and install your key (see
 # WINDOWS_TOOLCHAIN.md section 3). Two hard requirements:
 #   * the guest's DefaultShell MUST be PowerShell - the runner shell-quotes remote commands POSIX-style
@@ -58,7 +58,7 @@ host = "WINDOWS-VM.local"
 user = "Testings-VM"
 connect_timeout_seconds = 10
 
-[environments.windows-x64.display]
+[environments.windows-arm64.display]
 # Must match what the guest actually reports (verified 2026-08-04: VideoModeDescription = 1512x949,
 # DPI 96 = 100% scaling, so window pixels are screen pixels and the captured board is unaffected by
 # the resolution change). Unlike the macOS lanes there is no HiDPI twin to fall into here: Windows
@@ -67,7 +67,7 @@ connect_timeout_seconds = 10
 width = 1512
 height = 949
 
-[environments.windows-x64.capture]
+[environments.windows-arm64.capture]
 present = true                  # foreground + pin the window to an explicit rect before each shot
 # The Windows agent captures with PrintWindow(PW_RENDERFULLCONTENT) — the window's own backing store —
 # so a capture cannot be occluded by another window and does not need focus. That removes the whole
@@ -81,10 +81,10 @@ reboot_before_run = false       # true → `shutdown /r /t 0 /f` then wait for S
 # what is captured. x=244 is (1512-1024)/2, i.e. exactly centred (was 128, centred for 1280).
 geometry = { x = 244, y = 0, w = 1024, h = 800 }
 system_theme = true   # drive the GUEST's theme, not a per-column env override
-[environments.windows-x64.staging]
+[environments.windows-arm64.staging]
 root = "C:/Users/Testings-VM/maui-comparison"   # forward slashes are fine and avoid quoting pain
 
-[environments.windows-x64.tools]
+[environments.windows-arm64.tools]
 # `py` is the PEP 397 launcher from a python.org install — the most reliable invocation over a
 # non-interactive SSH session, where PATH often lacks the Python directory. Override with a full path
 # (e.g. "C:/Python312/python.exe") if the launcher is absent.
@@ -101,8 +101,11 @@ python3 = "py"
 #      previously held an scp'd tarball at C:/maui-src which silently went six days old and produced a
 #      full day of scores read as port defects; that copy is gone. Only build OUTPUT lives on the
 #      guest now, under C:/maui-build.
-[environments.windows-x64.columns.maui_xaml]
-artifact_remote = "C:/maui-build/maui-reference/bin/Debug/net10.0-windows10.0.19041.0/win-arm64"
+[environments.windows-arm64.columns.maui_xaml]
+# RELEASE, not Debug. Both columns on this lane are release-grade so the comparison is like-for-like;
+# a Debug reference against a Release port (or the reverse) is a strawman, and the size table's
+# `release_grade` gate exists precisely to refuse a ratio drawn across that mismatch.
+artifact_remote = "C:/maui-build/maui-reference/bin/Release/net10.0-windows10.0.19041.0/win-arm64"
 artifact  = "port/maui-reference/app"   # host path, unused while artifact_remote is set (kept for reference)
 process   = "MauiReference.exe"
 page_env  = "MAUI_COMPARE_PAGE"
@@ -119,7 +122,7 @@ driver = "coordinate"
 # COVERAGE: only window / content_page / layout / label / button are real WinUI handlers so far; every
 # other control still has its headless mirror and renders NOTHING. Pages built from other controls are
 # therefore expected to be blank or partial - that is the fan-out being incomplete, not a regression.
-[environments.windows-x64.columns.cpp]
+[environments.windows-arm64.columns.cpp]
 artifact_remote = "C:/maui-build/examples/gallery"
 artifact  = "port/cpp/examples/gallery"   # host path, unused while artifact_remote is set
 process   = "gallery.exe"
@@ -134,7 +137,7 @@ driver = "coordinate"
 # comparisons 2 and 4. Built on the guest through BYTES-MODE codegen: MSVC has no #embed, so
 # examples/gallery_xaml/CMakeLists.txt regenerates each page TU as a byte-array literal fed through the
 # same fixed_string/build_page path the android lane uses.
-[environments.windows-x64.columns.cpp_xaml]
+[environments.windows-arm64.columns.cpp_xaml]
 artifact_remote = "C:/maui-build/examples/gallery_xaml"
 artifact  = "port/cpp/examples/gallery_xaml"   # host path, unused while artifact_remote is set
 process   = "gallery_xaml.exe"

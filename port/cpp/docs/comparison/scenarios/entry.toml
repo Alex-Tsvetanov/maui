@@ -40,7 +40,7 @@ name = "focus-field"
 action = "click"
 at = [0.500, 0.123]                # first Entry ("Type here…"), measured on iOS
 at_macos-arm64 = [0.613, 0.101]    # exactly where the old absolute [756,111] landed on Catalyst
-at_windows-x64 = [0.500, 0.139]    # exactly where the old absolute [756,111] landed on Windows
+at_windows-arm64 = [0.500, 0.139]    # exactly where the old absolute [756,111] landed on Windows
 
 [[steps]]
 name = "typed"

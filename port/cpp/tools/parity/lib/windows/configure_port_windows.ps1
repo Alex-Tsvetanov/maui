@@ -33,7 +33,7 @@
 param(
     [string]$SourceDir = "Z:\port\cpp",
     [string]$BuildDir  = "C:\maui-build\cpp",
-    [string]$BuildType = "Debug"
+    [string]$BuildType = "Release"
 )
 
 $ErrorActionPreference = "Continue"

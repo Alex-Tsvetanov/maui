@@ -31,7 +31,12 @@
   bin/<Config>/<tfm>/<rid>/ layout it already encodes.
 
 .PARAMETER Configuration
-  Debug (default) or Release. Debug matches what the other lanes capture.
+  RELEASE BY DEFAULT, and it should stay that way. The board exists to compare MAUI against the port,
+  and a Debug build answers a different question: unoptimised code, no NDEBUG, and on the native side
+  an artifact that is mostly debug information. Both columns must be the same grade or the comparison
+  is a strawman in one direction or the other -- which is exactly what the size table's `release_grade`
+  flag has been refusing to publish a ratio over. Pass -Configuration Debug only to debug the app
+  itself, never to produce a board.
 
 .PARAMETER Tfm
   Windows target framework moniker; must match the csproj.
@@ -43,7 +48,7 @@
 param(
     [string]$SourceDir = "Z:\port\maui-reference\app",
     [string]$OutputRoot = "C:\maui-build\maui-reference",
-    [string]$Configuration = "Debug",
+    [string]$Configuration = "Release",
     [string]$Tfm = "net10.0-windows10.0.19041.0"
 )
 

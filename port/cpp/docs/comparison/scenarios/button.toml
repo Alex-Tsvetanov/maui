@@ -50,7 +50,7 @@ name = "after-tap"
 action = "click"
 at = [0.4983, 0.2128]     # the "Clicked" button (3rd) -> bumps the "Taps:" readout 0 -> 1
 at_macos-arm64 = [0.499, 0.1588]
-at_windows-x64 = [0.499, 0.2000]
+at_windows-arm64 = [0.499, 0.2000]
 # THE DECLARED REACTION REGION — where the "Taps:" readout lives, per lane. A tap that does not change
 # THIS box did not do what this scenario claims, however much else moved on the page.
 #

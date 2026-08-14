@@ -120,7 +120,7 @@ VM_LANES = [
      {"maui_xaml": "maui_xaml", "cpp": "cpp", "cpp_xaml": "cpp_xaml"}, "maccatalyst"),
     ("macos", "appkit", "local.toml", "macos-appkit",
      {"cpp": "appkit_cpp", "cpp_xaml": "appkit_xaml"}, "maccatalyst"),
-    ("windows", "windows", "windows.toml", "windows-x64",
+    ("windows", "windows", "windows.toml", "windows-arm64",
      {"maui_xaml": "maui_xaml", "cpp": "cpp", "cpp_xaml": "cpp_xaml"}, "windows"),
 ]
 # run_comparison column -> the framework DIRECTORY import_run_captures.py copies it into.
@@ -1297,7 +1297,7 @@ def selftest() -> int:
     # An absolute pair hiding in an override must still pin the WHOLE file to absolute, or
     # seed_scenarios waves it onto lanes that never pin a window.
     assert coordinate_space([{"action": "click", "at": [0.5, 0.2],
-                              "at_windows-x64": [756, 171]}]) == "absolute"
+                              "at_windows-arm64": [756, 171]}]) == "absolute"
     # half-open on the far edge, as capture_android.input_argv is: 128+1024 = 1152 is the first pixel
     # PAST a window whose last column is 1151.
     assert out_of_rect([{"action": "click", "at": [1151, 829]}], cat) is None
@@ -1308,7 +1308,7 @@ def selftest() -> int:
     # MEASURED from real run sidecars; pinning them here catches both a renamed config key and a
     # drift in the defaults duplicated from run_comparison.Env.
     assert lane_geometry("local.toml", "macos-arm64") == (True, {"x": 128, "y": 30, "w": 1024, "h": 800})
-    assert lane_geometry("windows.toml", "windows-x64") == (True, {"x": 244, "y": 0, "w": 1024, "h": 800})
+    assert lane_geometry("windows.toml", "windows-arm64") == (True, {"x": 244, "y": 0, "w": 1024, "h": 800})
     appkit_present, appkit_rect = lane_geometry("local.toml", "macos-appkit")
     assert appkit_present is False and appkit_rect["w"] == 480, (appkit_present, appkit_rect)
 
@@ -1465,7 +1465,7 @@ def selftest() -> int:
         real_seeded = {}
         for lane, (present, rect) in (("appkit", (appkit_present, appkit_rect)),
                                       ("catalyst", lane_geometry("local.toml", "macos-arm64")),
-                                      ("windows", lane_geometry("windows.toml", "windows-x64"))):
+                                      ("windows", lane_geometry("windows.toml", "windows-arm64"))):
             d = Path(tempfile.mkdtemp())
             try:
                 real_seeded[lane] = set(seed_scenarios(d, lane, present, rect))

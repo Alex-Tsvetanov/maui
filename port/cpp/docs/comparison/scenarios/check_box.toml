@@ -42,4 +42,4 @@ at = [0.50, 0.135]        # default_check_ CheckBox, unchecked ring below the "D
 # No maccatalyst override: 0.50 lands there, drifting one row onto colored_check_ (also unconnected,
 # so still control-intrinsic), and the page measured 109 px of motion that way.
 #   windows  default_check_ at (40, 94) of 1024x800 -> 0.039, 0.118
-at_windows-x64 = [0.039, 0.118]
+at_windows-arm64 = [0.039, 0.118]

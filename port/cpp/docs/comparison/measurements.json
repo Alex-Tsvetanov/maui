@@ -126,88 +126,6 @@
     "built_at_from": "newest measured file"
    }
   },
-  "windows-x64": {
-   "maui_xaml": {
-    "artifact": "C:/maui-build/maui-reference/bin/Debug/net10.0-windows10.0.19041.0/win-arm64",
-    "exists": true,
-    "measured_on": "guest (ssh)",
-    "total_bytes": 156691534,
-    "file_count": 440,
-    "buckets": {
-     "other": 3603634,
-     "resources": 3743528,
-     "code": 149068336,
-     "debug": 276036
-    },
-    "build_config": "Debug",
-    "release_grade": false,
-    "build_config_detected_from": "path segment",
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 156415498,
-    "main_binary": {
-     "name": "MauiReference.exe",
-     "bytes": 267264,
-     "linkedit_bytes": 276036,
-     "stripped_bytes": 267264
-    },
-    "remote_only": true,
-    "config_file": "windows.toml"
-   },
-   "cpp": {
-    "artifact": "C:/maui-build/examples/gallery",
-    "exists": true,
-    "measured_on": "guest (ssh)",
-    "total_bytes": 356735161,
-    "file_count": 16,
-    "buckets": {
-     "resources": 529857,
-     "code": 77050616,
-     "debug": 279154688
-    },
-    "build_config": "Debug",
-    "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 77580473,
-    "main_binary": {
-     "name": "gallery.exe",
-     "bytes": 73171968,
-     "linkedit_bytes": 279154688,
-     "stripped_bytes": 73171968
-    },
-    "remote_only": true,
-    "config_file": "windows.toml"
-   },
-   "cpp_xaml": {
-    "artifact": "C:/maui-build/examples/gallery_xaml",
-    "exists": true,
-    "measured_on": "guest (ssh)",
-    "total_bytes": 458725141,
-    "file_count": 213,
-    "buckets": {
-     "resources": 529857,
-     "code": 83964664,
-     "debug": 371437568,
-     "other": 2793052
-    },
-    "build_config": "Debug",
-    "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 87287573,
-    "main_binary": {
-     "name": "gallery_xaml.exe",
-     "bytes": 79355904,
-     "linkedit_bytes": 371437568,
-     "stripped_bytes": 79355904
-    },
-    "remote_only": true,
-    "config_file": "windows.toml"
-   }
-  },
   "ios": {
    "maui_xaml": {
     "artifact": "port/maui-reference/app/bin/Debug/net10.0-ios/iossimulator-arm64/MauiReference.app",
@@ -361,6 +279,88 @@
     },
     "built_at": "2026-08-14",
     "built_at_from": "newest measured file"
+   }
+  },
+  "windows-arm64": {
+   "maui_xaml": {
+    "artifact": "C:/maui-build/maui-reference/bin/Debug/net10.0-windows10.0.19041.0/win-arm64",
+    "exists": true,
+    "measured_on": "guest (ssh)",
+    "total_bytes": 156691534,
+    "file_count": 440,
+    "buckets": {
+     "other": 3603634,
+     "resources": 3743528,
+     "code": 149068336,
+     "debug": 276036
+    },
+    "build_config": "Debug",
+    "release_grade": false,
+    "build_config_detected_from": "path segment",
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file (guest)",
+    "total_bytes_stripped": 156415498,
+    "main_binary": {
+     "name": "MauiReference.exe",
+     "bytes": 267264,
+     "linkedit_bytes": 276036,
+     "stripped_bytes": 267264
+    },
+    "remote_only": true,
+    "config_file": "windows.toml"
+   },
+   "cpp": {
+    "artifact": "C:/maui-build/examples/gallery",
+    "exists": true,
+    "measured_on": "guest (ssh)",
+    "total_bytes": 356735161,
+    "file_count": 16,
+    "buckets": {
+     "resources": 529857,
+     "code": 77050616,
+     "debug": 279154688
+    },
+    "build_config": "Debug",
+    "release_grade": false,
+    "build_config_detected_from": "CMakeCache.txt (guest)",
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file (guest)",
+    "total_bytes_stripped": 77580473,
+    "main_binary": {
+     "name": "gallery.exe",
+     "bytes": 73171968,
+     "linkedit_bytes": 279154688,
+     "stripped_bytes": 73171968
+    },
+    "remote_only": true,
+    "config_file": "windows.toml"
+   },
+   "cpp_xaml": {
+    "artifact": "C:/maui-build/examples/gallery_xaml",
+    "exists": true,
+    "measured_on": "guest (ssh)",
+    "total_bytes": 458725141,
+    "file_count": 213,
+    "buckets": {
+     "resources": 529857,
+     "code": 83964664,
+     "debug": 371437568,
+     "other": 2793052
+    },
+    "build_config": "Debug",
+    "release_grade": false,
+    "build_config_detected_from": "CMakeCache.txt (guest)",
+    "built_at": "2026-08-14",
+    "built_at_from": "newest measured file (guest)",
+    "total_bytes_stripped": 87287573,
+    "main_binary": {
+     "name": "gallery_xaml.exe",
+     "bytes": 79355904,
+     "linkedit_bytes": 371437568,
+     "stripped_bytes": 79355904
+    },
+    "remote_only": true,
+    "config_file": "windows.toml"
    }
   }
  },

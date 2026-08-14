@@ -59,4 +59,4 @@ at_macos-arm64 = [0.036, 0.0488]
 # maccatalyst, this lane renders the DatePicker as a COMPACT LEFT-ALIGNED box — "12/31/2020" with a
 # calendar glyph, spanning x[8..120] y[36..70] — so a centred fraction can never reach it. Centre
 # (64,53) -> 0.0625, 0.066.
-at_windows-x64 = [0.0625, 0.066]
+at_windows-arm64 = [0.0625, 0.066]

@@ -45,7 +45,7 @@ LANES = {"maccatalyst": (128, 30, 1024, 800), "windows": (244, 0, 1024, 800)}
 # same `platform = "maccatalyst"`, so platform cannot address them separately. Kept here so this gate
 # resolves `at_<env>` exactly as the runner will — a per-lane override nobody can check offline is the
 # same silent-miss hazard the rest of this file exists to close.
-LANE_ENV = {"maccatalyst": "macos-arm64", "windows": "windows-x64"}
+LANE_ENV = {"maccatalyst": "macos-arm64", "windows": "windows-arm64"}
 
 # THE DEVICE LANES GET THE CONTENT CHECK TOO. They were left out of this file entirely because its
 # original job was the on-window band, which only a positioned desktop window can fail — a device

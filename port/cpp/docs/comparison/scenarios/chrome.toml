@@ -48,4 +48,4 @@ name = "pressed"
 action = "click"
 at = [0.50, 0.0896]       # the action button — iOS-calibrated, also lands on Android's band
 at_macos-arm64 = [0.499, 0.055]
-at_windows-x64 = [0.50, 0.060]
+at_windows-arm64 = [0.50, 0.060]

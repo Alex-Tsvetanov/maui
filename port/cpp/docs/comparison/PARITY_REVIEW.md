@@ -4,6 +4,14 @@ Per `port/CLAUDE.md` ruling 3: a MAUI-side quirk not covered by rulings 1–10 i
 evidence and **paused for a ruling** — neither auto-ignored nor auto-fixed. Approved rulings get appended
 to the list in `port/CLAUDE.md`.
 
+> **2026-08-15 — the Windows lane was renamed `windows-x64` → `windows-arm64`.** The old name was
+> always a misnomer: the guest is Windows 11 ARM64 under UTM and the artifacts have always been
+> `win-arm64`. Entries BELOW this line predate the rename and are left as they were written — a log is
+> a record of what was true then. But scenario override keys are matched on the lane name, so an
+> `at_windows-x64` / `to_windows-x64` example quoted in an older entry is **no longer a live key**:
+> write `at_windows-arm64` / `to_windows-arm64` instead. Copying one verbatim gives an override that
+> silently never applies, which reads as "the aim did nothing" rather than as a typo.
+
 ---
 
 ## 1. ✅ RESOLVED (2026-07-16) — `src/` vs SHIPPED MAUI CheckBox sizing: the RENDER wins

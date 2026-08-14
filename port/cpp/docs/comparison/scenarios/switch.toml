@@ -76,4 +76,4 @@ at_macos-arm64 = [0.023, 0.159]
 # all-columns-zero signature Android and Catalyst each produced from their own version of this
 # mistake, which is worth noting: three lanes, three different right answers, one portable fraction
 # that was only ever correct for the phone it was measured on.
-at_windows-x64 = [0.0264, 0.2275]
+at_windows-arm64 = [0.0264, 0.2275]

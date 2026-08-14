@@ -21,7 +21,7 @@ param(
     [string]$SourceDir = "Z:\port\cpp\examples",
     [string]$FrameworkDir = "Z:\port\cpp",
     [string]$BuildDir = "C:\maui-build\examples",
-    [string]$BuildType = "Debug",
+    [string]$BuildType = "Release",
     [string[]]$Targets = @("gallery"),
     [int]$Jobs = 8
 )

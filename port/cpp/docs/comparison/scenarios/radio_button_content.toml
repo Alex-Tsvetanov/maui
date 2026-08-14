@@ -46,4 +46,4 @@ at_macos-arm64 = [0.0479, 0.095]
 # above the next explanatory Label. Option A's row runs x[34..160] at y=91; aiming at (100,91) puts
 # the click on the ring+label rather than the ring's 16px alone, the same margin argument as the
 # maccatalyst override above.
-at_windows-x64 = [0.098, 0.114]
+at_windows-arm64 = [0.098, 0.114]

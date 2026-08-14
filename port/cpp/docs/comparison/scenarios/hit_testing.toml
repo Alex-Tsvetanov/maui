@@ -47,4 +47,4 @@ at = [0.29, 0.16]         # "Rectangle Selection" CheckBox, unchecked ring
 #   windows      box  at (129,122) of 1024x800 -> 0.126, 0.153  (Windows draws a wider label gap and
 #                sits ~29px lower, under the chrome strip the Catalyst capture does not include)
 at_macos-arm64 = [0.091, 0.116]
-at_windows-x64 = [0.126, 0.153]
+at_windows-arm64 = [0.126, 0.153]

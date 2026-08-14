@@ -580,7 +580,7 @@ def main(argv=None) -> int:
     # A FULL run is authoritative and replaces the map, so a lane dropped from the configs stops being
     # reported. A --env run must MERGE: it only looked at one lane, and overwriting the map with that
     # single result silently deleted the other lanes' rows from the README -- five macOS rows would go
-    # blank on any `--env windows-x64` iteration, which is the very command this lane invites.
+    # blank on any `--env windows-arm64` iteration, which is the very command this lane invites.
     if a.env:
         merged = doc.get("size") or {}
         merged.update(sizes)

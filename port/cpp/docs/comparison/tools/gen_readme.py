@@ -276,7 +276,7 @@ def summary_table(pages, plat, n):
 
 # Which board section a measurement lane belongs under. A lane with no mapping is still listed in
 # the global table; it just gets no per-page glyphs.
-LANE_PLATFORM = {"macos-arm64": "maccatalyst", "macos-appkit": "maccatalyst", "windows-x64": "windows"}
+LANE_PLATFORM = {"macos-arm64": "maccatalyst", "macos-appkit": "maccatalyst", "windows-arm64": "windows"}
 
 
 def load_measurements():
