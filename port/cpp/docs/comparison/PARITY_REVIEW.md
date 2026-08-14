@@ -4782,3 +4782,52 @@ Their rows are BLOCKED reference-defect until then; the port must not be changed
 STANDING GAP THIS EXPOSES: tools/parity/provenance.py verifies the PORT columns come from one binary.
 NOTHING verifies the MAUI reference did not change underneath. A recapture can silently drop content from
 the ground truth and every downstream score inherits it. This sweep should become a permanent check.
+
+
+### Root cause of the reference regression: the ANDROID MauiReference APK, rebuilt 2026-08-10
+
+Four hypotheses tested and killed, in order:
+
+1. **Capture settle timing.** Recaptured all six frames at `--settle 12` (3x the default). Identical output:
+   selection_synchronization still 0.42% orange, the other two still 0.00%. REFUTED — it is reproducible,
+   not a race.
+2. **The shared-XAML twin.** `preselected_items.xaml` last changed in `9e2496963a` (Jul 17), which is an
+   ANCESTOR of the good Aug 4 reference — the same XAML produced 5.08% on Aug 4 and 0.00% on Aug 13.
+   REFUTED.
+3. **The inline `<CollectionView.SelectedItems>` x:Array form does not work.** The opposite: `9e2496963a`
+   ADDED that form and verified it end-to-end — "MAUI now paints the band (0 -> 104177 px
+   preselected_items)". It is the thing that MADE MAUI paint the band. REFUTED.
+4. **A cross-platform MAUI/MauiReference regression.** The iOS and maccatalyst references still show the
+   selection band TODAY — (142,142,147) at 2.52% / 12.62% on preselected_items and
+   selection_synchronization. Only android lost it. REFUTED.
+
+What remains, and it fits every date: the ANDROID MauiReference APK was rebuilt 2026-08-10 17:21 and
+installed 2026-08-11 13:37 — between the good reference (Aug 4, d5c2b93e13) and the broken one
+(Aug 13, eb1c33abd8). MauiVersion is still pinned at 10.0.71 and the four app commits in that window touch
+unrelated twins (button, ios_blur_effect, chrome, gestures), so the suspect is the BUILD ENVIRONMENT —
+a workload/SDK change producing an android binary that no longer applies inline SelectedItems, while the
+iOS/Catalyst binaries built from the same source still do.
+
+NEXT: rebuild the android MauiReference from current source and recapture those three pages. If the band
+returns, the Aug 10 APK was simply a bad build. If it does NOT, then shipped MAUI on the current android
+toolchain genuinely no longer applies inline SelectedItems — which makes the android reference correct for
+that toolchain and turns this into a port-vs-render ruling rather than a defect. Do not judge these pages
+either way until that is settled.
+
+### Five MORE reference regressions, on the other three lanes
+
+Running the new `tools/parity/reference_guard.py` against the same Aug 4 baseline across all lanes found
+five further captures that lost content — none of them selection pages, all of them INTERACTION pages:
+
+| lane | capture | before | after | delta |
+|---|---|---|---|---|
+| windows | drag_drop_dark | 59.25% | 41.41% | **-17.84** |
+| maccatalyst | swipe_item_size_dark | 23.52% | 19.35% | -4.17 |
+| maccatalyst | swipe_item_size_light | 23.54% | 19.38% | -4.16 |
+| maccatalyst | header_footer_view_light | 14.86% | 11.55% | -3.32 |
+| maccatalyst | header_footer_view_dark | 13.73% | 10.48% | -3.25 |
+
+drag_drop, swipe_item_size and header_footer_view are all pages whose content depends on a gesture or an
+async load having happened. header_footer_view also lost a quarter of its palette (23157 -> 17494 colours),
+which is the signature of an IMAGE failing to render rather than a state not applying. These are unexamined
+and are NOT included in the three android rows blocked above.
