@@ -4689,5 +4689,23 @@ ruling.
 would be matching a MAUI render that may itself be a twin artifact. Scope if ruled a port bug: also covers
 `multiple_bound_selection` (4.73% light, likewise SelectionMode="Multiple").
 
-Unrelated and separately actionable from the same table: **the port paints NO highlight on `preselected_item`
-dark (0.0%) where MAUI paints 3.5%.** That direction is a straightforward port bug and does not need a ruling.
+### CORRECTION (same day): the "port paints no dark highlight" claim above was MY MEASUREMENT BUG
+
+An earlier revision of this entry said the port paints no highlight on `preselected_item` dark where MAUI
+paints 3.5%, and called it a straightforward port bug. **That was wrong and is retracted.** The port paints
+it correctly:
+
+    preselected_item dark    MAUI 3.56% at (241,122,10)    port 3.55% at (243,138,40)
+
+Same 3.54% of the frame, same cells. `(243,138,40)` is `#F17A0A` composited under the alpha-0x1F window wash
+(241+(255-241)*0.1216 = 243, 122+(255-122)*0.1216 = 138, 10+(255-10)*0.1216 = 40). My orange detector required
+`b < 40` and clipped it at exactly the boundary. There is no dark-highlight bug — that page's dark diff is
+the parked window-wash issue (see memory cpp-android-dark-window-wash), not a selection defect.
+
+Lesson worth keeping: a colour-threshold detector run over frames that may be washed must admit the washed
+variant of every colour it looks for, or it manufactures phantom findings in exactly the theme where the wash
+lives.
+
+**What the corrected numbers do strengthen:** the Multiple-mode divergence holds in BOTH themes, not just
+light — port 5.08% light / 5.04% dark, MAUI 0.00% in both. So it is a clean mode-dependent difference, not a
+theme artifact, which makes the twin-vs-quirk question above the only thing standing between it and a fix.
