@@ -51,7 +51,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 39 | maccatalyst | border_stroke | 2.05 | YEL |  | OPEN |
 | 40 | maccatalyst | radio_button_border | 3.62 | YEL |  | OPEN |
 | 41 | maccatalyst | context_flyout | 7.91 | RED |  | OPEN |
-| 42 | maccatalyst | swipe_item_size | 23.89 | RED |  | OPEN |
+| 42 | maccatalyst | swipe_item_size | 23.89 | RED |  | BLOCKED reference-defect: real ref regression, survives a clean rebuild -> drive path (needs a swipe to fire) |
 | 43 | android | activity_indicator | — | YEL | yes | OPEN |
 | 44 | android | animation | — | YEL | yes | OPEN |
 | 45 | android | box_view | — | RED | yes | OPEN |

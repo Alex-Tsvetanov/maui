@@ -97,8 +97,36 @@ def scan(base, lanes, threshold):
                 continue
             compared += 1
             if i1 - i0 <= -threshold:
-                losses.append((lane, os.path.basename(path), i0, i1, i1 - i0, n0, n1))
+                losses.append((lane, os.path.basename(path), i0, i1, i1 - i0, n0, n1,
+                               _port_agrees_with(path, i0, i1)))
     return compared, sorted(losses, key=lambda row: row[4])
+
+
+def _port_agrees_with(maui_path, before, after):
+    """Which reference does the PORT's own render match — the old one or the new one?
+
+    THE FLAG ALONE IS NOT A VERDICT. Ink loss against a baseline is only a regression if the BASELINE was
+    right, and on 2026-08-14 three of eleven flags were the baseline being wrong:
+      windows/drag_drop_dark      Aug4 59.25% (black 20.39%) vs now 41.41% -- and its own LIGHT twin, and the
+                                  port, all sit at 41.41%. The Aug4 DARK frame carried a ~20%-of-frame black
+                                  region nothing else had. A bad frame in the baseline.
+      maccatalyst/header_footer_view (light+dark)  port matches NOW to 0.01pp; Aug4 was the outlier.
+    Whereas the six android captures and maccatalyst/swipe_item_size had the port matching the OLD value
+    exactly -- those were real.
+
+    The port column is an independent witness: it is rendered by different code from a different source
+    tree, so when it agrees with one side, that side is almost certainly the correct render.
+    Returns 'OLD' (real regression), 'NEW' (baseline was the outlier), or '?' when the port frame is absent.
+    """
+    port_path = maui_path.replace("/maui/", "/cpp/")
+    blob = _blob(None, port_path)
+    if not blob:
+        return "?"
+    try:
+        value, _ = ink(blob)
+    except Exception:
+        return "?"
+    return "OLD" if abs(value - before) < abs(value - after) else "NEW"
 
 
 def main() -> int:
@@ -122,11 +150,19 @@ def main() -> int:
         print(f"OK — none lost >= {a.threshold}pp of ink. The ground truth did not lose content.")
         return 0
 
-    print(f"{'lane':12s} {'capture':40s} {'before':>8s} {'after':>8s} {'delta':>8s}  colours")
+    print(f"{'lane':12s} {'capture':38s} {'before':>8s} {'after':>8s} {'delta':>8s}  port agrees")
     print("-" * 92)
-    for lane, name, i0, i1, d, n0, n1 in losses:
-        print(f"{lane:12s} {name:40s} {i0:7.2f}% {i1:7.2f}% {d:+8.2f}  {n0:5d} -> {n1:5d}")
-    print(f"\nREFERENCE REGRESSION: {len(losses)} capture(s) LOST content.")
+    for lane, name, i0, i1, d, n0, n1, port in losses:
+        verdict = {"OLD": "OLD -> REAL", "NEW": "NEW -> baseline was the outlier", "?": "? (no port frame)"}[port]
+        print(f"{lane:12s} {name:38s} {i0:7.2f}% {i1:7.2f}% {d:+8.2f}  {verdict}")
+    real = [row for row in losses if row[7] != "NEW"]
+    print(f"\n{len(losses)} capture(s) lost ink; {len(real)} look like REAL reference regressions.")
+    if len(real) != len(losses):
+        print("The rest are the BASELINE being wrong, not the reference losing content — the port render")
+        print("matches the NEW value, and the port is independent code from an independent tree.")
+    if not real:
+        return 0
+    print(f"\nREFERENCE REGRESSION: {len(real)} capture(s) LOST content.")
     print("The MAUI ground truth got worse, not the port. Do NOT change the port to match these frames —")
     print("recapture the reference for these pages (a longer --settle is the usual cause; a selection or")
     print("other async state applied after the shot) and re-run this before judging them.")
