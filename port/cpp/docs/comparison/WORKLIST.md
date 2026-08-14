@@ -8,18 +8,28 @@ cell whose review carries no percentage, so every percentage-based sweep has ski
 
 STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 
+EVIDENCE CLASSES across the 233 non-green cells (2026-08-14):
+  143  still-image diff — the review carries Light:/Dark: percentages
+   62  real motion diff — BOTH columns moved, by different amounts (e.g. windows/clip: MAUI
+        self-motion 13.99% vs port 15.45%, worst SSIM 0.9726 at frame 'scrolled-down')
+   28  NO MOTION EVIDENCE — the harness injected an action and NEITHER column reacted. These are
+        HARNESS defects: the coordinate misses its target on that lane, or the interaction is not
+        reachable there. The port is not at fault and no port change can clear them — on
+        carousel_page the two columns agree at SSIM 0.9991. Fix the scenario, not the port.
+
+
 | # | platform | page | worst% | sev | motion | STATUS |
 |---|---|---|---|---|---|---|
-| 1 | windows | carousel_page | — | YEL | yes | OPEN |
+| 1 | windows | carousel_page | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 2 | windows | clip | — | YEL | yes | OPEN |
 | 3 | windows | clip_gallery | — | YEL | yes | OPEN |
 | 4 | windows | clip_views | — | YEL | yes | OPEN |
-| 5 | windows | ios_scroll_view | — | YEL | yes | OPEN |
+| 5 | windows | ios_scroll_view | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 6 | windows | path_gallery | — | YEL | yes | OPEN |
-| 7 | windows | search_bar | — | YEL | yes | OPEN |
-| 8 | windows | semantics | — | YEL | yes | OPEN |
-| 9 | windows | slider | — | YEL | yes | OPEN |
-| 10 | windows | swipe_refresh | — | YEL | yes | OPEN |
+| 7 | windows | search_bar | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
+| 8 | windows | semantics | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
+| 9 | windows | slider | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
+| 10 | windows | swipe_refresh | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 11 | windows | context_flyout | 52.78 | RED |  | OPEN |
 | 12 | ios | box_view | — | RED | yes | OPEN |
 | 13 | ios | carousel_page | — | YEL | yes | OPEN |
@@ -36,14 +46,14 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 24 | ios | radio_button_group_gallery | 2.31 | YEL |  | OPEN |
 | 25 | ios | radio_button_border | 2.76 | YEL |  | OPEN |
 | 26 | ios | image | 65.19 | RED |  | OPEN |
-| 27 | maccatalyst | carousel_page | — | YEL | yes | OPEN |
+| 27 | maccatalyst | carousel_page | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 28 | maccatalyst | clip | — | RED | yes | OPEN |
-| 29 | maccatalyst | entry | — | YEL | yes | OPEN |
+| 29 | maccatalyst | entry | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 30 | maccatalyst | path_gallery | — | RED | yes | OPEN |
-| 31 | maccatalyst | pointer_gesture | — | YEL | yes | OPEN |
-| 32 | maccatalyst | radio_content_properties | — | YEL | yes | OPEN |
+| 31 | maccatalyst | pointer_gesture | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
+| 32 | maccatalyst | radio_content_properties | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 33 | maccatalyst | selection_synchronization | — | YEL | yes | OPEN (ref restored 89b30d0c62; port was always correct) |
-| 34 | maccatalyst | swipe_refresh | — | YEL | yes | OPEN |
+| 34 | maccatalyst | swipe_refresh | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 35 | maccatalyst | ios_date_picker | 0.12 | YEL |  | OPEN |
 | 36 | maccatalyst | header_footer_grid_horizontal | 0.74 | YEL |  | OPEN |
 | 37 | maccatalyst | varied_size_selector | 1.10 | YEL |  | OPEN |
@@ -53,7 +63,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 41 | maccatalyst | context_flyout | 7.91 | RED |  | OPEN |
 | 42 | maccatalyst | swipe_item_size | 23.89 | RED |  | BLOCKED reference-defect: real ref regression, survives a clean rebuild -> drive path (needs a swipe to fire) |
 | 43 | android | activity_indicator | — | YEL | yes | OPEN |
-| 44 | android | animation | — | YEL | yes | OPEN |
+| 44 | android | animation | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 45 | android | box_view | — | RED | yes | OPEN |
 | 46 | android | carousel_page | — | YEL | yes | OPEN |
 | 47 | android | clip | — | YEL | yes | OPEN |
@@ -62,7 +72,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 50 | android | editor | — | YEL | yes | OPEN |
 | 51 | android | empty_view_rtl | — | YEL | yes | OPEN |
 | 52 | android | entry | — | YEL | yes | OPEN |
-| 53 | android | ios_blur_effect | — | YEL | yes | OPEN |
+| 53 | android | ios_blur_effect | — | YEL | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 54 | android | ios_picker | — | YEL | yes | OPEN |
 | 55 | android | path_gallery | — | YEL | yes | OPEN |
 | 56 | android | picker | — | YEL | yes | OPEN |
@@ -71,7 +81,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 59 | android | selection_synchronization | — | RED | yes | OPEN (ref restored 89b30d0c62; port was always correct) |
 | 60 | android | semantics | — | YEL | yes | OPEN |
 | 61 | android | slider | — | RED | yes | OPEN |
-| 62 | android | stepper | — | RED | yes | OPEN |
+| 62 | android | stepper | — | RED | yes | BLOCKED harness: NO MOTION EVIDENCE — the injected action moved NEITHER column; columns agree (carousel_page SSIM 0.9991). Fix the scenario coordinate, not the port |
 | 63 | android | invalidate_brush | 1.32 | YEL |  | OPEN |
 | 64 | android | header_footer_grid | 1.35 | YEL |  | OPEN |
 | 65 | android | header_footer_grid_horizontal | 1.35 | YEL |  | OPEN |
