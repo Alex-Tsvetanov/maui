@@ -4709,3 +4709,40 @@ lives.
 **What the corrected numbers do strengthen:** the Multiple-mode divergence holds in BOTH themes, not just
 light — port 5.08% light / 5.04% dark, MAUI 0.00% in both. So it is a clean mode-dependent difference, not a
 theme artifact, which makes the twin-vs-quirk question above the only thing standing between it and a fix.
+
+
+---
+
+## RESOLVED — the SelectionMode=Multiple flag was BACKWARDS. The MAUI REFERENCE is defective.
+
+The entry above asked for a ruling on whether MAUI's blank Multiple-selection render was ground truth. It is
+not. The user said MAUI looked broken and that the reference used to show the highlight; git proves it.
+
+Activated-highlight orange (#F17A0A) as a share of the frame, `captures/android/maui/*_light.png`:
+
+| page | SelectionMode | d5c2b93e13 | eb1c33abd8 | now |
+|---|---|---|---|---|
+| preselected_items | **Multiple** | **5.08%** | **0.00%** | 0.00% |
+| multiple_bound_selection | **Multiple** | **4.38%** | **0.00%** | 0.00% |
+| preselected_item | Single | 3.56% | 3.56% | 3.56% |
+| grouping_plus_selection | — | 8.52% | 8.52% | 8.52% |
+
+EXACTLY the two Multiple pages lost the highlight, in `eb1c33abd8` ("board/android: clean pass with CURRENT
+motion frames"). Every Single page kept it. A mode-correlated loss is not capture noise.
+
+**The port renders 5.08% — byte-matching the pre-regression reference.** The port is CORRECT and must not be
+changed. Do NOT suppress the Multiple highlight; doing so would break working code to match a bad reference.
+
+MECHANISM (strong inference, not yet proven): `recapture.py` does not rebuild MauiReference, so the same APK
+produced a different render — which leaves capture TIMING. `SelectedItem` is a scalar and applies
+synchronously; `<CollectionView.SelectedItems>` is a COLLECTION populated a beat later, so a capture taken
+too early sees an unselected list. That also explains why the twin's inline `x:Array` form is the one
+affected while the Single pages are not.
+
+ACTION: recapture the MAUI reference for these two pages with a longer settle and confirm the highlight
+returns before either page is judged again. Until then both rows are REFERENCE-DEFECT, not port bugs, and
+their board reds are not attributable to the port.
+
+LESSON: "the port shows something MAUI does not" is not evidence the port is wrong. Check whether the
+REFERENCE changed — `git log --follow` on the reference PNG takes seconds and would have prevented this
+entire flag. See also the recapture-never-builds-MauiReference note in memory.

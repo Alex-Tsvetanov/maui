@@ -107,12 +107,12 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 95 | android | custom_layout | 6.09 | YEL |  | OPEN |
 | 96 | android | indicator | 6.44 | YEL |  | OPEN |
 | 97 | android | items | 6.73 | YEL |  | OPEN |
-| 98 | android | multiple_bound_selection | 9.31 | RED |  | OPEN |
+| 98 | android | multiple_bound_selection | 9.31 | RED |  | BLOCKED reference-defect: MAUI ref lost the Multiple highlight in eb1c33abd8; port is correct, recapture the ref |
 | 99 | android | focus | 23.27 | RED |  | OPEN |
 | 100 | android | selection_command_param | 33.52 | RED |  | OPEN |
 | 101 | android | layout_is_enabled | 37.78 | RED |  | OPEN |
 | 102 | android | border_playground | 40.62 | RED |  | OPEN |
-| 103 | android | preselected_items | 45.31 | RED |  | OPEN |
+| 103 | android | preselected_items | 45.31 | RED |  | BLOCKED reference-defect: MAUI ref lost the Multiple highlight in eb1c33abd8; port is correct, recapture the ref |
 | 104 | android | transform_playground | 62.99 | RED |  | OPEN |
 | 105 | android | image | 68.62 | RED |  | OPEN |
 | 106 | android | border_clip_playground | 71.03 | RED |  | OPEN |
