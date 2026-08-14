@@ -129,13 +129,18 @@ abi="arm64-v8a"
 # build/android/libmaui_android_apphost.so. Configure first only if the build dir is missing — routine
 # iteration just re-builds the one target (Ninja incremental). VCPKG_ROOT + MAUI_ANDROID_SDK_ROOT must be
 # set in the environment (the android preset needs them), same as the widget-test lane.
-build_dir="${cpp_root}/build/android"
+# RELEASE, not the Debug `android` preset. The board compares this APK against real MAUI's, and MAUI's
+# reference APK is built Release -- a Debug-vs-Release board measures build flags, not parity. It also
+# dominated the size study: the Debug apphost measured 360.0 MB against MAUI's 28.9 MB, and 353.5 MB of
+# that was unstripped DWARF in lib/*.so. The `headless` base preset stays Debug on purpose (dev.sh,
+# ctest and the sanitizers inherit it); `android-release` only overrides CMAKE_BUILD_TYPE.
+build_dir="${cpp_root}/build/android-release"
 if [[ ! -f "${build_dir}/build.ninja" && ! -f "${build_dir}/Makefile" ]]; then
   echo "[apphost] configuring the android preset (first run)..." >&2
-  ( cd "${cpp_root}" && cmake --preset android >&2 )
+  ( cd "${cpp_root}" && cmake --preset android-release >&2 )
 fi
 echo "[apphost] building maui_android_apphost..." >&2
-( cd "${cpp_root}" && cmake --build --preset android --target maui_android_apphost >&2 )
+( cd "${cpp_root}" && cmake --build --preset android-release --target maui_android_apphost >&2 )
 # VERIFY: confirm the actual output path/name the android preset emits for a SHARED lib (CMAKE_SHARED_
 # LIBRARY_PREFIX is "lib", suffix ".so"; the preset may route artifacts to a subdir — adjust if so).
 app_so=""

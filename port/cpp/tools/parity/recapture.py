@@ -534,6 +534,40 @@ def mac_vm_keep_awake() -> None:
     log("      guest kept awake (screensaver off + caffeinate -disu)")
 
 
+# Cache entries that DEFINE THE TARGET rather than the build. A Release examples dir must carry these
+# verbatim from its Debug twin or it silently builds something else: without CMAKE_OSX_SYSROOT and
+# CMAKE_SYSTEM_NAME an "iOS" configure produces a macOS binary that installs nowhere, and without the
+# vcpkg triplet the dependencies come from the wrong ABI. Deriving them from the existing dir rather
+# than restating them here is what stops the two configurations drifting apart.
+EXAMPLES_CACHE_KEYS = ("MAUI_BACKEND", "MAUI_EXAMPLES_FRAMEWORK_DIR", "MAUI_DEVFLOW", "MAUI_USE_CCACHE",
+                       "CMAKE_SYSTEM_NAME", "CMAKE_OSX_SYSROOT", "CMAKE_OSX_ARCHITECTURES",
+                       "CMAKE_OSX_DEPLOYMENT_TARGET", "CMAKE_TOOLCHAIN_FILE",
+                       "VCPKG_TARGET_TRIPLET", "VCPKG_OVERLAY_TRIPLETS", "VCPKG_CHAINLOAD_TOOLCHAIN_FILE")
+
+
+def examples_configure_args(src_exdir: str, preset: str) -> list[str]:
+    """-D flags for a Release examples dir, mirrored off the existing Debug dir's cache."""
+    cache = CPP / "examples" / src_exdir / "CMakeCache.txt"
+    out = ["-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release",
+           # The framework is compiled INTO this build (add_subdirectory via
+           # MAUI_EXAMPLES_FRAMEWORK_DIR), so it picks up CMAKE_BUILD_TYPE too -- the port and its
+           # framework are Release together, which is the whole point.
+           f"-DCMAKE_PREFIX_PATH=/tmp/maui-prefix-{preset}"]
+    if not cache.is_file():
+        return out
+    seen = set()
+    for line in cache.read_text(errors="replace").splitlines():
+        if ":" not in line or "=" not in line or line.startswith(("#", "//")):
+            continue
+        name = line.split(":", 1)[0]
+        if name in EXAMPLES_CACHE_KEYS and name not in seen:
+            value = line.split("=", 1)[1]
+            if value:
+                out.append(f"-D{name}={value}")
+                seen.add(name)
+    return out
+
+
 # --------------------------------------------------------------------------- builds
 def build(platform: str, frameworks: list[str]) -> None:
     """Build only what the selected frameworks need. Android builds inside its capture scripts; the
@@ -542,19 +576,35 @@ def build(platform: str, frameworks: list[str]) -> None:
     targets = [t for fw, t in (("cpp", "gallery"), ("cpp_xaml", "gallery_xaml")) if fw in frameworks]
     if not targets:
         return
-    preset, exdir = {"ios": ("ios", "build-ios"),
-                     "catalyst": ("maccatalyst", "build-maccatalyst"),
-                     "appkit": ("apple", "build-apple")}[platform]
-    run_step(f"{platform}: build framework + {' '.join(targets)}", ["bash", "-c",
+    # RELEASE PRESETS. The board compares the port against real MAUI, whose reference app is built
+    # Release, so capturing a Debug port measures build flags rather than parity. iOS was the worst of
+    # the three: examples/build-ios carried an EMPTY CMAKE_BUILD_TYPE -- not Debug, but no -O and no
+    # NDEBUG at all, which is what the size table reports as `(unset) ⚠`.
+    # The `headless` base preset stays Debug: dev.sh, ctest and the sanitizer presets inherit it.
+    preset, exdir = {"ios": ("ios-release", "build-ios-release"),
+                     "catalyst": ("maccatalyst-release", "build-maccatalyst-release"),
+                     "appkit": ("apple-release", "build-apple-release")}[platform]
+    # The examples tree is a SECOND, separately-configured CMake project, so a new release dir has no
+    # cache until something creates one. Configure on demand rather than requiring a manual step that
+    # would be forgotten exactly once and then silently capture the old Debug binaries still sitting
+    # in the non-release directory.
+    ex = CPP / "examples" / exdir
+    if not (ex / "CMakeCache.txt").is_file():
+        args = examples_configure_args(exdir.replace("-release", ""), preset)
+        run_step(f"{platform}: configure {exdir} (Release, first use)", ["bash", "-c",
+                 f"cd '{CPP}' && cmake -S examples -B examples/{exdir} {' '.join(args)}"], timeout=1800)
+    run_step(f"{platform}: build framework + {' '.join(targets)} (Release)", ["bash", "-c",
              f"cd '{CPP}' && cmake --build --preset {preset} && "
              f"cmake --install build/{preset} --prefix /tmp/maui-prefix-{preset} && "
              f"cmake --build examples/{exdir} --target {' '.join(targets)}"], timeout=3600)
 
 
 def ios_install(frameworks: list[str]) -> None:
-    apps = {"maui_xaml": PORT / "maui-reference/app/bin/Debug/net10.0-ios/iossimulator-arm64/MauiReference.app",
-            "cpp": CPP / "examples/build-ios/gallery/gallery.app",
-            "cpp_xaml": CPP / "examples/build-ios/gallery_xaml/gallery_xaml.app"}
+    # Release on BOTH sides -- see build(). The MAUI reference must match the port's grade or the
+    # comparison is a strawman in one direction.
+    apps = {"maui_xaml": PORT / "maui-reference/app/bin/Release/net10.0-ios/iossimulator-arm64/MauiReference.app",
+            "cpp": CPP / "examples/build-ios-release/gallery/gallery.app",
+            "cpp_xaml": CPP / "examples/build-ios-release/gallery_xaml/gallery_xaml.app"}
     for fw in frameworks:
         app = apps[fw]
         if not app.exists():

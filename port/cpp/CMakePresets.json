@@ -1,6 +1,10 @@
 {
   "version": 6,
-  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
   "configurePresets": [
     {
       "name": "headless",
@@ -24,7 +28,9 @@
       "displayName": "clang-tidy guardrails",
       "description": "Headless build that runs clang-tidy over the library sources.",
       "binaryDir": "${sourceDir}/build/tidy",
-      "cacheVariables": { "ENABLE_CLANG_TIDY": "ON" }
+      "cacheVariables": {
+        "ENABLE_CLANG_TIDY": "ON"
+      }
     },
     {
       "name": "asan-ubsan",
@@ -32,7 +38,9 @@
       "displayName": "ASan + UBSan",
       "description": "AddressSanitizer + UndefinedBehaviorSanitizer (default checked build).",
       "binaryDir": "${sourceDir}/build/asan-ubsan",
-      "cacheVariables": { "ENABLE_ASAN_UBSAN": "ON" }
+      "cacheVariables": {
+        "ENABLE_ASAN_UBSAN": "ON"
+      }
     },
     {
       "name": "tsan",
@@ -40,7 +48,9 @@
       "displayName": "ThreadSanitizer",
       "description": "Dedicated data-race lane (separate from ASan).",
       "binaryDir": "${sourceDir}/build/tsan",
-      "cacheVariables": { "ENABLE_TSAN": "ON" }
+      "cacheVariables": {
+        "ENABLE_TSAN": "ON"
+      }
     },
     {
       "name": "msan",
@@ -48,7 +58,9 @@
       "displayName": "MemorySanitizer (Clang/Linux only)",
       "description": "Uninitialized-read lane. Requires Clang + instrumented libc++; NOT supported on AppleClang/macOS.",
       "binaryDir": "${sourceDir}/build/msan",
-      "cacheVariables": { "ENABLE_MSAN": "ON" }
+      "cacheVariables": {
+        "ENABLE_MSAN": "ON"
+      }
     },
     {
       "name": "apple",
@@ -56,7 +68,9 @@
       "displayName": "Apple (AppKit / macOS, Obj-C++)",
       "description": "macOS backend; mirrors MAUI's per-platform partials with real NSViews (.mm + ARC).",
       "binaryDir": "${sourceDir}/build/apple",
-      "cacheVariables": { "MAUI_BACKEND": "apple" }
+      "cacheVariables": {
+        "MAUI_BACKEND": "apple"
+      }
     },
     {
       "name": "ios",
@@ -106,55 +120,168 @@
         "ANDROID_STL": "c++_static",
         "CMAKE_CROSSCOMPILING_EMULATOR": "${sourceDir}/tools/android-emu-run.sh"
       }
+    },
+    {
+      "name": "ios-release",
+      "inherits": "ios",
+      "displayName": "iOS (UIKit / simulator, Obj-C++) \u2014 Release (board capture)",
+      "description": "BOARD-CAPTURE build of the ios lane. Release, because the parity board compares the port against real MAUI and MAUI's own reference app is built Release: a Debug-vs-Release board measures build flags, not parity. The `headless` base stays Debug on purpose -- dev.sh, ctest and the sanitizer presets all inherit it and need assertions.",
+      "binaryDir": "${sourceDir}/build/ios-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "android-release",
+      "inherits": "android",
+      "displayName": "Android (NDK / emulator, arm64-v8a) \u2014 Release (board capture)",
+      "description": "BOARD-CAPTURE build of the android lane. Release, because the parity board compares the port against real MAUI and MAUI's own reference app is built Release: a Debug-vs-Release board measures build flags, not parity. The `headless` base stays Debug on purpose -- dev.sh, ctest and the sanitizer presets all inherit it and need assertions.",
+      "binaryDir": "${sourceDir}/build/android-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "maccatalyst-release",
+      "inherits": "maccatalyst",
+      "displayName": "Mac Catalyst (UIKit on macOS, Obj-C++) \u2014 Release (board capture)",
+      "description": "BOARD-CAPTURE build of the maccatalyst lane. Release, because the parity board compares the port against real MAUI and MAUI's own reference app is built Release: a Debug-vs-Release board measures build flags, not parity. The `headless` base stays Debug on purpose -- dev.sh, ctest and the sanitizer presets all inherit it and need assertions.",
+      "binaryDir": "${sourceDir}/build/maccatalyst-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "apple-release",
+      "inherits": "apple",
+      "displayName": "Apple (AppKit / macOS, Obj-C++) \u2014 Release (board capture)",
+      "description": "BOARD-CAPTURE build of the apple lane. Release, because the parity board compares the port against real MAUI and MAUI's own reference app is built Release: a Debug-vs-Release board measures build flags, not parity. The `headless` base stays Debug on purpose -- dev.sh, ctest and the sanitizer presets all inherit it and need assertions.",
+      "binaryDir": "${sourceDir}/build/apple-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
-    { "name": "headless", "configurePreset": "headless" },
-    { "name": "tidy", "configurePreset": "tidy" },
-    { "name": "asan-ubsan", "configurePreset": "asan-ubsan" },
-    { "name": "tsan", "configurePreset": "tsan" },
-    { "name": "msan", "configurePreset": "msan" },
-    { "name": "apple", "configurePreset": "apple" },
-    { "name": "ios", "configurePreset": "ios" },
-    { "name": "maccatalyst", "configurePreset": "maccatalyst" },
-    { "name": "android", "configurePreset": "android" }
+    {
+      "name": "headless",
+      "configurePreset": "headless"
+    },
+    {
+      "name": "tidy",
+      "configurePreset": "tidy"
+    },
+    {
+      "name": "asan-ubsan",
+      "configurePreset": "asan-ubsan"
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan"
+    },
+    {
+      "name": "msan",
+      "configurePreset": "msan"
+    },
+    {
+      "name": "apple",
+      "configurePreset": "apple"
+    },
+    {
+      "name": "ios",
+      "configurePreset": "ios"
+    },
+    {
+      "name": "maccatalyst",
+      "configurePreset": "maccatalyst"
+    },
+    {
+      "name": "android",
+      "configurePreset": "android"
+    },
+    {
+      "name": "ios-release",
+      "configurePreset": "ios-release"
+    },
+    {
+      "name": "android-release",
+      "configurePreset": "android-release"
+    },
+    {
+      "name": "maccatalyst-release",
+      "configurePreset": "maccatalyst-release"
+    },
+    {
+      "name": "apple-release",
+      "configurePreset": "apple-release"
+    }
   ],
   "testPresets": [
     {
       "name": "headless",
       "configurePreset": "headless",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
     },
     {
       "name": "apple",
       "configurePreset": "apple",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
     },
     {
       "name": "ios",
       "configurePreset": "ios",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
     },
     {
       "name": "android",
       "configurePreset": "android",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
     },
     {
       "name": "asan-ubsan",
       "configurePreset": "asan-ubsan",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
     },
     {
       "name": "tsan",
       "configurePreset": "tsan",
-      "output": { "outputOnFailure": true },
-      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      }
     }
   ]
 }

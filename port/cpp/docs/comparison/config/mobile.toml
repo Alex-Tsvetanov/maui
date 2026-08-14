@@ -24,32 +24,34 @@ version = 1
 platform = "ios"
 
 [environments.ios.columns.maui_xaml]
-artifact = "port/maui-reference/app/bin/Debug/net10.0-ios/iossimulator-arm64/MauiReference.app"
+artifact = "port/maui-reference/app/bin/Release/net10.0-ios/iossimulator-arm64/MauiReference.app"
 
 [environments.ios.columns.cpp]
-artifact = "port/cpp/examples/build-ios/gallery/gallery.app"
+artifact = "port/cpp/examples/build-ios-release/gallery/gallery.app"
 
 [environments.ios.columns.cpp_xaml]
-artifact = "port/cpp/examples/build-ios/gallery_xaml/gallery_xaml.app"
+artifact = "port/cpp/examples/build-ios-release/gallery_xaml/gallery_xaml.app"
 
 # --- Android --------------------------------------------------------------------------------------
 # APKs are single FILES, decomposed by reading the zip directory (measure_size.py bucket_apk).
 #
-# READ THE DECOMPOSITION, NOT THE TOTAL, ON THIS LANE. The port's Debug apphost APK is several times
-# LARGER than the MAUI reference APK -- the opposite of every other lane -- because its lib/*.so still
-# carries full DWARF. That is a property of the build, not of the implementation strategy, and the
-# `release_grade` flag keeps any ratio out of the README until both sides are comparable builds.
+# READ THE DECOMPOSITION, NOT THE TOTAL, ON THIS LANE -- a bare APK size attributes nothing. What that
+# buys is on the record: while this lane still pointed at Debug, the port's apphost measured 360.0 MB
+# against MAUI's 28.9 MB, which as a total reads "the native port is 12x larger". 353.5 MB of it was
+# unstripped DWARF in lib/*.so. Both sides are Release now, so the comparison is finally like-for-like
+# and the numbers should be read fresh; the decomposition is what makes that check possible at all.
 #
 # The MAUI column points at the -Signed.apk: the unsigned intermediate beside it is not what installs.
+# No `artifact_release` key -- `artifact` IS the release build, and duplicating the same path in both
+# would only invite the two to drift.
 [environments.android]
 platform = "android"
 
 [environments.android.columns.maui_xaml]
-artifact = "port/maui-reference/app/bin/Debug/net10.0-android/dev.mauicpp.mauireference-Signed.apk"
-artifact_release = "port/maui-reference/app/bin/Release/net10.0-android/dev.mauicpp.mauireference-Signed.apk"
+artifact = "port/maui-reference/app/bin/Release/net10.0-android/dev.mauicpp.mauireference-Signed.apk"
 
 [environments.android.columns.cpp]
-artifact = "port/cpp/build/android/maui_android_apphost.apk"
+artifact = "port/cpp/build/android-release/maui_android_apphost.apk"
 
 [environments.android.columns.cpp_xaml]
-artifact = "port/cpp/build/android/maui_android_apphost_xaml.apk"
+artifact = "port/cpp/build/android-release/maui_android_apphost_xaml.apk"

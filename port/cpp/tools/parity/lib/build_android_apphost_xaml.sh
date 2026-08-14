@@ -109,13 +109,18 @@ done
 abi="arm64-v8a"
 
 # ---- 1. cmake-build the XAML app-host .so (android preset) ----
-build_dir="${cpp_root}/build/android"
+# RELEASE, not the Debug `android` preset. The board compares this APK against real MAUI's, and MAUI's
+# reference APK is built Release -- a Debug-vs-Release board measures build flags, not parity. It also
+# dominated the size study: the Debug apphost measured 360.0 MB against MAUI's 28.9 MB, and 353.5 MB of
+# that was unstripped DWARF in lib/*.so. The `headless` base preset stays Debug on purpose (dev.sh,
+# ctest and the sanitizers inherit it); `android-release` only overrides CMAKE_BUILD_TYPE.
+build_dir="${cpp_root}/build/android-release"
 if [[ ! -f "${build_dir}/build.ninja" && ! -f "${build_dir}/Makefile" ]]; then
   echo "[apphost-xaml] configuring the android preset (first run)..." >&2
-  ( cd "${cpp_root}" && cmake --preset android >&2 )
+  ( cd "${cpp_root}" && cmake --preset android-release >&2 )
 fi
 echo "[apphost-xaml] building maui_android_apphost_xaml..." >&2
-( cd "${cpp_root}" && cmake --build --preset android --target maui_android_apphost_xaml >&2 )
+( cd "${cpp_root}" && cmake --build --preset android-release --target maui_android_apphost_xaml >&2 )
 app_so=""
 for candidate in \
   "${build_dir}/libmaui_android_apphost_xaml.so" \
