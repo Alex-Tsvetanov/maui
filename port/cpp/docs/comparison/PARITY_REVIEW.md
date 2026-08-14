@@ -4746,3 +4746,39 @@ their board reds are not attributable to the port.
 LESSON: "the port shows something MAUI does not" is not evidence the port is wrong. Check whether the
 REFERENCE changed — `git log --follow` on the reference PNG takes seconds and would have prevented this
 entire flag. See also the recapture-never-builds-MauiReference note in memory.
+
+
+### Sweep result: the reference regression is android-only and hits exactly 3 pages
+
+Compared every android MAUI reference capture changed by `eb1c33abd8` against its `d5c2b93e13` version
+(344 captures), scoring "ink" = share of pixels that are not the dominant background colour. Content loss
+shows up as ink dropping, without needing to know in advance what was lost.
+
+| capture | ink before | ink after | delta | distinct colours |
+|---|---|---|---|---|
+| selection_synchronization_light | 24.49% | 13.17% | **-11.32** | 313 -> 174 |
+| selection_synchronization_dark | 24.49% | 13.17% | **-11.32** | 374 -> 200 |
+| preselected_items_light | 19.77% | 14.77% | -4.99 | 332 -> 173 |
+| multiple_bound_selection_light | 27.04% | 22.69% | -4.36 | 306 -> 173 |
+| preselected_items_dark | 19.77% | 16.45% | -3.31 | 406 -> 228 |
+| multiple_bound_selection_dark | 27.18% | 25.00% | -2.18 | 384 -> 244 |
+
+6 of 344 lost >=0.30pp. 52 gained >=0.30pp (not content loss). 286 were within +/-0.30pp.
+
+`selection_synchronization` is the worst and was NOT previously identified: its activated-highlight orange
+went **11.77% -> 0.42%**, i.e. the selection highlight was all but erased. It is red on FOUR lanes, but only
+the ANDROID reference regressed, so its reds on the other three lanes are not explained by this.
+
+**Other lanes are CLEAN.** Same comparison against the state before each lane's most recent maui recapture:
+ios 111 files, maccatalyst 40, windows 30 — ZERO captures lost >=0.30pp. The regression is android-only.
+
+All three pages are CollectionView SELECTION pages, which is consistent with the timing hypothesis: the
+selection is applied asynchronously and a short settle photographs the list before it lands.
+
+ACTION: recapture the android MAUI reference for selection_synchronization, preselected_items and
+multiple_bound_selection with a longer settle, and confirm the highlight returns before judging any of them.
+Their rows are BLOCKED reference-defect until then; the port must not be changed to match these frames.
+
+STANDING GAP THIS EXPOSES: tools/parity/provenance.py verifies the PORT columns come from one binary.
+NOTHING verifies the MAUI reference did not change underneath. A recapture can silently drop content from
+the ground truth and every downstream score inherits it. This sweep should become a permanent check.

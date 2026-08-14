@@ -28,7 +28,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 16 | ios | radio_button_content | — | YEL | yes | OPEN |
 | 17 | ios | radio_content_properties | — | YEL | yes | OPEN |
 | 18 | ios | scroll_view | — | YEL | yes | OPEN |
-| 19 | ios | selection_synchronization | — | RED | yes | OPEN |
+| 19 | ios | selection_synchronization | — | RED | yes | BLOCKED reference-defect: android MAUI ref lost the selection highlight (orange 11.77%->0.42%) in eb1c33abd8; recapture the ref |
 | 20 | ios | swipe_refresh | — | RED | yes | OPEN |
 | 21 | ios | header_footer_grid_horizontal | 0.70 | YEL |  | OPEN |
 | 22 | ios | border_resize_content | 1.13 | YEL |  | OPEN |
@@ -42,7 +42,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 30 | maccatalyst | path_gallery | — | RED | yes | OPEN |
 | 31 | maccatalyst | pointer_gesture | — | YEL | yes | OPEN |
 | 32 | maccatalyst | radio_content_properties | — | YEL | yes | OPEN |
-| 33 | maccatalyst | selection_synchronization | — | YEL | yes | OPEN |
+| 33 | maccatalyst | selection_synchronization | — | YEL | yes | BLOCKED reference-defect: android MAUI ref lost the selection highlight (orange 11.77%->0.42%) in eb1c33abd8; recapture the ref |
 | 34 | maccatalyst | swipe_refresh | — | YEL | yes | OPEN |
 | 35 | maccatalyst | ios_date_picker | 0.12 | YEL |  | OPEN |
 | 36 | maccatalyst | header_footer_grid_horizontal | 0.74 | YEL |  | OPEN |
@@ -68,7 +68,7 @@ STATUS: OPEN | DONE <commit> | BLOCKED <one-line reason> | EXEMPT <ruling>
 | 56 | android | picker | — | YEL | yes | OPEN |
 | 57 | android | scroll_view | — | YEL | yes | OPEN |
 | 58 | android | search_bar | — | YEL | yes | OPEN |
-| 59 | android | selection_synchronization | — | RED | yes | OPEN |
+| 59 | android | selection_synchronization | — | RED | yes | BLOCKED reference-defect: android MAUI ref lost the selection highlight (orange 11.77%->0.42%) in eb1c33abd8; recapture the ref |
 | 60 | android | semantics | — | YEL | yes | OPEN |
 | 61 | android | slider | — | RED | yes | OPEN |
 | 62 | android | stepper | — | RED | yes | OPEN |
