@@ -254,9 +254,14 @@ def classify(theme_scores):
         ev = next((v["evidence"] for v in have.values() if v.get("evidence")), {}) or {}
         why = next((v.get("why") for t, v in have.items()
                     if v.get("verdict") == governing and v.get("why")), "")
+        # Self-motion from the GOVERNING theme, so the figure agrees with the verdict beside it rather
+        # than averaging a moving light frame with a frozen dark one.
+        gov = next((v for t, v in have.items() if v.get("verdict") == governing and v.get("self")), None)
         motion = {"verdict": governing, "themes": verdicts, "why": why,
                   "run": ev.get("run"), "commit": ev.get("commit"),
                   "captured_at": ev.get("captured_at")}
+        if gov and gov.get("self"):
+            motion["self"] = gov["self"]
         # A DECLARED-REGION SPLIT CANNOT BE GREEN EITHER, and this is a deliberate exception to the
         # "do not AND motion into the colour" rule above. That rule exists because the motion layer
         # FLAPS — 13 cells moved in one rescore — and a flapping signal must not drive the 100% layer.

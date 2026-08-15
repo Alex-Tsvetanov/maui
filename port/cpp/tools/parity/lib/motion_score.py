@@ -975,6 +975,13 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
             "detail": detail, "mismatch": mismatch, "both_frozen": both_frozen,
             "phase_only": phase_only, "authored_asymmetry": authored_asymmetry,
             "verdict": verdict, "why": why,
+            # STRUCTURED so the README can say WHICH COLUMN moved, not merely whether the comparison
+            # passed. A verdict alone cannot separate the four cases a reader actually cares about --
+            # neither column moved / only MAUI moved / only the port moved / both moved but disagree --
+            # and those demand different work: a harness fix, a missing animation, a spurious one, and
+            # a rendering diff respectively. The numbers were already computed here and spent only on
+            # the prose sentence, so nothing new is measured.
+            "self": {"maui": round(move_m, 4), "port": round(move_o, 4)},
             "evidence": {"run": run.name, "commit": meta.get("commit", "?"),
                          "captured_at": str(meta.get("captured_at", "?"))[:10]}}
 

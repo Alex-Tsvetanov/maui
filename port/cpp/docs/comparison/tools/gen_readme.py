@@ -112,6 +112,50 @@ VERDICT_GLYPH = {"PASS": "✅ PASS", "FAIL": "❌ FAIL",
                  "INVALID": "🚫 INVALID", "INCONCLUSIVE": "❔ INCONCLUSIVE"}
 
 
+# The four states a reader asks about, and the distinct work each implies:
+#   BOTH STILL   nothing animated on either side -- usually the harness never drove the page, so this
+#                is a capture-coverage question, not a port question.
+#   MAUI ONLY    MAUI animates and the port does not: a MISSING animation in the port.
+#   PORT ONLY    the port animates and MAUI does not: a SPURIOUS animation.
+#   BOTH MOVE    both animate; then the verdict says whether they agree.
+# A bare PASS/FAIL cannot separate these, which is why the roll-up table this replaces was not
+# actionable: it counted how many cells were validly compared, never what a cell was telling you.
+#
+# 0.05% of visibly-changed pixels is the floor motion_score itself treats as "moved" for a step-paired
+# sequence; below it a column is indistinguishable from screenshot noise.
+MOTION_FLOOR = 0.05
+MOTION_STATE = {
+    "both_still": "⏸ neither moves",
+    "maui_only": "⚠ MAUI moves, C++ does not",
+    "port_only": "⚠ C++ moves, MAUI does not",
+    "both_move": "▶ both move",
+}
+
+
+def motion_state(rev):
+    """→ (key, label) for the 4-way split, or None when the cell has no motion evidence."""
+    m = (rev or {}).get("motion")
+    if not m:
+        return None
+    self_ = m.get("self")
+    if not self_:
+        # Scored before `self` was recorded. Say so rather than guessing a state from the verdict --
+        # a PASS is equally consistent with "both moved and agreed" and "neither moved at all".
+        return ("unknown", "▫ motion scored (rerun for the moved-by-which-column split)")
+    mm, pp = self_.get("maui", 0.0), self_.get("port", 0.0)
+    moved_m, moved_p = mm >= MOTION_FLOOR, pp >= MOTION_FLOOR
+    key = ("both_move" if moved_m and moved_p else
+           "maui_only" if moved_m else
+           "port_only" if moved_p else "both_still")
+    label = MOTION_STATE[key]
+    if key == "both_move":
+        # Only here does the verdict add anything: both sides animated, so the open question is
+        # whether the animations MATCH.
+        v = m.get("verdict")
+        label += " — " + ("comparison OK" if v == "PASS" else f"comparison {v}")
+    return (key, label)
+
+
 def motion_line(rev):
     """The motion badge under a review, or "" on a page with no motion evidence at all.
 
@@ -386,7 +430,12 @@ def page_section(i, p, plat, fws, meas=None):
     # The compact header glyph is now the deterministic pixel score (C1/C3 over C2/C4); AI review removed.
     combo = f"{EMOJI.get((page.get('pixel') or {}).get('status'), '⏳')}/{EMOJI.get((page.get('pixel_xaml') or {}).get('status'), '⏳')}"
 
-    out = [f"### {i}. {esc(p['title'])} — {combo}{page_metrics(meas or {}, plat, p['name'])}",
+    # The motion STATE rides in the header, where the colour glyph already is, because it answers a
+    # question the colour cannot: which column animated. Taken from the `pixel` slot (MAUI-vs-C++);
+    # the xaml twin shares the same drive, so a second badge would only ever repeat it.
+    st = motion_state(page.get("pixel"))
+    motion_badge = f" · {st[1]}" if st else ""
+    out = [f"### {i}. {esc(p['title'])} — {combo}{motion_badge}{page_metrics(meas or {}, plat, p['name'])}",
            f"<sub>{esc(p['name'])}</sub>", ""]
     out.append(preview_table(sc, fws))
     out.append("")
@@ -465,24 +514,10 @@ def main():
                "renders genuinely dark, so Android's reds are the port being correct against a broken "
                "ground truth rather than a port defect. See `PARITY_REVIEW.md`._")
     out.append("")
-    mtbl = motion_summary_table(pages)
-    if mtbl:
-        out.append("**Motion parity — reported SEPARATELY from the colours above, on purpose.** A cell "
-                   "gets a motion verdict when the page is driven or animated; that is a minority of "
-                   "cells, and the layer is younger than the static one. So a non-`PASS` verdict caps "
-                   "a cell at 🟡 (it can never be 🟢) but does not force it 🔴 — ANDing a partial, "
-                   "still-settling layer into the board's colour would turn every motion flake into a "
-                   "board regression. Read the two together: 🟢 with ✅ PASS is a page whose pixels AND "
-                   "whose motion were compared and agreed.")
-        out.append("")
-        out.append("🚫 **INVALID means there is no usable evidence, not that the port failed** — the "
-                   "commonest cause by far is that no scenario was ever authored to drive the page, in "
-                   "which case nothing about the port can be concluded from the cell at all. The "
-                   "per-page badge names the reason (`no-scenario`, `not-driven`, `no-frames`, "
-                   "`provenance`, …).")
-        out.append("")
-        out.append(mtbl)
-        out.append("")
+    # The board-wide motion roll-up table used to sit here and has been REMOVED. It counted how many
+    # cells were validly compared, per platform, per verdict -- which never told a reader what to do
+    # about any particular page. The per-example header now carries the state that does: which column
+    # moved. See motion_state().
     tbl = size_table(meas)
     if tbl:
         out.append(tbl)
