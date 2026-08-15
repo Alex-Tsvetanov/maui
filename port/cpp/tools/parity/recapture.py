@@ -1722,6 +1722,20 @@ def main(argv=None) -> int:
         os.environ["ANDROID_HOME"] = sdk
         # Children resolve `adb` off PATH (lib/capture_android.py) — put the WORKING one first.
         os.environ["PATH"] = f"{sdk}/platform-tools:/opt/homebrew/bin:{os.environ['PATH']}"
+        # ANDROID_NDK_HOME is read by the `android` preset itself, for
+        # VCPKG_CHAINLOAD_TOOLCHAIN_FILE=$env{ANDROID_NDK_HOME}/build/cmake/android.toolchain.cmake.
+        # Nothing here used to set it, and nothing needed to: build/android was configured ONCE, long
+        # ago, by a shell that happened to export it, and every run since has skipped the configure
+        # because the dir already existed. Pointing the lane at build/android-release removes that
+        # accident -- a fresh dir MUST configure -- so the variable has to be real rather than assumed.
+        # Highest version wins, matching the 27.2.12479018 the working build/android cache holds.
+        if not os.environ.get("ANDROID_NDK_HOME"):
+            ndk_root = Path(sdk) / "ndk"
+            versions = sorted((p for p in ndk_root.glob("*") if (p / "build/cmake/android.toolchain.cmake").is_file()),
+                              key=lambda p: [int(x) if x.isdigit() else 0 for x in p.name.split(".")])
+            if versions:
+                os.environ["ANDROID_NDK_HOME"] = str(versions[-1])
+                log(f"note: ANDROID_NDK_HOME={versions[-1]} (the android preset needs it to configure)")
     else:
         os.environ["PATH"] = f"/opt/homebrew/bin:{os.environ['PATH']}"
 
