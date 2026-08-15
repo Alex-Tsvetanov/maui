@@ -246,7 +246,10 @@ cp "${base_apk}" "${unaligned_apk}"
 # ---- 5. zipalign + apksigner (throwaway debug keystore) ----
 aligned_apk="${work}/app-aligned.apk"
 "${zipalign}" -f -p 4 "${unaligned_apk}" "${aligned_apk}" >&2
-keystore="${build_dir}/apphost-debug.keystore" # reuse the C++ host's debug keystore (same throwaway key)
+# Beside the build dirs, not inside one -- see build_android_apphost.sh. Same throwaway key as the
+# C++ host by design; a new build dir must not mint a new signing identity, or every update fails
+# with INSTALL_FAILED_UPDATE_INCOMPATIBLE.
+keystore="${cpp_root}/build/apphost-debug.keystore"
 if [[ ! -f "${keystore}" ]]; then
   echo "[apphost-xaml] creating a throwaway debug keystore..." >&2
   "${keytool_bin}" -genkeypair -v -keystore "${keystore}" -storepass android -keypass android \
@@ -265,7 +268,11 @@ maui_android_ensure_booted
 pkg="dev.mauicpp.apphost.xaml"
 activity="${pkg}/.MauiHostActivity"
 echo "[apphost-xaml] adb install -r..." >&2
-"${maui_adb}" -s "${maui_serial}" install -r "${signed_apk}" >&2
+if ! "${maui_adb}" -s "${maui_serial}" install -r "${signed_apk}" >&2; then
+  echo "[apphost-xaml] install failed - uninstalling dev.mauicpp.apphost.xaml and retrying once" >&2
+  "${maui_adb}" -s "${maui_serial}" uninstall dev.mauicpp.apphost.xaml >&2 || true
+  "${maui_adb}" -s "${maui_serial}" install -r "${signed_apk}" >&2
+fi
 
 # Post-install warm-up launch: absorb the first-COLD dexopt churn so the first REAL capture isn't the one
 # that eats it (the wave-15 deterministic-capture discipline).

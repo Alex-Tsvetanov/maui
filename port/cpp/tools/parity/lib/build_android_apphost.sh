@@ -253,7 +253,13 @@ cp "${base_apk}" "${unaligned_apk}"
 # ---- 5. zipalign + apksigner (throwaway debug keystore) ----
 aligned_apk="${work}/app-aligned.apk"
 "${zipalign}" -f -p 4 "${unaligned_apk}" "${aligned_apk}" >&2
-keystore="${build_dir}/apphost-debug.keystore"
+# STABLE PATH, deliberately NOT inside $build_dir. This is a throwaway self-signed dev key, but Android
+# refuses to update a package signed by a DIFFERENT key: moving the build dir (build/android ->
+# build/android-release) minted a new keystore and every install then failed with
+# INSTALL_FAILED_UPDATE_INCOMPATIBLE, taking all four android cpp/cpp_xaml capture passes with it.
+# Keeping the key beside the build dirs rather than inside one means a new build dir is not a new
+# identity.
+keystore="${cpp_root}/build/apphost-debug.keystore"
 if [[ ! -f "${keystore}" ]]; then
   echo "[apphost] creating a throwaway debug keystore..." >&2
   "${keytool_bin}" -genkeypair -v -keystore "${keystore}" -storepass android -keypass android \
@@ -272,7 +278,14 @@ maui_android_ensure_booted
 pkg="dev.mauicpp.apphost"
 activity="${pkg}/.MauiHostActivity"
 echo "[apphost] adb install -r..." >&2
-"${maui_adb}" -s "${maui_serial}" install -r "${signed_apk}" >&2
+# A signature mismatch is recoverable: uninstall and retry. That happens when the keystore is
+# regenerated (see above) or when a differently-signed build of the same package is already present --
+# there is no app STATE worth preserving here, the page is chosen per launch by an intent extra.
+if ! "${maui_adb}" -s "${maui_serial}" install -r "${signed_apk}" >&2; then
+  echo "[apphost] install failed - uninstalling dev.mauicpp.apphost and retrying once" >&2
+  "${maui_adb}" -s "${maui_serial}" uninstall dev.mauicpp.apphost >&2 || true
+  "${maui_adb}" -s "${maui_serial}" install -r "${signed_apk}" >&2
+fi
 
 # Post-install warm-up: launch + kill once before the real run so the first REAL capture is not the one
 # that eats the install/dexopt churn (the first post-install launch is COLD + dexopts, which can outlast a

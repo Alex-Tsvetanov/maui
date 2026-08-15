@@ -588,6 +588,14 @@ def build(platform: str, frameworks: list[str]) -> None:
     # cache until something creates one. Configure on demand rather than requiring a manual step that
     # would be forgotten exactly once and then silently capture the old Debug binaries still sitting
     # in the non-release directory.
+    # The FRAMEWORK build dir needs configuring too, not just the examples one. `cmake --build --preset`
+    # does not configure; it fails with "build/<preset> is not a directory". The Debug presets never
+    # showed this because their dirs were configured once, long ago, and have existed ever since --
+    # the same accident that hid ANDROID_NDK_HOME. A brand-new -release preset has no such history.
+    if not (CPP / "build" / preset / "CMakeCache.txt").is_file():
+        run_step(f"{platform}: configure {preset} (Release, first use)",
+                 ["bash", "-c", f"cd '{CPP}' && cmake --preset {preset}"], timeout=1800)
+
     ex = CPP / "examples" / exdir
     if not (ex / "CMakeCache.txt").is_file():
         args = examples_configure_args(exdir.replace("-release", ""), preset)
@@ -607,8 +615,18 @@ def ios_install(frameworks: list[str]) -> None:
             "cpp_xaml": CPP / "examples/build-ios-release/gallery_xaml/gallery_xaml.app"}
     for fw in frameworks:
         app = apps[fw]
-        if not app.exists():
-            fail(f"ios: {fw} app not built at {app}")
+        # The EXECUTABLE, not the bundle directory. CMake creates the .app skeleton at CONFIGURE time,
+        # so `app.exists()` is true the moment the project is configured, before a single object is
+        # compiled. On 2026-08-15 the Release framework build failed (build/ios-release was never
+        # configured), the `&&` chain stopped before the examples built, and this check still passed on
+        # a bundle holding nothing but Info.plist -- so the lane installed nothing, captured whatever
+        # app was already on the simulator, and published 73 stale port frames as a fresh Release board.
+        # A capture that silently measures the previous build is the exact failure this project keeps
+        # paying for; check the artifact that has to exist, not the directory that always does.
+        binary = app / app.name.removesuffix(".app")
+        if not binary.is_file():
+            fail(f"ios: {fw} not built — {binary} is missing "
+                 f"({'bundle exists but is empty' if app.is_dir() else 'no bundle'})")
             continue
         run_step(f"ios: install {fw}", ["xcrun", "simctl", "install", IOS_UDID, str(app)], timeout=900)
 
