@@ -230,8 +230,25 @@ def classify(theme_scores):
     #     was no motion to miss. USER RULING 2026-08-10: do not expect motion that was never expected.
     # This was the dominant distortion on the board: 70 cells, every one with a clean still (worst 0.60%
     # at SSIM 0.9708, median 0.12%), coloured as though something differed.
-    if any(v.get("both_frozen") for v in have.values()) and status == "green" and not never_expected:
-        status = "yellow"
+    # USER RULING 2026-08-16: BOTH COLUMNS FROZEN NO LONGER CAPS THE COLOUR AT ALL.
+    # "'neither moves' should not make a green image comparison yellow just because no motion is
+    # detected on neither party."
+    #
+    # The 2026-08-10 ruling above had already exempted `no-scenario`; this removes the remainder. The
+    # cap's own justification was to "put it in front of a human without accusing the port" -- but a
+    # COLOUR is the wrong instrument for that, because colour is what the board is graded on, and this
+    # one fires on a state that is SYMMETRIC: neither column moved, so there is no evidence of a port
+    # defect in either direction. The stills were compared and they matched; that is a green.
+    #
+    # What replaced it is strictly better at the job the cap was doing: gen_readme now prints the motion
+    # STATE in every example header (motion_state / MOTION_STATE), so "⏸ neither moves" is visible on
+    # the page itself without repainting a cell that has nothing wrong with it. A reader who wants
+    # coverage gaps reads the badge; a reader who wants parity reads the colour. Conflating them cost
+    # this board real greens.
+    #
+    # The ASYMMETRIC cases are untouched and still decide colour, because those ARE evidence: one
+    # column animating while the other is frozen is forced RED by the `mismatch` rule above.
+    _ = never_expected  # kept: still used by the INVALID cap below
     # ---- the motion verdict, and WHY IT IS NOT ANDed INTO THE COLOUR ----------------------------
     # The recovery plan this implements asks for "only static green AND motion PASS may render a green
     # cell". That AND is the one part of it not adopted, on measured grounds: motion evidence covers
@@ -296,7 +313,23 @@ def classify(theme_scores):
         #
         # ALL scored themes must agree it was undriven — one theme carrying a real not-driven result still
         # caps the cell, so a half-authored scenario cannot buy a green.
-        if governing == motion_score.INVALID and status == "green" and not never_expected:
+        # USER RULING 2026-08-16 EXTENDS THE EXEMPTION TO ANY SYMMETRIC NO-MOTION CELL.
+        # "'neither moves' should not make a green image comparison yellow just because no motion is
+        # detected on neither party."
+        #
+        # Removing the `both_frozen` cap alone did NOT deliver that: a driven-but-frozen page is also
+        # INVALID/`not-driven`, so it fell straight through to this cap and stayed yellow by another
+        # route. (The selftest kept passing for exactly that reason -- worth stating, because a green
+        # suite made the first half of this change look complete when it moved nothing.)
+        #
+        # So `both_frozen` now exempts here too. The discriminator stays honest: both_frozen means
+        # motion_score MEASURED both columns and found neither moved -- a symmetric, positive
+        # observation, not missing evidence. An expired or pruned run yields no such measurement, so the
+        # pruned-run hole this cap was built for stays shut, and an ASYMMETRIC result is still forced RED
+        # by the `mismatch` rule earlier.
+        frozen_both = bool(have) and any(v.get("both_frozen") for v in have.values())
+        if (governing == motion_score.INVALID and status == "green"
+                and not never_expected and not frozen_both):
             status = "yellow"
     parts = []
     for t in THEMES:
@@ -581,20 +614,31 @@ def _selftest() -> int:
                                             why=motion_score.WHY_NO_SCENARIO),
                               "dark": cell(GREEN, verdict=motion_score.INVALID, both_frozen=True,
                                            why=motion_score.WHY_NOT_DRIVEN)})
-    check("one not-driven theme still caps the cell", st, "yellow")
+    # RULING 2026-08-16: was "yellow". Both columns frozen is symmetric -- neither side moved, so
+    # there is no evidence of a port defect and the stills agree. The state is still REPORTED, in the
+    # example header ("neither moves"), which is where a coverage gap belongs.
+    check("one not-driven theme no longer caps a frozen cell", st, "green")
 
     # (1d) …and a genuinely bad still is never rescued by the exemption.
     st, _rev, _mo = classify({"light": cell(RED, verdict=motion_score.INVALID, both_frozen=True,
                                             why=motion_score.WHY_NO_SCENARIO), "dark": None})
     check("no-scenario exemption does not rescue a red still", st, "red")
 
-    # (1e) THE REGRESSION GUARD FOR THE HOIST ITSELF. A driven page whose columns are both frozen must
-    #      stay yellow through the `both_frozen` cap — this is the state (1b) is exempt from, and the two
-    #      differ ONLY in the why-code, so this pair is what pins the exemption to `no-scenario` rather
-    #      than to "frozen".
+    # (1e) RULING 2026-08-16 INVERTED THIS CASE. It used to pin the exemption to `no-scenario` rather
+    #      than to "frozen"; the ruling makes FROZEN itself sufficient, so a driven-but-frozen page is
+    #      green. Kept rather than deleted because it is the pair that proves the why-code no longer
+    #      decides the colour -- and because the first cut of this change removed only the `both_frozen`
+    #      cap, left this cap in place, and moved NOTHING while the suite stayed green.
     st, _rev, _mo = classify({"light": cell(GREEN, verdict=motion_score.INVALID, both_frozen=True,
                                             why=motion_score.WHY_NOT_DRIVEN), "dark": None})
-    check("driven-but-frozen stays yellow", st, "yellow")
+    check("driven-but-frozen is green (both columns still)", st, "green")
+
+    # (1e2) THE ASYMMETRIC CASE IS UNTOUCHED AND STILL RED. This is what stops the ruling from becoming
+    #       "motion never colours anything": one column animating while the other is frozen is a real,
+    #       measured parity failure.
+    st, _rev, _mo = classify({"light": cell(GREEN, verdict=motion_score.FAIL, mismatch=True,
+                                            why=motion_score.WHY_NOT_DRIVEN), "dark": None})
+    check("one column frozen, one moving is RED", st, "red")
 
     # (2) …and PASS does NOT cap. The cap must be the exception, not a blanket tax on motion cells.
     st, _rev, mo = classify({"light": cell(GREEN, verdict=motion_score.PASS, why=""), "dark": None})
