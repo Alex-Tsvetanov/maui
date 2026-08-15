@@ -110,10 +110,36 @@ add_library(maui_sanitizers INTERFACE)
 # So: any flag added here that must apply to the apple/ios lanes needs both languages named. A
 # CXX-only entry is not a smaller sanitizer, it is a silent hole shaped exactly like one backend.
 if(NOT MSVC)
+  # -g IS GATED ON THE BUILD TYPE. It is here for sanitizer stack traces, and this block sits OUTSIDE
+  # the ENABLE_ASAN_UBSAN guard so that a plain Debug build symbolicates too. That was reasoned to be
+  # free ("only -g/-fno-omit-frame-pointer, so off stays off everywhere") and it is free for
+  # CORRECTNESS -- but not for SIZE, which the board publishes as a headline.
+  #
+  # Measured on the android Release apphost, whose .so was 259.6 MB:
+  #     .debug_info 95.5 MB · .debug_str 66.6 MB · .debug_loc 48.8 MB · .debug_ranges 20.5 MB
+  #     .debug_line 12.5 MB   -> 243.9 MB of DWARF around 5.8 MB of .text
+  # The cpp_xaml twin measured 21.4 MB with an IDENTICAL 5.9 MB .text, purely because its build script
+  # runs llvm-strip. So the study's "the native port is 9x LARGER on android" was one missing strip,
+  # not a property of the implementation.
+  #
+  # A release-grade build has no use for DWARF here: the board measures deployed size, and nothing
+  # symbolicates these binaries. Debug and RelWithDebInfo keep it.
   target_compile_options(maui_sanitizers INTERFACE
-    $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-g>
+    $<$<AND:$<COMPILE_LANGUAGE:CXX,OBJCXX>,$<NOT:$<CONFIG:Release,MinSizeRel>>>:-g>
     $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:-fno-omit-frame-pointer>
   )
+  # -g0 in Release, and it has to be an ACTIVE flag rather than an omission: on Android the -g does
+  # not come from this file at all. The NDK's android.toolchain.cmake puts it in the base flags, so
+  # it lands on every translation unit before anything here is appended --
+  #     ... -I<...>/src/platform/android -g -DANDROID -fdata-sections -ffunction-sections ...
+  # Simply not adding our own -g changed nothing; the rebuilt .so came back byte-for-byte 255.1 MB.
+  # target_compile_options appends after CMAKE_CXX_FLAGS and the last -g<level> wins, so -g0 cancels
+  # it. Preferred over stripping afterwards because it never generates the 244 MB in the first place:
+  # less compile time, less disk, and nothing to forget -- which is exactly how the two android
+  # targets came to differ, one script running llvm-strip and the other not.
+endif()
+if(NOT MSVC)
+  add_compile_options($<$<AND:$<COMPILE_LANGUAGE:CXX,OBJCXX>,$<CONFIG:Release,MinSizeRel>>:-g0>)
 endif()
 if(ENABLE_ASAN_UBSAN)
   target_compile_options(maui_sanitizers INTERFACE
