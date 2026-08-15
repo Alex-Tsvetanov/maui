@@ -46,10 +46,10 @@ Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Strippe
 | windows-arm64 | `cpp` | 36.2 MB | 36.2 MB | Release | built 2026-08-15 |
 | windows-arm64 | `cpp_xaml` | 39.7 MB | 39.7 MB | Release | built 2026-08-15 |
 | ios | `maui_xaml` | 99.3 MB | 50.4 MB | Release | symbols 49.3 MB · built 2026-08-15 |
-| ios | `cpp` | 17.5 MB | 9.2 MB | Release | symbols 9.2 MB · built 2026-08-15 |
-| ios | `cpp_xaml` | 41.8 MB | 22.5 MB | Release | symbols 26.1 MB · built 2026-08-15 |
+| ios | `cpp` | 15.8 MB | 9.2 MB | Release | symbols 7.5 MB · built 2026-08-15 |
+| ios | `cpp_xaml` | 38.8 MB | 22.5 MB | Release | symbols 23.1 MB · built 2026-08-15 |
 | android | `maui_xaml` | 28.6 MB | — | Release | native libs 21.0 MB · built 2026-08-15 |
-| android | `cpp` | 261.6 MB | — | Release | native libs 255.1 MB · built 2026-08-15 |
+| android | `cpp` | 28.2 MB | — | Release | native libs 21.7 MB · built 2026-08-15 |
 | android | `cpp_xaml` | 41.8 MB | — | Release | native libs 35.2 MB · built 2026-08-15 |
 
 </details>

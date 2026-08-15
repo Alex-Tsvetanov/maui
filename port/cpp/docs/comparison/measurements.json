@@ -243,16 +243,16 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 18378882,
+    "total_bytes": 16568770,
     "file_count": 12,
     "buckets": {
      "resources": 531242,
-     "code": 17847640
+     "code": 16037528
     },
     "main_binary": {
      "name": "gallery",
-     "bytes": 17847640,
-     "linkedit_bytes": 9633792,
+     "bytes": 16037528,
+     "linkedit_bytes": 7815168,
      "stripped_bytes": 9124952
     },
     "total_bytes_stripped": 9656194,
@@ -267,16 +267,16 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 43840836,
+    "total_bytes": 40700900,
     "file_count": 12,
     "buckets": {
-     "code": 43309616,
+     "code": 40169680,
      "resources": 531220
     },
     "main_binary": {
      "name": "gallery_xaml",
-     "bytes": 43309616,
-     "linkedit_bytes": 27394048,
+     "bytes": 40169680,
+     "linkedit_bytes": 24248320,
      "stripped_bytes": 23084288
     },
     "total_bytes_stripped": 23615508,
@@ -318,17 +318,17 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 274344119,
+    "total_bytes": 29567159,
     "file_count": 811,
     "buckets": {
-     "other": 68588,
+     "other": 68587,
      "resources": 1767109,
      "code": 4864780,
-     "native_libs": 267498928
+     "native_libs": 22720592
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 267498928,
+     "bytes": 22720592,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
@@ -346,14 +346,14 @@
     "total_bytes": 43804925,
     "file_count": 812,
     "buckets": {
-     "other": 68701,
+     "other": 68699,
      "resources": 1767281,
      "code": 4864733,
-     "native_libs": 36955992
+     "native_libs": 36956088
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 36955992,
+     "bytes": 36956088,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
@@ -362,7 +362,7 @@
    }
   }
  },
- "size_measured_at": "2026-08-15T22:37:04Z",
+ "size_measured_at": "2026-08-15T23:45:21Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -539,15 +539,15 @@
   "appkit": {
    "maui_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
    },
    "cpp": {
     "measured": false,
-    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
    },
    "cpp_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
    }
   },
   "windows": {
