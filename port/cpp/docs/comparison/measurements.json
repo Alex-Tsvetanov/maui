@@ -126,88 +126,138 @@
     "built_at_from": "newest measured file"
    }
   },
+  "windows-arm64": {
+   "maui_xaml": {
+    "artifact": "C:/maui-build/maui-reference/bin/Release/net10.0-windows10.0.19041.0/win-arm64",
+    "exists": true,
+    "measured_on": "guest (ssh)",
+    "total_bytes": 178347457,
+    "file_count": 847,
+    "buckets": {
+     "other": 25258099,
+     "resources": 3743582,
+     "code": 149076016,
+     "debug": 269760
+    },
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "path segment",
+    "built_at": "2026-08-15",
+    "built_at_from": "newest measured file (guest)",
+    "total_bytes_stripped": 178077697,
+    "main_binary": {
+     "name": "MauiReference.exe",
+     "bytes": 267264,
+     "linkedit_bytes": 269760,
+     "stripped_bytes": 267264
+    },
+    "remote_only": true,
+    "config_file": "windows.toml"
+   },
+   "cpp": {
+    "artifact": "C:/maui-build/examples/gallery",
+    "exists": true,
+    "measured_on": "guest (ssh)",
+    "total_bytes": 37909607,
+    "file_count": 427,
+    "buckets": {
+     "resources": 529870,
+     "code": 9088248,
+     "other": 28291489
+    },
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt (guest)",
+    "built_at": "2026-08-15",
+    "built_at_from": "newest measured file (guest)",
+    "total_bytes_stripped": 37909607,
+    "main_binary": {
+     "name": "gallery.exe",
+     "bytes": 5209600,
+     "linkedit_bytes": 0,
+     "stripped_bytes": 5209600
+    },
+    "remote_only": true,
+    "config_file": "windows.toml"
+   },
+   "cpp_xaml": {
+    "artifact": "C:/maui-build/examples/gallery_xaml",
+    "exists": true,
+    "measured_on": "guest (ssh)",
+    "total_bytes": 41615680,
+    "file_count": 621,
+    "buckets": {
+     "resources": 529870,
+     "code": 10351864,
+     "other": 30733946
+    },
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt (guest)",
+    "built_at": "2026-08-15",
+    "built_at_from": "newest measured file (guest)",
+    "total_bytes_stripped": 41615680,
+    "main_binary": {
+     "name": "gallery_xaml.exe",
+     "bytes": 6273024,
+     "linkedit_bytes": 0,
+     "stripped_bytes": 6273024
+    },
+    "remote_only": true,
+    "config_file": "windows.toml"
+   }
+  },
   "ios": {
    "maui_xaml": {
-    "artifact": "port/maui-reference/app/bin/Debug/net10.0-ios/iossimulator-arm64/MauiReference.app",
+    "artifact": "port/maui-reference/app/bin/Release/net10.0-ios/iossimulator-arm64/MauiReference.app",
     "artifact_key": "artifact",
     "exists": true,
-    "build_config": "Debug",
-    "release_grade": false,
+    "build_config": "Release",
+    "release_grade": true,
     "build_config_detected_from": "path segment",
     "config_file": "mobile.toml",
-    "total_bytes": 102110014,
-    "file_count": 276,
+    "total_bytes": 104126138,
+    "file_count": 185,
     "buckets": {
-     "managed": 89207240,
-     "resources": 839613,
-     "other": 195241,
-     "native_libs": 6800448,
-     "code": 5067472
+     "resources": 828476,
+     "other": 6995070,
+     "managed": 6536496,
+     "native_libs": 6540512,
+     "code": 83225584
     },
     "main_binary": {
      "name": "MauiReference",
-     "bytes": 5067472,
-     "linkedit_bytes": 2555904,
-     "stripped_bytes": 2638368
+     "bytes": 83225584,
+     "linkedit_bytes": 51658752,
+     "stripped_bytes": 31985744
     },
-    "total_bytes_stripped": 99680910,
-    "built_at": "2026-08-10",
+    "total_bytes_stripped": 52886298,
+    "built_at": "2026-08-11",
     "built_at_from": "newest measured file"
    },
    "cpp": {
-    "artifact": "port/cpp/examples/build-ios/gallery/gallery.app",
+    "artifact": "port/cpp/examples/build-ios-release/gallery/gallery.app",
     "artifact_key": "artifact",
-    "exists": true,
-    "build_config": "(unset)",
+    "exists": false,
+    "build_config": "unknown",
     "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt: CMAKE_BUILD_TYPE empty — no -O, no NDEBUG",
-    "config_file": "mobile.toml",
-    "total_bytes": 59923714,
-    "file_count": 72,
-    "buckets": {
-     "other": 107920,
-     "resources": 531242,
-     "code": 59284552
-    },
-    "main_binary": {
-     "name": "gallery",
-     "bytes": 59284552,
-     "linkedit_bytes": 40353792,
-     "stripped_bytes": 25396696
-    },
-    "total_bytes_stripped": 26035858,
-    "built_at": "2026-08-13",
-    "built_at_from": "newest measured file"
+    "build_config_detected_from": "not determined",
+    "config_file": "mobile.toml"
    },
    "cpp_xaml": {
-    "artifact": "port/cpp/examples/build-ios/gallery_xaml/gallery_xaml.app",
+    "artifact": "port/cpp/examples/build-ios-release/gallery_xaml/gallery_xaml.app",
     "artifact_key": "artifact",
-    "exists": true,
-    "build_config": "(unset)",
+    "exists": false,
+    "build_config": "unknown",
     "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt: CMAKE_BUILD_TYPE empty — no -O, no NDEBUG",
-    "config_file": "mobile.toml",
-    "total_bytes": 103650068,
-    "file_count": 12,
-    "buckets": {
-     "code": 103118848,
-     "resources": 531220
-    },
-    "main_binary": {
-     "name": "gallery_xaml",
-     "bytes": 103118848,
-     "linkedit_bytes": 72581120,
-     "stripped_bytes": 49722064
-    },
-    "total_bytes_stripped": 50253284,
-    "built_at": "2026-08-13",
-    "built_at_from": "newest measured file"
+    "build_config_detected_from": "not determined",
+    "config_file": "mobile.toml"
    }
   },
   "android": {
    "maui_xaml": {
     "artifact": "port/maui-reference/app/bin/Release/net10.0-android/dev.mauicpp.mauireference-Signed.apk",
-    "artifact_key": "artifact_release",
+    "artifact_key": "artifact",
     "exists": true,
     "build_config": "Release",
     "release_grade": true,
@@ -231,140 +281,26 @@
     "built_at_from": "sibling file (artifact carries a reproducible-build epoch stamp)"
    },
    "cpp": {
-    "artifact": "port/cpp/build/android/maui_android_apphost.apk",
+    "artifact": "port/cpp/build/android-release/maui_android_apphost.apk",
     "artifact_key": "artifact",
-    "exists": true,
-    "build_config": "Debug",
+    "exists": false,
+    "build_config": "unknown",
     "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt",
-    "config_file": "mobile.toml",
-    "total_bytes": 377481399,
-    "file_count": 811,
-    "buckets": {
-     "other": 68591,
-     "resources": 1767109,
-     "code": 4864780,
-     "native_libs": 370634560
-    },
-    "main_binary": {
-     "name": "libmaui_android_apphost.so",
-     "bytes": 370634560,
-     "linkedit_bytes": 0,
-     "stripped_bytes": null
-    },
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file"
+    "build_config_detected_from": "not determined",
+    "config_file": "mobile.toml"
    },
    "cpp_xaml": {
-    "artifact": "port/cpp/build/android/maui_android_apphost_xaml.apk",
+    "artifact": "port/cpp/build/android-release/maui_android_apphost_xaml.apk",
     "artifact_key": "artifact",
-    "exists": true,
-    "build_config": "Debug",
+    "exists": false,
+    "build_config": "unknown",
     "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt",
-    "config_file": "mobile.toml",
-    "total_bytes": 169093373,
-    "file_count": 812,
-    "buckets": {
-     "other": 68702,
-     "resources": 1767281,
-     "code": 4864733,
-     "native_libs": 162244952
-    },
-    "main_binary": {
-     "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 162244952,
-     "linkedit_bytes": 0,
-     "stripped_bytes": null
-    },
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file"
-   }
-  },
-  "windows-arm64": {
-   "maui_xaml": {
-    "artifact": "C:/maui-build/maui-reference/bin/Debug/net10.0-windows10.0.19041.0/win-arm64",
-    "exists": true,
-    "measured_on": "guest (ssh)",
-    "total_bytes": 156691534,
-    "file_count": 440,
-    "buckets": {
-     "other": 3603634,
-     "resources": 3743528,
-     "code": 149068336,
-     "debug": 276036
-    },
-    "build_config": "Debug",
-    "release_grade": false,
-    "build_config_detected_from": "path segment",
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 156415498,
-    "main_binary": {
-     "name": "MauiReference.exe",
-     "bytes": 267264,
-     "linkedit_bytes": 276036,
-     "stripped_bytes": 267264
-    },
-    "remote_only": true,
-    "config_file": "windows.toml"
-   },
-   "cpp": {
-    "artifact": "C:/maui-build/examples/gallery",
-    "exists": true,
-    "measured_on": "guest (ssh)",
-    "total_bytes": 356735161,
-    "file_count": 16,
-    "buckets": {
-     "resources": 529857,
-     "code": 77050616,
-     "debug": 279154688
-    },
-    "build_config": "Debug",
-    "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 77580473,
-    "main_binary": {
-     "name": "gallery.exe",
-     "bytes": 73171968,
-     "linkedit_bytes": 279154688,
-     "stripped_bytes": 73171968
-    },
-    "remote_only": true,
-    "config_file": "windows.toml"
-   },
-   "cpp_xaml": {
-    "artifact": "C:/maui-build/examples/gallery_xaml",
-    "exists": true,
-    "measured_on": "guest (ssh)",
-    "total_bytes": 458725141,
-    "file_count": 213,
-    "buckets": {
-     "resources": 529857,
-     "code": 83964664,
-     "debug": 371437568,
-     "other": 2793052
-    },
-    "build_config": "Debug",
-    "release_grade": false,
-    "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-14",
-    "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 87287573,
-    "main_binary": {
-     "name": "gallery_xaml.exe",
-     "bytes": 79355904,
-     "linkedit_bytes": 371437568,
-     "stripped_bytes": 79355904
-    },
-    "remote_only": true,
-    "config_file": "windows.toml"
+    "build_config_detected_from": "not determined",
+    "config_file": "mobile.toml"
    }
   }
  },
- "size_measured_at": "2026-08-14T21:14:03Z",
+ "size_measured_at": "2026-08-15T03:46:35Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -543,15 +479,15 @@
   "appkit": {
    "maui_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
    },
    "cpp": {
     "measured": false,
-    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
    },
    "cpp_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
    }
   },
   "windows": {
