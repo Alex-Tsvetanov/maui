@@ -320,7 +320,13 @@ def size_table(meas):
             # The build DATE belongs beside the number. A size is only as current as the binary it
             # came from, and one of these artifacts stamps itself 1981 (reproducible Android
             # packaging writes the ZIP epoch), so "it looked recent" is not a check anyone can do.
-            note = " · ".join(x for x in (("symbols " + mb(sym)) if sym else "",
+            # An APK has no stripped figure to show, so without this its row is a bare total -- and on
+            # this board that total is the most misleading number in the table (android `cpp` reads
+            # 261.6 MB against MAUI's 28.6). Naming the native_libs bucket inline says where it went.
+            nat = (r.get("buckets") or {}).get("native_libs") or 0
+            extra = (f"native libs {mb(nat)}" if (nat and not stripped) else
+                     (("symbols " + mb(sym)) if sym else ""))
+            note = " · ".join(x for x in (extra,
                                           f"built {r['built_at']}" if r.get("built_at") else "") if x)
             rows.append(
                 f"| {lane} | `{col}` | {mb(r['total_bytes'])} | "

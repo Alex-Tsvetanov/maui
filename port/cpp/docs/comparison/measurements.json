@@ -216,11 +216,11 @@
     "release_grade": true,
     "build_config_detected_from": "path segment",
     "config_file": "mobile.toml",
-    "total_bytes": 104126138,
-    "file_count": 185,
+    "total_bytes": 104126701,
+    "file_count": 186,
     "buckets": {
-     "resources": 828476,
-     "other": 6995070,
+     "resources": 828825,
+     "other": 6995284,
      "managed": 6536496,
      "native_libs": 6540512,
      "code": 83225584
@@ -231,27 +231,57 @@
      "linkedit_bytes": 51658752,
      "stripped_bytes": 31985744
     },
-    "total_bytes_stripped": 52886298,
-    "built_at": "2026-08-11",
+    "total_bytes_stripped": 52886861,
+    "built_at": "2026-08-15",
     "built_at_from": "newest measured file"
    },
    "cpp": {
     "artifact": "port/cpp/examples/build-ios-release/gallery/gallery.app",
     "artifact_key": "artifact",
-    "exists": false,
-    "build_config": "unknown",
-    "release_grade": false,
-    "build_config_detected_from": "not determined",
-    "config_file": "mobile.toml"
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "mobile.toml",
+    "total_bytes": 18378882,
+    "file_count": 12,
+    "buckets": {
+     "resources": 531242,
+     "code": 17847640
+    },
+    "main_binary": {
+     "name": "gallery",
+     "bytes": 17847640,
+     "linkedit_bytes": 9633792,
+     "stripped_bytes": 9124952
+    },
+    "total_bytes_stripped": 9656194,
+    "built_at": "2026-08-15",
+    "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
     "artifact": "port/cpp/examples/build-ios-release/gallery_xaml/gallery_xaml.app",
     "artifact_key": "artifact",
-    "exists": false,
-    "build_config": "unknown",
-    "release_grade": false,
-    "build_config_detected_from": "not determined",
-    "config_file": "mobile.toml"
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "mobile.toml",
+    "total_bytes": 43840836,
+    "file_count": 12,
+    "buckets": {
+     "code": 43309616,
+     "resources": 531220
+    },
+    "main_binary": {
+     "name": "gallery_xaml",
+     "bytes": 43309616,
+     "linkedit_bytes": 27394048,
+     "stripped_bytes": 23084288
+    },
+    "total_bytes_stripped": 23615508,
+    "built_at": "2026-08-15",
+    "built_at_from": "newest measured file"
    }
   },
   "android": {
@@ -263,72 +293,102 @@
     "release_grade": true,
     "build_config_detected_from": "path segment",
     "config_file": "mobile.toml",
-    "total_bytes": 30279765,
-    "file_count": 1436,
+    "total_bytes": 29945019,
+    "file_count": 1082,
     "buckets": {
-     "other": 353077,
+     "other": 92755,
      "resources": 2050204,
      "code": 5612627,
-     "native_libs": 21999418
+     "native_libs": 21999243
     },
     "main_binary": {
      "name": "libassembly-store.so",
-     "bytes": 4794166,
+     "bytes": 4794164,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
-    "built_at": "2026-08-11",
+    "built_at": "2026-08-15",
     "built_at_from": "sibling file (artifact carries a reproducible-build epoch stamp)"
    },
    "cpp": {
     "artifact": "port/cpp/build/android-release/maui_android_apphost.apk",
     "artifact_key": "artifact",
-    "exists": false,
-    "build_config": "unknown",
-    "release_grade": false,
-    "build_config_detected_from": "not determined",
-    "config_file": "mobile.toml"
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "mobile.toml",
+    "total_bytes": 274344119,
+    "file_count": 811,
+    "buckets": {
+     "other": 68588,
+     "resources": 1767109,
+     "code": 4864780,
+     "native_libs": 267498928
+    },
+    "main_binary": {
+     "name": "libmaui_android_apphost.so",
+     "bytes": 267498928,
+     "linkedit_bytes": 0,
+     "stripped_bytes": null
+    },
+    "built_at": "2026-08-15",
+    "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
     "artifact": "port/cpp/build/android-release/maui_android_apphost_xaml.apk",
     "artifact_key": "artifact",
-    "exists": false,
-    "build_config": "unknown",
-    "release_grade": false,
-    "build_config_detected_from": "not determined",
-    "config_file": "mobile.toml"
+    "exists": true,
+    "build_config": "Release",
+    "release_grade": true,
+    "build_config_detected_from": "CMakeCache.txt",
+    "config_file": "mobile.toml",
+    "total_bytes": 43804925,
+    "file_count": 812,
+    "buckets": {
+     "other": 68701,
+     "resources": 1767281,
+     "code": 4864733,
+     "native_libs": 36955992
+    },
+    "main_binary": {
+     "name": "libmaui_android_apphost_xaml.so",
+     "bytes": 36955992,
+     "linkedit_bytes": 0,
+     "stripped_bytes": null
+    },
+    "built_at": "2026-08-15",
+    "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-15T03:46:35Z",
+ "size_measured_at": "2026-08-15T22:37:04Z",
  "ttff": {
   "android": {
    "maui_xaml": {
     "measured": true,
     "start_kind": "cold",
     "page": "label",
-    "n": 9,
-    "misses": 1,
+    "n": 10,
+    "misses": 0,
     "samples_s": [
-     8.142,
-     5.808,
-     6.82,
-     5.719,
-     7.066,
-     8.535,
-     14.323,
-     6.059,
-     6.058
+     7.469,
+     5.994,
+     6.2,
+     6.216,
+     7.915,
+     6.45,
+     7.166,
+     6.376,
+     6.597,
+     6.584
     ],
-    "poll_resolution_s": 1.324,
+    "poll_resolution_s": 0.816,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 5.719,
-    "median_s": 6.82,
-    "p95_s": 8.535,
-    "max_s": 14.323,
-    "miss_reasons": [
-     "no content frame within 30s (last state: splash)"
-    ]
+    "min_s": 5.994,
+    "median_s": 6.517,
+    "p95_s": 7.469,
+    "max_s": 7.915
    },
    "cpp": {
     "measured": true,
@@ -337,23 +397,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     4.292,
-     8.715,
-     8.224,
-     12.629,
-     2.879,
-     3.273,
-     4.304,
-     8.721,
-     8.8,
-     8.274
+     1.536,
+     1.349,
+     3.491,
+     1.352,
+     1.344,
+     1.452,
+     3.833,
+     1.445,
+     1.474,
+     1.48
     ],
-    "poll_resolution_s": 2.149,
+    "poll_resolution_s": 1.323,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 2.879,
-    "median_s": 8.249,
-    "p95_s": 8.8,
-    "max_s": 12.629
+    "min_s": 1.344,
+    "median_s": 1.463,
+    "p95_s": 3.491,
+    "max_s": 3.833
    },
    "cpp_xaml": {
     "measured": true,
@@ -362,23 +422,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     4.195,
-     9.374,
-     8.964,
-     2.564,
-     7.462,
-     9.179,
-     2.88,
-     3.11,
-     9.69,
-     8.965
+     1.423,
+     1.147,
+     1.448,
+     3.273,
+     1.498,
+     4.429,
+     1.415,
+     3.753,
+     3.841,
+     1.181
     ],
-    "poll_resolution_s": 2.072,
+    "poll_resolution_s": 1.286,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 2.564,
-    "median_s": 8.213,
-    "p95_s": 9.374,
-    "max_s": 9.69
+    "min_s": 1.147,
+    "median_s": 1.473,
+    "p95_s": 3.841,
+    "max_s": 4.429
    }
   },
   "ios": {
@@ -389,23 +449,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     3.099,
-     2.177,
-     2.136,
-     2.162,
-     2.057,
-     2.177,
-     2.149,
-     1.567,
-     2.21,
-     2.066
+     1.527,
+     1.469,
+     1.436,
+     1.31,
+     1.298,
+     1.494,
+     1.498,
+     1.355,
+     0.768,
+     1.49
     ],
-    "poll_resolution_s": 0.247,
+    "poll_resolution_s": 0.254,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.567,
-    "median_s": 2.155,
-    "p95_s": 2.21,
-    "max_s": 3.099
+    "min_s": 0.768,
+    "median_s": 1.453,
+    "p95_s": 1.498,
+    "max_s": 1.527
    },
    "cpp": {
     "measured": true,
@@ -414,22 +474,22 @@
     "n": 9,
     "misses": 1,
     "samples_s": [
-     1.244,
-     1.236,
-     1.253,
-     1.232,
-     1.227,
-     1.225,
-     1.238,
-     1.234,
-     1.246
+     1.19,
+     1.226,
+     1.01,
+     1.216,
+     1.23,
+     1.212,
+     1.222,
+     1.01,
+     1.215
     ],
-    "poll_resolution_s": 0.233,
+    "poll_resolution_s": 0.235,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.225,
-    "median_s": 1.236,
-    "p95_s": 1.246,
-    "max_s": 1.253,
+    "min_s": 1.01,
+    "median_s": 1.215,
+    "p95_s": 1.226,
+    "max_s": 1.23,
     "miss_reasons": [
      "no content frame within 30s (last state: unchanged)"
     ]
@@ -441,22 +501,22 @@
     "n": 9,
     "misses": 1,
     "samples_s": [
+     1.19,
+     1.006,
+     1.21,
      1.219,
-     1.273,
-     1.23,
-     1.229,
-     1.211,
-     1.242,
-     1.211,
-     1.26,
-     1.286
+     1.205,
+     1.188,
+     1.005,
+     1.204,
+     1.205
     ],
-    "poll_resolution_s": 0.235,
+    "poll_resolution_s": 0.234,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.211,
-    "median_s": 1.23,
-    "p95_s": 1.273,
-    "max_s": 1.286,
+    "min_s": 1.005,
+    "median_s": 1.204,
+    "p95_s": 1.21,
+    "max_s": 1.219,
     "miss_reasons": [
      "no content frame within 30s (last state: unchanged)"
     ]
