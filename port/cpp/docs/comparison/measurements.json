@@ -131,20 +131,20 @@
     "artifact": "C:/maui-build/maui-reference/bin/Release/net10.0-windows10.0.19041.0/win-arm64",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 178347457,
-    "file_count": 847,
+    "total_bytes": 156692979,
+    "file_count": 440,
     "buckets": {
-     "other": 25258099,
-     "resources": 3743582,
+     "other": 3603634,
+     "resources": 3743569,
      "code": 149076016,
      "debug": 269760
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "path segment",
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-14",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 178077697,
+    "total_bytes_stripped": 156423219,
     "main_binary": {
      "name": "MauiReference.exe",
      "bytes": 267264,
@@ -158,19 +158,18 @@
     "artifact": "C:/maui-build/examples/gallery",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 37909607,
-    "file_count": 427,
+    "total_bytes": 9618105,
+    "file_count": 15,
     "buckets": {
-     "resources": 529870,
-     "code": 9088248,
-     "other": 28291489
+     "resources": 529857,
+     "code": 9088248
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
     "built_at": "2026-08-15",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 37909607,
+    "total_bytes_stripped": 9618105,
     "main_binary": {
      "name": "gallery.exe",
      "bytes": 5209600,
@@ -184,19 +183,19 @@
     "artifact": "C:/maui-build/examples/gallery_xaml",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 41615680,
-    "file_count": 621,
+    "total_bytes": 13674773,
+    "file_count": 212,
     "buckets": {
-     "resources": 529870,
+     "resources": 529857,
      "code": 10351864,
-     "other": 30733946
+     "other": 2793052
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
     "built_at": "2026-08-15",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 41615680,
+    "total_bytes_stripped": 13674773,
     "main_binary": {
      "name": "gallery_xaml.exe",
      "bytes": 6273024,
@@ -225,13 +224,14 @@
      "native_libs": 6540512,
      "code": 83225584
     },
+    "extra_macho_strippable_bytes": 832848,
     "main_binary": {
      "name": "MauiReference",
      "bytes": 83225584,
      "linkedit_bytes": 51658752,
      "stripped_bytes": 31985744
     },
-    "total_bytes_stripped": 52886861,
+    "total_bytes_stripped": 52054013,
     "built_at": "2026-08-15",
     "built_at_from": "newest measured file"
    },
@@ -307,6 +307,11 @@
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
+    "native_libs_per_abi": {
+     "arm64-v8a": 10714817,
+     "x86_64": 11284426
+    },
+    "abi_count": 2,
     "built_at": "2026-08-15",
     "built_at_from": "sibling file (artifact carries a reproducible-build epoch stamp)"
    },
@@ -332,6 +337,10 @@
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
+    "native_libs_per_abi": {
+     "arm64-v8a": 22720464
+    },
+    "abi_count": 1,
     "built_at": "2026-08-16",
     "built_at_from": "newest measured file"
    },
@@ -357,12 +366,16 @@
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
+    "native_libs_per_abi": {
+     "arm64-v8a": 36956040
+    },
+    "abi_count": 1,
     "built_at": "2026-08-16",
     "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-16T14:06:45Z",
+ "size_measured_at": "2026-08-16T17:51:53Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -539,15 +552,15 @@
   "appkit": {
    "maui_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
    },
    "cpp": {
     "measured": false,
-    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
    },
    "cpp_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
    }
   },
   "windows": {

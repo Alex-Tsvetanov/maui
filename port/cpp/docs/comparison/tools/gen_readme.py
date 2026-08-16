@@ -387,7 +387,16 @@ def size_table(meas):
            "Windows it is total minus the sidecar `.pdb` files, which is exact since they are never "
            "deployed. Android APKs report no stripped figure — read their `native_libs` bucket "
            "instead, which is where an unstripped `lib/*.so` hides. The Windows rows are walked on "
-           "the guest over SSH; every other lane is measured locally.", ""]
+           "the guest over SSH; every other lane is measured locally.", "",
+           "**Two rows must not be read as a bare ratio.** *Windows* compares different DEPLOYMENT "
+           "MODES, not two builds of the same thing: MAUI ships a self-contained WindowsAppSDK "
+           "(135.18 MiB, 90.5% of its payload) while the port ships only the bootstrapper and takes "
+           "the runtime from the machine. The like-for-like comparison there is MAUI's own managed "
+           "framework+app, 4.99 MiB, against `gallery.exe`'s 4.97 MiB. *Android* compares a FAT APK "
+           "(arm64-v8a **and** x86_64, 99 `.so` each) against a single-ABI APK; a device installs one "
+           "ABI, so `native_libs_per_abi` is the figure a size claim may use — normalized that way the "
+           "sign of the comparison reverses. Full derivation: "
+           "`docs/thesis/EVIDENCE_ARTIFACT_SIZE.md`.", ""]
     if provisional:
         out += ["> **⚠ PROVISIONAL — no ratio may be quoted from this table yet.** Rows marked ⚠ are "
                 "not release-grade: the managed reference is a `Debug` build and the native builds "

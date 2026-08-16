@@ -23,6 +23,8 @@ _Android **dark** is not currently comparable: the MAUI reference renders light 
 
 Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Stripped` is always measured, never estimated, but it is obtained differently per platform because debug information lives in different places: on Apple lanes it is an actual `strip -S -x` of a copy of the main binary (symbols sit *inside* the Mach-O); on Windows it is total minus the sidecar `.pdb` files, which is exact since they are never deployed. Android APKs report no stripped figure — read their `native_libs` bucket instead, which is where an unstripped `lib/*.so` hides. The Windows rows are walked on the guest over SSH; every other lane is measured locally.
 
+**Two rows must not be read as a bare ratio.** *Windows* compares different DEPLOYMENT MODES, not two builds of the same thing: MAUI ships a self-contained WindowsAppSDK (135.18 MiB, 90.5% of its payload) while the port ships only the bootstrapper and takes the runtime from the machine. The like-for-like comparison there is MAUI's own managed framework+app, 4.99 MiB, against `gallery.exe`'s 4.97 MiB. *Android* compares a FAT APK (arm64-v8a **and** x86_64, 99 `.so` each) against a single-ABI APK; a device installs one ABI, so `native_libs_per_abi` is the figure a size claim may use — normalized that way the sign of the comparison reverses. Full derivation: `docs/thesis/EVIDENCE_ARTIFACT_SIZE.md`.
+
 | Lane | Column | On disk | Stripped | Build config | Notes |
 | --- | --- | --- | --- | --- | --- |
 | macos-arm64 | `maui_xaml` | 78.7 MB | 47.3 MB | Release | symbols 31.8 MB · built 2026-08-11 |
@@ -30,10 +32,10 @@ Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Strippe
 | macos-arm64 | `cpp_xaml` | 22.1 MB | 22.1 MB | Release | symbols 6.7 MB · built 2026-08-03 |
 | macos-appkit | `appkit_cpp` | 9.0 MB | 9.0 MB | Release | symbols 0.9 MB · built 2026-08-03 |
 | macos-appkit | `appkit_xaml` | 21.9 MB | 21.9 MB | Release | symbols 6.7 MB · built 2026-08-03 |
-| windows-arm64 | `maui_xaml` | 170.1 MB | 169.8 MB | Release | symbols 0.3 MB · built 2026-08-15 |
-| windows-arm64 | `cpp` | 36.2 MB | 36.2 MB | Release | built 2026-08-15 |
-| windows-arm64 | `cpp_xaml` | 39.7 MB | 39.7 MB | Release | built 2026-08-15 |
-| ios | `maui_xaml` | 99.3 MB | 50.4 MB | Release | symbols 49.3 MB · built 2026-08-15 |
+| windows-arm64 | `maui_xaml` | 149.4 MB | 149.2 MB | Release | symbols 0.3 MB · built 2026-08-14 |
+| windows-arm64 | `cpp` | 9.2 MB | 9.2 MB | Release | built 2026-08-15 |
+| windows-arm64 | `cpp_xaml` | 13.0 MB | 13.0 MB | Release | built 2026-08-15 |
+| ios | `maui_xaml` | 99.3 MB | 49.6 MB | Release | symbols 49.3 MB · built 2026-08-15 |
 | ios | `cpp` | 15.8 MB | 9.2 MB | Release | symbols 7.5 MB · built 2026-08-15 |
 | ios | `cpp_xaml` | 38.8 MB | 22.5 MB | Release | symbols 23.1 MB · built 2026-08-15 |
 | android | `maui_xaml` | 28.6 MB | — | Release | native libs 21.0 MB · built 2026-08-15 |
