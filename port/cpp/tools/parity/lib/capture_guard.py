@@ -106,6 +106,47 @@ def has_soft_keyboard(path: str) -> bool:
     return keyboard_verdict(path)[0]
 
 
+# ---- an EMPTY frame (a third capture-of-the-wrong-thing) -------------------------------------------
+# A page photographed before its content drew: chrome only, uniform body. Found on the committed board
+# in ios/xaml LIGHT for clip_corner_radius and clip_gallery — 1 distinct body colour each, while their
+# own dark twins and both other columns rendered fully. Both scored RED and neither was a port defect:
+# re-shooting the two pages produced frames BYTE-IDENTICAL to MAUI (0.00%). A blank frame also reads as
+# FROZEN to the motion scorer, which is how clip_gallery earned "MAUI ANIMATES and C++ & XAML IS
+# FROZEN (0.0000%)" — nothing was frozen, nothing had been drawn.
+#
+# UNLIKE the splash and the keyboard, a blank verdict is AMBIGUOUS: some pages genuinely render empty
+# (the gap_* placeholders, the Catalyst menu_bar page, whose menu lives outside the captured window).
+# So this one drives a RETRY and then ACCEPTS — a persistent blank is evidence the page really is
+# empty, while a blank that fills in on a re-shoot was a race. Never drop on it.
+BLANK_COLOURS = 4          # distinct body colours at the sample size below
+BLANK_SAMPLE = (160, 340)
+
+
+def blank_verdict(path: str) -> tuple[bool, int]:
+    """(looks_empty, distinct_body_colours). Never raises on an unreadable file."""
+    try:
+        import numpy as np
+        from PIL import Image
+    except ImportError:
+        return False, 0
+    try:
+        import numpy as np
+        from PIL import Image
+        im = Image.open(path)
+        if getattr(im, "n_frames", 1) > 1:
+            im.seek(0)
+        a = np.asarray(im.convert("RGB").resize(BLANK_SAMPLE)).astype("uint8")
+    except Exception:
+        return False, 0
+    body = a[35:-15]  # drop status bar / home indicator: present even on a page that never drew
+    n = int(len(np.unique(body.reshape(-1, 3), axis=0)))
+    return n <= BLANK_COLOURS, n
+
+
+def is_blank(path: str) -> bool:
+    return blank_verdict(path)[0]
+
+
 def splash_verdict(path: str) -> tuple[bool, float, tuple[int, int, int]]:
     """(is_splash, dominant_fraction, dominant_rgb). Never raises on an unreadable file."""
     try:

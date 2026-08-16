@@ -110,7 +110,7 @@ import time
 from datetime import datetime
 
 import gif as gifmod
-from capture_guard import is_splash
+from capture_guard import is_blank, is_splash
 from device_state import clear_ios, pin_ios, set_ios_theme
 
 UDID = os.environ.get("MAUI_SIM_UDID", "C4926671-2FA7-428E-B4A4-480692EE742B")
@@ -760,7 +760,11 @@ def capture_still(app: str, key: str, theme: str, settle: float, udid: str = UDI
         return None
     shutil.copyfile(stage, out)
     os.remove(stage)
-    if not is_splash(out):
+    # A BLANK frame retries on the same ladder as a splash. It is the same failure — the page
+    # photographed before it drew — and it scored two ios/xaml LIGHT pages RED (clip_corner_radius,
+    # clip_gallery) whose re-shoots came back byte-identical to MAUI. See capture_guard.blank_verdict
+    # for why it must never DROP the way a splash does.
+    if not is_splash(out) and not is_blank(out):
         return react(keep(out))
     for extra in (4.0, 8.0, 16.0):
         launch(app, key, udid)
@@ -770,9 +774,14 @@ def capture_still(app: str, key: str, theme: str, settle: float, udid: str = UDI
             continue
         shutil.copyfile(stage, out)
         os.remove(stage)
-        if not is_splash(out):
+        if not is_splash(out) and not is_blank(out):
             return react(keep(out))
-    os.remove(out)   # still a splash — drop it rather than bank a known-bad frame
+    if os.path.exists(out) and not is_splash(out):
+        # Blank through every retry: the page really does render empty (the gap_* placeholders, the
+        # Catalyst menu_bar page). Bank it — unlike a splash, an empty frame can be the truth.
+        return react(keep(out))
+    if os.path.exists(out):
+        os.remove(out)   # still a splash — drop it rather than bank a known-bad frame
     return None
 
 
