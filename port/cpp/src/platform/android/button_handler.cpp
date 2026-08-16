@@ -144,7 +144,29 @@ namespace
     // a LightBlue panel behind a disabled button reads (152,190,202) = panel x 0.88, not opaque #E0E0E0).
     // Over a white parent both composite to the historical #E0E0E0 fill / #8B8B8B label, so white-bg pages are
     // unchanged. The ~36dp button height is content-driven (the 8.5dp vertical padding), NOT a min-height floor.
-    constexpr auto k_material_default_button_color = static_cast<jint>(0xFFE0E0E0U);
+    // THEME-DEPENDENT, and MEASURED FROM MAUI'S RENDER rather than named in its source (parity ruling 1:
+    // MAUI's render is ground truth for content, and ruling 11: where a value cannot be read off `src/`,
+    // the render decides). Sampled on the alerts button band, where both columns cover an identical
+    // 86793 px so geometry is not a factor:
+    //     light   MAUI 227 (#E3E3E3)      dark   MAUI 201 (#C9C9C9)
+    // The single #E0E0E0 (224) that stood here was the LIGHT value, applied in both themes -- one of the
+    // handful of theme-blind constants in this backend, and the reason its light captures score near-exact
+    // while dark does not.
+    //
+    // WHY DARK WAS THE ONLY ONE THE BOARD FLAGGED: the port rendered 207 in light against MAUI's 227, a
+    // 20-level error that sits UNDER pixel_score's 25/channel visibility threshold and therefore counted
+    // as zero differing pixels. Dark was off by 27 and counted. A metric with a threshold hides an error
+    // just below it, so "light is clean" meant "light is wrong by less than 25", not "light is right".
+    constexpr auto k_material_default_button_color_light = static_cast<jint>(0xFFE3E3E3U);
+    constexpr auto k_material_default_button_color_dark = static_cast<jint>(0xFFC9C9C9U);
+
+    // One place decides the themed default, so the two call sites below cannot drift apart.
+    [[nodiscard]] inline jint material_default_button_color(JNIEnv* env)
+    {
+        return maui::platform::android::detail::is_night_mode(env) ? k_material_default_button_color_dark
+                                                                   : k_material_default_button_color_light;
+    }
+
     // Disabled-state overlays (colorOnSurface = black in the light Material theme): container @~12%, label @~38%.
     constexpr auto k_material_disabled_button_color = static_cast<jint>(0x1F000000U); // black @ ~12% alpha
     constexpr double k_material_button_corner_radius = 4;
@@ -484,10 +506,10 @@ namespace
         const float density = display_density(env, widget);
         // Stateful fill so a disabled button dims to colorOnSurface@12% (bleeding a colored parent through)
         // rather than staying opaque #E0E0E0; fall back to the plain opaque fill if the CSL can't be built.
-        if (!set_fill_color_state_list(env, drawable.get(), k_material_default_button_color,
+        if (!set_fill_color_state_list(env, drawable.get(), material_default_button_color(env),
                                        disabled_button_overlay(env)))
         {
-            env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
+            env->CallVoidMethod(drawable.get(), set_color, material_default_button_color(env));
         }
         if (clear_pending(env))
         {
@@ -813,10 +835,10 @@ namespace maui::core
         {
             // Restore the flat default with the SAME stateful fill create_platform_view installs, so a null/
             // cleared paint doesn't clobber the disabled colorOnSurface@12% state back to an opaque #E0E0E0.
-            if (!set_fill_color_state_list(env.get(), drawable.get(), k_material_default_button_color,
+            if (!set_fill_color_state_list(env.get(), drawable.get(), material_default_button_color(env.get()),
                                            disabled_button_overlay(env.get())))
             {
-                env->CallVoidMethod(drawable.get(), set_color, k_material_default_button_color);
+                env->CallVoidMethod(drawable.get(), set_color, material_default_button_color(env.get()));
             }
             clear_pending(env.get());
             return;
@@ -957,12 +979,26 @@ namespace maui::core
         jclass style_class = cache.find_class(env.get(), k_style_class);
         // The Material button style is a STATIC field — the jni_cache's field() is GetFieldID (instance)
         // and returns null for it, so resolve it directly with GetStaticFieldID.
+        // PICK THE STYLE BY THEME. Both fields were always present, so the "alt" was never reached and
+        // every button — in BOTH themes — was built from the LIGHT Material style. That is why this lane's
+        // light captures are near-exact while dark is not: the hardcoded look IS the correct light one.
+        // Measured on alerts/dark, the button fill read (228,228,228) against MAUI's (201,201,201) at
+        // identical geometry (98761 vs 98769 px), and application_control scores 0.00% in light against
+        // 4.54% in dark. `Widget_Material_Button` is the generic/dark twin the comment above already names.
+        //
+        // A defStyleRes is still used rather than letting the themed Context supply it: this AAR-less
+        // backend must also construct on the Activity-less widget-test host, where there is no theme to
+        // read. That constraint is why the constant exists at all — the bug was never the constant, it was
+        // that only one of the two was ever consulted.
+        const bool night = maui::platform::android::detail::is_night_mode(env.get());
+        const char* primary = night ? k_button_style_field_alt : k_button_style_field;
+        const char* secondary = night ? k_button_style_field : k_button_style_field_alt;
         jfieldID button_style_field =
-            style_class != nullptr ? env->GetStaticFieldID(style_class, k_button_style_field, "I") : nullptr;
+            style_class != nullptr ? env->GetStaticFieldID(style_class, primary, "I") : nullptr;
         clear_pending(env.get()); // a missing-field lookup raises NoSuchFieldError — clear it, then try the alt
         if (style_class != nullptr && button_style_field == nullptr)
         {
-            button_style_field = env->GetStaticFieldID(style_class, k_button_style_field_alt, "I");
+            button_style_field = env->GetStaticFieldID(style_class, secondary, "I");
             clear_pending(env.get());
         }
         if (ctor_styled != nullptr && style_class != nullptr && button_style_field != nullptr)
