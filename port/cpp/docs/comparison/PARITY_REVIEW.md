@@ -14,6 +14,57 @@ to the list in `port/CLAUDE.md`.
 
 ---
 
+## OPEN — android dark page surface is 18 or 47 and MAUI's own source does not say why (2026-08-16)
+
+**Needs a user ruling (port/CLAUDE.md ruling 3).** The fix direction depends entirely on which way this
+is called, so it is recorded rather than guessed at.
+
+THE MEASUREMENT. In DARK only, the android page surface is one of exactly two values: `#121212` (18) or
+`#2F2F2F` (47, which is 18 composited with white at alpha 31). MAUI picks per page; the port always
+paints 18. Across 172 dark pages:
+
+    backgrounds AGREE            144
+    MAUI 47 / port 18 (missing)   22
+    MAUI 18 / port 47 (extra)      4
+    other pair                     2
+
+and 22 of android's 26 REDS are exactly this. The correlation is with the page's scrollable root:
+`<ScrollView` present predicts MAUI=47 at 92% (146/159), and every exception is a CollectionView page.
+
+WHAT IT IS NOT — each ruled out by reading the source, not by argument:
+  * NOT the theme. Both apps use `Theme.MaterialComponents.DayNight`, whose dark `colorBackground` is
+    #121212. MAUI ships no `values-night` in Core at all.
+  * NOT Material3. `MauiAppCompatActivity.cs:27` selects a Material3 theme only when
+    `RuntimeFeature.IsMaterial3Enabled`, and `RuntimeFeature.cs:30` sets that false by default with no
+    override in the reference app. Both sides are Material 2.
+  * NOT `scrollViewTheme`. `ScrollViewHandler.Android.cs:13` does wrap the ScrollView in a
+    ContextThemeWrapper, which looked promising, but `styles.xml:97-107` shows that theme sets ONLY
+    `android:scrollbars`. No colour.
+  * NOT a harness card. Ruling 2's inset card belonged to the retired `~/maui-compare` app; the current
+    reference (ruling 6) hosts pages directly and `App.xaml` merges no Styles.xaml.
+  * NOT elevation arithmetic that lands on a round dp. 47 from 18 needs alpha 12.24%, i.e. ~8.72dp under
+    Material's `4.5*ln(e+1)+2` overlay curve. 8dp gives 46, 12dp gives 50.
+
+THE PORT SIDE IS ONE LINE, and it is a real divergence regardless of how this is ruled:
+`src/platform/android/apphost/MauiHostActivity.java:106` HARDCODES
+`int surface = "dark".equals(appearance) ? 0xFF121212 : 0xFFFFFFFF` for every page, where MAUI resolves
+its surface from the theme. So the port cannot vary per page even in principle.
+
+THE RULING NEEDED — which of these is it?
+  (a) PORT BUG: MAUI's 47 is intended page surface, and the port must reproduce it. Then the port needs
+      the real predicate, which is still unknown; matching on "page root is a ScrollView" would pass the
+      pixels while encoding a rule MAUI does not have, and would break on every new page.
+  (b) MAUI-SIDE QUIRK (ruling 3): an emergent Material behaviour of MAUI's CoordinatorLayout +
+      AppBarLayout + `appbar_scrolling_view_behavior` root that nothing in MAUI's source asks for. Then
+      these 22 reds are exempt like rulings 7/8/9/10, and android's red count drops to 4 -- in line with
+      the other three lanes.
+
+NOT A REASON TO REWRITE THE ANDROID BACKEND. Measured on the same board: median LIGHT diff across every
+non-green android page is 0.01%, pages like `collectionview` are BYTE-EXACT in light and 93% off in dark,
+144 of 172 dark backgrounds already agree, and the board reports ZERO missing or spurious animations on
+any platform. A wrongly-architected port fails in both themes and drops animations; this one does neither.
+
+
 ## 1. ✅ RESOLVED (2026-07-16) — `src/` vs SHIPPED MAUI CheckBox sizing: the RENDER wins
 
 **Ruling (user, 2026-07-16): the render wins — drop the 44 floor.** Now `port/CLAUDE.md` ruling 11.
