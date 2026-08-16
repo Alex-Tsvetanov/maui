@@ -41,6 +41,70 @@ NET_PURPLE = (87, 41, 221)
 COLOUR_TOLERANCE = 60      # sum of per-channel absolute differences
 DOMINANCE = 0.90           # fraction of the body that must be that one colour
 
+# ---- the Android soft keyboard (a SECOND capture-of-the-wrong-thing) -------------------------------
+# Same class of defect as the splash, different mechanism. On Android the IME is a separate PROCESS, so
+# force-stopping the gallery between pages does not take its window down: a page whose scenario focused
+# a field can leave the keyboard composited over the NEXT page's still. Verified by eye on the committed
+# board — `focus` and `shadow_playground` carry a full Gboard in BOTH port columns while MAUI's column is
+# clean, which is most of what scored those two pages RED. It is not app behaviour: cold-launching either
+# page with no input shows no keyboard and `dumpsys input_method` reports mInputShown=false.
+#
+# The IME is composited OVER the page, unchanged, so the band is byte-identical between two frames of
+# entirely different pages (measured: y1478..2340 of 2340, 36.8% of the frame, zero differing pixels).
+# That is what makes a colour-fraction test safe here rather than a guess.
+#
+# WHY NOT A COLOUR TEST: two of them failed here. "Is the bottom band busy" called `label` (plain text
+# over a grey button) a keyboard while MISSING the real one in `cpp/focus_light.png` — both errors
+# confirmed by looking at the frames. "What fraction of the band is IME chrome grey" fails the other
+# way: a real keyboard scores 0.367, but a page whose own background is that grey (shapes,
+# staggered_layout, path_transform_string) scores 0.99-1.00, so no one-sided threshold separates them.
+#
+# What DOES separate them is that the IME is not page content at all — it is the same widget composited
+# over whatever is beneath, so its key grid is reproduced EXACTLY. Matching the qwerty rows against a
+# stored crop of them splits the board cleanly:
+#     contaminated                                        1.000 (exact, every one)
+#     cleanest-possible false positive (a white page)     0.606
+# The gap is enormous because an exact match is the actual physical claim being tested. The qwerty rows
+# are the reference rather than the whole keyboard because the suggestion strip carries typed text and
+# the bottom-right action key changes shape per field (✓ / search glyph) — those rows differ between
+# otherwise identical captures, the letter rows never do.
+#
+# The reference is stored as a FRACTION of frame height, not pixel rows, so a different device
+# resolution rescales instead of silently missing.
+IME_REFERENCE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ime_reference_android.png")
+IME_BAND = (1650 / 2340, 2000 / 2340)  # the qwerty key grid, as a fraction of frame height
+IME_REF_SIZE = (216, 70)               # the reference is stored downscaled; frames are matched at it
+IME_PIXEL_TOLERANCE = 18               # per-channel, to survive the PNG round-trip and the downscale
+IME_MATCH = 0.90                       # contaminated frames land on 1.000; the best clean frame is 0.61
+
+
+def keyboard_verdict(path: str) -> tuple[bool, float]:
+    """(shows_soft_keyboard, key_grid_match). Never raises on an unreadable file or a missing ref."""
+    try:
+        import numpy as np
+        from PIL import Image
+    except ImportError:  # keep the capture scripts usable without numpy/PIL installed
+        return False, 0.0
+    try:
+        import numpy as np
+        from PIL import Image
+
+        def grid(p: str):
+            im = Image.open(p).convert("RGB")
+            w, h = im.size
+            return np.asarray(im.crop((0, int(h * IME_BAND[0]), w, int(h * IME_BAND[1])))
+                              .resize(IME_REF_SIZE)).astype(int)
+
+        ref = np.asarray(Image.open(IME_REFERENCE).convert("RGB").resize(IME_REF_SIZE)).astype(int)
+        frac = float((np.abs(grid(path) - ref).max(axis=2) <= IME_PIXEL_TOLERANCE).mean())
+    except Exception:
+        return False, 0.0
+    return frac >= IME_MATCH, frac
+
+
+def has_soft_keyboard(path: str) -> bool:
+    return keyboard_verdict(path)[0]
+
 
 def splash_verdict(path: str) -> tuple[bool, float, tuple[int, int, int]]:
     """(is_splash, dominant_fraction, dominant_rgb). Never raises on an unreadable file."""
@@ -92,18 +156,30 @@ def capture_until_ready(shoot, out_path: str, attempts: int = 4, backoff: float 
 def main() -> int:
     import argparse
     import glob
-    ap = argparse.ArgumentParser(description="report splash frames under one or more directories")
+    ap = argparse.ArgumentParser(description="report splash / soft-keyboard frames under one or more paths")
     ap.add_argument("paths", nargs="+")
+    ap.add_argument("--keyboard", action="store_true",
+                    help="check for a stray Android soft keyboard instead of a .NET splash. Exit 1 on a "
+                         "hit, so a shell capture loop can `if ! python3 capture_guard.py --keyboard f`.")
+    ap.add_argument("--quiet", action="store_true", help="exit code only (for per-frame shell checks)")
     a = ap.parse_args()
     bad = 0
     for p in a.paths:
         files = sorted(glob.glob(os.path.join(p, "*.png"))) if os.path.isdir(p) else [p]
         for f in files:
+            if a.keyboard:
+                ok, frac = keyboard_verdict(f)
+                if ok:
+                    bad += 1
+                    if not a.quiet:
+                        print(f"KEYBOARD {f}  key grid matches the IME reference at {frac * 100:.1f}%")
+                continue
             ok, frac, dom = splash_verdict(f)
             if ok:
                 bad += 1
                 print(f"SPLASH {f}  dominant {dom} at {frac * 100:.1f}%")
-    print(f"{bad} splash frame(s)")
+    if not a.quiet:
+        print(f"{bad} {'keyboard' if a.keyboard else 'splash'} frame(s)")
     return 1 if bad else 0
 
 

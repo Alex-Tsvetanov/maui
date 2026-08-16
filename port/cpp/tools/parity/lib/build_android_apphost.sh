@@ -400,6 +400,22 @@ capture_one() {
     return 0
   fi
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
+  # THE SOFT KEYBOARD IS A SECOND FOREIGN WINDOW, and the foreground check above cannot see it: the IME
+  # belongs to a DIFFERENT PROCESS, so `am force-stop` on the gallery does not take it down and
+  # dumpsys still names our package as resumed. A page whose scenario focused a field leaves Gboard
+  # composited over the NEXT page's still, covering ~37% of the frame.
+  #
+  # This is not hypothetical either: the guard found 37 such frames already committed, across 14 pages
+  # in alphabetically CONTIGUOUS runs (data_template_selector -> empty_view* -> filter_selection ->
+  # focus) — one stretch of one run, the same shape as the splash incident. On 5 of those pages only the
+  # PORT columns were contaminated while MAUI's was clean, which is most of what scored
+  # border_playground / focus / shadow_playground RED.
+  #
+  # Shared with the xaml and MAUI columns (android-emu-lib.sh): all three leak, and the fix is identical.
+  if ! reshoot_without_keyboard "${out_dir}/${key}${suffix}.png" "${activity}" "${pkg}" "${key}"; then
+    echo "@@PARITY END ${key} cpp ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   echo "@@PARITY END ${key} cpp ${appearance} $((SECONDS - _parity_t0))"
   echo "[apphost] wrote ${out_dir}/${key}${suffix}.png" >&2
 }

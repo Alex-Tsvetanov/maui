@@ -126,3 +126,46 @@ maui_android_shell_quote() {
   local s="${1//\'/\'\\\'\'}"
   printf "'%s'" "${s}"
 }
+
+# ---- the soft keyboard is a SECOND foreign window --------------------------------------------------
+# The Android IME is a DIFFERENT PROCESS, so `am force-stop` on the gallery does not take its window
+# down and a foreground check still names our package as resumed. A page whose scenario focused a field
+# leaves Gboard composited over the NEXT page's still, covering ~37% of the frame.
+#
+# Not hypothetical: capture_guard.py found 37 such frames already committed, across 14 pages, in
+# alphabetically CONTIGUOUS runs (data_template_selector -> empty_view* -> filter_selection -> focus) —
+# one stretch of one run, the same shape as the splash incident that guard was written for. On 5 of
+# those pages only the PORT columns were contaminated while MAUI's was clean, which is most of what
+# scored border_playground / focus / shadow_playground RED. All three columns leak, so this lives here
+# rather than in any one capture script.
+#
+# Recovery is a full IME reset, not a keystroke: ESCAPE and CLOSE_SYSTEM_DIALOGS both leave it up, and
+# keyevent BACK is banned in these lanes (it closes the Activity when no dialog is up). Force-stopping
+# the IME package is the one action nothing can swallow; it restarts on demand at the next field tap.
+#
+# Returns 0 when the frame at $1 is clean (possibly after one re-shoot), 1 when it was DROPPED — a
+# missing capture is a loud fixable gap, a keyboard banked as a render is a 37%-of-frame "defect".
+maui_android_reshoot_without_keyboard() {
+  local out="$1" activity="$2" pkg="$3" key="$4"
+  local guard="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/parity/lib/capture_guard.py"
+  [[ -f "${guard}" && -f "${out}" ]] || return 0
+  python3 "${guard}" --keyboard --quiet "${out}" && return 0
+  echo "[android] ~ ${key}: soft keyboard over the page — resetting the IME and re-shooting" >&2
+  local ime
+  ime="$("${maui_adb}" -s "${maui_serial}" shell settings get secure default_input_method 2>/dev/null \
+        | cut -d/ -f1 | tr -d '\r')"
+  [[ -n "${ime}" ]] && "${maui_adb}" -s "${maui_serial}" shell am force-stop "${ime}" > /dev/null 2>&1
+  "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
+  sleep 1
+  "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
+    --es MAUI_SAMPLE_PAGE "${key}" > /dev/null 2>&1 || true
+  sleep 4
+  "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out}"
+  python3 "${guard}" --keyboard --quiet "${out}" && return 0
+  rm -f "${out}"
+  echo "[android] !! ${key}: keyboard survived the IME reset — frame DROPPED" >&2
+  return 1
+}
+
+# Short alias the capture scripts call (they already source this file).
+reshoot_without_keyboard() { maui_android_reshoot_without_keyboard "$@"; }

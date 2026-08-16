@@ -138,6 +138,13 @@ capture_one() {
   # scrollbar is still faintly visible at this step's old 1.5s and completely gone by 4s.)
   sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
+  # The IME is a second foreign window no resumed-activity check can see (android-emu-lib.sh). THE
+  # GROUND TRUTH LEAKS TOO — 9 committed frames in this column — and a keyboard in the reference is
+  # worse than one in a port column: it scores as a port defect on a page the port rendered correctly.
+  if ! reshoot_without_keyboard "${out_dir}/${key}${suffix}.png" "${activity}" "${pkg}" "${key}"; then
+    echo "@@PARITY END ${key} maui ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   echo "@@PARITY END ${key} maui ${appearance} $((SECONDS - _parity_t0))"
   echo "[csharp-android] wrote ${out_dir}/${key}${suffix}.png ($(stat -f%z "${out_dir}/${key}${suffix}.png" 2>/dev/null || echo 0)B)" >&2
 }

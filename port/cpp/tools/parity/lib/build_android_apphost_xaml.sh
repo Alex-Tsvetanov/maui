@@ -356,6 +356,12 @@ capture_one() {
     return 0
   fi
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
+  # The IME is a second foreign window the resumed-activity check above cannot see (android-emu-lib.sh).
+  # This column had 14 such frames committed.
+  if ! reshoot_without_keyboard "${out_dir}/${key}${suffix}.png" "${activity}" "${pkg}" "${key}"; then
+    echo "@@PARITY END ${key} xaml ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   echo "@@PARITY END ${key} xaml ${appearance} $((SECONDS - _parity_t0))"
   echo "[apphost-xaml] wrote ${out_dir}/${key}${suffix}.png" >&2
 }
