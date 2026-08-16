@@ -321,14 +321,14 @@
     "total_bytes": 29567159,
     "file_count": 811,
     "buckets": {
-     "other": 68587,
+     "other": 68588,
      "resources": 1767109,
      "code": 4864780,
-     "native_libs": 22720528
+     "native_libs": 22720464
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 22720528,
+     "bytes": 22720464,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
@@ -349,11 +349,11 @@
      "other": 68703,
      "resources": 1767281,
      "code": 4864733,
-     "native_libs": 36955952
+     "native_libs": 36956040
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 36955952,
+     "bytes": 36956040,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
@@ -362,7 +362,7 @@
    }
   }
  },
- "size_measured_at": "2026-08-16T05:45:30Z",
+ "size_measured_at": "2026-08-16T14:06:45Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -372,23 +372,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     6.265,
-     5.086,
-     4.773,
-     4.863,
-     4.709,
-     4.803,
-     5.57,
-     5.378,
-     5.332,
-     4.954
+     5.926,
+     5.155,
+     5.402,
+     4.421,
+     4.527,
+     4.782,
+     5.236,
+     5.358,
+     6.915,
+     5.172
     ],
-    "poll_resolution_s": 0.634,
+    "poll_resolution_s": 0.675,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 4.709,
-    "median_s": 5.02,
-    "p95_s": 5.57,
-    "max_s": 6.265
+    "min_s": 4.421,
+    "median_s": 5.204,
+    "p95_s": 5.926,
+    "max_s": 6.915
    },
    "cpp": {
     "measured": true,
@@ -397,23 +397,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.046,
-     3.593,
-     2.604,
-     2.996,
-     3.379,
-     1.011,
-     1.432,
-     2.85,
-     1.494,
-     2.994
+     2.174,
+     1.121,
+     2.653,
+     2.31,
+     2.879,
+     2.159,
+     2.411,
+     2.456,
+     2.273,
+     2.592
     ],
-    "poll_resolution_s": 0.94,
+    "poll_resolution_s": 0.723,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.011,
-    "median_s": 2.727,
-    "p95_s": 3.379,
-    "max_s": 3.593
+    "min_s": 1.121,
+    "median_s": 2.361,
+    "p95_s": 2.653,
+    "max_s": 2.879
    },
    "cpp_xaml": {
     "measured": true,
@@ -422,23 +422,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     2.663,
-     3.802,
-     2.652,
-     2.593,
-     3.794,
-     2.727,
-     2.621,
-     1.108,
-     3.345,
-     1.397
+     2.123,
+     3.252,
+     1.84,
+     2.461,
+     2.416,
+     2.603,
+     3.049,
+     2.338,
+     2.23,
+     2.5
     ],
-    "poll_resolution_s": 0.89,
+    "poll_resolution_s": 0.708,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.108,
-    "median_s": 2.657,
-    "p95_s": 3.794,
-    "max_s": 3.802
+    "min_s": 1.84,
+    "median_s": 2.438,
+    "p95_s": 3.049,
+    "max_s": 3.252
    }
   },
   "ios": {
