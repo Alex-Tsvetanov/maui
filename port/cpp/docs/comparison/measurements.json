@@ -324,15 +324,15 @@
      "other": 68587,
      "resources": 1767109,
      "code": 4864780,
-     "native_libs": 22720592
+     "native_libs": 22720528
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 22720592,
+     "bytes": 22720528,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-16",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -346,23 +346,23 @@
     "total_bytes": 43804925,
     "file_count": 812,
     "buckets": {
-     "other": 68699,
+     "other": 68703,
      "resources": 1767281,
      "code": 4864733,
-     "native_libs": 36956088
+     "native_libs": 36955952
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 36956088,
+     "bytes": 36955952,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-16",
     "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-15T23:45:21Z",
+ "size_measured_at": "2026-08-16T05:45:30Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -372,23 +372,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     7.469,
-     5.994,
-     6.2,
-     6.216,
-     7.915,
-     6.45,
-     7.166,
-     6.376,
-     6.597,
-     6.584
+     6.265,
+     5.086,
+     4.773,
+     4.863,
+     4.709,
+     4.803,
+     5.57,
+     5.378,
+     5.332,
+     4.954
     ],
-    "poll_resolution_s": 0.816,
+    "poll_resolution_s": 0.634,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 5.994,
-    "median_s": 6.517,
-    "p95_s": 7.469,
-    "max_s": 7.915
+    "min_s": 4.709,
+    "median_s": 5.02,
+    "p95_s": 5.57,
+    "max_s": 6.265
    },
    "cpp": {
     "measured": true,
@@ -397,23 +397,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.536,
-     1.349,
-     3.491,
-     1.352,
-     1.344,
-     1.452,
-     3.833,
-     1.445,
-     1.474,
-     1.48
+     1.046,
+     3.593,
+     2.604,
+     2.996,
+     3.379,
+     1.011,
+     1.432,
+     2.85,
+     1.494,
+     2.994
     ],
-    "poll_resolution_s": 1.323,
+    "poll_resolution_s": 0.94,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.344,
-    "median_s": 1.463,
-    "p95_s": 3.491,
-    "max_s": 3.833
+    "min_s": 1.011,
+    "median_s": 2.727,
+    "p95_s": 3.379,
+    "max_s": 3.593
    },
    "cpp_xaml": {
     "measured": true,
@@ -422,23 +422,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.423,
-     1.147,
-     1.448,
-     3.273,
-     1.498,
-     4.429,
-     1.415,
-     3.753,
-     3.841,
-     1.181
+     2.663,
+     3.802,
+     2.652,
+     2.593,
+     3.794,
+     2.727,
+     2.621,
+     1.108,
+     3.345,
+     1.397
     ],
-    "poll_resolution_s": 1.286,
+    "poll_resolution_s": 0.89,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.147,
-    "median_s": 1.473,
-    "p95_s": 3.841,
-    "max_s": 4.429
+    "min_s": 1.108,
+    "median_s": 2.657,
+    "p95_s": 3.794,
+    "max_s": 3.802
    }
   },
   "ios": {
@@ -539,15 +539,15 @@
   "appkit": {
    "maui_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
    },
    "cpp": {
     "measured": false,
-    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
    },
    "cpp_xaml": {
     "measured": false,
-    "reason": "same as maccatalyst — VM capture round trip dominates the measurement."
+    "reason": "same as maccatalyst \u2014 VM capture round trip dominates the measurement."
    }
   },
   "windows": {
