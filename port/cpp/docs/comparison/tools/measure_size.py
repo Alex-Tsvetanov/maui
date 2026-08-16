@@ -71,7 +71,19 @@ def sh(*cmd, **kw) -> str:
 # beside it), and that directory also holds CMakeFiles/ — 636 MB of object files for one column.
 # Counting those would inflate the native side by an order of magnitude and produce a number that
 # is not merely imprecise but backwards.
-SKIP_DIRS = {"CMakeFiles", "__pycache__"}
+SKIP_DIRS = {"CMakeFiles", "__pycache__",
+             # WebView2's RUNTIME cache, created by the app when it first runs — not a build output.
+             # It is the single largest correction on this board: 74.6% of the port's measured Windows
+             # directory was `<exe>.WebView2/EBWebView/{Cache_Data,Code Cache,GPUCache,…}`, which turned a
+             # 16.3x payload difference into a published 4.7x. Matched by NAME below, since the parent is
+             # `<exe>.WebView2` and the exe name varies per column.
+             "EBWebView"}
+# Directory-name SUFFIXES pruned the same way. `<gallery>.WebView2/` is per-exe, so it cannot be listed
+# by name.
+SKIP_DIR_SUFFIX = (".WebView2",)
+# Build inputs/intermediates that live inside a target dir. The Windows lane generates its XAML
+# translation units into the build tree (2.66 MiB of .cpp), which is source, not shipped payload.
+SKIP_SUFFIX_SOURCE = {".cpp", ".h", ".hpp", ".c", ".cc"}
 SKIP_SUFFIX = {".o", ".obj", ".d", ".ninja_deps", ".ninja_log", ".tlog", ".ilk"}
 SKIP_NAMES = {"CMakeCache.txt", "cmake_install.cmake", "CTestTestfile.cmake", "Makefile",
               "build.ninja", "compile_commands.json", ".ninja_log", ".ninja_deps"}
@@ -82,9 +94,13 @@ def walk_files(root: Path):
         yield root
         return
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.endswith(".dSYM")]
+        dirnames[:] = [d for d in dirnames
+                       if d not in SKIP_DIRS and not d.endswith(".dSYM")
+                       and not d.endswith(SKIP_DIR_SUFFIX)]
         for f in filenames:
             if f in SKIP_NAMES or Path(f).suffix in SKIP_SUFFIX:
+                continue
+            if Path(f).suffix in SKIP_SUFFIX_SOURCE:
                 continue
             p = Path(dirpath) / f
             if p.is_file() and not p.is_symlink():
@@ -119,7 +135,11 @@ def measured_stripped_bytes(binary: Path) -> int | None:
         tmp = Path(td) / binary.name
         try:
             shutil.copy2(binary, tmp)
-            subprocess.run(["strip", "-S", "-x", str(tmp)], capture_output=True, timeout=120)
+            # check=True: a FAILED strip used to be swallowed and the UNSTRIPPED size returned as
+            # though it were the stripped one -- silently crediting a binary with a saving it never
+            # made. Verified by hand that strip currently succeeds on every Mach-O here, so this
+            # closes a live hole rather than fixing an observed wrong number.
+            subprocess.run(["strip", "-S", "-x", str(tmp)], capture_output=True, timeout=120, check=True)
             return tmp.stat().st_size
         except Exception:
             return None
@@ -421,6 +441,7 @@ def measure_apk(path: Path) -> dict:
     buckets: dict[str, int] = {}
     entries = 0
     biggest_so = ("", 0)
+    per_abi: dict[str, int] = {}
     try:
         with zipfile.ZipFile(path) as z:
             for i in z.infolist():
@@ -428,7 +449,11 @@ def measure_apk(path: Path) -> dict:
                     continue
                 entries += 1
                 buckets[bucket_apk(i.filename)] = buckets.get(bucket_apk(i.filename), 0) + i.compress_size
-                if i.filename.lower().endswith(".so") and i.compress_size > biggest_so[1]:
+                low = i.filename.replace("\\", "/").lower()
+                if low.startswith("lib/") and low.endswith(".so"):
+                    abi = i.filename.replace("\\", "/").split("/")[1]
+                    per_abi[abi] = per_abi.get(abi, 0) + i.compress_size
+                if low.endswith(".so") and i.compress_size > biggest_so[1]:
                     biggest_so = (i.filename, i.compress_size)
     except (zipfile.BadZipFile, OSError) as exc:
         return {"total_bytes": path.stat().st_size, "file_count": 1, "buckets": {},
@@ -444,6 +469,14 @@ def measure_apk(path: Path) -> dict:
     if biggest_so[0]:
         rec["main_binary"] = {"name": os.path.basename(biggest_so[0]), "bytes": biggest_so[1],
                               "linkedit_bytes": 0, "stripped_bytes": None}
+    # PER-ABI TOTALS. The reference APK is a FAT APK -- arm64-v8a AND x86_64, 99 .so each -- while the
+    # port ships one ABI because its preset asks for one (CMakePresets.json ANDROID_ABI=arm64-v8a).
+    # Summing lib/ across both therefore compared TWO architectures against ONE, and reporting that as
+    # a single APK total made the port look at parity when normalizing to arm64-v8a alone reverses the
+    # sign. A device installs exactly one ABI, so the per-ABI figure is the one a size claim may use.
+    if per_abi:
+        rec["native_libs_per_abi"] = per_abi
+        rec["abi_count"] = len(per_abi)
     rec["built_at"], rec["built_at_from"] = artifact_built_at(path, None)
     return rec
 
@@ -467,6 +500,18 @@ def measure_artifact(path: Path) -> dict:
         main = machos[0]
         symbols = linkedit_bytes(main)
         stripped = measured_stripped_bytes(main)
+        # EVERY Mach-O, not only the largest. The iOS reference bundle ships its runtime as 11 separate
+        # .dylib carrying 832 848 B of strippable symbols that were never counted, so the managed side was
+        # credited a smaller stripped figure than it earns. Catalyst links the runtime INTO the executable,
+        # which is why the same bug is invisible there — an asymmetry between the two Apple lanes rather
+        # than a property of either.
+        others = 0
+        for extra in machos[1:]:
+            got = measured_stripped_bytes(extra)
+            if got is not None:
+                others += extra.stat().st_size - got
+        if others:
+            rec["extra_macho_strippable_bytes"] = others
         rec["main_binary"] = {
             "name": main.name,
             "bytes": main.stat().st_size,
@@ -475,7 +520,7 @@ def measure_artifact(path: Path) -> dict:
         }
         if stripped is not None:
             # What the bundle WOULD weigh with the main binary stripped. The honest native number.
-            rec["total_bytes_stripped"] = total - main.stat().st_size + stripped
+            rec["total_bytes_stripped"] = total - main.stat().st_size + stripped - others
     newest = max((f.stat().st_mtime for f in files), default=None)
     rec["built_at"], rec["built_at_from"] = artifact_built_at(path, newest)
     return rec
