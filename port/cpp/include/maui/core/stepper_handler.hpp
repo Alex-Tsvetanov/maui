@@ -34,6 +34,17 @@
 #include "maui/graphics/rect.hpp"
 #include "maui/graphics/size.hpp"
 
+#ifdef MAUI_PLATFORM_ANDROID
+namespace maui::platform::android
+{
+    // The click trampoline the android partial owns (src/platform/android/android_dialog_ops.hpp).
+    // Forward-declared for the same reason button_handler.hpp does it: this cross-platform header must
+    // not see the JNI seam, and a shared_ptr to an incomplete type is well-formed while it is only
+    // default-constructed and destroyed here.
+    struct dialog_trampoline;
+} // namespace maui::platform::android
+#endif
+
 namespace maui::core
 {
     // Derives view_platform_base so the shared view_mapper can push the generic IView properties onto
@@ -133,6 +144,18 @@ namespace maui::core
         void* up_button = nullptr;
         move_only_function<void()> on_minus;
         move_only_function<void()> on_plus;
+        // The View.OnClickListener peers that make on_minus/on_plus REACHABLE from a real tap. Until
+        // these existed the two callbacks were correct and unreachable: the handler adjusted Value and
+        // re-ran UpdateButtons exactly as StepperExtensions does, but nothing ever called them, because
+        // setOnClickListener was never installed. Measured before the fix, on a live emulator with a tap
+        // on the "+" segment: 0 changed pixels inside the stepper, against MAUI's 391.
+        //
+        // ONE PEER PER BUTTON, not one for the control: dialog_trampoline carries a single on_click, and
+        // the two segments do opposite things. Same shared_ptr + registry-id ownership button_platform
+        // uses, for the same reason -- a tap arriving after teardown must resolve to nothing rather than
+        // dereference freed storage.
+        std::shared_ptr<maui::platform::android::dialog_trampoline> minus_peer;
+        std::shared_ptr<maui::platform::android::dialog_trampoline> plus_peer;
         void update_visibility(maui::core::visibility value) override;
         void update_opacity(double value) override;
         void update_is_enabled(bool value) override;

@@ -67,6 +67,7 @@
 #include <memory>
 #include <string_view>
 
+#include "android_dialog_ops.hpp" // the shared click-listener seam (install/release)
 #include "android_semantics_ops.hpp"
 #include "android_view_ops.hpp"
 #include "android_visual_ops.hpp"
@@ -653,17 +654,62 @@ namespace maui::core
                 }
             }
         };
-        // The real SetOnClickListener install on each button is deferred (no host listener class) — when the
-        // stepper click trampoline lands, wire it here exactly as button_handler.cpp wires its click
-        // listener (RegisterNatives + NewObject(listener, peer) + setOnClickListener on each button).
+        // INSTALL THE LISTENERS. Without this the two callbacks above were correct and UNREACHABLE:
+        // on_minus/on_plus adjust Value and re-run update_buttons exactly as StepperExtensions.cs does,
+        // but nothing ever invoked them because setOnClickListener was never called. Measured live before
+        // this landed, tapping the "+" segment: 0 changed pixels inside the stepper against MAUI's 391 --
+        // so the page read as "the port does not repaint the disabled minus segment" when in fact no
+        // click ever arrived. Same install helper button_handler and date_picker already use.
+        //
+        // ONE PEER PER BUTTON: dialog_trampoline carries a single on_click and the two segments do
+        // opposite things. The peers own the bodies and are registry-registered, so a tap arriving after
+        // teardown resolves to nothing rather than dereferencing freed storage.
+        const scoped_env env;
+        if (!env)
+        {
+            return;
+        }
+        // make_dialog_peer, NOT make_shared: the bridge carries the peer's monotonic ID as a jlong and
+        // looks it up in the live-peer registry, and ONLY make_dialog_peer inserts it there. A raw
+        // make_shared peer is a well-formed trampoline that no callback can ever reach -- every tap
+        // resolves to nullptr and is dropped in silence. Measured: the listeners installed (logged),
+        // the "+" segment was enabled and hit-tested (uiautomator bounds), and still zero pixels moved.
+        platform.minus_peer = maui::platform::android::make_dialog_peer();
+        platform.plus_peer = maui::platform::android::make_dialog_peer();
+        platform.minus_peer->on_click = [p = &platform] {
+            if (p->on_minus)
+            {
+                p->on_minus();
+            }
+        };
+        platform.plus_peer->on_click = [p = &platform] {
+            if (p->on_plus)
+            {
+                p->on_plus();
+            }
+        };
+        maui::platform::android::install_dialog_click_listener(env.get(), static_cast<jobject>(platform.down_button),
+                                                               platform.minus_peer.get());
+        maui::platform::android::install_dialog_click_listener(env.get(), static_cast<jobject>(platform.up_button),
+                                                               platform.plus_peer.get());
     }
 
     void stepper_handler::on_disconnect_handler(stepper_platform& platform)
     {
-        // StepperListener uninstall is deferred with the listener install (header note); drop the callbacks.
+        // DisconnectHandler: uninstall BOTH listeners, then drop the callbacks and the peers. Order
+        // matters and is the same release_dialog_seam enforces for button/date_picker -- uninstall needs
+        // a live View, and dropping a peer unregisters it, so a tap already in flight resolves to nothing
+        // instead of reaching a cleared callback.
+        //
+        // TWO seams, because this control installed two listeners on two different Buttons. The stepper
+        // owns no dialog, so each dialog slot is a local null; passing it keeps the ONE shared teardown
+        // path rather than a stepper-shaped variant that can drift from it.
         platform.on_value_changed = nullptr;
         platform.on_minus = nullptr;
         platform.on_plus = nullptr;
+        void* no_dialog = nullptr;
+        maui::platform::android::release_dialog_seam(platform.down_button, no_dialog, platform.minus_peer);
+        maui::platform::android::release_dialog_seam(platform.up_button, no_dialog, platform.plus_peer);
     }
 
     void stepper_handler::map_increment(stepper_handler& handler, i_stepper& view)
