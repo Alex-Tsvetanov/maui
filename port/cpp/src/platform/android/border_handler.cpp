@@ -909,7 +909,26 @@ namespace
         // treated as unstroked here too.
         apply_border_drawable_inset(env.get(), host, drawable.get(),
                                     border_drawable_self_inset_px(spec, thickness, density));
-        const jint width_px = to_pixels(geometry_thickness, density);
+        // FLOOR, not the ContextExtensions.ToPixels CEIL. MAUI never converts the stroke width to an
+        // integer at all: BorderDrawable.cs:277 assigns `_borderPaint.StrokeWidth = _strokeThickness`, a
+        // FLOAT, and ContextExtensions.ToPixels itself returns float. A float-width antialiased stroke has
+        // a fully-saturated core of floor(w) with soft edges either side, so the visible run MAUI produces
+        // is the floor. GradientDrawable.setStroke takes an `int`, so this route cannot carry the fraction
+        // -- but it can at least land on the same whole pixel.
+        //
+        // MEASURED on border_stroke/dark, every authored thickness at density 2.75, side strokes only:
+        //     StrokeThickness   1       5      10
+        //     px                2.75   13.75   27.50
+        //     MAUI              2      13      27      <- floor
+        //     port (ceil)       3      14      28      <- one pixel too wide, every time
+        // and that extra pixel per side is exactly the +2 on both dimensions seen on border/dark
+        // (MAUI 766x436 against the port's 768x438).
+        //
+        // to_pixels KEEPS its ceil everywhere else: it mirrors ContextExtensions.ToPixels, which MAUI does
+        // use for sizes and corner radii. The bug was applying a size conversion to a value MAUI never
+        // converts.
+        const jint width_px =
+            static_cast<jint>(std::floor((geometry_thickness * static_cast<double>(density)) + k_to_pixels_epsilon));
         const jint argb = spec.has_stroke ? static_cast<jint>(spec.stroke_color.to_int()) : 0;
         // StrokeExtensions.UpdateStrokeColor/Thickness + MauiDrawable.SetBorderDash → the stroke outline.
         // When StrokeDashArray is set, MauiDrawable.SetBorderDash builds a DashPathEffect whose dash lengths
