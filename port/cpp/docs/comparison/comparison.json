@@ -187,6 +187,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1373,
+              "port": 0.127
+            },
             "stills": "d741d40cef58fe01"
           }
         },
@@ -203,6 +207,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1373,
+              "port": 0.1409
+            },
             "stills": "2a8d0f115dd5251c"
           }
         }
@@ -255,6 +263,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0356,
+              "port": 0.0339
+            },
             "stills": "96b9fe811ba2fd05"
           }
         },
@@ -271,6 +283,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0356,
+              "port": 0.0289
+            },
             "stills": "cceb3b29524511a8"
           }
         }
@@ -311,6 +327,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 1.6406,
+              "port": 1.4513
+            },
             "stills": "26534a2a34e7f166"
           }
         },
@@ -327,6 +347,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 1.6406,
+              "port": 1.563
+            },
             "stills": "ed97112a410ddf30"
           }
         }
@@ -367,6 +391,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5238,
+              "port": 0.5164
+            },
             "stills": "06d55c28efe64778"
           }
         },
@@ -383,6 +411,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5238,
+              "port": 0.494
+            },
             "stills": "30d2ff3d1e2e873a"
           }
         }
@@ -871,6 +903,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "fe3611b9ed0461b0"
           }
         },
@@ -887,6 +923,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "14d7df4b2e8baa50"
           }
         }
@@ -939,6 +979,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "34663047d75c9dd3"
           }
         },
@@ -955,6 +999,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "085bd60f02c1b189"
           }
         }
@@ -995,6 +1043,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "1b5729b4c045583c"
           }
         },
@@ -1011,6 +1063,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "0825a273027e1852"
           }
         }
@@ -1051,6 +1107,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "cf83083c388177ac"
           }
         },
@@ -1067,6 +1127,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "35657e69b33cc1ce"
           }
         }
@@ -3025,6 +3089,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 39.6251,
+              "port": 40.0587
+            },
             "stills": "e20ca1bc199ab0ba"
           }
         },
@@ -3041,6 +3109,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 39.6251,
+              "port": 38.2508
+            },
             "stills": "02a5f8d9407a817b"
           }
         }
@@ -3093,6 +3165,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 12.1218,
+              "port": 12.2303
+            },
             "stills": "06d10d5c4823e943"
           }
         },
@@ -3109,6 +3185,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 12.1218,
+              "port": 12.1218
+            },
             "stills": "f6c61edcee74e003"
           }
         }
@@ -3149,6 +3229,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 30.3645,
+              "port": 37.902
+            },
             "stills": "7479efdb840cecb4"
           }
         },
@@ -3165,6 +3249,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 30.3645,
+              "port": 38.1234
+            },
             "stills": "49e7851a65247a4b"
           }
         }
@@ -3205,6 +3293,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 12.8867,
+              "port": 12.8875
+            },
             "stills": "bc189e424467b78d"
           }
         },
@@ -3221,6 +3313,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 12.8867,
+              "port": 12.8875
+            },
             "stills": "b3cc0b3b5532e58a"
           }
         }
@@ -3268,6 +3364,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0129,
+              "port": 0.0129
+            },
             "stills": "b5252c5f507d58c1"
           }
         },
@@ -3284,6 +3384,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0129,
+              "port": 0.0129
+            },
             "stills": "f793460df4dec903"
           }
         }
@@ -3336,6 +3440,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.005,
+              "port": 0.005
+            },
             "stills": "61e8ac54cf4f3fb3"
           }
         },
@@ -3352,6 +3460,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.005,
+              "port": 0.005
+            },
             "stills": "787aa23db256a5ec"
           }
         }
@@ -3392,6 +3504,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0136,
+              "port": 0.0136
+            },
             "stills": "6aff4ddb2a91124d"
           }
         },
@@ -3408,6 +3524,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0136,
+              "port": 0.0136
+            },
             "stills": "e3fc95975fdaa2e4"
           }
         }
@@ -3448,6 +3568,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.007,
+              "port": 0.007
+            },
             "stills": "e315a313e7023f2e"
           }
         },
@@ -3464,6 +3588,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.007,
+              "port": 0.007
+            },
             "stills": "c2ce09b94daebc47"
           }
         }
@@ -3511,6 +3639,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 2.3042,
+              "port": 2.3457
+            },
             "stills": "c12663089923b3b5"
           }
         },
@@ -3527,6 +3659,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 2.3042,
+              "port": 2.3464
+            },
             "stills": "cdde8b0832ec9899"
           }
         }
@@ -3567,7 +3703,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9971 at frame 1 'gif02' (0.11% pixels differ), mean SSIM 0.9971; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9971 at frame 1 'gif02' (0.11% pixels differ), mean SSIM 0.9971; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -3579,11 +3715,15 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "33a744c29176abb2"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9959 at frame 1 'gif02' (0.14% pixels differ), mean SSIM 0.9959; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9958 at frame 1 'gif02' (0.14% pixels differ), mean SSIM 0.9958; per-frame diff% 0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14/0.14; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -3595,6 +3735,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "84db82317cb4cb99"
           }
         }
@@ -3635,6 +3779,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 2.2421,
+              "port": 2.2293
+            },
             "stills": "a173bfea2c7bd5ed"
           }
         },
@@ -3651,6 +3799,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 2.2421,
+              "port": 2.2293
+            },
             "stills": "d5db573a04065582"
           }
         }
@@ -3679,7 +3831,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -3691,11 +3843,15 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "8eeca00be99e2c1b"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'gif02' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -3707,6 +3863,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "935dbf4e79637b96"
           }
         }
@@ -3901,6 +4061,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0414,
+              "port": 0.0414
+            },
             "stills": "5705253d9d774972"
           }
         },
@@ -3917,6 +4081,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0414,
+              "port": 0.0414
+            },
             "stills": "fa6c6ea0dfae4ca4"
           }
         }
@@ -3969,6 +4137,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0133,
+              "port": 0.0133
+            },
             "stills": "24ed3f34bcb150dd"
           }
         },
@@ -3985,6 +4157,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0133,
+              "port": 0.0133
+            },
             "stills": "c20cb30c9a94ef11"
           }
         }
@@ -4025,6 +4201,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0699,
+              "port": 0.0694
+            },
             "stills": "7725eeed86e8fd48"
           }
         },
@@ -4041,6 +4221,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0699,
+              "port": 0.0684
+            },
             "stills": "0acc1fc2c5538406"
           }
         }
@@ -4081,6 +4265,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0457,
+              "port": 0.0457
+            },
             "stills": "32ccd018973eee91"
           }
         },
@@ -4097,6 +4285,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0457,
+              "port": 0.0457
+            },
             "stills": "87d85c39ad9f5198"
           }
         }
@@ -4144,6 +4336,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2074,
+              "port": 0.2735
+            },
             "stills": "2400d70fe38fe3ca"
           }
         },
@@ -4160,6 +4356,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2074,
+              "port": 0.2432
+            },
             "stills": "ee248c7d83c70bfe"
           }
         }
@@ -4212,6 +4412,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0631,
+              "port": 0.0631
+            },
             "stills": "a87f65b48321f597"
           }
         },
@@ -4228,6 +4432,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0631,
+              "port": 0.0631
+            },
             "stills": "95990f20f38235b2"
           }
         }
@@ -4268,6 +4476,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1548,
+              "port": 0.1548
+            },
             "stills": "011731725691259e"
           }
         },
@@ -4284,6 +4496,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1548,
+              "port": 0.1548
+            },
             "stills": "75149d3032a62840"
           }
         }
@@ -4324,6 +4540,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.069,
+              "port": 0.069
+            },
             "stills": "d9da2591e2ca82a5"
           }
         },
@@ -4340,6 +4560,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.069,
+              "port": 0.069
+            },
             "stills": "7b359fd6ccf730ec"
           }
         }
@@ -4387,6 +4611,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 39.5205,
+              "port": 39.521
+            },
             "stills": "e848ea895de0e7e4"
           }
         },
@@ -4403,6 +4631,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 39.5205,
+              "port": 39.521
+            },
             "stills": "dc33142afeff818d"
           }
         }
@@ -4455,6 +4687,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 11.5961,
+              "port": 11.6097
+            },
             "stills": "ef062b88d4dd3b07"
           }
         },
@@ -4471,6 +4707,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 11.5961,
+              "port": 11.6097
+            },
             "stills": "dbf8ae159abc94ba"
           }
         }
@@ -4511,6 +4751,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 39.279,
+              "port": 39.4154
+            },
             "stills": "24e23d8cba27ae56"
           }
         },
@@ -4527,6 +4771,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 39.279,
+              "port": 39.2604
+            },
             "stills": "1b35e213fd85d4f3"
           }
         }
@@ -4567,6 +4815,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 13.986,
+              "port": 15.4509
+            },
             "stills": "ab5a5696c1d6b9e2"
           }
         },
@@ -4583,6 +4835,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 13.986,
+              "port": 15.4509
+            },
             "stills": "95dfa82649602b5a"
           }
         }
@@ -4777,6 +5033,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 38.3565,
+              "port": 38.3483
+            },
             "stills": "6b0036e57ab94c35"
           }
         },
@@ -4793,6 +5053,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 38.3565,
+              "port": 0.0
+            },
             "stills": "f144b0bd7f571991"
           }
         }
@@ -4845,6 +5109,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 11.0671,
+              "port": 11.0671
+            },
             "stills": "bcb108b664446ab0"
           }
         },
@@ -4861,6 +5129,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 11.0671,
+              "port": 11.0671
+            },
             "stills": "ed19451d2be1c1bd"
           }
         }
@@ -4901,6 +5173,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 40.2514,
+              "port": 40.225
+            },
             "stills": "f1b15cee846bd487"
           }
         },
@@ -4917,6 +5193,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 40.2514,
+              "port": 40.3058
+            },
             "stills": "c42ad24329ce06ae"
           }
         }
@@ -4957,6 +5237,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 15.9281,
+              "port": 16.2539
+            },
             "stills": "5b97398091708c06"
           }
         },
@@ -4973,6 +5257,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 15.9281,
+              "port": 16.2539
+            },
             "stills": "604c0eb923030811"
           }
         }
@@ -5020,6 +5308,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5673,
+              "port": 0.5673
+            },
             "stills": "d72d426fe8e5b53f"
           }
         },
@@ -5036,6 +5328,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5673,
+              "port": 0.5673
+            },
             "stills": "6929ed89aaada156"
           }
         }
@@ -5088,6 +5384,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.9155,
+              "port": 0.9155
+            },
             "stills": "aa17b9946c7ea554"
           }
         },
@@ -5104,6 +5404,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.9155,
+              "port": 0.9154
+            },
             "stills": "7d46c0f0a7ba9f9a"
           }
         }
@@ -5144,6 +5448,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 23.2299,
+              "port": 20.6515
+            },
             "stills": "9d37530bcb4f8651"
           }
         },
@@ -5160,6 +5468,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 23.2299,
+              "port": 20.6645
+            },
             "stills": "2556934e41065c72"
           }
         }
@@ -5200,6 +5512,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0885,
+              "port": 1.0487
+            },
             "stills": "39ff91ff83f3a9a7"
           }
         },
@@ -5216,6 +5532,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0885,
+              "port": 1.0487
+            },
             "stills": "840fad9fa23a33d6"
           }
         }
@@ -6145,6 +6465,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0636,
+              "port": 0.0673
+            },
             "stills": "5ac8a06367a3aac9"
           }
         },
@@ -6161,6 +6485,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0636,
+              "port": 0.0673
+            },
             "stills": "9126f87704430020"
           }
         }
@@ -6213,6 +6541,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0051,
+              "port": 0.006
+            },
             "stills": "9ff130cd96da79c9"
           }
         },
@@ -6229,6 +6561,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0051,
+              "port": 0.006
+            },
             "stills": "a1183fcad0334c31"
           }
         }
@@ -6269,6 +6605,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1605,
+              "port": 0.1548
+            },
             "stills": "d4c0c15b71543738"
           }
         },
@@ -6285,6 +6625,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1605,
+              "port": 0.1532
+            },
             "stills": "b3dcc105d08e5070"
           }
         }
@@ -6325,6 +6669,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0232,
+              "port": 0.0236
+            },
             "stills": "6b4c54f4d9b53fa0"
           }
         },
@@ -6341,6 +6689,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0232,
+              "port": 0.024
+            },
             "stills": "c7a0dfe9ddb5251c"
           }
         }
@@ -6976,6 +7328,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.185,
+              "port": 0.1954
+            },
             "stills": "e1c58d3f7f464c67"
           }
         },
@@ -6992,6 +7348,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.185,
+              "port": 0.1954
+            },
             "stills": "cfbddb48d61c698d"
           }
         }
@@ -7044,6 +7404,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.9108,
+              "port": 0.9108
+            },
             "stills": "53be15922a3644f2"
           }
         },
@@ -7060,6 +7424,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.9108,
+              "port": 0.9108
+            },
             "stills": "5ca470b9f2c7b226"
           }
         }
@@ -7100,6 +7468,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.705,
+              "port": 7.6757
+            },
             "stills": "fc1a6b5d7edeb7cf"
           }
         },
@@ -7116,6 +7488,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.705,
+              "port": 7.6757
+            },
             "stills": "7262ee2817b0dea5"
           }
         }
@@ -7156,6 +7532,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.3091,
+              "port": 0.3091
+            },
             "stills": "75ad8805c3296cdb"
           }
         },
@@ -7172,6 +7552,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.3091,
+              "port": 0.3091
+            },
             "stills": "e8013f09e770fa69"
           }
         }
@@ -7807,6 +8191,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5541,
+              "port": 0.5541
+            },
             "stills": "66a24f374e21a90a"
           }
         },
@@ -7823,6 +8211,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5541,
+              "port": 0.5541
+            },
             "stills": "0551204925119180"
           }
         }
@@ -7875,6 +8267,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.04,
+              "port": 0.0409
+            },
             "stills": "62104317a219f913"
           }
         },
@@ -7891,6 +8287,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.04,
+              "port": 0.0409
+            },
             "stills": "dae14e2a81cc05c6"
           }
         }
@@ -7931,6 +8331,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 8.2458,
+              "port": 7.7119
+            },
             "stills": "d0f5fc0f9d59bd6f"
           }
         },
@@ -7947,6 +8351,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 8.2458,
+              "port": 7.699
+            },
             "stills": "a9a9c996f1aec569"
           }
         }
@@ -7987,6 +8395,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2701,
+              "port": 0.2822
+            },
             "stills": "269cf598587468f1"
           }
         },
@@ -8003,6 +8415,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2701,
+              "port": 0.2822
+            },
             "stills": "c4d75869e15a8231"
           }
         }
@@ -8491,6 +8907,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "4b6ac34c593aec18"
           }
         },
@@ -8507,6 +8927,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "3e8c61e3d4071343"
           }
         }
@@ -8559,6 +8983,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "6ff55cb48a52ec0d"
           }
         },
@@ -8575,6 +9003,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "cb4935a6d33eab57"
           }
         }
@@ -8615,6 +9047,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "5609601e7ada0c32"
           }
         },
@@ -8631,6 +9067,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "94fb02f04054bdb7"
           }
         }
@@ -8671,6 +9111,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "0109f1b014f37bf1"
           }
         },
@@ -8687,6 +9131,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "ed308672fcff039a"
           }
         }
@@ -8881,6 +9329,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1158,
+              "port": 0.1185
+            },
             "stills": "bc91c5c08c0e256a"
           }
         },
@@ -8897,6 +9349,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1158,
+              "port": 0.1185
+            },
             "stills": "8be0d9832ccba546"
           }
         }
@@ -8949,6 +9405,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.7832,
+              "port": 0.7966
+            },
             "stills": "51f6161c190e2167"
           }
         },
@@ -8965,6 +9425,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.7832,
+              "port": 0.7965
+            },
             "stills": "9c344d9bf3bb10c6"
           }
         }
@@ -9005,6 +9469,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 20.8888,
+              "port": 0.4474
+            },
             "stills": "f29db5784d00df5f"
           }
         },
@@ -9021,6 +9489,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.7919,
+              "port": 0.4693
+            },
             "stills": "2171ae3e41192df2"
           }
         }
@@ -9061,6 +9533,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2781,
+              "port": 0.2781
+            },
             "stills": "12dde29f0d9d3809"
           }
         },
@@ -9077,6 +9553,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2781,
+              "port": 0.2781
+            },
             "stills": "7e8fd22945209478"
           }
         }
@@ -9124,6 +9604,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1132,
+              "port": 0.1154
+            },
             "stills": "5ab20579993aea2e"
           }
         },
@@ -9140,6 +9624,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1132,
+              "port": 0.1154
+            },
             "stills": "83ca009bedeb5f6f"
           }
         }
@@ -9192,6 +9680,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 1.001,
+              "port": 0.999
+            },
             "stills": "e4765c88a15f7771"
           }
         },
@@ -9208,6 +9700,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 1.001,
+              "port": 0.9962
+            },
             "stills": "b15393b5e5caf37e"
           }
         }
@@ -9248,6 +9744,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5314,
+              "port": 0.498
+            },
             "stills": "0bdcaf1212d171d1"
           }
         },
@@ -9264,6 +9764,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5314,
+              "port": 0.498
+            },
             "stills": "c93f7549ca2056c2"
           }
         }
@@ -9304,6 +9808,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.267,
+              "port": 0.267
+            },
             "stills": "fa33a18bd81c596f"
           }
         },
@@ -9320,6 +9828,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.267,
+              "port": 0.267
+            },
             "stills": "a4a8e9f1897379d9"
           }
         }
@@ -9808,6 +10320,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5993,
+              "port": 0.6626
+            },
             "stills": "e71e3f382e4e79c7"
           }
         },
@@ -9824,6 +10340,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5993,
+              "port": 0.5993
+            },
             "stills": "88e172133ca75036"
           }
         }
@@ -9864,7 +10384,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'focus-field' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -9876,11 +10396,15 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "e5c8d7be2d01f20f"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'focus-field' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -9892,6 +10416,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "4eb07ec118420351"
           }
         }
@@ -9932,6 +10460,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.7469,
+              "port": 7.7246
+            },
             "stills": "03dbb2f8843fa319"
           }
         },
@@ -9948,6 +10480,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.7469,
+              "port": 7.7205
+            },
             "stills": "f32399f83ce47511"
           }
         }
@@ -9988,6 +10524,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2701,
+              "port": 0.287
+            },
             "stills": "2b4b1a2b0b0abd43"
           }
         },
@@ -10004,6 +10544,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2701,
+              "port": 0.287
+            },
             "stills": "b7a1d8c7325630fe"
           }
         }
@@ -11080,6 +11624,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.199,
+              "port": 0.199
+            },
             "stills": "aecd13559c7696a8"
           }
         },
@@ -11096,6 +11644,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.199,
+              "port": 0.1512
+            },
             "stills": "5b0ad2144d93b354"
           }
         }
@@ -11148,6 +11700,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0251,
+              "port": 0.0298
+            },
             "stills": "fc6da32d8f5a3bec"
           }
         },
@@ -11164,6 +11720,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0251,
+              "port": 0.0282
+            },
             "stills": "c6fdbccd7d7a38be"
           }
         }
@@ -11204,6 +11764,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1256,
+              "port": 0.1213
+            },
             "stills": "654266f61b8441e6"
           }
         },
@@ -11220,6 +11784,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1256,
+              "port": 0.0766
+            },
             "stills": "890b74fd97e71e60"
           }
         }
@@ -11260,6 +11828,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0319,
+              "port": 0.0319
+            },
             "stills": "23aced4a1f0a800f"
           }
         },
@@ -11276,6 +11848,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0319,
+              "port": 0.0319
+            },
             "stills": "dfc5b6ea07deed32"
           }
         }
@@ -12793,6 +13369,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0414,
+              "port": 0.0414
+            },
             "stills": "33e0e544e78de220"
           }
         },
@@ -12809,6 +13389,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0414,
+              "port": 0.0414
+            },
             "stills": "a3c072f47b86c367"
           }
         }
@@ -12861,6 +13445,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0134,
+              "port": 0.0134
+            },
             "stills": "65458e8b75e3c352"
           }
         },
@@ -12877,6 +13465,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0134,
+              "port": 0.0134
+            },
             "stills": "c862985742f14a9e"
           }
         }
@@ -12917,6 +13509,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0694,
+              "port": 0.0537
+            },
             "stills": "5b2fc4dd9f53488f"
           }
         },
@@ -12933,6 +13529,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0694,
+              "port": 0.0685
+            },
             "stills": "8020fc6498c9ab7f"
           }
         }
@@ -12973,6 +13573,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0457,
+              "port": 0.0457
+            },
             "stills": "57c68a33b01e8f4d"
           }
         },
@@ -12989,6 +13593,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0457,
+              "port": 0.0457
+            },
             "stills": "8d385032ac148e93"
           }
         }
@@ -14359,6 +14967,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "893bb8bb42b4bf2d"
           }
         },
@@ -14375,6 +14987,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "b283ba678acd75ff"
           }
         }
@@ -14427,6 +15043,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "d8891477bd9585a2"
           }
         },
@@ -14443,6 +15063,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "e4cc7bb82ca0e277"
           }
         }
@@ -14483,6 +15107,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "fff5efcdbd8c0001"
           }
         },
@@ -14499,6 +15127,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "07c9b3331830688c"
           }
         }
@@ -14539,6 +15171,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "ed7897bdbf01469a"
           }
         },
@@ -14555,6 +15191,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "252b36b7dabdeb3e"
           }
         }
@@ -14602,6 +15242,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 24.5073,
+              "port": 24.5186
+            },
             "stills": "4a1222a8e4c0cbb0"
           }
         },
@@ -14618,6 +15262,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 24.5073,
+              "port": 24.5186
+            },
             "stills": "7d4c5948777576a9"
           }
         }
@@ -14726,6 +15374,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 61.2878,
+              "port": 61.2878
+            },
             "stills": "b50f166034e8e6bb"
           }
         },
@@ -14742,6 +15394,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 61.2878,
+              "port": 61.2878
+            },
             "stills": "1f9619519eb0bb6a"
           }
         }
@@ -14782,6 +15438,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.007,
+              "port": 0.0336
+            },
             "stills": "544b6201dded0622"
           }
         },
@@ -14798,6 +15458,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.007,
+              "port": 0.0336
+            },
             "stills": "5e0426b9cc86f4c2"
           }
         }
@@ -15139,6 +15803,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0034,
+              "port": 0.0
+            },
             "stills": "bbcb5de7b25cc794"
           }
         },
@@ -15155,6 +15823,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0034,
+              "port": 0.0
+            },
             "stills": "e74a6738a8f1a62d"
           }
         }
@@ -15207,6 +15879,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "4158640e7efe920d"
           }
         },
@@ -15223,6 +15899,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "d8614f7c55399099"
           }
         }
@@ -15263,6 +15943,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "5f90c500139c4289"
           }
         },
@@ -15279,6 +15963,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "95119780604ca0ab"
           }
         }
@@ -15319,6 +16007,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "001fbbe04ab2d3f4"
           }
         },
@@ -15335,6 +16027,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "72c6db8a458d3b56"
           }
         }
@@ -15382,6 +16078,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 24.5073,
+              "port": 24.5187
+            },
             "stills": "d4c411e235784b57"
           }
         },
@@ -15398,6 +16098,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 24.5073,
+              "port": 24.5187
+            },
             "stills": "785ad7abd08662b7"
           }
         }
@@ -15450,6 +16154,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 94.1802,
+              "port": 94.1781
+            },
             "stills": "23b7f67a5189862a"
           }
         },
@@ -15466,6 +16174,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 94.1802,
+              "port": 94.1576
+            },
             "stills": "157ba46c262240c4"
           }
         }
@@ -15506,6 +16218,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 53.3907,
+              "port": 53.1056
+            },
             "stills": "1287d3fc1e734a8d"
           }
         },
@@ -15522,6 +16238,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 53.3907,
+              "port": 53.1056
+            },
             "stills": "b5d936ef0f268266"
           }
         }
@@ -15562,6 +16282,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "45d6511a87c39423"
           }
         },
@@ -15578,6 +16302,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "9a8b3b6c624b5d4b"
           }
         }
@@ -15772,6 +16500,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2291,
+              "port": 0.2291
+            },
             "stills": "51afd0766c696f9f"
           }
         },
@@ -15788,6 +16520,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2291,
+              "port": 0.2291
+            },
             "stills": "664fb8f9f59d9c16"
           }
         }
@@ -15840,6 +16576,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.2185,
+              "port": 0.2185
+            },
             "stills": "04406c71c051a1c6"
           }
         },
@@ -15856,6 +16596,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.2185,
+              "port": 0.2185
+            },
             "stills": "92c0687799bb9066"
           }
         }
@@ -15896,6 +16640,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1201,
+              "port": 0.0946
+            },
             "stills": "ded6aa76f0d3a507"
           }
         },
@@ -15912,6 +16660,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1201,
+              "port": 0.0946
+            },
             "stills": "f3c34264b3e0075b"
           }
         }
@@ -15940,7 +16692,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 ios_scroll_view.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 ios_scroll_view.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -15952,11 +16704,15 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "70e25aeaed90c840"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 ios_scroll_view.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 ios_scroll_view.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -15968,6 +16724,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "a7aa4934fffd8693"
           }
         }
@@ -16309,6 +17069,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "fc3b275b72f1d279"
           }
         },
@@ -16325,6 +17089,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "c7d280490613a2a7"
           }
         }
@@ -16377,6 +17145,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "44402abb4273731c"
           }
         },
@@ -16393,6 +17165,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "66263510e28da965"
           }
         }
@@ -16433,6 +17209,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "9d7524bc3550554d"
           }
         },
@@ -16449,6 +17229,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "8e897c2a524e4032"
           }
         }
@@ -16489,6 +17273,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "c232c40b8b776c3e"
           }
         },
@@ -16505,6 +17293,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "c43de4cd5c24d8e3"
           }
         }
@@ -18463,6 +19255,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0013,
+              "port": 0.0
+            },
             "stills": "d3a2adf7a7cafc92"
           }
         },
@@ -18479,6 +19275,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0013,
+              "port": 0.0
+            },
             "stills": "3a639c7d6ae863de"
           }
         }
@@ -18531,6 +19331,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "44992dcbfc66832e"
           }
         },
@@ -18547,6 +19351,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "6de060583ab5297c"
           }
         }
@@ -18587,6 +19395,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "daa883bef3c17632"
           }
         },
@@ -18603,6 +19415,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "035c0f1872098edd"
           }
         }
@@ -18643,6 +19459,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "57040fc4e6fc8230"
           }
         },
@@ -18659,6 +19479,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "9a57c774e0ec9e10"
           }
         }
@@ -18853,6 +19677,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 17.7696,
+              "port": 18.7743
+            },
             "stills": "da8fb4ce2f34f651"
           }
         },
@@ -18869,6 +19697,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 17.3774,
+              "port": 17.4811
+            },
             "stills": "08fbadd1732c5d0e"
           }
         }
@@ -18921,6 +19753,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 6.4034,
+              "port": 13.552
+            },
             "stills": "10cdb50ed6b02104"
           }
         },
@@ -18937,6 +19773,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 6.4034,
+              "port": 6.6342
+            },
             "stills": "ef817f3487cd0bef"
           }
         }
@@ -18977,6 +19817,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 16.7866,
+              "port": 16.4856
+            },
             "stills": "495b8a8e06093ab4"
           }
         },
@@ -18993,6 +19837,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 16.7866,
+              "port": 16.6725
+            },
             "stills": "bbb536829656784f"
           }
         }
@@ -19033,6 +19881,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 8.9327,
+              "port": 9.421
+            },
             "stills": "13d9b0f34c665760"
           }
         },
@@ -19049,6 +19901,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 8.9327,
+              "port": 8.9329
+            },
             "stills": "729c4e270f4fb2d1"
           }
         }
@@ -19243,6 +20099,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 24.6171,
+              "port": 24.6284
+            },
             "stills": "11365619e0a24d59"
           }
         },
@@ -19259,6 +20119,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 24.6171,
+              "port": 24.6284
+            },
             "stills": "df082f8475bf2462"
           }
         }
@@ -19311,6 +20175,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 97.493,
+              "port": 97.4908
+            },
             "stills": "fd06886fb5350e57"
           }
         },
@@ -19327,6 +20195,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 97.493,
+              "port": 97.4703
+            },
             "stills": "f340c44d7fb42460"
           }
         }
@@ -19367,6 +20239,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 53.1032,
+              "port": 52.9015
+            },
             "stills": "c6538f849eca066e"
           }
         },
@@ -19383,6 +20259,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 53.1032,
+              "port": 52.9015
+            },
             "stills": "15b9a10db16d04c9"
           }
         }
@@ -19423,6 +20303,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "d5b63ad0fe6f4c90"
           }
         },
@@ -19439,6 +20323,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "485114fea9c97604"
           }
         }
@@ -19633,6 +20521,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0079,
+              "port": 0.0
+            },
             "stills": "c3d95b55e200fc8b"
           }
         },
@@ -19649,6 +20541,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0079,
+              "port": 0.0
+            },
             "stills": "532e745d0de682dc"
           }
         }
@@ -19701,6 +20597,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "ba3787439ca0559f"
           }
         },
@@ -19717,6 +20617,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "ef5ac09016a11390"
           }
         }
@@ -19757,6 +20661,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "528d861f708d1269"
           }
         },
@@ -19773,6 +20681,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "662092bd2ba44c72"
           }
         }
@@ -19813,6 +20725,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "3bef340c1a8acef7"
           }
         },
@@ -19829,6 +20745,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "24da3f15a6b2313d"
           }
         }
@@ -20758,6 +21678,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.028,
+              "port": 0.028
+            },
             "stills": "1553b032038becbd"
           }
         },
@@ -20774,6 +21698,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.028,
+              "port": 0.028
+            },
             "stills": "d9197214cfe4a665"
           }
         }
@@ -20826,6 +21754,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0082,
+              "port": 0.0079
+            },
             "stills": "5321a99d3a4a6ac6"
           }
         },
@@ -20842,6 +21774,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0082,
+              "port": 0.0079
+            },
             "stills": "eedac5a508bd5dc1"
           }
         }
@@ -20882,6 +21818,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0962,
+              "port": 0.0994
+            },
             "stills": "91b40b2d6a9eb0f3"
           }
         },
@@ -20898,6 +21838,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0962,
+              "port": 0.0996
+            },
             "stills": "5ab4577a18d504ba"
           }
         }
@@ -20938,6 +21882,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0251,
+              "port": 0.0251
+            },
             "stills": "cb1d094a5eeb92e9"
           }
         },
@@ -20954,6 +21902,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0251,
+              "port": 0.0251
+            },
             "stills": "dd37164488e01b73"
           }
         }
@@ -21442,6 +22394,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.028,
+              "port": 0.028
+            },
             "stills": "511328fd45a4afc1"
           }
         },
@@ -21458,6 +22414,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.028,
+              "port": 0.028
+            },
             "stills": "4766264e5eed6004"
           }
         }
@@ -21498,7 +22458,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13) \u2014 worst SSIM 0.9843 at frame 1 'initial' (0.70% pixels differ), mean SSIM 0.9843; per-frame diff% 0.70/0.70; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-14) \u2014 worst SSIM 0.9871 at frame 1 'initial' (0.64% pixels differ), mean SSIM 0.9871; per-frame diff% 0.64/0.64; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -21510,11 +22470,15 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "a8ddfdc9771aa3ff"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13) \u2014 worst SSIM 0.9830 at frame 1 'initial' (0.73% pixels differ), mean SSIM 0.9830; per-frame diff% 0.73/0.73; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-14) \u2014 worst SSIM 0.9859 at frame 1 'initial' (0.67% pixels differ), mean SSIM 0.9859; per-frame diff% 0.67/0.67; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -21526,6 +22490,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "426a095f248f9564"
           }
         }
@@ -21566,6 +22534,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0962,
+              "port": 0.0996
+            },
             "stills": "8f3c4618069745ab"
           }
         },
@@ -21582,6 +22554,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0962,
+              "port": 0.0996
+            },
             "stills": "60fe6944aade872b"
           }
         }
@@ -21622,6 +22598,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0251,
+              "port": 0.0251
+            },
             "stills": "1dfbaf478aaf0a24"
           }
         },
@@ -21638,6 +22618,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0251,
+              "port": 0.0251
+            },
             "stills": "7d0cc86173c4e600"
           }
         }
@@ -22567,6 +23551,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5238,
+              "port": 0.5238
+            },
             "stills": "fbda071a35dd6447"
           }
         },
@@ -22583,6 +23571,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5238,
+              "port": 0.5238
+            },
             "stills": "21d89b0271dc9403"
           }
         }
@@ -22635,6 +23627,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.3887,
+              "port": 0.3887
+            },
             "stills": "ca9218cdcf786d01"
           }
         },
@@ -22651,6 +23647,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.3887,
+              "port": 0.3905
+            },
             "stills": "c9f3b95417181d55"
           }
         }
@@ -22691,6 +23691,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 8.7291,
+              "port": 8.6506
+            },
             "stills": "f5004ed1cbed6ad1"
           }
         },
@@ -22707,6 +23711,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 8.7291,
+              "port": 8.6637
+            },
             "stills": "f072db6ec7bee67f"
           }
         }
@@ -22747,6 +23755,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1289,
+              "port": 0.1337
+            },
             "stills": "167cba8c1382459a"
           }
         },
@@ -22763,6 +23775,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.1289,
+              "port": 0.1337
+            },
             "stills": "2412aeabd75dfbb2"
           }
         }
@@ -22810,6 +23826,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 3.1155,
+              "port": 3.2038
+            },
             "stills": "c44ca135b397436f"
           }
         },
@@ -22826,6 +23846,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 3.1155,
+              "port": 3.2003
+            },
             "stills": "aead66a2fae97d6f"
           }
         }
@@ -22878,6 +23902,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 1.4167,
+              "port": 1.4167
+            },
             "stills": "4f7b6ae39bc1ec91"
           }
         },
@@ -22894,6 +23922,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 1.4167,
+              "port": 1.4167
+            },
             "stills": "3440f4cd1ca66b5d"
           }
         }
@@ -22934,6 +23966,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 3.105,
+              "port": 3.0088
+            },
             "stills": "4dbd2403bfe34fba"
           }
         },
@@ -22950,6 +23986,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 3.105,
+              "port": 3.013
+            },
             "stills": "eb0139ff588da427"
           }
         }
@@ -22990,6 +24030,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 1.0221,
+              "port": 1.0221
+            },
             "stills": "5fb477e1c1f63ee5"
           }
         },
@@ -23006,6 +24050,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 1.0221,
+              "port": 1.0221
+            },
             "stills": "d87a88161c017fad"
           }
         }
@@ -23053,6 +24101,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0677,
+              "port": 0.0677
+            },
             "stills": "9aa057c304965891"
           }
         },
@@ -23069,6 +24121,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0677,
+              "port": 0.0677
+            },
             "stills": "23459c8c9efbf7e2"
           }
         }
@@ -23121,6 +24177,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.8934,
+              "port": 0.8942
+            },
             "stills": "10f8640c55314c90"
           }
         },
@@ -23137,6 +24197,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.8934,
+              "port": 0.8934
+            },
             "stills": "c9af871bd98d30a1"
           }
         }
@@ -23177,6 +24241,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.5897,
+              "port": 7.5553
+            },
             "stills": "6f5fd4fb7434687e"
           }
         },
@@ -23193,6 +24261,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.5897,
+              "port": 7.5553
+            },
             "stills": "ed858502882e0311"
           }
         }
@@ -23221,7 +24293,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 search_bar.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 search_bar.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -23233,11 +24305,15 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "732976fa1a58f0f6"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 search_bar.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 search_bar.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -23249,6 +24325,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "25b7f96dde3d4d12"
           }
         }
@@ -23443,6 +24523,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 12.9424,
+              "port": 23.2171
+            },
             "stills": "9a84c167904281d5"
           }
         },
@@ -23459,6 +24543,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 12.9424,
+              "port": 22.9911
+            },
             "stills": "030f636991ff8201"
           }
         }
@@ -23499,7 +24587,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-14) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -23511,11 +24599,15 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "43975b7fcfdf8e1a"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-14) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -23527,6 +24619,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "1bd0320b9adc826c"
           }
         }
@@ -23567,6 +24663,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 96.6813,
+              "port": 50.5453
+            },
             "stills": "3c79284a3801e7a0"
           }
         },
@@ -23583,6 +24683,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 96.6813,
+              "port": 55.7425
+            },
             "stills": "6529d9794976e327"
           }
         }
@@ -23623,6 +24727,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 2.6373,
+              "port": 2.8243
+            },
             "stills": "222073e414579c7a"
           }
         },
@@ -23639,6 +24747,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 2.6373,
+              "port": 2.8243
+            },
             "stills": "38fbbdf0f6120db8"
           }
         }
@@ -23686,6 +24798,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5541,
+              "port": 0.5541
+            },
             "stills": "dd2d1b605a82b4ba"
           }
         },
@@ -23702,6 +24818,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5541,
+              "port": 0.5541
+            },
             "stills": "d6b48e233f32bdc3"
           }
         }
@@ -23754,6 +24874,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.8918,
+              "port": 0.8905
+            },
             "stills": "f97d26ab88a3f2c8"
           }
         },
@@ -23770,6 +24894,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.8918,
+              "port": 0.8918
+            },
             "stills": "b7dd3937858b811a"
           }
         }
@@ -23810,6 +24938,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 11.8592,
+              "port": 11.6552
+            },
             "stills": "075979c7bc7fe1f4"
           }
         },
@@ -23826,6 +24958,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 11.8592,
+              "port": 11.6552
+            },
             "stills": "7017fe36c7e42e6b"
           }
         }
@@ -23854,7 +24990,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 semantics.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 semantics.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -23866,11 +25002,15 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "f50ec7f5069ccad5"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 semantics.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 semantics.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 1.0000 at frame 1 'focus-field' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.01/0.01; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -23882,6 +25022,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "0469ebea22fc7501"
           }
         }
@@ -24517,6 +25661,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2813,
+              "port": 0.2693
+            },
             "stills": "63b17e03ea604f64"
           }
         },
@@ -24533,6 +25681,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2813,
+              "port": 0.2813
+            },
             "stills": "32f6a11dc552ddce"
           }
         }
@@ -24585,6 +25737,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.301,
+              "port": 0.301
+            },
             "stills": "5b573505ea1fc0b7"
           }
         },
@@ -24601,6 +25757,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.301,
+              "port": 0.301
+            },
             "stills": "4928686a4e87a2d8"
           }
         }
@@ -24641,6 +25801,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 31.018,
+              "port": 40.5091
+            },
             "stills": "f5dab480554a88d1"
           }
         },
@@ -24657,6 +25821,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 31.018,
+              "port": 40.5091
+            },
             "stills": "7bae406272f8fd91"
           }
         }
@@ -24685,7 +25853,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 slider.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 slider.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -24697,11 +25865,15 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "964bdeb30975f9cc"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 slider.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 slider.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15) \u2014 worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -24713,6 +25885,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "2beeb4cd8325eede"
           }
         }
@@ -25201,6 +26377,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0074,
+              "port": 0.0074
+            },
             "stills": "f8feb2039547451a"
           }
         },
@@ -25217,6 +26397,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0074,
+              "port": 0.0074
+            },
             "stills": "228d0f593b48115b"
           }
         }
@@ -25269,6 +26453,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0024,
+              "port": 0.0024
+            },
             "stills": "45ee76c16827bf9d"
           }
         },
@@ -25285,6 +26473,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0024,
+              "port": 0.0024
+            },
             "stills": "29d26a55eb5b6d69"
           }
         }
@@ -25313,7 +26505,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: MOTION 10 frames paired by step (run 2026-08-15-19_27_13, commit 804da03e00, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by +3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9991 at frame 3 'gif02@4s/12f' (0.02% pixels differ), mean SSIM 0.9993; per-frame diff% 0.00/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02/0.02; self-motion MAUI 0.0165% (391 px) vs C++ 0.3162% (7512 px); !! SELF-MOTION ASYMMETRY 19x \u2014 C++ moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (87 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 stepper.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-15-19_27_13, commit 804da03e00, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9992 at frame 1 'gif03@4s/12f' (0.03% pixels differ), mean SSIM 0.9992; per-frame diff% 0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03/0.03; self-motion MAUI 0.0037% (87 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -25325,6 +26517,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0037,
+              "port": 0.0
+            },
             "stills": "3acc11d1555c5cd3"
           }
         },
@@ -25341,6 +26537,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0037,
+              "port": 0.6303
+            },
             "stills": "2ed215f1664cc083"
           }
         }
@@ -25381,6 +26581,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0005,
+              "port": 0.0005
+            },
             "stills": "4c397e4726a452e4"
           }
         },
@@ -25397,6 +26601,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0005,
+              "port": 0.0005
+            },
             "stills": "d9d4b2c0f8af7355"
           }
         }
@@ -25591,6 +26799,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "8429752180bc40d6"
           }
         },
@@ -25607,6 +26819,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "a00abcf11b80381c"
           }
         }
@@ -25659,6 +26875,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "3aab214b4915ce84"
           }
         },
@@ -25675,6 +26895,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "79ea2a8b357c155e"
           }
         }
@@ -25715,6 +26939,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "0e0945f6574e0794"
           }
         },
@@ -25731,6 +26959,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "cd3a69caa124665a"
           }
         }
@@ -25771,6 +27003,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "1050eb304ce633c7"
           }
         },
@@ -25787,6 +27023,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "9fed48a64f428a1b"
           }
         }
@@ -25834,6 +27074,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0028,
+              "port": 0.0
+            },
             "stills": "a48ba6b248936f6b"
           }
         },
@@ -25850,6 +27094,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0028,
+              "port": 0.0
+            },
             "stills": "445f84a68e7db550"
           }
         }
@@ -25902,6 +27150,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "4b880858d8df91c2"
           }
         },
@@ -25918,6 +27170,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "38d92f72b2bb827d"
           }
         }
@@ -25958,6 +27214,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "74aa3bafc0856678"
           }
         },
@@ -25974,6 +27234,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "82ef42989598e1ed"
           }
         }
@@ -26014,6 +27278,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "3ff8ccc968bc7d16"
           }
         },
@@ -26030,6 +27298,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "c18cd62d68457009"
           }
         }
@@ -26224,6 +27496,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5956,
+              "port": 1.2768
+            },
             "stills": "51d26243c0b5ecb2"
           }
         },
@@ -26240,6 +27516,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.5956,
+              "port": 1.2411
+            },
             "stills": "96a06eddec51a586"
           }
         }
@@ -26280,7 +27560,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif02' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-14); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif02' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -26292,11 +27572,15 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "6a3e60fbafcc1cab"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-13); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'gif02' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-13-21_07_16, commit 74dde0864a, 2026-08-14); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif02' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -26308,6 +27592,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "6f1db8349850e42c"
           }
         }
@@ -26348,6 +27636,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0752,
+              "port": 0.0797
+            },
             "stills": "8a451022ca0ed52e"
           }
         },
@@ -26364,6 +27656,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0752,
+              "port": 0.0561
+            },
             "stills": "11d3e4a163b7d88a"
           }
         }
@@ -26392,7 +27688,7 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9943 at frame 1 'gif02' (0.13% pixels differ), mean SSIM 0.9943; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9940 at frame 1 'gif02' (0.13% pixels differ), mean SSIM 0.9940; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -26404,11 +27700,15 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "edf01baaa5198320"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
+          "status": "green",
           "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9943 at frame 1 'gif02' (0.13% pixels differ), mean SSIM 0.9943; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-15-03_13_22, commit 1b05c54dcb, 2026-08-15); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9940 at frame 1 'gif02' (0.13% pixels differ), mean SSIM 0.9940; per-frame diff% 0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
@@ -26420,6 +27720,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0,
+              "port": 0.0
+            },
             "stills": "bfea7ce1e6632907"
           }
         }
@@ -26908,6 +28212,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.3908,
+              "port": 0.3908
+            },
             "stills": "ce55df364b04854c"
           }
         },
@@ -26924,6 +28232,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.3908,
+              "port": 0.3908
+            },
             "stills": "df6ddddeef416a30"
           }
         }
@@ -26976,6 +28288,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.1044,
+              "port": 0.1038
+            },
             "stills": "af6b3b8739dfff05"
           }
         },
@@ -26992,6 +28308,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.1044,
+              "port": 0.1038
+            },
             "stills": "f4d27ffefa7aa93e"
           }
         }
@@ -27032,6 +28352,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2289,
+              "port": 0.2289
+            },
             "stills": "1be03181a4c2df44"
           }
         },
@@ -27048,6 +28372,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.2289,
+              "port": 0.2289
+            },
             "stills": "ea203f991aa4b2b1"
           }
         }
@@ -27088,6 +28416,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0884,
+              "port": 0.0884
+            },
             "stills": "a3899d08f050d32c"
           }
         },
@@ -27104,6 +28436,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0884,
+              "port": 0.0884
+            },
             "stills": "42db1bb54579a6c7"
           }
         }
@@ -27739,6 +29075,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.56,
+              "port": 0.56
+            },
             "stills": "8700c67d08aca631"
           }
         },
@@ -27755,6 +29095,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.56,
+              "port": 0.56
+            },
             "stills": "138d303b7754b4ea"
           }
         }
@@ -27807,6 +29151,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0969,
+              "port": 0.0988
+            },
             "stills": "178361948ac0f174"
           }
         },
@@ -27823,6 +29171,10 @@
             "run": "2026-08-13-21_07_16",
             "commit": "74dde0864a",
             "captured_at": "2026-08-13",
+            "self": {
+              "maui": 0.0969,
+              "port": 0.0988
+            },
             "stills": "57ba23a3ef3a436f"
           }
         }
@@ -27863,6 +29215,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.6046,
+              "port": 7.4874
+            },
             "stills": "21d8bf2169be9031"
           }
         },
@@ -27879,6 +29235,10 @@
             "run": "2026-08-15-19_27_13",
             "commit": "804da03e00",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 7.6046,
+              "port": 7.4874
+            },
             "stills": "c8cfed4f7edc5df6"
           }
         }
@@ -27919,6 +29279,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0526,
+              "port": 0.0574
+            },
             "stills": "db90790e16f16b11"
           }
         },
@@ -27935,6 +29299,10 @@
             "run": "2026-08-15-03_13_22",
             "commit": "1b05c54dcb",
             "captured_at": "2026-08-15",
+            "self": {
+              "maui": 0.0526,
+              "port": 0.0574
+            },
             "stills": "623408f804e381bb"
           }
         }
