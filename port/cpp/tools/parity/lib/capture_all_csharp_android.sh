@@ -145,7 +145,7 @@ capture_one() {
   # The IME is a second foreign window no resumed-activity check can see (android-emu-lib.sh). THE
   # GROUND TRUTH LEAKS TOO — 9 committed frames in this column — and a keyboard in the reference is
   # worse than one in a port column: it scores as a port defect on a page the port rendered correctly.
-  if ! reshoot_without_keyboard "${out_dir}/${key}${suffix}.png" "${activity}" "${pkg}" "${key}"; then
+  if ! reshoot_without_keyboard "${out_dir}/${key}${suffix}.png" "${component}" "${pkg}" "${key}" MAUI_COMPARE_PAGE; then
     echo "@@PARITY END ${key} maui ${appearance} $((SECONDS - _parity_t0))"
     return 0
   fi

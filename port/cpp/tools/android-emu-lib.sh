@@ -146,9 +146,37 @@ maui_android_shell_quote() {
 # Returns 0 when the frame at $1 is clean (possibly after one re-shoot), 1 when it was DROPPED — a
 # missing capture is a loud fixable gap, a keyboard banked as a render is a 37%-of-frame "defect".
 maui_android_reshoot_without_keyboard() {
-  local out="$1" activity="$2" pkg="$3" key="$4"
+  local out="$1" activity="$2" pkg="$3" key="$4" extra="${5:-MAUI_SAMPLE_PAGE}"
   local guard="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/parity/lib/capture_guard.py"
   [[ -f "${guard}" && -f "${out}" ]] || return 0
+
+  # THE .NET SPLASH, on a LADDER — the MAUI column shows a purple ".NET" screen while its runtime
+  # starts, so a slow launch banks the splash instead of the page. capture_guard.py has detected this
+  # since it was written and iOS has retried on it all along, but NOTHING ON ANDROID EVER CALLED IT:
+  # the guard's own docstring counts "2 on Android" among the 38 committed splash frames and the wiring
+  # was never added. Caught live 2026-08-17 — hybrid_web_view_dark scored 98.3% .NET purple
+  # (81,43,212) straight out of a running recapture.
+  #
+  # Escalating settles rather than one retry: the failure is load-dependent (this emulator was running
+  # a 2.5h three-column pass), so a fixed extra wait is a bet on how busy the machine happens to be.
+  # Costs nothing on a healthy frame.
+  local wait
+  for wait in 4 8 16; do
+    python3 "${guard}" --quiet "${out}" 2>/dev/null && break
+    echo "[android] ~ ${key}: .NET splash instead of the page — re-shooting after ${wait}s" >&2
+    "${maui_adb}" -s "${maui_serial}" shell am force-stop "${pkg}" > /dev/null 2>&1 || true
+    sleep 1
+    "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
+      --es "${extra}" "${key}" > /dev/null 2>&1 || true
+    sleep "${wait}"
+    "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out}"
+  done
+  if ! python3 "${guard}" --quiet "${out}" 2>/dev/null; then
+    rm -f "${out}"
+    echo "[android] !! ${key}: still the splash after three re-shoots — frame DROPPED" >&2
+    return 1
+  fi
+
   python3 "${guard}" --keyboard --quiet "${out}" && return 0
   echo "[android] ~ ${key}: soft keyboard over the page — resetting the IME and re-shooting" >&2
   local ime
