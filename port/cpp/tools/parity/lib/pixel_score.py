@@ -489,9 +489,17 @@ def main():
     lanes = lane_status()
     scored = 0
     changes = []
-    for page in pages:
-        if want is not None and page["name"] not in want:
-            continue
+    # PROGRESS, FLUSHED PER PAGE. Not cosmetic: recapture.py runs this step under a watchdog that
+    # terminates it after 2700s WITHOUT OUTPUT, and until this line existed the only prints in the whole
+    # program were the change list and the final total — both after the last page. A motion-heavy lane
+    # takes longer than the watchdog, so the step was killed every time, and because the write is a
+    # single json.dump at the end, a killed run banks NOTHING. That is silent: the run reports one
+    # failed step, the board keeps its OLD verdicts, and the fresh captures underneath them are scored
+    # by nobody. Measured on the 2026-08-16 android recapture — 609 new frames, 0-byte score log,
+    # verdicts byte-identical to the previous commit.
+    todo = [p for p in pages if want is None or p["name"] in want]
+    for i, page in enumerate(todo, 1):
+        print(f"  [{i}/{len(todo)}] {page['name']}", flush=True)
         for plat in plats:
             platform = page["platforms"].get(plat)
             if platform is None:

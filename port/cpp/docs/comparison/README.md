@@ -40,7 +40,7 @@ Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Strippe
 | ios | `cpp_xaml` | 38.8 MB | 22.5 MB | Release | symbols 23.1 MB · built 2026-08-15 |
 | android | `maui_xaml` | 28.6 MB | — | Release | native libs 21.0 MB · built 2026-08-15 |
 | android | `cpp` | 28.2 MB | — | Release | native libs 21.7 MB · built 2026-08-16 |
-| android | `cpp_xaml` | 41.8 MB | — | Release | native libs 35.2 MB · built 2026-08-16 |
+| android | `cpp_xaml` | 41.8 MB | — | Release | native libs 35.3 MB · built 2026-08-16 |
 
 </details>
 
@@ -5912,7 +5912,7 @@ Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ &amp; XAML both m
 ### 21. Button — 🟢/🟢 · ⏸ neither moves
 <sub>button</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/button_light.gif" /></td><td><img width="300px" src="captures/android/cpp/button_light.png" /></td><td><img width="300px" src="captures/android/xaml/button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/button_dark.gif" /></td><td><img width="300px" src="captures/android/cpp/button_dark.png" /></td><td><img width="300px" src="captures/android/xaml/button_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/button_light.gif" /></td><td><img width="300px" src="captures/android/cpp/button_light.png" /></td><td><img width="300px" src="captures/android/xaml/button_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/button_dark.png" /></td><td><img width="300px" src="captures/android/cpp/button_dark.png" /></td><td><img width="300px" src="captures/android/xaml/button_dark.png" /></td></tr></table>
 
 ports ButtonPage.xaml (+ ButtonPage.xaml.cs)
 
