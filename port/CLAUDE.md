@@ -96,10 +96,41 @@ the first platform. Partial ports must be marked as such in the manifest, never 
 
 ## Parity comparison policy (visual fidelity rulings)
 
+> ### ⚠ 2026-08-17 OVERRIDE — EVERY EXEMPTION BELOW IS REVOKED
+>
+> User directive, verbatim in intent: *"your task is to fix all these inconsistencies when comparing
+> against MAUI so that the C++ port acts as MAUI. Any previously established rule that says otherwise
+> should be invalidated right now."*
+>
+> **The port must reproduce MAUI's actual render. Full stop.** Every ruling below that excuses the port
+> from matching MAUI — i.e. every "exempt MAUI-side quirk", "the port need not copy this", "do NOT count
+> this as a diff", "do NOT force the port to replicate it" — is **VOID**. That revokes, concretely:
+>
+> * **Ruling 2** — the harness wrapper/inset exemption.
+> * **Ruling 7** — iOS-26 Switch ThumbColor white off-thumb.
+> * **Ruling 8** — Picker element-items-form init artifact.
+> * **Ruling 9** — Mac Catalyst CollectionView selection-band absence.
+> * **Ruling 10** — Mac Catalyst "renders-less" content gaps (IndicatorView, bundled images, Shadow,
+>   picker default propagation).
+> * **Ruling 12's exemption clause** — a shared-XAML twin that degrades content is to be FIXED on both
+>   sides (as its own 2026-07-18 resolution already did), never exempted.
+> * The **`context_flyout` live-external-content** carve-out.
+>
+> Where MAUI renders X and the port renders Y, the port is wrong and Y is a bug to fix — including when
+> MAUI's X looks like a platform limitation, an init-timing artifact, or a bug. "MAUI does something
+> odd here" is now a specification, not an excuse.
+>
+> **Rulings 1, 4, 6 and 11 STAND and are reinforced** — they all say the same thing this override says:
+> MAUI's actual render is the ground truth (1), including native-default control rendering (4), sourced
+> from `port/maui-reference/` (6), and when `src/` disagrees with the shipped render the RENDER wins (11).
+>
+> Ruling 3 ("flag, don't act") survives only as *record it* — it no longer authorises pausing work to
+> await a quirk exemption, because there are no more quirk exemptions to grant.
+
 How the iOS parity loop judges the C++ port against real .NET MAUI. The comparison runs through
 `port/cpp/tools/parity/` (Google Gemini by default, Claude vision as the quota fallback); each page's
 differences are split into **port_diffs** (fix) vs **maui_quirks** (MAUI-side, discuss). User rulings
-(2026-06-21) — DO NOT re-litigate these without the user:
+(2026-06-21) — read them THROUGH the 2026-08-17 override above, which revokes every exemption:
 
 1. **Microsoft's MAUI render IS the ground truth for all page CONTENT.** The port matches MAUI's actual
    rendered demos, in both code (syntax) and visuals: colors, control sizes, internal spacing, text,
