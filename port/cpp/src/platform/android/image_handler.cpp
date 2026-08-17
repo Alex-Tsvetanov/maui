@@ -729,6 +729,43 @@ namespace
         return true;
     }
 
+    // Context.getCacheDir().getAbsolutePath() — the android twin of apple's platform_cache_directory()
+    // (NSCachesDirectory). Empty string when there is no Context (the VM-less cross-platform suite) or any
+    // JNI step fails; configure_loader then leaves the loader's disk layer off rather than guessing a path.
+    // Memoized: the walk is four JNI calls and the answer cannot change within a process.
+    [[nodiscard]] std::string platform_cache_directory()
+    {
+        static const std::string memoized = [] {
+            const scoped_env env;
+            jobject context = maui::platform::android::app_context();
+            if (!env || context == nullptr)
+            {
+                return std::string{};
+            }
+            auto& cache = default_jni_cache();
+            jmethodID get_cache_dir =
+                cache.method(env.get(), "android/content/Context", "getCacheDir", "()Ljava/io/File;");
+            jmethodID get_absolute_path =
+                cache.method(env.get(), "java/io/File", "getAbsolutePath", "()Ljava/lang/String;");
+            if (get_cache_dir == nullptr || get_absolute_path == nullptr)
+            {
+                return std::string{};
+            }
+            const local_ref<jobject> dir{env.get(), env->CallObjectMethod(context, get_cache_dir)};
+            if (clear_pending(env.get()) || !dir)
+            {
+                return std::string{};
+            }
+            const local_ref<jobject> path{env.get(), env->CallObjectMethod(dir.get(), get_absolute_path)};
+            if (clear_pending(env.get()) || !path)
+            {
+                return std::string{};
+            }
+            return maui::platform::android::to_utf8(env.get(), static_cast<jstring>(path.get()));
+        }();
+        return memoized;
+    }
+
     // The image_source_loader::uri_fetch seam installed in configure_loader. A non-http scheme (file:// or a
     // bare path) reads synchronously — the loader's own default. An http(s) uri is dispatched to the Java
     // worker; the sink then fires later, on the main looper. EVERY path delivers to the sink exactly once:
@@ -907,11 +944,27 @@ namespace maui::core
     // Install the async http(s) fetch seam (the android twin of apple's NSURLSession dataTask install).
     // No i_dispatcher is set: fetch_uri_async already marshals its completion onto the MAIN looper, so the
     // loader's apply runs inline on the UI thread where the ImageView lives — the main-looper hop IS the
-    // dispatcher hand-off, exactly as the apple partial documents. The on-disk cache layer stays OFF (the
-    // loader's in-memory CacheValidity layer is what C# gets from Glide's memory cache; a persistent
-    // FileSystem.CacheDirectory twin is separate work and would need a Context-derived path).
+    // dispatcher hand-off, exactly as the apple partial documents.
+    //
+    // THE ON-DISK CACHE IS ON, and its absence was a real parity gap rather than a refinement. MAUI reaches
+    // Glide, which caches decoded uri bytes to disk and therefore renders a remote photo on the FIRST frame
+    // of every launch after the first. Without a disk layer the port re-downloaded on every launch, and the
+    // in-memory CacheValidity layer cannot help because it dies with the process. Measured on the image
+    // page (Source="https://aka.ms/campus.jpg", 152307 bytes): the fetch itself always succeeded, but on a
+    // COLD network it landed after the parity capture's 4s settle, so the board banked a frame with no
+    // photo and everything below it shifted up — 70.00% differing pixels in light, scored as a port defect.
+    // Warm, the same binary renders it inside 4s. A race the reference does not have is a gap, not noise.
+    //
+    // The directory is the Context's own cache dir (Context.getCacheDir()), the closest analog of the
+    // FileSystem.CacheDirectory path C# hands Glide; uri_image_disk_cache appends its own "MauiUriImages"
+    // subdirectory, exactly as on apple. An unavailable Context leaves the directory empty, which is the
+    // loader's documented "disk layer off" state — the same degradation as before this change.
     void image_handler::configure_loader(image_source_loader& loader)
     {
+        if (std::string directory = platform_cache_directory(); !directory.empty())
+        {
+            loader.set_disk_cache_directory(std::move(directory));
+        }
         loader.set_uri_fetch(&fetch_uri_async);
     }
 
