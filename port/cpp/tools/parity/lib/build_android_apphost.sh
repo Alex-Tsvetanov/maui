@@ -361,8 +361,12 @@ capture_one() {
   # (b) Clear logcat so the next `Displayed` line is unambiguously from THIS launch (the readiness barrier).
   "${maui_adb}" -s "${maui_serial}" logcat -c > /dev/null 2>&1 || true
   # (c) Launch with -W (blocks to first frame) and then poll for this launch's Displayed marker.
-  "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
-    --es MAUI_SAMPLE_PAGE "${key}" > /dev/null
+  # Bounded: a hung launch drops ONE frame instead of killing the whole pass
+  # (android-emu-lib.sh; the 2026-08-17 empty_view stall cost both dark passes).
+  if ! maui_android_start_bounded "${activity}" "MAUI_SAMPLE_PAGE" "${key}"; then
+    echo "@@PARITY END ${key} cpp ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   wait_displayed || echo "[apphost] WARNING: never saw Displayed for ${key}; capturing anyway" >&2
   # Dismiss the transient "System UI isn't responding" ANR dialog that can overlay the page during the
   # build/install/launch load burst. Use the CLOSE_SYSTEM_DIALOGS broadcast, NOT keyevent BACK — BACK would

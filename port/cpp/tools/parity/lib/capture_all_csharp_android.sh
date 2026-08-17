@@ -127,8 +127,12 @@ capture_one() {
   # (b) Clear logcat so the next Displayed line is unambiguously from THIS launch.
   "${maui_adb}" -s "${maui_serial}" logcat -c > /dev/null 2>&1 || true
   # (c) Launch this page (intent extra) with -W (blocks to first frame), then poll the readiness barrier.
-  "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${component}" \
-    --es MAUI_COMPARE_PAGE "${key}" ${theme_extra[@]+"${theme_extra[@]}"} > /dev/null
+  # Bounded: a hung launch drops ONE frame instead of killing the whole pass
+  # (android-emu-lib.sh; the 2026-08-17 empty_view stall cost both dark passes).
+  if ! maui_android_start_bounded "${component}" "MAUI_COMPARE_PAGE" "${key}"; then
+    echo "@@PARITY END ${key} maui ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   wait_displayed || echo "[csharp-android] WARNING: never saw first-frame for ${key}; capturing anyway" >&2
   # Dismiss a transient "isn't responding" ANR dialog if the load burst raised one.
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true

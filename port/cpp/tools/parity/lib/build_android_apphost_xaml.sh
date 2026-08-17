@@ -325,8 +325,12 @@ capture_one() {
   # (b) Clear logcat so the next Displayed line is unambiguously from THIS launch.
   "${maui_adb}" -s "${maui_serial}" logcat -c > /dev/null 2>&1 || true
   # (c) Launch with -W and poll for this launch's Displayed marker.
-  "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
-    --es MAUI_SAMPLE_PAGE "${key}" > /dev/null
+  # Bounded: a hung launch drops ONE frame instead of killing the whole pass
+  # (android-emu-lib.sh; the 2026-08-17 empty_view stall cost both dark passes).
+  if ! maui_android_start_bounded "${activity}" "MAUI_SAMPLE_PAGE" "${key}"; then
+    echo "@@PARITY END ${key} xaml ${appearance} $((SECONDS - _parity_t0))"
+    return 0
+  fi
   wait_displayed || echo "[apphost-xaml] WARNING: never saw Displayed for ${key}; capturing anyway" >&2
   # Dismiss any transient ANR dialog via CLOSE_SYSTEM_DIALOGS (NOT keyevent BACK — BACK would close us).
   "${maui_adb}" -s "${maui_serial}" shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS > /dev/null 2>&1 || true

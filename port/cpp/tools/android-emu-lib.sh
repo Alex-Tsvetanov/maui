@@ -169,3 +169,33 @@ maui_android_reshoot_without_keyboard() {
 
 # Short alias the capture scripts call (they already source this file).
 reshoot_without_keyboard() { maui_android_reshoot_without_keyboard "$@"; }
+
+# ---- a hung launch must cost ONE frame, not the whole pass -------------------------------------------
+# `am start -W` blocks until the app's first frame. When the emulator degrades during a long run it can
+# block FOREVER, and recapture.py's per-step watchdog then kills the entire lane pass. Measured
+# 2026-08-17: the android cpp and cpp_xaml DARK passes both died this way at `empty_view` (900s, no
+# output), taking every page after it with them; the partial result scored the board 123g/25r -> 106g/36r
+# and had to be reverted. Relaunching that same page by hand right afterwards returned in 2.0s, so this
+# is emulator flakiness, not a page that cannot start.
+#
+# macOS has no coreutils `timeout`, so the bound is a background wait loop. On expiry the launch is
+# killed and 1 is returned; the caller drops the frame and moves to the next key, which is the same
+# degradation the foreground and keyboard guards already use.
+maui_android_start_bounded() {
+  local activity="$1" extra_key="$2" key="$3" ceiling="${4:-90}"
+  "${maui_adb}" -s "${maui_serial}" shell am start -W -n "${activity}" \
+    --es "${extra_key}" "${key}" > /dev/null 2>&1 &
+  local pid=$! waited=0
+  while kill -0 "${pid}" 2>/dev/null; do
+    sleep 1
+    waited=$((waited + 1))
+    if [[ "${waited}" -ge "${ceiling}" ]]; then
+      kill "${pid}" 2>/dev/null || true
+      wait "${pid}" 2>/dev/null || true
+      echo "[android] !! ${key}: am start -W did not return in ${ceiling}s — frame DROPPED, pass continues" >&2
+      return 1
+    fi
+  done
+  wait "${pid}" 2>/dev/null || true
+  return 0
+}
