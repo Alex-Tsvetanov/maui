@@ -323,25 +323,25 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 29567159,
+    "total_bytes": 29575351,
     "file_count": 811,
     "buckets": {
-     "other": 68588,
+     "other": 68587,
      "resources": 1767109,
      "code": 4864780,
-     "native_libs": 22720464
+     "native_libs": 22730744
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 22720464,
+     "bytes": 22730744,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 22720464
+     "arm64-v8a": 22730744
     },
     "abi_count": 1,
-    "built_at": "2026-08-16",
+    "built_at": "2026-08-17",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -352,30 +352,30 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 43804925,
+    "total_bytes": 43813117,
     "file_count": 812,
     "buckets": {
-     "other": 68703,
+     "other": 68700,
      "resources": 1767281,
      "code": 4864733,
-     "native_libs": 36956040
+     "native_libs": 36966176
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 36956040,
+     "bytes": 36966176,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 36956040
+     "arm64-v8a": 36966176
     },
     "abi_count": 1,
-    "built_at": "2026-08-16",
+    "built_at": "2026-08-17",
     "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-16T17:51:53Z",
+ "size_measured_at": "2026-08-17T14:18:32Z",
  "ttff": {
   "android": {
    "maui_xaml": {
