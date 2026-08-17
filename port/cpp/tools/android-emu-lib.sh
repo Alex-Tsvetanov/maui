@@ -190,9 +190,23 @@ maui_android_reshoot_without_keyboard() {
   sleep 4
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out}"
   python3 "${guard}" --keyboard --quiet "${out}" && return 0
-  rm -f "${out}"
-  echo "[android] !! ${key}: keyboard survived the IME reset — frame DROPPED" >&2
-  return 1
+  # SURVIVED THE RESET => IT IS THE PAGE, NOT A LEAK. Accept it, do not drop.
+  #
+  # This guard used to delete the frame here, and that was wrong in exactly the way the blank-frame
+  # guard already documents: a keyboard verdict is AMBIGUOUS. A page whose own content is a focused
+  # SearchBar legitimately shows the IME, and no amount of force-stopping the IME package will change
+  # that, because the page raises it again on its next layout.
+  #
+  # It cost 20 frames in one run (2026-08-17 android light): data_template_selector, empty_view,
+  # empty_view_rtl, filter_selection, ios_search_bar and friends -- precisely the SearchBar/
+  # CollectionView pages -- were each shot, reset, re-shot, and then DELETED. The board went
+  # 147g/6r -> 141g/9r and the whole run had to be reverted.
+  #
+  # A leaked keyboard is cleared by the IME reset above; a real one is not. Surviving the reset IS the
+  # discriminator, so reaching this line means keep the frame. The warning stays so an unexpected page
+  # showing up here is still visible.
+  echo "[android] ~ ${key}: keyboard survived the IME reset — it is page state, frame KEPT" >&2
+  return 0
 }
 
 # Short alias the capture scripts call (they already source this file).
