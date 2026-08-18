@@ -26,8 +26,30 @@
 set -euo pipefail
 
 REPO="/Users/Alex.Tsvetanov/Documents/GitHub/maui"
-export VCPKG_ROOT="${VCPKG_ROOT:-/Users/Alex.Tsvetanov/vcpkg}"
-export ANDROID_HOME="${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}"
+
+# RESOLVE THE TOOLCHAIN BY PROBING, NOT BY TRUSTING THE ENVIRONMENT. `${VAR:-default}` only fills in
+# when the var is UNSET, so an exported-but-WRONG value wins and the default never fires -- which is
+# exactly what happened: a shell exporting ANDROID_HOME=~/Library/Android/sdk (a path that does not
+# exist on this host; the SDK is the homebrew one) aborted the run at preflight. A stale env var must
+# not be able to defeat the script, and it must not be silently overridden either -- so probe each
+# candidate for the tool that proves it, and SAY which one was chosen.
+pick_dir() {   # pick_dir <label> <witness-relative-path> <candidate>...
+  local label="$1" witness="$2"; shift 2
+  local c
+  for c in "$@"; do
+    [[ -n "$c" && -e "$c/$witness" ]] && { printf '%s' "$c"; return 0; }
+  done
+  echo "!! ABORT: no usable $label — tried: $*" >&2
+  echo "   (each must contain: $witness)" >&2
+  return 1
+}
+
+ANDROID_HOME="$(pick_dir "Android SDK" "platform-tools/adb" \
+  "${ANDROID_HOME:-}" "/opt/homebrew/share/android-commandlinetools" "$HOME/Library/Android/sdk")" || exit 1
+VCPKG_ROOT="$(pick_dir "vcpkg" "scripts/buildsystems/vcpkg.cmake" \
+  "${VCPKG_ROOT:-}" "/Users/Alex.Tsvetanov/vcpkg" "$HOME/vcpkg")" || exit 1
+export ANDROID_HOME VCPKG_ROOT
+export ANDROID_SDK_ROOT="$ANDROID_HOME"     # some tooling still reads the older name
 export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 
 WIN_HOST="Testings-VM@WINDOWS-VM.local"
@@ -54,10 +76,14 @@ cd "$REPO"
 step "PREFLIGHT"
 echo "log:    $LOG"
 echo "commit: $(git rev-parse --short HEAD)  branch: $(git rev-parse --abbrev-ref HEAD)"
-[[ -d "$VCPKG_ROOT" ]]   || die "VCPKG_ROOT not a directory: $VCPKG_ROOT"
-[[ -d "$ANDROID_HOME" ]] || die "ANDROID_HOME not a directory: $ANDROID_HOME"
+echo "ANDROID_HOME: $ANDROID_HOME"
+echo "VCPKG_ROOT:   $VCPKG_ROOT"
 command -v dotnet >/dev/null || die "dotnet not on PATH"
-adb devices | grep -q emulator || die "no android emulator running (start it, then re-run)"
+# `adb devices` prints its header even with nothing attached, so match a device LINE, not the word.
+adb devices | awk 'NR>1 && /\tdevice$/ {n++} END {exit n?0:1}' \
+  || die "no android device/emulator attached. Start one:
+     \$ANDROID_HOME/emulator/emulator -avd \$($ANDROID_HOME/emulator/emulator -list-avds | head -1) -no-snapshot-load &
+   then re-run. (adb devices currently shows: $(adb devices | tail -n +2 | tr '\n' ' '))"
 if (( ! SKIP_WINDOWS )); then
   ssh -o ConnectTimeout=10 -o BatchMode=yes "$WIN_HOST" "echo ok" >/dev/null \
     || die "cannot ssh $WIN_HOST — bring the VM up, or pass --skip-windows"
