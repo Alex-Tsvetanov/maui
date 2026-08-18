@@ -7,7 +7,12 @@
          omitted — only the in-page RESTING views are reproduced (the menus are hidden until a right-click
          anyway). The counter Label + status Label + Switch capture the observable readout the page shows at
          rest. The 🆒 FontImageSource image carries the ORIGINAL element form (the loader's W17
-         FontImageSource support renders it); the bing.com WebView is live network content. -->
+         FontImageSource support renders it). DEVIATES from the C# sample's <WebView Source="https://bing.com">:
+         bing.com's homepage changes daily AND server-redirects to www.bing.com/, so the two columns could
+         never agree and the redirect handed navigation to the platform. https://example.com/ is a static,
+         redirect-free page — still a real network load, but a comparable one. The code-first twin
+         (port/cpp/examples/gallery/pages/context_flyout_page.hpp) carries the SAME URL; the two must move
+         together or every context_flyout cell reads as a port regression. -->
     <ScrollView>
         <VerticalStackLayout Spacing="10">
             <Button Text="Increment by 1 (or right-click me)" BackgroundColor="DarkGray" />
@@ -25,7 +30,7 @@
                 </Image.Source>
             </Image>
 
-            <WebView Source="https://bing.com" MinimumHeightRequest="400" />
+            <WebView Source="https://example.com/" MinimumHeightRequest="400" />
 
             <Label Text="0" />
             <Label Text="Right-click a control, or its menu items are exercised programmatically" />

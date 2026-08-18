@@ -14,7 +14,7 @@
 //   - a Label with a "beautiful menus" color flyout (icon menu items + an "Advanced colors" sub-menu),
 //   - an Entry with a custom flyout (show text in a message / add text / clear text),
 //   - an Image (a 🆒 FontImageSource) with "Use Clicked event" / "Use Command and CommandParameter", and
-//   - a WebView (bing.com) with "Go to MAUI repo" / "Invoke some JS".
+//   - a WebView (the C# sample's bing.com; see build_web_view) with "Go to MAUI repo" / "Invoke some JS".
 //
 // PORT MAPPING:
 //   - FlyoutBase.ContextFlyout  -> view::set_context_flyout(&menu_flyout) (controls/view.hpp; the chrome
@@ -42,7 +42,7 @@
 // note: the C# DisplayAlert side-effects (the entry / image / "add menu" / webview message boxes) have no
 //       headless analog; each ported handler instead stamps the status label with the same message text,
 //       the gallery's observable-readout convention.
-// note: the 🆒 FontImageSource image source + the WebView's bing.com navigation are best-effort: the image
+// note: the 🆒 FontImageSource image source + the WebView's navigation are best-effort: the image
 //       carries the FontImageSource and the web_view carries the URL source, but neither renders pixels
 //       headless. The demonstrated feature — context menu items driving a readout — is fully exercised.
 // note: KeyboardAccelerators (Alt+F on the sub-item, etc., added in the .xaml.cs) are attached to the
@@ -272,11 +272,17 @@ namespace maui::samples
             stack_.add(image_);
         }
 
-        // The WebView (bing.com) with "Go to MAUI repo" / "Invoke some JS". The first re-sources the
-        // webview to the MAUI repo (C# OnWebViewGoToSiteClicked); the second stamps the JS message.
+        // The WebView with "Go to MAUI repo" / "Invoke some JS". The first re-sources the webview to the
+        // MAUI repo (C# OnWebViewGoToSiteClicked); the second stamps the JS message.
+        //
+        // DEVIATES from the C# sample's https://bing.com, in lockstep with the twin
+        // (port/maui-reference/pages/context_flyout.xaml). bing.com's homepage changes daily, so the maui and
+        // port columns could never agree on it, and it server-redirects (bing.com -> www.bing.com/), which is
+        // the navigation web_view_handler.cpp:427-432 documents as escaping to the system browser.
+        // example.com is static and redirect-free. BOTH sites must carry the same URL.
         void build_web_view()
         {
-            web_view_.set_source(std::string("https://bing.com"));
+            web_view_.set_source(std::string("https://example.com/"));
             web_view_.set_minimum_height_request(400);
 
             web_goto_.set_text("Go to MAUI repo");
