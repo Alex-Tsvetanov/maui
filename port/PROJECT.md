@@ -111,9 +111,9 @@ The four layers below are the complete spec. Each answers a different question:
 
 ---
 
-## LANGUAGE-SPECIFIC — C++23
+## LANGUAGE-SPECIFIC — C++26
 
-The target language is **C++23**, with an **idiomatic `snake_case`** public API. Full details live in
+The target language is **C++26**, with an **idiomatic `snake_case`** public API. Full details live in
 [`cpp/PROFILE.md`](cpp/PROFILE.md). Key commitments that affect this charter:
 
 - **Backends (all platforms documented):** `headless`/Standard → **macOS (AppKit, Obj-C++)** →

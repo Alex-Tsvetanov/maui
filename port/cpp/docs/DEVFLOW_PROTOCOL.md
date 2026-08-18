@@ -1,6 +1,6 @@
 # DevFlow agent protocol
 
-A minimal, **debug-gated** in-app test/automation agent for the C++23 MAUI port, modeled on Microsoft's
+A minimal, **debug-gated** in-app test/automation agent for the C++26 MAUI port, modeled on Microsoft's
 experimental [.NET MAUI DevFlow agent](https://learn.microsoft.com/en-us/dotnet/maui/developer-tools/devflow/).
 It exposes a tiny JSON-over-HTTP API on **localhost** so an external driver (the parity test runner's Python
 `DevFlowDriver`) can introspect and poke the running UI.

@@ -300,9 +300,9 @@ Use a question (don't guess) when:
 
 ---
 
-## LANGUAGE-SPECIFIC — C++23
+## LANGUAGE-SPECIFIC — C++26
 
-The language is **C++23**; the full profile is [`cpp/PROFILE.md`](cpp/PROFILE.md). **Read it before
+The language is **C++26**; the full profile is [`cpp/PROFILE.md`](cpp/PROFILE.md). **Read it before
 emitting any code.** Operating rules that override/extend the generic workflow above:
 
 - **API style is `snake_case`** (`maui::controls::button`, `view.text.set(...)`, `btn.clicked.connect(...)`).

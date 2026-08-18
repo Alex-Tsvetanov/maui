@@ -2,7 +2,7 @@
 
 Status: **pipeline built and verified off-guest; awaiting a live Windows VM.** Branch `windows-toolchain`.
 
-This documents how the C++23 MAUI port builds Windows binaries and how they get deployed to and driven
+This documents how the C++26 MAUI port builds Windows binaries and how they get deployed to and driven
 on a Windows VM — the sibling of the macOS UTM lane (`docs/comparison/tools/README_e2e.md`).
 
 ---

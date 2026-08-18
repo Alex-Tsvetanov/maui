@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fast inner dev loop for the C++23 MAUI port: incremental rebuild + targeted ctest on ONE preset.
+# Fast inner dev loop for the C++26 MAUI port: incremental rebuild + targeted ctest on ONE preset.
 # This is the answer to "just rebuild the changed files and run the tests" — Ninja already recompiles
 # only the touched TUs (and ccache makes even those cheap), so a tight edit→test cycle is seconds, not
 # the 20-30 min of the full multi-lane gate (tools/gate.sh).

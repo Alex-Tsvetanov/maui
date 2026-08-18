@@ -1,16 +1,23 @@
-# PROFILE — C++23 target
+# PROFILE — C++26 target
 
 > The language profile for the MAUI port. Read after `../PROJECT.md` and `../CLAUDE.md`.
-> **Language:** C++23 · **API style:** idiomatic `snake_case` · **First platform:** Apple (develop on
+> **Language:** C++26 · **API style:** idiomatic `snake_case` · **First platform:** Apple (develop on
 > macOS, then iOS/Mac Catalyst) after a headless bring-up of M0–M5.
 
 ---
 
 ## 1. Toolchain & standard
 
-- **Standard:** C++23 (`-std=c++23` / `/std:c++23`). Features we lean on: `std::expected`,
-  `std::optional`, `std::variant`, `std::span`, ranges, `<format>`/`std::print`, deducing `this`,
-  `if consteval`, `std::move_only_function`, coroutines.
+- **Standard:** **C++26** is the target — `#embed` carries every compile-time-XAML page (408 TUs) and
+  the `{Binding}` auto-wire path is written against static reflection (P2996 `std::meta`), both C++26
+  features. Features we lean on from C++23 and earlier: `std::expected`, `std::optional`,
+  `std::variant`, `std::span`, ranges, `<format>`/`std::print`, deducing `this`, `if consteval`,
+  `std::move_only_function`, coroutines.
+  - *Built with `-std=c++23` / `/std:c++23` today*, not `c++26`: clang accepts `#embed` under c++23 as
+    an extension (silenced with `-Wno-c23-extensions`), and no shipping toolchain has `std::meta`, so
+    the reflection path stays feature-gated (`maui/xaml/feature.hpp`). Raising the pin is a build
+    change that has to clear `gate.sh` on all four backends — MSVC has no `#embed` at all, which is
+    why the Windows/Android lanes compile a bytes-mode twin of each XAML TU instead.
   - *Toolchain gap:* the libc++ shipping with AppleClang 21 (libc++ 210106) does **not** expose
     `std::move_only_function` (not in `<functional>`, no `__cpp_lib_move_only_function`, absent even
     under `-fexperimental-library`). The port provides `maui::core::move_only_function` as a drop-in
@@ -90,9 +97,9 @@ sees both worlds, no marshalling/projection layer), iOS+Mac Catalyst reuse most 
 and it matches the dev machine. Build the **headless** backend first (proves M0–M5 with no device),
 then **macOS** (proves the handler seam end-to-end, M2), then **iOS/Mac Catalyst**.
 
-## 5. Idiom map — C# (.NET MAUI) → C++23
+## 5. Idiom map — C# (.NET MAUI) → C++26
 
-| C# construct | C++23 mapping | Notes |
+| C# construct | C++26 mapping | Notes |
 |---|---|---|
 | `partial class Foo` + `Foo.Android.cs` | core `foo.cpp` + `src/platform/<backend>/foo.cpp\|.mm`, joined at link time; native handle via **pimpl** | the cross-platform/platform seam. |
 | `BindableProperty` + value precedence | `maui::core::bindable_property<T>` registered on a `bindable_object` with a **precedence stack** (default < style < binding < manual) | see §7. The single hardest core piece. |
@@ -101,19 +108,21 @@ then **macOS** (proves the handler seam end-to-end, M2), then **iOS/Mac Catalyst
 | `INotifyPropertyChanged` | base with a `property_changed` event keyed by property name (`std::string_view`) | drives bindings. |
 | generic base `ViewHandler<TVirtual, TPlatform>` | **CRTP** `view_handler<Derived, Virtual, Platform>` + a non-generic `i_view_handler` interface | avoids vtable-through-templates; keeps a polymorphic handle. |
 | `IServiceProvider` / MS.Ext.DI | a small `service_registry` (type-keyed) + a **handler registry** mapping virtual-view tag → handler factory | **no reflection** — registration is explicit (see §6). |
-| `async Task<T>` / `await` | C++23 coroutines: `maui::core::task<T>` + an executor; UI marshalling via the **dispatcher** | `co_await dispatcher.run_on_ui(...)`. |
+| `async Task<T>` / `await` | C++26 coroutines: `maui::core::task<T>` + an executor; UI marshalling via the **dispatcher** | `co_await dispatcher.run_on_ui(...)`. |
 | `SynchronizationContext` / `Dispatcher` | `maui::core::dispatcher` posting to the backend's main loop (GCD / DispatcherQueue / Looper) | every backend supplies one. |
 | extension methods | free functions in the type's namespace (ADL) | e.g. `maui::controls::set_padding(view, ...)`. |
 | nullable `T?` (ref) | `T*` / `std::shared_ptr<T>` (null = absent); nullable value `int?` → `std::optional<int>` | ownership per §8. |
 | `string` (UTF-16) | **`std::string` (UTF-8)** internally; convert at the native boundary | document the boundary; AppKit/UIKit want `NSString` (UTF-16) — convert in the `.mm` shim. |
 | `IDisposable` / `DisconnectHandler()` | **RAII**: destructors + an explicit `disconnect()` in the handler; native view released in handler dtor | deterministic teardown replaces GC finalization. |
-| reflection (XAML loader, DI scan) | **code generation or explicit registration tables** — there is no C++23 reflection | defer XAML; hand-register handlers/types (see §6). |
+| reflection (XAML loader, DI scan) | **code generation or explicit registration tables** — C++26 has static reflection (P2996), but no shipping toolchain does | defer XAML; hand-register handlers/types (see §6). |
 | `enum` / `[Flags]` | `enum class name { ... }` (snake_case members); flags via `enum class` + bitwise operator overloads | |
 
 ## 6. The no-reflection consequence (read this)
 
-MAUI uses reflection for handler discovery, DI, and XAML instantiation. C++23 has **none**. Replace it
-with **explicit registration**:
+MAUI uses reflection for handler discovery, DI, and XAML instantiation. C++26 standardises static
+reflection (P2996), but **no toolchain we build on ships it** — `__cpp_reflection` is undefined on
+Apple clang 21, so `MAUI_HAS_XAML_REFLECTION` is off everywhere (`maui/xaml/feature.hpp`). Until that
+changes, treat reflection as absent and replace it with **explicit registration**:
 
 - **Handler registry:** `register_handler<button, button_handler>()` in hosting startup; resolve by a
   stable per-type tag (`maui::core::type_tag` — a `constexpr` id, not RTTI-dependent).

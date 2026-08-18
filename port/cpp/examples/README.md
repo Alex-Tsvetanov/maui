@@ -1,7 +1,7 @@
 # MAUI C++ examples
 
 A standalone CMake project of small, single-concept programs that show idiomatic, OS-agnostic use of the
-C++23 .NET MAUI port. Every example is **pure portable C++** — no Objective-C, no `.mm`, no platform
+C++26 .NET MAUI port. Every example is **pure portable C++** — no Objective-C, no `.mm`, no platform
 headers — written in the MAUI `MauiProgram` style: an `application` subclass plus the one
 `use_shared_maui_app` configurator. The same source builds and runs on the headless, macOS, and iOS
 backends; only the build helper (`cmake/maui_add_app.cmake`) is platform-aware.
@@ -121,7 +121,7 @@ xcrun simctl launch booted dev.maui-cpp.examples.hello_world
 ## How `maui_add_app` works
 
 The helper `maui_add_app(<name> SOURCES <...> [RESOURCES <...>])` creates the executable, links
-`maui::hosting` (which carries C++23, the public include path, and the whole framework link DAG including
+`maui::hosting` (which carries C++26, the public include path, and the whole framework link DAG including
 the backend's run loop), and handles per-platform packaging: a plain executable on headless and macOS; on
 iOS an installable `.app` with a generated `Info.plist`. The example sources stay 100% portable — only
 this helper names a platform.

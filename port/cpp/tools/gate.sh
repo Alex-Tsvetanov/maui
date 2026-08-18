@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-push verification gate for the C++23 MAUI port: configure + build + ctest across every backend /
+# Pre-push verification gate for the C++26 MAUI port: configure + build + ctest across every backend /
 # sanitizer / lint lane, the way STATUS.md's "gate" lines are produced. This is the SLOW, thorough run
 # (correctness across the whole matrix) — for the fast inner dev loop use tools/dev.sh instead.
 #
@@ -81,6 +81,22 @@ echo "==> gate: lanes=[${lanes[*]}]  jobs=${jobs}  clean=${clean}  build_only=${
 declare -a results
 overall_rc=0
 gate_start=${SECONDS}
+
+# e2e.py's bytes-mode generator runs at CMake CONFIGURE time on the windows + android lanes, and a
+# FATAL_ERROR there only catches it CRASHING. The failure that matters is quieter: it silently drops a
+# page's hand-written code-behind, the TU still compiles, and the page renders inert -- visible only as
+# a board red, days later. Seconds to run, no build needed, so it goes before the lanes rather than
+# inside one.
+gate_start_e2e=${SECONDS}
+if python3 "${here}/../tools/e2e/test_e2e.py" >/dev/null 2>&1; then
+  results+=("$(printf '%-12s %-28s %4ds' "e2e-gen" "ok" "$(( SECONDS - gate_start_e2e ))")")
+else
+  echo "gate.sh: port/tools/e2e/test_e2e.py FAILED -- rerun it directly for the diff" >&2
+  python3 "${here}/../tools/e2e/test_e2e.py" || true
+  results+=("$(printf '%-12s %-28s %4ds' "e2e-gen" "pytest-FAILED" "$(( SECONDS - gate_start_e2e ))")")
+  overall_rc=1
+  [[ ${keep_going} -eq 0 ]] && { echo "gate.sh: stopping (pass --keep-going to run the build lanes anyway)" >&2; lanes=(); }
+fi
 
 for lane in "${lanes[@]}"; do
   lane_start=${SECONDS}

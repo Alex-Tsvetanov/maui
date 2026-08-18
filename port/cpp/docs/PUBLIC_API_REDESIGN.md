@@ -12,11 +12,11 @@
 
 ## 1. What the framework is (one paragraph)
 
-A C++23 port of .NET MAUI living entirely under `port/cpp/`. Cross-platform UI: a virtual-view ⇄
+A C++26 port of .NET MAUI living entirely under `port/cpp/`. Cross-platform UI: a virtual-view ⇄
 handler ⇄ native-view architecture with three backends compiled per CMake preset — **headless**
 (unit-testable, no device), **apple** (AppKit), **ios** (UIKit). The UI is feature-complete and now
 renders near-pixel-identical to real MAUI on iOS. Authoritative docs: `port/PROJECT.md` (layers/
-milestones), `port/cpp/PROFILE.md` (the C++23 language profile — naming, ownership doctrine, idiom map),
+milestones), `port/cpp/PROFILE.md` (the C++26 language profile — naming, ownership doctrine, idiom map),
 `port/CLAUDE.md` (operating manual). The libraries are `maui_graphics / core / controls / layouts /
 xaml / hosting / essentials`; a consumer links `maui::hosting` via `find_package(maui CONFIG REQUIRED)`.
 

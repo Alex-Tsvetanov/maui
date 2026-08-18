@@ -1,6 +1,6 @@
 # Public API design — the idiomatic-C++ `maui::ui` layer
 
-> **What this is.** The design for the framework's idiomatic-C++23 **consumer-facing** API — an additive
+> **What this is.** The design for the framework's idiomatic-C++26 **consumer-facing** API — an additive
 > `maui::ui` layer over the existing `maui::controls/core/graphics` and the virtual-view⇄handler⇄native
 > seam. It answers the context brief [`PUBLIC_API_REDESIGN.md`](PUBLIC_API_REDESIGN.md) with a before/after
 > for each of that brief's §3 targets (A–J), the resolved control-instance **ownership model**, the design
@@ -497,5 +497,5 @@ attached properties, type converters, `xmlns` resolution) when sequenced.
 ---
 
 *Answers [`PUBLIC_API_REDESIGN.md`](PUBLIC_API_REDESIGN.md). Authoritative behavior remains the C# `src/`
-+ tests (`port/CLAUDE.md`); the C++23 profile is `PROFILE.md` (§6 no-reflection, §7 property system, §8
++ tests (`port/CLAUDE.md`); the C++26 profile is `PROFILE.md` (§6 no-reflection, §7 property system, §8
 ownership, §9 snake_case, §11 locked decisions).*

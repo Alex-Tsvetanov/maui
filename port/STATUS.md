@@ -1,4 +1,4 @@
-# STATUS — MAUI → C++23 port progress
+# STATUS — MAUI → C++26 port progress
 
 > One row per component. Update at step 7 of the per-component loop (`CLAUDE.md`). Never mark a
 > partial port as done silently — use the Notes column.
