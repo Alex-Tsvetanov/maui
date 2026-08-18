@@ -51,7 +51,32 @@ function Sync-Tree {
         $stack.Push((Resolve-Path $Root).Path)
         while ($stack.Count -gt 0) {
             $dir = $stack.Pop()
-            foreach ($i in Get-ChildItem -LiteralPath $dir -Force -ErrorAction SilentlyContinue) {
+            # ENUMERATE WITH RETRY, AND FAIL LOUDLY. This used to be a bare
+            # `Get-ChildItem -ErrorAction SilentlyContinue`, which swallowed a transient share read
+            # failure and returned an EMPTY listing for that directory. An empty SOURCE listing is
+            # indistinguishable from "the host deleted these files", so the removal pass below
+            # deleted them -- silently, and reported as a normal "N removed".
+            # MEASURED 2026-08-19: cpp/examples/gallery_xaml/Views (391 files, the LARGEST single
+            # directory in the tree, and so the likeliest to trip the flakiness this file's header
+            # already documents for MSBuild and CMake) enumerated as 0 on the share. All 391 were
+            # removed from the mirror and none re-copied, and the build died with
+            #   C1083: Cannot open include file: 'Views/absolute_layout.xaml.hpp'
+            # naming generated headers that were present on the host, and on Z:, the entire time.
+            # The header's "READING the share is reliable" is therefore FALSE for burst directory
+            # enumeration -- it is reliable when asked once, which is how it was checked.
+            # A short retry clears it; three consecutive failures are real and must abort the sync
+            # rather than be converted into deletions.
+            $items = $null
+            for ($try = 1; $try -le 3; $try++) {
+                $err = $null
+                $got = @(Get-ChildItem -LiteralPath $dir -Force -ErrorAction SilentlyContinue -ErrorVariable err)
+                if (-not $err) { $items = $got; break }
+                Start-Sleep -Milliseconds (200 * $try)
+            }
+            if ($null -eq $items) {
+                throw "Sync-Tree: cannot enumerate $dir after 3 tries -- ABORTING rather than treating an unreadable directory as an empty one (that would delete its mirror copy)"
+            }
+            foreach ($i in $items) {
                 if ($i.PSIsContainer) {
                     # PRUNE, never filter afterwards. Get-ChildItem -Recurse descends first and
                     # filters its output, which on this tree means walking port/cpp/docs -- 10 GB of
@@ -98,6 +123,18 @@ function Sync-Tree {
     # Removal is correctness, not tidiness: CMake and MSBuild both glob, so a source deleted on the
     # host but left here keeps getting compiled.
     $removed = 0
+    # BACKSTOP for any partial-source failure the retry above does not catch. Deleting a large
+    # fraction of the mirror in one pass is never a legitimate incremental sync of a source tree that
+    # the host builds from; it is the signature of a source walk that came back short. Abort with the
+    # numbers rather than proceed -- a re-run after a real bulk deletion is cheap, and a wrongly
+    # emptied mirror costs a whole board run (it cost this one).
+    $doomed = @($d.Keys | Where-Object { -not $s.ContainsKey($_) })
+    if ($d.Count -gt 0 -and $doomed.Count -gt [Math]::Max(50, [int]($d.Count * 0.25))) {
+        throw ("Sync-Tree: refusing to remove " + $doomed.Count + " of " + $d.Count +
+               " mirrored files (source walk found " + $s.Count + "). That ratio means the SOURCE walk " +
+               "came back short, not that the host deleted them. Re-run; if the host really did delete " +
+               "this many, clear $To and let the bulk copy re-seed it.")
+    }
     foreach ($rel in $d.Keys) {
         if (-not $s.ContainsKey($rel)) {
             Remove-Item -LiteralPath $d[$rel].FullName -Force -ErrorAction SilentlyContinue
