@@ -361,9 +361,18 @@ namespace
     // With no registrar, the `<exe dir>/<family>.{ttf,otf}` probe below has NO oracle to cite -- this port
     // has no IFontRegistrar, so FontManager.Windows.cs:134-144's `_fontRegistrar.GetFont(...)` rung cannot
     // be reproduced; the probe exists only because maui_add_app.cmake's windows branch copies an example's
-    // RESOURCES flat beside the exe, so the gallery's ionicons.ttf happens to land exactly there. Only the
-    // FALLBACK below is oracle-backed: FontManager.Windows.cs:146-147 "Always send the base back" -- the
-    // bare family name, which Win2D resolves from the system font collection.
+    // RESOURCES flat beside the exe, so the gallery's ionicons.ttf happens to land exactly there.
+    //
+    // A MISS returns EMPTY -- deliberately NOT the bare family name. FontManager.Windows.cs:146-147 "Always
+    // send the base back" is only half the oracle: GetFontSource then POST-PROCESSES that value, and in an
+    // UNPACKAGED app (this port always; MauiReference.csproj:46 sets WindowsPackageType=None too) it runs
+    // `new Uri(fontSource, UriKind.RelativeOrAbsolute).LocalPath` on it (:141). A bare family name is a
+    // RELATIVE Uri and LocalPath THROWS InvalidOperationException there -- GetImageSourceAsync rethrows
+    // (:47-51) and ImageSourcePartExtensions.cs:56-60 swallows it with `setImage?.Invoke(null)`. So an
+    // unregistered family renders NOTHING; falling back to Win2D's system font collection painted a glyph
+    // the oracle does not. CEILING: this keys on "a font file sits beside the exe" where the oracle keys on
+    // "the family was passed to fonts.AddFont". They agree on every call site today (Ionicons: both;
+    // Arial: neither); a real registration list -- or a CanvasFontSet lookup -- is the upgrade path.
     //
     // SIMPLIFICATION: the '#' fragment must be the font file's REAL embedded family name, which C# reads
     // out of the file with Win2D's own CanvasFontSet (FontManager.Windows.cs:186-192). Here the REQUESTED
@@ -391,7 +400,7 @@ namespace
                 }
             }
         }
-        return winrt::hstring{name};
+        return {};
     }
 
     // FontImageSourceService.Windows.cs:57-97 RenderImageSource, line for line, with ONE deviation: the
@@ -739,6 +748,17 @@ namespace maui::core
         {
             // FontImageSource.IsEmpty => string.IsNullOrEmpty(Glyph) (FontImageSource.cs:11), and the
             // oracle returns a null result for it (FontImageSourceService.Windows.cs:24-25).
+            on_result(image_source_result{});
+            return;
+        }
+        if (resolve_font_family(font_src->font().family()).empty())
+        {
+            // An unresolvable family throws out of GetFontSource in an unpackaged app (see
+            // resolve_font_family), the throw is swallowed by ImageSourcePartExtensions.cs:56-60's
+            // `setImage?.Invoke(null)`, and the WinUI Image measures 0x0. An empty result IS this port's
+            // null source: image_handler.cpp's apply_loaded_result routes !loaded() to clear_source_native
+            // (reset_platform_max_constraints + Source(nullptr)). Deliberately NOT the catch below -- that
+            // one is the missing-Microsoft.Graphics.Canvas.dll degrade (eb5851a8aa) and must stay non-zero.
             on_result(image_source_result{});
             return;
         }
