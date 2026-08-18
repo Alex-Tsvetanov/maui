@@ -708,12 +708,13 @@ namespace
         EXPECT_EQ(source->at(2).text(), "Ship wave 2"); // document order preserved
     }
 
-    TEST(xaml_loader, collection_view_selected_items_x_array_preselection)
+    TEST(xaml_loader, collection_view_selected_items_x_array_selects_nothing)
     {
-        // W13: element-form <CollectionView.SelectedItems><x:Array Type="{x:Type x:String}"><x:String>…
-        // declares a static preselection (the shared twin's stand-in for the original code-behind
-        // SelectedItems.Add). try_set_selected_items_from_array boxes each string via boxed_item::of (VALUE
-        // equality), so the selection value-matches the ItemsSource's boxed strings. Applied on multi-select.
+        // W13: element-form <CollectionView.SelectedItems><x:Array Type="{x:Type x:String}"><x:String>… is
+        // CONSUMED but selects nothing, matching XamlC. String[] is not an IList<object> under the compiler's
+        // array rule (TypeReferenceExtensions.cs:226-238 — no covariance), so CanSetValue/CanSet fail and the
+        // ladder's last arm emits ((IList<object>)GetValue(SelectedItemsProperty)).Add(<the String[]>)
+        // (SetPropertiesVisitor.cs:1193-1223). Count is 1 and that entry matches no item in ItemsSource.
         controls::collection_view view;
         const std::string message = parse_error_message([&] {
             (void)xaml_loader::load_into(view, R"xml(
@@ -736,9 +737,9 @@ namespace
 </CollectionView>)xml");
         });
         EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
-        ASSERT_EQ(view.selected_items().count(), 2U);
-        EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 2"})));
-        EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 3"})));
+        ASSERT_EQ(view.selected_items().count(), 1U); // the array object itself, not its elements
+        EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 2"})));
+        EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 3"})));
         EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 1"})));
     }
 

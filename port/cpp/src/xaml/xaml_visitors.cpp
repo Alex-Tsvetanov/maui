@@ -883,12 +883,24 @@ namespace maui::xaml
             return true;
         }
 
-        // W13 — element-form <CollectionView.SelectedItems><x:Array Type="{x:Type x:String}"><x:String>… — a
-        // static PRESELECTION. The original C# preselects in code-behind (SelectedItems.Add(Items.Skip(n))),
-        // which the shared-XAML twin can't run, so the selection is declared inline. Mirrors
-        // try_set_items_source_from_array: box each string via boxed_item::of(std::string) — VALUE equality
-        // (boxed_item.hpp), so the boxes value-match the ItemsSource's boxed strings and the CV highlights the
-        // corresponding cells. Only string element types (the gallery's caption lists). Returns true if consumed.
+        // W13 — element-form <CollectionView.SelectedItems><x:Array Type="{x:Type x:String}"><x:String>….
+        //
+        // The oracle does NOT set the array's ELEMENTS here, and the difference is visible: XamlC resolves a
+        // property element through an ordered ladder (SetPropertiesVisitor.cs:1193-1223) whose assignability
+        // test refuses CLR array covariance — an array implements a generic interface only when the argument
+        // EQUALS the element type (TypeReferenceExtensions.cs:226-238), so String[] is not an IList<object>.
+        // CanSetValue and CanSet both fail, the LAST arm wins, and the emitted IL is
+        //     ((IList<object>)cv.GetValue(SelectedItemsProperty)).Add(<the String[]>)
+        // — SelectionList.Add (SelectionList.cs:36-44) appends the array OBJECT verbatim. Count is 1, that one
+        // entry is not in ItemsSource, GetIndexForItem returns -1, and NOTHING is selected.
+        //
+        // The SAME array assigned to ItemsSource DOES set, because arrayInterfaces contains IEnumerable — which
+        // is why try_set_items_source_from_array above unwraps and this one must not.
+        //
+        // MAUI's INTERPRETED loader disagrees with its own compiler here (ApplyPropertiesVisitor.cs:628-641
+        // tests Type.IsInstanceOfType, under which string[] IS an IList<object>), so a Debug-inflated MAUI
+        // selects the two items. Release/XamlC is the production semantics and is what the ground-truth
+        // column renders. Returns true if consumed.
         [[nodiscard]] bool try_set_selected_items_from_array(maui::core::bindable_object& target,
                                                              const std::string& property_name, const std::any& value)
         {
@@ -906,18 +918,10 @@ namespace maui::xaml
             {
                 return false;
             }
-            std::vector<maui::controls::boxed_item> selection;
-            selection.reserve(array->items.size());
-            for (const std::any& item : array->items)
-            {
-                const auto* text = std::any_cast<std::string>(&item);
-                if (text == nullptr)
-                {
-                    return false; // a non-string element type — not the string-list subset W13 supports
-                }
-                selection.push_back(maui::controls::boxed_item::of(*text));
-            }
-            view->set_selected_items(std::move(selection));
+            // GetValue-then-Add, not the setter: the CLR setter (and CoerceSelectedItems) are off the arm
+            // XamlC takes. xaml_array is neither equality-comparable nor string-convertible, so the box carries
+            // reference equality and empty text — exactly a C# array instance's identity.
+            view->selected_items().add(maui::controls::boxed_item::of(*array));
             return true;
         }
 
