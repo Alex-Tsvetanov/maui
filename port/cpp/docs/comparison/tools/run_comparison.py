@@ -408,6 +408,49 @@ def _resolve(step: dict, key: str, rect: dict | None) -> list[int]:
 #
 # An unknown or absent override is not an error: the portable `at` remains the default and every lane
 # without an entry keeps using it, so adding one page's override cannot disturb any other lane.
+def column_artifact(col: str, ccfg: dict) -> Path | None:
+    """The host artifact to deploy for `col` — the RELEASE build whenever the column declares one.
+
+    THE BOARD CAPTURES RELEASE, ON EVERY LANE. This used to read `artifact` unconditionally, and
+    config/local.toml points that at the DEBUG paths (bin/Debug/..., build-maccatalyst/, build-apple/)
+    while `artifact_release` holds the Release ones. recapture.build() BUILDS the -release presets, so
+    the two macOS lanes built Release and deployed Debug: the binaries the harness had just compiled
+    were never the ones photographed, and an AppKit column could keep rendering months-old content
+    through a full refresh without a single failing step.
+
+    It was not only a staleness bug. A Debug MAUI bundle embeds RAW XAML, so its INTERPRETED loader
+    runs instead of XamlC — and on <CollectionView.SelectedItems><x:Array> the interpreted loader
+    SELECTS where XamlC does not. Catalyst was therefore scoring the port against a reference that
+    behaved differently from the reference on ios / android / windows, which showed up as three
+    Catalyst "greens" that no other lane could reproduce. Comparing Release against Release is what
+    makes the four lanes commensurable.
+
+    DECLARED-BUT-MISSING IS AN ERROR, NOT A FALLBACK — the same doctrine measure_size.py states for
+    the same key: silently dropping to the Debug artifact would relabel a Debug capture as
+    release-grade, which is exactly the class of failure this function exists to end. The column is
+    skipped instead, loudly, and the run continues with the honest gap.
+
+    A column with no `artifact_release` key (the Windows lane builds Release on the guest and points
+    at it via `artifact_remote`; a bare local config may not declare one at all) keeps using
+    `artifact` unchanged.
+    """
+    rel = ccfg.get("artifact_release")
+    if rel:
+        p = REPO / rel
+        if p.exists():
+            return p
+        print(f"  ! {col}: artifact_release declared but NOT BUILT: {p}")
+        print(f"    run the release build, or drop the key — NOT falling back to the debug artifact")
+        ccfg["_missing"] = True
+        return None
+    p = REPO / ccfg["artifact"]
+    if not p.exists():
+        print(f"  ! {col}: artifact missing on host: {p} (skipping this column)")
+        ccfg["_missing"] = True
+        return None
+    return p
+
+
 LANE_POINT_KEYS = ("at", "to")
 
 
@@ -836,10 +879,8 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
             print(f"  use {col}: {remote} (built on the guest; not deployed)")
             ccfg["_remote"] = remote
             continue
-        local = REPO / ccfg["artifact"]
-        if not local.exists():
-            print(f"  ! {col}: artifact missing on host: {local} (skipping this column)")
-            ccfg["_missing"] = True
+        local = column_artifact(col, ccfg)
+        if local is None:
             continue
         remote = posixpath.join(env.apps_remote, col, local.name)
         print(f"  deploy {col}: {local.name}")

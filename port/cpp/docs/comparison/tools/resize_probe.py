@@ -36,7 +36,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from run_comparison import REPO, Env, load_manifest, png_size  # noqa: E402  reuse, don't re-implement
+from run_comparison import REPO, Env, column_artifact, load_manifest, png_size  # noqa: E402  reuse, don't re-implement
 
 
 def parse_size(s: str) -> tuple[int, int]:
@@ -81,9 +81,8 @@ def main() -> int:
         if ccfg.get("artifact_remote"):
             ccfg["_remote"] = ccfg["artifact_remote"]
             continue
-        local = REPO / ccfg["artifact"]
-        if not local.exists():
-            ccfg["_missing"] = True
+        local = column_artifact(col, ccfg)
+        if local is None:
             continue
         remote = posixpath.join(env.apps_remote, col, local.name)
         env.deploy(local, remote)

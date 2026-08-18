@@ -39,7 +39,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from run_comparison import REPO, Env, png_size  # noqa: E402  reuse the transport
+from run_comparison import REPO, Env, column_artifact, png_size  # noqa: E402  reuse the transport
 
 
 def main() -> int:
@@ -61,9 +61,9 @@ def main() -> int:
     for col, ccfg in env.columns.items():
         if ccfg.get("artifact_remote"):
             ccfg["_remote"] = ccfg["artifact_remote"]; continue
-        local = REPO / ccfg["artifact"]
-        if not local.exists():
-            ccfg["_missing"] = True; continue
+        local = column_artifact(col, ccfg)
+        if local is None:
+            continue
         remote = posixpath.join(env.apps_remote, col, local.name)
         env.deploy(local, remote); ccfg["_remote"] = remote
 
