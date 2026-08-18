@@ -52,5 +52,29 @@ duration = 0.8           # 40ms per move — above the ~20ms floor where both OS
 #
 # Fractions, not pixels: see the note in switch.toml — an absolute pair in an at_<env> key would
 # reclassify the whole file and drop it from the iOS lane.
+# ANDROID NEEDS ITS OWN AIM TOO, AND FOR A REASON THE OTHER LANES DO NOT HAVE: the portable `at`
+# above is INSIDE ANDROID'S BACK-GESTURE EDGE ZONE, so the OS eats the drag before the Slider sees it.
+# 0.070 x 1080 = 75.6 px from the left edge, dragged rightward, IS the system Back gesture.
+#
+# MEASURED on run 2026-08-18-00_32_10 (light, 1080x2340), maui_xaml vs cpp, per frame:
+#   1 'initial' 0.03% | 2 'at-rest' 0.28% | 3 'gif01' 0.03% | 4 'gif02' 0.04% | 5 'gif03' 49.42%
+#   6-14 45.34% (FLAT -- not a moving slider, a DIFFERENT PAGE)
+# The back-gesture arrow bubble is visible on the left edge of frame 4 in BOTH columns; by frame 6 the
+# app has popped the page and maui_xaml is showing a Z-Index demo while cpp shows a WebView demo. The
+# columns landed on different pages, which is the whole of the flat ~45%. At rest they agree to 0.03%.
+#
+# This is STRUCTURAL, not a mis-measure: at rest the Default slider's thumb IS at the far left (value 0),
+# which is exactly where Android's back zone lives. This page cannot be driven at that aim on Android.
+# So aim at the "Minimum (5) and Maximum (15)" slider instead -- its value is 10 at rest, so its thumb
+# sits MID-TRACK, clear of BOTH edge zones (gesture nav grabs left and right).
+#
+# MEASURED on frame 0002 (at-rest, light), thumb circle bounds, ALL THREE COLUMNS:
+#   maui_xaml x[523,555] y[812,842] | cpp x[524,555] | cpp_xaml x[524,555]  -> centre (539, 827) +/-1 px
+# Track runs x[44,1035] at y[826,830], so the `to` below stays on it with 180 px of right-edge clearance.
+# TO RECALIBRATE: rescan frame 0002 rows 780..900 for the compact dark run; do NOT move this toward
+# either edge.
+at_android = [0.499, 0.353]      # 539/1080, 827/2340 -- the Min/Max slider's thumb, mid-screen
+to_android = [0.833, 0.353]      # 900/1080 -- rightward along the track, clear of the right edge zone
+
 at_macos-arm64 = [0.014, 0.081]
 to_macos-arm64 = [0.50, 0.081]
