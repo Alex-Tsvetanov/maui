@@ -43,8 +43,6 @@ namespace maui::samples
 
             readout_.set_text("Scrolled to: 0 / 0");
 
-            // The scroll_view's position feedback (ScrollViewPages: OnScrollViewScrolled echoes ScrollX/Y).
-            scroller_.scrolled.connect([this](double x, double y) { update_readout(x, y); });
             // The ScrollToAsync completion stand-in (ScrollToEndPage's awaited ScrollToAsync(...)).
             scroller_.scroll_to_completed.connect([this] { mark_done(); });
 
@@ -72,11 +70,16 @@ namespace maui::samples
             scroller_.set_content(stack_);
             page_.set_content(scroller_);
 
-            // No constructor scroll: the shared scroll_view.xaml is captured at REST — the content sits at the
-            // top and the readout stays at its static "Scrolled to: 0 / 0" text. An earlier ctor
-            // scroll_to_async(0,600) flushed on attach and its scroll_to_completed appended a "(done)" marker,
-            // diverging from MAUI's resting readout. (scroll_to_async + the scrolled/scroll_to_completed wiring
-            // stay available; the scroll unit tests cover the pend-until-attached request pipeline.)
+            // No constructor scroll AND no live `scrolled` readout: the shared scroll_view.xaml declares the
+            // readout as a CONSTANT <Label Text="Scrolled to: 0 / 0" /> that is never bound to ScrollY, so the
+            // resting text must be static here too. On iOS a root ScrollView rests at
+            // contentOffset.y = -adjustedContentInset.top (ScrollViewHandler.iOS.cs pushes the RAW offset with
+            // no clamp), so a live readout printed "Scrolled to: 0 / -62" against the twin's "0 / 0" before the
+            // gesture had even run. Likewise an earlier ctor scroll_to_async(0,600) flushed on attach and its
+            // scroll_to_completed appended a "(done)" marker, diverging from MAUI's resting readout.
+            // (scroll_to_async + the scrolled/scroll_to_completed wiring stay available on the control; the
+            // scroll unit tests cover the pend-until-attached request pipeline, and containers_page still
+            // demonstrates the live readout.)
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -99,13 +102,6 @@ namespace maui::samples
         }
 
     private:
-        void update_readout(double x, double y)
-        {
-            char text[64];
-            std::snprintf(text, sizeof(text), "Scrolled to: %.0f / %.0f", x, y);
-            readout_.set_text(text);
-        }
-
         void mark_done()
         {
             char text[80];
