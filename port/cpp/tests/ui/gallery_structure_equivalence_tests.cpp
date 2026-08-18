@@ -273,7 +273,10 @@ namespace
             // is strict again. (This suite asserts divergence BIDIRECTIONALLY — a key left on this list
             // after its page is fixed FAILS with "divergence closed", which is what surfaced it.)
             "indicator",
-            "path_gallery",
+            // path_gallery REMOVED: its divergence CLOSED. The builder carried the FULL ~2440-char C#
+            // sample string in the second Complex-Paths caption where path_gallery.xaml:53 abbreviates it,
+            // so the builder page rendered ~13 wrapped lines against the twin's 1 (and ~174px taller).
+            // The builder now carries the twin's string, and its FontSize 9.
             "border_clip_playground",
             // cluster E — builder ADDS a gallery-convention interactivity widget the twin omits
             // (AUTHORING.md rule 3: no event attributes in shared XAML). NOW EMPTY: "clip" was its only
