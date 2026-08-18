@@ -337,7 +337,20 @@ capture_one() {
   # A settle after the first-frame barrier (the maui tree's content draw can trail it a frame or two).
   # 4s and IDENTICAL to the other two columns' settle so all three are photographed in the same state of
   # Android's FADING SCROLLBARS — see the long note in build_android_apphost.sh.
-  sleep 4
+  # WEB PAGES NEED LONGER, AND THE EXTRA IS NOT ABOUT THE NETWORK. MauiWebView.LoadUrl awaits
+  # EnsureCoreWebView2Async() -- which SPAWNS THE BROWSER PROCESS -- before it assigns Source, so a
+  # 4s settle races BROWSER INIT, not the fetch. MEASURED on the 2026-08-18 android recapture:
+  # context_flyout's MAUI column came back with a BLANK WebView band (466 unique colours) while the
+  # cpp and xaml columns rendered example.com in full (777 each), same page, same pass. As on the VM
+  # lanes (scenarios/web_view.toml), it is MAUI'S OWN column that loses the race -- a ground truth
+  # that alternates blank/rendered cannot be matched by any port change.
+  # 9s = this lane's 4s base + the 5s scenarios/web_view.toml measured for WebView2 init. INHERITED,
+  # not measured here: CONFIRM on the next pass by comparing the maui column's unique-colour count
+  # against the two port columns, and raise it before looking for a port-side cause.
+  # THE LIST AND THE VALUES MUST STAY IDENTICAL IN ALL THREE COLUMN SCRIPTS (this file,
+  # build_android_apphost_xaml.sh, capture_all_csharp_android.sh) -- an asymmetric settle photographs
+  # the columns in different states and silently invalidates every cell on these pages.
+  case "${key}" in web_view|hybrid_web_view|context_flyout) sleep 9 ;; *) sleep 4 ;; esac
   # ASSERT WHAT IS ACTUALLY ON SCREEN, after the settle and before the shutter.
   #
   # `wait_displayed` above proves the app CAME UP and says nothing about what is in front 4 seconds

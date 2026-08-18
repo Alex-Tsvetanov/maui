@@ -1,0 +1,37 @@
+# context_flyout — no interaction, but a LONGER SETTLE than the board default. Same treatment, and
+# the same root cause, as web_view.toml; read that file's comment first.
+#
+# WHY: this page carries a <WebView Source="https://example.com/" MinimumHeightRequest="400" />, and
+# it had NO scenario file at all, so it ran at the board default (recapture --settle 4.0, and
+# run_comparison's own 1.0). MEASURED on the 2026-08-18 android recapture: the cpp and xaml columns
+# rendered "Example Domain" in full while the MAUI reference column's WebView band came back BLANK —
+# 466 unique colours vs 777 in the port columns, on the same page, in the same pass.
+#
+# That is the failure web_view.toml already characterised, and it is worth restating because it
+# defeats the obvious fix: the screenshot does not race the HTTP request, it races BROWSER INIT.
+# MauiWebView.LoadUrl awaits EnsureCoreWebView2Async() — which spawns the browser process — BEFORE it
+# assigns Source. So a network-traffic probe would see NO traffic at that moment and fire the shutter
+# EARLIER, not later. Waiting is the only signal that works, and it must cover init + fetch + paint.
+#
+# As in web_view.toml it is MAUI's OWN column that loses the race, which is the dangerous half: a
+# ground truth that alternates between blank and rendered cannot be matched by any port change, and
+# reads as a port defect on every lane it happens on.
+#
+# 5.0 is INHERITED from web_view.toml's measurement (at 5s all six of its cells render identical
+# content), not independently measured for this page — example.com is a much lighter document than
+# web_view's, so 5s should be ample, but CONFIRM IT on the next android pass rather than assuming:
+# compare the maui column's unique-colour count against the two port columns. If it still comes back
+# blank, raise this number before looking for any port-side cause.
+#
+# Scoped per-page deliberately: the other ~170 pages keep the default, so this costs ~8s of board
+# time. run_comparison.py takes max(scenario settle, --settle), so a higher --settle still wins.
+#
+# ONE STEP, NAMED `initial`, ON PURPOSE: recapture.py decides a page is DRIVEN with
+# `any(step != "initial" and not step.startswith("gif"))`, so this file adds a settle WITHOUT
+# reclassifying context_flyout as a motion page.
+tag = "context_flyout"
+themes = ["light", "dark"]
+settle = 5.0
+
+[[steps]]
+name = "initial"          # no action -> settle + screenshot
