@@ -9,22 +9,22 @@
     "release_grade": true,
     "build_config_detected_from": "path segment",
     "config_file": "local.toml",
-    "total_bytes": 82489976,
+    "total_bytes": 86258800,
     "file_count": 167,
     "buckets": {
-     "resources": 811059,
+     "resources": 811003,
      "other": 9509557,
-     "code": 65923168,
-     "managed": 6246192
+     "code": 66289808,
+     "managed": 9648432
     },
     "main_binary": {
      "name": "MauiReference",
-     "bytes": 65923168,
-     "linkedit_bytes": 33325056,
-     "stripped_bytes": 33018592
+     "bytes": 66289808,
+     "linkedit_bytes": 33701888,
+     "stripped_bytes": 33128176
     },
-    "total_bytes_stripped": 49585400,
-    "built_at": "2026-08-11",
+    "total_bytes_stripped": 53097168,
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    },
    "cpp": {
@@ -35,20 +35,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 9589554,
+    "total_bytes": 16551522,
     "file_count": 12,
     "buckets": {
      "resources": 531242,
-     "code": 9058312
+     "code": 16020280
     },
     "main_binary": {
      "name": "gallery",
-     "bytes": 9058312,
-     "linkedit_bytes": 901120,
-     "stripped_bytes": 9058312
+     "bytes": 16020280,
+     "linkedit_bytes": 7815168,
+     "stripped_bytes": 9108616
     },
-    "total_bytes_stripped": 9589554,
-    "built_at": "2026-08-03",
+    "total_bytes_stripped": 9639858,
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -59,20 +59,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 23205188,
+    "total_bytes": 40714196,
     "file_count": 12,
     "buckets": {
      "resources": 531220,
-     "code": 22673968
+     "code": 40182976
     },
     "main_binary": {
      "name": "gallery_xaml",
-     "bytes": 22673968,
-     "linkedit_bytes": 7045120,
-     "stripped_bytes": 22673968
+     "bytes": 40182976,
+     "linkedit_bytes": 24264704,
+     "stripped_bytes": 23093584
     },
-    "total_bytes_stripped": 23205188,
-    "built_at": "2026-08-03",
+    "total_bytes_stripped": 23624804,
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    }
   },
@@ -85,20 +85,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 9421513,
+    "total_bytes": 16310905,
     "file_count": 11,
     "buckets": {
      "resources": 529857,
-     "code": 8891656
+     "code": 15781048
     },
     "main_binary": {
      "name": "gallery",
-     "bytes": 8891656,
-     "linkedit_bytes": 901120,
-     "stripped_bytes": 8891656
+     "bytes": 15781048,
+     "linkedit_bytes": 7749632,
+     "stripped_bytes": 8942280
     },
-    "total_bytes_stripped": 9421513,
-    "built_at": "2026-08-03",
+    "total_bytes_stripped": 9472137,
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    },
    "appkit_xaml": {
@@ -109,20 +109,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 23004193,
+    "total_bytes": 40457137,
     "file_count": 11,
     "buckets": {
-     "code": 22474336,
+     "code": 39927280,
      "resources": 529857
     },
     "main_binary": {
      "name": "gallery_xaml",
-     "bytes": 22474336,
-     "linkedit_bytes": 7045120,
-     "stripped_bytes": 22474336
+     "bytes": 39927280,
+     "linkedit_bytes": 24182784,
+     "stripped_bytes": 22910672
     },
-    "total_bytes_stripped": 23004193,
-    "built_at": "2026-08-03",
+    "total_bytes_stripped": 23440529,
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    }
   },
@@ -131,24 +131,24 @@
     "artifact": "C:/maui-build/maui-reference/bin/Release/net10.0-windows10.0.19041.0/win-arm64",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 156692979,
+    "total_bytes": 156693815,
     "file_count": 440,
     "buckets": {
      "other": 3603634,
      "resources": 3743569,
      "code": 149076016,
-     "debug": 269760
+     "debug": 270596
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "path segment",
-    "built_at": "2026-08-14",
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file (guest)",
     "total_bytes_stripped": 156423219,
     "main_binary": {
      "name": "MauiReference.exe",
      "bytes": 267264,
-     "linkedit_bytes": 269760,
+     "linkedit_bytes": 270596,
      "stripped_bytes": 267264
     },
     "remote_only": true,
@@ -158,23 +158,23 @@
     "artifact": "C:/maui-build/examples/gallery",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 9618105,
+    "total_bytes": 9615545,
     "file_count": 15,
     "buckets": {
      "resources": 529857,
-     "code": 9088248
+     "code": 9085688
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 9618105,
+    "total_bytes_stripped": 9615545,
     "main_binary": {
      "name": "gallery.exe",
-     "bytes": 5209600,
+     "bytes": 5207040,
      "linkedit_bytes": 0,
-     "stripped_bytes": 5209600
+     "stripped_bytes": 5207040
     },
     "remote_only": true,
     "config_file": "windows.toml"
@@ -183,24 +183,24 @@
     "artifact": "C:/maui-build/examples/gallery_xaml",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 13674773,
+    "total_bytes": 13676666,
     "file_count": 212,
     "buckets": {
      "resources": 529857,
-     "code": 10351864,
-     "other": 2793052
+     "code": 10350328,
+     "other": 2796481
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 13674773,
+    "total_bytes_stripped": 13676666,
     "main_binary": {
      "name": "gallery_xaml.exe",
-     "bytes": 6273024,
+     "bytes": 6271488,
      "linkedit_bytes": 0,
-     "stripped_bytes": 6273024
+     "stripped_bytes": 6271488
     },
     "remote_only": true,
     "config_file": "windows.toml"
@@ -232,7 +232,7 @@
      "stripped_bytes": 31985744
     },
     "total_bytes_stripped": 52054013,
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    },
    "cpp": {
@@ -243,20 +243,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 16568770,
+    "total_bytes": 16567938,
     "file_count": 12,
     "buckets": {
      "resources": 531242,
-     "code": 16037528
+     "code": 16036696
     },
     "main_binary": {
      "name": "gallery",
-     "bytes": 16037528,
+     "bytes": 16036696,
      "linkedit_bytes": 7815168,
      "stripped_bytes": 9124952
     },
     "total_bytes_stripped": 9656194,
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -267,20 +267,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 40700900,
+    "total_bytes": 40714036,
     "file_count": 12,
     "buckets": {
-     "code": 40169680,
+     "code": 40182816,
      "resources": 531220
     },
     "main_binary": {
      "name": "gallery_xaml",
-     "bytes": 40169680,
-     "linkedit_bytes": 24248320,
-     "stripped_bytes": 23084288
+     "bytes": 40182816,
+     "linkedit_bytes": 24264704,
+     "stripped_bytes": 23093344
     },
-    "total_bytes_stripped": 23615508,
-    "built_at": "2026-08-15",
+    "total_bytes_stripped": 23624564,
+    "built_at": "2026-08-18",
     "built_at_from": "newest measured file"
    }
   },
@@ -296,10 +296,10 @@
     "total_bytes": 29945019,
     "file_count": 1082,
     "buckets": {
-     "other": 92755,
+     "other": 92744,
      "resources": 2050204,
      "code": 5612627,
-     "native_libs": 21999243
+     "native_libs": 21998898
     },
     "main_binary": {
      "name": "libassembly-store.so",
@@ -308,11 +308,11 @@
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 10714817,
-     "x86_64": 11284426
+     "arm64-v8a": 10714842,
+     "x86_64": 11284056
     },
     "abi_count": 2,
-    "built_at": "2026-08-15",
+    "built_at": "2026-08-18",
     "built_at_from": "sibling file (artifact carries a reproducible-build epoch stamp)"
    },
    "cpp": {
@@ -323,25 +323,25 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 29575351,
+    "total_bytes": 29571255,
     "file_count": 811,
     "buckets": {
-     "other": 68587,
+     "other": 68586,
      "resources": 1767109,
      "code": 4864780,
-     "native_libs": 22730744
+     "native_libs": 22726368
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 22730744,
+     "bytes": 22726368,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 22730744
+     "arm64-v8a": 22726368
     },
     "abi_count": 1,
-    "built_at": "2026-08-18",
+    "built_at": "2026-08-19",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -352,30 +352,30 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 43813117,
+    "total_bytes": 43829501,
     "file_count": 812,
     "buckets": {
-     "other": 68700,
+     "other": 68702,
      "resources": 1767281,
      "code": 4864733,
-     "native_libs": 36966176
+     "native_libs": 36981984
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 36966176,
+     "bytes": 36981984,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 36966176
+     "arm64-v8a": 36981984
     },
     "abi_count": 1,
-    "built_at": "2026-08-18",
+    "built_at": "2026-08-19",
     "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-18T01:27:37Z",
+ "size_measured_at": "2026-08-19T18:30:56Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -385,23 +385,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.858,
-     1.695,
-     1.646,
-     1.543,
-     1.409,
-     1.435,
-     1.844,
-     1.592,
-     1.471,
-     1.537
+     2.32,
+     1.223,
+     1.21,
+     1.178,
+     1.181,
+     1.199,
+     1.189,
+     1.29,
+     1.256,
+     1.205
     ],
-    "poll_resolution_s": 0.254,
+    "poll_resolution_s": 0.311,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.409,
-    "median_s": 1.567,
-    "p95_s": 1.844,
-    "max_s": 1.858
+    "min_s": 1.178,
+    "median_s": 1.208,
+    "p95_s": 1.29,
+    "max_s": 2.32
    },
    "cpp": {
     "measured": true,
@@ -410,23 +410,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.455,
-     1.263,
-     1.241,
-     1.331,
-     1.352,
-     1.399,
-     1.722,
-     1.537,
-     1.283,
-     1.292
+     1.953,
+     2.086,
+     1.495,
+     1.467,
+     1.402,
+     1.255,
+     1.541,
+     1.307,
+     1.852,
+     1.477
     ],
-    "poll_resolution_s": 0.249,
+    "poll_resolution_s": 0.291,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.241,
-    "median_s": 1.341,
-    "p95_s": 1.537,
-    "max_s": 1.722
+    "min_s": 1.255,
+    "median_s": 1.486,
+    "p95_s": 1.953,
+    "max_s": 2.086
    },
    "cpp_xaml": {
     "measured": true,
@@ -435,23 +435,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.83,
-     1.47,
-     1.301,
-     1.346,
-     1.313,
-     1.268,
-     1.424,
-     1.193,
-     1.346,
-     1.262
+     4.177,
+     2.424,
+     1.579,
+     2.211,
+     1.614,
+     1.539,
+     1.523,
+     1.693,
+     1.336,
+     1.554
     ],
-    "poll_resolution_s": 0.243,
+    "poll_resolution_s": 0.313,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.193,
-    "median_s": 1.329,
-    "p95_s": 1.47,
-    "max_s": 1.83
+    "min_s": 1.336,
+    "median_s": 1.597,
+    "p95_s": 2.424,
+    "max_s": 4.177
    }
   },
   "ios": {
@@ -462,23 +462,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.527,
-     1.469,
-     1.436,
-     1.31,
-     1.298,
-     1.494,
-     1.498,
-     1.355,
-     0.768,
-     1.49
+     3.086,
+     1.331,
+     1.323,
+     1.276,
+     1.296,
+     1.267,
+     1.258,
+     1.277,
+     1.253,
+     1.322
     ],
-    "poll_resolution_s": 0.254,
+    "poll_resolution_s": 0.212,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 0.768,
-    "median_s": 1.453,
-    "p95_s": 1.498,
-    "max_s": 1.527
+    "min_s": 1.253,
+    "median_s": 1.286,
+    "p95_s": 1.331,
+    "max_s": 3.086
    },
    "cpp": {
     "measured": true,
@@ -487,22 +487,22 @@
     "n": 9,
     "misses": 1,
     "samples_s": [
-     1.19,
-     1.226,
-     1.01,
-     1.216,
-     1.23,
-     1.212,
-     1.222,
-     1.01,
-     1.215
+     1.099,
+     1.027,
+     1.094,
+     1.149,
+     1.037,
+     1.029,
+     1.079,
+     1.056,
+     1.03
     ],
-    "poll_resolution_s": 0.235,
+    "poll_resolution_s": 0.2,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.01,
-    "median_s": 1.215,
-    "p95_s": 1.226,
-    "max_s": 1.23,
+    "min_s": 1.027,
+    "median_s": 1.056,
+    "p95_s": 1.099,
+    "max_s": 1.149,
     "miss_reasons": [
      "no content frame within 30s (last state: unchanged)"
     ]
@@ -514,22 +514,22 @@
     "n": 9,
     "misses": 1,
     "samples_s": [
-     1.19,
-     1.006,
-     1.21,
-     1.219,
-     1.205,
-     1.188,
-     1.005,
-     1.204,
-     1.205
+     1.047,
+     1.049,
+     1.094,
+     1.03,
+     1.036,
+     1.026,
+     1.054,
+     1.027,
+     1.079
     ],
-    "poll_resolution_s": 0.234,
+    "poll_resolution_s": 0.198,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 1.005,
-    "median_s": 1.204,
-    "p95_s": 1.21,
-    "max_s": 1.219,
+    "min_s": 1.026,
+    "median_s": 1.047,
+    "p95_s": 1.079,
+    "max_s": 1.094,
     "miss_reasons": [
      "no content frame within 30s (last state: unchanged)"
     ]
