@@ -3056,16 +3056,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/box_view_light.png",
-            "dark": "captures/ios/maui/box_view_dark.png"
+            "light": "captures/ios/maui/box_view_light.gif",
+            "dark": "captures/ios/maui/box_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/box_view_light.png",
-            "dark": "captures/ios/cpp/box_view_dark.png"
+            "light": "captures/ios/cpp/box_view_light.gif",
+            "dark": "captures/ios/cpp/box_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/box_view_light.png",
-            "dark": "captures/ios/xaml/box_view_dark.png"
+            "light": "captures/ios/xaml/box_view_light.gif",
+            "dark": "captures/ios/xaml/box_view_dark.gif"
           }
         },
         "sonnet": {
@@ -3120,16 +3120,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/box_view_light.png",
-            "dark": "captures/maccatalyst/maui/box_view_dark.png"
+            "light": "captures/maccatalyst/maui/box_view_light.gif",
+            "dark": "captures/maccatalyst/maui/box_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/box_view_light.png",
-            "dark": "captures/maccatalyst/cpp/box_view_dark.png"
+            "light": "captures/maccatalyst/cpp/box_view_light.gif",
+            "dark": "captures/maccatalyst/cpp/box_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/box_view_light.png",
-            "dark": "captures/maccatalyst/xaml/box_view_dark.png"
+            "light": "captures/maccatalyst/xaml/box_view_light.gif",
+            "dark": "captures/maccatalyst/xaml/box_view_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/box_view_light.png",
@@ -3218,7 +3218,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (38.1528% vs 35.1053% of their own frame, 8.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8976 at frame 3 'gif02@4s/12f' (17.67% pixels differ), mean SSIM 0.9319; per-frame diff% 0.00/9.03/17.67/6.55/6.03/6.03/6.03/6.03/6.03/6.03/6.03/6.03/6.03; self-motion MAUI 38.1528% (906510 px) vs C++ 35.1053% (834101 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.8320 at frame 2 'gif01@4s/12f' (24.95% pixels differ), mean SSIM 0.9657; per-frame diff% 0.00/24.95/19.88/0.93/0.93/0.41/0.41/0.41/0.41/0.41/0.41/0.41; self-motion MAUI 38.0149% (903233 px) vs C++ 95.5622% (2270557 px); !! SELF-MOTION ASYMMETRY 3x \u2014 C++ moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (38.1528% vs 35.1053% of their own frame, 8.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8976 at frame 3 'gif02@4s/12f' (17.67% pixels differ), mean SSIM 0.9319; per-frame diff% 0.00/9.03/17.67/6.55/6.03/6.03/6.03/6.03/6.03/6.03/6.03/6.03/6.03; self-motion MAUI 38.1528% (906510 px) vs C++ 35.1053% (834101 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +0/+0/+0/-1/-1/-1/-1/-1/-1/-1/-1/-1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 24.95% is a landing offset, not a rendering difference \u2014 worst SSIM 0.8320 at frame 2 'gif01@4s/12f' (24.95% pixels differ), mean SSIM 0.9709; per-frame diff% 0.00/24.95/19.88/0.60/0.60/0.07/0.07/0.07/0.07/0.07/0.07/0.07; self-motion MAUI 38.0149% (903233 px) vs C++ 95.5622% (2270557 px); !! SELF-MOTION ASYMMETRY 3x \u2014 C++ moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -3238,7 +3238,7 @@
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9004 at frame 3 'gif02@4s/12f' (16.41% pixels differ), mean SSIM 0.9265; per-frame diff% 0.00/11.56/16.41/8.94/8.41/8.41/8.41/8.41/8.41/8.41/8.41/8.41/8.41; self-motion MAUI 38.1528% (906510 px) vs C++ & XAML 33.8460% (804181 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.8030 at frame 2 'gif01@4s/12f' (38.06% pixels differ), mean SSIM 0.9450; per-frame diff% 24.88/38.06/20.35/0.93/0.93/0.41/0.41/0.41/0.41/0.41/0.41; self-motion MAUI 38.0149% (903233 px) vs C++ & XAML 95.5622% (2270557 px); !! SELF-MOTION ASYMMETRY 3x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
+          "review": "Light: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9004 at frame 3 'gif02@4s/12f' (16.41% pixels differ), mean SSIM 0.9265; per-frame diff% 0.00/11.56/16.41/8.94/8.41/8.41/8.41/8.41/8.41/8.41/8.41/8.41/8.41; self-motion MAUI 38.1528% (906510 px) vs C++ & XAML 33.8460% (804181 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +0/+0/+0/-1/-1/-1/-1/-1/-1/-1/-1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 38.06% is a landing offset, not a rendering difference \u2014 worst SSIM 0.8030 at frame 2 'gif01@4s/12f' (38.06% pixels differ), mean SSIM 0.9501; per-frame diff% 24.88/38.06/20.35/0.60/0.60/0.07/0.07/0.07/0.07/0.07/0.07; self-motion MAUI 38.0149% (903233 px) vs C++ & XAML 95.5622% (2270557 px); !! SELF-MOTION ASYMMETRY 3x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -3260,16 +3260,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/box_view_light.png",
-            "dark": "captures/windows/maui/box_view_dark.png"
+            "light": "captures/windows/maui/box_view_light.gif",
+            "dark": "captures/windows/maui/box_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/box_view_light.png",
-            "dark": "captures/windows/cpp/box_view_dark.png"
+            "light": "captures/windows/cpp/box_view_light.gif",
+            "dark": "captures/windows/cpp/box_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/box_view_light.png",
-            "dark": "captures/windows/xaml/box_view_dark.png"
+            "light": "captures/windows/xaml/box_view_light.gif",
+            "dark": "captures/windows/xaml/box_view_dark.gif"
           }
         },
         "sonnet": {
@@ -3331,16 +3331,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/button_light.png",
-            "dark": "captures/ios/maui/button_dark.png"
+            "light": "captures/ios/maui/button_light.gif",
+            "dark": "captures/ios/maui/button_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/button_light.png",
-            "dark": "captures/ios/cpp/button_dark.png"
+            "light": "captures/ios/cpp/button_light.gif",
+            "dark": "captures/ios/cpp/button_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/button_light.png",
-            "dark": "captures/ios/xaml/button_dark.png"
+            "light": "captures/ios/xaml/button_light.gif",
+            "dark": "captures/ios/xaml/button_dark.gif"
           }
         },
         "sonnet": {
@@ -3395,16 +3395,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/button_light.png",
-            "dark": "captures/maccatalyst/maui/button_dark.png"
+            "light": "captures/maccatalyst/maui/button_light.gif",
+            "dark": "captures/maccatalyst/maui/button_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/button_light.png",
-            "dark": "captures/maccatalyst/cpp/button_dark.png"
+            "light": "captures/maccatalyst/cpp/button_light.gif",
+            "dark": "captures/maccatalyst/cpp/button_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/button_light.png",
-            "dark": "captures/maccatalyst/xaml/button_dark.png"
+            "light": "captures/maccatalyst/xaml/button_light.gif",
+            "dark": "captures/maccatalyst/xaml/button_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/button_light.png",
@@ -3535,16 +3535,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/button_light.png",
-            "dark": "captures/windows/maui/button_dark.png"
+            "light": "captures/windows/maui/button_light.gif",
+            "dark": "captures/windows/maui/button_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/button_light.png",
-            "dark": "captures/windows/cpp/button_dark.png"
+            "light": "captures/windows/cpp/button_light.gif",
+            "dark": "captures/windows/cpp/button_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/button_light.png",
-            "dark": "captures/windows/xaml/button_dark.png"
+            "light": "captures/windows/xaml/button_light.gif",
+            "dark": "captures/windows/xaml/button_dark.gif"
           }
         },
         "sonnet": {
@@ -4028,16 +4028,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/check_box_light.png",
-            "dark": "captures/ios/maui/check_box_dark.png"
+            "light": "captures/ios/maui/check_box_light.gif",
+            "dark": "captures/ios/maui/check_box_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/check_box_light.png",
-            "dark": "captures/ios/cpp/check_box_dark.png"
+            "light": "captures/ios/cpp/check_box_light.gif",
+            "dark": "captures/ios/cpp/check_box_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/check_box_light.png",
-            "dark": "captures/ios/xaml/check_box_dark.png"
+            "light": "captures/ios/xaml/check_box_light.gif",
+            "dark": "captures/ios/xaml/check_box_dark.gif"
           }
         },
         "sonnet": {
@@ -4092,16 +4092,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/check_box_light.png",
+            "light": "captures/maccatalyst/maui/check_box_light.gif",
             "dark": "captures/maccatalyst/maui/check_box_dark.png"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/check_box_light.png",
-            "dark": "captures/maccatalyst/cpp/check_box_dark.png"
+            "light": "captures/maccatalyst/cpp/check_box_light.gif",
+            "dark": "captures/maccatalyst/cpp/check_box_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/check_box_light.png",
-            "dark": "captures/maccatalyst/xaml/check_box_dark.png"
+            "light": "captures/maccatalyst/xaml/check_box_light.gif",
+            "dark": "captures/maccatalyst/xaml/check_box_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/check_box_light.png",
@@ -4224,16 +4224,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/check_box_light.png",
-            "dark": "captures/windows/maui/check_box_dark.png"
+            "light": "captures/windows/maui/check_box_light.gif",
+            "dark": "captures/windows/maui/check_box_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/check_box_light.png",
-            "dark": "captures/windows/cpp/check_box_dark.png"
+            "light": "captures/windows/cpp/check_box_light.gif",
+            "dark": "captures/windows/cpp/check_box_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/check_box_light.png",
-            "dark": "captures/windows/xaml/check_box_dark.png"
+            "light": "captures/windows/xaml/check_box_light.gif",
+            "dark": "captures/windows/xaml/check_box_dark.gif"
           }
         },
         "sonnet": {
@@ -4436,7 +4436,7 @@
         "screenshots": {
           "maui": {
             "light": "captures/android/maui/chrome_light.gif",
-            "dark": "captures/android/maui/chrome_dark.png"
+            "dark": "captures/android/maui/chrome_dark.gif"
           },
           "cpp": {
             "light": "captures/android/cpp/chrome_light.png",
@@ -4444,7 +4444,7 @@
           },
           "xaml": {
             "light": "captures/android/xaml/chrome_light.png",
-            "dark": "captures/android/xaml/chrome_dark.png"
+            "dark": "captures/android/xaml/chrome_dark.gif"
           }
         },
         "sonnet": {
@@ -4570,16 +4570,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/clip_light.png",
-            "dark": "captures/ios/maui/clip_dark.png"
+            "light": "captures/ios/maui/clip_light.gif",
+            "dark": "captures/ios/maui/clip_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/clip_light.png",
-            "dark": "captures/ios/cpp/clip_dark.png"
+            "light": "captures/ios/cpp/clip_light.gif",
+            "dark": "captures/ios/cpp/clip_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/clip_light.png",
-            "dark": "captures/ios/xaml/clip_dark.png"
+            "light": "captures/ios/xaml/clip_light.gif",
+            "dark": "captures/ios/xaml/clip_dark.gif"
           }
         },
         "sonnet": {
@@ -4634,16 +4634,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/clip_light.png",
-            "dark": "captures/maccatalyst/maui/clip_dark.png"
+            "light": "captures/maccatalyst/maui/clip_light.gif",
+            "dark": "captures/maccatalyst/maui/clip_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/clip_light.png",
-            "dark": "captures/maccatalyst/cpp/clip_dark.png"
+            "light": "captures/maccatalyst/cpp/clip_light.gif",
+            "dark": "captures/maccatalyst/cpp/clip_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/clip_light.png",
-            "dark": "captures/maccatalyst/xaml/clip_dark.png"
+            "light": "captures/maccatalyst/xaml/clip_light.gif",
+            "dark": "captures/maccatalyst/xaml/clip_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/clip_light.png",
@@ -4732,12 +4732,12 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (41.0023% vs 40.0805% of their own frame, 2.2% apart) from a resting frame that already agreed to 0.31%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.7949 at frame 4 'gif03@4s/12f' (24.74% pixels differ), mean SSIM 0.8191; per-frame diff% 0.31/21.64/11.95/24.74/24.04/24.04/24.04/24.04/24.04/24.04/24.04/24.04/24.04; self-motion MAUI 41.0023% (974215 px) vs C++ 40.0805% (952313 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (41.3334% vs 41.1360% of their own frame, 0.5% apart) from a resting frame that already agreed to 0.31%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8892 at frame 3 'gif02@4s/12f' (4.96% pixels differ), mean SSIM 0.9116; per-frame diff% 0.31/0.31/4.96/4.28/4.25/4.25/4.25/4.25/4.25/4.25/4.25/4.25/4.25; self-motion MAUI 41.3334% (982082 px) vs C++ 41.1360% (977391 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (41.0023% vs 40.0805% of their own frame, 2.2% apart) from a resting frame that already agreed to 0.31%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.7949 at frame 4 'gif03@4s/12f' (24.74% pixels differ), mean SSIM 0.8191; per-frame diff% 0.31/21.64/11.95/24.74/24.04/24.04/24.04/24.04/24.04/24.04/24.04/24.04/24.04; self-motion MAUI 41.0023% (974215 px) vs C++ 40.0805% (952313 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/-6/-5/-5/-5/-5/-5/-5/-5/-5/-5/-5 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 4.96% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9827 at frame 3 'gif02@4s/12f' (0.67% pixels differ), mean SSIM 0.9865; per-frame diff% 0.31/0.31/0.67/0.49/0.45/0.45/0.45/0.45/0.45/0.45/0.45/0.45/0.45; self-motion MAUI 41.3334% (982082 px) vs C++ 41.1360% (977391 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
               "light": "INCONCLUSIVE",
-              "dark": "INCONCLUSIVE"
+              "dark": "PASS"
             },
             "why": "phase-only",
             "run": "2026-08-19-01_32_37",
@@ -4752,12 +4752,12 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (41.0023% vs 40.5118% of their own frame, 1.2% apart) from a resting frame that already agreed to 0.31%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.7392 at frame 4 'gif03@4s/12f' (35.17% pixels differ), mean SSIM 0.7756; per-frame diff% 0.31/8.36/26.85/35.17/34.47/34.47/34.47/34.47/34.47/34.47/34.47/34.47/34.47; self-motion MAUI 41.0023% (974215 px) vs C++ & XAML 40.5118% (962561 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (41.3334% vs 41.1548% of their own frame, 0.4% apart) from a resting frame that already agreed to 0.31%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9705 at frame 3 'gif02@4s/12f' (1.39% pixels differ), mean SSIM 0.9915; per-frame diff% 0.31/0.31/1.39/0.34/0.30/0.30/0.30/0.30/0.30/0.30/0.30/0.30/0.30; self-motion MAUI 41.3334% (982082 px) vs C++ & XAML 41.1548% (977838 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (41.0023% vs 40.5118% of their own frame, 1.2% apart) from a resting frame that already agreed to 0.31%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/-11/+0/+0/+0/+0/+0/+0/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 35.17% is a landing offset, not a rendering difference \u2014 worst SSIM 0.7392 at frame 4 'gif03@4s/12f' (35.17% pixels differ), mean SSIM 0.7841; per-frame diff% 0.31/1.76/26.85/35.17/34.47/34.47/34.47/34.47/34.47/34.47/34.47/34.47/34.47; self-motion MAUI 41.0023% (974215 px) vs C++ & XAML 40.5118% (962561 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/-1/+0/+0/+0/+0/+0/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.39% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9899 at frame 3 'gif02@4s/12f' (0.43% pixels differ), mean SSIM 0.9930; per-frame diff% 0.31/0.31/0.43/0.34/0.30/0.30/0.30/0.30/0.30/0.30/0.30/0.30/0.30; self-motion MAUI 41.3334% (982082 px) vs C++ & XAML 41.1548% (977838 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
               "light": "INCONCLUSIVE",
-              "dark": "INCONCLUSIVE"
+              "dark": "PASS"
             },
             "why": "phase-only",
             "run": "2026-08-19-01_32_37",
@@ -4774,16 +4774,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/clip_light.png",
-            "dark": "captures/windows/maui/clip_dark.png"
+            "light": "captures/windows/maui/clip_light.gif",
+            "dark": "captures/windows/maui/clip_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/clip_light.png",
-            "dark": "captures/windows/cpp/clip_dark.png"
+            "light": "captures/windows/cpp/clip_light.gif",
+            "dark": "captures/windows/cpp/clip_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/clip_light.png",
-            "dark": "captures/windows/xaml/clip_dark.png"
+            "light": "captures/windows/xaml/clip_light.gif",
+            "dark": "captures/windows/xaml/clip_dark.gif"
           }
         },
         "sonnet": {
@@ -4992,16 +4992,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/clip_gallery_light.png",
-            "dark": "captures/ios/maui/clip_gallery_dark.png"
+            "light": "captures/ios/maui/clip_gallery_light.gif",
+            "dark": "captures/ios/maui/clip_gallery_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/clip_gallery_light.png",
-            "dark": "captures/ios/cpp/clip_gallery_dark.png"
+            "light": "captures/ios/cpp/clip_gallery_light.gif",
+            "dark": "captures/ios/cpp/clip_gallery_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/clip_gallery_light.png",
-            "dark": "captures/ios/xaml/clip_gallery_dark.png"
+            "light": "captures/ios/xaml/clip_gallery_light.gif",
+            "dark": "captures/ios/xaml/clip_gallery_dark.gif"
           }
         },
         "sonnet": {
@@ -5013,35 +5013,35 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9957 at frame 2 'driven' (0.17% pixels differ), mean SSIM 0.9979; per-frame diff% 0.00/0.17; self-motion MAUI 38.3334% (1212153 px) vs C++ 38.3294% (1212027 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9624 at frame 2 'driven' (1.02% pixels differ), mean SSIM 0.9812; per-frame diff% 0.00/1.02; self-motion MAUI 34.8023% (1100496 px) vs C++ 34.8233% (1101160 px)",
+          "status": "green",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9957 at frame 2 'driven' (0.17% pixels differ), mean SSIM 0.9979; per-frame diff% 0.00/0.17; self-motion MAUI 38.3334% (1212153 px) vs C++ 38.3294% (1212027 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.02% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9963 at frame 2 'driven' (0.18% pixels differ), mean SSIM 0.9981; per-frame diff% 0.00/0.18; self-motion MAUI 34.8023% (1100496 px) vs C++ 34.8233% (1101160 px)",
           "motion": {
-            "verdict": "FAIL",
+            "verdict": "PASS",
             "themes": {
               "light": "PASS",
-              "dark": "FAIL"
+              "dark": "PASS"
             },
-            "why": "frames-disagree",
+            "why": "",
             "run": "2026-08-19-01_32_37",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
             "self": {
-              "maui": 34.8023,
-              "port": 34.8233
+              "maui": 38.3334,
+              "port": 38.3294
             },
             "stills": "6b0036e57ab94c35"
           }
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8627 at frame 2 'driven' (4.02% pixels differ), mean SSIM 0.9314; per-frame diff% 0.00/4.02; self-motion MAUI 38.3334% (1212153 px) vs C++ & XAML 38.3483% (1212623 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8111 at frame 2 'driven' (6.49% pixels differ), mean SSIM 0.9056; per-frame diff% 0.00/6.49; self-motion MAUI 34.8023% (1100496 px) vs C++ & XAML 34.8153% (1100905 px)",
+          "status": "green",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+3 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 4.02% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9916 at frame 2 'driven' (0.36% pixels differ), mean SSIM 0.9958; per-frame diff% 0.00/0.36; self-motion MAUI 38.3334% (1212153 px) vs C++ & XAML 38.3483% (1212623 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/-7 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 6.49% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9931 at frame 2 'driven' (0.32% pixels differ), mean SSIM 0.9966; per-frame diff% 0.00/0.32; self-motion MAUI 34.8023% (1100496 px) vs C++ & XAML 34.8153% (1100905 px)",
           "motion": {
-            "verdict": "FAIL",
+            "verdict": "PASS",
             "themes": {
-              "light": "FAIL",
-              "dark": "FAIL"
+              "light": "PASS",
+              "dark": "PASS"
             },
-            "why": "frames-disagree",
+            "why": "",
             "run": "2026-08-19-01_32_37",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
@@ -5056,16 +5056,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/clip_gallery_light.png",
-            "dark": "captures/maccatalyst/maui/clip_gallery_dark.png"
+            "light": "captures/maccatalyst/maui/clip_gallery_light.gif",
+            "dark": "captures/maccatalyst/maui/clip_gallery_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/clip_gallery_light.png",
-            "dark": "captures/maccatalyst/cpp/clip_gallery_dark.png"
+            "light": "captures/maccatalyst/cpp/clip_gallery_light.gif",
+            "dark": "captures/maccatalyst/cpp/clip_gallery_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/clip_gallery_light.png",
-            "dark": "captures/maccatalyst/xaml/clip_gallery_dark.png"
+            "light": "captures/maccatalyst/xaml/clip_gallery_light.gif",
+            "dark": "captures/maccatalyst/xaml/clip_gallery_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/clip_gallery_light.png",
@@ -5154,7 +5154,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (40.9952% vs 40.3974% of their own frame, 1.5% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.6519 at frame 4 'gif03@4s/12f' (26.55% pixels differ), mean SSIM 0.6923; per-frame diff% 0.00/10.59/9.45/26.55/25.97/25.97/25.97/25.97/25.97/25.97/25.97/25.97/25.97; self-motion MAUI 40.9952% (974046 px) vs C++ 40.3974% (959842 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (38.5815% vs 38.4961% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.6231 at frame 3 'gif02@4s/12f' (28.41% pixels differ), mean SSIM 0.7878; per-frame diff% 0.00/0.00/28.41/7.76/7.18/7.18/7.18/7.18/7.18/7.18/7.18/7.18/7.18; self-motion MAUI 38.5815% (916696 px) vs C++ 38.4961% (914668 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (40.9952% vs 40.3974% of their own frame, 1.5% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/-9/+6/+0/+0/+0/+0/+0/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 26.55% is a landing offset, not a rendering difference \u2014 worst SSIM 0.6519 at frame 4 'gif03@4s/12f' (26.55% pixels differ), mean SSIM 0.7323; per-frame diff% 0.00/1.22/1.02/26.55/25.97/25.97/25.97/25.97/25.97/25.97/25.97/25.97/25.97; self-motion MAUI 40.9952% (974046 px) vs C++ 40.3974% (959842 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (38.5815% vs 38.4961% of their own frame, 0.2% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/+0/-4/-4/-4/-4/-4/-4/-4/-4/-4/-4 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 28.41% is a landing offset, not a rendering difference \u2014 worst SSIM 0.6231 at frame 3 'gif02@4s/12f' (28.41% pixels differ), mean SSIM 0.9647; per-frame diff% 0.00/0.00/28.41/0.79/0.21/0.21/0.21/0.21/0.21/0.21/0.21/0.21/0.21; self-motion MAUI 38.5815% (916696 px) vs C++ 38.4961% (914668 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
@@ -5174,12 +5174,12 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (40.9952% vs 40.3806% of their own frame, 1.5% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.6470 at frame 4 'gif03@4s/12f' (27.62% pixels differ), mean SSIM 0.6824; per-frame diff% 0.00/21.06/12.72/27.62/27.04/27.04/27.04/27.04/27.04/27.04/27.04/27.04/27.04; self-motion MAUI 40.9952% (974046 px) vs C++ & XAML 40.3806% (959443 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (38.5815% vs 38.3181% of their own frame, 0.7% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.7295 at frame 3 'gif02@4s/12f' (9.01% pixels differ), mean SSIM 0.8208; per-frame diff% 0.00/0.00/9.01/5.90/5.88/5.88/5.88/5.88/5.88/5.88/5.88/5.88/5.88; self-motion MAUI 38.5815% (916696 px) vs C++ & XAML 38.3181% (910437 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (40.9952% vs 40.3806% of their own frame, 1.5% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/+11/+0/+0/+0/+0/+0/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 27.62% is a landing offset, not a rendering difference \u2014 worst SSIM 0.6470 at frame 4 'gif03@4s/12f' (27.62% pixels differ), mean SSIM 0.7043; per-frame diff% 0.00/21.06/1.34/27.62/27.04/27.04/27.04/27.04/27.04/27.04/27.04/27.04/27.04; self-motion MAUI 40.9952% (974046 px) vs C++ & XAML 40.3806% (959443 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/-6/+3/+3/+3/+3/+3/+3/+3/+3/+3/+3 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 9.01% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9900 at frame 3 'gif02@4s/12f' (0.34% pixels differ), mean SSIM 0.9944; per-frame diff% 0.00/0.00/0.34/0.19/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17; self-motion MAUI 38.5815% (916696 px) vs C++ & XAML 38.3181% (910437 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
               "light": "INCONCLUSIVE",
-              "dark": "INCONCLUSIVE"
+              "dark": "PASS"
             },
             "why": "phase-only",
             "run": "2026-08-19-01_32_37",
@@ -5196,16 +5196,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/clip_gallery_light.png",
-            "dark": "captures/windows/maui/clip_gallery_dark.png"
+            "light": "captures/windows/maui/clip_gallery_light.gif",
+            "dark": "captures/windows/maui/clip_gallery_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/clip_gallery_light.png",
-            "dark": "captures/windows/cpp/clip_gallery_dark.png"
+            "light": "captures/windows/cpp/clip_gallery_light.gif",
+            "dark": "captures/windows/cpp/clip_gallery_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/clip_gallery_light.png",
-            "dark": "captures/windows/xaml/clip_gallery_dark.png"
+            "light": "captures/windows/xaml/clip_gallery_light.gif",
+            "dark": "captures/windows/xaml/clip_gallery_dark.gif"
           }
         },
         "sonnet": {
@@ -5267,16 +5267,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/clip_views_light.png",
-            "dark": "captures/ios/maui/clip_views_dark.png"
+            "light": "captures/ios/maui/clip_views_light.gif",
+            "dark": "captures/ios/maui/clip_views_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/clip_views_light.png",
-            "dark": "captures/ios/cpp/clip_views_dark.png"
+            "light": "captures/ios/cpp/clip_views_light.gif",
+            "dark": "captures/ios/cpp/clip_views_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/clip_views_light.png",
-            "dark": "captures/ios/xaml/clip_views_dark.png"
+            "light": "captures/ios/xaml/clip_views_light.gif",
+            "dark": "captures/ios/xaml/clip_views_dark.gif"
           }
         },
         "sonnet": {
@@ -5331,16 +5331,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/clip_views_light.png",
-            "dark": "captures/maccatalyst/maui/clip_views_dark.png"
+            "light": "captures/maccatalyst/maui/clip_views_light.gif",
+            "dark": "captures/maccatalyst/maui/clip_views_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/clip_views_light.png",
-            "dark": "captures/maccatalyst/cpp/clip_views_dark.png"
+            "light": "captures/maccatalyst/cpp/clip_views_light.gif",
+            "dark": "captures/maccatalyst/cpp/clip_views_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/clip_views_light.png",
-            "dark": "captures/maccatalyst/xaml/clip_views_dark.png"
+            "light": "captures/maccatalyst/xaml/clip_views_light.gif",
+            "dark": "captures/maccatalyst/xaml/clip_views_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/clip_views_light.png",
@@ -5385,7 +5385,7 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9962 at frame 1 'initial' (0.75% pixels differ), mean SSIM 0.9964; per-frame diff% 0.75/0.12/0.13; self-motion MAUI 1.5449% (12656 px) vs C++ & XAML 0.9154% (7499 px) \u00b7 Dark: SSIM 0.9966, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns (the newest 20 were scanned) \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page",
+          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9962 at frame 1 'initial' (0.75% pixels differ), mean SSIM 0.9964; per-frame diff% 0.75/0.12/0.13; self-motion MAUI 1.5449% (12656 px) vs C++ & XAML 0.9154% (7499 px) \u00b7 Dark: SSIM 0.9966, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns (the newest 20 were scanned) \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -5467,16 +5467,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/clip_views_light.png",
-            "dark": "captures/windows/maui/clip_views_dark.png"
+            "light": "captures/windows/maui/clip_views_light.gif",
+            "dark": "captures/windows/maui/clip_views_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/clip_views_light.png",
-            "dark": "captures/windows/cpp/clip_views_dark.png"
+            "light": "captures/windows/cpp/clip_views_light.gif",
+            "dark": "captures/windows/cpp/clip_views_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/clip_views_light.png",
-            "dark": "captures/windows/xaml/clip_views_dark.png"
+            "light": "captures/windows/xaml/clip_views_light.gif",
+            "dark": "captures/windows/xaml/clip_views_dark.gif"
           }
         },
         "sonnet": {
@@ -6350,15 +6350,15 @@
         "screenshots": {
           "maui": {
             "light": "captures/android/maui/context_flyout_light.png",
-            "dark": "captures/android/maui/context_flyout_dark.gif"
+            "dark": "captures/android/maui/context_flyout_dark.png"
           },
           "cpp": {
             "light": "captures/android/cpp/context_flyout_light.png",
-            "dark": "captures/android/cpp/context_flyout_dark.gif"
+            "dark": "captures/android/cpp/context_flyout_dark.png"
           },
           "xaml": {
             "light": "captures/android/xaml/context_flyout_light.png",
-            "dark": "captures/android/xaml/context_flyout_dark.gif"
+            "dark": "captures/android/xaml/context_flyout_dark.png"
           }
         },
         "sonnet": {
@@ -6420,16 +6420,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/controls_stack_light.png",
-            "dark": "captures/ios/maui/controls_stack_dark.png"
+            "light": "captures/ios/maui/controls_stack_light.gif",
+            "dark": "captures/ios/maui/controls_stack_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/controls_stack_light.png",
-            "dark": "captures/ios/cpp/controls_stack_dark.png"
+            "light": "captures/ios/cpp/controls_stack_light.gif",
+            "dark": "captures/ios/cpp/controls_stack_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/controls_stack_light.png",
-            "dark": "captures/ios/xaml/controls_stack_dark.png"
+            "light": "captures/ios/xaml/controls_stack_light.gif",
+            "dark": "captures/ios/xaml/controls_stack_dark.gif"
           }
         },
         "sonnet": {
@@ -6484,16 +6484,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/controls_stack_light.png",
-            "dark": "captures/maccatalyst/maui/controls_stack_dark.png"
+            "light": "captures/maccatalyst/maui/controls_stack_light.gif",
+            "dark": "captures/maccatalyst/maui/controls_stack_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/controls_stack_light.png",
-            "dark": "captures/maccatalyst/cpp/controls_stack_dark.png"
+            "light": "captures/maccatalyst/cpp/controls_stack_light.gif",
+            "dark": "captures/maccatalyst/cpp/controls_stack_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/controls_stack_light.png",
-            "dark": "captures/maccatalyst/xaml/controls_stack_dark.png"
+            "light": "captures/maccatalyst/xaml/controls_stack_light.gif",
+            "dark": "captures/maccatalyst/xaml/controls_stack_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/controls_stack_light.png",
@@ -6624,16 +6624,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/controls_stack_light.png",
-            "dark": "captures/windows/maui/controls_stack_dark.png"
+            "light": "captures/windows/maui/controls_stack_light.gif",
+            "dark": "captures/windows/maui/controls_stack_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/controls_stack_light.png",
-            "dark": "captures/windows/cpp/controls_stack_dark.png"
+            "light": "captures/windows/cpp/controls_stack_light.gif",
+            "dark": "captures/windows/cpp/controls_stack_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/controls_stack_light.png",
-            "dark": "captures/windows/xaml/controls_stack_dark.png"
+            "light": "captures/windows/xaml/controls_stack_light.gif",
+            "dark": "captures/windows/xaml/controls_stack_dark.gif"
           }
         },
         "sonnet": {
@@ -7283,16 +7283,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/data_template_selector_light.png",
-            "dark": "captures/ios/maui/data_template_selector_dark.png"
+            "light": "captures/ios/maui/data_template_selector_light.gif",
+            "dark": "captures/ios/maui/data_template_selector_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/data_template_selector_light.png",
-            "dark": "captures/ios/cpp/data_template_selector_dark.png"
+            "light": "captures/ios/cpp/data_template_selector_light.gif",
+            "dark": "captures/ios/cpp/data_template_selector_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/data_template_selector_light.png",
-            "dark": "captures/ios/xaml/data_template_selector_dark.png"
+            "light": "captures/ios/xaml/data_template_selector_light.gif",
+            "dark": "captures/ios/xaml/data_template_selector_dark.gif"
           }
         },
         "sonnet": {
@@ -7347,16 +7347,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/data_template_selector_light.png",
-            "dark": "captures/maccatalyst/maui/data_template_selector_dark.png"
+            "light": "captures/maccatalyst/maui/data_template_selector_light.gif",
+            "dark": "captures/maccatalyst/maui/data_template_selector_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/data_template_selector_light.png",
-            "dark": "captures/maccatalyst/cpp/data_template_selector_dark.png"
+            "light": "captures/maccatalyst/cpp/data_template_selector_light.gif",
+            "dark": "captures/maccatalyst/cpp/data_template_selector_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/data_template_selector_light.png",
-            "dark": "captures/maccatalyst/xaml/data_template_selector_dark.png"
+            "light": "captures/maccatalyst/xaml/data_template_selector_light.gif",
+            "dark": "captures/maccatalyst/xaml/data_template_selector_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/data_template_selector_light.png",
@@ -7487,16 +7487,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/data_template_selector_light.png",
-            "dark": "captures/windows/maui/data_template_selector_dark.png"
+            "light": "captures/windows/maui/data_template_selector_light.gif",
+            "dark": "captures/windows/maui/data_template_selector_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/data_template_selector_light.png",
-            "dark": "captures/windows/cpp/data_template_selector_dark.png"
+            "light": "captures/windows/cpp/data_template_selector_light.gif",
+            "dark": "captures/windows/cpp/data_template_selector_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/data_template_selector_light.png",
-            "dark": "captures/windows/xaml/data_template_selector_dark.png"
+            "light": "captures/windows/xaml/data_template_selector_light.gif",
+            "dark": "captures/windows/xaml/data_template_selector_dark.gif"
           }
         },
         "sonnet": {
@@ -8146,16 +8146,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/editor_light.png",
-            "dark": "captures/ios/maui/editor_dark.png"
+            "light": "captures/ios/maui/editor_light.gif",
+            "dark": "captures/ios/maui/editor_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/editor_light.png",
-            "dark": "captures/ios/cpp/editor_dark.png"
+            "light": "captures/ios/cpp/editor_light.gif",
+            "dark": "captures/ios/cpp/editor_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/editor_light.png",
-            "dark": "captures/ios/xaml/editor_dark.png"
+            "light": "captures/ios/xaml/editor_light.gif",
+            "dark": "captures/ios/xaml/editor_dark.gif"
           }
         },
         "sonnet": {
@@ -8210,16 +8210,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/editor_light.png",
-            "dark": "captures/maccatalyst/maui/editor_dark.png"
+            "light": "captures/maccatalyst/maui/editor_light.gif",
+            "dark": "captures/maccatalyst/maui/editor_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/editor_light.png",
-            "dark": "captures/maccatalyst/cpp/editor_dark.png"
+            "light": "captures/maccatalyst/cpp/editor_light.gif",
+            "dark": "captures/maccatalyst/cpp/editor_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/editor_light.png",
-            "dark": "captures/maccatalyst/xaml/editor_dark.png"
+            "light": "captures/maccatalyst/xaml/editor_light.gif",
+            "dark": "captures/maccatalyst/xaml/editor_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/editor_light.png",
@@ -8350,16 +8350,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/editor_light.png",
-            "dark": "captures/windows/maui/editor_dark.png"
+            "light": "captures/windows/maui/editor_light.gif",
+            "dark": "captures/windows/maui/editor_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/editor_light.png",
-            "dark": "captures/windows/cpp/editor_dark.png"
+            "light": "captures/windows/cpp/editor_light.gif",
+            "dark": "captures/windows/cpp/editor_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/editor_light.png",
-            "dark": "captures/windows/xaml/editor_dark.png"
+            "light": "captures/windows/xaml/editor_light.gif",
+            "dark": "captures/windows/xaml/editor_dark.gif"
           }
         },
         "sonnet": {
@@ -8960,7 +8960,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif04' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns (the newest 20 were scanned) \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif04' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns (the newest 20 were scanned) \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -8980,7 +8980,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'gif04' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns (the newest 20 were scanned) \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/empty_view_load_simulate.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'gif04' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory holds the frames behind the CURRENTLY PUBLISHED stills for both columns (the newest 20 were scanned) \u2014 their frames do not match captures/ byte-for-byte, so re-capture this page \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -9284,16 +9284,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/empty_view_rtl_light.png",
-            "dark": "captures/ios/maui/empty_view_rtl_dark.png"
+            "light": "captures/ios/maui/empty_view_rtl_light.gif",
+            "dark": "captures/ios/maui/empty_view_rtl_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/empty_view_rtl_light.png",
-            "dark": "captures/ios/cpp/empty_view_rtl_dark.png"
+            "light": "captures/ios/cpp/empty_view_rtl_light.gif",
+            "dark": "captures/ios/cpp/empty_view_rtl_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/empty_view_rtl_light.png",
-            "dark": "captures/ios/xaml/empty_view_rtl_dark.png"
+            "light": "captures/ios/xaml/empty_view_rtl_light.gif",
+            "dark": "captures/ios/xaml/empty_view_rtl_dark.gif"
           }
         },
         "sonnet": {
@@ -9348,16 +9348,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/empty_view_rtl_light.png",
-            "dark": "captures/maccatalyst/maui/empty_view_rtl_dark.png"
+            "light": "captures/maccatalyst/maui/empty_view_rtl_light.gif",
+            "dark": "captures/maccatalyst/maui/empty_view_rtl_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/empty_view_rtl_light.png",
-            "dark": "captures/maccatalyst/cpp/empty_view_rtl_dark.png"
+            "light": "captures/maccatalyst/cpp/empty_view_rtl_light.gif",
+            "dark": "captures/maccatalyst/cpp/empty_view_rtl_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/empty_view_rtl_light.png",
-            "dark": "captures/maccatalyst/xaml/empty_view_rtl_dark.png"
+            "light": "captures/maccatalyst/xaml/empty_view_rtl_light.gif",
+            "dark": "captures/maccatalyst/xaml/empty_view_rtl_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/empty_view_rtl_light.png",
@@ -9488,16 +9488,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/empty_view_rtl_light.png",
-            "dark": "captures/windows/maui/empty_view_rtl_dark.png"
+            "light": "captures/windows/maui/empty_view_rtl_light.gif",
+            "dark": "captures/windows/maui/empty_view_rtl_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/empty_view_rtl_light.png",
-            "dark": "captures/windows/cpp/empty_view_rtl_dark.png"
+            "light": "captures/windows/cpp/empty_view_rtl_light.gif",
+            "dark": "captures/windows/cpp/empty_view_rtl_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/empty_view_rtl_light.png",
-            "dark": "captures/windows/xaml/empty_view_rtl_dark.png"
+            "light": "captures/windows/xaml/empty_view_rtl_light.gif",
+            "dark": "captures/windows/xaml/empty_view_rtl_dark.gif"
           }
         },
         "sonnet": {
@@ -9559,16 +9559,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/empty_view_selector_light.png",
-            "dark": "captures/ios/maui/empty_view_selector_dark.png"
+            "light": "captures/ios/maui/empty_view_selector_light.gif",
+            "dark": "captures/ios/maui/empty_view_selector_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/empty_view_selector_light.png",
-            "dark": "captures/ios/cpp/empty_view_selector_dark.png"
+            "light": "captures/ios/cpp/empty_view_selector_light.gif",
+            "dark": "captures/ios/cpp/empty_view_selector_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/empty_view_selector_light.png",
-            "dark": "captures/ios/xaml/empty_view_selector_dark.png"
+            "light": "captures/ios/xaml/empty_view_selector_light.gif",
+            "dark": "captures/ios/xaml/empty_view_selector_dark.gif"
           }
         },
         "sonnet": {
@@ -9623,16 +9623,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/empty_view_selector_light.png",
-            "dark": "captures/maccatalyst/maui/empty_view_selector_dark.png"
+            "light": "captures/maccatalyst/maui/empty_view_selector_light.gif",
+            "dark": "captures/maccatalyst/maui/empty_view_selector_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/empty_view_selector_light.png",
-            "dark": "captures/maccatalyst/cpp/empty_view_selector_dark.png"
+            "light": "captures/maccatalyst/cpp/empty_view_selector_light.gif",
+            "dark": "captures/maccatalyst/cpp/empty_view_selector_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/empty_view_selector_light.png",
-            "dark": "captures/maccatalyst/xaml/empty_view_selector_dark.png"
+            "light": "captures/maccatalyst/xaml/empty_view_selector_light.gif",
+            "dark": "captures/maccatalyst/xaml/empty_view_selector_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/empty_view_selector_light.png",
@@ -9763,16 +9763,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/empty_view_selector_light.png",
-            "dark": "captures/windows/maui/empty_view_selector_dark.png"
+            "light": "captures/windows/maui/empty_view_selector_light.gif",
+            "dark": "captures/windows/maui/empty_view_selector_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/empty_view_selector_light.png",
-            "dark": "captures/windows/cpp/empty_view_selector_dark.png"
+            "light": "captures/windows/cpp/empty_view_selector_light.gif",
+            "dark": "captures/windows/cpp/empty_view_selector_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/empty_view_selector_light.png",
-            "dark": "captures/windows/xaml/empty_view_selector_dark.png"
+            "light": "captures/windows/xaml/empty_view_selector_light.gif",
+            "dark": "captures/windows/xaml/empty_view_selector_dark.gif"
           }
         },
         "sonnet": {
@@ -10275,16 +10275,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/entry_light.png",
-            "dark": "captures/ios/maui/entry_dark.png"
+            "light": "captures/ios/maui/entry_light.gif",
+            "dark": "captures/ios/maui/entry_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/entry_light.png",
-            "dark": "captures/ios/cpp/entry_dark.png"
+            "light": "captures/ios/cpp/entry_light.gif",
+            "dark": "captures/ios/cpp/entry_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/entry_light.png",
-            "dark": "captures/ios/xaml/entry_dark.png"
+            "light": "captures/ios/xaml/entry_light.gif",
+            "dark": "captures/ios/xaml/entry_dark.gif"
           }
         },
         "sonnet": {
@@ -10479,16 +10479,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/entry_light.png",
-            "dark": "captures/windows/maui/entry_dark.png"
+            "light": "captures/windows/maui/entry_light.gif",
+            "dark": "captures/windows/maui/entry_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/entry_light.png",
-            "dark": "captures/windows/cpp/entry_dark.png"
+            "light": "captures/windows/cpp/entry_light.gif",
+            "dark": "captures/windows/cpp/entry_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/entry_light.png",
-            "dark": "captures/windows/xaml/entry_dark.png"
+            "light": "captures/windows/xaml/entry_light.gif",
+            "dark": "captures/windows/xaml/entry_dark.gif"
           }
         },
         "sonnet": {
@@ -11720,7 +11720,7 @@
         "screenshots": {
           "maui": {
             "light": "captures/android/maui/gestures_light.png",
-            "dark": "captures/android/maui/gestures_dark.png"
+            "dark": "captures/android/maui/gestures_dark.gif"
           },
           "cpp": {
             "light": "captures/android/cpp/gestures_light.png",
@@ -11728,7 +11728,7 @@
           },
           "xaml": {
             "light": "captures/android/xaml/gestures_light.png",
-            "dark": "captures/android/xaml/gestures_dark.png"
+            "dark": "captures/android/xaml/gestures_dark.gif"
           }
         },
         "sonnet": {
@@ -13324,16 +13324,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/hit_testing_light.png",
-            "dark": "captures/ios/maui/hit_testing_dark.png"
+            "light": "captures/ios/maui/hit_testing_light.gif",
+            "dark": "captures/ios/maui/hit_testing_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/hit_testing_light.png",
-            "dark": "captures/ios/cpp/hit_testing_dark.png"
+            "light": "captures/ios/cpp/hit_testing_light.gif",
+            "dark": "captures/ios/cpp/hit_testing_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/hit_testing_light.png",
-            "dark": "captures/ios/xaml/hit_testing_dark.png"
+            "light": "captures/ios/xaml/hit_testing_light.gif",
+            "dark": "captures/ios/xaml/hit_testing_dark.gif"
           }
         },
         "sonnet": {
@@ -13388,16 +13388,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/hit_testing_light.png",
-            "dark": "captures/maccatalyst/maui/hit_testing_dark.png"
+            "light": "captures/maccatalyst/maui/hit_testing_light.gif",
+            "dark": "captures/maccatalyst/maui/hit_testing_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/hit_testing_light.png",
-            "dark": "captures/maccatalyst/cpp/hit_testing_dark.png"
+            "light": "captures/maccatalyst/cpp/hit_testing_light.gif",
+            "dark": "captures/maccatalyst/cpp/hit_testing_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/hit_testing_light.png",
-            "dark": "captures/maccatalyst/xaml/hit_testing_dark.png"
+            "light": "captures/maccatalyst/xaml/hit_testing_light.gif",
+            "dark": "captures/maccatalyst/xaml/hit_testing_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/hit_testing_light.png",
@@ -13528,16 +13528,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/hit_testing_light.png",
-            "dark": "captures/windows/maui/hit_testing_dark.png"
+            "light": "captures/windows/maui/hit_testing_light.gif",
+            "dark": "captures/windows/maui/hit_testing_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/hit_testing_light.png",
-            "dark": "captures/windows/cpp/hit_testing_dark.png"
+            "light": "captures/windows/cpp/hit_testing_light.gif",
+            "dark": "captures/windows/cpp/hit_testing_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/hit_testing_light.png",
-            "dark": "captures/windows/xaml/hit_testing_dark.png"
+            "light": "captures/windows/xaml/hit_testing_light.gif",
+            "dark": "captures/windows/xaml/hit_testing_dark.gif"
           }
         },
         "sonnet": {
@@ -15083,8 +15083,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9761 at frame 1 'gif02@4s/12f' (0.48% pixels differ), mean SSIM 0.9761; per-frame diff% 0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9698 at frame 1 'gif04@4s/12f' (0.61% pixels differ), mean SSIM 0.9698; per-frame diff% 0.61/0.61/0.61/0.61/0.61/0.61/0.61/0.61/0.61; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +1/+1/+1/+1/+1/+1/+1/+1/+1/+1/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 0.48% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9853 at frame 1 'gif02@4s/12f' (0.15% pixels differ), mean SSIM 0.9853; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +1/+1/+1/+1/+1/+1/+1/+1/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 0.61% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9851 at frame 1 'gif04@4s/12f' (0.10% pixels differ), mean SSIM 0.9851; per-frame diff% 0.10/0.10/0.10/0.10/0.10/0.10/0.10/0.10/0.10; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -15103,8 +15103,8 @@
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9761 at frame 1 'gif02@4s/12f' (0.48% pixels differ), mean SSIM 0.9761; per-frame diff% 0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48/0.48; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9698 at frame 1 'gif04@4s/12f' (0.61% pixels differ), mean SSIM 0.9698; per-frame diff% 0.61/0.61/0.61/0.61/0.61/0.61/0.61/0.61/0.61; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "green",
+          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 11 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +1/+1/+1/+1/+1/+1/+1/+1/+1/+1/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 0.48% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9853 at frame 1 'gif02@4s/12f' (0.15% pixels differ), mean SSIM 0.9853; per-frame diff% 0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15/0.15; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +1/+1/+1/+1/+1/+1/+1/+1/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 0.61% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9851 at frame 1 'gif04@4s/12f' (0.10% pixels differ), mean SSIM 0.9851; per-frame diff% 0.10/0.10/0.10/0.10/0.10/0.10/0.10/0.10/0.10; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
           "motion": {
             "verdict": "INVALID",
             "themes": {
@@ -15197,16 +15197,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/ios_date_picker_light.png",
-            "dark": "captures/ios/maui/ios_date_picker_dark.png"
+            "light": "captures/ios/maui/ios_date_picker_light.gif",
+            "dark": "captures/ios/maui/ios_date_picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/ios_date_picker_light.png",
-            "dark": "captures/ios/cpp/ios_date_picker_dark.png"
+            "light": "captures/ios/cpp/ios_date_picker_light.gif",
+            "dark": "captures/ios/cpp/ios_date_picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/ios_date_picker_light.png",
-            "dark": "captures/ios/xaml/ios_date_picker_dark.png"
+            "light": "captures/ios/xaml/ios_date_picker_light.gif",
+            "dark": "captures/ios/xaml/ios_date_picker_dark.gif"
           }
         },
         "sonnet": {
@@ -15393,16 +15393,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/ios_date_picker_light.png",
-            "dark": "captures/windows/maui/ios_date_picker_dark.png"
+            "light": "captures/windows/maui/ios_date_picker_light.gif",
+            "dark": "captures/windows/maui/ios_date_picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/ios_date_picker_light.png",
-            "dark": "captures/windows/cpp/ios_date_picker_dark.png"
+            "light": "captures/windows/cpp/ios_date_picker_light.gif",
+            "dark": "captures/windows/cpp/ios_date_picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/ios_date_picker_light.png",
-            "dark": "captures/windows/xaml/ios_date_picker_dark.png"
+            "light": "captures/windows/xaml/ios_date_picker_light.gif",
+            "dark": "captures/windows/xaml/ios_date_picker_dark.gif"
           }
         },
         "sonnet": {
@@ -16033,16 +16033,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/ios_picker_light.png",
-            "dark": "captures/ios/maui/ios_picker_dark.png"
+            "light": "captures/ios/maui/ios_picker_light.gif",
+            "dark": "captures/ios/maui/ios_picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/ios_picker_light.png",
-            "dark": "captures/ios/cpp/ios_picker_dark.png"
+            "light": "captures/ios/cpp/ios_picker_light.gif",
+            "dark": "captures/ios/cpp/ios_picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/ios_picker_light.png",
-            "dark": "captures/ios/xaml/ios_picker_dark.png"
+            "light": "captures/ios/xaml/ios_picker_light.gif",
+            "dark": "captures/ios/xaml/ios_picker_dark.gif"
           }
         },
         "sonnet": {
@@ -16097,16 +16097,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/ios_picker_light.png",
-            "dark": "captures/maccatalyst/maui/ios_picker_dark.png"
+            "light": "captures/maccatalyst/maui/ios_picker_light.gif",
+            "dark": "captures/maccatalyst/maui/ios_picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/ios_picker_light.png",
-            "dark": "captures/maccatalyst/cpp/ios_picker_dark.png"
+            "light": "captures/maccatalyst/cpp/ios_picker_light.gif",
+            "dark": "captures/maccatalyst/cpp/ios_picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/ios_picker_light.png",
-            "dark": "captures/maccatalyst/xaml/ios_picker_dark.png"
+            "light": "captures/maccatalyst/xaml/ios_picker_light.gif",
+            "dark": "captures/maccatalyst/xaml/ios_picker_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/ios_picker_light.png",
@@ -16237,16 +16237,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/ios_picker_light.png",
-            "dark": "captures/windows/maui/ios_picker_dark.png"
+            "light": "captures/windows/maui/ios_picker_light.gif",
+            "dark": "captures/windows/maui/ios_picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/ios_picker_light.png",
-            "dark": "captures/windows/cpp/ios_picker_dark.png"
+            "light": "captures/windows/cpp/ios_picker_light.gif",
+            "dark": "captures/windows/cpp/ios_picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/ios_picker_light.png",
-            "dark": "captures/windows/xaml/ios_picker_dark.png"
+            "light": "captures/windows/xaml/ios_picker_light.gif",
+            "dark": "captures/windows/xaml/ios_picker_dark.gif"
           }
         },
         "sonnet": {
@@ -16455,16 +16455,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/ios_scroll_view_light.png",
-            "dark": "captures/ios/maui/ios_scroll_view_dark.png"
+            "light": "captures/ios/maui/ios_scroll_view_light.gif",
+            "dark": "captures/ios/maui/ios_scroll_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/ios_scroll_view_light.png",
-            "dark": "captures/ios/cpp/ios_scroll_view_dark.png"
+            "light": "captures/ios/cpp/ios_scroll_view_light.gif",
+            "dark": "captures/ios/cpp/ios_scroll_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/ios_scroll_view_light.png",
-            "dark": "captures/ios/xaml/ios_scroll_view_dark.png"
+            "light": "captures/ios/xaml/ios_scroll_view_light.gif",
+            "dark": "captures/ios/xaml/ios_scroll_view_dark.gif"
           }
         },
         "sonnet": {
@@ -16519,16 +16519,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/ios_scroll_view_light.png",
-            "dark": "captures/maccatalyst/maui/ios_scroll_view_dark.png"
+            "light": "captures/maccatalyst/maui/ios_scroll_view_light.gif",
+            "dark": "captures/maccatalyst/maui/ios_scroll_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/ios_scroll_view_light.png",
-            "dark": "captures/maccatalyst/cpp/ios_scroll_view_dark.png"
+            "light": "captures/maccatalyst/cpp/ios_scroll_view_light.gif",
+            "dark": "captures/maccatalyst/cpp/ios_scroll_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/ios_scroll_view_light.png",
-            "dark": "captures/maccatalyst/xaml/ios_scroll_view_dark.png"
+            "light": "captures/maccatalyst/xaml/ios_scroll_view_light.gif",
+            "dark": "captures/maccatalyst/xaml/ios_scroll_view_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/ios_scroll_view_light.png",
@@ -19632,16 +19632,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/path_gallery_light.png",
-            "dark": "captures/ios/maui/path_gallery_dark.png"
+            "light": "captures/ios/maui/path_gallery_light.gif",
+            "dark": "captures/ios/maui/path_gallery_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/path_gallery_light.png",
-            "dark": "captures/ios/cpp/path_gallery_dark.png"
+            "light": "captures/ios/cpp/path_gallery_light.gif",
+            "dark": "captures/ios/cpp/path_gallery_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/path_gallery_light.png",
-            "dark": "captures/ios/xaml/path_gallery_dark.png"
+            "light": "captures/ios/xaml/path_gallery_light.gif",
+            "dark": "captures/ios/xaml/path_gallery_dark.gif"
           }
         },
         "sonnet": {
@@ -19653,21 +19653,21 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 17.7696% (561898 px) vs C++ 17.8851% (565549 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9357 at frame 2 'driven' (2.70% pixels differ), mean SSIM 0.9678; per-frame diff% 0.00/2.70; self-motion MAUI 17.3656% (549124 px) vs C++ 17.4510% (551825 px)",
+          "status": "green",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 17.7696% (561898 px) vs C++ 17.8851% (565549 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/-2 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 2.70% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9944 at frame 2 'driven' (0.25% pixels differ), mean SSIM 0.9972; per-frame diff% 0.00/0.25; self-motion MAUI 17.3656% (549124 px) vs C++ 17.4510% (551825 px)",
           "motion": {
-            "verdict": "FAIL",
+            "verdict": "PASS",
             "themes": {
               "light": "PASS",
-              "dark": "FAIL"
+              "dark": "PASS"
             },
-            "why": "frames-disagree",
+            "why": "",
             "run": "2026-08-19-01_32_37",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
             "self": {
-              "maui": 17.3656,
-              "port": 17.451
+              "maui": 17.7696,
+              "port": 17.8851
             },
             "stills": "08abf0250e5dfcdb"
           }
@@ -19696,16 +19696,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/path_gallery_light.png",
-            "dark": "captures/maccatalyst/maui/path_gallery_dark.png"
+            "light": "captures/maccatalyst/maui/path_gallery_light.gif",
+            "dark": "captures/maccatalyst/maui/path_gallery_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/path_gallery_light.png",
-            "dark": "captures/maccatalyst/cpp/path_gallery_dark.png"
+            "light": "captures/maccatalyst/cpp/path_gallery_light.gif",
+            "dark": "captures/maccatalyst/cpp/path_gallery_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/path_gallery_light.png",
-            "dark": "captures/maccatalyst/xaml/path_gallery_dark.png"
+            "light": "captures/maccatalyst/xaml/path_gallery_light.gif",
+            "dark": "captures/maccatalyst/xaml/path_gallery_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/path_gallery_light.png",
@@ -19794,12 +19794,12 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (15.5045% vs 15.6659% of their own frame, 1.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8587 at frame 2 'gif01@4s/12f' (12.74% pixels differ), mean SSIM 0.8888; per-frame diff% 0.00/12.74/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15; self-motion MAUI 15.5045% (368388 px) vs C++ 15.6659% (372222 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (16.3587% vs 16.3024% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9323 at frame 3 'gif02@4s/12f' (2.61% pixels differ), mean SSIM 0.9777; per-frame diff% 0.00/0.00/2.61/0.88/0.86/0.86/0.86/0.86/0.86/0.86/0.86/0.86/0.86; self-motion MAUI 16.3587% (388682 px) vs C++ 16.3024% (387346 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (15.5045% vs 15.6659% of their own frame, 1.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8587 at frame 2 'gif01@4s/12f' (12.74% pixels differ), mean SSIM 0.8888; per-frame diff% 0.00/12.74/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15/10.15; self-motion MAUI 15.5045% (368388 px) vs C++ 15.6659% (372222 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/+11/+2/+2/+2/+2/+2/+2/+2/+2/+2/+2 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 2.61% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9869 at frame 3 'gif02@4s/12f' (0.31% pixels differ), mean SSIM 0.9959; per-frame diff% 0.00/0.00/0.31/0.10/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 16.3587% (388682 px) vs C++ 16.3024% (387346 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
               "light": "INCONCLUSIVE",
-              "dark": "INCONCLUSIVE"
+              "dark": "PASS"
             },
             "why": "phase-only",
             "run": "2026-08-19-01_32_37",
@@ -19814,12 +19814,12 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (15.5045% vs 15.5565% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8592 at frame 2 'gif01@4s/12f' (12.85% pixels differ), mean SSIM 0.8926; per-frame diff% 0.00/12.85/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09; self-motion MAUI 15.5045% (368388 px) vs C++ & XAML 15.5565% (369622 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (16.3587% vs 16.3024% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9761 at frame 5 'gif04@4s/12f' (0.86% pixels differ), mean SSIM 0.9827; per-frame diff% 0.00/0.00/0.03/0.88/0.86/0.86/0.86/0.86/0.86/0.86/0.86/0.86/0.86; self-motion MAUI 16.3587% (388682 px) vs C++ & XAML 16.3024% (387346 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (15.5045% vs 15.5565% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8592 at frame 2 'gif01@4s/12f' (12.85% pixels differ), mean SSIM 0.8926; per-frame diff% 0.00/12.85/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09/7.09; self-motion MAUI 15.5045% (368388 px) vs C++ & XAML 15.5565% (369622 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/+0/+2/+2/+2/+2/+2/+2/+2/+2/+2/+2 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 0.88% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9943 at frame 5 'gif04@4s/12f' (0.08% pixels differ), mean SSIM 0.9967; per-frame diff% 0.00/0.00/0.03/0.10/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 16.3587% (388682 px) vs C++ & XAML 16.3024% (387346 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
               "light": "INCONCLUSIVE",
-              "dark": "INCONCLUSIVE"
+              "dark": "PASS"
             },
             "why": "phase-only",
             "run": "2026-08-19-01_32_37",
@@ -19836,16 +19836,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/path_gallery_light.png",
-            "dark": "captures/windows/maui/path_gallery_dark.png"
+            "light": "captures/windows/maui/path_gallery_light.gif",
+            "dark": "captures/windows/maui/path_gallery_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/path_gallery_light.png",
-            "dark": "captures/windows/cpp/path_gallery_dark.png"
+            "light": "captures/windows/cpp/path_gallery_light.gif",
+            "dark": "captures/windows/cpp/path_gallery_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/path_gallery_light.png",
-            "dark": "captures/windows/xaml/path_gallery_dark.png"
+            "light": "captures/windows/xaml/path_gallery_light.gif",
+            "dark": "captures/windows/xaml/path_gallery_dark.gif"
           }
         },
         "sonnet": {
@@ -20054,16 +20054,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/picker_light.png",
-            "dark": "captures/ios/maui/picker_dark.png"
+            "light": "captures/ios/maui/picker_light.gif",
+            "dark": "captures/ios/maui/picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/picker_light.png",
-            "dark": "captures/ios/cpp/picker_dark.png"
+            "light": "captures/ios/cpp/picker_light.gif",
+            "dark": "captures/ios/cpp/picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/picker_light.png",
-            "dark": "captures/ios/xaml/picker_dark.png"
+            "light": "captures/ios/xaml/picker_light.gif",
+            "dark": "captures/ios/xaml/picker_dark.gif"
           }
         },
         "sonnet": {
@@ -20118,16 +20118,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/picker_light.png",
-            "dark": "captures/maccatalyst/maui/picker_dark.png"
+            "light": "captures/maccatalyst/maui/picker_light.gif",
+            "dark": "captures/maccatalyst/maui/picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/picker_light.png",
-            "dark": "captures/maccatalyst/cpp/picker_dark.png"
+            "light": "captures/maccatalyst/cpp/picker_light.gif",
+            "dark": "captures/maccatalyst/cpp/picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/picker_light.png",
-            "dark": "captures/maccatalyst/xaml/picker_dark.png"
+            "light": "captures/maccatalyst/xaml/picker_light.gif",
+            "dark": "captures/maccatalyst/xaml/picker_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/picker_light.png",
@@ -20258,16 +20258,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/picker_light.png",
-            "dark": "captures/windows/maui/picker_dark.png"
+            "light": "captures/windows/maui/picker_light.gif",
+            "dark": "captures/windows/maui/picker_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/picker_light.png",
-            "dark": "captures/windows/cpp/picker_dark.png"
+            "light": "captures/windows/cpp/picker_light.gif",
+            "dark": "captures/windows/cpp/picker_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/picker_light.png",
-            "dark": "captures/windows/xaml/picker_dark.png"
+            "light": "captures/windows/xaml/picker_light.gif",
+            "dark": "captures/windows/xaml/picker_dark.gif"
           }
         },
         "sonnet": {
@@ -21633,16 +21633,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/radio_button_content_light.png",
-            "dark": "captures/ios/maui/radio_button_content_dark.png"
+            "light": "captures/ios/maui/radio_button_content_light.gif",
+            "dark": "captures/ios/maui/radio_button_content_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/radio_button_content_light.png",
-            "dark": "captures/ios/cpp/radio_button_content_dark.png"
+            "light": "captures/ios/cpp/radio_button_content_light.gif",
+            "dark": "captures/ios/cpp/radio_button_content_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/radio_button_content_light.png",
-            "dark": "captures/ios/xaml/radio_button_content_dark.png"
+            "light": "captures/ios/xaml/radio_button_content_light.gif",
+            "dark": "captures/ios/xaml/radio_button_content_dark.gif"
           }
         },
         "sonnet": {
@@ -21655,7 +21655,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9762; per-frame diff% 1.35/1.35; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9774; per-frame diff% 1.18/1.18; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.35% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9782; per-frame diff% 1.35/1.06; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.18% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9795; per-frame diff% 1.18/0.97; self-motion MAUI 0.0280% (885 px) vs C++ 0.0280% (885 px)",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -21675,7 +21675,7 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9762; per-frame diff% 1.35/1.35; self-motion MAUI 0.0280% (885 px) vs C++ & XAML 0.0280% (885 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9774; per-frame diff% 1.18/1.18; self-motion MAUI 0.0280% (885 px) vs C++ & XAML 0.0280% (885 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.35% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9762 at frame 1 'initial' (1.35% pixels differ), mean SSIM 0.9782; per-frame diff% 1.35/1.06; self-motion MAUI 0.0280% (885 px) vs C++ & XAML 0.0280% (885 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.18% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9774 at frame 1 'initial' (1.18% pixels differ), mean SSIM 0.9795; per-frame diff% 1.18/0.97; self-motion MAUI 0.0280% (885 px) vs C++ & XAML 0.0280% (885 px)",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -21697,16 +21697,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/radio_button_content_light.png",
-            "dark": "captures/maccatalyst/maui/radio_button_content_dark.png"
+            "light": "captures/maccatalyst/maui/radio_button_content_light.gif",
+            "dark": "captures/maccatalyst/maui/radio_button_content_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/radio_button_content_light.png",
-            "dark": "captures/maccatalyst/cpp/radio_button_content_dark.png"
+            "light": "captures/maccatalyst/cpp/radio_button_content_light.gif",
+            "dark": "captures/maccatalyst/cpp/radio_button_content_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/radio_button_content_light.png",
-            "dark": "captures/maccatalyst/xaml/radio_button_content_dark.png"
+            "light": "captures/maccatalyst/xaml/radio_button_content_light.gif",
+            "dark": "captures/maccatalyst/xaml/radio_button_content_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/radio_button_content_light.png",
@@ -21837,16 +21837,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/radio_button_content_light.png",
-            "dark": "captures/windows/maui/radio_button_content_dark.png"
+            "light": "captures/windows/maui/radio_button_content_light.gif",
+            "dark": "captures/windows/maui/radio_button_content_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/radio_button_content_light.png",
-            "dark": "captures/windows/cpp/radio_button_content_dark.png"
+            "light": "captures/windows/cpp/radio_button_content_light.gif",
+            "dark": "captures/windows/cpp/radio_button_content_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/radio_button_content_light.png",
-            "dark": "captures/windows/xaml/radio_button_content_dark.png"
+            "light": "captures/windows/xaml/radio_button_content_light.gif",
+            "dark": "captures/windows/xaml/radio_button_content_dark.gif"
           }
         },
         "sonnet": {
@@ -22349,16 +22349,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/radio_content_properties_light.png",
-            "dark": "captures/ios/maui/radio_content_properties_dark.png"
+            "light": "captures/ios/maui/radio_content_properties_light.gif",
+            "dark": "captures/ios/maui/radio_content_properties_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/radio_content_properties_light.png",
-            "dark": "captures/ios/cpp/radio_content_properties_dark.png"
+            "light": "captures/ios/cpp/radio_content_properties_light.gif",
+            "dark": "captures/ios/cpp/radio_content_properties_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/radio_content_properties_light.png",
-            "dark": "captures/ios/xaml/radio_content_properties_dark.png"
+            "light": "captures/ios/xaml/radio_content_properties_light.gif",
+            "dark": "captures/ios/xaml/radio_content_properties_dark.gif"
           }
         },
         "sonnet": {
@@ -22553,16 +22553,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/radio_content_properties_light.png",
-            "dark": "captures/windows/maui/radio_content_properties_dark.png"
+            "light": "captures/windows/maui/radio_content_properties_light.gif",
+            "dark": "captures/windows/maui/radio_content_properties_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/radio_content_properties_light.png",
-            "dark": "captures/windows/cpp/radio_content_properties_dark.png"
+            "light": "captures/windows/cpp/radio_content_properties_light.gif",
+            "dark": "captures/windows/cpp/radio_content_properties_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/radio_content_properties_light.png",
-            "dark": "captures/windows/xaml/radio_content_properties_dark.png"
+            "light": "captures/windows/xaml/radio_content_properties_light.gif",
+            "dark": "captures/windows/xaml/radio_content_properties_dark.gif"
           }
         },
         "sonnet": {
@@ -23506,16 +23506,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/scroll_to_group_light.png",
-            "dark": "captures/ios/maui/scroll_to_group_dark.png"
+            "light": "captures/ios/maui/scroll_to_group_light.gif",
+            "dark": "captures/ios/maui/scroll_to_group_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/scroll_to_group_light.png",
-            "dark": "captures/ios/cpp/scroll_to_group_dark.png"
+            "light": "captures/ios/cpp/scroll_to_group_light.gif",
+            "dark": "captures/ios/cpp/scroll_to_group_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/scroll_to_group_light.png",
-            "dark": "captures/ios/xaml/scroll_to_group_dark.png"
+            "light": "captures/ios/xaml/scroll_to_group_light.gif",
+            "dark": "captures/ios/xaml/scroll_to_group_dark.gif"
           }
         },
         "sonnet": {
@@ -23570,16 +23570,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/scroll_to_group_light.png",
-            "dark": "captures/maccatalyst/maui/scroll_to_group_dark.png"
+            "light": "captures/maccatalyst/maui/scroll_to_group_light.gif",
+            "dark": "captures/maccatalyst/maui/scroll_to_group_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/scroll_to_group_light.png",
-            "dark": "captures/maccatalyst/cpp/scroll_to_group_dark.png"
+            "light": "captures/maccatalyst/cpp/scroll_to_group_light.gif",
+            "dark": "captures/maccatalyst/cpp/scroll_to_group_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/scroll_to_group_light.png",
-            "dark": "captures/maccatalyst/xaml/scroll_to_group_dark.png"
+            "light": "captures/maccatalyst/xaml/scroll_to_group_light.gif",
+            "dark": "captures/maccatalyst/xaml/scroll_to_group_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/scroll_to_group_light.png",
@@ -23710,16 +23710,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/scroll_to_group_light.png",
-            "dark": "captures/windows/maui/scroll_to_group_dark.png"
+            "light": "captures/windows/maui/scroll_to_group_light.gif",
+            "dark": "captures/windows/maui/scroll_to_group_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/scroll_to_group_light.png",
-            "dark": "captures/windows/cpp/scroll_to_group_dark.png"
+            "light": "captures/windows/cpp/scroll_to_group_light.gif",
+            "dark": "captures/windows/cpp/scroll_to_group_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/scroll_to_group_light.png",
-            "dark": "captures/windows/xaml/scroll_to_group_dark.png"
+            "light": "captures/windows/xaml/scroll_to_group_light.gif",
+            "dark": "captures/windows/xaml/scroll_to_group_dark.gif"
           }
         },
         "sonnet": {
@@ -23781,16 +23781,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/scroll_view_light.png",
-            "dark": "captures/ios/maui/scroll_view_dark.png"
+            "light": "captures/ios/maui/scroll_view_light.gif",
+            "dark": "captures/ios/maui/scroll_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/scroll_view_light.png",
-            "dark": "captures/ios/cpp/scroll_view_dark.png"
+            "light": "captures/ios/cpp/scroll_view_light.gif",
+            "dark": "captures/ios/cpp/scroll_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/scroll_view_light.png",
-            "dark": "captures/ios/xaml/scroll_view_dark.png"
+            "light": "captures/ios/xaml/scroll_view_light.gif",
+            "dark": "captures/ios/xaml/scroll_view_dark.gif"
           }
         },
         "sonnet": {
@@ -23823,11 +23823,11 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9410 at frame 2 'driven' (2.25% pixels differ), mean SSIM 0.9705; per-frame diff% 0.00/2.25; self-motion MAUI 3.0928% (97797 px) vs C++ & XAML 3.1989% (101153 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9053 at frame 2 'driven' (3.03% pixels differ), mean SSIM 0.9526; per-frame diff% 0.00/3.03; self-motion MAUI 3.0801% (97396 px) vs C++ & XAML 3.1944% (101011 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/-9 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 2.25% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9892 at frame 2 'driven' (0.55% pixels differ), mean SSIM 0.9946; per-frame diff% 0.00/0.55; self-motion MAUI 3.0928% (97797 px) vs C++ & XAML 3.1989% (101153 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9053 at frame 2 'driven' (3.03% pixels differ), mean SSIM 0.9526; per-frame diff% 0.00/3.03; self-motion MAUI 3.0801% (97396 px) vs C++ & XAML 3.1944% (101011 px)",
           "motion": {
             "verdict": "FAIL",
             "themes": {
-              "light": "FAIL",
+              "light": "PASS",
               "dark": "FAIL"
             },
             "why": "frames-disagree",
@@ -23835,8 +23835,8 @@
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
             "self": {
-              "maui": 3.0928,
-              "port": 3.1989
+              "maui": 3.0801,
+              "port": 3.1944
             },
             "stills": "ae4412b02af13807"
           }
@@ -23845,16 +23845,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/scroll_view_light.png",
-            "dark": "captures/maccatalyst/maui/scroll_view_dark.png"
+            "light": "captures/maccatalyst/maui/scroll_view_light.gif",
+            "dark": "captures/maccatalyst/maui/scroll_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/scroll_view_light.png",
-            "dark": "captures/maccatalyst/cpp/scroll_view_dark.png"
+            "light": "captures/maccatalyst/cpp/scroll_view_light.gif",
+            "dark": "captures/maccatalyst/cpp/scroll_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/scroll_view_light.png",
-            "dark": "captures/maccatalyst/xaml/scroll_view_dark.png"
+            "light": "captures/maccatalyst/xaml/scroll_view_light.gif",
+            "dark": "captures/maccatalyst/xaml/scroll_view_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/scroll_view_light.png",
@@ -23943,7 +23943,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (3.0404% vs 3.0722% of their own frame, 1.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9113 at frame 2 'gif01@4s/12f' (2.59% pixels differ), mean SSIM 0.9191; per-frame diff% 0.00/2.59/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53; self-motion MAUI 3.0404% (72240 px) vs C++ 3.0722% (72995 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (96.8380% vs 96.5351% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9030 at frame 2 'gif02@4s/12f' (3.33% pixels differ), mean SSIM 0.9504; per-frame diff% 0.00/3.33/2.47/2.16/1.77/1.77/1.77/1.77/1.77/1.77/1.77/1.77; self-motion MAUI 96.8380% (2300872 px) vs C++ 96.5351% (2293673 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (3.0404% vs 3.0722% of their own frame, 1.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9113 at frame 2 'gif01@4s/12f' (2.59% pixels differ), mean SSIM 0.9191; per-frame diff% 0.00/2.59/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53; self-motion MAUI 3.0404% (72240 px) vs C++ 3.0722% (72995 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (96.8380% vs 96.5351% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +0/+0/+0/+6/+6/+6/+6/+6/+6/+6/+6/+6 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 3.33% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9030 at frame 2 'gif02@4s/12f' (3.33% pixels differ), mean SSIM 0.9791; per-frame diff% 0.00/3.33/2.47/0.56/0.18/0.18/0.18/0.18/0.18/0.18/0.18/0.18; self-motion MAUI 96.8380% (2300872 px) vs C++ 96.5351% (2293673 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
@@ -23963,7 +23963,7 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (3.0404% vs 2.9215% of their own frame, 3.9% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9124 at frame 3 'gif02@4s/12f' (2.53% pixels differ), mean SSIM 0.9192; per-frame diff% 0.00/2.60/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53; self-motion MAUI 3.0404% (72240 px) vs C++ & XAML 2.9215% (69416 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (96.8380% vs 96.8429% of their own frame, 0.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9030 at frame 2 'gif02@4s/12f' (3.33% pixels differ), mean SSIM 0.9682; per-frame diff% 0.00/3.33/2.89/1.40/1.40/1.01/1.01/1.01/1.01/1.01/1.01/1.01; self-motion MAUI 96.8380% (2300872 px) vs C++ & XAML 96.8429% (2300987 px)",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (3.0404% vs 2.9215% of their own frame, 3.9% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9124 at frame 3 'gif02@4s/12f' (2.53% pixels differ), mean SSIM 0.9192; per-frame diff% 0.00/2.60/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53/2.53; self-motion MAUI 3.0404% (72240 px) vs C++ & XAML 2.9215% (69416 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (96.8380% vs 96.8429% of their own frame, 0.0% apart) from a resting frame that already agreed to 0.00%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +0/+0/+0/+2/+2/+2/+2/+2/+2/+2/+2/+2 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 3.33% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9030 at frame 2 'gif02@4s/12f' (3.33% pixels differ), mean SSIM 0.9807; per-frame diff% 0.00/3.33/2.89/0.46/0.46/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 96.8380% (2300872 px) vs C++ & XAML 96.8429% (2300987 px)",
           "motion": {
             "verdict": "INCONCLUSIVE",
             "themes": {
@@ -23985,16 +23985,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/scroll_view_light.png",
-            "dark": "captures/windows/maui/scroll_view_dark.png"
+            "light": "captures/windows/maui/scroll_view_light.gif",
+            "dark": "captures/windows/maui/scroll_view_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/scroll_view_light.png",
-            "dark": "captures/windows/cpp/scroll_view_dark.png"
+            "light": "captures/windows/cpp/scroll_view_light.gif",
+            "dark": "captures/windows/cpp/scroll_view_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/scroll_view_light.png",
-            "dark": "captures/windows/xaml/scroll_view_dark.png"
+            "light": "captures/windows/xaml/scroll_view_light.gif",
+            "dark": "captures/windows/xaml/scroll_view_dark.gif"
           }
         },
         "sonnet": {
@@ -24056,16 +24056,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/search_bar_light.png",
-            "dark": "captures/ios/maui/search_bar_dark.png"
+            "light": "captures/ios/maui/search_bar_light.gif",
+            "dark": "captures/ios/maui/search_bar_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/search_bar_light.png",
-            "dark": "captures/ios/cpp/search_bar_dark.png"
+            "light": "captures/ios/cpp/search_bar_light.gif",
+            "dark": "captures/ios/cpp/search_bar_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/search_bar_light.png",
-            "dark": "captures/ios/xaml/search_bar_dark.png"
+            "light": "captures/ios/xaml/search_bar_light.gif",
+            "dark": "captures/ios/xaml/search_bar_dark.gif"
           }
         },
         "sonnet": {
@@ -24120,16 +24120,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/search_bar_light.png",
-            "dark": "captures/maccatalyst/maui/search_bar_dark.png"
+            "light": "captures/maccatalyst/maui/search_bar_light.gif",
+            "dark": "captures/maccatalyst/maui/search_bar_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/search_bar_light.png",
-            "dark": "captures/maccatalyst/cpp/search_bar_dark.png"
+            "light": "captures/maccatalyst/cpp/search_bar_light.gif",
+            "dark": "captures/maccatalyst/cpp/search_bar_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/search_bar_light.png",
-            "dark": "captures/maccatalyst/xaml/search_bar_dark.png"
+            "light": "captures/maccatalyst/xaml/search_bar_light.gif",
+            "dark": "captures/maccatalyst/xaml/search_bar_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/search_bar_light.png",
@@ -24478,16 +24478,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/selection_synchronization_light.png",
-            "dark": "captures/ios/maui/selection_synchronization_dark.png"
+            "light": "captures/ios/maui/selection_synchronization_light.gif",
+            "dark": "captures/ios/maui/selection_synchronization_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/selection_synchronization_light.png",
-            "dark": "captures/ios/cpp/selection_synchronization_dark.png"
+            "light": "captures/ios/cpp/selection_synchronization_light.gif",
+            "dark": "captures/ios/cpp/selection_synchronization_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/selection_synchronization_light.png",
-            "dark": "captures/ios/xaml/selection_synchronization_dark.png"
+            "light": "captures/ios/xaml/selection_synchronization_light.gif",
+            "dark": "captures/ios/xaml/selection_synchronization_dark.gif"
           }
         },
         "sonnet": {
@@ -24500,7 +24500,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9067 at frame 2 'driven' (3.56% pixels differ), mean SSIM 0.9381; per-frame diff% 10.16/3.56; self-motion MAUI 13.0097% (411383 px) vs C++ 23.2529% (735286 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8517 at frame 2 'driven' (6.63% pixels differ), mean SSIM 0.8715; per-frame diff% 10.16/6.63; self-motion MAUI 12.9220% (408610 px) vs C++ 23.2886% (736416 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+5 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 10.16% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9695 at frame 1 'initial' (10.16% pixels differ), mean SSIM 0.9786; per-frame diff% 10.16/0.51; self-motion MAUI 13.0097% (411383 px) vs C++ 23.2529% (735286 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8517 at frame 2 'driven' (6.63% pixels differ), mean SSIM 0.8715; per-frame diff% 10.16/6.63; self-motion MAUI 12.9220% (408610 px) vs C++ 23.2886% (736416 px)",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -24640,7 +24640,7 @@
         },
         "pixel": {
           "status": "red",
-          "review": "Light: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.7902 at frame 3 'gif02@4s/12f' (22.41% pixels differ), mean SSIM 0.8023; per-frame diff% 12.97/22.48/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41; self-motion MAUI 9.9302% (235942 px) vs C++ 31.8271% (756213 px); !! SELF-MOTION ASYMMETRY 3x \u2014 C++ moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.6811 at frame 2 'gif02@4s/12f' (21.69% pixels differ), mean SSIM 0.8367; per-frame diff% 37.32/21.69/22.33/13.01/12.99/12.73/12.73/12.73/12.73/12.73/12.73/12.73; self-motion MAUI 96.6609% (2296662 px) vs C++ 55.4412% (1317282 px)",
+          "review": "Light: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.7902 at frame 3 'gif02@4s/12f' (22.41% pixels differ), mean SSIM 0.8023; per-frame diff% 12.97/22.48/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41/22.41; self-motion MAUI 9.9302% (235942 px) vs C++ 31.8271% (756213 px); !! SELF-MOTION ASYMMETRY 3x \u2014 C++ moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +0/+0/+0/-2/-2/-2/-2/-2/-2/-2/-2/-2 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 37.32% is a landing offset, not a rendering difference \u2014 worst SSIM 0.6811 at frame 2 'gif02@4s/12f' (21.69% pixels differ), mean SSIM 0.8586; per-frame diff% 37.32/21.69/22.33/11.63/11.61/11.35/11.35/11.35/11.35/11.35/11.35/11.35; self-motion MAUI 96.6609% (2296662 px) vs C++ 55.4412% (1317282 px)",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -24660,7 +24660,7 @@
         },
         "pixel_xaml": {
           "status": "red",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (9.9302% vs 9.7811% of their own frame, 1.5% apart) from a resting frame that already agreed to 0.74%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.8200 at frame 3 'gif02@4s/12f' (10.54% pixels differ), mean SSIM 0.8338; per-frame diff% 0.74/6.59/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54; self-motion MAUI 9.9302% (235942 px) vs C++ & XAML 9.7811% (232399 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.6846 at frame 2 'gif02@4s/12f' (38.85% pixels differ), mean SSIM 0.8831; per-frame diff% 31.12/38.85/10.42/3.61/3.59/3.33/3.33/3.33/3.33/3.33/3.33/3.33; self-motion MAUI 96.6609% (2296662 px) vs C++ & XAML 39.1330% (929800 px); !! SELF-MOTION ASYMMETRY 2x \u2014 MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (9.9302% vs 9.7811% of their own frame, 1.5% apart) from a resting frame that already agreed to 0.74%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+11/+0/+0/+0/+0/+0/+0/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 10.54% is a landing offset, not a rendering difference \u2014 worst SSIM 0.8200 at frame 3 'gif02@4s/12f' (10.54% pixels differ), mean SSIM 0.8361; per-frame diff% 0.74/5.03/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54/10.54; self-motion MAUI 9.9302% (235942 px) vs C++ & XAML 9.7811% (232399 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-19-22_33_30, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align); driven frames aligned vertically by +0/+0/+0/+7/+7/+7/+7/+7/+7/+7/+7/+7 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 38.85% is a landing offset, not a rendering difference \u2014 worst SSIM 0.6846 at frame 2 'gif02@4s/12f' (38.85% pixels differ), mean SSIM 0.9377; per-frame diff% 31.12/38.85/10.42/0.70/0.68/0.42/0.42/0.42/0.42/0.42/0.42/0.42; self-motion MAUI 96.6609% (2296662 px) vs C++ & XAML 39.1330% (929800 px); !! SELF-MOTION ASYMMETRY 2x \u2014 MAUI moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. Its own frames did not all pair (see the frame count above), so part of that motion was never compared at all. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -24682,16 +24682,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/selection_synchronization_light.png",
-            "dark": "captures/windows/maui/selection_synchronization_dark.png"
+            "light": "captures/windows/maui/selection_synchronization_light.gif",
+            "dark": "captures/windows/maui/selection_synchronization_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/selection_synchronization_light.png",
-            "dark": "captures/windows/cpp/selection_synchronization_dark.png"
+            "light": "captures/windows/cpp/selection_synchronization_light.gif",
+            "dark": "captures/windows/cpp/selection_synchronization_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/selection_synchronization_light.png",
-            "dark": "captures/windows/xaml/selection_synchronization_dark.png"
+            "light": "captures/windows/xaml/selection_synchronization_light.gif",
+            "dark": "captures/windows/xaml/selection_synchronization_dark.gif"
           }
         },
         "sonnet": {
@@ -24753,16 +24753,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/semantics_light.png",
-            "dark": "captures/ios/maui/semantics_dark.png"
+            "light": "captures/ios/maui/semantics_light.gif",
+            "dark": "captures/ios/maui/semantics_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/semantics_light.png",
-            "dark": "captures/ios/cpp/semantics_dark.png"
+            "light": "captures/ios/cpp/semantics_light.gif",
+            "dark": "captures/ios/cpp/semantics_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/semantics_light.png",
-            "dark": "captures/ios/xaml/semantics_dark.png"
+            "light": "captures/ios/xaml/semantics_light.gif",
+            "dark": "captures/ios/xaml/semantics_dark.gif"
           }
         },
         "sonnet": {
@@ -24817,16 +24817,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/semantics_light.png",
-            "dark": "captures/maccatalyst/maui/semantics_dark.png"
+            "light": "captures/maccatalyst/maui/semantics_light.gif",
+            "dark": "captures/maccatalyst/maui/semantics_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/semantics_light.png",
-            "dark": "captures/maccatalyst/cpp/semantics_dark.png"
+            "light": "captures/maccatalyst/cpp/semantics_light.gif",
+            "dark": "captures/maccatalyst/cpp/semantics_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/semantics_light.png",
-            "dark": "captures/maccatalyst/xaml/semantics_dark.png"
+            "light": "captures/maccatalyst/xaml/semantics_light.gif",
+            "dark": "captures/maccatalyst/xaml/semantics_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/semantics_light.png",
@@ -25616,16 +25616,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/slider_light.png",
-            "dark": "captures/ios/maui/slider_dark.png"
+            "light": "captures/ios/maui/slider_light.gif",
+            "dark": "captures/ios/maui/slider_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/slider_light.png",
-            "dark": "captures/ios/cpp/slider_dark.png"
+            "light": "captures/ios/cpp/slider_light.gif",
+            "dark": "captures/ios/cpp/slider_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/slider_light.png",
-            "dark": "captures/ios/xaml/slider_dark.png"
+            "light": "captures/ios/xaml/slider_light.gif",
+            "dark": "captures/ios/xaml/slider_dark.gif"
           }
         },
         "sonnet": {
@@ -25681,15 +25681,15 @@
         "screenshots": {
           "maui": {
             "light": "captures/maccatalyst/maui/slider_light.png",
-            "dark": "captures/maccatalyst/maui/slider_dark.png"
+            "dark": "captures/maccatalyst/maui/slider_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/slider_light.png",
-            "dark": "captures/maccatalyst/cpp/slider_dark.png"
+            "light": "captures/maccatalyst/cpp/slider_light.gif",
+            "dark": "captures/maccatalyst/cpp/slider_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/slider_light.png",
-            "dark": "captures/maccatalyst/xaml/slider_dark.png"
+            "light": "captures/maccatalyst/xaml/slider_light.gif",
+            "dark": "captures/maccatalyst/xaml/slider_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/slider_light.png",
@@ -26324,16 +26324,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/stepper_light.png",
-            "dark": "captures/ios/maui/stepper_dark.png"
+            "light": "captures/ios/maui/stepper_light.gif",
+            "dark": "captures/ios/maui/stepper_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/stepper_light.png",
-            "dark": "captures/ios/cpp/stepper_dark.png"
+            "light": "captures/ios/cpp/stepper_light.gif",
+            "dark": "captures/ios/cpp/stepper_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/stepper_light.png",
-            "dark": "captures/ios/xaml/stepper_dark.png"
+            "light": "captures/ios/xaml/stepper_light.gif",
+            "dark": "captures/ios/xaml/stepper_dark.gif"
           }
         },
         "sonnet": {
@@ -26388,16 +26388,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/stepper_light.png",
-            "dark": "captures/maccatalyst/maui/stepper_dark.png"
+            "light": "captures/maccatalyst/maui/stepper_light.gif",
+            "dark": "captures/maccatalyst/maui/stepper_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/stepper_light.png",
-            "dark": "captures/maccatalyst/cpp/stepper_dark.png"
+            "light": "captures/maccatalyst/cpp/stepper_light.gif",
+            "dark": "captures/maccatalyst/cpp/stepper_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/stepper_light.png",
-            "dark": "captures/maccatalyst/xaml/stepper_dark.png"
+            "light": "captures/maccatalyst/xaml/stepper_light.gif",
+            "dark": "captures/maccatalyst/xaml/stepper_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/stepper_light.png",
@@ -26528,16 +26528,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/stepper_light.png",
-            "dark": "captures/windows/maui/stepper_dark.png"
+            "light": "captures/windows/maui/stepper_light.gif",
+            "dark": "captures/windows/maui/stepper_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/stepper_light.png",
-            "dark": "captures/windows/cpp/stepper_dark.png"
+            "light": "captures/windows/cpp/stepper_light.gif",
+            "dark": "captures/windows/cpp/stepper_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/stepper_light.png",
-            "dark": "captures/windows/xaml/stepper_dark.png"
+            "light": "captures/windows/xaml/stepper_light.gif",
+            "dark": "captures/windows/xaml/stepper_dark.gif"
           }
         },
         "sonnet": {
@@ -27485,7 +27485,7 @@
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9691 at frame 7 'gif01333' (1.21% pixels differ), mean SSIM 0.9868; per-frame diff% 0.00/0.67/0.00/0.00/1.14/1.12/1.21/0.89/0.66/0.66/0.65/0.65/0.00; self-motion MAUI 0.5963% (18857 px) vs C++ & XAML 1.2423% (39282 px); !! SELF-MOTION ASYMMETRY 2x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9678 at frame 7 'gif01333' (1.26% pixels differ), mean SSIM 0.9862; per-frame diff% 0.00/0.67/0.00/0.00/1.16/1.04/1.26/0.99/0.74/0.67/0.71/0.65/0.01; self-motion MAUI 0.5924% (18731 px) vs C++ & XAML 1.2709% (40186 px); !! SELF-MOTION ASYMMETRY 2x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
+          "review": "Light: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/+0/+0/+0/+0/+0/+2/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.21% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9691 at frame 7 'gif01333' (1.21% pixels differ), mean SSIM 0.9868; per-frame diff% 0.00/0.67/0.00/0.00/1.14/1.12/1.21/0.85/0.66/0.66/0.65/0.65/0.00; self-motion MAUI 0.5963% (18857 px) vs C++ & XAML 1.2423% (39282 px); !! SELF-MOTION ASYMMETRY 2x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-19-01_32_37, commit 06dcfcef48, 2026-08-19); driven frames aligned vertically by +0/+0/+0/+0/+0/+0/+0/+3/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.26% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9678 at frame 7 'gif01333' (1.26% pixels differ), mean SSIM 0.9864; per-frame diff% 0.00/0.67/0.00/0.00/1.16/1.04/1.26/0.86/0.74/0.67/0.71/0.65/0.01; self-motion MAUI 0.5924% (18731 px) vs C++ & XAML 1.2709% (40186 px); !! SELF-MOTION ASYMMETRY 2x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why",
           "motion": {
             "verdict": "FAIL",
             "themes": {
@@ -28159,16 +28159,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/switch_light.png",
-            "dark": "captures/ios/maui/switch_dark.png"
+            "light": "captures/ios/maui/switch_light.gif",
+            "dark": "captures/ios/maui/switch_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/switch_light.png",
-            "dark": "captures/ios/cpp/switch_dark.png"
+            "light": "captures/ios/cpp/switch_light.gif",
+            "dark": "captures/ios/cpp/switch_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/switch_light.png",
-            "dark": "captures/ios/xaml/switch_dark.png"
+            "light": "captures/ios/xaml/switch_light.gif",
+            "dark": "captures/ios/xaml/switch_dark.gif"
           }
         },
         "sonnet": {
@@ -28223,16 +28223,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/switch_light.png",
-            "dark": "captures/maccatalyst/maui/switch_dark.png"
+            "light": "captures/maccatalyst/maui/switch_light.gif",
+            "dark": "captures/maccatalyst/maui/switch_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/switch_light.png",
-            "dark": "captures/maccatalyst/cpp/switch_dark.png"
+            "light": "captures/maccatalyst/cpp/switch_light.gif",
+            "dark": "captures/maccatalyst/cpp/switch_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/switch_light.png",
-            "dark": "captures/maccatalyst/xaml/switch_dark.png"
+            "light": "captures/maccatalyst/xaml/switch_light.gif",
+            "dark": "captures/maccatalyst/xaml/switch_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/switch_light.png",
@@ -28304,11 +28304,11 @@
           },
           "cpp": {
             "light": "captures/android/cpp/switch_light.png",
-            "dark": "captures/android/cpp/switch_dark.png"
+            "dark": "captures/android/cpp/switch_dark.gif"
           },
           "xaml": {
             "light": "captures/android/xaml/switch_light.png",
-            "dark": "captures/android/xaml/switch_dark.png"
+            "dark": "captures/android/xaml/switch_dark.gif"
           }
         },
         "sonnet": {
@@ -28363,16 +28363,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/switch_light.png",
-            "dark": "captures/windows/maui/switch_dark.png"
+            "light": "captures/windows/maui/switch_light.gif",
+            "dark": "captures/windows/maui/switch_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/switch_light.png",
-            "dark": "captures/windows/cpp/switch_dark.png"
+            "light": "captures/windows/cpp/switch_light.gif",
+            "dark": "captures/windows/cpp/switch_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/switch_light.png",
-            "dark": "captures/windows/xaml/switch_dark.png"
+            "light": "captures/windows/xaml/switch_light.gif",
+            "dark": "captures/windows/xaml/switch_dark.gif"
           }
         },
         "sonnet": {
@@ -29022,16 +29022,16 @@
       "ios": {
         "screenshots": {
           "maui": {
-            "light": "captures/ios/maui/title_bar_light.png",
-            "dark": "captures/ios/maui/title_bar_dark.png"
+            "light": "captures/ios/maui/title_bar_light.gif",
+            "dark": "captures/ios/maui/title_bar_dark.gif"
           },
           "cpp": {
-            "light": "captures/ios/cpp/title_bar_light.png",
-            "dark": "captures/ios/cpp/title_bar_dark.png"
+            "light": "captures/ios/cpp/title_bar_light.gif",
+            "dark": "captures/ios/cpp/title_bar_dark.gif"
           },
           "xaml": {
-            "light": "captures/ios/xaml/title_bar_light.png",
-            "dark": "captures/ios/xaml/title_bar_dark.png"
+            "light": "captures/ios/xaml/title_bar_light.gif",
+            "dark": "captures/ios/xaml/title_bar_dark.gif"
           }
         },
         "sonnet": {
@@ -29086,16 +29086,16 @@
       "maccatalyst": {
         "screenshots": {
           "maui": {
-            "light": "captures/maccatalyst/maui/title_bar_light.png",
-            "dark": "captures/maccatalyst/maui/title_bar_dark.png"
+            "light": "captures/maccatalyst/maui/title_bar_light.gif",
+            "dark": "captures/maccatalyst/maui/title_bar_dark.gif"
           },
           "cpp": {
-            "light": "captures/maccatalyst/cpp/title_bar_light.png",
-            "dark": "captures/maccatalyst/cpp/title_bar_dark.png"
+            "light": "captures/maccatalyst/cpp/title_bar_light.gif",
+            "dark": "captures/maccatalyst/cpp/title_bar_dark.gif"
           },
           "xaml": {
-            "light": "captures/maccatalyst/xaml/title_bar_light.png",
-            "dark": "captures/maccatalyst/xaml/title_bar_dark.png"
+            "light": "captures/maccatalyst/xaml/title_bar_light.gif",
+            "dark": "captures/maccatalyst/xaml/title_bar_dark.gif"
           },
           "appkit_cpp": {
             "light": "captures/maccatalyst/appkit_cpp/title_bar_light.png",
@@ -29226,16 +29226,16 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/title_bar_light.png",
-            "dark": "captures/windows/maui/title_bar_dark.png"
+            "light": "captures/windows/maui/title_bar_light.gif",
+            "dark": "captures/windows/maui/title_bar_dark.gif"
           },
           "cpp": {
-            "light": "captures/windows/cpp/title_bar_light.png",
-            "dark": "captures/windows/cpp/title_bar_dark.png"
+            "light": "captures/windows/cpp/title_bar_light.gif",
+            "dark": "captures/windows/cpp/title_bar_dark.gif"
           },
           "xaml": {
-            "light": "captures/windows/xaml/title_bar_light.png",
-            "dark": "captures/windows/xaml/title_bar_dark.png"
+            "light": "captures/windows/xaml/title_bar_light.gif",
+            "dark": "captures/windows/xaml/title_bar_dark.gif"
           }
         },
         "sonnet": {

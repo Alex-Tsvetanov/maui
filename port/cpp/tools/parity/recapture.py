@@ -792,6 +792,14 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
         if restore is not unset and restore:
             capture_ios.set_theme(restore)
         capture_ios.unpin()
+    # DRIVEN PAGES GET A PUBLISHED GIF HERE TOO — see driven_only. iOS records real video for the
+    # ANIMATED set inside the loop above; these pages have no recording, only the banked before/after
+    # steps, so their GIF is assembled from those. Runs after the capture loop (and inside the same
+    # lane) so RUN_DIR is complete. strict=False: a scenario device_scenarios refused for this lane
+    # legitimately banked nothing.
+    dv = driven_only(examples)
+    if dv:
+        assemble_vm_gifs(RUN_DIR, "ios", dv, list(frameworks), list(themes), 1.0, strict=False)
     if "maui_xaml" in frameworks:
         # The reference writes to port/maui-reference/captures/ios/; the BOARD reads
         # captures/ios/maui/. Nothing else copies between those two roots.
@@ -1174,8 +1182,33 @@ def burst_frames(unit_dir: Path, theme: str, driven: bool | None = None) -> list
     return [png for i, (_, png) in enumerate(shots) if i != at_rest]
 
 
-def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, interval: float) -> None:
-    """Turn each (tag, column, theme) burst in a finished run into captures/…/<key>_<theme>.gif."""
+def driven_only(examples) -> list:
+    """Pages that ARE motion-scored but are NOT in ANIMATED — i.e. they carry an authored scenario.
+
+    THE BOARD MUST SHOW WHAT IT SCORES. ANIMATED is 14 pages; 32 more carry a scenario, so pixel_score
+    motion-scores them (its `driven_pages()` fires on either) while the board published only the AT-REST
+    still. The verdict then lives entirely in a `driven` frame no reader can open: measured on
+    clip_gallery/ios, the cell read RED while its published stills were BYTE-IDENTICAL between columns,
+    and the only way to see the real difference was to dig into a gitignored run directory.
+
+    This is the sixth instance of the shape lane_android's own comment names — "a hard-coded list
+    standing between work and the tool meant to see it". Android already fixed its half by keying on the
+    scenario file rather than on ANIMATED; this closes the same gap for iOS and the VM lanes, on the
+    PUBLISHING side.
+
+    Costs no extra capture: lane_ios's `want_unit` and the VM runner already bank a unit for any page
+    with steps, so this is pure assembly of frames the run already holds.
+    """
+    return [k for k in examples if k not in ANIMATED and (SCENARIOS / f"{k}.toml").is_file()]
+
+
+def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, interval: float,
+                     strict: bool = True) -> None:
+    """Turn each (tag, column, theme) burst in a finished run into captures/…/<key>_<theme>.gif.
+
+    strict=False for the DRIVEN pass (see driven_only): a scenario can legitimately not reach a lane —
+    device_scenarios refuses absolute coordinates on a phone, and a settle-only file has nothing to
+    inject — so "no frames" there is a fact about the scenario, not a failed recording."""
     import gif as gifmod
 
     fps = max(1, min(10, round(1.0 / max(interval, 0.1))))
@@ -1190,7 +1223,7 @@ def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, in
                         f"({len(frames)} frames @ {fps}fps)")
                 elif frames:
                     fail(f"{plat_dir}/{col}/{theme}/{key}: gif assembly failed ({len(frames)} frames)")
-                else:
+                elif strict:
                     # An animated page whose unit produced NO frame beyond the still. Silence here read
                     # as "GIF done" for as long as the burst selector was broken, which is the whole
                     # reason this pass exists — so it costs a failed step, not nothing.
@@ -1260,6 +1293,11 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
                  timeout=900)
         if animated:
             assemble_vm_gifs(runs[-1], plat_dir, animated, columns, themes, gif_interval)
+        # The DRIVEN pages, at 1 fps: a before/after pair is read, not watched, so each state has to
+        # hold long enough to see. ANIMATED keeps its own cadence above, untouched.
+        dv = driven_only(examples)
+        if dv:
+            assemble_vm_gifs(runs[-1], plat_dir, dv, columns, themes, 1.0, strict=False)
 
 
 # --------------------------------------------------------------------------- measure

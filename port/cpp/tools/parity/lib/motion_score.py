@@ -351,6 +351,78 @@ def _pair(shots_a, shots_b) -> list[tuple[str, str, str]]:
 MAX_PHASE_SHIFT = 3
 
 
+# ---------------------------------------------------------------------------------------------------
+# DRIVE LANDING — a SPATIAL offset, and deliberately not the same thing as _align's TEMPORAL one.
+# _align fixes "column B's frame N pairs with column A's frame N+k" (a sampling skew). This fixes
+# "both columns rendered the same content, a few rows apart" (an inertial-scroll landing skew).
+#
+# MEASURED 2026-08-19, clip_gallery/ios, run 2026-08-15-19_27_13 vs run 2026-08-19-01_32_37 -- the
+# GROUND TRUTH against ITSELF, same page, same gesture, no port involved:
+#     at-rest  light/dark   shift  +0 px   mean|diff| 0.00        (byte-identical, both runs)
+#     driven   light        shift  +2 px   mean|diff| 3.22 -> 0.22 after aligning
+#     driven   dark         shift  -4 px   mean|diff| 4.95 -> 0.22 after aligning
+# and the port against ITSELF over the same two runs: +3 px / -2 px, 4.27 -> 0.26, 3.12 -> 0.12.
+# The port-vs-MAUI reading this exists for is -3 px / +7 px, 4.47 -> 0.32, 6.38 -> 0.32. MAUI disagrees
+# with ITSELF by the same magnitude the port disagrees with MAUI, so on a driven frame that difference
+# is not evidence of anything. Scoring it as one produced 4 reds on pages whose published stills are
+# BYTE-IDENTICAL between columns -- which is what made the board unreviewable: the cell was red and the
+# only artifact a human could open showed nothing wrong.
+#
+# THE BOUND IS THE WHOLE SAFETY ARGUMENT. A translation cannot cancel a rendering difference, but it CAN
+# cancel a rendering difference that IS a translation -- and this repo has exactly that bug: the
+# maccatalyst 32px page offset (swipe_item_size / clip / path_gallery). 12 px is 3x the largest drift
+# measured above and 2.7x under that defect, so the noise is forgiven and the defect is not. Raising
+# this past ~20 would start hiding real work; do not, without re-running the self-comparison above.
+#
+# THE AT-REST FRAME IS NEVER ALIGNED. It is byte-reproducible (0.00% above, across runs AND columns), so
+# a shift there is signal, not noise -- it is how the 9.18% clip/maccatalyst at-rest disagreement stays
+# visible. Only frames whose step differs from the at-rest step are corrected.
+DRIVE_SHIFT_MAX_PX = 12
+
+
+def _drive_shift(path_a: str, path_b: str, crop_top: int):
+    """(dy, score_at_dy, score_unshifted) for the vertical offset that best aligns B onto A.
+
+    dy is 0 whenever no offset beats the unshifted reading, so a pair needing no correction scores
+    bit-identically to what the plain `_compare` produced before this existed."""
+    import numpy as np              # noqa: PLC0415  pixel_score owns the heavy imports
+    import pixel_score              # noqa: PLC0415  see _compare's docstring re: the import cycle
+
+    ia, ib = pixel_score.load_pair(path_a, path_b)
+    w, h = ia.size
+    # Apply crop_top ONCE, here, then score with crop_top=0 -- otherwise the shift crops below and the
+    # scorer's own crop would compound and the search would be measuring a different region than the score.
+    if crop_top > 0 and h > crop_top:
+        ia, ib = ia.crop((0, crop_top, w, h)), ib.crop((0, crop_top, w, h))
+        h -= crop_top
+    base = pixel_score.score_images(ia, ib, 0)
+    a = np.asarray(ia.convert("L"), dtype=np.int16)
+    b = np.asarray(ib.convert("L"), dtype=np.int16)
+    best_dy, best_cost = 0, float(np.abs(a - b).mean())
+    for dy in range(1, DRIVE_SHIFT_MAX_PX + 1):
+        for d in (dy, -dy):
+            cost = float(np.abs(a[:h - d] - b[d:]).mean()) if d > 0 else \
+                   float(np.abs(a[-d:] - b[:h + d]).mean())
+            if cost < best_cost:
+                best_dy, best_cost = d, cost
+    if best_dy == 0:
+        return 0, base, base
+    # A CORRECTION THAT SATURATES THE BOUND IS REFUSED, not clamped. Hitting the ceiling means the true
+    # offset is at least DRIVE_SHIFT_MAX_PX and probably beyond it -- which is the signature of a real
+    # systematic offset, not of drive noise (measured drive noise is 2-7 px; the maccatalyst page defect
+    # is 32). Clamping there would apply a partial correction to a genuine bug and quietly understate it:
+    # measured on swipe_item_size/maccatalyst, clamping reported 20.81% for a 23.02% defect. Refusing
+    # keeps the honest number.
+    if abs(best_dy) >= DRIVE_SHIFT_MAX_PX:
+        return 0, base, base
+    d = best_dy
+    ca, cb = (ia.crop((0, 0, w, h - d)), ib.crop((0, d, w, h))) if d > 0 else \
+             (ia.crop((0, -d, w, h)), ib.crop((0, 0, w, h + d)))
+    shifted = pixel_score.score_images(ca, cb, 0)
+    # Never let the correction make a cell look WORSE than the honest unshifted reading.
+    return (best_dy, shifted, base) if shifted["diff_pct"] <= base["diff_pct"] else (0, base, base)
+
+
 def _align(pairs, crop_top: int):
     """[(step, png_a, png_b)] -> (aligned_pairs, offset): column B shifted by the offset that makes the
     two sequences agree BEST, and the offset it chose.
@@ -711,7 +783,18 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # PHASE-INVARIANT: shift column B by the offset that makes the sequences agree best before scoring.
     # A sampling drift is a shift, not a defect; see _align for the measurements that forced this.
     pairs, phase_shift = _align(pairs, crop_top)
-    scores = [_compare(a, b, crop_top) for _step, a, b in pairs]
+    # SPATIAL correction on the DRIVEN frames only -- see _drive_shift for the ground-truth-against-
+    # itself measurement that forced it, and for why the at-rest frame is excluded. `rest_step` is taken
+    # from the pre-_align first pair, so a temporal realignment cannot change WHICH step counts as rest.
+    rest_step = rest_pair[0]
+    scores, raw_scores, drive_shifts = [], [], []
+    for _step, a, b in pairs:
+        if _step == rest_step:
+            sc = _compare(a, b, crop_top)
+            scores.append(sc); raw_scores.append(sc); drive_shifts.append(0)
+            continue
+        dy, sc, raw = _drive_shift(a, b, crop_top)
+        scores.append(sc); raw_scores.append(raw); drive_shifts.append(dy)
     ssims = [s["ssim"] for s in scores]
     worst_i = min(range(len(ssims)), key=lambda i: ssims[i])
     mean_ssim = sum(ssims) / len(ssims)
@@ -865,7 +948,18 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     per_frame = "/".join(f"{s['diff_pct']:.2f}" for s in scores)
     shifted = (f"; column frames realigned by {phase_shift:+d} sample(s) — a sampling drift, not a "
                f"defect (see _align)" if phase_shift else "")
-    detail = (f"MOTION {len(pairs)} frames paired by step ({prov}){unpaired}{shifted} — "
+    # REPORTED, ALWAYS, when it is nonzero. A correction the review does not mention is indistinguishable
+    # from a scorer that is simply wrong -- and this board has already had a reader (correctly) challenge
+    # a red whose published stills were byte-identical, because nothing on screen explained the number.
+    landed = ""
+    if any(drive_shifts):
+        raw_worst = max(r["diff_pct"] for r in raw_scores)
+        landed = ("; driven frames aligned vertically by "
+                  + "/".join(f"{d:+d}" for d in drive_shifts)
+                  + f" px — the inertial scroll lands a few rows apart run to run (MAUI does this to "
+                    f"ITSELF by the same magnitude; see _drive_shift), so the unaligned worst "
+                    f"{raw_worst:.2f}% is a landing offset, not a rendering difference")
+    detail = (f"MOTION {len(pairs)} frames paired by step ({prov}){unpaired}{shifted}{landed} — "
               f"worst SSIM {ssims[worst_i]:.4f} at frame {worst_i + 1} '{pairs[worst_i][0]}' "
               f"({scores[worst_i]['diff_pct']:.2f}% pixels differ), mean SSIM {mean_ssim:.4f}; "
               f"per-frame diff% {per_frame}; self-motion MAUI {move_m:.4f}% ({px_m} px) vs "

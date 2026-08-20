@@ -201,7 +201,18 @@ def classify(theme_scores):
     # control measurements). A red there would assert a port defect the evidence does not support, so it
     # is capped at yellow. Never promoted TO green: frame parity was not established either. Requires
     # EVERY scored theme to be phase-only, so one genuinely red theme still reds the cell.
-    if status == "red" and have and all(v.get("phase_only") for v in have.values()):
+    #
+    # A THEME THAT **PASSED** COUNTS TOWARD THE CAP, and that clause is not a loosening — it repairs a
+    # way this test could punish an IMPROVEMENT. `all(phase_only)` conflates "not phase-only" with
+    # "genuinely red", and a PASS is the opposite of red. Measured 2026-08-20 on clip/android/pixel: the
+    # drive-landing correction (motion_score._drive_shift) took dark from 4.96% to 0.72%, i.e. dark went
+    # INCONCLUSIVE -> PASS. That flipped `all(phase_only)` to False, removed the cap, and turned the
+    # cell yellow -> RED — on a run where nothing rendered worse and one theme rendered measurably
+    # better. Four cells moved that way (clip, clip_gallery, path_gallery on android). Only a theme that
+    # actually DEMONSTRATES a failure should block the cap; that is what FAIL means in this lattice.
+    def _capped(v):
+        return bool(v.get("phase_only")) or v.get("verdict") == motion_score.PASS
+    if status == "red" and have and all(_capped(v) for v in have.values()):
         status = "yellow"
     # The port reacted and the ground truth could not, because the shared XAML twin omits the handler
     # (motion_score's `twin_cannot_react` block). Capped at yellow on the same reasoning as phase_only:
