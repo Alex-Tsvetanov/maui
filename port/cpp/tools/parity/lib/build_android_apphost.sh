@@ -393,7 +393,7 @@ capture_one() {
   # THE LIST AND THE VALUES MUST STAY IDENTICAL IN ALL THREE COLUMN SCRIPTS (this file,
   # build_android_apphost_xaml.sh, capture_all_csharp_android.sh) -- an asymmetric settle photographs
   # the columns in different states and silently invalidates every cell on these pages.
-  case "${key}" in web_view|hybrid_web_view|context_flyout) sleep 9 ;; *) sleep 4 ;; esac
+  case "${key}" in web_view|hybrid_web_view|context_flyout|image) sleep 9 ;; *) sleep 4 ;; esac
   # ASSERT WHAT IS ACTUALLY ON SCREEN, after the settle and before the shutter. Twin of the guard in
   # build_android_apphost_xaml.sh; see that file for the full incident.
   #

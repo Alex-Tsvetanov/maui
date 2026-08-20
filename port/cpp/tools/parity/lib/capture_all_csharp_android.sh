@@ -153,7 +153,7 @@ capture_one() {
   # THE LIST AND THE VALUES MUST STAY IDENTICAL IN ALL THREE COLUMN SCRIPTS (this file,
   # build_android_apphost_xaml.sh, capture_all_csharp_android.sh) -- an asymmetric settle photographs
   # the columns in different states and silently invalidates every cell on these pages.
-  case "${key}" in web_view|hybrid_web_view|context_flyout) sleep 9 ;; *) sleep 4 ;; esac
+  case "${key}" in web_view|hybrid_web_view|context_flyout|image) sleep 9 ;; *) sleep 4 ;; esac
   "${maui_adb}" -s "${maui_serial}" exec-out screencap -p > "${out_dir}/${key}${suffix}.png"
   # The IME is a second foreign window no resumed-activity check can see (android-emu-lib.sh). THE
   # GROUND TRUTH LEAKS TOO — 9 committed frames in this column — and a keyboard in the reference is

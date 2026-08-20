@@ -1,0 +1,31 @@
+# image — no interaction, but a LONGER SETTLE than the board default. Twin of web_view.toml and
+# context_flyout.toml; read web_view.toml's comment for the original characterisation.
+#
+# WHY: image.xaml:7 is <Image Source="https://aka.ms/campus.jpg" /> — a LIVE REMOTE FETCH (and an
+# aka.ms redirect on top of it), so at the board default the screenshot races a download.
+#
+# THE RACE IS SYMMETRIC, which is what makes it dangerous to read as a port defect. MEASURED 2026-08-20
+# by counting whether the photo actually rendered in each column:
+#     windows light   maui  0.91%   cpp 15.47%   xaml 15.47%   -> MAUI lost the race
+#     ios     light   maui  5.56%   cpp  0.26%   xaml  0.26%   -> the PORT lost the race
+#     both lanes, dark: all three identical                    -> everyone loaded (0.00% / 0.13%)
+# It cost 4 RED cells (image/ios and image/windows, both metrics) on a board where nothing had
+# regressed. On windows the port rendered MORE than the ground truth, which reads like a port bug and
+# is not one; on ios it rendered less, which reads like a different port bug and is also not one.
+#
+# 9.0 matches context_flyout.toml (the lane's 4s base + the 5s web_view.toml measured for WebView2
+# init) rather than being re-derived: both are "one network round trip plus decode". CONFIRM on the
+# next pass instead of assuming — the check is the one above, count photo-like pixels per column and
+# require all three to agree, not merely that the cell went green.
+#
+# ONE STEP, NAMED `initial`: pixel_score.driven_pages() and recapture.driven_only() both key on a step
+# carrying an ACTION, so a settle-only file adds a settle WITHOUT making this page motion-scored.
+#
+# NOTE the settle reaches the VM lanes through this file, iOS through recapture.NETWORK_SETTLE_PAGES,
+# and android through the case in lib/build_android_apphost*.sh — see that constant's comment.
+tag = "image"
+themes = ["light", "dark"]
+settle = 9.0
+
+[[steps]]
+name = "initial"          # no action -> settle + screenshot

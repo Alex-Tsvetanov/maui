@@ -768,7 +768,8 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
                         # `or` rather than a swap: still_first can only turn ON here, never off, so an
                         # undriven page of either kind behaves exactly as before.
                         # that recording. `run_unit` is the ADDITIONAL evidence copy either way.
-                        out = capture_ios.capture_still(app, key, theme, settle, steps=steps,
+                        out = capture_ios.capture_still(app, key, theme, settle_for(key, settle),
+                                                        steps=steps,
                                                         still_first=bool(steps) or kind != "png+gif",
                                                         **ios_run_kw(key, fw, want_unit))
                         if kind == "png+gif":
@@ -776,7 +777,8 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
                             # frame for anything that only reads PNGs. The steps run INSIDE the
                             # recording window — a page that only moves when poked has to be poked
                             # while the camera is running.
-                            out = capture_ios.capture_gif(app, key, theme, settle, gif_secs,
+                            out = capture_ios.capture_gif(app, key, theme, settle_for(key, settle),
+                                                          gif_secs,
                                                           steps=steps,
                                                           **ios_run_kw(key, fw, want_unit)) or out
                     except Exception as exc:      # one bad page must not cost the other 171
@@ -799,7 +801,10 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
     # legitimately banked nothing.
     dv = driven_only(examples)
     if dv:
-        assemble_vm_gifs(RUN_DIR, "ios", dv, list(frameworks), list(themes), 1.0, strict=False)
+        # maui_ref_root: the ios maui column is filled by the promote step BELOW, which deletes any
+        # board GIF the reference root does not have. Writing there instead makes the promote carry it.
+        assemble_vm_gifs(RUN_DIR, "ios", dv, list(frameworks), list(themes), 1.0, strict=False,
+                         maui_ref_root=PORT / "maui-reference" / "captures" / "ios")
     if "maui_xaml" in frameworks:
         # The reference writes to port/maui-reference/captures/ios/; the BOARD reads
         # captures/ios/maui/. Nothing else copies between those two roots.
@@ -1182,6 +1187,30 @@ def burst_frames(unit_dir: Path, theme: str, driven: bool | None = None) -> list
     return [png for i, (_, png) in enumerate(shots) if i != at_rest]
 
 
+# PAGES WHOSE CONTENT IS FETCHED OVER THE NETWORK, so the shutter races a download rather than a
+# render. The race is SYMMETRIC and hits either column at random — measured 2026-08-20 on `image`
+# (<Image Source="https://aka.ms/campus.jpg" />), counting whether the photo actually rendered:
+#     windows light   maui  0.91%   cpp 15.47%   xaml 15.47%    <- MAUI lost the race
+#     ios     light   maui  5.56%   cpp  0.26%   xaml  0.26%    <- the PORT lost the race
+#     both lanes dark  all three identical                       <- everyone loaded, 0.00%/0.13%
+# So it is not a port defect in either direction, and "the port renders more" is not the finding it
+# looks like. web_view.toml recorded the same shape for WebView2 init; this is the Image half.
+#
+# THE LIST EXISTS THREE TIMES AND THAT IS DELIBERATE, not an oversight: the VM lanes read a scenario's
+# `settle`, iOS reads this constant, and the android still pass is a SHELL pipeline that cannot import
+# Python (lib/build_android_apphost*.sh, lib/capture_all_csharp_android.sh carry the same case). Keep
+# all three in step — an asymmetric settle photographs the columns in different states, which is the
+# defect this is meant to end.
+NETWORK_SETTLE_PAGES = {"web_view", "hybrid_web_view", "context_flyout", "image"}
+NETWORK_SETTLE_SECONDS = 9.0
+
+
+def settle_for(key: str, base: float) -> float:
+    """`base`, or the network floor on a page that fetches. max(), never a replacement: an operator who
+    passes a higher --settle for a slow guest must keep it."""
+    return max(base, NETWORK_SETTLE_SECONDS) if key in NETWORK_SETTLE_PAGES else base
+
+
 def driven_only(examples) -> list:
     """Pages that ARE motion-scored but are NOT in ANIMATED — i.e. they carry an authored scenario.
 
@@ -1199,11 +1228,29 @@ def driven_only(examples) -> list:
     Costs no extra capture: lane_ios's `want_unit` and the VM runner already bank a unit for any page
     with steps, so this is pure assembly of frames the run already holds.
     """
-    return [k for k in examples if k not in ANIMATED and (SCENARIOS / f"{k}.toml").is_file()]
+    # AN ACTION, not merely a file — the same test pixel_score.driven_pages applies, because these two
+    # must name the same set. A settle-only scenario (web_view, context_flyout, image) authors no action,
+    # is NOT motion-scored, and has exactly one frame, so including it here would queue an assembly that
+    # can only ever produce nothing. Keying both on "performs an action" is what stops the two notions
+    # drifting the way ANIMATED already drifted from what the scorer scores.
+    out = []
+    for k in examples:
+        if k in ANIMATED:
+            continue
+        f = SCENARIOS / f"{k}.toml"
+        if not f.is_file():
+            continue
+        try:
+            steps = tomllib.loads(f.read_text()).get("steps") or []
+        except (OSError, tomllib.TOMLDecodeError):
+            continue
+        if any(st.get("action") for st in steps):
+            out.append(k)
+    return out
 
 
 def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, interval: float,
-                     strict: bool = True) -> None:
+                     strict: bool = True, maui_ref_root: Path | None = None) -> None:
     """Turn each (tag, column, theme) burst in a finished run into captures/…/<key>_<theme>.gif.
 
     strict=False for the DRIVEN pass (see driven_only): a scenario can legitimately not reach a lane —
@@ -1216,10 +1263,21 @@ def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, in
         for col in columns:
             for theme in themes:
                 frames = burst_frames(run_dir / key / plat_dir / col, theme)
-                out = COMP / "captures" / plat_dir / COL_TO_DIR.get(col, col) / f"{key}_{theme}.gif"
+                fw_dir = COL_TO_DIR.get(col, col)
+                # THE MAUI COLUMN OF A PROMOTED LANE IS NOT OURS TO WRITE. port/CLAUDE.md ruling 6:
+                # captures/*/maui/ is never hand-written, only an importer or a reference capture may
+                # fill it — and on iOS that importer is promote_reference_captures.py, which carries a
+                # DELETE ARM for any board GIF with no counterpart in the reference root. Writing
+                # straight to the board there is not merely against the rule, it is silently undone:
+                # measured 2026-08-20, 58 assembled ios/maui GIFs were removed by the very next
+                # promote. Hand the frame to the reference root and let the importer carry it in.
+                out = ((maui_ref_root / f"{key}_{theme}.gif")
+                       if (maui_ref_root is not None and fw_dir == "maui")
+                       else COMP / "captures" / plat_dir / fw_dir / f"{key}_{theme}.gif")
+                out.parent.mkdir(parents=True, exist_ok=True)
                 gifmod.drop_stale(str(out))
                 if gifmod.frames_to_gif(frames, str(out), fps=fps):
-                    log(f"      gif {plat_dir}/{COL_TO_DIR.get(col, col)}/{key}_{theme}.gif "
+                    log(f"      gif {out.relative_to(PORT if maui_ref_root and out.is_relative_to(PORT) else COMP)} "
                         f"({len(frames)} frames @ {fps}fps)")
                 elif frames:
                     fail(f"{plat_dir}/{col}/{theme}/{key}: gif assembly failed ({len(frames)} frames)")
