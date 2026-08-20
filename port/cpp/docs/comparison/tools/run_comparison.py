@@ -842,7 +842,23 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
 
     env.agent("clean", env.scratch)
     if env.display:
-        r = env.agent("set-resolution", env.display["width"], env.display["height"])
+        # WAIT FOR THE DISPLAY TO EXIST BEFORE SETTING IT. SSH answers well before WindowServer has a
+        # display attached, and this runs right after a VM REBOOT, so `displayplacer list` can legitimately
+        # report nothing for a few seconds. Measured 2026-08-20: a macos/catalyst run aborted with
+        #     set-resolution ... FAILED: no display id from `displayplacer list` / available: None
+        # while the very same command run by hand a minute later listed the display and its full mode list.
+        # The abort itself is right (see below) -- what was wrong is treating a not-ready-yet display as a
+        # permanently missing one. That cost the whole scored Catalyst lane silently: only the appkit lane,
+        # which pins no resolution, produced frames, and the resulting "0 cells changed" read as a genuine
+        # negative result for a port fix that had in fact never been photographed.
+        for attempt in range(12):
+            probe = env.agent("set-resolution", env.display["width"], env.display["height"])
+            if probe.get("ok"):
+                break
+            if attempt == 0:
+                print(f"  [{env.name}] display not ready yet — waiting for WindowServer …")
+            time.sleep(5)
+        r = probe
         if not r.get("ok"):
             # FATAL, not a warning. Every frame's geometry — the present rect, the scenario tap
             # calibration, and the +/-4px size guard — is derived from this resolution, so a run that

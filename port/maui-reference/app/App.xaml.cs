@@ -249,6 +249,10 @@ public partial class App : Application
                     {
                         Line($"scroll[{i}] {el.GetType().Name} frame={sv.Frame} contentSize={sv.ContentSize} " +
                              $"adjInset={sv.AdjustedContentInset} offset={sv.ContentOffset}");
+                        if (sv.Subviews.Length > 0)
+                        {
+                            Line($"  content[0] frame={sv.Subviews[0].Frame}");
+                        }
                     }
                     if (el is Microsoft.Maui.Controls.CollectionView cv &&
                         cv.Handler?.PlatformView is UIKit.UIView cvRoot)

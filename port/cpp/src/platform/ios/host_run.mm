@@ -275,6 +275,47 @@ namespace
         @try
         {
             self.window = boot_window();
+            // GEOMETRY FORENSICS, OPT-IN (MAUI_GEOMETRY_DUMP=1), OFF for every board run. The mirror of the
+            // probe in MauiReference's App.xaml.cs, printing the SAME terms so the two columns can be
+            // compared line for line. It exists because the 32px Catalyst offset was chased for a long time
+            // with only MAUI's side ever measured -- the port's own geometry was inferred from pixels and
+            // never read.
+            if (const char* dump = getenv("MAUI_GEOMETRY_DUMP"); dump != nullptr && strcmp(dump, "1") == 0)
+            {
+                UIWindow* const w = self.window;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
+                               dispatch_get_main_queue(), ^{
+                    UIView* const root = w.rootViewController.view;
+                    NSLog(@"[GEOMDUMP] page.ContentView frame=%@ safeArea=%@",
+                          NSStringFromCGRect(root.frame), NSStringFromUIEdgeInsets(root.safeAreaInsets));
+                    __block void (^walk)(UIView*) = nil;
+                    walk = ^(UIView* v) {
+                        if ([v isKindOfClass:[UIScrollView class]] &&
+                            ![v isKindOfClass:[UICollectionView class]])
+                        {
+                            UIScrollView* const sv = (UIScrollView*)v;
+                            NSLog(@"[GEOMDUMP] scroll frame=%@ contentSize=%@ adjInset=%@ offset=%@",
+                                  NSStringFromCGRect(sv.frame), NSStringFromCGSize(sv.contentSize),
+                                  NSStringFromUIEdgeInsets(sv.adjustedContentInset),
+                                  NSStringFromCGPoint(sv.contentOffset));
+                            // WHERE THE CONTENT SITS INSIDE THE SCROLLER. If both frameworks place content
+                            // at y=41 and only MAUI scrolls by 41 to cancel it, that -- not the offset in
+                            // isolation -- is the whole 32px story.
+                            if (sv.subviews.count > 0)
+                            {
+                                NSLog(@"[GEOMDUMP]   content[0] frame=%@",
+                                      NSStringFromCGRect(sv.subviews.firstObject.frame));
+                            }
+                        }
+                        for (UIView* sub in v.subviews)
+                        {
+                            walk(sub);
+                        }
+                    };
+                    walk(root);
+                    NSLog(@"[GEOMDUMP] end");
+                });
+            }
         }
         @catch (NSException* exception)
         {
