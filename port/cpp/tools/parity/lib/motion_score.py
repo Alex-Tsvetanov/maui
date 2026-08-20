@@ -377,7 +377,13 @@ MAX_PHASE_SHIFT = 3
 # THE AT-REST FRAME IS NEVER ALIGNED. It is byte-reproducible (0.00% above, across runs AND columns), so
 # a shift there is signal, not noise -- it is how the 9.18% clip/maccatalyst at-rest disagreement stays
 # visible. Only frames whose step differs from the at-rest step are corrected.
-DRIVE_SHIFT_MAX_PX = 12
+# How far a driven frame may be re-aligned vertically before scoring. Generous ON PURPOSE, because the
+# MAGNITUDE IS NOT THE DISCRIMINATOR -- the at-rest frame is (see _drive_shift's gate). Measured drive
+# noise on this board reaches +26 px (selection_synchronization/ios/dark, where the columns are BYTE-
+# IDENTICAL at rest), which is larger than the real 32 px maccatalyst page offset is far. Bounding by
+# size alone could not separate them; bounding by "did the columns already agree at rest" separates them
+# perfectly. This cap only stops the search running away.
+DRIVE_SHIFT_MAX_PX = 48
 
 
 def _drive_shift(path_a: str, path_b: str, crop_top: int):
@@ -406,14 +412,6 @@ def _drive_shift(path_a: str, path_b: str, crop_top: int):
             if cost < best_cost:
                 best_dy, best_cost = d, cost
     if best_dy == 0:
-        return 0, base, base
-    # A CORRECTION THAT SATURATES THE BOUND IS REFUSED, not clamped. Hitting the ceiling means the true
-    # offset is at least DRIVE_SHIFT_MAX_PX and probably beyond it -- which is the signature of a real
-    # systematic offset, not of drive noise (measured drive noise is 2-7 px; the maccatalyst page defect
-    # is 32). Clamping there would apply a partial correction to a genuine bug and quietly understate it:
-    # measured on swipe_item_size/maccatalyst, clamping reported 20.81% for a 23.02% defect. Refusing
-    # keeps the honest number.
-    if abs(best_dy) >= DRIVE_SHIFT_MAX_PX:
         return 0, base, base
     d = best_dy
     ca, cb = (ia.crop((0, 0, w, h - d)), ib.crop((0, d, w, h))) if d > 0 else \
@@ -787,14 +785,24 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # itself measurement that forced it, and for why the at-rest frame is excluded. `rest_step` is taken
     # from the pre-_align first pair, so a temporal realignment cannot change WHICH step counts as rest.
     rest_step = rest_pair[0]
+    # THE GATE. A driven-frame offset is forgiven ONLY when the columns already agree AT REST, because
+    # that is what distinguishes "the scroll stopped a few rows apart" from "this page renders offset".
+    # At rest the drive has not happened yet, so an identical resting frame PROVES the two columns lay
+    # the page out the same; anything that then differs after the gesture is about WHERE it stopped.
+    # Measured both ways on this board:
+    #   selection_synchronization/ios/dark  at rest 0.00%  -> driven needs +26 px, residual 12.80 -> 0.85
+    #   swipe_item_size/maccatalyst         at rest 23.02% -> a real page offset, forgiven NEVER
+    # Bounding by pixel magnitude instead could not tell those apart (26 vs 32). The threshold is the
+    # board's own green bar, imported rather than restated, so "agrees at rest" cannot drift from "green".
+    rest_agrees = _compare(rest_pair[1], rest_pair[2], crop_top)["diff_pct"] <= GREEN_DIFF
     scores, raw_scores, drive_shifts = [], [], []
     for _step, a, b in pairs:
         if _step == rest_step:
             sc = _compare(a, b, crop_top)
             scores.append(sc); raw_scores.append(sc); drive_shifts.append(0)
             continue
-        dy, sc, raw = _drive_shift(a, b, crop_top)
-        scores.append(sc); raw_scores.append(raw); drive_shifts.append(dy)
+        dy, sc, raw = _drive_shift(a, b, crop_top) if rest_agrees else (0, _compare(a, b, crop_top), None)
+        scores.append(sc); raw_scores.append(raw if raw is not None else sc); drive_shifts.append(dy)
     ssims = [s["ssim"] for s in scores]
     worst_i = min(range(len(ssims)), key=lambda i: ssims[i])
     mean_ssim = sum(ssims) / len(ssims)
