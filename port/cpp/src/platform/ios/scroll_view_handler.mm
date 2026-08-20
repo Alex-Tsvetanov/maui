@@ -440,7 +440,28 @@ namespace maui::core
             return;
         }
         UIScrollView* const scroller = as_scroller(platform->native);
-        [scroller setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        // CENTER + BOUNDS, PRESERVING bounds.origin -- NOT setFrame. On a UIScrollView `bounds.origin` IS
+        // `contentOffset`, and -setFrame: rewrites the whole bounds rect, so it silently RESETS the scroll
+        // position to 0 on every arrange. C# does not: ViewHandlerExtensions.iOS.cs:157-158 sets Center and
+        // then `new CGRect(platformView.Bounds.X, platformView.Bounds.Y, rect.Width, rect.Height)` -- width
+        // and height only, origin carried across untouched.
+        //
+        // THIS IS THE 32px MACCATALYST OFFSET, and the split it produces is exact. Measured live on the VM
+        // (MAUI_GEOMETRY_DUMP=1, MauiReference): every other term is identical between a red page and a
+        // green one -- page frame, safeArea 41, scroller frame origin y=41, adjustedContentInset 0 -- and
+        // only the RESTING contentOffset differs:
+        //     offset 41  clip(1139) path_gallery(1290) swipe_item_size(1304)   <- the RED pages
+        //     offset  0  clip_gallery(1392) box_view(1530) scroll_view(1985) clip_views(998)
+        // 41pt / (1330/1024) = 31.6 = the 32 px the board reports. A KVO observer on contentOffset caught
+        // the write itself, inside `UIView.set_Bounds | PlatformArrangeHandler | PlatformArrange`: UIKit
+        // parks the scroller at y=41 on those pages, MAUI's arrange preserves it, and ours threw it away.
+        // On pages UIKit leaves at 0 the two are identical, which is why only three pages ever went red.
+        //
+        // So this was never a layout or safe-area bug -- measure and arrange were always correct, which is
+        // why every inset rule proposed for it failed and was rightly refused.
+        const CGRect bounds = scroller.bounds;
+        scroller.center = CGPointMake(frame.x + (frame.width / 2.0), frame.y + (frame.height / 2.0));
+        scroller.bounds = CGRectMake(bounds.origin.x, bounds.origin.y, frame.width, frame.height);
 
         CGSize extent = CGSizeZero;
         if (UIView* const content = tagged_content(scroller))

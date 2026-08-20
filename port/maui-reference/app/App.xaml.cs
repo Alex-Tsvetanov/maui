@@ -179,8 +179,62 @@ public partial class App : Application
         //     does MAUI actually have those cells SELECTED here, or is it not selecting at all?
         if (Environment.GetEnvironmentVariable("MAUI_GEOMETRY_DUMP") == "1")
         {
+            // WHO SCROLLS IT? Install the contentOffset observer at the EARLIEST possible moment -- when the
+            // ScrollView's platform view is created -- not in Loaded. Measured the hard way: from Loaded the
+            // probe raced the very change it was watching (one run read 0 at t~0 and 41 by t~60ms, the next
+            // read 41 already at t~0 with no KVO event at all), because the scroll happens right around
+            // Loaded. HandlerChanged is before any of that.
+            // An EMPTY managed frame list is itself informative: it means UIKit moved the offset with no
+            // MAUI code on the stack. (lldb would be the usual tool; it cannot attach on this VM even with
+            // developer mode enabled -- an SSH session is not in the Aqua session and `launchctl asuser`
+            // needs root.)
+            void HookScroll(Microsoft.Maui.Controls.Element el)
+            {
+                if (el is not Microsoft.Maui.Controls.ScrollView)
+                {
+                    return;
+                }
+                el.HandlerChanged += (s2, _) =>
+                {
+                    if ((s2 as Microsoft.Maui.Controls.Element)?.Handler?.PlatformView is not UIKit.UIScrollView sv)
+                    {
+                        return;
+                    }
+                    sv.AddObserver("contentOffset", Foundation.NSKeyValueObservingOptions.New, _ =>
+                    {
+                        var st = new System.Diagnostics.StackTrace(true);
+                        var frames = string.Join(" | ", st.GetFrames()
+                            .Select(f => f.GetMethod()?.DeclaringType?.Name + "." + f.GetMethod()?.Name)
+                            .Where(n => n is not null && !n.Contains("StackTrace", StringComparison.Ordinal))
+                            .Take(7));
+                        Console.Error.WriteLine($"[GEOMDUMP] contentOffset -> {sv.ContentOffset} managed=[{frames}]");
+                    });
+                };
+            }
+            page.DescendantAdded += (_, e) => HookScroll(e.Element);
+            foreach (var d0 in Descendants(page))
+            {
+                HookScroll(d0);
+            }
+
             page.Loaded += async (_, _) =>
             {
+                // SAMPLE THE OFFSET OVER TIME, not once. The question this is now chasing is not WHAT the
+                // resting contentOffset is (measured: 41 on clip/path_gallery/swipe_item_size, 0 on the
+                // greens) but WHEN it gets there -- an offset that is 41 from the first layout means the
+                // content was laid out that way, while one that starts at 0 and moves means something
+                // scrolls it afterwards, and those want completely different fixes.
+                if (page.Handler?.PlatformView is UIKit.UIView probeRoot)
+                {
+                    foreach (var ms in new[] { 0, 60, 150, 400, 900 })
+                    {
+                        await Task.Delay(ms == 0 ? 0 : ms - 0);
+                        var sv0 = FirstScroll(page);
+                        Console.Error.WriteLine($"[GEOMDUMP] t~{ms}ms offset={(sv0 is null ? "n/a" : sv0.ContentOffset.ToString())} " +
+                                                $"contentSize={(sv0 is null ? "n/a" : sv0.ContentSize.ToString())} " +
+                                                $"adjInset={(sv0 is null ? "n/a" : sv0.AdjustedContentInset.ToString())}");
+                    }
+                }
                 await Task.Delay(600); // let layout + the selection restore settle, as the capture settle does
                 void Line(string s) => Console.Error.WriteLine("[GEOMDUMP] " + s);
                 Line($"page={key}");
@@ -256,6 +310,18 @@ public partial class App : Application
                 }
             }
         }
+    }
+
+    static UIKit.UIScrollView? FirstScroll(Microsoft.Maui.Controls.Element root)
+    {
+        foreach (var el in Descendants(root))
+        {
+            if (el is Microsoft.Maui.Controls.ScrollView && el.Handler?.PlatformView is UIKit.UIScrollView sv)
+            {
+                return sv;
+            }
+        }
+        return null;
     }
 
     // A CollectionView's PlatformView is the controller's container, not always the UICollectionView itself.
