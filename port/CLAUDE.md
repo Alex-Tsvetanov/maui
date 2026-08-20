@@ -96,70 +96,43 @@ the first platform. Partial ports must be marked as such in the manifest, never 
 
 ## Parity comparison policy (visual fidelity rulings)
 
-> ### ⚠ 2026-08-17 OVERRIDE — EVERY EXEMPTION BELOW IS REVOKED
+> ### ⚠ STANDING DOCTRINE — NO EXEMPTIONS (2026-08-17)
 >
 > User directive, verbatim in intent: *"your task is to fix all these inconsistencies when comparing
 > against MAUI so that the C++ port acts as MAUI. Any previously established rule that says otherwise
 > should be invalidated right now."*
 >
-> **The port must reproduce MAUI's actual render. Full stop.** Every ruling below that excuses the port
-> from matching MAUI — i.e. every "exempt MAUI-side quirk", "the port need not copy this", "do NOT count
-> this as a diff", "do NOT force the port to replicate it" — is **VOID**. That revokes, concretely:
+> **Microsoft's MAUI render IS the ground truth for all page CONTENT — colours, control sizes, internal
+> spacing, text, corner radius, fonts.** Where MAUI renders X and the port renders Y, the port is wrong
+> and Y is a bug to fix — including when MAUI's X looks like a platform limitation, an init-timing
+> artifact, or a bug. Any content difference, **including any colour difference**, is a port bug, never
+> a "MAUI imperfection". "MAUI does something odd here" is a specification, not an excuse.
 >
-> * **Ruling 2** — the harness wrapper/inset exemption.
-> * **Ruling 7** — iOS-26 Switch ThumbColor white off-thumb.
-> * **Ruling 8** — Picker element-items-form init artifact.
-> * **Ruling 9** — Mac Catalyst CollectionView selection-band absence.
-> * **Ruling 10** — Mac Catalyst "renders-less" content gaps (IndicatorView, bundled images, Shadow,
->   picker default propagation).
-> * **Ruling 12's exemption clause** — a shared-XAML twin that degrades content is to be FIXED on both
->   sides (as its own 2026-07-18 resolution already did), never exempted.
-> * The **`context_flyout` live-external-content** carve-out.
+> (This paragraph IS former ruling 1, folded in — the two said the same thing. Former ruling 3
+> "flag, don't act" is RETIRED: it existed to route newly-found quirks to a user ruling, and there are
+> no exemptions left to grant. Record MAUI-side oddities in `docs/comparison/PARITY_REVIEW.md` and keep
+> going. Citations to rulings 1 and 3 elsewhere resolve here.)
 >
-> Where MAUI renders X and the port renders Y, the port is wrong and Y is a bug to fix — including when
-> MAUI's X looks like a platform limitation, an init-timing artifact, or a bug. "MAUI does something
-> odd here" is now a specification, not an excuse.
+> This revoked five quirk-exemption rulings (2, 7, 8, 9, 10) and ruling 12's exemption clause; their
+> text was DELETED on 2026-08-20 rather than left as revoked-but-readable, because a live exemption and
+> a dead one look identical at a glance. The surviving numbers are deliberately NOT renumbered — commit
+> messages, PARITY_REVIEW.md and port SOURCE FILES cite them by number.
 >
-> **Rulings 1, 4, 6 and 11 STAND and are reinforced** — they all say the same thing this override says:
-> MAUI's actual render is the ground truth (1), including native-default control rendering (4), sourced
-> from `port/maui-reference/` (6), and when `src/` disagrees with the shipped render the RENDER wins (11).
->
-> Ruling 3 ("flag, don't act") survives only as *record it* — it no longer authorises pausing work to
-> await a quirk exemption, because there are no more quirk exemptions to grant.
+> The one thing that is still exempt is CAPTURE CHROME, and it is not a rendering exemption: a system
+> status bar whose clock/battery differ between two shots differs because of the TIME, not the port
+> (pixel_score's `crop_top`).
 
 How the iOS parity loop judges the C++ port against real .NET MAUI. The comparison runs through
 `port/cpp/tools/parity/` (Google Gemini by default, Claude vision as the quota fallback); each page's
 differences are split into **port_diffs** (fix) vs **maui_quirks** (MAUI-side, discuss). User rulings
 (2026-06-21) — read them THROUGH the 2026-08-17 override above, which revokes every exemption:
 
-1. **Microsoft's MAUI render IS the ground truth for all page CONTENT.** The port matches MAUI's actual
-   rendered demos, in both code (syntax) and visuals: colors, control sizes, internal spacing, text,
-   corner radius, fonts. Any *content* difference vs MAUI — **including any color difference** — is a
-   **port bug to fix**, never excused as a "MAUI imperfection." MAUI's color/appearance is correct by
-   definition.
-2. **The only MAUI imperfection the port need not copy is the harness WRAPPER.** MAUI wraps each demo
-   page in an inset card (large whole-screen padding/margins) and crops the page top/bottom. The port
-   deliberately does **not** replicate this: it uses *modest* page padding for UX (some spacing — not
-   content jammed to the screen edges — but **much less than MAUI's**), and may show more of the page.
-   Do NOT flag the outer-inset magnitude, the resulting uniform global shift, or the top/bottom crop as
-   port bugs. The inset is a uniform outer margin only — it never changes a control's size, color, or
-   internal spacing; if those differ, that is a port_diff. (Port TODO: give the port modest page padding
-   rather than edge-to-edge content.)
-3. **New MAUI imperfections → flag, don't act.** When a sweep surfaces a MAUI-side quirk not covered
-   above, record it in `docs/comparison/PARITY_REVIEW.md` (maui_quirks) and **pause for a user ruling** —
-   neither auto-ignore nor auto-fix. Append the approved ruling to this list.
-4. **Match MAUI's NATIVE-default control rendering (the maui-compare ref renders native-default, NOT
-   styled).** CORRECTED 2026-06-22 after reading `~/maui-compare/App.xaml`: the reference app
-   **intentionally does NOT merge `Styles.xaml`** (its comment: "renders native-default controls + the
-   system font, matching the C++ gallery"), so the demo's default `Button`/`Label`/`Entry` styles
-   (Padding 14,10, purple chrome, OpenSans, etc.) are **NOT applied** — the prior compare-audit stance
-   ("default Styles.xaml = harness artifact; port correct to omit it") was RIGHT. So the port must NOT
-   adopt the default Styles.xaml. **But** the port must faithfully replicate the **native control
-   defaults**: e.g. the iOS button measure must not zero the native `UIButton`'s default content insets
-   (an unset `Padding` should leave the native default, mirroring MAUI's `MapPadding`), which is what
-   caused clipping's crammed digit row vs MAUI's naturally-spread native buttons. The fix is a targeted
-   native-default-fidelity change, NOT a default-style adoption. (The user's "match the ref's button
-   sizing" intent stands — achieved via native-inset fidelity, not Styles.xaml.)
+4. **Match MAUI's NATIVE-default control rendering, and do NOT adopt `Styles.xaml`.** The reference app
+   (`port/maui-reference/app/App.xaml`) deliberately does not merge `Styles.xaml` — it renders
+   native-default controls plus the system font — so the demo's default Button/Label/Entry styles are
+   never applied and the port must not add them. It must, however, reproduce the NATIVE control
+   defaults: an unset `Padding` leaves the native default (mirroring MAUI's `MapPadding`) rather than
+   zeroing it. Zeroing `UIButton`'s content insets is what once crammed `clipping`'s digit row.
 
 Workflow: run the sweep **review-only** (writes `PARITY_REVIEW.md`, board untouched) → user verifies and
 rules on quirks → only then `--commit-board` adopts verdicts and the port_diffs become fix candidates.
@@ -172,109 +145,49 @@ rules on quirks → only then `--commit-board` adopts verdicts and the port_diff
    - Comparison 4: MAUI dark vs C++ & XAML dark
 
    i.e. MAUI is the ground truth compared against **both** the `cpp` (code-first builder) and `xaml`
-   (compile-time-XAML) framework columns, independently, in both themes — not just `cpp` vs `maui`. 
-   This supersedes any earlier review pass that only scored `cpp` vs `maui` (e.g. the 2026-07-05 full-board
-   Sonnet review predates this ruling and only covers comparisons 1/3 — it needs a follow-up pass to add 2/4).
-   Record each comparison's own verdict; do not average/collapse them into a single cpp-only score.
+   (compile-time-XAML) framework columns, independently, in both themes — not just `cpp` vs `maui`.
+   Record each comparison's own verdict; do not average/collapse them into a single cpp-only score. The
+   two columns routinely disagree and that disagreement is the finding: when the loader was corrected to
+   match XamlC, `pixel_xaml` went green while `pixel` went red, which is what localised the defect to the
+   code-first builder.
 
 6. **The MAUI ground truth is `port/maui-reference/` (2026-07-05 restructure, XAML-first).** The old
    out-of-repo C#-only `~/maui-compare` app is superseded by the in-repo `port/maui-reference/app`
    (MauiReference), whose pages are the CANONICAL SHARED XAML files in `port/maui-reference/pages/` —
    the exact same `.xaml` bytes the port's `gallery_xaml` app `#embed`s (one file, two frameworks).
-   Fresh MAUI captures land ONLY in `port/maui-reference/captures/<platform>/<key>_<theme>.png`; the
-   old `port/cpp/docs/comparison/captures/*/maui/` tree is a frozen historical record — never write
-   there. The deterministic 10-step verification loop any agent can resume is codified in
+   The board's own MAUI column is captured STRAIGHT INTO
+   `port/cpp/docs/comparison/captures/<platform>/maui/` by `recapture.py` — one writer per destination,
+   on every lane. `port/maui-reference/captures/` is `port/tools/e2e/e2e.py`'s separate ground-truth
+   root for the VERIFICATION_LOOP workflow; the two capture paths are decoupled, not chained. The
+   deterministic 10-step verification loop any agent can resume is codified in
    **`port/maui-reference/docs/VERIFICATION_LOOP.md`** (authoring rules: `docs/AUTHORING.md`); the
    single tool driving it is **`port/tools/e2e/e2e.py`** (see its README). Ruling 4's
    `~/maui-compare/App.xaml` citation maps to `port/maui-reference/app/App.xaml`, which preserves the
    same no-Styles.xaml native-default rendering.
 
-7. **Switch ThumbColor on iOS 26 is a MAUI-side quirk the port need not copy (2026-07-08 ruling).** With
-   `ThumbColor` set (e.g. Orange) and the switch OFF, iOS 26's native `UISwitch` resets the off-state thumb
-   to WHITE after layout — MAUI's re-apply loses that race and renders a white off-thumb, dropping the
-   developer's ThumbColor. The port honors `ThumbColor` (orange off-thumb), which is the developer intent.
-   Per this ruling the port's orange is CORRECT; the iOS-26 white off-thumb is an exempt platform quirk
-   (like ruling 2's harness inset) — do NOT force the port to replicate it. Applies to any off-state
-   ThumbColor switch on the iOS backend (iOS + maccatalyst).
+11. **When `src/` is AMBIGUOUS or self-contradictory, the shipped RENDER decides (2026-07-16, premise
+    corrected 2026-08-20).** Originally written as "`src/` is a stale snapshot, the render is newer".
+    THAT PREMISE IS FALSE and was retired by measurement: the worked example is CheckBox, where
+    `CheckBoxHandler.iOS.cs` says `MinimumSize => 44f` while `MauiCheckBox.cs` says
+    `DefaultSize = 18.0f`, and BOTH lines are present verbatim in our `src/`, in tag 10.0.71 (what the
+    board renders) and in tag 10.0.90 (current upstream). No version sync can resolve it, because there
+    is no version skew — two files in the SAME source disagree and the render follows one of them.
+    So: `src/` remains the oracle for MECHANISM, and where reading it yields two answers, the shipped
+    render is the tiebreak. Mark such a choice a DOCUMENTED DEVIATION in code, citing both lines and
+    this ruling. The port dropped the 44 floor (`check_box_handler.mm`), fixing `entry` (+20px → 0.00)
+    and `border_playground` (→ 0.37).
 
-8. **Picker element-items-form init artifact is an exempt MAUI-side quirk (2026-07-08 ruling).** For a
-   `Picker` whose items come from the inline `<Picker.Items>` element form with a preset `SelectedIndex`,
-   MAUI's iOS/Catalyst render shows the Title (or blank if none) instead of the selected value — because at
-   the moment `UpdatePicker` runs, MAUI's `Items` collection reads empty, so `Text=""` and the Title
-   placeholder shows through, and it never re-syncs (a MAUI init/mapper-timing artifact that contradicts
-   MAUI's own code, which sets `Text = GetItem(SelectedIndex)`). The port faithfully implements MAUI's Picker
-   code, so it correctly shows the selected value. Per this ruling the port's shown-value is CORRECT and the
-   MAUI Title/blank is an exempt quirk (like rulings 2/7) — do NOT force the port to replicate it, and do NOT
-   count the Picker text as a diff when judging these pages. Applies to element-items-form Pickers with a
-   preset SelectedIndex on the iOS backend (iOS + maccatalyst).
+12. **ANYTHING MAUI CAN EXPRESS, THE PORT MUST BE ABLE TO EXPRESS — in both dialects (2026-08-20).**
+    The `port/maui-reference` pages are shared XAML: the same bytes MAUI compiles and the port `#embed`s.
+    When a page cannot be written faithfully because the port's loader or builder lacks a feature, the
+    gap is a PORT GAP and the fix is to IMPLEMENT the missing piece — not to simplify the twin down to
+    what the port already supports, and not to exempt the resulting diff. Degrading the twin hides the
+    gap in the one artifact that is supposed to reveal it, and makes MAUI's own column render something
+    original MAUI never would.
+    Worked example: `header_footer_template` used an `<x:Array>` of plain strings because the loader had
+    no string→ImageSource binding, so every row showed `cover1.jpg`. It was fixed by giving both sides a
+    real per-row model bound through `{Binding Image}` — i.e. by closing the gap, not by exempting it.
 
-9. **Mac Catalyst CollectionView persistent-selection-band absence is an exempt MAUI-side quirk (2026-07-08
-   ruling).** For a `CollectionView` with programmatically-applied selection (preselected `SelectedItem` /
-   `SelectedItems`), MAUI iOS and Android render a persistent gray selection background on the selected cells
-   (the default `ItemsViewCell` `SelectedBackgroundView`), but MAUI **Mac Catalyst**'s `UICollectionView` does
-   NOT paint that persistent background at rest — the applied selection is logically present (readouts reflect
-   it) but visually unhighlighted. The port's maccatalyst backend reuses the iOS handlers by design (strict
-   iOS-parity architecture), so it faithfully draws the selection band — matching MAUI on iOS + Android
-   (green), and correctly reflecting the applied selection state. Per this ruling the port's selection band is
-   CORRECT and the Mac Catalyst absence is an exempt platform quirk (like rulings 2/7/8) — do NOT force a
-   maccatalyst-specific branch to suppress it, and do NOT count the selection band as a diff when judging these
-   pages on maccatalyst. Applies to CollectionView pages with applied selection on the maccatalyst backend
-   (preselected_item, preselected_items, multiple_bound_selection, selection_synchronization, and any similar).
-
-10. **Mac Catalyst "renders-less" content gaps are exempt MAUI-side quirks (2026-07-08 ruling).** On several
-    pages MAUI **Mac Catalyst** renders LESS than the authored content — a Mac Catalyst platform limitation —
-    while MAUI iOS AND Android render it fully, and the port (reusing the iOS handlers) faithfully renders it
-    too, matching MAUI iOS+Android (green on both). Confirmed classes: (a) **IndicatorView content** — MAUI
-    Mac Catalyst paints no indicator dots at all (blank), the port shows them (`indicator`); (b) **bundled-image
-    rendering** — MAUI Mac Catalyst does not render certain bundled images (e.g. `coffee.png`) that iOS/Android
-    do, the port shows them (`clipping`, `header_footer_template` — item-cell + footer cover1.jpg); (d) **Shadow rendering** — a `Shadow` on a view renders on iOS and
-    Android (a soft shadow/fill wash) but MAUI Mac Catalyst paints the view interior flat (no shadow); the port
-    renders it (`swipe_view_shadow`); (c) **picker default-value propagation at init** — MAUI Mac Catalyst
-    does not fire a DatePicker/TimePicker's default through its change event at first layout (so a bound summary
-    reads "(no date) at (no time)"), whereas iOS/Android (and the port on all backends) propagate the default
-    (`pickers`). Per this ruling the port's fuller render is CORRECT and the Mac Catalyst shortfall is an exempt
-    platform quirk (like rulings 2/7/8/9) — do NOT add maccatalyst-specific branches to suppress the content,
-    and do NOT count it as a diff when judging these pages on maccatalyst. **Scope caveat:** this ruling covers
-    Mac Catalyst CONTENT/rendering/init GAPS only. It does NOT cover cases where MAUI's Mac Catalyst behavior is
-    the DOCUMENTED, intended MAUI layout behavior — notably the empty-`CollectionView`-greedily-expands-in-a-
-    `VerticalStackLayout` case (`header_footer_view`), which the user has directed be FIXED (the port should
-    replicate MAUI's expansion), not ruled exempt.
-
-11. **When `src/` and the shipped `MauiVersion` disagree, the RENDER wins (2026-07-16 ruling).** The port is
-    written against the read-only `src/` snapshot, but the parity board renders against a NEWER shipped MAUI
-    (MauiReference pins `MauiVersion 10.0.71`; `src/` is a ~2025 snapshot). Where the two produce DIFFERENT
-    behavior, the port matches MAUI's ACTUAL RENDER (ruling 1), not the stale `src/` value — `src/` remains the
-    oracle for *mechanism*, not for values it has since changed. Mark such a change a DOCUMENTED DEVIATION in
-    code, citing both `src/` (what it says) and the render (what shipped MAUI does) + this ruling. First
-    application: **CheckBox sizing.** `src/`'s `CheckBoxHandler.iOS.cs` floors the checkbox at
-    `MinimumSize = 44f`; shipped 10.0.71 renders it at `MauiCheckBox.DefaultSize = 18pt` with NO floor
-    (measured 18pt on both Catalyst and iOS). The port DROPPED the 44 floor (`check_box_handler.mm`
-    `minimumViewSize = k_default_size`), fixing `entry` (+20px → 0/0.00) and `border_playground` (→ 0/0.37).
-    Applies to the checkbox on the iOS backend (iOS + maccatalyst), and to any future `src/`-vs-shipped
-    divergence surfaced by the board.
-
-12. **When the shared-XAML twin DEGRADES original MAUI content, the code-first C++ render is the correct one
-    (2026-07-17 ruling).** The `port/maui-reference` shared-XAML pages (ruling 6) are best-effort twins of the
-    original MAUI CoreGallery pages, and some SIMPLIFY content the compile-time-XAML dialect can't express —
-    so MAUI (the reference render) AND C++&XAML (the same XAML through the port's loader) can BOTH look wrong
-    versus what original MAUI actually renders. In that case the **code-first C++ builder render is the
-    reference of record**, not the degraded twin. First application: **`header_footer_template` item images.**
-    The original C# PhotoTemplate binds each row's `{Binding Image}` (cover1.jpg / oasis.jpg / photo.jpg), but
-    the shared twin uses an `<x:Array>` of plain strings, which can't bind an `Image`, so it hard-codes
-    `<Image Source="cover1.jpg">` — MAUI and C++&XAML both show cover1.jpg in EVERY cell. The code-first builder
-    is not string-bound, so it shows each row's real image (the original behavior). Per this ruling the port's
-    per-row images are CORRECT; do NOT count the resulting cpp-vs-maui item-image diff on this page, and do NOT
-    "fix" the code-first builder back down to the degraded fixed source. (Scope: only content a shared-XAML twin
-    demonstrably degrades below original MAUI — NOT a license to diverge from a faithful twin.)
-    **RESOLVED 2026-07-18 (user "fix both sides to match"):** rather than exempt the diff, header_footer_template
-    was UPGRADED on both sides so all three columns show the real per-row images. The shared twin now sets NO
-    inline `<x:Array>`; the CollectionView is `x:Name="ItemsCV"` and the ItemTemplate binds `{Binding Image}` /
-    `{Binding Caption}` off a per-row model assigned in code-behind (MAUI: `HeaderFooterTemplatePage.xaml.cs`
-    `PhotoItem`; port: `gallery_xaml/Views/header_footer_template.xaml.cpp` + `ViewModels/photo_items.hpp`, whose
-    `Image` is a real `i_image_source` since the loader has no string→ImageSource binding converter). `photo.jpg`
-    was added to MauiReference `Resources/Images` and the gallery_xaml bundle (it was missing, so MAUI rendered
-    row-2 blank). Result: iOS maui-vs-cpp SSIM 0.9998 / maui-vs-xaml 0.998 — both green. The ruling's PRINCIPLE
-    stands for any future shared-XAML degradation, but this first example is now a matched page, not an exemption.
 
 ## Progress tracking
 

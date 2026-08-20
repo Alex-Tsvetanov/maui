@@ -796,21 +796,12 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
         capture_ios.unpin()
     # DRIVEN PAGES GET A PUBLISHED GIF HERE TOO — see driven_only. iOS records real video for the
     # ANIMATED set inside the loop above; these pages have no recording, only the banked before/after
-    # steps, so their GIF is assembled from those. Runs after the capture loop (and inside the same
-    # lane) so RUN_DIR is complete. strict=False: a scenario device_scenarios refused for this lane
-    # legitimately banked nothing.
+    # steps, so their GIF is assembled from those. capture_ios writes the maui column straight to the
+    # board now, so there is ONE WRITER PER DESTINATION and no importer to detour around.
+    # strict=False — a scenario device_scenarios refused for this lane legitimately banked nothing.
     dv = driven_only(examples)
     if dv:
-        # maui_ref_root: the ios maui column is filled by the promote step BELOW, which deletes any
-        # board GIF the reference root does not have. Writing there instead makes the promote carry it.
-        assemble_vm_gifs(RUN_DIR, "ios", dv, list(frameworks), list(themes), 1.0, strict=False,
-                         maui_ref_root=PORT / "maui-reference" / "captures" / "ios")
-    if "maui_xaml" in frameworks:
-        # The reference writes to port/maui-reference/captures/ios/; the BOARD reads
-        # captures/ios/maui/. Nothing else copies between those two roots.
-        run_step("ios: promote reference captures into the board",
-                 [sys.executable, str(LIB / "promote_reference_captures.py"), "--platform", "ios"],
-                 timeout=600)
+        assemble_vm_gifs(RUN_DIR, "ios", dv, list(frameworks), list(themes), 1.0, strict=False)
 
 
 def lane_android(frameworks, themes, examples, visible, gif_secs, gif_frames) -> None:
@@ -1250,7 +1241,7 @@ def driven_only(examples) -> list:
 
 
 def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, interval: float,
-                     strict: bool = True, maui_ref_root: Path | None = None) -> None:
+                     strict: bool = True) -> None:
     """Turn each (tag, column, theme) burst in a finished run into captures/…/<key>_<theme>.gif.
 
     strict=False for the DRIVEN pass (see driven_only): a scenario can legitimately not reach a lane —
@@ -1264,21 +1255,11 @@ def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, in
             for theme in themes:
                 frames = burst_frames(run_dir / key / plat_dir / col, theme)
                 fw_dir = COL_TO_DIR.get(col, col)
-                # THE MAUI COLUMN OF A PROMOTED LANE IS NOT OURS TO WRITE. port/CLAUDE.md ruling 6:
-                # captures/*/maui/ is never hand-written, only an importer or a reference capture may
-                # fill it — and on iOS that importer is promote_reference_captures.py, which carries a
-                # DELETE ARM for any board GIF with no counterpart in the reference root. Writing
-                # straight to the board there is not merely against the rule, it is silently undone:
-                # measured 2026-08-20, 58 assembled ios/maui GIFs were removed by the very next
-                # promote. Hand the frame to the reference root and let the importer carry it in.
-                out = ((maui_ref_root / f"{key}_{theme}.gif")
-                       if (maui_ref_root is not None and fw_dir == "maui")
-                       else COMP / "captures" / plat_dir / fw_dir / f"{key}_{theme}.gif")
+                out = COMP / "captures" / plat_dir / fw_dir / f"{key}_{theme}.gif"
                 out.parent.mkdir(parents=True, exist_ok=True)
                 gifmod.drop_stale(str(out))
                 if gifmod.frames_to_gif(frames, str(out), fps=fps):
-                    log(f"      gif {out.relative_to(PORT if maui_ref_root and out.is_relative_to(PORT) else COMP)} "
-                        f"({len(frames)} frames @ {fps}fps)")
+                    log(f"      gif {out.relative_to(COMP)} ({len(frames)} frames @ {fps}fps)")
                 elif frames:
                     fail(f"{plat_dir}/{col}/{theme}/{key}: gif assembly failed ({len(frames)} frames)")
                 elif strict:

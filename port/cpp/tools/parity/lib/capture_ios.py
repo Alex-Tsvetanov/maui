@@ -93,7 +93,7 @@ Two contracts this lane has to meet, both easy to break silently:
     and drops nameless frames on purpose — see `frame_step` for why that name is a TIMESTAMP.
 
 Apps (bundle + env contract):
-  maui -> dev.mauicpp.mauireference     MAUI_COMPARE_PAGE -> port/maui-reference/captures/ios/<key>_<theme>.png
+  maui -> dev.mauicpp.mauireference     MAUI_COMPARE_PAGE -> docs/comparison/captures/ios/maui/<key>_<theme>.png
   cpp  -> dev.maui-cpp.ios-gallery      MAUI_SAMPLE_PAGE  -> docs/comparison/captures/ios/cpp/<key>_<theme>.png
   xaml -> dev.maui-cpp.ios-gallery-xaml MAUI_SAMPLE_PAGE  -> docs/comparison/captures/ios/xaml/<key>_<theme>.png
 
@@ -117,12 +117,23 @@ UDID = os.environ.get("MAUI_SIM_UDID", "C4926671-2FA7-428E-B4A4-480692EE742B")
 HERE = os.path.dirname(os.path.abspath(__file__))
 CPP = os.path.abspath(os.path.join(HERE, "..", "..", ".."))     # port/cpp
 PORT = os.path.abspath(os.path.join(CPP, ".."))                 # port
-REF_CAP = os.path.join(PORT, "maui-reference", "captures", "ios")
 COMP_CAP = os.path.join(CPP, "docs", "comparison", "captures", "ios")
 
+# THE MAUI COLUMN WRITES THE BOARD DIRECTLY, like every other lane. It used to write
+# port/maui-reference/captures/ios/ and be
+# copied in afterwards by promote_reference_captures.py, and that extra hop was iOS-ONLY: android's
+# shell scripts and the VM lanes' import_run_captures.py have always written captures/<plat>/maui/
+# straight. The hop was not free — promote carries a DELETE ARM for any board file the reference root
+# does not have, so anything else that legitimately wrote the board (measured 2026-08-20: 58 assembled
+# driven GIFs) was silently removed by the next promote. One writer per destination ends that.
+#
+# port/maui-reference/captures/ IS NOT DEAD: port/tools/e2e/e2e.py keeps its own ground-truth root
+# there for the
+# VERIFICATION_LOOP workflow, and it captures independently of this module (it does not import it). The
+# two paths are now decoupled rather than chained.
 APPS = {
     "maui": {"bundle": "dev.mauicpp.mauireference", "page": "MAUI_COMPARE_PAGE",
-             "out": lambda k, t, e: os.path.join(REF_CAP, f"{k}_{t}.{e}")},
+             "out": lambda k, t, e: os.path.join(COMP_CAP, "maui", f"{k}_{t}.{e}")},
     "cpp": {"bundle": "dev.maui-cpp.ios-gallery", "page": "MAUI_SAMPLE_PAGE",
             "out": lambda k, t, e: os.path.join(COMP_CAP, "cpp", f"{k}_{t}.{e}")},
     "xaml": {"bundle": "dev.maui-cpp.ios-gallery-xaml", "page": "MAUI_SAMPLE_PAGE",
