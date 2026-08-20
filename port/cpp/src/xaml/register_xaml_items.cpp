@@ -318,8 +318,13 @@ namespace maui::xaml
         // XAML twin declares it as a literal string that boxes via boxed_item::of (value equality, so it
         // value-matches the ItemsSource's boxed string and the CV highlights that cell). SelectedItems (the
         // multiple form) is the element-array path in xaml_visitors' try_set_selected_items_from_array.
-        properties.register_property<controls::collection_view, std::string>(
-            "SelectedItem", [](controls::collection_view& view, const std::string& text) {
+        // SelectedItem takes BOTH forms, and the registry holds ONE entry per name (add_property does
+        // insert_or_assign), so it has to be the combined one: a literal SelectedItem="Item 2" still boxes
+        // via boxed_item::of exactly as before, and SelectedItem="{Binding SelectedItem}" — the original
+        // sample's form — now routes through element::set_binding against selected_item_property().
+        properties.register_string_literal_bindable<controls::collection_view>(
+            "SelectedItem", controls::selectable_items_view::selected_item_property().name(),
+            [](controls::collection_view& view, const std::string& text) {
                 view.set_selected_item(maui::controls::boxed_item::of(text));
             });
         // SelectedItems="{Binding SelectedItems}" — the ORIGINAL sample's form

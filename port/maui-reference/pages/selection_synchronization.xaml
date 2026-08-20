@@ -3,32 +3,28 @@
              x:Class="MauiReference.Pages.SelectionSynchronizationPage" Title="Selection Synchronization">
     <!-- Twin of SelectionSynchronization.xaml: an instructions Label + nine CollectionViews, each setting
          ItemsSource and Selected* in a documented order (the "CV" style = HeightRequest 250, Margin 5,2,5,5,
-         cell = Label {Binding .} Margin 0,3,0,3). The original C# preselects in code-behind; the twin
-         declares the RESTING selection inline (SelectedItem / SelectedItems x:Array). The CVs whose
-         Selected* items are NOT in the source resolve to nothing selected (no inline selection). The
-         {x:Reference} bindings + the Switch Source button handler are interaction wiring — degraded; each
-         per-CV "Selected:" Label states the resting expectation. -->
+         cell = Label {Binding .} Margin 0,3,0,3). Every slot BINDS to the SelectionSyncModel in the
+         code-behind, exactly as the original does — ATTRIBUTE ORDER IS THE SPEC here, because each label
+         names which slot is set first and that ordering is what the page demonstrates.
+
+         THIS USED TO INLINE <x:Array Type="{x:Type x:String}"> instead, and it was silently WRONG: XamlC
+         refuses to match a String[] to IList<object> (no CLR array covariance), so it added the array as
+         ONE unmatched object and the three in-source multi-select CVs rendered with NOTHING selected —
+         the page demonstrated the opposite of what its own "Selected: Item 3, Item 2" labels claim. The
+         board saw it as maui showing 1 selection band against the code-first port's 3. Fixed by giving
+         the port a bindable SelectedItems (3c3df8b663) and binding here, per rule 5 — never by degrading
+         the port to match the broken markup.
+
+         The per-CV "Selected:" Labels are CONSTANT text stating the resting expectation, and they were
+         already written for the CORRECT outcome, so they need no change. The {x:Reference} bindings and
+         the Switch Source button handler remain interaction wiring — degraded. -->
     <ScrollView>
         <StackLayout Spacing="2">
             <Label Text="Each CollectionView below sets ItemsSource and Selected* in a particular order. Only selected items that exist in the source should stay selected." />
 
             <Label Text="Set ItemsSource then SelectedItems — should have items 2 and 3 selected (or nothing, if not in source)" />
             <Label Text="Selected: Item 3, Item 2" />
-            <CollectionView SelectionMode="Multiple" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
-                <CollectionView.SelectedItems>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                    </x:Array>
-                </CollectionView.SelectedItems>
+            <CollectionView SelectionMode="Multiple" ItemsSource="{Binding Items}" SelectedItems="{Binding SelectedItems}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -38,21 +34,7 @@
 
             <Label Text="Set SelectedItems then ItemsSource — should have items 2 and 3 selected (or nothing, if not in source)" />
             <Label Text="Selected: Item 3, Item 2" />
-            <CollectionView SelectionMode="Multiple" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
-                <CollectionView.SelectedItems>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                    </x:Array>
-                </CollectionView.SelectedItems>
+            <CollectionView SelectionMode="Multiple" SelectedItems="{Binding SelectedItems}" ItemsSource="{Binding Items}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -62,15 +44,7 @@
 
             <Label Text="Set ItemsSource then SelectedItem — should have item 2 selected (or nothing, if not in source)" />
             <Label Text="Selected: Item 2" />
-            <CollectionView SelectionMode="Single" SelectedItem="Item 2" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
+            <CollectionView SelectionMode="Single" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -80,15 +54,7 @@
 
             <Label Text="Set SelectedItem then ItemsSource — should have item 2 selected (or nothing, if not in source)" />
             <Label Text="Selected: Item 2" />
-            <CollectionView SelectionMode="Single" SelectedItem="Item 2" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
+            <CollectionView SelectionMode="Single" SelectedItem="{Binding SelectedItem}" ItemsSource="{Binding Items}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -98,15 +64,7 @@
 
             <Label Text="Set SelectedItems (not in source) then ItemsSource — should have items 2 and 3 selected (or nothing, if not in source)" />
             <Label Text="Selected: (none)" />
-            <CollectionView SelectionMode="Multiple" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
+            <CollectionView SelectionMode="Multiple" SelectedItems="{Binding SelectedItemsNotInSource}" ItemsSource="{Binding Items}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -116,15 +74,7 @@
 
             <Label Text="Set ItemsSource then SelectedItems (not in source) — should have items 2 and 3 selected (or nothing, if not in source)" />
             <Label Text="Selected: (none)" />
-            <CollectionView SelectionMode="Multiple" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
+            <CollectionView SelectionMode="Multiple" ItemsSource="{Binding Items}" SelectedItems="{Binding SelectedItemsNotInSource}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -134,15 +84,7 @@
 
             <Label Text="Set SelectedItem (not in source) then ItemsSource — should have item 2 selected (or nothing, if not in source)" />
             <Label Text="Selected: (none)" />
-            <CollectionView SelectionMode="Single" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
+            <CollectionView SelectionMode="Single" SelectedItem="{Binding SelectedItemNotInSource}" ItemsSource="{Binding Items}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -152,15 +94,7 @@
 
             <Label Text="Set ItemsSource then SelectedItem (not in source) — should have item 2 selected (or nothing, if not in source)" />
             <Label Text="Selected: (none)" />
-            <CollectionView SelectionMode="Single" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
+            <CollectionView SelectionMode="Single" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItemNotInSource}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
@@ -172,21 +106,7 @@
             <Button Text="Switch Source" />
             <Label Text="After hitting the button, should only have Item 3 selected" />
             <Label Text="Selected: Item 3, Item 2" />
-            <CollectionView SelectionMode="Multiple" HeightRequest="250" Margin="5,2,5,5">
-                <CollectionView.ItemsSource>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 1</x:String>
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                        <x:String>Item 4</x:String>
-                    </x:Array>
-                </CollectionView.ItemsSource>
-                <CollectionView.SelectedItems>
-                    <x:Array Type="{x:Type x:String}">
-                        <x:String>Item 2</x:String>
-                        <x:String>Item 3</x:String>
-                    </x:Array>
-                </CollectionView.SelectedItems>
+            <CollectionView SelectionMode="Multiple" ItemsSource="{Binding Items}" SelectedItems="{Binding SelectedItems}" HeightRequest="250" Margin="5,2,5,5">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Label Text="{Binding .}" Margin="0,3,0,3" />
