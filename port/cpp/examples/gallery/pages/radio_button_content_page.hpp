@@ -25,8 +25,11 @@
 //      cross "Line" stand-ins + a content_presenter), faithfully reproducing the XAML's "weird-looking
 //      custom template" group. The XAML packs an <Image Source="coffee.png"/> into that presenter; the
 //      maui-reference app bundles coffee.png, so MAUI iOS + Android render the cup (the port packs the same
-//      bundled image — see add_weird_card). Mac Catalyst's handler does not paint the bundled image, so
-//      MAUI-mac shows only the two lines; the port's fuller render there is exempt per ruling 10(b). The
+//      bundled image — see add_weird_card). Mac Catalyst paints no bundled image — AND NEITHER DOES THE
+//      PORT, which reaches UIKit by the same path, so the columns AGREE there and nothing is exempt.
+//      MEASURED 2026-08-20, dark-cup pixels: ios maui/cpp/xaml all 4.52% (cup drawn); maccatalyst all
+//      0.27-0.28% (no cup), both maccatalyst cells GREEN. This once cited a quirk exemption that has
+//      since been revoked; the citation was wrong on its facts as well. The
 //      Checked/Unchecked VisualState that toggles
 //      the CheckedIndicator opacity is part of the radio_button's own visual state machine; here the
 //      template is hosted on a content_view (not a radio), so the live checked-state opacity flip is noted
@@ -210,9 +213,10 @@ namespace maui::samples
         // maui-reference app DOES bundle coffee.png (app/Resources/Images/coffee.png), so MAUI iOS + Android
         // render the cup (verified against the fresh android reference: each card = black bar + red bar + a
         // large black coffee cup). Pack the same bundled coffee.png here so the presenter surfaces it, matching
-        // that ground truth. (Mac Catalyst is the exception — its handler does not paint the bundled image, so
-        // MAUI-mac shows only the line pair; the port's fuller render there is exempt per parity ruling 10(b),
-        // the same divergence the xaml column already carries. An earlier premise that Controls.Sample never
+        // that ground truth. (Mac Catalyst paints no bundled image, in EITHER framework: the port reuses the
+        // iOS handlers, so it inherits the same UIKit behaviour and omits it too. Measured 2026-08-20 —
+        // maccatalyst dark-cup pixels maui 0.28% / cpp 0.27% / xaml 0.27%, both cells GREEN. There is no
+        // divergence here and no exemption is claimed. An earlier premise that Controls.Sample never
         // bundles coffee.png — true of src/Controls/samples, NOT of the maui-reference app — left this empty.)
         void add_weird_card()
         {
@@ -243,8 +247,8 @@ namespace maui::samples
         maui::controls::label caption_weird_;
 
         // The two custom-template cards (each renders the two template bars + the packed coffee.png cup the
-        // presenter surfaces, matching MAUI iOS/Android; Mac Catalyst omits the image per ruling 10(b) — see
-        // add_weird_card).
+        // presenter surfaces, matching MAUI iOS/Android; on Mac Catalyst neither MAUI nor the port paints
+        // it, so the columns agree — see add_weird_card).
         std::vector<std::shared_ptr<maui::controls::content_view>> weird_cards_;
     };
 } // namespace maui::samples
