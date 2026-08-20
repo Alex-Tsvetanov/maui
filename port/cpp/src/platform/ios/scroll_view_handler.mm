@@ -440,28 +440,30 @@ namespace maui::core
             return;
         }
         UIScrollView* const scroller = as_scroller(platform->native);
-        // CENTER + BOUNDS, PRESERVING bounds.origin -- NOT setFrame. On a UIScrollView `bounds.origin` IS
-        // `contentOffset`, and -setFrame: rewrites the whole bounds rect, so it silently RESETS the scroll
-        // position to 0 on every arrange. C# does not: ViewHandlerExtensions.iOS.cs:157-158 sets Center and
-        // then `new CGRect(platformView.Bounds.X, platformView.Bounds.Y, rect.Width, rect.Height)` -- width
-        // and height only, origin carried across untouched.
+        // setFrame, DELIBERATELY -- NOT C#'s Center+Bounds. Preserving bounds.origin was TRIED (0e5ff2298d)
+        // and REVERTED here on measurement. The reasoning behind it still looks right and is worth keeping
+        // on record, because the next reader will re-derive it: on a UIScrollView `bounds.origin` IS
+        // `contentOffset`, -setFrame: rewrites the whole bounds rect and so resets the scroll position on
+        // every arrange, and C# genuinely does not do that (ViewHandlerExtensions.iOS.cs:157-158 sets Center
+        // then a bounds rect carrying origin across untouched). A KVO observer confirmed UIKit parks the
+        // Catalyst scroller at contentOffset y=41 on exactly the three red pages.
         //
-        // THIS IS THE 32px MACCATALYST OFFSET, and the split it produces is exact. Measured live on the VM
-        // (MAUI_GEOMETRY_DUMP=1, MauiReference): every other term is identical between a red page and a
-        // green one -- page frame, safeArea 41, scroller frame origin y=41, adjustedContentInset 0 -- and
-        // only the RESTING contentOffset differs:
-        //     offset 41  clip(1139) path_gallery(1290) swipe_item_size(1304)   <- the RED pages
-        //     offset  0  clip_gallery(1392) box_view(1530) scroll_view(1985) clip_views(998)
-        // 41pt / (1330/1024) = 31.6 = the 32 px the board reports. A KVO observer on contentOffset caught
-        // the write itself, inside `UIView.set_Bounds | PlatformArrangeHandler | PlatformArrange`: UIKit
-        // parks the scroller at y=41 on those pages, MAUI's arrange preserves it, and ours threw it away.
-        // On pages UIKit leaves at 0 the two are identical, which is why only three pages ever went red.
+        // ALL OF THAT IS TRUE AND THE CHANGE STILL LOST. Measured on both lanes:
+        //   maccatalyst -- clip / path_gallery / swipe_item_size stayed RED. The 32px offset did not move.
+        //   ios         -- 12 cells regressed, 0 red -> 12 red. clip 0.12% -> 35.05% (motion PASS -> FAIL),
+        //                  swipe_item_size 0.00% (byte-identical) -> 28.17%, box_view 1.46% -> 18.30%.
+        //                  Restoring setFrame put every one of them back.
+        // The port drives its own layout and re-arranges on passes MAUI never runs (MAUI's LayoutSubviews
+        // re-arranges only when the FRAME changed, so a pure inset flip does not re-enter its arrange --
+        // see the anti-flip-flop note below, which is the same asymmetry). Carrying a live scroll position
+        // across those extra passes preserves an offset MAUI would never have been holding at that moment.
+        // Matching C# statement-for-statement is not the same as matching it behaviourally when the two
+        // arrange on different schedules.
         //
-        // So this was never a layout or safe-area bug -- measure and arrange were always correct, which is
-        // why every inset rule proposed for it failed and was rightly refused.
-        const CGRect bounds = scroller.bounds;
-        scroller.center = CGPointMake(frame.x + (frame.width / 2.0), frame.y + (frame.height / 2.0));
-        scroller.bounds = CGRectMake(bounds.origin.x, bounds.origin.y, frame.width, frame.height);
+        // Do not reinstate without recapturing IOS as well as maccatalyst: 0e5ff2298d shipped with only a
+        // Catalyst recapture planned and its own message said "NOT YET VERIFIED ON PIXELS", which is exactly
+        // how a 12-cell iOS regression reached the branch unnoticed.
+        [scroller setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
 
         CGSize extent = CGSizeZero;
         if (UIView* const content = tagged_content(scroller))
@@ -490,6 +492,24 @@ namespace maui::core
             {
                 safe_area = control->effective_safe_area();
             }
+            // THE `>=` ON WIDTH IS LOAD-BEARING -- DO NOT "RESTORE" C#'s `>` HERE. It looks like an
+            // unjustified copy of the height deviation below: the Catalyst/iOS safe area is top-and-bottom
+            // only, so horizontal_thickness() is always 0 and the test collapses to `width >= width`, true
+            // on every page whose content exactly fills the width. Reading it that way and switching to
+            // `>` was TRIED and REVERTED (measured, ios lane, 7 pages): every one of the 13 scored cells
+            // regressed, six from motion PASS to FAIL, and swipe_item_size went from BYTE-IDENTICAL
+            // (0.00%) to 28.17% differing.
+            //
+            // The reason is that this branch's job is not horizontal safe area at all -- it is the same
+            // anti-flip-flop clamp described below, applied in the cheaper dimension. Forcing contentSize
+            // PAST the bounds is what pins UIKit in scrollable mode so AdjustedContentInset stays at the
+            // scroll-view level; with width left equal to the bounds, UIKit drops the inset and pushes the
+            // safe area into the CHILD instead, moving all the content. horizontal_thickness() == 0 is
+            // precisely WHY the width axis works as that lever, not evidence the test is vacuous.
+            //
+            // (Upstream src/ MauiScrollView.cs:321 clamps width to frameSize.Width outright for vertical
+            // orientation, but that is post-10.0.71 code against a rewritten safe-area path; the board
+            // renders 10.0.71. It is not a licence to change this line -- see ruling 11.)
             if (extent.width <= frame.width && (safe_area.horizontal_thickness() + extent.width) >= frame.width)
             {
                 extent.width += frame.width + 1;
