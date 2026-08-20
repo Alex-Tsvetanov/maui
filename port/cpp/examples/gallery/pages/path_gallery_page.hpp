@@ -13,7 +13,7 @@
 //         backend (the same class of quirk as update_path_data / path_aspect_gallery). The shared XAML
 //         twin independently documents and reproduces the identical degraded silhouettes (its loader
 //         also lacks Path.Data geometry authoring), and matches the real MAUI capture pixel-for-pixel
-//         (sonnet_xaml: green). Per port/CLAUDE.md parity ruling 1, MAUI's actual render is ground truth
+//         (sonnet_xaml: green). Per port/CLAUDE.md the standing doctrine, MAUI's actual render is ground truth
 //         for page content, so the port aligns every cell to the twin's rendered shape:
 //           - "Create a LineSegment in a PathGeometry": a Line (10,50)->(200,70), black stroke 1 — MATCHES
 //             MAUI already (unchanged).

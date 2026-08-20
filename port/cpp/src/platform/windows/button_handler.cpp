@@ -580,7 +580,7 @@ namespace maui::core
         }
         platform->padding = view.padding();
         // An UNSET Padding must leave the WinUI Button's own default content padding in place: zeroing it
-        // is what produced the crammed-digit-row class of iOS diffs (see PARITY ruling 4 / the clipping
+        // is what produced the crammed-digit-row class of iOS diffs (see PARITY rule 1 (NATIVE-DEFAULTS) / the clipping
         // page). Only an explicitly-set Padding overrides the native default.
         if (!is_set(view, "padding"))
         {

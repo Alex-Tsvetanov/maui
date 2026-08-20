@@ -125,7 +125,7 @@ def score_images(ia, ib, crop_top=0):
     crop_top: rows to drop from the TOP of both images before comparing — used on Android to exclude the
     system STATUS BAR (clock/battery/wifi), which differs between captures purely because they were shot at
     different times, not because of any port rendering (the same capture-chrome exemption the iOS harness
-    inset gets under ruling 2). Measured: the status bar occupies rows 0..~135 and differs on 100% of pages;
+    inset gets under the capture-chrome carve-out). Measured: the status bar occupies rows 0..~135 and differs on 100% of pages;
     the page content below it aligns. Both hosts run NoActionBar, so there is no app title bar to keep."""
     if crop_top > 0:
         w, h = ia.size

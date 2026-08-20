@@ -212,7 +212,7 @@ namespace
     // Windows.cs:246-263's GetItemContainerStyle (the GridItemsLayout arm) deliberately sets NO
     // MinHeight, unlike the linear arm's explicit `MinHeightProperty, 0` at :283-286 — so a GridViewItem
     // keeps its SDK BasedOn style's default minimum instead of being zeroed. DOCUMENTED DEVIATION (parity
-    // ruling 11): that default isn't derivable from `src/` (no WindowsAppSDK generic.xaml on this
+    // rule 4 (RENDER-BREAKS-TIES)): that default isn't derivable from `src/` (no WindowsAppSDK generic.xaml on this
     // machine — confirmed absent, only `{ThemeResource GridViewItemMinHeight}`-shaped references exist).
     // VALUE measured from the grid_grouping ground-truth capture: item-text ink lands at an exact 44.0px
     // pitch (99, 143, 187, 231, 275, 319), vs the port's prior 24 (k_min_row_extent misapplied as this
@@ -240,7 +240,7 @@ namespace
     // above copied Padding/Margin from but not this. The minimum applies to the CONTAINER, not the
     // header's content — the content renders at its natural height inset by Padding, and the container
     // tops up to MinHeight only if `lead_padding + natural_content_extent` falls short (see the
-    // realize_full_width is_group_header branch below). DOCUMENTED DEVIATION (parity ruling 11): neither
+    // realize_full_width is_group_header branch below). DOCUMENTED DEVIATION (parity rule 4 (RENDER-BREAKS-TIES)): neither
     // theme resource's value is derivable from `src/` (no WindowsAppSDK generic.xaml on this machine),
     // so the VALUE is measured from ground truth. It is 44 on BOTH paths.
     //
@@ -307,7 +307,7 @@ namespace
     // keyed off platform->selected_paths / allows_multiple_selection, exactly like the fill android's
     // collection_view_handler.cpp paints for the identical "no container" reason.
     //
-    // MEASURED from the ground-truth captures — DOCUMENTED DEVIATION, parity ruling 11: there is no
+    // MEASURED from the ground-truth captures — DOCUMENTED DEVIATION, parity rule 4 (RENDER-BREAKS-TIES): there is no
     // WindowsAppSDK generic.xaml on this machine to read the real ListViewItemBackgroundSelected /
     // GridViewItemBackgroundSelected / etc. resource VALUES, so the render is authoritative instead.
     // preselected_items_{light,dark}.png (a GridItemsLayout, Multiple selection) vs preselected_item_
@@ -393,7 +393,7 @@ namespace
     // 728.5 -> 729 -- which is the check that turned "two off-by-N bugs" into one wrong model.
     // No XAML oracle exists for this geometry: generic.xaml gives the indicator only a brush (:2319) and
     // ListViewItemSelectionIndicatorCornerRadius 1.5 (:2304); the native ListViewItemPresenter rasterises
-    // its size internally. Ruling 11 -- the render decides the value.
+    // its size internally. Rule 4 (RENDER-BREAKS-TIES) -- the render decides the value.
     constexpr double k_selection_indicator_length = 16;
     // Distance from the row's LEADING edge. Was 0 (bar flush at slot.x); MAUI insets it 4, measured
     // identically on both pages above (maui x17 vs port x13; maui x12 vs port x8).
@@ -447,7 +447,7 @@ namespace
     // left padding already clearing the square -- i.e. content offset = 12 + 20 = 32 measured from the
     // LISTVIEWITEM CONTENT ORIGIN. The port's cell `slot.x` is not that origin (it sits ~4px right of it,
     // which is also why left_inset is 14 rather than the oracle's 12 yet lands the box at MAUI's exact
-    // x27-46), so 32 cannot be transplanted directly. Per parity ruling 11 the render decides the value;
+    // x27-46), so 32 cannot be transplanted directly. Per parity rule 4 (RENDER-BREAKS-TIES) the render decides the value;
     // the oracle decides that a single constant offset is the right SHAPE for it.
     //
     // Note this reverses the DIRECTION of the previous pass's premise, which read MAUI as insetting content
@@ -496,7 +496,7 @@ namespace
             // into the presenter at :27332 as CornerRadius="{ThemeResource ListViewItemCornerRadius}".
             // (:5084 is the HighContrast copy, also 4.) The DefaultListViewItemStyle template carries no
             // Margin setter, so the inset is rasterised inside the native ListViewItemPresenter and has no
-            // XAML-expressible form to copy — ruling 11: the render supplies the value.
+            // XAML-expressible form to copy — rule 4 (RENDER-BREAKS-TIES): the render supplies the value.
             //
             // Visible consequence, and a good regression tell: two ADJACENT selected rows show a 4px
             // page-background gap in MAUI where the port previously drew one merged block.
@@ -601,7 +601,7 @@ namespace
             // check internally, so no XAML FontSize governs the actual pixels. 16 is therefore
             // corroborated, not cited: measured against the MAUI capture, the previous 10 rendered the
             // glyph ink at 8x6 px where MAUI's is 12x9 — a 1.5x shortfall, i.e. ~15, which lands on 16
-            // within the +/-0.5px quantisation of an integer ink bbox. Per parity ruling 11 the render
+            // within the +/-0.5px quantisation of an integer ink bbox. Per parity rule 4 (RENDER-BREAKS-TIES) the render
             // wins; the XAML sibling is what makes 16 the principled reading of that measurement.
             glyph.FontSize(16);
             // ListViewItemCheckBrush -> TextOnAccentFillColorPrimaryBrush (generic.xaml:1778), whose colour
@@ -1316,7 +1316,7 @@ namespace maui::controls
                     // clamps -- so a linear row must use its true measured extent, and a grid row keeps
                     // its own SDK-default floor. k_grid_item_min_extent's comment carries the DOCUMENTED
                     // DEVIATION note: the SDK value isn't derivable from `src/`, so it is measured from the
-                    // ground-truth capture (parity ruling 11) instead of this port's prior 24 stand-in.
+                    // ground-truth capture (parity rule 4 (RENDER-BREAKS-TIES)) instead of this port's prior 24 stand-in.
                     //
                     // MEASURED: basic_grouping (LINEAR) puts MAUI's text rows at 104/122/142/161/180/199/
                     // ... -- a ~19px pitch, matched once a linear row uses its true measured extent

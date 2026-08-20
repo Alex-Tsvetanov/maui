@@ -294,7 +294,7 @@ namespace
         // unset text is #8A000000 (Material light textColorSecondary) that ALPHA-composites over the band
         // (white→[117,117,117] / LightGreen→[66,109,66] / Orange→[117,70,0], verified). setTextColor honors
         // alpha, so seeding 0x8A000000 composites correctly. Mirrors label_handler::map_text_color's dark +
-        // light seeds (ruling 1 + ruling 11).
+        // light seeds (the standing doctrine + rule 4 (RENDER-BREAKS-TIES)).
         if (jmethodID set_text_color = cache.method(env, k_text_view_class, "setTextColor", "(I)V");
             set_text_color != nullptr)
         {

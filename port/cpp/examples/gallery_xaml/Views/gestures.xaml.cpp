@@ -13,7 +13,7 @@
 // — proven by unit tests. But nothing was WIRED to them here, so this column sat still while MAUI's
 // reacted, and the board read MOTION MISMATCH 3935 px vs 0 (f9dc430377). MAUI's column reacts through
 // GesturesPage.xaml.cs, which is C# this port cannot execute; the reflection-free equivalent is exactly
-// this file, per ruling 12's header_footer_template resolution (hand-write the code-behind rather than
+// this file, per rule 5 (PORT-MUST-EXPRESS-IT)'s header_footer_template resolution (hand-write the code-behind rather than
 // exempt the diff).
 //
 // THE STRINGS ARE A CONTRACT and this side is their ORIGIN: gestures_page.hpp:208-213 defines

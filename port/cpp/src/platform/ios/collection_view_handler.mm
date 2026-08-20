@@ -1548,7 +1548,7 @@ namespace maui::controls
         // AutomaticallyAdjustsScrollViewInsets = false is the pre-iOS-11 path and does not apply.)
         //
         // DOCUMENTED DEVIATION — applied on iOS ONLY, though C# sets it for Catalyst too. MAUI's single
-        // source line produces DIFFERENT renders on the two platforms, and ruling 1 makes the render the
+        // source line produces DIFFERENT renders on the two platforms, and the standing doctrine makes the render the
         // ground truth. Measured, both directions:
         //   * iOS: MAUI's group header sits at y=0 UNDER the status bar, the view-level Header scrolled out
         //     of sight. The UIKit default (.automatic) insets below the safe area, which put every full-page

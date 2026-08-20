@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Capture every MauiReference (REAL .NET MAUI, the canonical shared-XAML ground truth per port/CLAUDE.md
-# ruling 6) gallery page on the `maui-test` Android emulator into
+# rule 3 (GROUND-TRUTH-ROOT)) gallery page on the `maui-test` Android emulator into
 # docs/comparison/captures/android/maui/<key>_light.png — the ground-truth MAUI reference column (twin
 # of the iOS capture_all_csharp.py and the C++ column's build_android_apphost.sh; the canonical layout
 # build_comparison_json.py + gen_readme.py read). Android has no dark capture, hence the fixed _light suffix.

@@ -29,7 +29,7 @@ namespace maui::core
         // StrokeShape to express FrameRenderer.SetupLayer's corner radius), so the two render paths become
         // indistinguishable at the handler seam unless the facade says which one it is.
         //
-        // MEASURED (ruling 1 — the render decides): on `containers`/android the port's pre-inset Frame
+        // MEASURED (the standing doctrine — the render decides): on `containers`/android the port's pre-inset Frame
         // matched MAUI's to 6 pixels in dark over the whole Frame band; insetting it moved 2894. The
         // Border on the same page needs the inset (border_stroke: MAUI leaves a 2 px gap between adjacent
         // Borders where the port abutted them). So: Border yes, Frame no.

@@ -61,7 +61,7 @@
 //     would make ThumbColor a silent no-op — yet switch_light.png's ThumbColor="Orange" row (switch OFF)
 //     shows a visibly ORANGE knob, so real MAUI's TryUpdateResource plainly is NOT a no-op there; some
 //     WinUI mechanism this port cannot inspect (no Windows runtime here) evidently pre-populates those keys.
-//     Per port/CLAUDE.md's ruling 11 (render wins over source when they disagree), map_thumb_color below
+//     Per port/CLAUDE.md's rule 4 (RENDER-BREAKS-TIES) (render wins over source when they disagree), map_thumb_color below
 //     uses the same unconditional set_resources/remove_resources this file already uses for TrackColor,
 //     which is a strict superset of TryUpdateResource (identical when a key is present; also inserts when
 //     absent) — it can only fix the observed gap, never regress the cases where the literal port would have

@@ -31,7 +31,7 @@ namespace maui::platform::windows
         // and a C# (byte) cast on a float truncates toward zero. Rounding is the more "correct" quantizer
         // and produces a DIFFERENT byte for most non-terminal values (0.5f -> 128 rounded, 127
         // truncated), which would put the port one level off MAUI on every mid-tone the board compares.
-        // Parity ruling 1: MAUI's actual render is the ground truth, including where it is imprecise.
+        // The standing doctrine: MAUI's actual render is the ground truth, including where it is imprecise.
         std::uint8_t to_byte(float component)
         {
             return static_cast<std::uint8_t>(std::clamp(component, 0.0F, 1.0F) * 255.0F);

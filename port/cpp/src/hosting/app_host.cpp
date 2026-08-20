@@ -193,7 +193,7 @@ namespace maui::hosting
                 // NOT on Mac Catalyst: there the titlebar is window chrome ABOVE the content area, so the
                 // margin is measured from the content-area top and is ADDITIVE with the inset — MAUI renders
                 // content at inset + margin, and subtracting the margin moved it 20pt too high (measured:
-                // ios_blur_effect green 0.12% -> red 8.8%). The two platforms genuinely differ (ruling 1 —
+                // ios_blur_effect green 0.12% -> red 8.8%). The two platforms genuinely differ (the standing doctrine —
                 // match each platform's render); same theme as the CollectionView .Never fork. See
                 // PARITY_REVIEW.md item 3. Headless (non-Apple) pushes zero insets, so this is a no-op there.
 #if !defined(TARGET_OS_MACCATALYST) || !TARGET_OS_MACCATALYST

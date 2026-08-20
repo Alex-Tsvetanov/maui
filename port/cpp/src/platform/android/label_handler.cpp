@@ -1013,7 +1013,7 @@ namespace maui::core
             // a colored group-header/footer band, where the flat #70777C stayed light (basic_grouping /
             // grid_grouping / grouping_plus_selection). setTextColor honors alpha and blends the glyph over the
             // cell bg, exactly what the dark 0xB8FFFFFF seed relies on. src/ (UpdateTextColor no-op) says leave
-            // it; shipped MAUI RENDERS #8A000000 — DEVIATION per ruling 1 (render is truth) + ruling 11 (same
+            // it; shipped MAUI RENDERS #8A000000 — DEVIATION per the standing doctrine (render is truth) + rule 4 (RENDER-BREAKS-TIES) (same
             // DeviceDefault-vs-Material class as the dark seed). Install this seed as the DEFAULT (enabled) entry
             // of a two-state ColorStateList whose DISABLED entry is black@38% (0x61000000 = Material light
             // colorOnSurface disabled — the same overlay button_handler dims its disabled label to), so a

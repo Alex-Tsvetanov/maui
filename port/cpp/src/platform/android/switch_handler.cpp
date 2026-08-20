@@ -817,7 +817,7 @@ namespace maui::core
         {
             return {0, 0};
         }
-        // DOCUMENTED DEVIATION (ruling 1 + 11 — match the shipped RENDER): real MAUI renders the Switch as a
+        // DOCUMENTED DEVIATION (the standing doctrine + rule 4 (RENDER-BREAKS-TIES) — match the shipped RENDER): real MAUI renders the Switch as a
         // Material SwitchCompat (~48dp measured touch-target row), but this AAR-less host's plain
         // android.widget.Switch under Theme.DeviceDefault measures shorter, so a page of stacked switches
         // drifts up vs MAUI. Floor the measured height to the Material switch row height (the thumb/track

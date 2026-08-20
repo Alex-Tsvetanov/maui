@@ -50,7 +50,7 @@ namespace maui::samples
             // leftover vertical space (centered) and pushes the three buttons to the BOTTOM. The port's
             // vertical_stack_layout has no Expands surface, so the code-first page uses a Grid instead — a `*`
             // row centers the image and three `Auto` rows stack the buttons at the bottom, reproducing MAUI's
-            // rendered layout (ruling 12: the code-first render is the reference of record for what the shared
+            // rendered layout (rule 5 (PORT-MUST-EXPRESS-IT): the code-first render is the reference of record for what the shared
             // XAML dialect can't express).
             grid_.add_row_definition(maui::core::grid_length::star());
             grid_.add_row_definition(maui::core::grid_length::automatic());

@@ -6,7 +6,7 @@
     tools/parity/review.py --platforms ios --limit 40   # …plus Gemini on the first 40 undecided pairs
     tools/parity/review.py --commit-board               # also write the verdicts into comparison.json
 
-THREE COMPARISONS per page, per platform, per theme (port/CLAUDE.md ruling 5 — MAUI is judged against
+THREE COMPARISONS per page, per platform, per theme (port/CLAUDE.md rule 2 (FOUR-COMPARISONS) — MAUI is judged against
 BOTH port columns independently, and the two port columns against each other):
 
     1. MAUI  vs  C++              -> comparison.json slot `gemini`

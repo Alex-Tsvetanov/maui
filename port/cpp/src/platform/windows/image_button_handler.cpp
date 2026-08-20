@@ -527,7 +527,7 @@ namespace maui::core
 
     // ControlExtensions.UpdatePadding via ButtonExtensions.UpdatePadding(button, padding) — same
     // ClearValue-restores-the-style-default / explicit-Thickness-overrides shape as button_handler.cpp's
-    // map_padding (an unset Padding must NOT zero the native default — PARITY ruling 4).
+    // map_padding (an unset Padding must NOT zero the native default — PARITY rule 1 (NATIVE-DEFAULTS)).
     void image_button_handler::map_padding(image_button_handler& handler, i_image_button& view)
     {
         auto* platform = handler.typed_platform_view();

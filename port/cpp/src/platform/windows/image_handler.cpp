@@ -53,7 +53,7 @@
 //     through the same CanvasTextLayout/CanvasRenderTarget sequence FontImageSourceService.Windows.cs uses,
 //     boxing the result as a WriteableBitmap (a CanvasImageSource cannot be used: get_image_size below
 //     needs a BitmapSource — see that file's render_font_glyph for the box-choice citation, and its
-//     DOCUMENTED DEVIATION block for why the canvas comes from DrawBounds, per parity ruling 11). The
+//     DOCUMENTED DEVIATION block for why the canvas comes from DrawBounds, per parity rule 4 (RENDER-BREAKS-TIES)). The
 //     earlier transparent-square stand-in is gone. Measured along the way: a font-sourced Image with no
 //     native Source at all measured to 0x0, collapsing the row (background included) instead of reproducing
 //     MAUI's real Stretch=Uniform blowup — the VerticalStackLayout's unconstrained cross-axis makes WinUI

@@ -266,7 +266,7 @@ namespace maui::samples
             // never override): stage it on the Grid root as a white background paint. The MAUI
             // reference retains the white bands in DARK mode too (the dark-theme adaptive label color
             // turns white, so the item text goes invisible on them — MAUI's own render, ground truth per
-            // ruling 1); the port reproduces exactly that by leaving the text color at the system
+            // the standing doctrine); the port reproduces exactly that by leaving the text color at the system
             // default. The Selected=>Yellow recolor is the per-cell CommonStates VSM (system-driven);
             // staging that group per cell is the documented struct-cell-template limit (see header note),
             // so only the Normal/base look is reproduced here.

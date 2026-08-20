@@ -40,7 +40,7 @@
 //         the shared XAML twin's plain `<Ellipse WidthRequest="100" HeightRequest="100"/>` with no
 //         explicit Center), and painted UNDERNEATH (before) the green triangle in z-order — a MAUI-side
 //         rendering-order quirk for this Path/Grid composition (the same class of quirk as
-//         update_path_data / path_aspect_gallery / path_gallery). Per port/CLAUDE.md parity ruling 1,
+//         update_path_data / path_aspect_gallery / path_gallery). Per port/CLAUDE.md the standing doctrine,
 //         MAUI's actual render is ground truth, so the port uses a plain 100x100 controls::shapes::ellipse
 //         with NO explicit center offset (Grid-centers itself, matching the twin) and adds it to the
 //         Grid BEFORE the triangle (so the triangle paints on top, matching the observed z-order).

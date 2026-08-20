@@ -265,7 +265,7 @@ namespace maui::core
         // scale, and what distinguishes this from the ring-geometry bug fixed above it. 14/2 = 7 per side
         // leaves the ring its full 21pt. The HORIZONTAL pad stays 8 (Border Padding=6 + Grid Padding=2).
         const CGFloat template_vpad = 7;
-        // 7, CALIBRATED TO THE SHIPPED RENDER (ruling 11) rather than to Border(6) + Grid(2) = 8. The
+        // 7, CALIBRATED TO THE SHIPPED RENDER (rule 4 (RENDER-BREAKS-TIES)) rather than to Border(6) + Grid(2) = 8. The
         // declared 8 is what the template says; 8 is not what MAUI draws. MEASURED on
         // radio_button_group_gallery_light @3x, with the page's own padding controlled for: the plain
         // Labels on that page start at x=50/51 in BOTH columns — identical, so the page layout is not the
@@ -446,7 +446,7 @@ namespace maui::core
                                                     attributes:attrs
                                                        context:nil];
             // Size the row from MAUI's DefaultTemplate geometry DIRECTLY, calibrated to the SHIPPED render
-            // (ruling 11): the outer Ellipse measures 21pt (63px @3x) and a single-14pt-line row is 35pt tall
+            // (rule 4 (RENDER-BREAKS-TIES)): the outer Ellipse measures 21pt (63px @3x) and a single-14pt-line row is 35pt tall
             // (measured ring-center pitch 41pt − Spacing 6pt), so the vertical chrome is 35−21 = 14pt. Thus
             // row = max(21pt ring, text) + 14. UIButton's own sizeThatFits height is NOT used: it adds its
             // internal title metrics and over-measures a large-font (e.g. 18pt) title by ~2pt, and that

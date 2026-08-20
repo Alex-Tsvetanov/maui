@@ -26,7 +26,7 @@
 //         it draws straight ZIG-ZAG segments through the four control points (10,100)->(10,300)->
 //         (300,-200)->(300,100), NOT a smooth curve — the shared XAML twin's own comment independently
 //         documents the identical degraded silhouette via its Polyline
-//         "10,100 80,180 150,100 220,20 300,100" approximation. Per port/CLAUDE.md parity ruling 1, the
+//         "10,100 80,180 150,100 220,20 300,100" approximation. Per port/CLAUDE.md the standing doctrine, the
 //         real MAUI render is ground truth for page content, so the port reproduces the zig-zag directly
 //         (a Polyline through the same four Bezier control points) rather than a mathematically-correct
 //         cubic Bezier curve, matching MAUI's actual on-screen behavior.

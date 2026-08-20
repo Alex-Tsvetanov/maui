@@ -144,8 +144,8 @@ namespace
     // a LightBlue panel behind a disabled button reads (152,190,202) = panel x 0.88, not opaque #E0E0E0).
     // Over a white parent both composite to the historical #E0E0E0 fill / #8B8B8B label, so white-bg pages are
     // unchanged. The ~36dp button height is content-driven (the 8.5dp vertical padding), NOT a min-height floor.
-    // THEME-DEPENDENT, and MEASURED FROM MAUI'S RENDER rather than named in its source (parity ruling 1:
-    // MAUI's render is ground truth for content, and ruling 11: where a value cannot be read off `src/`,
+    // THEME-DEPENDENT, and MEASURED FROM MAUI'S RENDER rather than named in its source (the standing doctrine:
+    // MAUI's render is ground truth for content, and rule 4 (RENDER-BREAKS-TIES): where a value cannot be read off `src/`,
     // the render decides). Sampled on the alerts button band, where both columns cover an identical
     // 86793 px so geometry is not a factor:
     //     light   MAUI 227 (#E3E3E3)      dark   MAUI 201 (#C9C9C9)

@@ -30,7 +30,7 @@
 //   - MinimumTrackColor=LightGray, MaximumTrackColor=Gray (the Slider style) -> DELIBERATELY NOT applied (see
 //     add_corner_slider below): the page-local <Style TargetType="Slider"> resource that sets these on the
 //     original C# sample is never merged in the parity captures (MauiReference's App.xaml skips page/app
-//     styles by design, port/CLAUDE.md ruling 4), so MAUI's own ground-truth render shows the NATIVE-DEFAULT
+//     styles by design, port/CLAUDE.md rule 1 (NATIVE-DEFAULTS)), so MAUI's own ground-truth render shows the NATIVE-DEFAULT
 //     track, not LightGray/Gray. The shared twin (pages/clip_corner_radius.xaml) already leaves these
 //     default; this builder now matches.
 //
@@ -165,7 +165,7 @@ namespace maui::samples
             // page-local <Style TargetType="Slider"> resource. The shared twin (pages/clip_corner_radius.xaml)
             // deliberately omits these (its comment: "best-effort, left default") because MauiReference's
             // App.xaml intentionally does NOT merge Styles.xaml/page-local styles for the parity captures
-            // (port/CLAUDE.md ruling 4) — so real MAUI's own capture renders the NATIVE-DEFAULT UISlider track
+            // (port/CLAUDE.md rule 1 (NATIVE-DEFAULTS)) — so real MAUI's own capture renders the NATIVE-DEFAULT UISlider track
             // (a light system gray), not LightGray/Gray. Setting explicit track colors here diverged visibly
             // from both the twin and MAUI's actual render (Mac Catalyst AppKit's NSSlider.trackFillColor paints
             // solid Gray even at Value=0, when nothing is "filled" yet) — so this builder now also leaves the

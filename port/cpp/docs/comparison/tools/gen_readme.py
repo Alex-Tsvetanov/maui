@@ -199,7 +199,7 @@ def counts(pages, plat, model):
 
 # The review models rendered per page, in order: (comparison.json key, display name). AI-based review
 # (Sonnet 5 + Gemini) was INVALIDATED (removed) — those models diverged and over-flagged, so the board
-# now reports ONLY the deterministic pixel-perfect score. Per CLAUDE.md parity ruling 5 the pixel score
+# now reports ONLY the deterministic pixel-perfect score. Per CLAUDE.md parity rule 2 (FOUR-COMPARISONS) the pixel score
 # judges MAUI-vs-C++ AND MAUI-vs-C++&XAML independently (C1/C3 and C2/C4), carried as separate rows.
 MODELS = [
     ("pixel", "Pixel-Perfect Score — C++ (C1/C3)"),

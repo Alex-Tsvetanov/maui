@@ -285,7 +285,7 @@ namespace
             // than the twin, so the same injected scroll travelled further and the page scored RED on
             // ios + maccatalyst purely from the resulting offset (aligning the columns at +180 left
             // 1.90%). The original Controls.Sample/Pages/Core/ClipPage.xaml has ZERO Buttons and ends at
-            // the fifth image, so the convention was adding what the ported page never had; ruling 1
+            // the fifth image, so the convention was adding what the ported page never had; the standing doctrine
             // (MAUI's render is ground truth for page CONTENT) decides it against the convention.
             //
             // The precedent for anyone re-adding an observable readout: it must not change the page's

@@ -46,7 +46,7 @@
 //     web message, NOT a script evaluation), while invoke/evaluate become ExecuteScriptAsync.
 //   - No custom CoreWebView2Environment. The oracle's :307-320 CreateWithOptionsAsync +
 //     CreateCoreWebView2ControllerOptions + WebViewInitializationStartedEventArgs path is POST-10.0.71
-//     `src/` (parity ruling 11: the local src/ is newer than the shipped MauiVersion 10.0.71 the board
+//     `src/` (parity rule 4 (RENDER-BREAKS-TIES): the local src/ is newer than the shipped MauiVersion 10.0.71 the board
 //     renders). The bare EnsureCoreWebView2Async() used here is both the safer bet and render-identical.
 //     Same for :119's WebRequestInterceptingWebView.TryInterceptResponseStream app-override hook.
 //   - Generic-IView pushes are NOT overridden: hybrid_web_view_platform declares those overrides only

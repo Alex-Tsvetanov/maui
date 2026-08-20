@@ -127,66 +127,70 @@ How the iOS parity loop judges the C++ port against real .NET MAUI. The comparis
 differences are split into **port_diffs** (fix) vs **maui_quirks** (MAUI-side, discuss). User rulings
 (2026-06-21) — read them THROUGH the 2026-08-17 override above, which revokes every exemption:
 
-4. **Match MAUI's NATIVE-default control rendering, and do NOT adopt `Styles.xaml`.** The reference app
-   (`port/maui-reference/app/App.xaml`) deliberately does not merge `Styles.xaml` — it renders
-   native-default controls plus the system font — so the demo's default Button/Label/Entry styles are
-   never applied and the port must not add them. It must, however, reproduce the NATIVE control
-   defaults: an unset `Padding` leaves the native default (mirroring MAUI's `MapPadding`) rather than
-   zeroing it. Zeroing `UIButton`'s content insets is what once crammed `clipping`'s digit row.
+Each rule has a **NAME**; cite the name, not the number. Numbers are for reading order only and have
+been renumbered once already (2026-08-20, twelve rules -> five). Names do not collide when a rule is
+retired, which numbers demonstrably do: at the renumber there were 146 citations in this tree and 71 of
+them pointed at rules that no longer existed.
 
-Workflow: run the sweep **review-only** (writes `PARITY_REVIEW.md`, board untouched) → user verifies and
-rules on quirks → only then `--commit-board` adopts verdicts and the port_diffs become fix candidates.
+| # | NAME | in one line |
+|---|------|-------------|
+| 1 | **NATIVE-DEFAULTS**      | reproduce the platform's native control defaults; never adopt `Styles.xaml` |
+| 2 | **FOUR-COMPARISONS**     | score MAUI vs `cpp` AND MAUI vs `xaml`, in both themes — four pairs, four verdicts |
+| 3 | **GROUND-TRUTH-ROOT**    | the reference app and its shared XAML live in `port/maui-reference/` |
+| 4 | **RENDER-BREAKS-TIES**   | where `src/` gives two answers, the shipped render decides |
+| 5 | **PORT-MUST-EXPRESS-IT** | anything MAUI can express, the port must be able to express |
 
-5. **The four required comparisons (2026-07-05 ruling)** — every review model (Sonnet, Gemini, and the
-   pixel-perfect/SSIM score) must judge FOUR image pairs per page per theme, not just one:
-   - Comparison 1: MAUI light vs C++ light
-   - Comparison 2: MAUI light vs C++ & XAML light
-   - Comparison 3: MAUI dark vs C++ dark
-   - Comparison 4: MAUI dark vs C++ & XAML dark
+1. **NATIVE-DEFAULTS — match MAUI's native-default control rendering, and do NOT adopt `Styles.xaml`.**
+   The reference app (`port/maui-reference/app/App.xaml`) deliberately does not merge `Styles.xaml` — it
+   renders native-default controls plus the system font — so the demo's default Button/Label/Entry
+   styles are never applied and the port must not add them. It must, however, reproduce the NATIVE
+   control defaults: an unset `Padding` leaves the native default (mirroring MAUI's `MapPadding`) rather
+   than zeroing it. Zeroing `UIButton`'s content insets is what once crammed `clipping`'s digit row.
+   *(was ruling 4)*
 
-   i.e. MAUI is the ground truth compared against **both** the `cpp` (code-first builder) and `xaml`
-   (compile-time-XAML) framework columns, independently, in both themes — not just `cpp` vs `maui`.
-   Record each comparison's own verdict; do not average/collapse them into a single cpp-only score. The
-   two columns routinely disagree and that disagreement is the finding: when the loader was corrected to
-   match XamlC, `pixel_xaml` went green while `pixel` went red, which is what localised the defect to the
-   code-first builder.
+2. **FOUR-COMPARISONS — every page is judged as FOUR pairs, not one.** MAUI light vs `cpp` light; MAUI
+   light vs `xaml` light; and both again in dark. MAUI is the ground truth against BOTH port columns —
+   the code-first builder and the compile-time-XAML loader — independently. Record each verdict; never
+   average or collapse them into a single cpp-only score. The two columns routinely disagree and the
+   disagreement IS the finding: when the loader was corrected to match XamlC, `pixel_xaml` went green
+   while `pixel` went red, which is what localised the defect to the code-first builder. *(was ruling 5)*
 
-6. **The MAUI ground truth is `port/maui-reference/` (2026-07-05 restructure, XAML-first).** The old
-   out-of-repo C#-only `~/maui-compare` app is superseded by the in-repo `port/maui-reference/app`
-   (MauiReference), whose pages are the CANONICAL SHARED XAML files in `port/maui-reference/pages/` —
-   the exact same `.xaml` bytes the port's `gallery_xaml` app `#embed`s (one file, two frameworks).
-   The board's own MAUI column is captured STRAIGHT INTO
-   `port/cpp/docs/comparison/captures/<platform>/maui/` by `recapture.py` — one writer per destination,
-   on every lane. `port/maui-reference/captures/` is `port/tools/e2e/e2e.py`'s separate ground-truth
-   root for the VERIFICATION_LOOP workflow; the two capture paths are decoupled, not chained. The
-   deterministic 10-step verification loop any agent can resume is codified in
-   **`port/maui-reference/docs/VERIFICATION_LOOP.md`** (authoring rules: `docs/AUTHORING.md`); the
-   single tool driving it is **`port/tools/e2e/e2e.py`** (see its README). Ruling 4's
-   `~/maui-compare/App.xaml` citation maps to `port/maui-reference/app/App.xaml`, which preserves the
-   same no-Styles.xaml native-default rendering.
+3. **GROUND-TRUTH-ROOT — the MAUI ground truth is `port/maui-reference/`.** Its pages are the CANONICAL
+   SHARED XAML in `port/maui-reference/pages/` — the exact bytes MAUI compiles and the port's
+   `gallery_xaml` app `#embed`s (one file, two frameworks). The board's MAUI column is captured straight
+   into `port/cpp/docs/comparison/captures/<platform>/maui/` by `recapture.py`: ONE WRITER PER
+   DESTINATION, on every lane. `port/maui-reference/captures/` is `port/tools/e2e/e2e.py`'s separate
+   ground-truth root for the VERIFICATION_LOOP workflow — the two capture paths are decoupled, not
+   chained. The loop is codified in **`port/maui-reference/docs/VERIFICATION_LOOP.md`** (authoring rules:
+   `docs/AUTHORING.md`); the tool driving it is **`port/tools/e2e/e2e.py`**. *(was ruling 6)*
 
-11. **When `src/` is AMBIGUOUS or self-contradictory, the shipped RENDER decides (2026-07-16, premise
-    corrected 2026-08-20).** Originally written as "`src/` is a stale snapshot, the render is newer".
-    THAT PREMISE IS FALSE and was retired by measurement: the worked example is CheckBox, where
-    `CheckBoxHandler.iOS.cs` says `MinimumSize => 44f` while `MauiCheckBox.cs` says
-    `DefaultSize = 18.0f`, and BOTH lines are present verbatim in our `src/`, in tag 10.0.71 (what the
-    board renders) and in tag 10.0.90 (current upstream). No version sync can resolve it, because there
-    is no version skew — two files in the SAME source disagree and the render follows one of them.
-    So: `src/` remains the oracle for MECHANISM, and where reading it yields two answers, the shipped
-    render is the tiebreak. Mark such a choice a DOCUMENTED DEVIATION in code, citing both lines and
-    this ruling. The port dropped the 44 floor (`check_box_handler.mm`), fixing `entry` (+20px → 0.00)
-    and `border_playground` (→ 0.37).
+4. **RENDER-BREAKS-TIES — when `src/` is AMBIGUOUS or self-contradictory, the shipped render decides.**
+   This was once written as "`src/` is a stale snapshot, the render is newer". THAT PREMISE IS FALSE and
+   was retired by measurement: the worked example is CheckBox, where `CheckBoxHandler.iOS.cs` says
+   `MinimumSize => 44f` while `MauiCheckBox.cs` says `DefaultSize = 18.0f`, and BOTH lines appear
+   verbatim in our `src/`, in tag 10.0.71 (what the board renders) and in tag 10.0.90 (current
+   upstream). There is no version skew — two files in the SAME source disagree and the render follows
+   one. So `src/` is the oracle for MECHANISM, and where reading it yields two answers the shipped
+   render is the tiebreak. Mark such a choice a DOCUMENTED DEVIATION in code, citing both lines and this
+   rule. The port dropped the 44 floor (`check_box_handler.mm`), fixing `entry` (+20px -> 0.00) and
+   `border_playground` (-> 0.37). *(was ruling 11)*
 
-12. **ANYTHING MAUI CAN EXPRESS, THE PORT MUST BE ABLE TO EXPRESS — in both dialects (2026-08-20).**
-    The `port/maui-reference` pages are shared XAML: the same bytes MAUI compiles and the port `#embed`s.
-    When a page cannot be written faithfully because the port's loader or builder lacks a feature, the
-    gap is a PORT GAP and the fix is to IMPLEMENT the missing piece — not to simplify the twin down to
-    what the port already supports, and not to exempt the resulting diff. Degrading the twin hides the
-    gap in the one artifact that is supposed to reveal it, and makes MAUI's own column render something
-    original MAUI never would.
-    Worked example: `header_footer_template` used an `<x:Array>` of plain strings because the loader had
-    no string→ImageSource binding, so every row showed `cover1.jpg`. It was fixed by giving both sides a
-    real per-row model bound through `{Binding Image}` — i.e. by closing the gap, not by exempting it.
+5. **PORT-MUST-EXPRESS-IT — anything MAUI can express, the port must be able to express, in both
+   dialects.** The `port/maui-reference` pages are shared XAML. When a page cannot be written faithfully
+   because the port's loader or builder lacks a feature, the gap is a PORT GAP and the fix is to
+   IMPLEMENT the missing piece — not to simplify the twin down to what the port already supports, and
+   not to exempt the resulting diff. Degrading the twin hides the gap in the one artifact meant to
+   reveal it, and makes MAUI's own column render something original MAUI never would. Worked example:
+   `header_footer_template` used an `<x:Array>` of plain strings because the loader had no
+   string->ImageSource binding, so every row showed `cover1.jpg`; it was fixed by giving both sides a
+   real per-row model bound through `{Binding Image}` — by closing the gap, not exempting it.
+   *(was ruling 12)*
+
+**Decoding an old citation.** Historical documents (`PARITY_REVIEW.md`, `_recapture_logs/`, STATUS.md's
+dated entries) are a frozen record and were NOT rewritten. Old number -> today:
+4->1, 5->2, 6->3, 11->4, 12->5. Old rulings 1 and 3 are folded into the doctrine block above; old
+2, 7, 8, 9 and 10 were quirk exemptions, all revoked 2026-08-17 and deleted 2026-08-20 — a citation to
+any of those is describing a rule that no longer exists, and the standing doctrine replaces it.
 
 
 ## Progress tracking

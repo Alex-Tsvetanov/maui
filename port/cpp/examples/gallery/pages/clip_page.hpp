@@ -28,7 +28,7 @@
 //
 // The original is the arbiter: src/Controls/samples/Controls.Sample/Pages/Core/ClipPage.xaml contains ZERO
 // Buttons and ends after the PathGeometry image, exactly like the twin. So the convention was adding what
-// the page it ports never had. Ruling 1 — MAUI's render is ground truth for page content — settles it
+// the page it ports never had. The standing doctrine — MAUI's render is ground truth for page content — settles it
 // against the convention here. If a future page needs an observable readout, it must not change the
 // page's HEIGHT, because on a ScrollView-rooted page height is itself a measured output.
 //

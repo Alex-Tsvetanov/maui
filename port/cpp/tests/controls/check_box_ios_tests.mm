@@ -138,7 +138,7 @@ namespace
         control.set_handler(handler);
 
         // The drawn control squares itself at DefaultSize (18pt) under free constraints — NOT the 44pt
-        // MinimumSize touch-target floor src/'s CheckBoxHandler.iOS.cs applies. User ruling 11
+        // MinimumSize touch-target floor src/'s CheckBoxHandler.iOS.cs applies. User rule 4 (RENDER-BREAKS-TIES)
         // (2026-07-16): the shipped MAUI (MauiVersion 10.0.71) renders 18pt on both Catalyst and iOS and
         // the render wins over src/'s stale 2025 snapshot. See docs/comparison/PARITY_REVIEW.md item 1.
         const maui::graphics::size measured =

@@ -949,7 +949,7 @@ namespace maui::core
         {
             return {0, 0};
         }
-        // DOCUMENTED DEVIATION (ruling 1 + 11 — match the shipped RENDER): real MAUI renders the Slider as a
+        // DOCUMENTED DEVIATION (the standing doctrine + rule 4 (RENDER-BREAKS-TIES) — match the shipped RENDER): real MAUI renders the Slider as a
         // Material AppCompatSeekBar (~31dp measured row height), but this AAR-less host's plain
         // android.widget.SeekBar under Theme.DeviceDefault measures only ~18dp, so a page of stacked sliders
         // accumulated a large upward drift vs MAUI (slider/swipe_threshold/transform* clusters). Floor the

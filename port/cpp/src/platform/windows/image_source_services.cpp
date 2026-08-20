@@ -439,7 +439,7 @@ namespace
         // there, so SOME device path works, but Win2D on that driver has not been exercised. If activation
         // throws here, that is where to look first -- not at the font/layout code below.
         const canvas::CanvasDevice device = canvas::CanvasDevice::GetSharedDevice();
-        // DOCUMENTED DEVIATION from the read-only `src/` snapshot, per parity ruling 11 (render wins) --
+        // DOCUMENTED DEVIATION from the read-only `src/` snapshot, per parity rule 4 (RENDER-BREAKS-TIES) (render wins) --
         // this follows the SHIPPED MauiVersion the board renders against, not `src/`. The two revisions
         // of FontImageSourceService.Windows.cs differ in exactly three places:
         //   src/ (post-10.0.71 snapshot)          shipped 10.0.71 (MauiReference.csproj:18)

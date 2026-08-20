@@ -26,11 +26,11 @@ Subcommands implemented so far:
             docs/comparison/captures layout. The frozen captures/*/maui tree is never written.
     board   rescan captures -> refresh comparison.json screenshot paths (maui resolves dual-root: the new
             maui-reference tree first, the frozen historical tree as fallback) -> regenerate README.md.
-    pixel   SSIM + diff%% scorer for parity ruling 5's four comparisons (MAUI vs cpp -> "pixel", MAUI vs
+    pixel   SSIM + diff%% scorer for parity rule 2 (FOUR-COMPARISONS)'s four comparisons (MAUI vs cpp -> "pixel", MAUI vs
             xaml -> "pixel_xaml", light+dark) into comparison.json. Needs Pillow + numpy.
     consistency   mechanical cpp<->xaml cross-check: flags any page marked green vs MAUI on BOTH
             columns (sonnet + sonnet_xaml) whose cpp and xaml screenshots nonetheless differ from each
-            other by SSIM/diff%% — the self-contradiction ruling 5 review batches must not produce.
+            other by SSIM/diff%% — the self-contradiction rule 2 (FOUR-COMPARISONS) review batches must not produce.
             Writes a "consistency" slot; see docs/VERIFICATION_LOOP.md "Review methodology" for the
             prompt rule this backs up.
 
@@ -821,7 +821,7 @@ def cmd_board(_args: argparse.Namespace) -> int:
 
 # ---------------------------------------------------------------- pixel -----------------------------
 def cmd_pixel(args: argparse.Namespace) -> int:
-    # Absorbed from port/cpp/tools/parity/pixel_score.py (parity ruling 5's four comparisons). The
+    # Absorbed from port/cpp/tools/parity/pixel_score.py (parity rule 2 (FOUR-COMPARISONS)'s four comparisons). The
     # legacy script resolves the maui column only against docs/comparison; this version follows the
     # comparison.json relative paths (which cmd_board writes dual-root), so it works for both trees.
     try:
@@ -865,7 +865,7 @@ def cmd_consistency(args: argparse.Namespace) -> int:
     reuses pixel_score's SSIM/diff%% machinery directly on the cpp<->xaml pair (no MAUI involved), and
     writes a "consistency" slot alongside sonnet/gemini/pixel so gen_readme.py can surface it.
 
-    This does not replace human/vision judgment of comparisons 1-4 (ruling 5) — it is a cheap, always-on
+    This does not replace human/vision judgment of comparisons 1-4 (rule 2 (FOUR-COMPARISONS)) — it is a cheap, always-on
     guardrail that catches the specific self-contradiction a reviewer (human, Sonnet, or Gemini) can
     slip into when comparisons 1-4 are judged independently per column instead of against each other.
     """

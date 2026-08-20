@@ -23,7 +23,7 @@
 //         for this Path.Data content on this backend). The shared XAML twin independently documents and
 //         reproduces the identical degraded silhouette via a Polygon octagon
 //         ("4,50 26,12 50,4 74,12 96,50 74,88 50,96 26,88") inside a LightGray 100x100 Grid, since
-//         Path.Data geometry authoring is unsupported by its loader. Per port/CLAUDE.md parity ruling 1,
+//         Path.Data geometry authoring is unsupported by its loader. Per port/CLAUDE.md the standing doctrine,
 //         MAUI's actual render is ground truth for page content, so the port reproduces the twin's
 //         octagon/Grid structure directly instead of the mathematically-faithful (but NOT what MAUI
 //         actually shows) bird-silhouette Path.

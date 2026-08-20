@@ -285,7 +285,7 @@ namespace
         // alpha (so a disabled button still dims, matching MAUI's dimmed Disabled row). Night-mode only; light
         // keeps the matching DeviceDefault default.
         // TINT to MAUI's Material stepper-button fill in BOTH themes (the DeviceDefault default renders
-        // #F4F5F5 in LIGHT — ~30 units too white vs MAUI's shipped #D6D7D7 per ruling 11 render-wins; DARK is
+        // #F4F5F5 in LIGHT — ~30 units too white vs MAUI's shipped #D6D7D7 per rule 4 (RENDER-BREAKS-TIES) render-wins; DARK is
         // the tonal #5A595B). Preserve the disabled-state alpha (tint, not flat setBackgroundColor which would
         // erase the rounded shape + inter-button gap). Only DARK needs the white glyph; light keeps the
         // DeviceDefault dark glyph (already matches MAUI).

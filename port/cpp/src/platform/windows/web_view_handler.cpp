@@ -604,7 +604,7 @@ namespace maui::core
     // the oracle's own "best-effort approximation") becomes WebView2.DefaultBackgroundColor; a null
     // Background changes nothing (there is no clearing branch).
     //
-    // SRC-vs-SHIPPED FLAG (parity ruling 11): the oracle also sets CoreWebView2.Profile.
+    // SRC-vs-SHIPPED FLAG (parity rule 4 (RENDER-BREAKS-TIES)): the oracle also sets CoreWebView2.Profile.
     // PreferredColorScheme (Light when a background is set, Auto otherwise). That whole method is
     // `internal` and carries `//TODO: Make it public in .NET 11` (WebViewHandler.Windows.cs:99) — direct
     // evidence it is post-10.0 churn that shipped 10.0.71 (the MauiVersion the board renders,

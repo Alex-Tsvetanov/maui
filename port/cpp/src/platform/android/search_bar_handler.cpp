@@ -55,7 +55,7 @@
 //     ASSETS differ slightly: the framework clear-X renders ~14dp where AppCompat's abc_ic_clear_material
 //     renders ~16dp, and the framework DeviceDefault search_plate 9-patch is a dark accent (measured rgb
 //     64,72,77) where MAUI's Material plate is a faint gray (measured 215,215,215). The plate is tinted to
-//     MAUI's gray (apply_underline_tint, parity ruling 1 — MAUI's render is ground truth); the ~2dp
+//     MAUI's gray (apply_underline_tint, the standing doctrine — MAUI's render is ground truth); the ~2dp
 //     clear-X glyph-size difference is the one measured residual left on the board.
 //   - Resource.Id.search_mag_icon / search_close_btn / search_plate are resolved by NAME through
 //     Resources.getIdentifier(name, "id", "android") — this backend links android.jar only and has no
