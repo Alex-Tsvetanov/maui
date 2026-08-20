@@ -207,7 +207,9 @@ public partial class App : Application
                             .Select(f => f.GetMethod()?.DeclaringType?.Name + "." + f.GetMethod()?.Name)
                             .Where(n => n is not null && !n.Contains("StackTrace", StringComparison.Ordinal))
                             .Take(7));
-                        Console.Error.WriteLine($"[GEOMDUMP] contentOffset -> {sv.ContentOffset} managed=[{frames}]");
+                        Console.Error.WriteLine($"[GEOMDUMP] contentOffset -> {sv.ContentOffset} bounds={sv.Bounds} " +
+                                                $"frame={sv.Frame} contentSize={sv.ContentSize} adj={sv.AdjustedContentInset} " +
+                                                $"managed=[{frames}]");
                     });
                 };
             }
