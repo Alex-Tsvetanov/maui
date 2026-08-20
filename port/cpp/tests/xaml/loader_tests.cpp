@@ -1670,6 +1670,54 @@ namespace
         EXPECT_EQ(label.text(), "Foo");
     }
 
+    // The SelectionSyncModel shape the ORIGINAL sample binds
+    // (Controls.Sample/.../SelectionSynchronization.xaml.cs:31-52): Items plus an
+    // ObservableCollection<object> of preselected values.
+    const maui::core::bindable_property<std::shared_ptr<controls::i_item_collection>>& vm_items_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<controls::i_item_collection>> descriptor{"Items"};
+        return descriptor;
+    }
+    const maui::core::bindable_property<std::shared_ptr<controls::i_item_collection>>& vm_selected_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<controls::i_item_collection>> descriptor{
+            "SelectedItems"};
+        return descriptor;
+    }
+    struct selection_sync_view_model : bindable_object
+    {
+        // The descriptor NAMES are the binding paths and they are CASE-SENSITIVE: the twin binds
+        // {Binding Items} / {Binding SelectedItems}, so the VM registers exactly those, not lowercase.
+        maui::core::property<std::shared_ptr<controls::i_item_collection>> items{*this, vm_items_property()};
+        maui::core::property<std::shared_ptr<controls::i_item_collection>> selecteditems{*this, vm_selected_property()};
+    };
+
+    TEST(xaml_loader, collection_view_selected_items_binding_preselects)
+    {
+        // THE ORIGINAL SAMPLE'S FORM, and the reason SelectedItems is a bindable property at all:
+        // `SelectedItems="{Binding SelectedItems}"` bound to an ObservableCollection<object> DOES select,
+        // where the <x:Array> element form above selects nothing. Both behaviours are MAUI's; the twin
+        // must use this one to reproduce the original page.
+        const runtime_bindings_guard guard;
+        controls::collection_view view;
+        (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                SelectionMode="Multiple" ItemsSource="{Binding Items}" SelectedItems="{Binding SelectedItems}"/>)xml");
+        EXPECT_EQ(view.selected_items().count(), 0U); // nothing until a context arrives
+
+        auto context = std::make_shared<selection_sync_view_model>();
+        context->items.set(controls::make_item_collection(
+            std::vector<std::string>{"Item 1", "Item 2", "Item 3", "Item 4"}));
+        context->selecteditems.set(controls::make_item_collection(std::vector<std::string>{"Item 3", "Item 2"}));
+        view.set_binding_context(context);
+
+        ASSERT_EQ(view.selected_items().count(), 2U); // the ELEMENTS, not the collection object
+        EXPECT_TRUE(view.selected_items().contains(controls::boxed_item::of(std::string{"Item 2"})));
+        EXPECT_TRUE(view.selected_items().contains(controls::boxed_item::of(std::string{"Item 3"})));
+        EXPECT_FALSE(view.selected_items().contains(controls::boxed_item::of(std::string{"Item 1"})));
+    }
+
     TEST(xaml_loader, item_template_body_binding_resolves_per_stamp)
     {
         // Per-item binding (W4): a {Binding} inside the DataTemplate body re-evaluates against each

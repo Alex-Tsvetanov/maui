@@ -322,6 +322,13 @@ namespace maui::xaml
             "SelectedItem", [](controls::collection_view& view, const std::string& text) {
                 view.set_selected_item(maui::controls::boxed_item::of(text));
             });
+        // SelectedItems="{Binding SelectedItems}" — the ORIGINAL sample's form
+        // (Controls.Sample/.../SelectionSynchronization.xaml:28 binds it to an ObservableCollection<object>).
+        // Registered as a BINDABLE property so the applier resolves the descriptor and calls set_binding;
+        // the element-array form above stays for <CollectionView.SelectedItems><x:Array>, which XamlC
+        // refuses to match and which therefore selects nothing.
+        properties.register_bindable_property<controls::collection_view>(
+            "SelectedItems", controls::selectable_items_view::selected_items_source_property());
         // IsGrouped + the group templates (W6): groupable_items_view — CollectionView derives it,
         // CarouselView does not. GroupHeader/FooterTemplate take the same minted-data_template object
         // route as ItemTemplate / HeaderTemplate.

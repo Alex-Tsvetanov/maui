@@ -43,6 +43,22 @@ namespace maui::controls
 
         static const maui::core::bindable_property<controls::selection_mode>& selection_mode_property();
         static const maui::core::bindable_property<boxed_item>& selected_item_property();
+        // SelectedItemsProperty (SelectableItemsView.cs:31) — the BINDABLE INPUT SLOT for the multiple
+        // selection, so `SelectedItems="{Binding SelectedItems}"` works as it does in MAUI.
+        //
+        // WHY A SEPARATE SLOT FROM selected_items() ABOVE. C#'s setter is
+        // `SetValue(SelectedItemsProperty, new SelectionList(this, value))`: the property holds the raw
+        // assigned list and a SelectionList wrapping THIS view is what everything downstream reads. This
+        // port already collapsed that second half into the selection_list MEMBER (see the header note),
+        // so the member cannot also be the bindable slot — a property<T> needs a value of its own. The
+        // slot therefore holds the ASSIGNED collection and its property_changed coerces it into the
+        // member, which is exactly the C# wrap-then-notify order with the wrap already done.
+        //
+        // The descriptor key is "selected_items_source", NOT "selected_items": the latter is the mapper
+        // key the handlers listen on and set_selected_items already raises it. Sharing the name would
+        // fire it twice per assignment.
+        static const maui::core::bindable_property<std::shared_ptr<i_item_collection>>&
+        selected_items_source_property();
 
         [[nodiscard]] controls::selection_mode selection_mode() const
         {
@@ -76,6 +92,15 @@ namespace maui::controls
         void set_selected_items(std::shared_ptr<maui::core::observable_collection<boxed_item>> value);
         void set_selected_items(std::vector<boxed_item> value);
 
+        [[nodiscard]] const std::shared_ptr<i_item_collection>& selected_items_source() const
+        {
+            return selected_items_source_.get();
+        }
+        void set_selected_items_source(std::shared_ptr<i_item_collection> value)
+        {
+            selected_items_source_.set(std::move(value));
+        }
+
         // UpdateSelectedItems: replace the selection contents with ONE change notification.
         void update_selected_items(const std::vector<boxed_item>& new_selection);
 
@@ -107,5 +132,7 @@ namespace maui::controls
         std::unique_ptr<selection_list> selected_items_;
         maui::core::property<boxed_item> selected_item_{*this, selected_item_property()};
         maui::core::property<controls::selection_mode> selection_mode_{*this, selection_mode_property()};
+        maui::core::property<std::shared_ptr<i_item_collection>> selected_items_source_{
+            *this, selected_items_source_property()};
     };
 } // namespace maui::controls

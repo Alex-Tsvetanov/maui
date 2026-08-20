@@ -53,6 +53,40 @@ namespace maui::controls
     }
 
     // SelectableItemsView.SelectedItemProperty: default null, TwoWay.
+    // SelectedItemsProperty (SelectableItemsView.cs:31) — the bindable INPUT slot. See the header for why
+    // this is a slot distinct from the selection_list member and why the key is not "selected_items".
+    //
+    // C#: `set => SetValue(SelectedItemsProperty, new SelectionList(this, value))`. The wrap is what
+    // set_selected_items already does, so property_changed simply forwards the assigned collection into
+    // it — and set_selected_items then runs the ordinary notification choreography (one change, the
+    // mapper key raised once), which is why nothing here notifies on its own.
+    //
+    // A NULL assignment CLEARS rather than being ignored: C#'s SelectionList wraps a null list as empty,
+    // and `SelectedItems="{Binding Missing}"` resolving to nothing must deselect, not silently keep the
+    // previous selection.
+    const maui::core::bindable_property<std::shared_ptr<i_item_collection>>& selectable_items_view::
+        selected_items_source_property()
+    {
+        static const maui::core::bindable_property<std::shared_ptr<i_item_collection>> descriptor{
+            "selected_items_source",
+            nullptr,
+            {.property_changed = [](maui::core::bindable_object& bindable, const std::shared_ptr<i_item_collection>&,
+                                    const std::shared_ptr<i_item_collection>& new_value) {
+                std::vector<boxed_item> items;
+                if (new_value)
+                {
+                    const std::size_t count = new_value->count();
+                    items.reserve(count);
+                    for (std::size_t i = 0; i < count; i++)
+                    {
+                        items.push_back(new_value->at(i));
+                    }
+                }
+                dynamic_cast<selectable_items_view&>(bindable).set_selected_items(std::move(items));
+            }}};
+        return descriptor;
+    }
+
     const maui::core::bindable_property<boxed_item>& selectable_items_view::selected_item_property()
     {
         static const maui::core::bindable_property<boxed_item> descriptor{
