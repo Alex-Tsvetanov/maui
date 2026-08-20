@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.Maui.Media;
 using Microsoft.Maui.Storage;
 #if ANDROID
@@ -165,6 +166,53 @@ public partial class App : Application
         }
 #endif
 
+#if MACCATALYST
+        // TEMPORARY FORENSICS, OPT-IN (MAUI_GEOMETRY_DUMP=1) and OFF for every board run. lldb cannot attach
+        // on this VM -- `DevToolsSecurity` is disabled and enabling it needs an admin password -- so the two
+        // open Catalyst questions are answered from inside the app instead. Same shape as the
+        // MAUI_SUPPRESS_FOCUS_VISUAL block above: gated, post-Loaded, and it never touches rendering.
+        //
+        // Q1  the 32px page offset (clip / swipe_item_size / path_gallery are RED, scroll_view is GREEN):
+        //     which UIKit term differs -- the page ContentView's origin, the scroller's frame, its
+        //     adjustedContentInset, or its resting contentOffset?
+        // Q2  the multi-select band (cpp paints it on Catalyst, MAUI and the port's XAML column do not):
+        //     does MAUI actually have those cells SELECTED here, or is it not selecting at all?
+        if (Environment.GetEnvironmentVariable("MAUI_GEOMETRY_DUMP") == "1")
+        {
+            page.Loaded += async (_, _) =>
+            {
+                await Task.Delay(600); // let layout + the selection restore settle, as the capture settle does
+                void Line(string s) => Console.Error.WriteLine("[GEOMDUMP] " + s);
+                Line($"page={key}");
+                if (page.Handler?.PlatformView is UIKit.UIView pv)
+                {
+                    Line($"page.ContentView frame={pv.Frame} safeArea={pv.SafeAreaInsets}");
+                }
+                int i = 0;
+                foreach (var el in Descendants(page))
+                {
+                    if (el.Handler?.PlatformView is UIKit.UIScrollView sv && el is not Microsoft.Maui.Controls.CollectionView)
+                    {
+                        Line($"scroll[{i}] {el.GetType().Name} frame={sv.Frame} contentSize={sv.ContentSize} " +
+                             $"adjInset={sv.AdjustedContentInset} offset={sv.ContentOffset}");
+                    }
+                    if (el is Microsoft.Maui.Controls.CollectionView cv &&
+                        cv.Handler?.PlatformView is UIKit.UIView cvRoot)
+                    {
+                        var ucv = cvRoot as UIKit.UICollectionView ?? FindCollectionView(cvRoot);
+                        var sel = ucv?.GetIndexPathsForSelectedItems();
+                        var selDesc = sel is null ? "n/a" : string.Join(",", sel.Select(x => $"{x.Section}:{x.Item}"));
+                        Line($"cv[{i}] mode={cv.SelectionMode} selectedItems={cv.SelectedItems?.Count ?? -1} " +
+                             $"nativeSelected=[{selDesc}] allowsMulti={ucv?.AllowsMultipleSelection}");
+                    }
+                    i++;
+                }
+                Line("end");
+            };
+        }
+#endif
+
+
         if (Environment.GetEnvironmentVariable("MAUI_SHOT") == "1")
         {
             page.Loaded += async (_, _) =>
@@ -187,4 +235,46 @@ public partial class App : Application
         }
         return window;
     }
+#if MACCATALYST
+    // Helpers for the MAUI_GEOMETRY_DUMP block above. Temporary, and deliberately private/static so they
+    // cannot be mistaken for app behaviour.
+    // IVisualTreeElement is the PUBLIC walk (LogicalChildrenInternal is internal to Controls).
+    static IEnumerable<Microsoft.Maui.Controls.Element> Descendants(Microsoft.Maui.Controls.Element root)
+    {
+        if (root is not Microsoft.Maui.IVisualTreeElement vte)
+        {
+            yield break;
+        }
+        foreach (var child in vte.GetVisualChildren())
+        {
+            if (child is Microsoft.Maui.Controls.Element el)
+            {
+                yield return el;
+                foreach (var d in Descendants(el))
+                {
+                    yield return d;
+                }
+            }
+        }
+    }
+
+    // A CollectionView's PlatformView is the controller's container, not always the UICollectionView itself.
+    static UIKit.UICollectionView? FindCollectionView(UIKit.UIView v)
+    {
+        if (v is UIKit.UICollectionView c)
+        {
+            return c;
+        }
+        foreach (var sub in v.Subviews)
+        {
+            var hit = FindCollectionView(sub);
+            if (hit is not null)
+            {
+                return hit;
+            }
+        }
+        return null;
+    }
+#endif
+
 }
