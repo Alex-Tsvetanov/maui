@@ -123,18 +123,37 @@ namespace maui::controls
         const maui::core::thickness base = padding();
         const maui::core::thickness inset{base.left + stroke_inset, base.top + stroke_inset, base.right + stroke_inset,
                                           base.bottom + stroke_inset};
+        // …and this Border's OWN MARGIN, which C# LayoutExtensions.ComputeDesiredSize (LayoutExtensions.cs
+        // :11-32) folds into EVERY IView's desired size: the constraint loses it, the reported size regains
+        // it, so the PARENT reserves the gap. Neither MAUI's layout managers nor the port's add child
+        // margins themselves — both rely on the child's Measure() already including it.
+        //
+        // Omitting it here was not merely an under-reserve, it was UNBALANCED — the same defect layout.hpp
+        // :175-180 documents and fixes for the layout override. arrange calls the shared compute_frame (the
+        // ComputeFrame port), which SUBTRACTS the margin from the desired size REGARDLESS (view.hpp
+        // :1069/1076, "DesiredSize already INCLUDES the margin"), so a Border with a Margin lost 2x that
+        // margin outright. Measured on border_clip_playground: a Margin=5 Border resolved to 100pt and
+        // compute_frame handed it 90pt, a 266px stroke bbox where MAUI draws 296px at 3x. view<>::measure
+        // always added it; this override was half-wired. A no-op at zero margin, which is why it survived.
+        const maui::core::thickness view_margin = margin();
+        const double margin_h = view_margin.horizontal_thickness();
+        const double margin_v = view_margin.vertical_thickness();
         maui::graphics::size content_size{0, 0};
         if (content_ != nullptr)
         {
-            content_size = content_->measure(width_constraint - inset.horizontal_thickness(),
-                                             height_constraint - inset.vertical_thickness());
+            content_size = content_->measure(width_constraint - margin_h - inset.horizontal_thickness(),
+                                             height_constraint - margin_v - inset.vertical_thickness());
         }
         const maui::graphics::size measured{content_size.width + inset.horizontal_thickness(),
                                             content_size.height + inset.vertical_thickness()};
         // Border : View — reconcile the measured inset against this view's own Width/HeightRequest
         // (clamped by Min/Max), the IView desired-size resolution every leaf measure runs.
-        desired_size_ = {resolve_size_request(measured.width, width(), minimum_width(), maximum_width()),
-                         resolve_size_request(measured.height, height(), minimum_height(), maximum_height())};
+        // The margin is added AFTER the size-request resolution, not before: in C# the Width/HeightRequest
+        // clamp happens inside the handler's GetDesiredSize, and ComputeDesiredSize adds the margin to
+        // whatever that returned. Folding it in first would let an explicit WidthRequest swallow the margin.
+        desired_size_ = {resolve_size_request(measured.width, width(), minimum_width(), maximum_width()) + margin_h,
+                         resolve_size_request(measured.height, height(), minimum_height(), maximum_height()) +
+                             margin_v};
         return desired_size_;
     }
 

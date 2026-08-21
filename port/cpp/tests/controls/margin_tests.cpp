@@ -4,6 +4,7 @@
 // reported desired size, ComputeFrame SUBTRACTS it back out and offsets the frame by margin.Left/Top. The
 // two halves must balance: measure adds, arrange subtracts. A real view<> (label) exercises the storage +
 // the measure/arrange seam; a vertical_stack_layout exercises the parent re-layout after a margin change.
+#include "maui/controls/border.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 
@@ -18,6 +19,7 @@
 
 namespace
 {
+    using maui::controls::border;
     using maui::controls::label;
     using maui::controls::vertical_stack_layout;
     using maui::core::i_view;
@@ -148,5 +150,75 @@ namespace
         stack.arrange(rect(0, 0, 200, 200));
         EXPECT_EQ(child.frame().x, 30);      // shifted right by the new left margin
         EXPECT_EQ(child.frame().width, 100); // still the explicit width (desired 130 - margin 30)
+    }
+
+    // ---- (d) the OVERRIDES must balance too — measure() overrides are where this breaks ----
+
+    // border::measure is a full override of view<>::measure, so it does not inherit the margin fold and had
+    // to add it explicitly. It did not, and the halves came apart: compute_frame subtracts the margin from
+    // desired_size REGARDLESS (view.hpp:1069/1076), so a Border with a Margin lost 2x that margin. This is
+    // the same defect layout.hpp:175-180 documents for the layout override, in a second override that never
+    // got the fix. Zero margin is unaffected, which is why it survived — so both cases are pinned.
+    TEST(margin, border_measure_includes_margin)
+    {
+        border bordered;
+        bordered.set_padding(thickness(0));
+        bordered.set_stroke_thickness(0);
+        label content;
+        content.set_width_request(100);
+        content.set_height_request(50);
+        bordered.set_content(content);
+
+        bordered.set_margin(thickness(10));
+        const size desired = bordered.measure(inf, inf);
+        EXPECT_EQ(desired.width, 120);  // 100 content + margin.horizontal 20
+        EXPECT_EQ(desired.height, 70);  // 50 content + margin.vertical 20
+
+        // …and arrange gives the content box back, not content-minus-2x-margin. Alignment must be non-Fill
+        // for the DESIRED size to govern the frame at all: compute_frame's Fill branch (view.hpp:1068-1073)
+        // ignores desired_size and consumes min(bounds, maximum) instead, so a Fill Border reads 300-20=280
+        // here whatever measure returned — it cannot witness this bug in either direction.
+        bordered.set_horizontal_layout_alignment(layout_alignment::start);
+        bordered.set_vertical_layout_alignment(layout_alignment::start);
+        bordered.arrange(rect(0, 0, 300, 300));
+        EXPECT_EQ(bordered.frame().width, 100);  // desired 120 - margin 20
+        EXPECT_EQ(bordered.frame().height, 50);
+        EXPECT_EQ(bordered.frame().x, 10);       // offset by margin.left
+        EXPECT_EQ(bordered.frame().y, 10);
+    }
+
+    TEST(margin, border_zero_margin_is_unchanged)
+    {
+        border bordered;
+        bordered.set_padding(thickness(0));
+        bordered.set_stroke_thickness(0);
+        label content;
+        content.set_width_request(100);
+        content.set_height_request(50);
+        bordered.set_content(content);
+
+        const size desired = bordered.measure(inf, inf);
+        EXPECT_EQ(desired.width, 100);
+        EXPECT_EQ(desired.height, 50);
+    }
+
+    // The margin must NOT be swallowed by an explicit size request: in C# the Width/HeightRequest clamp
+    // happens inside the handler's GetDesiredSize and ComputeDesiredSize adds the margin to whatever that
+    // returned, so the two are additive.
+    TEST(margin, border_size_request_and_margin_are_additive)
+    {
+        border bordered;
+        bordered.set_padding(thickness(0));
+        bordered.set_stroke_thickness(0);
+        bordered.set_width_request(100);
+        bordered.set_height_request(50);
+        bordered.set_margin(thickness(12));
+
+        const size desired = bordered.measure(inf, inf);
+        EXPECT_EQ(desired.width, 124);  // the requested 100 PLUS margin.horizontal 24
+        EXPECT_EQ(desired.height, 74);
+        bordered.arrange(rect(0, 0, 300, 300));
+        EXPECT_EQ(bordered.frame().width, 100);  // and the frame is the requested size again
+        EXPECT_EQ(bordered.frame().height, 50);
     }
 } // namespace
