@@ -54,6 +54,17 @@ public final class MauiHostActivity extends Activity {
         android.view.View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
             decorView.getSystemUiVisibility() | android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        // APPCOMPAT DRAWABLE-MANAGER PRELOAD — see the twin in
+        // src/platform/android/apphost/MauiHostActivity.java for the measurement behind this. Without it the
+        // FIRST AppCompat widget built per process gets its style drawable UNTINTED (the first SwitchCompat
+        // on switch.xaml rendered a pure-white track); MauiAppCompatActivity gets this for free by being an
+        // AppCompatActivity.
+        try {
+            androidx.appcompat.widget.AppCompatDrawableManager.preload();
+        } catch (Throwable t) {
+            // A future AppCompat could move/hide it; an untinted first widget is not worth crashing the host.
+        }
+
         String pageKey = getIntent() != null ? getIntent().getStringExtra("MAUI_SAMPLE_PAGE") : null;
         if (pageKey == null || pageKey.isEmpty()) {
             pageKey = "value_controls";

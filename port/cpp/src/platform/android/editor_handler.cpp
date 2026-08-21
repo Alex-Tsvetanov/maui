@@ -174,6 +174,13 @@ namespace
     constexpr jint k_gravity_bottom = 0x50;
     constexpr jint k_gravity_center_vertical = 0x10;
     constexpr jint k_gravity_vertical_mask = k_gravity_top | k_gravity_bottom | k_gravity_center_vertical;
+    // The HORIZONTAL half of the same masking (TextAlignmentExtensions.cs:10 HorizontalGravityMask =
+    // CenterHorizontal | End | Start). Gravity.START/END carry the RELATIVE_LAYOUT_DIRECTION bit
+    // (0x00800000) on top of LEFT (3) / RIGHT (5), which is why they are not simply 3 and 5.
+    constexpr jint k_gravity_center_horizontal = 0x00000001;
+    constexpr auto k_gravity_start = static_cast<jint>(0x00800003);
+    constexpr auto k_gravity_end = static_cast<jint>(0x00800005);
+    constexpr jint k_gravity_horizontal_mask = k_gravity_center_horizontal | k_gravity_start | k_gravity_end;
 
     // android.text.InputType flags (KeyboardExtensions.ToInputType + SetInputType). Ported verbatim
     // from android.text.InputType so the computed type matches the oracle bit-for-bit.
@@ -334,6 +341,20 @@ namespace
                 return k_text_alignment_view_end;
             default:
                 return k_text_alignment_view_start;
+        }
+    }
+
+    // AlignmentExtensions.ToHorizontalGravityFlags: Center → CenterHorizontal, End → End, else Start.
+    [[nodiscard]] jint to_horizontal_gravity(maui::core::text_alignment alignment)
+    {
+        switch (alignment)
+        {
+            case maui::core::text_alignment::center:
+                return k_gravity_center_horizontal;
+            case maui::core::text_alignment::end:
+                return k_gravity_end;
+            default:
+                return k_gravity_start;
         }
     }
 
@@ -1137,17 +1158,33 @@ namespace maui::core
         // TextViewExtensions.UpdateHorizontalTextAlignment → UpdateHorizontalAlignment (EditText): on
         // RTL-capable Android (every device the port targets) it sets BOTH TextAlignment and the
         // horizontal gravity bits — "text alignment does not work at runtime, so we also need gravity".
-        // The horizontal-gravity re-masking on top of the existing Gravity is done native-side by the
-        // single setTextAlignment here (the gravity half needs a getGravity round-trip; deferred with the
-        // gravity-mask helper — the TextAlignment push is the runtime-effective one).
-        // TODO: verify against src/Core/src/Platform/Android/TextAlignmentExtensions.cs
-        // (UpdateHorizontalAlignment's Gravity re-mask) when the getGravity round-trip lands.
+        // The gravity half is NOT optional and C# says so at TextAlignmentExtensions.cs:15 in as many
+        // words. It used to be deferred here as "the TextAlignment push is the runtime-effective one";
+        // measured on the board (PHASE_TRIAGE D6, the entry twin of this partial) the port rendered an
+        // End-aligned field LEFT-aligned. Read-modify-write so the VERTICAL bits survive, exactly as the
+        // C# mask does:
+        //     view.Gravity = (view.Gravity & ~HorizontalGravityMask) | alignment.ToHorizontalGravityFlags();
         jmethodID set_text_alignment = cache.method(env.get(), k_edit_text_class, "setTextAlignment", "(I)V");
         if (set_text_alignment != nullptr)
         {
             env->CallVoidMethod(widget, set_text_alignment, to_text_alignment(view.horizontal_text_alignment()));
             clear_pending(env.get());
         }
+        jmethodID get_gravity = cache.method(env.get(), k_edit_text_class, "getGravity", "()I");
+        jmethodID set_gravity = cache.method(env.get(), k_edit_text_class, "setGravity", "(I)V");
+        if (get_gravity == nullptr || set_gravity == nullptr)
+        {
+            return;
+        }
+        const jint current = env->CallIntMethod(widget, get_gravity);
+        if (clear_pending(env.get()))
+        {
+            return;
+        }
+        const jint updated =
+            (current & ~k_gravity_horizontal_mask) | to_horizontal_gravity(view.horizontal_text_alignment());
+        env->CallVoidMethod(widget, set_gravity, updated);
+        clear_pending(env.get());
     }
 
     void editor_handler::map_vertical_text_alignment(editor_handler& handler, i_editor& view)

@@ -1115,11 +1115,28 @@ namespace maui::core
         }
         auto* const bitmap = static_cast<jobject>(result.image());
         set_image_bitmap(env.get(), widget_of(platform), bitmap);
+        const bitmap_size size = bitmap_intrinsic_size(env.get(), bitmap);
         if (result.is_resolution_dependent())
         {
-            return; // FONT: the glyph band is sized off the font Size, not the rasterized bitmap
+            // FONT: the glyph IS rasterized here (image_source_services.cpp's rasterize_glyph ports
+            // FontModelResourceDecoder.decode 1:1), so its bitmap is the intrinsic exactly as it is for
+            // MAUI — FontImageSourceService.Android hands Glide a bitmap and ImageView.onMeasure sizes to
+            // the drawable, with nothing anywhere reading the font Size as a measurement. The band is
+            // TALLER than the font size because the decoder's box is round(-ascent) + round(descent), not
+            // textSize: measured on device for context_flyout's Size=50 🆒 glyph at density 2.75,
+            // textPx=137.50 asc=-127.56 desc=33.57 -> a 171x162 px bitmap, and MAUI renders that Image
+            // 162 px tall while the port's font-Size shortcut rendered it 138 (= textPx). Rasterized at
+            // the DEVICE density, so divide by it to reach the dp the intrinsic is expressed in — the
+            // same "px / asset scale" the file fast path applies above.
+            const float density = display_density(env.get(), widget_of(platform));
+            if (density > 0.0F)
+            {
+                platform.intrinsic_width = size.width / static_cast<double>(density);
+                platform.intrinsic_height = size.height / static_cast<double>(density);
+                maui::platform::android::request_relayout();
+            }
+            return;
         }
-        const bitmap_size size = bitmap_intrinsic_size(env.get(), bitmap);
         if (size.width == platform.intrinsic_width && size.height == platform.intrinsic_height)
         {
             return; // same content size — the existing layout already fits it
@@ -1157,19 +1174,25 @@ namespace maui::core
         {
             return {0, 0};
         }
-        // FONT image source: the AAR-less host has no glyph rasterizer (so no bitmap decodes and the intrinsic
-        // stays 0), but MAUI rasterizes the glyph to a ~Size-dp bitmap and the Image measures to it — its green
-        // background then paints a band at that height. Report the font Size as the intrinsic so the band
-        // renders at MAUI's height (small 20dp / large 90dp); the glyph itself stays blank (inherent — no
-        // rasterizer). Read straight off the virtual view: map_source clears only the platform mirror when the
-        // glyph is empty, NOT the view's Source, so font().size() is still reachable here.
-        if (const auto* view = virtual_view())
+        // FONT image source, WITH NO RASTERIZED GLYPH (an empty/unresolvable glyph, or a VM-less host): fall
+        // back to the font Size as the band height so the Image still occupies MAUI's approximate row instead
+        // of collapsing. When the glyph DID rasterize, the intrinsic fast path below owns the measurement —
+        // that is what MAUI does (the ImageView measures the rasterized drawable; nothing in
+        // FontImageSourceService.Android reads Size back as a size), and the two disagree: the decoder's box
+        // is round(-ascent)+round(descent), which for context_flyout's Size=50 glyph is 162 px against a
+        // textPx of 137.5. This branch used to run unconditionally and reported {50,50} dp, rendering that
+        // Image 138 px tall where MAUI renders 162. Read straight off the virtual view: map_source clears only
+        // the platform mirror when the glyph is empty, NOT the view's Source, so font().size() is reachable.
+        if (platform->intrinsic_width <= 0.0 || platform->intrinsic_height <= 0.0)
         {
-            if (const auto* font_src = dynamic_cast<const maui::core::i_font_image_source*>(view->source()))
+            if (const auto* view = virtual_view())
             {
-                if (const double sz = font_src->font().size(); sz > 0.0)
+                if (const auto* font_src = dynamic_cast<const maui::core::i_font_image_source*>(view->source()))
                 {
-                    return {sz, sz};
+                    if (const double sz = font_src->font().size(); sz > 0.0)
+                    {
+                        return {sz, sz};
+                    }
                 }
             }
         }

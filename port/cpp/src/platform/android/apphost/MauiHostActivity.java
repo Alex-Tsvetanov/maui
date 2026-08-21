@@ -93,6 +93,23 @@ public final class MauiHostActivity extends Activity {
         decorView.setSystemUiVisibility(
             decorView.getSystemUiVisibility() | android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
+        // APPCOMPAT DRAWABLE-MANAGER PRELOAD — the one thing this plain Activity owes the AppCompat widgets
+        // that MauiAppCompatActivity (src/Core/src/Platform/Android/MauiAppCompatActivity.cs, an
+        // AppCompatActivity) installs for free. AppCompat tints a widget's style drawables through
+        // ResourceManagerInternal's HOOKS, and those hooks are only installed when AppCompatDrawableManager
+        // is first created; until then AppCompatResources.getDrawable hands back the UNTINTED asset. That is
+        // measured, not assumed: on switch.xaml the FIRST SwitchCompat constructed per process rendered its
+        // track as the raw white abc_switch_track_mtrl_alpha nine-patch (the pixels where the track belongs
+        // read 255,255,255) while switches 2..6 — byte-identical in every JNI-observable property, including
+        // getTrackTintList (null on all six), the drawable class, its alpha and its colour filter — rendered
+        // the grey track correctly. Priming the manager BEFORE any page widget is built makes the page's
+        // first switch an ordinary one.
+        try {
+            androidx.appcompat.widget.AppCompatDrawableManager.preload();
+        } catch (Throwable t) {
+            // A future AppCompat could move/hide it; an untinted first widget is not worth crashing the host.
+        }
+
         String pageKey = getIntent() != null ? getIntent().getStringExtra("MAUI_SAMPLE_PAGE") : null;
         if (pageKey == null || pageKey.isEmpty()) {
             pageKey = "label";

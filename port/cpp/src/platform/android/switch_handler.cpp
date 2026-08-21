@@ -61,7 +61,19 @@
 //     working siblings. Whatever remains is inside SwitchCompat's own draw path.
 //     DO NOT "fix" this by re-seeding a track tint: an opaque filter would paint the first switch AND
 //     re-break dark theme, IsEnabled=false and explicit BackgroundColor, which is precisely why the seeding
-//     was removed. Cost so far: six device rebuilds for two board cells; time-boxed and parked here.
+//     was removed.
+//     SOLVED 2026-08-22 — AND NOT IN THIS FILE. An eighth probe read getTrackTintList/getThumbTintList/the
+//     drawable class/alpha/colour filter for all six switches on switch.xaml: byte-identical on every one
+//     (null tint list, NinePatchDrawable, alpha 255, no filter), so the tint branch is refuted too. The
+//     difference was never a property of the widget — it was WHO BUILT THE FIRST ONE. AppCompat tints a
+//     widget's style drawables through ResourceManagerInternal's hooks, and those hooks are installed when
+//     AppCompatDrawableManager is first created; a widget constructed before that gets the UNTINTED asset,
+//     and abc_switch_track_mtrl_alpha untinted is a WHITE nine-patch — exactly the "pure white where the
+//     track belongs" the probes measured. MAUI never sees this because MauiAppCompatActivity IS an
+//     AppCompatActivity; the port's host is a plain android.app.Activity. The fix is one
+//     AppCompatDrawableManager.preload() in apphost/MauiHostActivity.onCreate, before any page widget is
+//     built. Verified on device: the port's switch.xaml now has ink counts identical to MAUI's on all three
+//     switch rows (2127 / 1951 / 2476).
 //     map_track_color's unset branch now ClearColorFilters exactly as SwitchExtensions.cs:33 does, and
 //     map_thumb_color's unset branch leaves the tint alone exactly as :89-99 does (no else branch).
 //   - The OnCheckedChangeListener (CheckedChangeListener → OnCheckedChanged → VirtualView.IsOn write,
@@ -182,6 +194,7 @@ namespace
     constexpr jint k_measure_spec_unspecified = 0;
     constexpr auto k_measure_spec_at_most = static_cast<jint>(0x80000000U);
     constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
+
 
     [[nodiscard]] jobject widget_of(const maui::core::switch_platform& platform) noexcept
     {

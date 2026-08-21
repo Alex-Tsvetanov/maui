@@ -87,6 +87,33 @@
 //
 // ORDER OF WORK: settle that structural question FIRST. Then the natural measure, and only then the
 // minimum rule. The floor is load-bearing scaffolding until those are right.
+//
+// 2026-08-22 — TWO MECHANISMS FOUND IN THE C# ORACLE, AND THE REMAINING BLOCKER NAMED.
+//
+// (1) ARRANGE MUST NOT MEASURE. PlatformArrangeHandler (ViewHandlerExtensions.Android.cs:120-133) calls
+//     platformView.Layout(l,t,r,b) and NOTHING else; the port measured EXACTLY first. Fixed below. This
+//     is a fidelity fix on its own; whether it is what unsticks Chromium's contentHeight is still
+//     UNVERIFIED (see platform_arrange for why a post-load sample is not reachable from here yet).
+//
+// (2) THE MINIMUM RULE — WHY THE EARLIER EXPERIMENT REGRESSED border_stroke, and what the real shape is.
+//     The note above is right that Android's measure spec ignores Minimum*Request; what it MISSES is
+//     where the minimum then comes from. MAUI applies NO size request cross-platform at all —
+//     LayoutExtensions.ComputeDesiredSize (src/Core/src/Layouts/LayoutExtensions.cs:11-31) adds the margin
+//     to the handler's GetDesiredSize and that is the whole method. The minimum is PER-PLATFORM: on
+//     Android it is pushed onto the widget, ViewHandler.cs:52 MapMinimumHeight ->
+//     ViewExtensions.cs:433-438 UpdateMinimumHeight -> View.SetMinimumHeight(px). So every widget that
+//     honours View.getSuggestedMinimumHeight() — TextView, Button, EditText, border_stroke's Labels with
+//     MinimumHeightRequest="20" — keeps its floor, which is exactly what the earlier experiment destroyed
+//     when it removed the port's cross-platform clamp wholesale. android.webkit.WebView is the widget
+//     that does NOT honour it: AwContents.onMeasure reports the content size and never consults the view
+//     minimum, which is why MAUI renders this page's `<WebView MinimumHeightRequest="400" />` at its
+//     220 dp content height and the port renders it at 400 dp.
+//     The port applies the minimum in maui::controls::view::measure (include/maui/controls/view.hpp,
+//     resolve_size_request), i.e. cross-platform — the iOS shape (ViewHandlerExtensions.ResolveConstraints
+//     applies it unconditionally) generalised to every backend. Undoing that for this ONE handler needs a
+//     per-handler opt-out in a CORE header, which is not this file's to change; it is written up in the
+//     android lane's report. Until it lands the 400 dp floor still wins and this page's WebView band stays
+//     1100 px no matter what the native measure says.
 // global reference in web_view_platform::native. The android twin of
 // src/platform/apple_shared/web_view_handler.mm (the WKWebView recipe) and the real-native sibling of the
 // in-memory headless mirror (src/platform/headless/web_view_handler.cpp). Ported DIRECTLY from
@@ -197,7 +224,8 @@ namespace
     // android.view.View.MeasureSpec modes (ViewHandlerExtensions.GetDesiredSizeFromHandler).
     constexpr jint k_measure_spec_unspecified = 0;
     constexpr auto k_measure_spec_at_most = static_cast<jint>(0x80000000U);
-    constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
+    // Kept for reference: MAUI's arrange never uses an EXACTLY spec on a leaf (see platform_arrange).
+    [[maybe_unused]] constexpr auto k_measure_spec_exactly = static_cast<jint>(0x40000000U);
 
     [[nodiscard]] jobject widget_of(const maui::core::web_view_platform& platform) noexcept
     {
@@ -924,11 +952,8 @@ namespace maui::core
         }
         jobject widget = widget_of(*platform);
         auto& cache = default_jni_cache();
-        jmethodID make_measure_spec = cache.static_method(env.get(), k_measure_spec_class, "makeMeasureSpec", "(II)I");
-        jmethodID measure = cache.method(env.get(), k_web_view_class, "measure", "(II)V");
         jmethodID layout = cache.method(env.get(), k_web_view_class, "layout", "(IIII)V");
-        jclass measure_spec_class = cache.find_class(env.get(), k_measure_spec_class);
-        if (make_measure_spec == nullptr || measure == nullptr || layout == nullptr || measure_spec_class == nullptr)
+        if (layout == nullptr)
         {
             return;
         }
@@ -937,19 +962,19 @@ namespace maui::core
         const jint top = to_pixels(frame.y, density);
         const jint width = to_pixels(frame.width, density);
         const jint height = to_pixels(frame.height, density);
-        const jint width_spec =
-            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, width, k_measure_spec_exactly);
-        const jint height_spec =
-            env->CallStaticIntMethod(measure_spec_class, make_measure_spec, height, k_measure_spec_exactly);
-        if (clear_pending(env.get()))
-        {
-            return;
-        }
-        env->CallVoidMethod(widget, measure, width_spec, height_spec);
-        if (clear_pending(env.get()))
-        {
-            return;
-        }
+        // LAYOUT ONLY — NO MEASURE, matching PlatformArrangeHandler exactly. ViewHandlerExtensions.Android
+        // .cs:120-133 converts the frame to pixels, flips it for RTL and then calls
+        // `platformView.Layout(left, top, right, bottom)` — nothing else. MAUI has exactly one arrange-time
+        // re-measure, PrepareForTextViewArrange (:143-168), and it is opt-in, TEXT-only and gated on
+        // virtualView.NeedsExactMeasure(); a WebView never reaches it. This partial used to
+        // `measure(EXACTLY w, EXACTLY h)` before the layout, which is a divergence with no oracle behind it.
+        // (Motivation, stated as the hypothesis it still is: android.webkit.WebView is the one widget on the
+        // board whose measure is Chromium's, not android.view.View's, and AwLayoutSizer is documented to stop
+        // reporting a content height once the height spec is EXACTLY and the layout params are not
+        // WRAP_CONTENT — the shape of the port's permanent getContentHeight()==0. NOT VERIFIED: reading
+        // contentHeight after the page loads needs a load callback this partial does not have, so the
+        // measured trail in the header still ends where it did. Removing the divergence is justified on its
+        // own; do not record the Chromium theory as proven until a post-load sample exists.)
         env->CallVoidMethod(widget, layout, left, top, left + width, top + height);
         clear_pending(env.get());
     }
