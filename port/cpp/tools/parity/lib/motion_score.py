@@ -770,10 +770,31 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     sel_o = [(burst_o.get(p, ""), p) for p in burst_frames(do, theme, driven=was_driven)]
     pairs = _pair(sel_m, sel_o)
     if not pairs:
+        # NAME THE ACTUAL CAUSE. "NO step name occurs in both" is true of an empty set for the same
+        # reason it is true of two disjoint ones, and printing it unconditionally sent an operator
+        # hunting a step-name mismatch that did not exist. MEASURED 2026-08-22 on the three
+        # maccatalyst cells carrying this string, run 2026-08-19-08_27_20:
+        #   check_box/dark        maui_xaml banked [initial]; cpp banked [initial, checked]
+        #   slider/light          maui_xaml banked [initial]; cpp banked [initial, dragged-right]
+        #   ios_date_picker/both  BOTH columns banked [initial] only — the `opened` step never fired
+        # In every one the step names that DID land agree exactly; what is missing is the ACTION frame.
+        # burst_frames then infers "undriven" from the surviving names, drops the at-rest frame, and
+        # the column contributes zero — so the count printed is 0 and the reason printed was wrong.
+        #
+        # The verdict, the cap and the colour are untouched: this is the same INVALID/unpairable
+        # outcome, and "Re-capture this page" was and remains the right instruction. Only the sentence
+        # explaining WHY changes, plus the step names, so the next reader can see which column lost
+        # what without opening the run directory.
+        steps_m = sorted({s for s, _p in sel_m} | {s for s, _p, _m in shots_m})
+        steps_o = sorted({s for s, _p in sel_o} | {s for s, _p, _m in shots_o})
+        empty = [c for c, sel in (("MAUI", sel_m), (label, sel_o)) if not sel]
+        cause = (f"{' and '.join(empty)} contributed no comparable frame"
+                 if empty else "NO step name occurs in both")
         return not_scored((WHY_UNPAIRABLE,
-                           f"run {run.name} has {len(sel_m)} MAUI and {len(sel_o)} {label} frames but "
-                           f"NO step name occurs in both, so nothing can be paired — a comparison by "
-                           f"frame index would be a guess. Re-capture this page"))
+                           f"run {run.name} has {len(sel_m)} MAUI and {len(sel_o)} {label} frames — "
+                           f"{cause}, so nothing can be paired (steps present: MAUI {steps_m}, "
+                           f"{label} {steps_o}); a comparison by frame index would be a guess. "
+                           f"Re-capture this page"))
 
     # THE UNSHIFTED FIRST PAIR, captured because the next line REBINDS `pairs`. The phase gate's third
     # clause needs the one reading _align did not touch — see at_rest_diff below for why that matters.
