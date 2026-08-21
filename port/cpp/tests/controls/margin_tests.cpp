@@ -5,6 +5,10 @@
 // two halves must balance: measure adds, arrange subtracts. A real view<> (label) exercises the storage +
 // the measure/arrange seam; a vertical_stack_layout exercises the parent re-layout after a margin change.
 #include "maui/controls/border.hpp"
+#include "maui/controls/box_view.hpp"
+#include "maui/controls/refresh_view.hpp"
+#include "maui/controls/scroll_view.hpp"
+#include "maui/controls/swipe_item_view.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
 
@@ -20,6 +24,10 @@
 namespace
 {
     using maui::controls::border;
+    using maui::controls::box_view;
+    using maui::controls::refresh_view;
+    using maui::controls::scroll_view;
+    using maui::controls::swipe_item_view;
     using maui::controls::label;
     using maui::controls::vertical_stack_layout;
     using maui::core::i_view;
@@ -220,5 +228,77 @@ namespace
         bordered.arrange(rect(0, 0, 300, 300));
         EXPECT_EQ(bordered.frame().width, 100);  // and the frame is the requested size again
         EXPECT_EQ(bordered.frame().height, 50);
+    }
+
+    // ---- (e) every OTHER measure() override that a Margin can reach ----
+    //
+    // The fold is a property of ComputeDesiredSize, so it belongs to EVERY IView — but each override
+    // reimplements measure() and so has to repeat it, and each can regress independently. One test per
+    // override. flex_layout is deliberately absent: it delegates to layout<>::measure, which already folds.
+    // The page roots (content_page / flyout_page / tabbed_page) are absent too — a page has no parent to
+    // reserve space in it. stack_layout_manager is a manager, not a view.
+
+    TEST(margin, box_view_measure_includes_margin)
+    {
+        // BoxView ignores its constraints entirely (default 40x40), so only the REPORTED half of the fold
+        // can apply — there is no constraint to shrink. The reported half is the one compute_frame reads.
+        box_view box;
+        EXPECT_EQ(box.measure(inf, inf).width, 40);
+        box.set_margin(thickness(8));
+        const size desired = box.measure(inf, inf);
+        EXPECT_EQ(desired.width, 56);  // 40 + margin.horizontal 16
+        EXPECT_EQ(desired.height, 56);
+    }
+
+    TEST(margin, scroll_view_measure_includes_margin)
+    {
+        scroll_view scroller;
+        label content;
+        content.set_width_request(100);
+        content.set_height_request(50);
+        scroller.set_content(content);
+
+        scroller.set_margin(thickness(10));
+        const size desired = scroller.measure(200, 200);
+        EXPECT_EQ(desired.width, 120);  // 100 content + margin.horizontal 20
+        EXPECT_EQ(desired.height, 70);
+    }
+
+    TEST(margin, scroll_view_without_content_still_reports_margin)
+    {
+        // The empty-content early return is a separate code path and had to be fixed separately.
+        scroll_view scroller;
+        scroller.set_margin(thickness(10));
+        const size desired = scroller.measure(200, 200);
+        EXPECT_EQ(desired.width, 20);
+        EXPECT_EQ(desired.height, 20);
+    }
+
+    TEST(margin, refresh_view_measure_includes_margin)
+    {
+        refresh_view refresher;
+        label content;
+        content.set_width_request(100);
+        content.set_height_request(50);
+        refresher.set_content(content);
+
+        refresher.set_margin(thickness(10));
+        const size desired = refresher.measure(inf, inf);
+        EXPECT_EQ(desired.width, 120);
+        EXPECT_EQ(desired.height, 70);
+    }
+
+    TEST(margin, swipe_item_view_measure_includes_margin)
+    {
+        swipe_item_view item;
+        label content;
+        content.set_width_request(100);
+        content.set_height_request(50);
+        item.set_content(content);
+
+        item.set_margin(thickness(10));
+        const size desired = item.measure(inf, inf);
+        EXPECT_EQ(desired.width, 120);
+        EXPECT_EQ(desired.height, 70);
     }
 } // namespace

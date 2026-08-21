@@ -67,8 +67,18 @@ namespace maui::controls
     // every leaf measure (the view<>::measure tail).
     maui::graphics::size box_view::measure(double /*width_constraint*/, double /*height_constraint*/)
     {
-        desired_size_ = {resolve_size_request(40, width(), minimum_width(), maximum_width()),
-                         resolve_size_request(40, height(), minimum_height(), maximum_height())};
+        // Margin, per C# LayoutExtensions.ComputeDesiredSize (LayoutExtensions.cs:11-32): the constraint
+        // loses it, the reported size regains it, so the PARENT reserves the gap. A measure() OVERRIDE does
+        // not inherit view<>::measure's fold and has to repeat it — omitting it is not an under-reserve but
+        // an IMBALANCE, because compute_frame subtracts the margin from desired_size regardless (view.hpp
+        // :1069/1076). See layout.hpp:175-180 and border.cpp for the same defect, measured. No-op at zero.
+        // BoxView ignores the constraints entirely (its default is a fixed 40x40), so only the reported
+        // half of the fold applies here — there is no constraint to shrink.
+        const maui::core::thickness view_margin = margin();
+        desired_size_ = {resolve_size_request(40, width(), minimum_width(), maximum_width()) +
+                             view_margin.horizontal_thickness(),
+                         resolve_size_request(40, height(), minimum_height(), maximum_height()) +
+                             view_margin.vertical_thickness()};
         return desired_size_;
     }
 } // namespace maui::controls

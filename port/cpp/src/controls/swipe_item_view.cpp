@@ -28,16 +28,28 @@ namespace maui::controls
     maui::graphics::size swipe_item_view::measure(double width_constraint, double height_constraint)
     {
         const maui::core::thickness inset = padding();
+        // Margin, per C# LayoutExtensions.ComputeDesiredSize (LayoutExtensions.cs:11-32): the constraint
+        // loses it, the reported size regains it, so the PARENT reserves the gap. A measure() OVERRIDE does
+        // not inherit view<>::measure's fold and has to repeat it — omitting it is not an under-reserve but
+        // an IMBALANCE, because compute_frame subtracts the margin from desired_size regardless (view.hpp
+        // :1069/1076). See layout.hpp:175-180 and border.cpp for the same defect, measured. No-op at zero.
+        const maui::core::thickness view_margin = margin();
+        const double margin_h = view_margin.horizontal_thickness();
+        const double margin_v = view_margin.vertical_thickness();
         maui::graphics::size content_size{0, 0};
         if (content_ != nullptr)
         {
-            content_size = content_->measure(width_constraint - inset.horizontal_thickness(),
-                                             height_constraint - inset.vertical_thickness());
+            content_size = content_->measure(width_constraint - margin_h - inset.horizontal_thickness(),
+                                             height_constraint - margin_v - inset.vertical_thickness());
         }
         const maui::graphics::size measured{content_size.width + inset.horizontal_thickness(),
                                             content_size.height + inset.vertical_thickness()};
-        desired_size_ = {resolve_size_request(measured.width, width(), minimum_width(), maximum_width()),
-                         resolve_size_request(measured.height, height(), minimum_height(), maximum_height())};
+        // AFTER the size-request clamp, not before: in C# that clamp lives inside the handler's
+        // GetDesiredSize and ComputeDesiredSize adds the margin to whatever it returned, so an explicit
+        // WidthRequest cannot swallow the margin.
+        desired_size_ = {resolve_size_request(measured.width, width(), minimum_width(), maximum_width()) + margin_h,
+                         resolve_size_request(measured.height, height(), minimum_height(), maximum_height()) +
+                             margin_v};
         return desired_size_;
     }
 
