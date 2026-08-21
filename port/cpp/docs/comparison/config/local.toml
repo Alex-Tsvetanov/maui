@@ -50,9 +50,11 @@ connect_timeout_seconds = 10
 # What changes is only the centering arithmetic (x_origin = (1920-1024)/2 = 448, was 244), which matters
 # solely to a scenario carrying a hard-coded absolute x. None does.
 #
-# STILL TO VERIFY before this lane's numbers are trusted again: capture ONE page and diff it against its
-# committed twin. Deferred because the Windows guest is mid-run and this host must not schedule two UTM
-# guests together. If that diff is not byte-identical, this note is wrong and the lane needs a rebaseline.
+# VERIFIED 2026-08-22, and the prediction held. Recaptured maccatalyst/maui_xaml/label_light at 1920x1080
+# and diffed it against the committed capture taken at 1512x950: same 1024x800 output, TWELVE pixels differ
+# at all out of 819,200, and ZERO above the scorer's threshold of 12 — sub-threshold antialiasing noise, not
+# a rebaseline. The MAUI column was chosen deliberately to isolate the variable: no port-side change can
+# reach it, so the only thing under test was the display mode.
 #
 # To restore 1512 instead: resize the UTM window on the HOST until virtio-gpu re-offers it. utmctl cannot
 # edit VM settings, so there is no headless route.
