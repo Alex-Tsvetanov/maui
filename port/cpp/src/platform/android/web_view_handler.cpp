@@ -44,10 +44,33 @@
 //                                           not run for a leaf
 // Whatever produces 607 (= 220.7dp, ~example.com's content height) is somewhere none of those cover.
 //
-// ORDER OF WORK, therefore: find where MAUI's 607 actually comes from FIRST -- instrument MauiReference
-// on the emulator the way the Catalyst cluster was cracked (dd4ecf1ad8), rather than reading source and
-// guessing. Then fix the natural measure, and only then revisit the minimum rule. The floor is
-// load-bearing scaffolding until those are right.
+// TIMING IS NOT THE ANSWER EITHER (phased probe, on device). The callback was re-run at 0ms, 100ms and
+// 800ms after onPageFinished, reading the WebView each time:
+//     phase=0 measuredH=1100 contentH=0 scale=2.750
+//     phase=1 measuredH=1100 contentH=0 scale=2.750
+//     phase=2 measuredH=1100 contentH=0 scale=2.750
+// getContentHeight() is 0 PERMANENTLY on the port's WebView -- not merely early -- even though the page
+// visibly renders in the capture. So neither a later re-measure nor getContentHeight() can source a
+// height here. Experiment reverted.
+//
+// WHAT THE DEVICE SAYS ABOUT MAUI, read with `uiautomator dump` (no rebuild needed -- this is the cheap
+// instrument for any live layout question on this lane):
+//     MAUI  android.webkit.WebView  y 908-1515  h=607
+//     port  android.webkit.WebView  y 884-1984  h=1100   (the 400dp floor)
+// and MAUI's height is CONTENT-DEPENDENT, not a constant: context_flyout 607, web_view 660,
+// hybrid_web_view 1462. MauiWebView.Android.cs has NO OnMeasure override (all 111 lines read), so MAUI
+// measures a stock WebView under the same infinite constraint the port uses.
+//
+// THE REMAINING HYPOTHESIS, UNTESTED: MAUI's android layout is driven by ANDROID's own measure/layout
+// pass (LayoutViewGroup.OnMeasure calls into the cross-platform measure, but the WebView child is still
+// measured by its parent ViewGroup), whereas the port arranges its children to exact frames computed in
+// C++ and Android never gets to size the WebView itself. If that is right, the fix is structural -- the
+// port would have to let a native child's own measure participate -- and it is NOT a WebView bug.
+// Testing it means instrumenting MAUI's own layout pass, which is the next step and a bigger one than
+// anything tried so far.
+//
+// ORDER OF WORK: settle that structural question FIRST. Then the natural measure, and only then the
+// minimum rule. The floor is load-bearing scaffolding until those are right.
 // global reference in web_view_platform::native. The android twin of
 // src/platform/apple_shared/web_view_handler.mm (the WKWebView recipe) and the real-native sibling of the
 // in-memory headless mirror (src/platform/headless/web_view_handler.cpp). Ported DIRECTLY from
