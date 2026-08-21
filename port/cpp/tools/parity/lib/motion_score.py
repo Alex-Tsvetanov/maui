@@ -195,6 +195,27 @@ GREEN_DIFF = 1.0
 #
 # Membership is a MEASURED property of the lane's injector, not a preference. Re-measure before editing:
 # launch one column twice, drive it, screenshot after settle, diff below the status bar.
+# OPEN, AND POINTING THE OTHER WAY FROM WHERE IT IS COMFORTABLE: the 11.57% above was measured on
+# `adb shell input swipe`, and android SCROLL NO LONGER USES IT. Commit 342236e316 routed
+# capture_android.scroll through the deterministic `input motionevent` DOWN/MOVE/dwell/UP path, which
+# settles at 0.0000-0.0136% against 11.57% for the swipe. If that holds for the columns as driven here,
+# then android's drive IS reproducible, this set should be EMPTY, and the phase_only forgiveness below is
+# being granted on a premise that expired.
+#
+# Note which direction that cuts. phase_only CAPS a cell at YELLOW; retiring it does not green anything,
+# it lets android motion cells be scored on their real frames, and some of them will go RED. It also
+# reclassifies what a spike like box_view's per-frame `0/0/14.79/0.03/0.53/0...0` MEANS: on an
+# irreproducible lane that is a sampling artifact, but on a reproducible one — where both columns travel
+# the SAME distance (36.31% vs 36.29% of their own frame) — it is a real one-frame timing difference in
+# the port's animation. Worth stating plainly rather than forgiving.
+#
+# NOT ACTED ON, because this file's own rule is the right one and I cannot satisfy it yet: "Membership is
+# a MEASURED property of the lane's injector, not a preference. Re-measure before editing." The measure
+# needs TWO post-342236e316 android runs of the same page to diff MAUI's column against itself, and only
+# ONE exists (2026-08-21-09_13_47, the recapture in 658cddc46f) — `motion_score.py --stability` has
+# nothing to vary. The emulator is in use; take the second run first, then edit. Retiring this on the
+# strength of a commit message instead of a measurement is the exact mistake lane_status.toml is a
+# monument to.
 NON_REPRODUCIBLE_DRIVE = {"android"}
 # WHEN THE TWO COLUMNS' OWN MOTION DIFFERS BY THIS MUCH, SAY SO — even though the cell may still be a
 # legitimate PASS. Measured across the whole board (302 PASS theme-readings carrying a motion number),
