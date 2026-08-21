@@ -26,10 +26,20 @@ Read the numbers with two facts in mind:
 
 | finding | count |
 |---|---|
-| REAL DEFECT — actionable, ranked below | 12 pages / 22 cells |
-| SCORING ARTIFACT — stills equivalent, motion layer is sampling phase | 25 cells |
-| CAPTURE CORRUPTION — the MAUI column never banked its action frame | 6 cells (3 pages) |
+| REAL DEFECT — the difference is what makes the cell yellow | 15 cells / 8 page-platform units |
+| SCORING ARTIFACT — stills equivalent; the colour is a phase sample | 32 cells |
+| ↳ …of which 7 still carry a real, separately-described defect | D6, D7, D8, D10 |
+| CAPTURE CORRUPTION — a column never banked its action frame | 6 cells (3 pages), **+1 green cell** (§5b) |
 | STALE VERDICT — needs a targeted recapture | **0 cells** (see §4) |
+
+**"Why is this cell yellow" and "is there a defect on this page" are different questions, and
+this file answers both separately.** A cell is REAL DEFECT only when the difference is what the
+board is actually colouring. Twelve pages carry a defect; on four of them (D6 `android/entry`,
+D7 `android/picker`, D8 `android/empty_view_rtl`, D10 `ios/swipe_refresh`) the at-rest still passes
+the green bar and the yellow comes from a phase sample — so those cells are SCORING ARTIFACT, and
+fixing the port will not green them. They stay in the ranked list below because they are genuine
+findings; they are just not the explanation for the colour. D10 in particular has **byte-identical
+stills in both themes**, which is this task's stated scoring-artifact condition.
 
 Two negative results that are worth as much as the positives:
 
@@ -40,6 +50,15 @@ Two negative results that are worth as much as the positives:
   (`activity_indicator`, `clip_views`, `editor`, `empty_view_rtl`, `entry`, `ios_picker`, `picker`,
   `search_bar`, `semantics`) has a `click`/`type` scenario or no scenario at all, so a scroll fix
   cannot move it. **Do not schedule a recapture on the strength of the commit date.**
+  The claim is scoped to what was actually checked. `git log --since=2026-08-19` over the *capture*
+  surface (`capture_android.py`, `capture_ios.py`, `vm_agent_windows.py`, `vm_agent_macos.py`,
+  `run_comparison.py`, `recapture.py`) returns five commits: `342236e316` (the scroll fix, handled
+  above), `7479d2ee25` (the `image` download race — `image` is a static yellow, out of scope),
+  `c008cb88e1` (Catalyst geometry measurement + a display race), `d112964f98` (one-writer-per-
+  destination, whose capture half is **iOS-only** — it removes the `promote_reference_captures` hop
+  and has nothing to do with the maccatalyst frame gap in §5), and `91fec35eb9`, which is a *scoring*
+  change and therefore applies retroactively to existing frames — scoring changes cannot create
+  staleness. So no in-scope cell is behind a capture fix either.
 * **No duplicate-frame corruption touches any in-scope cell**, and there are no 0-byte or truncated
   GIFs/PNGs anywhere under `captures/` (`find captures -name '*.gif' -size 0` → 0;
   `-size -1k` → 0). The cross-key duplicate sweep (hashed *within* one platform+column, never across
@@ -76,6 +95,16 @@ at-rest still (`clip` 0.04%, `clip_gallery` 0.00%) only photographs the top of t
 column's own `initial` onto its own `scrolled-down`; MAUI −380, port −380, delta 0), and
 `_drive_shift`'s ±48 px search correctly finds `dy=0` — no vertical translation improves the match,
 because there is nothing translated.
+
+**And it is not a stale Windows guest.** D1, D2 and D3 all come from the single run
+`2026-08-19-17_17_18` at commit `06dcfcef48`, and `C:/maui-src` is a tarball copy rather than a
+checkout, so this had to be ruled out. `git log 06dcfcef48..HEAD -- port/cpp/src/platform/windows/`
+returns **one** commit, `eada050996`, and it is a documentation rename — no Windows backend behaviour
+has changed since the capture, so the Windows agent is not being sent after something already fixed.
+The last functional change in that directory before the run was `face7f7c72` (2026-08-18,
+font_image_source); nothing has touched clip or geometry there since `24db16875a` (2026-08-05), so
+even a guest tree a few days behind would render the same clip code. `lane_status.toml` declares no
+lane stale, and records the 2026-08-08 verification that retracted the previous Windows declaration.
 
 ### D2 — windows: the `Clip` is dropped when an Entry repaints on focus
 **Cells:** `windows/clip_views/{pixel,pixel_xaml}` (2 cells).
@@ -125,6 +154,9 @@ per-row vertical placement/centring difference, not an accumulating measure erro
 already-known iOS radio measurement work (`radio_button_border` 2.76% and
 `radio_button_group_gallery` 2.31% are static yellows sitting right beside these) — start from the
 21 pt ring / `get_desired_size` calibration rather than re-deriving.
+**Possibly already in flight:** at the time this file was written
+`port/cpp/src/platform/ios/radio_button_handler.mm` carried 87 uncommitted insertions in the shared
+worktree. Check with the iOS owner before starting; these four cells may move on their own.
 
 ### D5 — android: `clip_views` loses the Entry/Editor underline in dark
 **Cells:** `android/clip_views/{pixel,pixel_xaml}` (2 cells). **Fails the green bar on the still:**
@@ -219,13 +251,13 @@ taken from, light / dark. `[ident]` marks a byte-identical still.
 | windows | clip_views | pixel_xaml | 0.9874@1.09% / 0.9911@1.08% | 0.9983/0.10% · 0.9987/0.09% | **REAL DEFECT** | D2 |
 | android | carousel_page | pixel | 0.9534@2.19% / 0.9612@2.21% | 0.9914/0.49% · 0.9935/0.49% | **REAL DEFECT** | D9 — flat 2.19% over 9 settled frames: MAUI rests with a 220 px peek of Card 1, the port does not |
 | android | carousel_page | pixel_xaml | 0.9534@2.20% / 0.9611@2.21% | 0.9914/0.49% · 0.9935/0.49% | **REAL DEFECT** | D9 |
-| android | entry | pixel | 0.9758@1.17% / 0.9868@0.64% | 0.9872/0.50% · 0.9871/0.42% | **REAL DEFECT** | D6 — still is green-bar-passing; the yellow is phase, the defect is separate |
-| android | entry | pixel_xaml | 0.9739@1.11% / 0.9868@0.64% | 0.9872/0.50% · 0.9871/0.42% | **REAL DEFECT** | D6 |
-| android | picker | pixel | 0.9508@1.60% / 0.9483@1.73% | 0.9899/0.29% · 0.9861/0.42% | **REAL DEFECT** | D7 — as D6, still passes; defect is sub-threshold but real |
-| android | picker | pixel_xaml | 0.9508@1.60% / 0.9483@1.73% | 0.9899/0.29% · 0.9861/0.42% | **REAL DEFECT** | D7 |
-| android | empty_view_rtl | pixel | 0.9809@0.79% / 0.9782@0.64% | 0.9969/0.14% · 0.9969/0.15% | **REAL DEFECT** | D8 — Picker Title vs SelectedItem, x14–240 y174–211 |
-| ios | swipe_refresh | pixel | 0.9663@1.31% / 0.9655@1.31% | 1.0000/0.00% [ident] · 1.0000/0.00% [ident] | **REAL DEFECT** | D10 — refresh duration; end state is exact parity, cannot be greened by rendering |
-| ios | swipe_refresh | pixel_xaml | 0.9691@1.21% / 0.9759@1.12% | 1.0000/0.00% [ident] · 1.0000/0.00% [ident] | **REAL DEFECT** | D10 |
+| android | entry | pixel | 0.9758@1.17% / 0.9868@0.64% | 0.9872/0.50% · 0.9871/0.42% | SCORING ARTIFACT *(defect D6)* | still passes the bar; yellow is IME phase. D6 is real but sub-threshold |
+| android | entry | pixel_xaml | 0.9739@1.11% / 0.9868@0.64% | 0.9872/0.50% · 0.9871/0.42% | SCORING ARTIFACT *(defect D6)* | as above |
+| android | picker | pixel | 0.9508@1.60% / 0.9483@1.73% | 0.9899/0.29% · 0.9861/0.42% | SCORING ARTIFACT *(defect D7)* | still passes the bar; yellow is popover phase |
+| android | picker | pixel_xaml | 0.9508@1.60% / 0.9483@1.73% | 0.9899/0.29% · 0.9861/0.42% | SCORING ARTIFACT *(defect D7)* | as above |
+| android | empty_view_rtl | pixel | 0.9809@0.79% / 0.9782@0.64% | 0.9969/0.14% · 0.9969/0.15% | SCORING ARTIFACT *(defect D8)* | still passes the bar; D8 is a 3398 px Picker-text difference, code-first page only |
+| ios | swipe_refresh | pixel | 0.9663@1.31% / 0.9655@1.31% | 1.0000/0.00% [ident] · 1.0000/0.00% [ident] | SCORING ARTIFACT *(defect D10)* | stills BYTE-IDENTICAL both themes — the scoring-artifact condition; refresh duration only |
+| ios | swipe_refresh | pixel_xaml | 0.9691@1.21% / 0.9759@1.12% | 1.0000/0.00% [ident] · 1.0000/0.00% [ident] | SCORING ARTIFACT *(defect D10)* | as above |
 | maccatalyst | check_box | pixel | 0.9972@0.11% (light only) | 0.9972/0.11% · 0.9973/0.11% | **CAPTURE CORRUPTION** | §5 — MAUI banked `[initial]`, port banked `[initial, checked]` (dark) |
 | maccatalyst | check_box | pixel_xaml | 0.9965@0.12% (light only) | 0.9965/0.12% · 0.9966/0.11% | **CAPTURE CORRUPTION** | §5 |
 | maccatalyst | slider | pixel | 0.9978@0.08% (dark only) | 0.9978/0.09% · 0.9978/0.08% | **CAPTURE CORRUPTION** | §5 — MAUI banked `[initial]`, port `[initial, dragged-right]` (light) |
@@ -325,6 +357,35 @@ only on the next re-measure of those tags.
 capture-write failure. (`at_macos-arm64 = [0.036, 0.0488]` in `scenarios/ios_date_picker.toml`.)
 Their stills are 0.08–0.12%, so no midnight-rollover date skew is present in these pairs.
 
+### 5b. A SEVENTH cell sits on the same capture gap — and it is scoring GREEN
+
+The yellow-only scan could not see it. `grep "NO step name occurs in both" comparison.json` returns
+**seven** cells, not six: the extra one is **`maccatalyst/radio_content_properties/pixel`, status
+green**, whose light theme reads *"run 2026-08-19-08_27_20 has 2 MAUI and 0 C++ frames"* — the port
+column banked nothing. Add it to the §5 recapture request.
+
+**Why the INVALID cap did not catch it, which is a scorer bug and is REPORTED, NOT FIXED HERE.**
+In `pixel_score.classify`:
+
+```python
+frozen_both = bool(have) and any(v.get("both_frozen") for v in have.values())
+```
+
+Every sibling exemption in that same function requires **all** themes to agree, and the block's own
+comment says so in as many words — *"ALL scored themes must agree it was undriven — one theme
+carrying a real not-driven result still caps the cell, so a half-authored scenario cannot buy a
+green."* This line uses `any`. On `radio_content_properties/maccatalyst` the **dark** theme is a
+legitimate symmetric both-frozen (0 px vs 0 px), and that single theme lifts the cap off the
+**light** theme's genuine missing evidence. The cell is green off one still.
+
+Changing `any` to `all` would make the board **stricter**, never laxer, so it does not run into the
+no-weakening rule. It is left undone for two other reasons: it changes cell colours, and the blast
+radius has to be bounded by a board-wide `pixel_score.py --verify` — a ~12-minute grind that would
+race the concurrent per-tag re-scores. The bound to expect: 24 green cells currently hold an INVALID
+verdict with `why != no-scenario`; 23 of them are `not-driven`, which is exactly what USER RULING
+2026-08-16 says should be green, so the fix must be checked not to sweep those up. Only the one
+`unpairable` cell above is an unambiguous leak.
+
 **Incidental duplicate finding, out of scope, worth a separate look:**
 `captures/windows/cpp/swipe_refresh_{light,dark}.png` is byte-identical to
 `captures/windows/cpp/table_view_{light,dark}.png`, and the same three-way identity holds in
@@ -342,12 +403,14 @@ Nothing here proposes relaxing a threshold, widening a tolerance, or loosening a
 `phase_only` and `INVALID` caps are adjudicated policy (USER RULING 2026-08-10 / 2026-08-16) and are
 left exactly as they are.
 
-* **The 12 REAL DEFECT pages** move when the port is fixed. D1/D2/D3 will show up in the *frame*
-  score, not the still; D3/D4/D5 will show up in the still.
-* **The 25 SCORING ARTIFACT cells** cannot be moved by any port change. If the board is ever to
-  green them, the change is on the capture side — sample the burst relative to the gesture rather
+* **The 15 REAL DEFECT cells** move when the port is fixed: D3/D4/D5 register on the still, D1/D2/D9
+  only on the driven frames.
+* **The 32 SCORING ARTIFACT cells** cannot be moved by any port change — including the 7 that carry a
+  real defect (D6, D7, D8, D10). Fixing those is still worth doing; it just will not repaint the cell.
+  If the board is ever to green them, the change is on the capture side — sample the burst relative to the gesture rather
   than to wall-clock, or take the verdict on the settled tail — and that is a scoring-policy decision
   for the user, not a triage one. Note that `_align`'s ±3-sample window already absorbs a uniform
   drift; what it cannot absorb is a single frame that lands *inside* the transition while its partner
   lands outside it.
-* **The 6 CAPTURE CORRUPTION cells** move only with the targeted recapture in §5.
+* **The 6 CAPTURE CORRUPTION cells**, plus the green one in §5b, move only with the targeted
+  recapture in §5.
