@@ -358,18 +358,20 @@ def set_theme(theme: str) -> str:
 # VERBS — the same set the desktop agents implement (see run_comparison.py's scenario doc block):
 #   click at                                  -> input tap
 #   type text                                 -> input text (into whatever has focus)
-#   scroll at, dy                             -> input swipe (dy along y; see the sign note above)
-#   drag/swipe at, to | direction[, distance] -> input swipe; `steps` is accepted and ignored
+#   scroll at, dy                             -> motionevent drag (dy along y; see the sign note above)
+#   drag/swipe at, to | direction[, distance] -> motionevent drag; `steps` = how many MOVEs to emit
 #   hover at                                  -> SKIPPED, loudly. There is no pointer to park.
-# `duration` is in SECONDS, like every other time key in a scenario (`settle`); it is converted to the
-# milliseconds `input swipe` wants.
+# `duration` is in SECONDS, like every other time key in a scenario (`settle`); on this lane it now only
+# bounds the per-call adb timeout, since the gesture's pacing comes from the MOVE sequence itself.
 _HOVER_SKIP = ("hover: Android has no pointer, so there is nothing to hover with — and a tap is a "
                "different gesture, not a substitute")
-# A drag long enough not to read as a fling. `input swipe` interpolates linearly and releases at full
-# velocity, so a fast swipe hands Android's VelocityTracker ~1300 px/s and the list keeps coasting: the
-# resting offset is NOT repeatable run to run. A longer press-move-release shrinks that but cannot
-# remove it (there is no fling-free `input swipe`), so treat a driven scroll as a motion witness for
-# the GIF, never as a pixel oracle for a still.
+# EVERY PAN VERB RELEASES AT ZERO VELOCITY. `input swipe` interpolates linearly and lets go at full
+# speed, handing Android's VelocityTracker ~1300 px/s, so the list coasts to a resting offset that is
+# NOT repeatable run to run — MAUI's own column differed from ITSELF by up to 11.57% on the same page
+# while byte-stable at rest. `input motionevent` sends DOWN/MOVE/UP separately, so the gesture can
+# DWELL on its final coordinate and drain the tracker before lifting: measured 0.0000-0.0136% across
+# three identical runs. scroll, drag and swipe all take that path (see input_argv) -- so a driven
+# frame IS a usable oracle here, not merely a motion witness.
 _SWIPE_SECS = 0.8
 _SWIPE_DIRECTIONS = {"up": (0, -1), "down": (0, 1), "left": (-1, 0), "right": (1, 0)}
 # The shared vocabulary's default swipe distance is 300 px at the Mac's 1024x800 capture geometry — a
@@ -458,10 +460,9 @@ def input_argv(step: dict, size: tuple[int, int]) -> list[str] | None:
     if action == "click":
         return ["shell", "input", "tap", str(x), str(y)]
     if action in ("scroll", "swipe", "drag"):
-        # ONE `input swipe` serves all three: a slow press-move-release IS a pan/drag, and Android has
-        # no separate scroll or drag injection. The vocabulary's `steps` (how many move events the
-        # desktop agents synthesise) has no analogue here — the driver interpolates for us — so it is
-        # accepted and IGNORED rather than rejected, which keeps one scenario file valid everywhere.
+        # ONE GESTURE SHAPE SERVES ALL THREE: a press-move-release IS a pan/drag, and Android has no
+        # separate scroll or drag injection. The vocabulary's `steps` maps directly onto the number of
+        # MOVE events emitted below, which is what the shared vocabulary always meant by it.
         if action == "scroll":
             x2, y2 = x, y + _scale(float(step["dy"]), h)
         elif "to" in step:
@@ -487,13 +488,15 @@ def input_argv(step: dict, size: tuple[int, int]) -> list[str] | None:
             # exists to prevent, wearing a different hat.
             raise ValueError(f"step {step.get('name', action)!r}: zero-length {action} at ({x},{y}) "
                              f"is a click, not a pan (clamped to the {w}x{h} display?)")
-        ms = max(1, round(float(step.get("duration", _SWIPE_SECS)) * 1000))
-        if action == "scroll":
-            # A scroll stays on `input swipe`. Its job is to be a MOTION WITNESS for the GIF (the
-            # header's wording), and the fling is part of what it witnesses; nothing downstream reads a
-            # scrolled still as an oracle, so the extra round-trips below would buy nothing.
-            return ["shell", "input", "swipe", str(x), str(y), str(x2), str(y2), str(ms)]
-        # A DRAG/SWIPE RELEASES AT ZERO VELOCITY, so where it settles is reproducible.
+        # SCROLL TAKES THE DETERMINISTIC PATH TOO. It used to return `input swipe` here, on the grounds
+        # that a scroll is only a MOTION WITNESS for the GIF and "nothing downstream reads a scrolled
+        # still as an oracle". That last clause is false: motion_score pairs the frames of a driven
+        # sequence and scores them, so a fling lands the two columns at different points of the same
+        # motion and the cell reds on WHEN rather than on whether. box_view is the worked example --
+        # light capped "PHASE ONLY, NOT DECIDABLE ON THIS LANE", dark carrying a 3x self-motion
+        # asymmetry (MAUI 38.01% vs C++ 95.56%) purely because each column coasted a different
+        # distance. Scroll is still a motion witness; it is now a REPRODUCIBLE one.
+        # A DRAG/SWIPE/SCROLL RELEASES AT ZERO VELOCITY, so where it settles is reproducible.
         #
         # The header above says "there is no fling-free `input swipe`", and that is true OF THAT
         # COMMAND and false of Android. `input swipe` interpolates and lets go at full speed, handing
