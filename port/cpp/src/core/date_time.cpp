@@ -14,6 +14,7 @@
 #endif
 #include <array>
 #include <chrono>
+#include <ctime>
 #include <cstddef>
 #include <string>
 #include <string_view>
@@ -117,11 +118,38 @@ namespace maui::core
         }
     } // namespace
 
+    // C# DateTime.Now — LOCAL time, not UTC. This used to return the raw system_clock (UTC), documented in
+    // the header as a deviation whose "few-hour skew is immaterial" because the pickers only clamp and
+    // format. That was wrong, and the parity board is where it showed: measured on the android emulator at
+    // local 02:25 on 2026-08-22 (Europe/Sofia, UTC+3), MAUI rendered 8/22/2026 and the port 8/21/2026 — same
+    // device, same second, a whole day apart. Every date/time cell captured between local midnight and the
+    // UTC offset was being diffed against a DIFFERENT DAY's text, which reads exactly like a measure defect
+    // (see also the midnight-rollover trap: "7/31/2026" is wider than "8/1/2026").
+    //
+    // The offset is taken via localtime_r/timegm rather than std::chrono::current_zone(), deliberately: the
+    // original note's real concern — no libc++ tzdb dependency — still stands, and the Android NDK's libc++
+    // does not ship one. localtime_r is POSIX and the Windows spellings are the _s/_mkgmtime pair. Taking
+    // the offset at the CURRENT instant (rather than a fixed one) is what makes it DST-correct.
     date_time date_time::now()
     {
         const auto now = std::chrono::system_clock::now();
-        const auto day = std::chrono::floor<std::chrono::days>(now);
-        return date_time{std::chrono::sys_days{day}, std::chrono::duration_cast<std::chrono::milliseconds>(now - day)};
+        const std::time_t seconds = std::chrono::system_clock::to_time_t(now);
+        std::tm local{};
+#if defined(_WIN32)
+        localtime_s(&local, &seconds);
+        const std::time_t local_as_utc = _mkgmtime(&local);
+#else
+        localtime_r(&seconds, &local);
+        const std::time_t local_as_utc = timegm(&local);
+#endif
+        // Re-reading the local calendar fields AS IF they were UTC yields local-minus-UTC directly, DST
+        // included; adding it shifts the instant onto the local wall clock while keeping sub-second
+        // precision, which floor<days> below then truncates.
+        const auto offset = std::chrono::seconds{static_cast<long long>(local_as_utc - seconds)};
+        const auto local_now = now + offset;
+        const auto day = std::chrono::floor<std::chrono::days>(local_now);
+        return date_time{std::chrono::sys_days{day},
+                         std::chrono::duration_cast<std::chrono::milliseconds>(local_now - day)};
     }
 
     date_time date_time::today()

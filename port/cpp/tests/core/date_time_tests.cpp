@@ -6,6 +6,7 @@
 
 #include <__chrono/duration.h> // include-cleaner: the chrono literals/durations live here on libc++
 #include <chrono>
+#include <ctime>
 
 #include <gtest/gtest.h>
 
@@ -63,6 +64,45 @@ namespace
         // either now().date() or the day before (the rollover edge).
         EXPECT_LE(now.date().days() - today.days(), std::chrono::days{1});
         EXPECT_GE(now.date(), today);
+    }
+
+    // C# DateTime.Now/Today are LOCAL. now() returned the raw UTC system_clock until 2026-08-22, recorded
+    // in the header as a deviation whose skew was "immaterial" — it was not: on the android emulator at
+    // local 02:25 (UTC+3) MAUI rendered 8/22/2026 and the port 8/21/2026, same device, same second, and
+    // every date/time parity cell captured between local midnight and the UTC offset was diffed against a
+    // different day's text.
+    //
+    // The check derives the expected calendar fields INDEPENDENTLY, through libc rather than through
+    // date_time, so it is not a restatement of the implementation. It has teeth exactly when local and UTC
+    // disagree — which is most of the day for any non-zero offset, and always during the small hours this
+    // board captures in.
+    TEST(date_time, now_is_local_time_not_utc)
+    {
+        const std::time_t seconds = std::time(nullptr);
+        std::tm local{};
+#if defined(_WIN32)
+        localtime_s(&local, &seconds);
+#else
+        localtime_r(&seconds, &local);
+#endif
+        const date_time today = date_time::today();
+        EXPECT_EQ(today.year(), local.tm_year + 1900);
+        EXPECT_EQ(today.month(), local.tm_mon + 1);
+        EXPECT_EQ(today.day(), local.tm_mday);
+
+        // And when the two calendars genuinely disagree right now, assert the UTC answer is NOT what we
+        // returned — the half of the test that a UTC regression cannot satisfy. Skipped (not failed) when
+        // the host runs at UTC or at an hour where both agree, since there is nothing to distinguish.
+        std::tm utc{};
+#if defined(_WIN32)
+        gmtime_s(&utc, &seconds);
+#else
+        gmtime_r(&seconds, &utc);
+#endif
+        if (utc.tm_mday != local.tm_mday)
+        {
+            EXPECT_NE(today.day(), utc.tm_mday) << "date_time::today() returned the UTC day";
+        }
     }
 
     // ---- time_span ----

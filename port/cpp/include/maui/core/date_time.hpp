@@ -13,9 +13,12 @@
 //   - date() truncates the time-of-day (DateTime.Date); components mirror Year/Month/Day/TimeOfDay.
 //   - time_span components (hours/minutes/seconds) truncate toward zero like TimeSpan.Hours/...;
 //     total_hours/total_milliseconds mirror the Total* doubles.
-//   - now()/today() use the system UTC clock. DOCUMENTED DEVIATION: C# DateTime.Now/Today are
-//     local-time; the pickers only feed these into clamp/format logic, where the few-hour skew is
-//     immaterial, and UTC keeps the port deterministic without libc++ tz-database dependencies.
+//   - now()/today() are LOCAL time, matching C# DateTime.Now/Today. They used to return the system UTC
+//     clock, recorded here as a deviation whose "few-hour skew is immaterial" since the pickers only
+//     clamp and format. It was NOT immaterial: measured on the android emulator at local 02:25 on
+//     2026-08-22 (UTC+3), MAUI rendered 8/22/2026 and the port 8/21/2026 on the same device in the same
+//     second. The offset comes from localtime_r/timegm (POSIX; _s/_mkgmtime on Windows), which keeps the
+//     original no-libc++-tzdb constraint the deviation was written to satisfy.
 //   - format_date_time ports the DateTime.ToString subset the pickers exercise (see its comment).
 
 #include <chrono>
