@@ -57,6 +57,11 @@ namespace maui::core
         scroll_view_platform& operator=(scroll_view_platform&&) = delete;
 
         void* native = nullptr;
+        // MAC CATALYST ONLY: has the one-shot resting-contentOffset settle already run for this scroller?
+        // See scroll_view_handler.mm's platform_arrange — MAUI's Catalyst layout pipeline leaves a
+        // non-zero resting offset on pages whose content fits its transient oversize bounds, and the port
+        // reproduces that ONCE, at the first arrange with a known content size. Never on ios.
+        bool did_settle_catalyst_offset = false;
         // The hosted content child (the scroller's document) — null when no content is set.
         i_view* hosted_content = nullptr;
         // Cross-backend mirrors of the mapped scroll surface (headless asserts on them; the native

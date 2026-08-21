@@ -463,7 +463,19 @@ namespace maui::core
         // Do not reinstate without recapturing IOS as well as maccatalyst: 0e5ff2298d shipped with only a
         // Catalyst recapture planned and its own message said "NOT YET VERIFIED ON PIXELS", which is exactly
         // how a 12-cell iOS regression reached the branch unnoticed.
+#if TARGET_OS_MACCATALYST
+        // CATALYST PRESERVES bounds.origin; IOS DOES NOT. Both halves are measured, and the split is the
+        // whole point -- 0e5ff2298d applied the preserve to BOTH and lost 12 ios cells for it (reverted in
+        // e0a1f865f8), while plain setFrame on Catalyst wipes the resting offset the settle below installs
+        // (setFrame rewrites the entire bounds rect, and on a UIScrollView bounds.origin IS contentOffset).
+        // So: C#'s Center + width/height-only Bounds (ViewHandlerExtensions.iOS.cs:157-158) HERE, where
+        // MAUI's own resting offset has to survive; setFrame on ios, where it measurably must not.
+        const CGRect prior = scroller.bounds;
+        scroller.center = CGPointMake(frame.x + (frame.width / 2.0), frame.y + (frame.height / 2.0));
+        scroller.bounds = CGRectMake(prior.origin.x, prior.origin.y, frame.width, frame.height);
+#else
         [scroller setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+#endif
 
         CGSize extent = CGSizeZero;
         if (UIView* const content = tagged_content(scroller))
@@ -476,6 +488,10 @@ namespace maui::core
             extent =
                 CGSizeMake(CGRectGetMaxX(content.frame) + inset.right, CGRectGetMaxY(content.frame) + inset.bottom);
         }
+        // The UNCLAMPED content extent, kept for the Catalyst settle below: the anti-flip-flop clamp under
+        // this comment deliberately pushes contentSize PAST the bounds, so reading scrollable range off the
+        // clamped value invents up to a pixel of travel that the real content does not have.
+        const CGSize measured_extent = extent;
         // C# MauiScrollView.cs:474-490 — the anti-flip-flop clamp, and the reason this whole thing is
         // stable. With ContentInsetAdjustmentBehavior.Automatic, UIKit decides whether to inset the SCROLL
         // VIEW (AdjustedContentInset, when the content overflows) or to push the safe area into the CHILD
@@ -535,6 +551,76 @@ namespace maui::core
         {
             scroller.contentSize = extent; // ScrollViewExtensions.UpdateContentSize's change guard
         }
+#if TARGET_OS_MACCATALYST
+        // THE 32px CATALYST OFFSET, ROOT-CAUSED ON THE VM AND REPRODUCED HERE (2026-08-21).
+        //
+        // MAUI parks the scroller at a RESTING contentOffset.y of 41 on some pages and 0 on others, and
+        // that offset — 41pt / (1330/1024) = 31.6 = the board's "32px" — is the ENTIRE remaining diff on
+        // clip and swipe_item_size (aligning the port up by 32px collapses swipe_item_size from 24.44% to
+        // 2.97%). Measured live with MAUI_GEOMETRY_DUMP=1 on the VM, its scroller passes through a
+        // TRANSIENT OVERSIZE layout before settling:
+        //     bounds {1330,1039} contentSize {1330,1139}     <- real window, real content
+        //     bounds {1728,1350} contentSize {1330,1139}     <- oversize pass (window / 0.7697)
+        //     bounds {1728,1350} contentSize {1728,1350}     <- contentSize CLAMPED UP to those bounds
+        //     bounds {1330,998}  contentSize {1728,1350} offset {0,41}   <- shrink back, offset sticks
+        // The clamp is the whole mechanism: content SHORTER than the oversize bounds is stretched to fit
+        // them exactly, so UIKit takes its "content fits" branch and the shrink leaves the safe-area top
+        // in the offset. Content TALLER than the oversize bounds stays scrollable and settles back to 0.
+        //
+        // WHY THIS IS NOT THE ARBITRARY THRESHOLD THIS FILE PREVIOUSLY REFUSED. An earlier note here said a
+        // rule would need a cutoff "between 306 and 394 with no meaning behind it". The cutoff has a
+        // meaning: it is the window height in UNSCALED UIKit units, window.height / 0.7697 — 1350 at the
+        // board's 1024x800 window. Measured, all seven ScrollView pages agree:
+        //     content <= 1350 -> offset 41:  clip 1139, path_gallery 1290, swipe_item_size 1304,
+        //                                    clip_views 999 (clamped to its 1pt of range, so invisible)
+        //     content >  1350 -> offset  0:  clip_gallery 1392, box_view 1530, scroll_view 1985
+        // And it PREDICTED a case it was not fitted to: at a taller window (UIKit 1143 -> threshold 1485)
+        // clip_gallery's 1392 must flip from 0 to 41. It does — verified on the VM before this was written.
+        //
+        // 0.7697 is Catalyst's fixed UIKit-to-AppKit scale (the "77%" Apple documents), not a tuned
+        // constant; the two window sizes above bracket it. Applied ONCE per scroller, only after a real
+        // content size exists, and never on ios (compile-time gate) — the ios lane is at 0 red and this
+        // transient is a Catalyst-pipeline artifact that does not occur there.
+        // WAIT FOR THE INSET PASS. The scroller is arranged more than once: first at y=0 spanning the whole
+        // page, and only later at y=41 once the page has applied its safe-area top. Settling on the first of
+        // those reads a safe area of 0 everywhere (measured: pageSafeTop=0.0, frame.y=0.0, and
+        // win.safeAreaInsets.top=0.0 too) and silently does nothing -- which is exactly how the first two
+        // attempts at this "ran" and moved no pixels. frame.y IS that inset by the time it is non-zero: the
+        // page pushes the scroller down by precisely the safe-area top, and MAUI's settled scroller carries
+        // the same pair (frame {{0,41},{1330,998}} with offset {0,41}).
+        if (!platform->did_settle_catalyst_offset && extent.height > 0.0 && frame.y > 0.0)
+        {
+            if (UIWindow* const win = scroller.window)
+            {
+                constexpr CGFloat k_catalyst_ui_scale = 0.7697; // Apple's fixed Catalyst 77% scale
+                const CGFloat oversize_height = win.bounds.size.height / k_catalyst_ui_scale;
+                // The 41 is the PAGE's safe-area top, NOT the window's -- win.safeAreaInsets.top reads
+                // 0.0 here (measured), which silently made this a no-op on the first attempt. The port
+                // already resolves the right value through the control, exactly as the anti-flip-flop
+                // clamp above does.
+                maui::core::thickness page_safe_area;
+                if (auto* const ctl = dynamic_cast<maui::controls::scroll_view*>(virtual_view()))
+                {
+                    page_safe_area = ctl->effective_safe_area();
+                }
+                if (extent.height <= oversize_height)
+                {
+                    // MEASURED, not clamped. clip_views' content is 998 (an exact fit) and the clamp above
+                    // raises contentSize to 999, which handed the settle 1pt of phantom range: the port
+                    // parked at offset 1 where MAUI sits at 0, and that single pixel lit up every edge in
+                    // the frame (0.09% -> 1.56%, green -> yellow). MAUI clamps its own offset to the range
+                    // of the REAL content, so this must too.
+                    const CGFloat max_scroll =
+                        std::max<CGFloat>(0.0, measured_extent.height - frame.height);
+                    const CGFloat inset_top =
+                        page_safe_area.top > 0.0 ? static_cast<CGFloat>(page_safe_area.top) : frame.y;
+                    const CGFloat settle = std::min<CGFloat>(inset_top, max_scroll);
+                    scroller.bounds = CGRectMake(scroller.bounds.origin.x, settle, frame.width, frame.height);
+                }
+                platform->did_settle_catalyst_offset = true;
+            }
+        }
+#endif
     }
 
     // Render transform pushed to the native UIView via the shared ios apply_transform helper
