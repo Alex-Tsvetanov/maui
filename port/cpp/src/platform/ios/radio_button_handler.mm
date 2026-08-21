@@ -62,6 +62,60 @@ namespace
         return (__bridge UIButton*)native;
     }
 
+    // The DefaultTemplate Grid's ColumnSpacing (RadioButton.cs:536) — the gap between the ring and the
+    // title. Opened via the image/title/content inset split (see apply_template_chrome).
+    constexpr CGFloat k_gap = 6;
+
+    // C# BorderElement.BorderWidthProperty's "not set" default (BorderElement.cs:17). MAUI feeds this raw
+    // -1 into Border.CrossPlatformMeasure's `Padding + StrokeThickness`, so it is a real measurement input,
+    // not just a flag — see template_pad below.
+    constexpr double k_unset_border_width = -1.0;
+
+    // ONE SIDE of the DefaultTemplate's chrome, in points, as a function of RadioButton.BorderWidth.
+    //
+    // BuildDefaultTemplate wraps the indicator + content in Border(Padding = 6) > Grid(Padding = 2)
+    // (RadioButton.cs:520 and :534) and binds the Border's StrokeThickness to the RadioButton's
+    // BorderWidth (RadioButton.cs:528). Border.CrossPlatformMeasure insets its content by
+    // `Padding + StrokeThickness` (Border.cs:354 — Thickness + double adds to all four sides), so one
+    // side of chrome is (6 + BorderWidth) + 2, the Grid's own Padding.
+    //
+    // The subtlety that makes this 7 and not the 8 the template's literals suggest: BorderWidth's
+    // default is the -1d "not set" SENTINEL (BorderElement.cs:17), and CrossPlatformMeasure adds that
+    // raw -1 straight into the sum — it does not clamp. So an unset radio's chrome is 6 + (-1) + 2 = 7pt
+    // per side (14pt of total row chrome over the 21pt ring = the 35pt row the reference draws), and a
+    // BorderWidth = 4 radio's is 6 + 4 + 2 = 12pt per side (45pt row). Both are confirmed against
+    // radio_button_border_light @3x: the reference's unset rings start at x=69 and its BorderWidth=4
+    // rings at x=84 — exactly 5pt = 15px apart, and its yellow rows measure 35.0pt and 45.0pt.
+    //
+    // This supersedes the earlier pair of constants that carried 7 as a blind calibration; 7 is what
+    // the oracle's own arithmetic yields for the default, which is why it measured right.
+    CGFloat template_pad(double border_width)
+    {
+        return static_cast<CGFloat>(8.0 + border_width);
+    }
+
+    // Push the template chrome onto the button for the given BorderWidth. contentEdgeInsets is what
+    // feeds sizeThatFits, so this is also the measurement path; imageEdgeInsets/titleEdgeInsets only
+    // move the two pieces relative to each other and net to zero on both axes.
+    void apply_template_chrome(UIButton* button, double border_width)
+    {
+        const CGFloat pad = template_pad(border_width);
+        // MAUI's template Label is TOP-aligned in the Grid row — Label.VerticalTextAlignment defaults to
+        // TextAlignment.Start (Label.cs:24), which MauiLabel.AlignVertical turns into a rect pinned to
+        // the top of the frame (MauiLabel.cs:60-77) — whereas a plain UIButton vertically CENTERS its
+        // titleLabel in the content box. MEASURED on radio_button_group_gallery_light and
+        // radio_button_border_light @3x: with the ring ink landing on the reference's ring to the pixel,
+        // the port's title glyphs are byte-identical to the reference's but sit exactly 6px = 2pt lower
+        // (a whole-region shift search bottoms out at dy=+6 with residual 0.0). The port renders the
+        // radio natively rather than through the template, so the template's top-alignment has to be
+        // expressed as a title offset here; 2pt is calibrated to the shipped render (RENDER-BREAKS-TIES)
+        // because UIButton's internal titleLabel metrics are not derivable from the C# geometry.
+        constexpr CGFloat k_title_rise = 2;
+        button.imageEdgeInsets = UIEdgeInsetsMake(0, -k_gap / 2, 0, k_gap / 2);
+        button.titleEdgeInsets = UIEdgeInsetsMake(-k_title_rise, k_gap / 2, k_title_rise, -k_gap / 2);
+        button.contentEdgeInsets = UIEdgeInsetsMake(pad, pad + k_gap / 2, pad, pad + k_gap / 2);
+    }
+
     using maui::platform::ios::to_ui_color;
     using maui::platform::ios::to_ui_font;
 
@@ -236,52 +290,19 @@ namespace maui::core
         button.imageView.contentMode = UIViewContentModeCenter;
         // MAUI's DefaultTemplate renders the indicator + content as a LEFT-aligned row with a gap between
         // the ring and the label; a plain UIButton centers its content and butts the title flush against the
-        // image. Left-align the content, then open a `gap` between the indicator and the title via the
-        // canonical image/title/content inset split: shift the image left by gap/2, the title right by gap/2
-        // (net gap between them), and grow the content box by gap (gap/2 each side) so the title is NOT
-        // clipped — titleEdgeInsets is excluded from sizeThatFits, so its net horizontal offset is kept zero
-        // (+gap/2 left, -gap/2 right) and only contentEdgeInsets feeds the measured width. These insets are
+        // image. Left-align the content, then hand the template chrome to apply_template_chrome above — it
+        // opens the Grid ColumnSpacing gap via the canonical image/title/content inset split (image left by
+        // gap/2, title right by gap/2, content box grown by gap/2 each side so the title is NOT clipped) and
+        // pads both axes by the Border(Padding) + BorderWidth + Grid(Padding) chrome. These insets are
         // deprecated in the UIButtonConfiguration era but remain functional + correct for this image+title
         // layout on a Custom button (the same tolerated deprecation as button_handler.mm's contentEdgeInsets),
         // and a configuration would lose the per-state Normal/Selected ring images this fallback relies on.
-        // 6 = the DefaultTemplate Grid's ColumnSpacing (RadioButton.cs:536), NOT a tuned number. It was 8,
-        // and that single constant produced BOTH residual offsets on the radio pages, because it feeds the
-        // left inset as well (template_hpad + gap/2): the ring sat 1pt right of the reference and the
-        // ring-to-text gap ran 2pt wide. MEASURED on radio_button_group_gallery_light @3x — reference ring
-        // x69-131 with a 7.67pt gap, port x72-134 with 9.67pt. Dropping to the oracle's 6 moves the left
-        // inset 12 -> 11 (ring 1pt left) and closes the gap by 2pt, which is exactly the delta measured.
-        const CGFloat gap = 6;
-        // MAUI's RadioButton DefaultTemplate wraps the indicator+content in a Border(Padding=6) > Grid
-        // (Padding=2), giving every radio ~8pt of fixed chrome padding on EACH side (top/bottom AND
-        // left/right) — so a native-default radio is both taller and wider than a bare UIButton. The port
-        // renders the radio natively (no template), so fold that chrome into contentEdgeInsets (which feeds
-        // sizeThatFits) on both axes to match the ref's row height AND the inter-item gap in a horizontal
-        // stack; without the horizontal pad the port's radios pack ~8pt tighter than MAUI's.
-        // 7, not 8, and it must stay in step with get_desired_size's `chrome` below. That function sizes the
-        // row as max(21pt ring, text) + 14 — 14pt of TOTAL vertical chrome, calibrated against the shipped
-        // render. Insetting 8 top AND bottom spends 16, so the image slot came out at 35 - 16 = 19pt and
-        // clipped the indicator to exactly that. MEASURED: the ring rendered 23.0pt WIDE (the full drawn
-        // canvas) by 19.0pt TALL — anisotropic, which is what proves it was a vertical clip rather than a
-        // scale, and what distinguishes this from the ring-geometry bug fixed above it. 14/2 = 7 per side
-        // leaves the ring its full 21pt. The HORIZONTAL pad stays 8 (Border Padding=6 + Grid Padding=2).
-        const CGFloat template_vpad = 7;
-        // 7, CALIBRATED TO THE SHIPPED RENDER (rule 4 (RENDER-BREAKS-TIES)) rather than to Border(6) + Grid(2) = 8. The
-        // declared 8 is what the template says; 8 is not what MAUI draws. MEASURED on
-        // radio_button_group_gallery_light @3x, with the page's own padding controlled for: the plain
-        // Labels on that page start at x=50/51 in BOTH columns — identical, so the page layout is not the
-        // variable — while the reference's ring ink starts at x=69 and the port's at x=72. A uniform 1pt
-        // excess inside the control, and it moved every glyph of the row with it: 90% of that page's
-        // residual diff sat in the text region, not the ring gutter.
         //
-        // The same 8-vs-7 disagreement as template_vpad above, and diagnosed the same way — by measuring a
-        // control-independent element first to rule out the page. Not tuned blind: the previous constants
-        // in this file (chrome=16, ring-floor=16) were, and each missed.
-        const CGFloat template_hpad = 7;
+        // Seeded at the BorderWidth SENTINEL (-1d, BorderElement.cs:17) because the virtual view is not
+        // attached yet; map_stroke_thickness re-applies it with the real value on connect and on every
+        // change, which is what makes a bordered radio grow instead of squeezing its own fill inward.
         button.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
-        button.imageEdgeInsets = UIEdgeInsetsMake(0, -gap / 2, 0, gap / 2);
-        button.titleEdgeInsets = UIEdgeInsetsMake(0, gap / 2, 0, -gap / 2);
-        button.contentEdgeInsets =
-            UIEdgeInsetsMake(template_vpad, template_hpad + gap / 2, template_vpad, template_hpad + gap / 2);
+        apply_template_chrome(button, k_unset_border_width);
         platform->native = (__bridge_retained void*)button; // the void* slot owns one reference
         return platform;
     }
@@ -401,7 +422,19 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_button(platform->native).layer.borderWidth = view.stroke_thickness();
+            UIButton* const button = as_button(platform->native);
+            // The PAINT: clamp the -1d sentinel to 0 the way every C# UpdateStrokeThickness does (it keys
+            // off `>= 0` before overriding the native default) — CALayer has no sentinel and a negative
+            // borderWidth is undefined.
+            const double stroke = view.stroke_thickness();
+            button.layer.borderWidth = static_cast<CGFloat>(stroke > 0 ? stroke : 0.0);
+            // The MEASURE: BorderWidth is an input to the template's own chrome, NOT just a paint. The
+            // DefaultTemplate's Border insets its content by `Padding + StrokeThickness` (Border.cs:354),
+            // so a bordered radio is BOTH taller and wider than an unset one — MAUI grows the row around
+            // the stroke. The port paints the stroke on the layer, which is drawn INSIDE the view bounds
+            // and contributes nothing on its own, so without this the fill was squeezed inward by the
+            // stroke instead. Feed the RAW value (sentinel included): see template_pad.
+            apply_template_chrome(button, stroke);
         }
     }
 
@@ -445,10 +478,10 @@ namespace maui::core
                                                        options:NSStringDrawingUsesLineFragmentOrigin
                                                     attributes:attrs
                                                        context:nil];
-            // Size the row from MAUI's DefaultTemplate geometry DIRECTLY, calibrated to the SHIPPED render
-            // (rule 4 (RENDER-BREAKS-TIES)): the outer Ellipse measures 21pt (63px @3x) and a single-14pt-line row is 35pt tall
-            // (measured ring-center pitch 41pt − Spacing 6pt), so the vertical chrome is 35−21 = 14pt. Thus
-            // row = max(21pt ring, text) + 14. UIButton's own sizeThatFits height is NOT used: it adds its
+            // Size the row from MAUI's DefaultTemplate geometry DIRECTLY: the outer Ellipse measures 21pt
+            // (63px @3x) and the chrome around it is 2 * template_pad(BorderWidth) — 14pt for an unset
+            // radio (the 35pt row the reference draws), 24pt at BorderWidth = 4 (a 45pt row). Thus
+            // row = max(21pt ring, text) + 2 * template_pad. UIButton's own sizeThatFits height is NOT used: it adds its
             // internal title metrics and over-measures a large-font (e.g. 18pt) title by ~2pt, and that
             // per-large-radio excess accumulated into the vertical drift that reddened the content-heavy radio
             // pages (radio_content_properties / radio_button_group_gallery / radio_button_content). Prior tries
@@ -462,33 +495,16 @@ namespace maui::core
             const CGFloat vertical_chrome = button.contentEdgeInsets.top + button.contentEdgeInsets.bottom;
             result.height = std::max<double>(result.height, std::ceil(wrapped.size.height) + vertical_chrome);
 #else
-            constexpr CGFloat k_ring_pt = 21.0;   // Ellipse HeightRequest, shipped render
-            constexpr CGFloat k_chrome_pt = 14.0; // measured row(35) − ring(21) for 14pt content
-            result.height = std::max<double>(k_ring_pt, std::ceil(wrapped.size.height)) + k_chrome_pt;
+            constexpr CGFloat k_ring_pt = 21.0; // Ellipse HeightRequest, shipped render
+            const CGFloat chrome = button.contentEdgeInsets.top + button.contentEdgeInsets.bottom;
+            result.height = std::max<double>(k_ring_pt, std::ceil(wrapped.size.height)) + chrome;
 #endif
         }
-        // BorderWidth GROWS the control on both axes; it does not eat into it. The DefaultTemplate's Border
-        // wraps the Grid, so its StrokeThickness adds OUTSIDE the padded content — total = content +
-        // 2*padding + 2*stroke. The port draws the stroke on the layer instead (layer.borderWidth, which is
-        // painted INSIDE the view bounds and contributes nothing to the measured size), so a bordered radio
-        // came out the same height as an unbordered one and its background was squeezed inward by the
-        // stroke rather than the row growing around it.
-        //
-        // MEASURED on radio_button_border_light @3x, the two yellow rows isolating the variable — Option 2
-        // (BackgroundColor only) is 35.0pt in BOTH columns, while Option 1 (the same fill plus
-        // BorderWidth=4) is 45.0pt in the reference and 27.0pt in the port. 27 = 35 - 2*4 exactly: the fill
-        // inset by the stroke on each side, where MAUI instead grew the row to 35 + 2*4. That one page held
-        // 5.76% differing and did not move for any of the three indicator fixes before this, because the
-        // indicator was never its problem.
-        //
-        // Clamp negatives to 0, matching C#'s `BorderWidth < 0 ? 0 : BorderWidth` (the same guard
-        // button_handler.mm applies to stroke_thickness).
-        if (const auto* const vv = virtual_view())
-        {
-            const double border_width = vv->stroke_thickness() > 0 ? vv->stroke_thickness() : 0.0;
-            result.width += 2 * border_width;
-            result.height += 2 * border_width;
-        }
+        // NOTE: BorderWidth is NOT added here. It is already in the row via template_pad, which
+        // map_stroke_thickness folds into contentEdgeInsets — the single input both the width (through
+        // sizeThatFits) and the height (through `chrome` above) are read from. It used to be a separate
+        // `+= 2 * BorderWidth` on top of a fixed 7pt pad, which grew the row by 8pt at BorderWidth = 4
+        // where the oracle grows it by 10, and never moved the ring's x at all.
         return result;
     }
 

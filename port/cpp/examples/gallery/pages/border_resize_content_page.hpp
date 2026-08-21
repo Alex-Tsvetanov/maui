@@ -131,8 +131,16 @@ namespace maui::samples
                 [this](double /*old_value*/, double new_value) { apply_image_scale(new_value); });
 
             // Seed the initial bound values (the XAML initial state).
+            //
+            // The FontSize slider is NOT seeded. GROUND-TRUTH-ROOT makes port/maui-reference/pages/
+            // border_resize_content.xaml the page of record, and there the six content Labels carry
+            // FontSize="64" while the "Content Text FontSize" Slider (Value="40") drives nothing at rest —
+            // it has no binding and the twin has no code-behind. Seeding 40 here overwrote make_label's 64
+            // and rendered every "+" at 57x58px against the reference's 92x95 (MEASURED on
+            // border_resize_content_light @3x; the xaml column, which loads the twin, draws 92x95 — the
+            // FOUR-COMPARISONS column split is what localised this to the code-first builder). The slider
+            // still drives the size on CHANGE, which is the interactivity the C# sample's binding provides.
             apply_label_text("+");
-            apply_label_font_size(40);
             apply_image_scale(1);
 
             stack_.add(grid_);

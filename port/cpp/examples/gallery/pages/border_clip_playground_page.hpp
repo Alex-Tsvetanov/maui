@@ -49,16 +49,16 @@
 #include "maui/controls/border.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/file_image_source.hpp"
+#include "maui/controls/grid.hpp"
 #include "maui/controls/image.hpp"
 #include "maui/controls/label.hpp"
 #include "maui/controls/picker.hpp"
 #include "maui/controls/scroll_view.hpp"
 #include "maui/controls/slider.hpp"
-#include "maui/controls/grid.hpp"
 #include "maui/controls/vertical_stack_layout.hpp"
-#include "maui/core/grid_length.hpp"
 #include "maui/core/aspect.hpp"
 #include "maui/core/font.hpp"
+#include "maui/core/grid_length.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/colors.hpp"
 #include "maui/graphics/corner_radius.hpp"
@@ -108,6 +108,7 @@ namespace maui::samples
             width_slider_.set_maximum(20);
             width_slider_.value_changed.connect([this](double /*old_value*/, double new_value) {
                 set_readout(width_readout_, "Border Width", new_value);
+                width_slider_moved_ = true;
                 update_border();
             });
 
@@ -152,8 +153,11 @@ namespace maui::samples
 
             // BorderClipPlayground() ctor: SelectedIndex = 1; UpdateBorder(); UpdateCornerRadius();
             shape_picker_.set_selected_index(1);
-            width_slider_.set_value(5); // default Value="5" — also drives the width readout
-            update_border_shape();      // toggles the corner block visible (index 1) + UpdateBorder()
+            // Value="5" seeds the slider position + its readout ONLY; see update_border() for why the
+            // Border's own StrokeThickness stays at MAUI's 1.0 default until the slider is dragged.
+            width_slider_.set_value(5);
+            width_slider_moved_ = false;
+            update_border_shape(); // toggles the corner block visible (index 1) + UpdateBorder()
         }
 
         [[nodiscard]] maui::controls::content_page& page()
@@ -233,7 +237,19 @@ namespace maui::samples
             }
 
             border_.set_stroke_shape(std::move(border_shape));
-            border_.set_stroke_thickness(width_slider_.value());
+            // The thickness is applied only ONCE THE SLIDER HAS BEEN MOVED. GROUND-TRUTH-ROOT makes
+            // port/maui-reference/pages/border_clip_playground.xaml the page of record, and there the
+            // preview Border carries NO StrokeThickness — it renders MAUI's 1.0 default (Border.cs:175) —
+            // while the "Border Width" Slider (Value="5") drives nothing at rest: the twin has no
+            // code-behind, so nothing pushes the slider's value into the Border. Pushing 5 here at
+            // construction drew a 14px stroke against the reference's 2px (MEASURED on
+            // border_clip_playground_light @3x; the xaml column, which loads the twin, draws 2px — the
+            // FOUR-COMPARISONS column split is what localised this to the code-first builder). Dragging
+            // the slider still drives the stroke, which is the interactivity the C# sample's handler gives.
+            if (width_slider_moved_)
+            {
+                border_.set_stroke_thickness(width_slider_.value());
+            }
         }
 
         // XAML section headers: FontSize=24 FontAttributes=Bold (lines 28/36/40 of the .xaml twin).
@@ -270,6 +286,8 @@ namespace maui::samples
         maui::controls::label border_heading_;
         maui::controls::label width_readout_;
         maui::controls::slider width_slider_;
+        // False until the user drags the Border-Width slider; see update_border().
+        bool width_slider_moved_ = false;
 
         // the corner-radius block (shown only for RoundRectangle)
         maui::controls::vertical_stack_layout corner_stack_;
