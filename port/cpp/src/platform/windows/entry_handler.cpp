@@ -53,6 +53,7 @@
 #include <winrt/Windows.UI.Text.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -228,6 +229,28 @@ namespace
             box.IsSpellCheckEnabled(view.is_spell_check_enabled());
         }
     }
+
+    // TextBoxExtensions.BackgroundResourceKeys (src/Core/src/Platform/Windows/TextBoxExtensions.cs:45-51).
+    // A WinUI TextBox template resolves its per-visual-state fill from THEME RESOURCES, so a local
+    // Background survives only until the control changes visual state -- which is why the port's Entry
+    // used to go white the instant it took focus (the template's Focused state re-reads
+    // TextControlBackgroundFocused). Overriding all four keys is what the oracle does instead.
+    constexpr std::array<std::wstring_view, 4> k_background_keys{
+        L"TextControlBackground", L"TextControlBackgroundPointerOver", L"TextControlBackgroundFocused",
+        L"TextControlBackgroundDisabled"};
+
+    // FrameworkElementExtensions.RefreshThemeResources: flip RequestedTheme away and back so the control
+    // template re-resolves the resources just overridden. Without it the override does not take effect
+    // until something else invalidates the template. (button_handler.cpp / check_box_handler.cpp /
+    // activity_indicator_handler.cpp each carry this same three-liner for the same reason.)
+    void refresh_theme_resources(const winui::FrameworkElement& element)
+    {
+        const auto previous = element.RequestedTheme();
+        element.RequestedTheme(element.ActualTheme() == winui::ElementTheme::Dark ? winui::ElementTheme::Light
+                                                                                  : winui::ElementTheme::Dark);
+        element.RequestedTheme(previous);
+    }
+
 } // namespace
 
 namespace maui::core
@@ -822,11 +845,43 @@ namespace maui::core
 
     void entry_platform::update_background(const maui::graphics::paint* value)
     {
-        // EntryHandler.Windows's dedicated MapBackground (-> TextBoxExtensions.UpdateBackground's
-        // TextControlBackground resource-key dance, matching text_color/stroke_color's hover-state
-        // persistence) is NOT replicated: this port's entry_handler.hpp routes Background through the
-        // generic-IView push instead (matching label/button, which have no dedicated map_background
-        // either). Identical AT REST; diverges only in the hover/focused/disabled visual states.
+        // EntryHandler.Windows.cs:58-59 routes Background to TextBoxExtensions.UpdateBackground
+        // (src/Core/src/Platform/Windows/TextBoxExtensions.cs:33-51), which sets the brush on the FOUR
+        // TextControlBackground* theme-resource keys and calls RefreshThemeResources -- it never touches
+        // TextBox.Background at all.
+        //
+        // This used to be the generic-IView push alone, documented as "identical AT REST; diverges only
+        // in the hover/focused/disabled visual states". That divergence was MEASURED and is not cosmetic:
+        // on windows/clip_views the red Entry turned WHITE the moment it took focus, because the template's
+        // Focused visual state re-reads TextControlBackgroundFocused and drops the local Background. 1323
+        // px differing at `initial` became 9424 at `focus-field`, i.e. 0.16% -> 1.15%, and 1.15% is over
+        // the board's 1.0% green bar -- the whole of that cell's yellow, in both port columns.
+        // (PHASE_TRIAGE.md D2 read the same frames as "the Clip is dropped when an Entry repaints on
+        // focus". It is not: the white region still tapers along the page's shared ellipse, so the clip is
+        // intact. What is lost is the FILL.)
+        //
+        // The generic push is KEPT alongside the resource override rather than replaced by it. The two
+        // agree at rest (the template's resting fill resolves to TextControlBackground either way), the
+        // board is green at rest today with the property being set, and dropping a working push to be
+        // literal about a mechanism would risk the resting render to buy nothing.
         maui::platform::windows::apply_background(native, value);
+        if (native == nullptr)
+        {
+            return;
+        }
+        const text_box box = as_text_box(native);
+        for (const auto& key : k_background_keys)
+        {
+            if (value == nullptr)
+            {
+                box.Resources().Remove(winrt::box_value(winrt::hstring{key})); // UpdateBackground's RemoveKeys arm
+            }
+            else
+            {
+                box.Resources().Insert(winrt::box_value(winrt::hstring{key}),
+                                       maui::platform::windows::brush_for(*value));
+            }
+        }
+        refresh_theme_resources(box);
     }
 } // namespace maui::core
