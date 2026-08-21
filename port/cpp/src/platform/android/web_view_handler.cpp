@@ -61,13 +61,29 @@
 // hybrid_web_view 1462. MauiWebView.Android.cs has NO OnMeasure override (all 111 lines read), so MAUI
 // measures a stock WebView under the same infinite constraint the port uses.
 //
-// THE REMAINING HYPOTHESIS, UNTESTED: MAUI's android layout is driven by ANDROID's own measure/layout
-// pass (LayoutViewGroup.OnMeasure calls into the cross-platform measure, but the WebView child is still
-// measured by its parent ViewGroup), whereas the port arranges its children to exact frames computed in
-// C++ and Android never gets to size the WebView itself. If that is right, the fix is structural -- the
-// port would have to let a native child's own measure participate -- and it is NOT a WebView bug.
-// Testing it means instrumenting MAUI's own layout pass, which is the next step and a bigger one than
-// anything tried so far.
+// THE STRUCTURAL HYPOTHESIS IS DISPROVEN. It read: MAUI's android layout runs through ANDROID's measure
+// pass so the WebView is sized by its parent ViewGroup, while the port arranges children to exact
+// C++-computed frames. `uiautomator dump` of MauiReference kills it:
+//     parent ViewGroup  y 136-2274  h=2138
+//     children (Button 100, TextView 52, Switch 132, TextView 52, EditText 109, ImageView 162,
+//               WebView 607, TextView 52, TextView 97) sum to 1363, and content ends at y=1719
+// There is ~555px of SLACK. The WebView is not absorbing remaining space and is not filling its parent --
+// it is ASSIGNED 607 as its own measured height. Do not rewrite the layout seam for this.
+//
+// AND THE PORT'S WebView NEVER REPORTS A HEIGHT, under any spec (measured, one pass, same widget):
+//     spec probe: UNSPEC=0  AT_MOST(4000)=0  EXACTLY(4000)=4000
+// It only ever fills what it is told. Its getContentHeight() is 0 permanently -- on a REMOTE url and on
+// STATIC html alike, at 0/100/800ms after onPageFinished -- even though the page visibly renders. So the
+// gap is not the measure spec, not the timing, and not the content source.
+//
+// ALSO RULED OUT: the missing WebChromeClient. C# installs a MauiWebChromeClient and this partial installs
+// none (see the header), and a chrome-client-less WebView is a documented reason for content metrics never
+// populating. Installing a base android.webkit.WebChromeClient changed NOTHING (same 0/0/4000).
+//
+// WHAT IS LEFT is narrow and specific: MAUI's WebView has a populated contentHeight and the port's does
+// not, for a reason in how the widget is CREATED or HOSTED -- not in how it is measured, loaded, or timed.
+// That is where the next attempt should start, with the C# CreatePlatformView compared line by line
+// against this one, and `uiautomator dump` (no rebuild) as the instrument.
 //
 // ORDER OF WORK: settle that structural question FIRST. Then the natural measure, and only then the
 // minimum rule. The floor is load-bearing scaffolding until those are right.
