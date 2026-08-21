@@ -246,10 +246,11 @@ namespace maui::samples
             // border_clip_playground_light @3x; the xaml column, which loads the twin, draws 2px — the
             // FOUR-COMPARISONS column split is what localised this to the code-first builder). Dragging
             // the slider still drives the stroke, which is the interactivity the C# sample's handler gives.
-            if (width_slider_moved_)
-            {
-                border_.set_stroke_thickness(width_slider_.value());
-            }
+            // ALWAYS assign — a conditional assignment left the border holding whatever the slider's
+            // own ValueChanged had already pushed during construction (connect() runs before
+            // set_value(5), so the handler fires and applies 5 before the flag is cleared).
+            border_.set_stroke_thickness(width_slider_moved_ ? width_slider_.value()
+                                                             : k_twin_stroke_thickness);
         }
 
         // XAML section headers: FontSize=24 FontAttributes=Bold (lines 28/36/40 of the .xaml twin).
@@ -288,6 +289,9 @@ namespace maui::samples
         maui::controls::slider width_slider_;
         // False until the user drags the Border-Width slider; see update_border().
         bool width_slider_moved_ = false;
+        // MAUI's Border.StrokeThicknessProperty default (Border.cs:175) — what the twin's unstroked
+        // <Border> renders at rest.
+        static constexpr double k_twin_stroke_thickness = 1.0;
 
         // the corner-radius block (shown only for RoundRectangle)
         maui::controls::vertical_stack_layout corner_stack_;
