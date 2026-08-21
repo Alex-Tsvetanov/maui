@@ -65,12 +65,18 @@
             </CollectionView.ItemsSource>
             <CollectionView.SelectedItems>
                 <!-- The original C# preselects items 2/4/5 in code-behind (SelectedItems.Add(Items.Skip(n)));
-                     the twin has no code-behind, so it declares the same preselection inline. -->
-                <x:Array Type="{x:Type x:String}">
-                    <x:String>photo.jpg, 2</x:String>
-                    <x:String>Fruits.jpg, 4</x:String>
-                    <x:String>FlowerBuds.jpg, 5</x:String>
-                </x:Array>
+                     the twin has no code-behind, so it declares the same preselection inline.
+                     DIRECT <x:String> CHILDREN, NOT A WRAPPING <x:Array>: XamlC resolves a property element
+                     through an ordered ladder (SetPropertiesVisitor.SetPropertyValue, Build.Tasks/
+                     SetPropertiesVisitor.cs:1193-1222) and a String[] is NOT assignable to the property's
+                     IList<object> (an array implements a generic interface only when the argument EQUALS the
+                     element type), so CanSetValue and CanSet both fail and the last arm — CanAdd/Add — emits
+                     SelectedItems.Add(<the String[]>). That appends the ARRAY OBJECT as a single entry, which
+                     matches no item, so the array form preselects NOTHING. Direct children take the same last
+                     arm once per child and add the ELEMENTS, which is what actually selects them. -->
+                <x:String>photo.jpg, 2</x:String>
+                <x:String>Fruits.jpg, 4</x:String>
+                <x:String>FlowerBuds.jpg, 5</x:String>
             </CollectionView.SelectedItems>
             <CollectionView.ItemTemplate>
                 <DataTemplate>

@@ -925,6 +925,42 @@ namespace maui::xaml
             return true;
         }
 
+        // The form XamlC DOES honour: <CollectionView.SelectedItems><x:String>Item 1</x:String>… — direct
+        // primitive children rather than a wrapping <x:Array>.
+        //
+        // Same ladder, different outcome. For a String child, CanSetValue asks whether String is assignable
+        // to the SelectedItems BP's IList<object> (no) and CanSet asks the same of the CLR setter (no), so
+        // the LAST arm — CanAdd/Add (SetPropertiesVisitor.cs:1218-1220) — wins and emits
+        //     ((IList<object>)cv.GetValue(SelectedItemsProperty)).Add(<the String>)
+        // once PER CHILD. Each string lands in the SelectionList as its own entry, GetPositionForItem
+        // (ItemsViewAdapter.cs:145 -> ItemsSource.GetPosition, which is header-adjusted) resolves it, and
+        // SelectableItemsViewAdapter.OnBindViewHolder marks that holder selected — so the items ARE
+        // preselected and the platform paints its selected-cell fill.
+        //
+        // The array form above adds the ARRAY as one entry and selects nothing; this one adds the ELEMENTS.
+        // The two arms therefore disagree deliberately: each mirrors what XamlC emits for that markup.
+        [[nodiscard]] bool try_add_selected_item(maui::core::bindable_object& target,
+                                                 const std::string& property_name, const std::any& value)
+        {
+            if (property_name != "SelectedItems")
+            {
+                return false;
+            }
+            auto* view = dynamic_cast<maui::controls::selectable_items_view*>(&target);
+            if (view == nullptr)
+            {
+                return false;
+            }
+            if (const auto* item = std::any_cast<std::string>(&value))
+            {
+                // boxed_item::of gives VALUE equality, so the entry matches the ItemsSource's boxed twin —
+                // the same boxing SelectedItem="…" uses (register_xaml_items.cpp).
+                view->selected_items().add(maui::controls::boxed_item::of(*item));
+                return true;
+            }
+            return false;
+        }
+
         // W7/W8 — element-form object-property coercion. A property element value is a CREATED element (boxed
         // as shared_ptr<bindable_object> by register_type), but the property expects shared_ptr<Derived>
         // (Derived : bindable_object) — e.g. Background<-brush, FormattedText<-formatted_string. try_set's
@@ -1001,6 +1037,13 @@ namespace maui::xaml
 
             // W13 — element-form <CollectionView.SelectedItems><x:Array> static preselection.
             if (try_set_selected_items_from_array(target, local_name, value))
+            {
+                return;
+            }
+
+            // element-form <CollectionView.SelectedItems> with a SINGLE <x:String> child (the multi-child
+            // list path is handled in visit_collection_item).
+            if (try_add_selected_item(target, local_name, value))
             {
                 return;
             }
@@ -2495,6 +2538,13 @@ namespace maui::xaml
             // W12 — element-form <Picker.Items> with several <x:String> children: each string VALUE is
             // pushed onto the picker's Items face (the multi-child twin of the apply_value_core path).
             if (try_add_picker_item(*target, list_name, value))
+            {
+                return;
+            }
+
+            // element-form <CollectionView.SelectedItems> with several <x:String> children: each string
+            // VALUE is added to the SelectionList (the multi-child twin of the apply_value_core path).
+            if (try_add_selected_item(*target, list_name, value))
             {
                 return;
             }

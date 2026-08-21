@@ -743,6 +743,65 @@ namespace
         EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 1"})));
     }
 
+    TEST(xaml_loader, collection_view_selected_items_direct_children_preselect)
+    {
+        // The twin of the test above, and the form XamlC DOES honour: DIRECT <x:String> children under
+        // <CollectionView.SelectedItems>, with no wrapping <x:Array>. The ladder is identical
+        // (SetPropertiesVisitor.cs:1193-1222) — String is assignable to neither the BP's IList<object> nor
+        // the CLR setter's, so CanAdd/Add wins — but it now runs ONCE PER CHILD and adds the ELEMENTS, so
+        // the items really are preselected and the platform paints its selected-cell fill.
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" SelectionMode="Multiple">
+	<CollectionView.ItemsSource>
+		<x:Array Type="{x:Type x:String}">
+			<x:String>Item 1</x:String>
+			<x:String>Item 2</x:String>
+			<x:String>Item 3</x:String>
+			<x:String>Item 4</x:String>
+		</x:Array>
+	</CollectionView.ItemsSource>
+	<CollectionView.SelectedItems>
+		<x:String>Item 2</x:String>
+		<x:String>Item 3</x:String>
+	</CollectionView.SelectedItems>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        ASSERT_EQ(view.selected_items().count(), 2U); // the ELEMENTS, one Add per child
+        EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 2"})));
+        EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 3"})));
+        EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 1"})));
+    }
+
+    TEST(xaml_loader, collection_view_selected_items_single_direct_child_preselects)
+    {
+        // The single-child spelling routes through apply_value_core rather than the ListNode branch, so it
+        // needs its own arm — and its own guard against that arm regressing.
+        controls::collection_view view;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(view, R"xml(
+<CollectionView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" SelectionMode="Multiple">
+	<CollectionView.ItemsSource>
+		<x:Array Type="{x:Type x:String}">
+			<x:String>Item 1</x:String>
+			<x:String>Item 2</x:String>
+		</x:Array>
+	</CollectionView.ItemsSource>
+	<CollectionView.SelectedItems>
+		<x:String>Item 2</x:String>
+	</CollectionView.SelectedItems>
+</CollectionView>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+        ASSERT_EQ(view.selected_items().count(), 1U);
+        EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 2"})));
+        EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 1"})));
+    }
+
     TEST(xaml_loader, collection_view_selected_item_literal_preselection)
     {
         // Single-selection preselect: SelectedItem="Item 2" (a literal string) boxes via boxed_item::of and

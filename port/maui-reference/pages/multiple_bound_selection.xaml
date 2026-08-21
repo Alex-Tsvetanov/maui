@@ -22,10 +22,10 @@
                  render (ruling 9: iOS/Android draw the band). The twin previously omitted this, so only the
                  code-first column showed the selection. -->
             <CollectionView.SelectedItems>
-                <x:Array Type="{x:Type x:String}">
-                    <x:String>Item 1</x:String>
-                    <x:String>Item 2</x:String>
-                </x:Array>
+                <!-- DIRECT <x:String> CHILDREN, NOT A WRAPPING <x:Array> — see preselected_items.xaml for the
+                     XamlC ladder that makes the array form add the ARRAY as one entry and select nothing. -->
+                <x:String>Item 1</x:String>
+                <x:String>Item 2</x:String>
             </CollectionView.SelectedItems>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
