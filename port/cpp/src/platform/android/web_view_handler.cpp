@@ -1,4 +1,32 @@
 // web_view_handler — Android (JNI) platform partial: a REAL android.webkit.WebView held as a JNI
+
+// NATURAL HEIGHT: THE PORT MEASURES AN UNLOADED WebView, MAUI MEASURES A LOADED ONE (measured
+// 2026-08-21, android emulator API 34, context_flyout's `<WebView Source="https://example.com/"
+// MinimumHeightRequest="400" />` inside a ScrollView, so the height constraint is infinite).
+//
+//     MAUI renders the WebView band 607px tall   -- example.com's actual content height
+//     the port renders it            1100px      -- 400dp x 2.75 density, i.e. the MINIMUM, not a measure
+//     the port with that floor removed  121px    -- what its WebView actually measures: an EMPTY page
+//
+// So the port's 1100px was never a measurement; it was MinimumHeightRequest masking a 121px natural
+// height. MAUI's 607 comes from the native measure alone -- GetDesiredSizeFromHandler
+// (ViewHandlerExtensions.Android.cs:79) creates the spec and returns the platform measure with nothing
+// applied afterwards (the `Math.Max(platformView.MinimumHeight, ...)` at :72 is a DIFFERENT function and
+// does not run for a leaf). The real gap is that MAUI re-measures once the page finishes loading and this
+// partial does not: it measures once, before any content exists, and never invalidates.
+//
+// AND DO NOT "FIX" THIS BY MATCHING MAUI'S MINIMUM RULE FIRST. MAUI's android leaf measure genuinely
+// ignores Minimum*Request when no explicit Width/Height is set -- ContextExtensions.cs:418 reads
+// minimumSize ONLY inside `if (IsExplicitSet(explicitSize))`, and nothing downstream re-applies it
+// (VerticalStackLayoutManager:40 clamps the STACK's own minimum, not the child's). That is true, it was
+// implemented, and it made the board WORSE: context_flyout barely moved (4.04%/26.19% -> 3.39%/25.90%,
+// still red) while border_stroke went yellow -> RED (2.76% -> 9.82%), because its Labels carry
+// MinimumHeightRequest="20" with no explicit height and the port's floor is currently COMPENSATING for
+// their natural measure too. Reverted.
+//
+// ORDER OF WORK, therefore: fix the natural measures FIRST (re-measure this WebView when loading
+// finishes; find why border_stroke's Labels measure short), and only then revisit the minimum rule. The
+// floor is load-bearing scaffolding until those are right.
 // global reference in web_view_platform::native. The android twin of
 // src/platform/apple_shared/web_view_handler.mm (the WKWebView recipe) and the real-native sibling of the
 // in-memory headless mirror (src/platform/headless/web_view_handler.cpp). Ported DIRECTLY from
