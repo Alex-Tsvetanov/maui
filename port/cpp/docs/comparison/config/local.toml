@@ -34,8 +34,30 @@ connect_timeout_seconds = 10
 # and captures THAT, so the display only has to be large enough to contain it (800 + the y=30 origin
 # fits in 950). The scenario tap calibration is likewise unaffected — the board runs with an empty
 # scenarios dir, so no coordinate taps ever fire.
-width = 1512
-height = 950
+#
+# 2026-08-22 — RE-PINNED 1512x950 -> 1920x1080, because 1512 IS NO LONGER ON OFFER. A guest reboot during
+# a Catalyst run re-enumerated virtio-gpu against the current UTM host window and the mode list came back
+# 800x600 / 960x540 / 1024x576 / 1024x768 / 1280x720 / 1280x960 / 1344x756 / 1344x1008 / 1600x900 /
+# 1600x1200 / 1920x1080 / 640x480 — no 1512-wide entry, plain or HiDPI. set-resolution then failed at
+# preflight and the run aborted rather than photograph a wrong-sized board: the gate working correctly,
+# but it leaves the whole lane unscoreable.
+#
+# WHY THIS IS NOT A REBASELINE, per the paragraph directly above: the display only has to CONTAIN the
+# window, because `present` pins each window to an explicit rect and captures THAT rect. Every committed
+# maccatalyst capture is 1024x800 whatever display took it. 1080 clears 800 + the fixed y=30 origin, and
+# displayplacer reports this mode `scaling:off` — a 1x mode, so the HiDPI-2x trap that drops every frame
+# does not apply. Scenario coordinates are fractions of the presented window rect, not of the display.
+# What changes is only the centering arithmetic (x_origin = (1920-1024)/2 = 448, was 244), which matters
+# solely to a scenario carrying a hard-coded absolute x. None does.
+#
+# STILL TO VERIFY before this lane's numbers are trusted again: capture ONE page and diff it against its
+# committed twin. Deferred because the Windows guest is mid-run and this host must not schedule two UTM
+# guests together. If that diff is not byte-identical, this note is wrong and the lane needs a rebaseline.
+#
+# To restore 1512 instead: resize the UTM window on the HOST until virtio-gpu re-offers it. utmctl cannot
+# edit VM settings, so there is no headless route.
+width = 1920
+height = 1080
 
 # No external window-pinning: Mac Catalyst windows can't be repositioned externally (AX reports
 # position/size as unsettable — kAXErrorAttributeUnsupported; System Events hits the same layer). Instead
@@ -129,8 +151,10 @@ connect_timeout_seconds = 10
 # is MORE exposed to it, not less: it captures by window id rather than by rect, and its windows are
 # 480x752, so a HiDPI guest yields 960x1504 — which is exactly the frame size the incident recorded
 # at run_comparison.py:501 produced, every one of them dropped.
-width = 1512
-height = 950
+#
+# Same guest, same lost mode as the maccatalyst block above — re-pinned for the same reason.
+width = 1920
+height = 1080
 
 [environments.macos-appkit.staging]
 root = "/Users/testinguser/maui-comparison"
