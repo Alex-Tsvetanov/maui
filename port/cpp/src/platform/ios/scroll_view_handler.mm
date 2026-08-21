@@ -492,24 +492,26 @@ namespace maui::core
             {
                 safe_area = control->effective_safe_area();
             }
-            // THE `>=` ON WIDTH IS LOAD-BEARING -- DO NOT "RESTORE" C#'s `>` HERE. It looks like an
-            // unjustified copy of the height deviation below: the Catalyst/iOS safe area is top-and-bottom
-            // only, so horizontal_thickness() is always 0 and the test collapses to `width >= width`, true
-            // on every page whose content exactly fills the width. Reading it that way and switching to
-            // `>` was TRIED and REVERTED (measured, ios lane, 7 pages): every one of the 13 scored cells
-            // regressed, six from motion PASS to FAIL, and swipe_item_size went from BYTE-IDENTICAL
-            // (0.00%) to 28.17% differing.
+            // THE `>=` ON WIDTH IS UNEXPLAINED, AND MEASURED NEUTRAL. It reads as an unjustified copy of
+            // the height deviation below: the Catalyst/iOS safe area is top-and-bottom only, so
+            // horizontal_thickness() is always 0 and the test collapses to `width >= width` -- true on
+            // every page whose content exactly fills the width, which is every vertically-scrolling page.
+            // The visible effect is a contentSize.width of 2*frame.width + 1 (measured on clip: 2661 on a
+            // 1330-wide scroller) where MAUI reports frame.width, i.e. a phantom horizontal scroll range.
             //
-            // The reason is that this branch's job is not horizontal safe area at all -- it is the same
-            // anti-flip-flop clamp described below, applied in the cheaper dimension. Forcing contentSize
-            // PAST the bounds is what pins UIKit in scrollable mode so AdjustedContentInset stays at the
-            // scroll-view level; with width left equal to the bounds, UIKit drops the inset and pushes the
-            // safe area into the CHILD instead, moving all the content. horizontal_thickness() == 0 is
-            // precisely WHY the width axis works as that lever, not evidence the test is vacuous.
+            // Switching to C#'s `>` was TRIED and scored on ios + maccatalyst, 7 pages each. It changed
+            // NOTHING: the build with `>` and the build with `>=` produced identical diff percentages on
+            // every scored cell. So the widening is invisible on this board in both directions -- it is
+            // not load-bearing, and removing it is not an improvement either. It was left as-is only
+            // because a neutral change is not worth the churn.
             //
-            // (Upstream src/ MauiScrollView.cs:321 clamps width to frameSize.Width outright for vertical
-            // orientation, but that is post-10.0.71 code against a rewritten safe-area path; the board
-            // renders 10.0.71. It is not a licence to change this line -- see ruling 11.)
+            // (An earlier note here claimed the `>` build regressed 13 iOS cells. That was a
+            // MISATTRIBUTION: those regressions were 0e5ff2298d's bounds.origin preserve, reverted in
+            // e0a1f865f8, and they persisted unchanged when the clamp was put back. Corrected on evidence.)
+            //
+            // Upstream src/ MauiScrollView.cs:321 clamps width to frameSize.Width outright for vertical
+            // orientation -- but that is post-10.0.71 code against a rewritten safe-area path, and the
+            // board renders 10.0.71, so it does not settle what belongs here (ruling 11).
             if (extent.width <= frame.width && (safe_area.horizontal_thickness() + extent.width) >= frame.width)
             {
                 extent.width += frame.width + 1;
