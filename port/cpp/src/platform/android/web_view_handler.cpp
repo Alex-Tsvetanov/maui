@@ -24,9 +24,30 @@
 // MinimumHeightRequest="20" with no explicit height and the port's floor is currently COMPENSATING for
 // their natural measure too. Reverted.
 //
-// ORDER OF WORK, therefore: fix the natural measures FIRST (re-measure this WebView when loading
-// finishes; find why border_stroke's Labels measure short), and only then revisit the minimum rule. The
-// floor is load-bearing scaffolding until those are right.
+// THE RE-MEASURE WAS BUILT AND IS NOT ENOUGH (2026-08-21, verified on device). A dev.mauicpp
+// MauiWebViewClient subclass forwarding onPageFinished into a native invalidate_measure() was
+// implemented, ran correctly, and changed NOTHING. The logs are unambiguous:
+//     measure -> 1080x0 px = 392.7x44.0 dp      first measure: height 0
+//     onPageFinished -> invalidate_measure       the callback fires
+//     measure -> 1080x0 px = 392.7x44.0 dp      the re-measure runs and STILL gets 0
+//     contentHeight=0 css scale=2.750           getContentHeight() is 0 at that callback too
+// So android.webkit.WebView reports 0 under an UNSPECIFIED spec before AND after load, and its content
+// height is not available at onPageFinished either. (Correction to an earlier note: the port's "121px"
+// was never a measurement — it is the 44dp MinimumSize fallback below, at 2.75 density.) Both the client
+// and a getContentHeight() fallback were REVERTED as infrastructure with no working consumer.
+//
+// AND MAUI'S 607px IS STILL UNEXPLAINED. Every obvious source has been ruled out in the C# oracle:
+//     ScrollViewHandler.Android.cs:276-277  passes double.PositiveInfinity down the scroll axis, exactly
+//                                           as the port does -- so MAUI's WebView is measured UNSPECIFIED too
+//     GetDesiredSizeFromHandler (:79)       returns the platform measure with nothing applied after it
+//     MeasureVirtualView's Math.Max(platformView.MinimumHeight, ...) (:72) is the CONTAINER path and does
+//                                           not run for a leaf
+// Whatever produces 607 (= 220.7dp, ~example.com's content height) is somewhere none of those cover.
+//
+// ORDER OF WORK, therefore: find where MAUI's 607 actually comes from FIRST -- instrument MauiReference
+// on the emulator the way the Catalyst cluster was cracked (dd4ecf1ad8), rather than reading source and
+// guessing. Then fix the natural measure, and only then revisit the minimum rule. The floor is
+// load-bearing scaffolding until those are right.
 // global reference in web_view_platform::native. The android twin of
 // src/platform/apple_shared/web_view_handler.mm (the WKWebView recipe) and the real-native sibling of the
 // in-memory headless mirror (src/platform/headless/web_view_handler.cpp). Ported DIRECTLY from
