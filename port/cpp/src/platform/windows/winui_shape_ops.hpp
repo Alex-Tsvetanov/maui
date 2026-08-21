@@ -22,6 +22,7 @@
 // nullopt (the default) means "do not touch FillRule", matching border's oracle exactly rather than
 // silently handing it a fill rule it never had.
 
+#include <winrt/Microsoft.UI.Composition.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 
 #include <optional>
@@ -41,4 +42,24 @@ namespace maui::platform::windows
     // nullopt) to leave FillRule at WinUI's own default, untouched (border_handler.cpp).
     [[nodiscard]] winrt::Microsoft::UI::Xaml::Media::PathGeometry build_path_geometry(
         const maui::graphics::path_f& path, std::optional<maui::graphics::winding_mode> winding = std::nullopt);
+
+    // The COMPOSITION twin of build_path_geometry, for the clip surface rather than the render surface.
+    //
+    // Oracle: WrapperView.UpdateClip (src/Core/src/Platform/Windows/WrapperView.cs:104-126) turns ANY
+    // IShape into a clip with `clipGeometry.PathForBounds(pathSize).AsPath(CanvasDevice.GetSharedDevice())`
+    // -> `new CompositionPath(geometry)` -> `compositor.CreatePathGeometry(path)`. There is no shape-kind
+    // switch in the oracle at all: one path route serves every geometry, which is why an unsupported kind
+    // must never mean "no clip".
+    //
+    // Win2D's CanvasGeometry is C#'s only IGeometrySource2D producer; this backend implements that
+    // interface directly over a Direct2D path geometry instead (d2d1.lib ships in the Windows SDK).
+    // MOVED VERBATIM out of border_handler.cpp's anonymous namespace, which owned the only copy — see
+    // that file's header deviation 2 for the original derivation. view_chrome_ops.cpp's apply_native_clip
+    // is the second caller: without it, PathGeometry/GeometryGroup clips fell through to "unsupported"
+    // and the element rendered UNCLIPPED (windows/clip + clip_gallery, PHASE_TRIAGE.md D1).
+    //
+    // Returns nullptr if the D2D factory or geometry could not be created; callers treat that as "no
+    // geometry", never as "clear the clip".
+    [[nodiscard]] winrt::Microsoft::UI::Composition::CompositionPathGeometry build_composition_clip_geometry(
+        const winrt::Microsoft::UI::Composition::Compositor& compositor, const maui::graphics::path_f& path);
 } // namespace maui::platform::windows

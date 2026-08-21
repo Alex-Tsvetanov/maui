@@ -13,35 +13,27 @@
 // opt-in on this backend (view_handler.hpp's needs_container() is a static per-handler-type flag); the
 // clip installs directly on the control's own native element instead of a separate wrapper.
 //
-// DOCUMENTED DEVIATION from the oracle's MECHANISM (not its intended result): WrapperView.cs:117-120
-// converts ANY IShape into a CompositionPath via `clipGeometry.PathForBounds(...).AsPath(CanvasDevice)`.
-// Win2D's CanvasDevice/CanvasGeometry are the only IGeometrySource2D producer C# has for that call, and
-// Win2D is not linked on this backend (border_handler.cpp's identical note for its own deferred content
-// clip; also image_source_services.cpp:314, button_handler.cpp:734, image_button_handler.cpp:677) — so
-// there is no way to feed an arbitrary flattened path into Compositor.CreatePathGeometry(CompositionPath)
-// generically. Instead build_geometry() below dispatches on the shape's CONCRETE type and builds the
-// matching native Composition geometry primitive directly (Compositor.CreateEllipseGeometry /
-// CreateRectangleGeometry, which CompositionGeometricClip.Geometry accepts directly — it takes the
-// CompositionGeometry base class, not specifically a CompositionPathGeometry). This is exact (not an
-// approximation) for the shapes it covers — ellipse/rectangle, absolute or bounds-relative — including
-// this page's shared EllipseGeometry; the same spirit as android_clip_ops.hpp's own convex-only honest
-// degradation. RoundRectangleGeometry/round_rectangle ARE covered, but only when all four corner radii
-// are EQUAL: CreateRoundedRectangleGeometry takes a single uniform Vector2 corner size, while MAUI's
-// CornerRadius carries four INDEPENDENT radii, so a genuinely non-uniform radius set (e.g.
-// clip_corner_radius_page's 4-slider demo once dragged apart) cannot be expressed exactly —
-// approximating would silently render a wrong shape, so that case falls through to the same
-// documented-gap return as an unsupported shape instead (honest degradation, matching the convex-only
-// precedent above). PathGeometry/GeometryGroup are not covered either (same Win2D gap). Any of these
-// leaves an existing clip untouched — TODO: verify against WrapperView.cs:117-120 once Win2D is linked
-// here.
+// MECHANISM NOTE. WrapperView.cs:117-120 converts ANY IShape into a CompositionPath via
+// `clipGeometry.PathForBounds(...).AsPath(CanvasDevice)` — one route, no shape-kind switch. Win2D's
+// CanvasGeometry is C#'s only IGeometrySource2D producer for that call; this backend answers the same
+// interface over a Direct2D path geometry instead (winui_shape_ops.cpp's build_composition_clip_geometry,
+// moved there out of border_handler.cpp, which had needed exactly this for its own content clip).
+// build_geometry() below therefore has the oracle's general route as its LAST branch, and every earlier
+// branch is a shortcut, not a gate: for an ellipse/rectangle/uniform-radius round rect, Composition can
+// build the primitive natively (CreateEllipseGeometry / CreateRectangleGeometry /
+// CreateRoundedRectangleGeometry, all accepted by CompositionGeometricClip.Geometry, which takes the
+// CompositionGeometry base) with no flattening at all, so those keep their exact form. A non-uniform
+// CornerRadius (CreateRoundedRectangleGeometry takes ONE uniform Vector2), a PathGeometry and a
+// GeometryGroup all fall through to the path route and are now clipped correctly.
 //
-// NOTE on that "leaves an existing clip untouched" fallback for round_rectangle_geometry specifically:
-// because it is a GeometryGroup, callers like clip_corner_radius_page mutate the SAME instance
-// (set_corner_radius) and re-push it (set_clip) to make the change observable. So the moment the four
-// sliders diverge, apply_native_clip below hits this unsupported-shape early-return and the VISUAL'S
-// CLIP IS NOT UPDATED — the image keeps showing the last uniform-radius clip it had, not "no clip" and
-// not the new (non-uniform) shape. That is a stale-clip symptom, distinct from PathGeometry/GeometryGroup
-// (which were never clippable in the first place and so read as "unclipped" from frame one).
+// THIS WAS THE D1 DEFECT (docs/comparison/PHASE_TRIAGE.md). The last branch used to `return nullptr` and
+// apply_native_clip read that as "unsupported — leave any existing clip alone", i.e. NO CLIP: windows/clip
+// and windows/clip_gallery rendered their GeometryGroup- and PathGeometry-clipped images as full,
+// uncropped bitmaps below the fold. The board could not see it because the at-rest still photographs only
+// the top of those pages, where the EllipseGeometry/RectangleGeometry rows do clip.
+//
+// A null return now means only that Direct2D refused to build a geometry (no factory, or an Open/Close
+// failure) — the caller still leaves any existing clip alone, which is the conservative reading.
 //
 // LAYERING NOTE: build_geometry() is, to my knowledge, the first file under src/core or src/platform to
 // #include maui/controls/shapes/*_geometry.hpp — every other clip path (android_clip_ops.hpp, apple/ios
@@ -100,10 +92,13 @@
 #include "maui/controls/shapes/rectangle_geometry.hpp"
 #include "maui/controls/shapes/round_rectangle_geometry.hpp"
 #include "maui/graphics/i_shape.hpp"
+#include "maui/graphics/path_f.hpp"
+#include "maui/graphics/rect.hpp"
 #include "maui/graphics/shapes/ellipse.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/shapes/round_rectangle.hpp"
 #include "winui_interop.hpp"
+#include "winui_shape_ops.hpp"
 
 namespace
 {
@@ -124,15 +119,16 @@ namespace
         return maui::platform::windows::ref<winui::UIElement>(native);
     }
 
-    // Build the native Composition geometry for the shape kinds this backend can express WITHOUT Win2D
-    // (see the file header's DOCUMENTED DEVIATION). `width`/`height` are the element's current size —
+    // Build the native Composition geometry for `shape` (see the file header). The typed branches below
+    // are exact-form shortcuts; the final branch is the oracle's own universal path route, so every shape
+    // kind is covered. `width`/`height` are the element's current size —
     // needed only by the BOUNDS-RELATIVE shapes (maui::graphics::shapes::ellipse/rectangle, which fill
     // whatever rect they are given, mirroring their own path_for_bounds); the controls::shapes::
     // *_geometry family ignores them entirely (absolute coordinates — geometry.hpp's path_for_bounds
     // contract), so those two branches read the geometry object's own fields directly instead of
     // round-tripping through path_for_bounds/path_f for a value Composition needs typed anyway (a
-    // center+radius or an offset+size, not a flattened point list). A null return means "not one of the
-    // shapes this backend supports yet" (see the file header) — the caller leaves any existing clip alone.
+    // center+radius or an offset+size, not a flattened point list). A null return now means only that
+    // Direct2D refused to build the geometry — the caller leaves any existing clip alone.
     comp::CompositionGeometry build_geometry(const comp::Compositor& compositor, const maui::graphics::i_shape& shape,
                                              float width, float height)
     {
@@ -198,7 +194,8 @@ namespace
                 geometry.CornerRadius({*radius, *radius});
                 return geometry;
             }
-            // Non-uniform radii: honest degradation (see the file header) — fall through to unsupported.
+            // Non-uniform radii: CreateRoundedRectangleGeometry cannot express them — fall through to the
+            // path route below, which can (it was 'unsupported' before that branch existed).
         }
         if (const auto* round_rect = dynamic_cast<const graphics_shapes::round_rectangle*>(&shape))
         {
@@ -210,12 +207,29 @@ namespace
                 geometry.CornerRadius({*radius, *radius});
                 return geometry;
             }
-            // Non-uniform radii: honest degradation (see the file header) — fall through to unsupported.
+            // Non-uniform radii: CreateRoundedRectangleGeometry cannot express them — fall through to the
+            // path route below, which can (it was 'unsupported' before that branch existed).
         }
-        // PathGeometry and GeometryGroup (beyond round_rectangle[_geometry] above) need the Win2D route
-        // the file header documents as missing. TODO: verify against WrapperView.cs:117-120 once Win2D
-        // (CanvasDevice/CanvasGeometry) is linked on this backend.
-        return nullptr;
+        // EVERY REMAINING KIND — PathGeometry, GeometryGroup, and a round rect whose four radii are not
+        // uniform — goes the ORACLE'S OWN route, which has no shape-kind switch at all: WrapperView.cs:
+        // 117-120 turns any IShape into `PathForBounds(pathSize).AsPath(device)` -> CompositionPath ->
+        // CreatePathGeometry, for the ellipse and rectangle cases above just as much as for these. The
+        // exact-geometry branches above are kept because Composition can express those shapes natively
+        // (no flattening at all), not because the path route cannot; this is the general case they are
+        // shortcuts for.
+        //
+        // Until this existed the function returned nullptr here and apply_native_clip left the element
+        // UNCLIPPED — the whole of PHASE_TRIAGE.md D1: on windows/clip and windows/clip_gallery the
+        // GeometryGroup- and PathGeometry-clipped images below the fold rendered as full, uncropped
+        // bitmaps (19669 px / 18896 px differing at the `scrolled-down` step) while MAUI showed page
+        // background around the clipped artwork.
+        //
+        // `pathSize` is WrapperView.cs:113's `new Rect(0, 0, width, height)` verbatim — the geometry is
+        // built in the element's own local space, and apply_native_clip below applies the -ActualOffset
+        // translate the oracle applies at :124.
+        const maui::graphics::path_f path = shape.path_for_bounds(
+            maui::graphics::rect{0.0, 0.0, static_cast<double>(width), static_cast<double>(height)});
+        return maui::platform::windows::build_composition_clip_geometry(compositor, path);
     }
 } // namespace
 

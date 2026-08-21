@@ -41,19 +41,14 @@
 //     A permanent clipped visual also survives a content change for free (C# has to re-clip, since a new
 //     content element means a new visual).
 //  2. THE GEOMETRY SOURCE. CompositionPath takes a Windows.Graphics.IGeometrySource2D, and C# gets one
-//     from Win2D (`CanvasDevice.GetSharedDevice()` + `PathF.AsPath(device)`). Win2D has no C++/WinRT
-//     projection in this build, so d2d_geometry_source below implements that interface directly over a
-//     Direct2D geometry — d2d1.lib ships in the Windows SDK, so this adds NO new dependency (one extra
-//     entry beside WindowsApp.lib in CMakeLists.txt; vcpkg.json is untouched).
+//     from Win2D (`CanvasDevice.GetSharedDevice()` + `PathF.AsPath(device)`). This backend answers that
+//     interface directly over a Direct2D geometry — d2d1.lib ships in the Windows SDK, so this adds NO new
+//     dependency (one extra entry beside WindowsApp.lib in CMakeLists.txt; vcpkg.json is untouched). That
+//     code NO LONGER LIVES HERE: view_chrome_ops.cpp's apply_native_clip needed the same route for
+//     PathGeometry/GeometryGroup clips, so it moved to winui_shape_ops.cpp as
+//     build_composition_clip_geometry and this file calls it.
 
 #include "maui/core/border_handler.hpp"
-
-// d2d1.h pulls in windows.h, whose GetCurrentTime function-like macro then eats the argument list of the
-// projection's Timeline::GetCurrentTime (C4002) — host_run.cpp carries the same #undef for the same
-// reason. windows.graphics.interop.h must follow d2d1.h: it names ID2D1Geometry / ID2D1Factory.
-#include <d2d1.h>
-#undef GetCurrentTime
-#include <windows.graphics.interop.h>
 
 #include <winrt/Microsoft.UI.Composition.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
@@ -171,163 +166,10 @@ namespace
     }
 
     // ---- the content clip (ContentPanel.UpdateClip) ----------------------------------------------
-    // One process-wide Direct2D factory for the clip geometries. SINGLE_THREADED: every call below is on
-    // the UI thread. Deliberately never released — a function-local com_ptr would release at static
-    // teardown, after COM is already gone.
-    ID2D1Factory* d2d_factory()
-    {
-        static ID2D1Factory* const factory = []() -> ID2D1Factory* {
-            ID2D1Factory* created = nullptr;
-            if (FAILED(::D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &created)))
-            {
-                return nullptr;
-            }
-            return created;
-        }();
-        return factory;
-    }
-
-    // The Win2D stand-in (file header, deviation 2). Windows.Graphics.IGeometrySource2D is a pure marker
-    // interface — CompositionPath does all of its real work through the classic-COM
-    // IGeometrySource2DInterop it QIs for, which is what these two methods answer.
-    struct d2d_geometry_source : winrt::implements<d2d_geometry_source, winrt::Windows::Graphics::IGeometrySource2D,
-                                                   ABI::Windows::Graphics::IGeometrySource2DInterop>
-    {
-        explicit d2d_geometry_source(winrt::com_ptr<ID2D1PathGeometry> geometry) : geometry_{std::move(geometry)}
-        {
-        }
-
-        IFACEMETHODIMP GetGeometry(ID2D1Geometry** value) noexcept final
-        {
-            if (value == nullptr)
-            {
-                return E_POINTER;
-            }
-            // A plain base-class upcast (single inheritance), so it cannot fail — no QI. The member keeps
-            // the PATH geometry type rather than the base because ::Stream below is a PathGeometry member
-            // (ID2D1Geometry's own streaming face is Simplify, which would re-approximate).
-            ID2D1Geometry* const geometry = geometry_.get();
-            geometry->AddRef();
-            *value = geometry;
-            return S_OK;
-        }
-
-        // The compositor asks for the geometry on ITS OWN D2D factory first. Rather than bet on a
-        // foreign-factory geometry being accepted, replay ours into a path geometry the caller's factory
-        // owns — ID2D1PathGeometry::Stream re-emits the figures into any sink, so this is exact, not a
-        // re-approximation.
-        IFACEMETHODIMP TryGetGeometryUsingFactory(ID2D1Factory* factory, ID2D1Geometry** value) noexcept final
-        {
-            if (value == nullptr)
-            {
-                return E_POINTER;
-            }
-            *value = nullptr;
-            if (factory == nullptr || !geometry_)
-            {
-                return S_OK; // "cannot" — the caller falls back to GetGeometry
-            }
-            winrt::com_ptr<ID2D1PathGeometry> replayed;
-            if (const HRESULT hr = factory->CreatePathGeometry(replayed.put()); FAILED(hr))
-            {
-                return hr;
-            }
-            winrt::com_ptr<ID2D1GeometrySink> sink;
-            if (const HRESULT hr = replayed->Open(sink.put()); FAILED(hr))
-            {
-                return hr;
-            }
-            if (const HRESULT hr = geometry_->Stream(sink.get()); FAILED(hr))
-            {
-                return hr;
-            }
-            if (const HRESULT hr = sink->Close(); FAILED(hr))
-            {
-                return hr;
-            }
-            *value = replayed.detach();
-            return S_OK;
-        }
-
-    private:
-        winrt::com_ptr<ID2D1PathGeometry> geometry_;
-    };
-
-    // maui::graphics::path_f → an ID2D1PathGeometry, FLATTENED to line segments. Unlike the stroke path
-    // (winui_shape_ops' walk, which emits real quad/cubic/arc segments because the stroke is RENDERED
-    // from it), a clip is a mask, so path_f's own curve flattener — the port of MAUI's PathF.
-    // GetFlattenedPath, the same code MAUI would use — keeps this walk to BeginFigure/AddLine at a
-    // 0.001 px error bound, two orders of magnitude under a pixel. `include_sub_paths = true` is REQUIRED:
-    // the default stops at the FIRST Close, silently dropping every later sub-path of a multi-figure shape.
-    winrt::com_ptr<ID2D1PathGeometry> build_clip_geometry(const maui::graphics::path_f& path)
-    {
-        ID2D1Factory* const factory = d2d_factory();
-        if (factory == nullptr)
-        {
-            return nullptr;
-        }
-        winrt::com_ptr<ID2D1PathGeometry> geometry;
-        if (FAILED(factory->CreatePathGeometry(geometry.put())))
-        {
-            return nullptr;
-        }
-        winrt::com_ptr<ID2D1GeometrySink> sink;
-        if (FAILED(geometry->Open(sink.put())))
-        {
-            return nullptr;
-        }
-        // EvenOdd — WinUI's own PathGeometry default, which the stroke path leaves standing too (see the
-        // build_path_geometry call site below on why Border has no winding surface to set it from). D2D
-        // requires the fill mode BEFORE the first figure.
-        sink->SetFillMode(D2D1_FILL_MODE_ALTERNATE);
-        const maui::graphics::path_f flat = path.get_flattened_path(0.001F, true);
-        bool in_figure = false;
-        int point_index = 0;
-        for (const maui::graphics::path_operation op : flat.segment_types())
-        {
-            switch (op)
-            {
-                case maui::graphics::path_operation::move: {
-                    if (in_figure)
-                    {
-                        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-                    }
-                    const maui::graphics::point_f point = flat[point_index++];
-                    sink->BeginFigure(D2D1::Point2F(point.x, point.y), D2D1_FIGURE_BEGIN_FILLED);
-                    in_figure = true;
-                    break;
-                }
-                case maui::graphics::path_operation::line: {
-                    const maui::graphics::point_f point = flat[point_index++];
-                    if (in_figure)
-                    {
-                        sink->AddLine(D2D1::Point2F(point.x, point.y));
-                    }
-                    break;
-                }
-                case maui::graphics::path_operation::close:
-                    if (in_figure)
-                    {
-                        sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-                        in_figure = false;
-                    }
-                    break;
-                default:
-                    break; // flattening leaves only move/line/close
-            }
-        }
-        // Every figure ends CLOSED, including one the path left open: this geometry is a FILL region (a
-        // mask), and D2D fills an open figure by implicitly closing it anyway.
-        if (in_figure)
-        {
-            sink->EndFigure(D2D1_FIGURE_END_CLOSED);
-        }
-        if (FAILED(sink->Close()))
-        {
-            return nullptr;
-        }
-        return geometry;
-    }
+    // The Direct2D geometry source and the path->ID2D1PathGeometry walk that used to live here MOVED to
+    // winui_shape_ops.cpp (build_composition_clip_geometry) when view_chrome_ops.cpp's apply_native_clip
+    // needed the same route for PathGeometry/GeometryGroup clips (PHASE_TRIAGE.md D1). Same code, one
+    // copy; see winui_shape_ops.hpp for the oracle mapping this file's header deviation 2 derived.
 
     // RoundRectangle.InnerPathForBounds(bounds, st) — UpdateClip's IRoundRectangle branch: GetInnerPath's
     // box (inset st/2, sized W−st, radii each reduced by st), then Shape.TransformPathForBounds' Stretch.
@@ -403,16 +245,14 @@ namespace
         // 1), so the placement is the translate alone.
         const auto offset = static_cast<float>(thickness);
         clip.transform(maui::graphics::matrix3x2::create_translation(offset, offset));
-        const winrt::com_ptr<ID2D1PathGeometry> geometry = build_clip_geometry(clip);
-        if (!geometry)
+        const auto compositor = visual.Compositor();
+        const auto geometry = maui::platform::windows::build_composition_clip_geometry(compositor, clip);
+        if (geometry == nullptr)
         {
             visual.Clip(nullptr);
             return;
         }
-        const auto compositor = visual.Compositor();
-        const winrt::Microsoft::UI::Composition::CompositionPath composition_path{
-            winrt::make<d2d_geometry_source>(geometry)};
-        visual.Clip(compositor.CreateGeometricClip(compositor.CreatePathGeometry(composition_path)));
+        visual.Clip(compositor.CreateGeometricClip(geometry));
     }
 
 } // namespace
