@@ -41,6 +41,27 @@
 //     231-236), rendered IsEnabled="False" identically to the enabled rows (the opaque filter masking the
 //     disabled state of abc_tint_switch_track), and swallowed an explicit BackgroundColor (MAUI track 77,
 //     port 178). Dark whole-frame diff was 0.872% against light's 0.193%.
+//   - FIRST-INSTANCE TRACK, OPEN AND NOT A TINT PROBLEM (measured 2026-08-21, android emulator API 34).
+//     The FIRST Switch constructed per process renders its thumb correctly and NO TRACK: on switch.xaml the
+//     grey #B2B2B2 track bands are y=267/799/1263/1495 in MAUI and y=799/1263/1495 in the port -- the first
+//     is missing, while the SECOND bare `<Switch />` (same markup, y=799) is byte-correct. context_flyout
+//     has exactly one Switch, so it always loses it (1087 track px in MAUI vs 154 in the port).
+//     SEVEN hypotheses were instrumented on-device and ALL REFUTED -- every one of these is identical
+//     across all six switches on the page, so none of them is the cause:
+//         1. ctor fallback chain      all six log `plain-first -> OK`; the styled fallbacks never run
+//         2. null track drawable      all six report the drawable PRESENT at construction
+//         3. capture artifact         reproduces on every fresh build + fresh capture
+//         4. measure                  all six: wc=392.7 hc=inf density=2.75 -> 132x132 px -> 48x48 dp
+//         5. arrange frame            all six: x=0.0 w=392.7 h=48.0 (only y differs)
+//         6. drawable identity/alpha  all six: alpha=255, android.graphics.drawable.NinePatchDrawable
+//         7. post-layout geometry     all six: view w=1080 l=0 r=1080 padR=0 minW=132
+//     The rendered ink is 90px wide for a correct switch and 60px for the first one -- exactly the track's
+//     width -- and the pixels where the track belongs are PURE WHITE (255), not a faint or mis-tinted grey.
+//     So the track is not drawn at all, by a widget whose every JNI-observable property matches its
+//     working siblings. Whatever remains is inside SwitchCompat's own draw path.
+//     DO NOT "fix" this by re-seeding a track tint: an opaque filter would paint the first switch AND
+//     re-break dark theme, IsEnabled=false and explicit BackgroundColor, which is precisely why the seeding
+//     was removed. Cost so far: six device rebuilds for two board cells; time-boxed and parked here.
 //     map_track_color's unset branch now ClearColorFilters exactly as SwitchExtensions.cs:33 does, and
 //     map_thumb_color's unset branch leaves the tint alone exactly as :89-99 does (no else branch).
 //   - The OnCheckedChangeListener (CheckedChangeListener → OnCheckedChanged → VirtualView.IsOn write,
@@ -322,12 +343,14 @@ namespace
         clear_pending(env);
     }
 
-    // Seed the just-created Switch with the Material light-theme default track + thumb grays (see the
-    // k_material_*_gray note) so its UNSET chrome matches real MAUI instead of the DeviceDefault dark-blue
-    // accent. Called once at construction; map_track_color / map_thumb_color override either when the
-    // developer sets an explicit color, and map_track_color's unset branch re-applies this same gray (so an
-    // UNSET track never falls back to the theme accent via ClearColorFilter).
-    // SwitchExtensions.UpdateTrackColor's ELSE branch, which this partial never had:
+    // STALE-COMMENT CORRECTION (2026-08-21): the paragraph that used to sit here described
+    // `seed_default_material_tints` -- pinning hardcoded Material grays at construction -- as if this
+    // partial still did it. IT DOES NOT. That seeding was REMOVED on 2026-08-10 (see the header's "NO TINT
+    // SEEDING" bullet) because it was measured wrong in three ways at once. The function it described does
+    // not exist in this file; only slider_handler.cpp still has one. Anyone reading the old text would
+    // reasonably "restore" a fix that was deliberately deleted, so it is replaced rather than trimmed.
+    //
+    // What this function actually is: SwitchExtensions.UpdateTrackColor's ELSE branch --
     // `aSwitch.TrackDrawable?.ClearColorFilter()` (SwitchExtensions.cs:33). Set-or-clear, no third state.
     bool clear_track_filter(JNIEnv* env, jobject widget)
     {
