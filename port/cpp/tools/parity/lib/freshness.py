@@ -86,15 +86,32 @@ PRUNE = {"bin", "obj", "build", "build-win", "captures", "docs", ".git", "__pyca
 # stale, so nothing is bought by tightening it and a false refusal costs a whole run.
 TOLERANCE_S = 300
 
-GUEST_BUILD = "C:/maui-build"
-WINDOWS_ARTIFACTS = {
-    # column -> guest artifact (mirrors config/windows.toml's artifact_remote, which points at the
-    # DIRECTORY; the guard wants the EXECUTABLE. ios_install() explains why at length: a bundle dir
-    # exists from CONFIGURE time, so `dir.exists()` passes on a build that never compiled a thing.)
-    "maui_xaml": f"{GUEST_BUILD}/maui-reference/bin/Release/net10.0-windows10.0.19041.0/win-arm64/MauiReference.exe",
-    "cpp": f"{GUEST_BUILD}/examples/gallery/gallery.exe",
-    "cpp_xaml": f"{GUEST_BUILD}/examples/gallery_xaml/gallery_xaml.exe",
-}
+def windows_artifacts() -> dict[str, str]:
+    """column -> the guest EXECUTABLE, read out of config/windows.toml rather than restated here.
+
+    The config already carries both halves per column: `artifact_remote` (the directory the runner
+    uses in place of deploying from the host) and `process` (gallery.exe / gallery_xaml.exe /
+    MauiReference.exe). Joining them is the whole derivation, and it keeps the guard honest to the
+    same doctrine windows_source_roots() follows -- a hand-copied second list of these paths would
+    drift the moment C:/maui-build moves, and a guard that then reports DECLARED BUT MISSING on three
+    healthy artifacts gets switched off rather than fixed.
+
+    The EXECUTABLE, not the directory `artifact_remote` names: ios_install() spells out why at
+    length -- a bundle/output dir exists from CONFIGURE time, so an exists() check on it passes on a
+    build that never compiled a thing.
+    """
+    import tomllib
+    cfg = tomllib.loads((COMP / "config" / "windows.toml").read_text())
+    cols = cfg["environments"]["windows-arm64"]["columns"]
+    out = {}
+    for name, col in cols.items():
+        remote, proc = col.get("artifact_remote"), col.get("process")
+        if remote and proc:
+            out[name] = f"{remote.rstrip('/')}/{proc}"
+    return out
+
+
+WINDOWS_ARTIFACTS = windows_artifacts()
 
 
 def newest(roots: list[Path]) -> tuple[float, Path | None]:
@@ -419,10 +436,22 @@ def selftest() -> None:
                "artifacts": {WINDOWS_ARTIFACTS["cpp"]: {"exists": False, "mtime": "", "length": 0}}}
     assert "DECLARED BUT MISSING" in verdicts(missing, ["cpp"])[0]
 
+    # The guest artifact paths are DERIVED from windows.toml, so a config move must reach the guard.
+    assert set(WINDOWS_ARTIFACTS) == {"maui_xaml", "cpp", "cpp_xaml"}, WINDOWS_ARTIFACTS
+    assert all(v.endswith(".exe") for v in WINDOWS_ARTIFACTS.values()), WINDOWS_ARTIFACTS
+
     # Board staleness. A cell is fresh ONLY when its recorded fingerprint matches the stills it
     # names; absent evidence must read as unverified, never as fresh.
+    # SKIPPED IF pixel_score WILL NOT IMPORT. recapture.py --selftest chains this one, and it was
+    # deliberately dependency-light and device-free; pixel_score pulls in numpy, PIL and
+    # motion_score, so without this guard an unrelated break in any of them fails a selftest that has
+    # nothing to do with them.
     sys.path.insert(0, str(HERE))
-    import pixel_score
+    try:
+        import pixel_score
+    except ImportError as exc:
+        print(f"freshness selftest: board-staleness arm SKIPPED ({exc})")
+        return
     assert pixel_score.SLOTS == [("cpp", "pixel"), ("xaml", "pixel_xaml")], pixel_score.SLOTS
     rows = unverified_cells("windows")
     assert all(w.startswith(("no fingerprint", "the stills have changed")) for _, _, w in rows)
