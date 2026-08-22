@@ -72,6 +72,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import statistics
 import subprocess
 import sys
 from pathlib import Path
@@ -359,6 +360,59 @@ def stale_local(lane: str, columns: list[str]) -> list[str]:
     return verdicts(facts, arts)
 
 
+# --------------------------------------------------------------------------- android (installed pkg)
+def android_last_update(dumpsys: str) -> str | None:
+    """`dumpsys package <pkg>` text -> the package's lastUpdateTime as an ISO string (None if absent).
+
+    Split out from the adb call so the PARSE — the only part that can silently misread — is pinned by
+    selftest() with no device attached. dumpsys prints `lastUpdateTime=2026-08-22 02:44:31`.
+
+    ponytail: the device stamp is naive local time and is read as HOST-local. True for an emulator on
+    the host clock, which is the only android lane here. If a device ever runs a different timezone this
+    is the knob to fix — parse its `persist.sys.timezone` instead of assuming.
+    """
+    import datetime as _dt
+    import re
+    m = re.search(r"lastUpdateTime=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})", dumpsys)
+    if not m:
+        return None
+    return _dt.datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S").astimezone().isoformat()
+
+
+def stale_android(columns: list[str], serial: str = "emulator-5554") -> list[str]:
+    """The android freshness probe: is the INSTALLED PACKAGE newer than the source it claims to render?
+
+    Android is the one lane whose artifact is not a file. capture_all_csharp_android.sh "only DRIVES an
+    already-installed app", so a file-mtime check measures the wrong object — measured 2026-08-22 the
+    newest reference APK on disk was 08-14 18:10 (older than four twin edits) and the Release APK's mtime
+    was 1981, while the DEVICE reported lastUpdateTime 08-22 02:44 and was correct. Guarding on those
+    files would have failed a healthy lane; worse, `adb install -r` of either would have silently
+    replaced a good reference with a stale one, and the install would have reported success.
+
+    So the probe asks the device. The stale/fresh DECISION and its wording are verdicts() — shared with
+    every other lane — fed a synthesized artifact whose "mtime" is the package's lastUpdateTime.
+    """
+    import datetime as _dt
+    sys.path.insert(0, str(HERE))
+    import capture_android  # noqa: PLC0415  the column->package map, single source of truth (APPS)
+
+    arts = {spec["col"]: f"package:{spec['pkg']}"
+            for spec in capture_android.APPS.values() if spec["col"] in columns}
+    if not arts:
+        return []
+    facts = {"now": _dt.datetime.now(_dt.timezone.utc).isoformat(), "source_dirs": [], "artifacts": {}}
+    for col, art in arts.items():
+        pkg = art.split(":", 1)[1]
+        try:
+            out = subprocess.run([os.environ.get("ADB", "adb"), "-s", serial, "shell",
+                                  "dumpsys", "package", pkg],
+                                 capture_output=True, text=True, timeout=30).stdout
+        except Exception:                                    # noqa: BLE001  no adb / no device
+            out = ""
+        stamp = android_last_update(out)
+        facts["artifacts"][art] = {"exists": stamp is not None, "mtime": stamp or "", "length": 1}
+    return verdicts(facts, arts)
+
 # --------------------------------------------------------------------------- score contradictions
 def _md5(p: Path) -> str | None:
     try:
@@ -462,6 +516,91 @@ def unverified_cells(plat_dir: str) -> list[tuple[str, str, str]]:
     return out
 
 
+# A run imports all of its frames within minutes, so two columns of one run sit well under an hour
+# apart. 2h is generous headroom for a slow import, and every real finding below is 60h-500h -- there
+# is no threshold sensitivity here worth tuning.
+SAME_RUN_FLOOR_H = 2.0
+
+
+def column_skew(plat_dir: str, limit: int | None = None) -> list[str]:
+    """Cells whose two columns were captured far enough apart to be different worlds.
+
+    THE THIRD QUESTION, and the one the other two cannot ask. score_contradictions asks "do these two
+    recorded scores agree?"; unverified_cells asks "does this verdict describe the current stills?".
+    Both can pass on a cell that is perfectly self-consistent and still compares a MAUI frame from one
+    world against a port frame from another. Found in use on header_footer_grid_horizontal, which
+    returned 0 from --unverified while its ios maui DARK still was from 08-01 and its port dark still
+    from 08-22 -- twenty days and an unknown number of commits apart, with a whole "latched frame"
+    analysis built on top of it before anyone checked.
+
+    The damage is not hypothetical. A date/time page compared across a MIDNIGHT ROLLOVER produced an
+    8px width difference that mimicked a layout defect and fooled three separate diagnoses (7/31/2026
+    is wider than 8/1/2026). A display re-pin changes capture geometry outright -- the Catalyst lane
+    went 1512x950 -> 1920x1080 between this cell's two columns.
+
+    PER THEME, not per cell. The scorer compares maui_light against port_light and maui_dark against
+    port_dark separately, so the THEME is the comparison unit. Measuring max-minus-min across all four
+    files instead folds in light-vs-dark skew INSIDE one column, which is not a defect at all -- the
+    capture loop is theme-outermost, so a three-hour run legitimately separates its own light and dark
+    passes by hours. Measured: that mistake alone turned windows from 0 flagged cells into 28.
+
+    ONE-SIDED. Only a LARGE spread is a problem; a spread of zero is the ideal and must never be
+    flagged. An early cut scored "deviation from the lane baseline", which on ios put the perfectly
+    co-captured cells (spread 0.00h) at the TOP of the list -- exactly backwards.
+
+    NORMALISED PER LANE, because an absolute threshold is meaningless across these four. Measured
+    baselines (median spread) 2026-08-22: windows 0.00h -- it imports all three columns in one run --
+    maccatalyst 0.00h, android 67.9h, ios 421.1h. On ios and android, columns from different runs are
+    the NORMAL state, so a fixed threshold would flag ~300 of 344 cells there and nothing anywhere
+    else, and a report that fires on most of the board stops being read. Comparing each cell against
+    its OWN lane's baseline flags 0 / 0 / 16 / 32 respectively, and the lane-wide condition is stated
+    ONCE instead of 344 times. It also self-calibrates: recapture the stale column and the baseline
+    drops, with no threshold to revisit.
+    """
+    jf = COMP / "comparison.json"
+    if not jf.is_file():
+        return []
+    sys.path.insert(0, str(HERE))
+    import pixel_score
+    caps = COMP / "captures" / plat_dir
+    rows = []
+    for entry in json.loads(jf.read_text()):
+        name = entry["name"]
+        plat = (entry.get("platforms") or {}).get(plat_dir) or {}
+        for fw, slot in pixel_score.SLOTS:
+            if not (plat.get(slot) or {}).get("review"):
+                continue
+            worst = None
+            for theme in ("light", "dark"):
+                for ext in ("png", "gif"):
+                    a, b = caps / "maui" / f"{name}_{theme}.{ext}", caps / fw / f"{name}_{theme}.{ext}"
+                    if a.is_file() and b.is_file():
+                        gap = abs(a.stat().st_mtime - b.stat().st_mtime) / 3600
+                        worst = gap if worst is None else max(worst, gap)
+            if worst is not None:
+                rows.append((worst, f"{name}/{slot}"))
+    if not rows:
+        return []
+    baseline = statistics.median(x for x, _ in rows)
+    threshold = baseline + SAME_RUN_FLOOR_H
+    out = []
+    if baseline > SAME_RUN_FLOOR_H:
+        out.append(f"{plat_dir}: THE WHOLE LANE compares columns from different runs — median gap "
+                   f"{baseline:.1f}h between the MAUI still and the port still. Recapture the lagging "
+                   f"column; until then every score on this lane carries that caveat, and the cells "
+                   f"below are the ones worse than even this baseline.")
+    flagged = sorted(((x, n) for x, n in rows if x > threshold), reverse=True)
+    shown = flagged if limit is None else flagged[:limit]
+    for gap, cell in shown:
+        out.append(f"{cell} ({plat_dir}): columns captured {gap:.1f}h apart — the MAUI still and the "
+                   f"port still are from different runs, so this cell can be perfectly self-consistent "
+                   f"and still compare two different worlds (config re-pin, midnight rollover).")
+    if limit is not None and len(flagged) > limit:
+        out.append(f"{plat_dir}: …and {len(flagged) - limit} more cross-run cell(s) — "
+                   f"freshness.py --skew --board-dir {plat_dir}")
+    return out
+
+
 def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = True,
           lane: str = "") -> tuple[list[str], list[str]]:
     """(fatal, advisory) for a lane about to capture.
@@ -482,6 +621,10 @@ def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = Tr
     """
     fatal = stale_windows(frameworks) if platform == "windows" else stale_local(lane, frameworks)
     advisory = score_contradictions(plat_dir) if scores else []
+    # SUMMARISED into the lane log (the lane line plus the three worst), full list on demand. A
+    # maccatalyst lane would otherwise open with 32 of these, and a wall of advisory text is how a
+    # report stops being read -- the same failure --unverified is deliberately kept out of the gate for.
+    advisory += column_skew(plat_dir, limit=3) if scores else []
     return fatal, advisory
 
 
@@ -636,6 +779,57 @@ def selftest() -> None:
     assert advisory and all("BYTE-IDENTICAL" in a for a in advisory), advisory
     assert not any("fingerprint" in x for x in fatal + advisory), "unverified cells are triage-only"
 
+    # The android parse (no device): the real dumpsys shape, the absent case, and the near-miss that
+    # must NOT match -- a bare `lastUpdateTime=` with no stamp, which would otherwise read as fresh.
+    sample = ("  Package [dev.mauicpp.mauireference] (a1b2c3):\n"
+              "    firstInstallTime=2026-08-01 09:12:00\n"
+              "    lastUpdateTime=2026-08-22 02:44:31\n")
+    got = android_last_update(sample)
+    assert got and got.startswith("2026-08-22T02:44:31"), got
+    assert android_last_update("no such field") is None
+    assert android_last_update("lastUpdateTime=") is None
+    # and it must pick lastUpdateTime, not the firstInstallTime printed above it
+    assert "09:12" not in (got or ""), got
+
+    # --- CROSS-RUN COLUMNS. Three properties, each of which was wrong in an earlier cut and each of
+    # which fails silently (the check keeps returning plausible-looking rows).
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as td:
+        caps = Path(td) / "captures" / "t"
+        for col in ("maui", "cpp"):
+            (caps / col).mkdir(parents=True)
+        def put(col, theme, when):
+            f = caps / col / f"p_{theme}.png"
+            f.write_bytes(b"x")
+            os.utime(f, (when, when))
+        now = time.time()
+        # PER THEME: light co-captured, dark 20h apart. Folding light-vs-dark skew INSIDE a column in
+        # (max-minus-min over all four files) would also fire on a healthy theme-outermost run.
+        put("maui", "light", now); put("cpp", "light", now)
+        put("maui", "dark", now - 20 * 3600); put("cpp", "dark", now)
+        worst = max(abs((caps / "maui" / f"p_{t}.png").stat().st_mtime
+                        - (caps / "cpp" / f"p_{t}.png").stat().st_mtime) / 3600
+                    for t in ("light", "dark"))
+        assert 19.9 < worst < 20.1, worst
+        intra = (max(f.stat().st_mtime for c in ("maui", "cpp") for f in (caps / c).iterdir())
+                 - min(f.stat().st_mtime for c in ("maui", "cpp") for f in (caps / c).iterdir())) / 3600
+        assert intra > worst or abs(intra - worst) < 0.1, (intra, worst)
+
+    # ONE-SIDED and PER-LANE, checked against the real board: windows imports all three columns in one
+    # run, so it must be SILENT -- a rule that scored "deviation from the lane baseline" instead put
+    # the perfectly co-captured cells at the top of the list, which is exactly backwards.
+    assert column_skew("windows") == [], "windows imports its columns together; skew must be silent"
+    for board in ("ios", "maccatalyst"):
+        rows = column_skew(board)
+        assert all(("apart" in r) or ("THE WHOLE LANE" in r) for r in rows), rows
+    # …and it must stay narrow enough to be read. Anything approaching the ~344 cells of a lane means
+    # the normalisation broke and the report is now wallpaper.
+    for board in ("ios", "android", "windows", "maccatalyst"):
+        assert len(column_skew(board)) < 100, (board, len(column_skew(board)))
+    # Advisory only, never fatal -- same line as the other two score checks.
+    f2, a2 = check("windows", "windows", [], scores=True)
+    assert f2 == [], f2
+
     # The contradiction rule, exercised on the real board.
     real = score_contradictions("windows")
     assert all("BYTE-IDENTICAL" in r for r in real)
@@ -651,6 +845,9 @@ def main() -> int:
     ap.add_argument("--columns", default="maui_xaml,cpp,cpp_xaml")
     ap.add_argument("--lane", default="", help="ios | catalyst | appkit (ignored for windows)")
     ap.add_argument("--scores-only", action="store_true", help="skip the guest probe (no SSH)")
+    ap.add_argument("--skew", action="store_true",
+                    help="list cells whose two columns were captured in different runs — a cell can be "
+                         "perfectly self-consistent and still compare two different worlds")
     ap.add_argument("--unverified", action="store_true",
                     help="list cells whose published verdict was NOT taken on the stills now on disk "
                          "— run this BEFORE debugging a cell, so you do not chase a number nobody has "
@@ -662,6 +859,12 @@ def main() -> int:
         selftest()
         return 0
     board = a.board_dir or ("maccatalyst" if a.platform == "macos" else a.platform)
+    if a.skew:
+        rows = column_skew(board)
+        for r in rows:
+            print(f"  ~~ {r}")
+        print(f"{len(rows)} cross-run finding(s) on {board}.")
+        return 1 if rows else 0
     if a.unverified:
         want = {k.strip() for k in a.only.split(",") if k.strip()}
         rows = [r for r in unverified_cells(board) if not want or r[0] in want]
