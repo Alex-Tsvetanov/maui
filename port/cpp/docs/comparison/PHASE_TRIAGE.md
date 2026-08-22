@@ -414,3 +414,44 @@ left exactly as they are.
   lands outside it.
 * **The 6 CAPTURE CORRUPTION cells**, plus the green one in §5b, move only with the targeted
   recapture in §5.
+
+---
+
+## Structurally unwinnable cells — the honest ceiling (added 2026-08-22)
+
+The board's yellow count is not a count of fixable defects. Two groups are unwinnable **by construction**,
+each established by measurement rather than by giving up on them.
+
+### maccatalyst/ios_date_picker — 2 cells — CAPTURE-SIDE LIMITATION
+
+Not an aim problem, and not a port defect. The aim was verified correct (`at_macos-arm64 =
+[0.036, 0.0488]` matches the Catalyst envname, key resolution works, no `SCENARIO SKIPPED` line, and the
+coordinate lands on the "31.12.2020" text in the MAUI capture). The click fires. What fails is `present`,
+and the run says so in its own words:
+
+```
+! ios_date_picker/maui_xaml/light#2: DROPPED — present failed after self-heal (no window to capture)
+! ios_date_picker/cpp/light#2:       DROPPED — present failed after self-heal (no window to capture)
+! ios_date_picker/cpp_xaml/light#2:  DROPPED — present failed after self-heal (no window to capture)
+! ios_date_picker/maui_xaml/dark#4:  DROPPED — present failed after self-heal (no window to capture)
+```
+
+Opening the compact `UIDatePicker` on Catalyst leaves the runner with no window to capture, so the frame is
+dropped (`run_comparison.py:592-605` drops only on agent refusal). **It fails identically in the
+GROUND-TRUTH column.** No port change can green these 2 cells; only a different way of presenting or
+capturing that popover could.
+
+### android PHASE-ONLY — ~20 cells — MEASURED NON-REPRODUCIBLE
+
+`motion_score.py --stability --platform android --runs 4` → **12 of 16 cells disagreed across runs**, and
+these are verdict flips (FAIL↔PASS↔INCONCLUSIVE), not score jitter. The DRIVE became deterministic when
+scroll moved to `input motionevent` (342236e316); the VERDICT did not. The same build scores these cells
+differently on consecutive runs, so no port change can green them, and retiring
+`NON_REPRODUCIBLE_DRIVE={"android"}` would convert measurement noise into RED cells. Details in the block
+above `NON_REPRODUCIBLE_DRIVE` in `tools/parity/lib/motion_score.py`.
+
+### What this means for reading the board
+
+Subtract these ~22 before treating a yellow count as a work queue. They are correctly yellow — the board is
+saying "not established", which is true — but they are not defects awaiting a fix, and a plan that budgets
+time for them is budgeting for something unreachable.
