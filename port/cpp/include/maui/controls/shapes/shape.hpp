@@ -209,6 +209,15 @@ namespace maui::controls::shapes
         // ---- i_shape (C# Shape's explicit IShape.PathForBounds) ----
         [[nodiscard]] maui::graphics::path_f path_for_bounds(const maui::graphics::rect& bounds) const override;
 
+        // path_for_bounds -> transform_path_for_bounds deflates by THIS shape's own stroke_thickness()
+        // (shape.cpp:110-114), which is C# Shape.TransformPathForBounds (Shape.cs:312-323) itself — so the
+        // border handlers' maui::core::shape_self_inset must NOT deflate again on top of it. See the base
+        // declaration in graphics/i_shape.hpp for the measurement that pinned this.
+        [[nodiscard]] bool applies_own_stroke_inset() const override
+        {
+            return true;
+        }
+
         // C# Shape.MeasureOverride: size from the flattened path bounds + the aspect scaling + the
         // stroke thickness, then the standard size-request resolve (the view<>::measure tail).
         maui::graphics::size measure(double width_constraint, double height_constraint) override;

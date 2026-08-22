@@ -21,6 +21,7 @@
 #include "maui/graphics/line_cap.hpp"
 #include "maui/graphics/line_join.hpp"
 #include "maui/graphics/rect.hpp"
+#include "maui/controls/shapes/ellipse.hpp"
 #include "maui/graphics/shapes/ellipse.hpp"
 #include "maui/graphics/shapes/rectangle.hpp"
 #include "maui/graphics/size.hpp"
@@ -322,5 +323,53 @@ namespace
         EXPECT_EQ(b2.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::none);
         b.set_safe_area_edges(maui::core::safe_area_edges::all());
         EXPECT_EQ(b2.get_safe_area_regions_for_edge(0), maui::core::safe_area_regions::all);
+    }
+    // ---- shape_self_inset stands down for a shape that already self-insets -------------------
+    // maui::core::shape_self_inset SUBSTITUTES for C# Shape.TransformPathForBounds (Shape.cs:312-323)
+    // on the graphics/shapes/* clip shapes, which omit that deflate on purpose. A
+    // controls::shapes::shape performs it itself (shape.cpp:110-114), so applying both counts one C#
+    // step twice. That is exactly what the two XAML dialects hit: the code-first builder hands the
+    // border handler a GRAPHICS ellipse and the loader a CONTROLS one (xaml_visitors.cpp:1955), which
+    // put the same markup 0.5 DIP/side apart on the board (border_resize_content/ios, ellipse row:
+    // MAUI and the builder column at 100.0 pt, the loader column at 98.67 pt).
+    TEST(border_shape_self_inset, graphics_shape_gets_the_substitute_deflate)
+    {
+        const maui::graphics::shapes::ellipse shape;
+        const maui::graphics::rect bounds{0, 0, 101, 101};
+        const maui::graphics::rect inset = maui::core::shape_self_inset(bounds, 8.0, &shape);
+        EXPECT_DOUBLE_EQ(inset.x, 0.5);
+        EXPECT_DOUBLE_EQ(inset.y, 0.5);
+        EXPECT_DOUBLE_EQ(inset.width, 100.0);
+        EXPECT_DOUBLE_EQ(inset.height, 100.0);
+    }
+
+    TEST(border_shape_self_inset, controls_shape_is_left_alone)
+    {
+        const maui::controls::shapes::ellipse shape; // applies_own_stroke_inset() == true
+        const maui::graphics::rect bounds{0, 0, 101, 101};
+        const maui::graphics::rect inset = maui::core::shape_self_inset(bounds, 8.0, &shape);
+        EXPECT_DOUBLE_EQ(inset.x, 0.0);
+        EXPECT_DOUBLE_EQ(inset.y, 0.0);
+        EXPECT_DOUBLE_EQ(inset.width, 101.0);
+        EXPECT_DOUBLE_EQ(inset.height, 101.0);
+    }
+
+    // No shape in hand (the call sites that synthesize their own default StrokeShape, and the frozen
+    // Android handler) keeps the historical behaviour.
+    TEST(border_shape_self_inset, null_shape_keeps_the_substitute_deflate)
+    {
+        const maui::graphics::rect inset =
+            maui::core::shape_self_inset(maui::graphics::rect{0, 0, 101, 101}, 8.0);
+        EXPECT_DOUBLE_EQ(inset.x, 0.5);
+        EXPECT_DOUBLE_EQ(inset.width, 100.0);
+    }
+
+    // The `thickness <= 0` latch (Border.UpdateStrokeShape) still wins over everything.
+    TEST(border_shape_self_inset, unstroked_border_never_deflates)
+    {
+        const maui::graphics::shapes::ellipse shape;
+        const maui::graphics::rect inset =
+            maui::core::shape_self_inset(maui::graphics::rect{0, 0, 101, 101}, 0.0, &shape);
+        EXPECT_DOUBLE_EQ(inset.width, 101.0);
     }
 } // namespace

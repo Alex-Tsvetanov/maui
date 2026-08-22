@@ -93,11 +93,27 @@ namespace maui::core
     // stroke a constant +0.5 DIP further OUT on all four edges at StrokeThickness 1, 5 and 10 —
     // independent of the thickness — on iOS, Android and (pre-fix) Windows, while borderless
     // (StrokeThickness = 0) already matched the MAUI column exactly.
-    [[nodiscard]] inline maui::graphics::rect shape_self_inset(const maui::graphics::rect& bounds, double thickness)
+    //
+    // PASS THE SHAPE. This helper SUBSTITUTES for C# Shape.TransformPathForBounds on the shapes that omit
+    // it (graphics/shapes/*), so it must stand down for a shape that performs that step itself —
+    // maui::controls::shapes::shape does, and applying both counts one C# deflate twice. That is not
+    // hypothetical: the XAML loader hands the border handler a CONTROLS shape for <Ellipse>/<Rectangle>/
+    // <Polygon> while the code-first builder hands it a graphics one (xaml_visitors.cpp:1955), so the two
+    // dialects rendered the SAME markup 0.5 DIP/side apart — measured on border_resize_content/ios, where
+    // MAUI and the builder column both put the ellipse at 100.0 pt and the loader column at 98.67 pt.
+    // The parameter defaults to nullptr for the call sites that synthesize their own default StrokeShape
+    // (a graphics shape, so the answer is false anyway) and for the Android handler, which is frozen for a
+    // motion measurement and keeps today's behaviour until it can be re-scored with the rest.
+    [[nodiscard]] inline maui::graphics::rect shape_self_inset(const maui::graphics::rect& bounds, double thickness,
+                                                               const maui::graphics::i_shape* shape = nullptr)
     {
         if (thickness <= 0.0)
         {
             return bounds; // Border.UpdateStrokeShape latched the shape's own thickness to 0
+        }
+        if (shape != nullptr && shape->applies_own_stroke_inset())
+        {
+            return bounds; // the shape already took this exact deflate in its own path_for_bounds
         }
         constexpr double k_inset = 0.5; // the default Controls Shape's StrokeThickness (1.0) / 2
         return maui::graphics::rect{bounds.x + k_inset, bounds.y + k_inset, std::max(0.0, bounds.width - (2 * k_inset)),
@@ -125,11 +141,23 @@ namespace maui::core
         // the shape and a masked CALayer cannot cast a shadow, so the shadow is drawn on an unmasked sibling
         // layer that arrange/layout re-apply from this stored borrow.
         const maui::core::i_shadow* shadow = nullptr;
-        // The border's Background paint borrow (owned by the control). iOS uses it to pick the shadow
-        // SILHOUETTE: MAUI casts the border shadow off the layer's rendered content (no ShadowPath), so an
-        // opaque Background fills the whole shape (solid shadow) while a stroke-only Border casts only the
-        // stroke ring. A non-null fill → filled silhouette; null → stroke-ring silhouette (ios_border_ops).
-        const maui::graphics::paint* background = nullptr;
+        // The border's Background paint borrow lives in the BASE (view_platform_base::background,
+        // view_platform_base.hpp:86) — deliberately NOT redeclared here.
+        //
+        // It used to be redeclared, and the redeclaration SHADOWED the base member, which is a bug the
+        // compiler cannot see: each backend then maintained a DIFFERENT one of the two fields.
+        //   iOS   writes the derived one (border_handler.mm:116) and never calls the base body.
+        //   Android calls view_platform_base::update_background, so it wrote the BASE one — and then read
+        //          `platform->background`, which name lookup resolved to the DERIVED one. Always nullptr.
+        // Measured on emulator-5554: at update_background the paint arrives non-null while border.shape is
+        // still null, so the convex route installs the GradientDrawable; ~900 ms later the shape is set, and
+        // native_draw_border_fill reads bg=0x0 and draws nothing. push_border_to_host has meanwhile CLEARED
+        // that drawable for a canvas-routed shape, so BOTH routes are off and the Border renders WHITE —
+        // border_resize_content row 3 (a Polygon), and every convex Border too once the canvas route is on.
+        //
+        // One field, written by whoever overrides update_background and read by everyone. Do not redeclare
+        // it in a derived platform struct: the reads here (ios/border_handler.mm 137/210/233,
+        // android/border_handler.cpp 1138/1157) must all resolve to the same storage.
 
 #ifdef MAUI_PLATFORM_WINDOWS
         // WinUI 3 backend (src/platform/windows/border_handler.cpp): the generic IView pushes onto the

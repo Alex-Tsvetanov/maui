@@ -239,7 +239,7 @@ namespace
         const auto* round_rect = dynamic_cast<const maui::graphics::shapes::round_rectangle*>(spec.shape);
         maui::graphics::path_f clip =
             round_rect != nullptr ? inner_round_rectangle_path(*round_rect, path_size, thickness / 2.0)
-                                  : spec.shape->path_for_bounds(maui::core::shape_self_inset(path_size, thickness));
+                                  : spec.shape->path_for_bounds(maui::core::shape_self_inset(path_size, thickness, spec.shape));
         // C#'s `geometricClip.Offset = strokeThickness - Content.ActualOffset` places the clip at (T, T)
         // in the PANEL's space; this visual already starts at the host's origin (file header, deviation
         // 1), so the placement is the translate alone.
@@ -381,7 +381,7 @@ namespace maui::core
         // reading that Shape.TransformPathForBounds applies unconditionally. That was incomplete: the gate
         // IS in src/ (Border.cs:433-439). See the shared helper.
         const maui::graphics::path_f geometry =
-            spec.shape->path_for_bounds(maui::core::shape_self_inset(path_bounds, thickness));
+            spec.shape->path_for_bounds(maui::core::shape_self_inset(path_bounds, thickness, spec.shape));
         // winui_shape_ops::build_path_geometry, no winding argument: Border has no winding-mode surface
         // at all (i_border_stroke exposes none), so there is nothing to set PathGeometry.FillRule from —
         // WinUI's own default (EvenOdd) is left standing, matching GraphicsExtensions.AsPathGeometry

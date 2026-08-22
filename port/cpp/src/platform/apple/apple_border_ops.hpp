@@ -125,7 +125,7 @@ namespace maui::platform::apple
         // tracks the Catalyst ground truth its twin ios_border_ops.hpp was measured against. The general
         // View.Clip route through apple_visual_ops.hpp's apply_clip is NOT affected — MAUI never deflates
         // that one.
-        const maui::graphics::rect shape_bounds = maui::core::shape_self_inset(bounds, spec.thickness);
+        const maui::graphics::rect shape_bounds = maui::core::shape_self_inset(bounds, spec.thickness, spec.shape);
 
         // The shape mask: clips background + content + the stroke's outer half (see the header).
         apply_clip(native, spec.shape, shape_bounds);
