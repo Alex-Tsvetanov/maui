@@ -575,12 +575,81 @@ Two honest exceptions: `picker/*/dark` self-motion swings 33.7% (one repeat read
 elsewhere — the dialog did not open the same way) and `search_bar/xaml/dark` 10.6%. So "the drive is
 reproducible" holds for most pages, not all.
 
-**THE CAP STANDS** — `NON_REPRODUCIBLE_DRIVE={"android"}` is unchanged, now on a valid same-commit
-measurement rather than on the void one. But its NAME and its stated reason are both wrong: the drive
-is not the irreproducible part, and the `input swipe` fling story in the review text describes a
-mechanism no longer in use AND the wrong pages. The tractable follow-up is the CORRESPONDENCE — score
-the settled tail, or compare each column's own trajectory (self-motion is already computed, already in
-the review string, and reproducible to 0.65%), rather than frame-index-matched cross-column SSIM.
+**AND THE CAP DOES NOT CONTAIN ALL OF IT — 2 of the 5 flips can still go RED.** The verdict sequences:
+
+    title_bar/cpp/light    PASS -> INCONCLUSIVE -> PASS -> PASS
+    title_bar/xaml/light   PASS -> INCONCLUSIVE -> PASS -> PASS
+    clip_views/cpp/light   PASS -> INCONCLUSIVE -> INCONCLUSIVE -> PASS
+    search_bar/cpp/dark    INCONCLUSIVE -> FAIL -> PASS -> PASS     <- RED on one repeat
+    search_bar/xaml/dark   PASS -> FAIL -> PASS -> PASS             <- RED on one repeat
+
+A THIRD boundary is straddled, and it is not one of the green pair. In repeat `17_19_32` MAUI's OWN
+self-motion on `search_bar`/dark read 23.20 against ~20.77 in the other three repeats — a spread of
+10.6-10.7%, just over `PHASE_SELF_MOTION_TOL = 0.10`. `phase_only` therefore cannot fire, the cell
+falls through to `FAIL/frames-disagree`, and the board shows RED on a coin flip **despite** the cap.
+Both FAILs are in a clean repeat, so this is not the contaminated unit; and it means the honest claim
+is narrower than "these cells are correctly capped yellow". The cap catches the flips whose self-motion
+spread stays inside 10% and does NOT catch the rest.
+
+It also punctures "the drive is reproducible" as a universal: MAUI's own gesture on that page produced
+20.74 / 23.20 / 20.79 / 20.77 across four identical runs. Mostly reproducible, not always.
+
+**THE CAP STANDS** — `NON_REPRODUCIBLE_DRIVE={"android"}` is unchanged, now on a valid measurement
+rather than the void one. But its NAME and its stated reason are both wrong: the drive is not the
+irreproducible part, and the `input swipe` fling story in the review text cites a mechanism no longer
+in use AND the wrong pages. The tractable follow-up is the CORRESPONDENCE — score the settled tail, or
+compare each column's own trajectory (self-motion is already computed, already in the review string,
+and reproducible to 0.65% median) rather than frame-index-matched cross-column SSIM.
+
+**THE PROPOSED FIX WAS DESIGNED, PRE-REGISTERED, AND MEASURED WORSE — held OFF.**
+`motion_score.TRAJECTORY_SCORING` (one line, default False) scores three phase-free quantities instead
+of the worst cross-column paired frame: the at-rest frame, the settled last frame, and each column's
+OWN travel distance. Predicted before running: 16 PASS / 8 FAIL / **0 FLIP**. Measured on the same
+4-repeat data: **8 PASS / 10 FAIL / 6 FLIP** — one flip WORSE than the paired path it would replace,
+and `title_bar/cpp/dark` (a stable PASS today) starts flipping.
+
+The error is worth recording. The design rested on "self-motion is reproducible, 0.65% median", which
+is true and irrelevant to the clause built on it: the travel clause compares MAUI's travel TO THE
+PORT'S, and the gap between two independently wobbling quantities is far less stable than either.
+
+    title_bar/cpp/dark   MAUI 20.72 / 20.74 / 20.66 / 20.75
+                         port 20.73 / 20.73 / 23.12 / 20.76      gap 0.05 / 0.05 / 10.6 / 0.05 %
+
+One column takes a single-run ~11% excursion and the gap crosses the tolerance. **The median hid the
+tail.** The 80x separation was a statement about typical runs and said nothing about the worst case,
+which is exactly what a threshold meets.
+
+**So the real residual is not the correspondence alone** — it is single-run self-motion excursions of
+~11-75% in ONE column (search_bar/dark 10.6-10.7%, picker/dark 22.5%, clip_views/dark 75.3%), cause
+unknown. Any verdict built on comparing the two columns' travel inherits them. **That is the next
+thing to investigate, and the frames are already banked in the four run dirs.**
+
+**STATUS OF THE FIX: DESIGNED, HELD OFF, AND NOT WORKING AS SPECIFIED.** The cause is localised (`_align`'s offset selection, driven by
+which moment each burst samples) and the remedy is specified above, but neither is built. Three gates
+now known to be straddled — `GREEN_SSIM`, `GREEN_DIFF`, `PHASE_SELF_MOTION_TOL` — and moving any of
+them would be threshold-tuning to hide noise, which is forbidden. The fix has to change WHAT is
+compared, not where the bar sits.
+
+**REPRODUCED BY THE PRODUCTION TOOL**, not only by the bespoke analysis:
+
+    motion_score.py --stability --platform android --only <the 6 pages> --runs 5
+    24 cell(s) scored across up to 5 runs each; 0 had no two runs AT ONE COMMIT; 5 disagreed
+
+Same five cells, same verdict sequences. This matters because the earlier bespoke script and the
+shipped tool could have disagreed and nobody would have known which to believe.
+
+**A COMMIT LABEL CANNOT GROUP THESE RUNS, and the reason is sharper than first thought.**
+`write_run_unit` calls `_git_commit()` PER UNIT, so HEAD moving during a ~20-minute repeat is recorded
+inside the run: `16_24_40` alone carries four distinct commits across its 468 sidecars, `17_19_32`
+seven. A run does not HAVE a commit. Sidecars now also record `apk_md5` (the installed binary), and
+`stability()` groups on that in preference to the commit — these four runs were backfilled with the
+md5s measured on-device before, between and after the capture, all byte-identical.
+
+The key uses BOTH columns' binaries. `score_cell`'s `evidence` is built from the MAUI column's sidecar,
+so a key from it alone would identify the GROUND-TRUTH binary — which does not change when the port is
+rebuilt, so two runs straddling a port rebuild would group as comparable. That is the original defect
+one column over, and the first cut of this fix had it: the production run above printed
+`@apk:4a78781e…`, the MauiReference md5.
 
 **Population limit, stated next to the result:** 6 of the 19 capped pages, chosen for phase-shape
 coverage. A 2-repeat pass over the remaining 13 would cheaply falsify the generalisation.

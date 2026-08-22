@@ -162,6 +162,17 @@ FROZEN_PCT = 0.012
 # must already match. A port that animates the right distance from a WRONG starting layout (selftest
 # case 3, the 8px-shifted box) fails that clause and stays red, which is the whole difference between
 # "we could not measure this" and "we measured nothing".
+# MEASURED 2026-08-22 TO BE STRADDLED, and that makes it the third boundary the android flips cross.
+# On `search_bar`/dark, repeat 2026-08-22-17_19_32, MAUI's OWN self-motion read 23.20 against ~20.77 in
+# three otherwise identical repeats — spread 10.6-10.7%, just OVER this bound. phase_only therefore
+# could not fire, the cell fell through to FAIL/frames-disagree, and the board would show RED on a
+# rescore of an unchanged binary. Both affected cells (search_bar/cpp/dark, search_bar/xaml/dark) are
+# in a CLEAN repeat, so this is not capture contamination.
+#
+# Consequence for the cap: NON_REPRODUCIBLE_DRIVE catches the flips whose self-motion spread stays
+# inside 10% and does NOT catch these. Do NOT respond by raising this number — that is threshold-tuning
+# to hide noise, and the same variation would simply reappear at the next bar. The fix belongs in WHAT
+# is compared (see the block above NON_REPRODUCIBLE_DRIVE), not in where the bar sits.
 PHASE_SELF_MOTION_TOL = 0.10  # relative spread between the two columns' own motion
 PHASE_AT_REST_PCT = 1.0       # how tightly the first paired (pre-gesture) frame must already agree
 # THE BOARD'S GREEN BAR, defined ONCE, here. It lives in this module rather than in pixel_score purely
@@ -864,6 +875,24 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # THE UNSHIFTED FIRST PAIR, captured because the next line REBINDS `pairs`. The phase gate's third
     # clause needs the one reading _align did not touch — see at_rest_diff below for why that matters.
     rest_pair = pairs[0]
+    # THE PHASE-FREE PATH, taken BEFORE _align — avoiding the alignment is the entire point, so this
+    # must read the unaligned pairs. Off by default; see the TRAJECTORY_SCORING block.
+    if TRAJECTORY_SCORING:
+        meta_t = shots_m[0][2]
+        verdict, why, detail = trajectory_score(pairs, sel_m, sel_o, rest_pair[0], crop_top)
+        rest_sc = _compare(rest_pair[1], rest_pair[2], crop_top)
+        end_sc = _compare(pairs[-1][1], pairs[-1][2], crop_top)
+        worst = max((rest_sc, end_sc), key=lambda sc: sc["diff_pct"])
+        tm, _pm = _self_motion([p for _s, p in sel_m], crop_top)
+        to, _po = _self_motion([p for _s, p in sel_o], crop_top)
+        return {"ssim": round(worst["ssim"], 4), "diff_pct": round(worst["diff_pct"], 2),
+                "detail": detail, "mismatch": False, "both_frozen": why == WHY_NOT_DRIVEN,
+                "phase_only": False, "authored_asymmetry": False, "verdict": verdict, "why": why,
+                "self": {"maui": round(tm, 4), "port": round(to, 4)},
+                "evidence": {"run": run.name, "commit": meta_t.get("commit", "?"),
+                             "apk_md5": str(meta_t.get("apk_md5", "") or ""),
+                             "apk_md5_port": str(shots_o[0][2].get("apk_md5", "") or ""),
+                             "captured_at": str(meta_t.get("captured_at", "?"))[:10]}}
     # PHASE-INVARIANT: shift column B by the offset that makes the sequences agree best before scoring.
     # A sampling drift is a shift, not a defect; see _align for the measurements that forced this.
     pairs, phase_shift = _align(pairs, crop_top)
@@ -1170,12 +1199,129 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
             # a rendering diff respectively. The numbers were already computed here and spent only on
             # the prose sentence, so nothing new is measured.
             "self": {"maui": round(move_m, 4), "port": round(move_o, 4)},
-            # `apk_md5` is the BINARY that drew these frames; `commit` is only the label HEAD carried
-            # at capture time. capture_android.write_run_unit records it; lanes that do not yet write
-            # it leave "" and callers fall back to the commit. See stability()'s grouping.
+            # THE BINARIES that drew these frames; `commit` is only the label HEAD carried at capture
+            # time. BOTH columns are recorded, and that is load-bearing rather than tidy: `meta` comes
+            # from shots_m — the MAUI column — so a key built from it alone identifies the GROUND-TRUTH
+            # binary, which does not change when the port is rebuilt. Two runs straddling a port rebuild
+            # would then group as comparable, which is the exact defect this field exists to close,
+            # re-introduced one column over. Lanes that do not record it leave "" and stability() falls
+            # back to the commit.
             "evidence": {"run": run.name, "commit": meta.get("commit", "?"),
                          "apk_md5": str(meta.get("apk_md5", "") or ""),
+                         "apk_md5_port": str(shots_o[0][2].get("apk_md5", "") or ""),
                          "captured_at": str(meta.get("captured_at", "?"))[:10]}}
+
+
+# --------------------------------------------------------------------------- TRAJECTORY SCORING
+# DESIGNED AND HELD, 2026-08-22. Off by one line; nothing below runs until this is True.
+#
+# WHY. The verdict today is the WORST CROSS-COLUMN PAIRED FRAME, which requires deciding that MAUI's
+# sample k and the port's sample k are the same moment of the same motion. Nothing enforces that: the
+# android burst is 12 screencaps on a fixed sleep while the scenario thread drives the page
+# concurrently, so which moment each column photographs is a race. MEASURED over 4 repeats of one
+# md5-verified binary, 24 cells:
+#
+#     each column's OWN self-motion (the DRIVE):        0.65% median run-to-run spread
+#     cross-column worst-frame diff (CORRESPONDENCE):  53.3%
+#
+# An 80x separation. The scorer takes its verdict on the 53.3% quantity while the 0.65% one is already
+# computed and sitting unused in the review string. 5 of 24 cells flip verdict across repeats of an
+# unchanged binary because of it, and 2 of those flips reach FAIL — i.e. the board can show RED on a
+# coin flip. This scores the reproducible quantity instead.
+#
+# WHAT IS COMPARED — three phase-free quantities, none of which pairs two mid-motion frames:
+#   rest_diff   cross-column, at the at-rest frame. Pre-gesture, so there is no phase to get wrong.
+#   end_diff    cross-column, at the LAST frame. Both columns have settled, so likewise.
+#   travel      each column's OWN max self-motion. A max over the sequence is phase-INVARIANT by
+#               construction: it does not matter WHEN the peak was sampled.
+# PASS iff the columns start together, end together, and travelled the same distance.
+#
+# WHAT THIS GIVES UP, stated plainly because it is the real cost: a port that reaches the right end
+# state by the WRONG PATH (overshoot-and-correct, or animating the opposite way first) has the same
+# endpoints and can have the same peak travel, and would PASS. The current frame-by-frame comparison
+# could in principle catch that; this cannot. It is a deliberate trade of a sensitivity that is not
+# reliably available (the correspondence it needs is 53.3% irreproducible) for one that is (0.65%).
+# The upgrade path, if a wrong-path defect is ever observed, is to compare each column's own
+# self-motion CURVE by shape — never by index — but that is not built and should not be until there
+# is a real defect to catch with it.
+#
+# PRE-REGISTERED PREDICTION, AND IT WAS WRONG. THIS DESIGN IS MEASURED WORSE THAN THE ONE IT REPLACES.
+#
+# Predicted, before running anything: 16 PASS / 8 FAIL / 0 FLIP, on the reasoning that every flip came
+# from the mid-motion spike this path no longer looks at. Evaluated against the same 4-repeat data:
+#
+#     PASS 8   FAIL 10   FLIP 6        (the paired path it would replace flips 5)
+#
+# IT MAKES FLIPPING WORSE. title_bar/cpp/dark — a STABLE PASS today — starts flipping.
+#
+# THE ERROR, because it is instructive. The design was justified by "self-motion is reproducible: 0.65%
+# median run-to-run spread". True, and irrelevant to the clause built on it: the travel clause compares
+# MAUI's travel TO THE PORT'S, and the GAP between two independently wobbling quantities is far less
+# stable than either. title_bar/cpp/dark, per repeat:
+#     MAUI 20.72 / 20.74 / 20.66 / 20.75      port 20.73 / 20.73 / 23.12 / 20.76
+#     gap  0.05% / 0.05% / 10.6% / 0.05%      -> straddles TRAVEL_TOL, so the verdict straddles
+# One column takes a single-run ~11% excursion and the gap explodes. Those excursions are real and
+# occur on several pages (search_bar/dark 10.6-10.7%, picker/dark 22.5%, clip_views/dark 75.3%). THE
+# MEDIAN HID THE TAIL: an 80x separation in the median said nothing about the worst case, and the worst
+# case is what a threshold comparison meets.
+#
+# DO NOT "FIX" THIS BY RAISING TRAVEL_TOL. 5% -> 80% would absorb the excursions and simultaneously
+# forgive clip_views/dark's genuine 75.3% travel difference. That is threshold-tuning to hide noise,
+# which is the one move this whole investigation exists to refuse.
+#
+# WHAT THE NEGATIVE RESULT ACTUALLY ESTABLISHES, and it is worth more than the design was:
+#   * The residual instability is NOT the cross-column correspondence alone. It is single-run
+#     self-motion excursions of ~11-75% in ONE column, cause UNKNOWN and unmeasured — the next thing
+#     to investigate, on the frames already banked in the four run dirs.
+#   * Any verdict built on comparing the two columns' travel distances inherits those excursions. A
+#     working redesign has to explain or exclude them FIRST.
+# The code below is kept, off, because the phase-free framing is still right and the measurement that
+# refutes this particular clause is recorded next to it. Re-deriving it from scratch would cost another
+# session and reach the same wall.
+#
+# NOT LANDED. A scorer change moves every motion cell on all four lanes, and it must not be evaluated
+# while a 172-page iOS recapture and a Windows measure are in flight. It also must not be judged on
+# the 6 pages it was designed from -- score the other 13 capped pages before believing the split.
+TRAJECTORY_SCORING = False
+# How far the two columns' own travel distances may differ. NOT one of the three straddled gates
+# (GREEN_SSIM / GREEN_DIFF / PHASE_SELF_MOTION_TOL) and deliberately not derived from them: this
+# compares a REPRODUCIBLE quantity (0.65% median run-to-run spread), so it can sit far tighter than
+# anything measured on the correspondence. 5% is ~7x the observed run-to-run spread.
+TRAVEL_TOL = 0.05
+
+
+def trajectory_score(pairs, sel_m, sel_o, rest_step, crop_top):
+    """Phase-free motion verdict -> (verdict, why, detail). See the block above.
+
+    Compares only: the at-rest frame across columns, the last frame across columns, and each column's
+    OWN travel distance. Never two mid-motion frames from different columns."""
+    rest = next(((a, b) for st, a, b in pairs if st == rest_step), pairs[0][1:])
+    rest_sc = _compare(rest[0], rest[1], crop_top)
+    end_sc = _compare(pairs[-1][1], pairs[-1][2], crop_top)
+    travel_m, px_m = _self_motion([p for _s, p in sel_m], crop_top)
+    travel_o, px_o = _self_motion([p for _s, p in sel_o], crop_top)
+    widest = max(travel_m, travel_o)
+    gap = abs(travel_m - travel_o) / widest if widest > 0 else 0.0
+
+    starts = rest_sc["ssim"] >= GREEN_SSIM and rest_sc["diff_pct"] <= GREEN_DIFF
+    ends = end_sc["ssim"] >= GREEN_SSIM and end_sc["diff_pct"] <= GREEN_DIFF
+    travels = gap <= TRAVEL_TOL
+    # Neither column moved: not parity, the same NO-EVIDENCE case the paired path reports. Kept here
+    # rather than inherited so this path never returns a confident PASS for a page nobody drove.
+    if px_m == 0 and px_o == 0:
+        return INVALID, WHY_NOT_DRIVEN, ("TRAJECTORY: neither column moved (0 px vs 0 px) — nothing "
+                                         "was demonstrated about the port either way")
+    detail = (f"TRAJECTORY (phase-free): at rest {rest_sc['diff_pct']:.2f}% / SSIM "
+              f"{rest_sc['ssim']:.4f}; settled {end_sc['diff_pct']:.2f}% / SSIM {end_sc['ssim']:.4f}; "
+              f"travel MAUI {travel_m:.4f}% ({px_m} px) vs port {travel_o:.4f}% ({px_o} px), "
+              f"{gap * 100:.1f}% apart (tol {TRAVEL_TOL * 100:.0f}%). No two mid-motion frames were "
+              f"compared across columns — see TRAJECTORY_SCORING for the 80x reproducibility gap that "
+              f"motivates this")
+    if starts and ends and travels:
+        return PASS, "", detail
+    which = [n for n, ok in (("start", starts), ("settled end", ends), ("travel distance", travels))
+             if not ok]
+    return FAIL, "trajectory-disagree", f"!! {' and '.join(which)} DISAGREE. {detail}"
 
 
 # --------------------------------------------------------------------------- cross-run stability
@@ -1251,7 +1397,11 @@ def stability(comp=COMP, only=None, platforms=None, max_runs=4) -> int:
                             # what rendered; a rebuild+reinstall changes the binary without changing
                             # `commit`. Grouping on the label is what let the retracted 12/16 compare
                             # four different builds. Prefixed so a hash can never collide with a sha.
-                            key_id = ("apk:" + ev["apk_md5"]) if ev.get("apk_md5") \
+                            # BOTH binaries. The port's is the one that moves when the rendering agent
+                            # rebuilds; MAUI's is the one that moves when the reference is refreshed.
+                            # Either invalidates a comparison, so both belong in the key.
+                            pair = (ev.get("apk_md5", ""), ev.get("apk_md5_port", ""))
+                            key_id = ("apk:%s+%s" % pair) if any(pair) \
                                 else ("commit:" + ev["commit"])
                             by_commit.setdefault(key_id, {})[run.name] = r["verdict"]
                     if not by_commit:
@@ -1837,6 +1987,43 @@ def _selftest() -> int:
         publish(comp, "roidrift", "cpp", "light", do / "0001.png", plat="ios")
         r = score_cell("roidrift", "ios", "cpp", "light", 0, STILL, comp)
         check("drifted step names: region stays inert", r["why"] != "roi-split", True)
+
+        # (28) TRAJECTORY SCORING — the held phase-free path. Checks the property it exists for: a
+        #      MID-MOTION-ONLY disagreement (columns start together, end together, travel the same
+        #      distance, but a middle sample catches them at different points) PASSES here while the
+        #      paired path calls it a difference. And a SETTLED disagreement still FAILS, so the
+        #      change buys reproducibility without blanket-forgiving real defects.
+        # Toggled through globals(), NOT through `import motion_score`: run as __main__ this file is a
+        # DIFFERENT module object from the imported one, so setting the flag there would leave the
+        # constant score_cell actually reads untouched — and the test would silently exercise the old
+        # path while reporting on the new one.
+        mid_m = seq([10, 40, 70, 70, 70])          # MAUI: moves out and stays
+        mid_o = seq([10, 10, 70, 70, 70])          # port: same start, same end, LATER middle sample
+        dm = unit(run, "midonly", "maui_xaml", "light", mid_m, plat="android")
+        do = unit(run, "midonly", "cpp", "light", mid_o, plat="android")
+        publish(comp, "midonly", "maui", "light", dm / "0001.png", plat="android")
+        publish(comp, "midonly", "cpp", "light", do / "0001.png", plat="android")
+        settled_m = seq([10, 40, 70, 70, 70])
+        settled_o = seq([10, 40, 40, 40, 40])      # port ENDS somewhere else: a real difference
+        dm2 = unit(run, "settled", "maui_xaml", "light", settled_m, plat="android")
+        do2 = unit(run, "settled", "cpp", "light", settled_o, plat="android")
+        publish(comp, "settled", "maui", "light", dm2 / "0001.png", plat="android")
+        publish(comp, "settled", "cpp", "light", do2 / "0001.png", plat="android")
+
+        was = globals()["TRAJECTORY_SCORING"]
+        try:
+            globals()["TRAJECTORY_SCORING"] = True
+            r = score_cell("midonly", "android", "cpp", "light", 0, STILL, comp)
+            check("trajectory: mid-motion-only PASSES", r["verdict"], PASS)
+            check("trajectory: says it is phase-free", "TRAJECTORY (phase-free)" in r["detail"], True)
+            r = score_cell("settled", "android", "cpp", "light", 0, STILL, comp)
+            check("trajectory: settled difference still FAILS", r["verdict"], FAIL)
+            check("trajectory: names the failing clause", "settled end" in r["detail"], True)
+        finally:
+            globals()["TRAJECTORY_SCORING"] = was
+        # …and with the flag OFF the same page scores exactly as it always did.
+        r = score_cell("midonly", "android", "cpp", "light", 0, STILL, comp)
+        check("trajectory OFF: paired path unchanged", "TRAJECTORY" in r["detail"], False)
 
         # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
         #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.
