@@ -732,7 +732,25 @@ namespace
     // re-score; set it back to false to revert the whole behaviour in one line without touching the routing.
     // ponytail: one constant rather than a runtime flag — the board builds Release and an env var would need
     // harness plumbing to A/B; flip and rebuild is cheaper. Make it runtime only if A/B in ONE run is needed.
-    inline constexpr bool k_convex_shapes_use_canvas = true;
+    // RE-SCORED 2026-08-22 ON THE ANDROID BOARD → REVERTED TO false. The flip was measured against the
+    // pre-registered criterion (scratchpad FLIP_RESCORE_PLAN.txt) and failed both revert triggers:
+    //   R1  24 of 72 cells went green → non-green, across 8 pages (border, borderless, containers/dark,
+    //       custom_swipe_item_view, invalidate_shadow_host/dark, radio_button_content/dark,
+    //       radio_template_from_style/dark, varied_size_selector). cpp and xaml regressed identically.
+    //   R2  convex Borders LOST their background fill: pixels where MAUI paints a colour and the port
+    //       paints white went 0 → 296,112 (border), 0 → 1,754,258 (varied_size_selector),
+    //       0 → 217,999 (custom_swipe_item_view). `border`'s pale-yellow fill rendered WHITE.
+    // The measurement floor was 0.00–0.02% (34 of 36 MAUI frames byte-identical across the two sittings),
+    // so none of this is capture noise.
+    //
+    // WHY, mechanically: this constant only gates the CONVEX early-return below. Polygon/Path/Line already
+    // returned true, and border_resize_content row 3 (a Polygon) was ALREADY failing to fill on the canvas
+    // route — see the FINDINGS chain ruling out dangling ptr / stale overwrite / wrong paint type /
+    // set_fill_paint gap. Flipping this moved every convex Border onto that same unproven canvas fill and
+    // spread the row-3 defect board-wide. So the canvas fill (native_draw_border_fill reading
+    // platform->background) must be FIXED FIRST; this constant is the A/B switch to re-test it with.
+    // Do not flip it again until a convex Border demonstrably fills on the canvas route.
+    inline constexpr bool k_convex_shapes_use_canvas = false;
 
     [[nodiscard]] bool shape_needs_canvas(const maui::graphics::i_shape* shape)
     {
