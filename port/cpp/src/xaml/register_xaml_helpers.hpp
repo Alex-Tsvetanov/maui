@@ -84,6 +84,14 @@ namespace maui::xaml
         // shared_ptr<i_shape>-typed property through apply_properties_visitor's object-coercion
         // (try_set_created_object<i_shape>), exactly like Border.StrokeShape.
         properties.register_bindable_property<TControl>("Clip", controls::clip_property());
+        // VisualElement.Shadow: the shared shadow_property() descriptor every view<>-derived control
+        // owns (view.hpp), the twin of Clip above. Element form only
+        // (<BoxView.Shadow><Shadow Brush="Red" Radius="6" Offset="6,6" /></BoxView.Shadow>); the
+        // <Shadow> VALUE is minted from its literals in xaml_visitors.cpp and boxed as
+        // shared_ptr<i_shadow> -- this property's exact type -- because core::shadow is a CTOR-ONLY
+        // i_shadow (not a bindable_object), so it cannot be register_type'd. Same shape as
+        // <RoundRectangle> for Border.StrokeShape.
+        properties.register_bindable_property<TControl>("Shadow", controls::shadow_property());
         // VisualElement.IsVisible (a bool bindable in C#) maps onto the port's visibility property
         // exactly the way VisualElement implements IView.Visibility: IsVisible.ToVisibility() —
         // true → Visible, false → Collapsed (VisibilityExtensions.cs).

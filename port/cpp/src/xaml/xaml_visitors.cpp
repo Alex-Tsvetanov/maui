@@ -48,6 +48,7 @@
 #include "maui/core/bindable_object.hpp"
 #include "maui/core/event.hpp"
 #include "maui/core/i_view.hpp"
+#include "maui/core/shadow.hpp" // W-SHADOW: <Shadow> minting for VisualElement.Shadow
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/i_shape.hpp" // W9: Border.StrokeShape object-coercion (controls::shape is-a i_shape)
 #include "maui/graphics/shapes/round_rectangle.hpp" // W9: <RoundRectangle CornerRadius=…> minting (no controls equivalent)
@@ -1987,6 +1988,48 @@ namespace maui::xaml
             // shared_ptr<i_image_source> (Image.Source's exact type — image::source_property(), so
             // apply_value_core's any_cast matches directly). Glyph/FontFamily are literals; Size/Color parse
             // via convert_double/convert_color; FontFamily+Size+AutoScaling compose onto the font.
+            // W-SHADOW — <Shadow Brush="Red" Radius="6" Offset="6,6" Opacity="1">: the element form of
+            // VisualElement.Shadow (registered in register_xaml_helpers.hpp). Property names and defaults
+            // come from Shadow.cs:9-18 — Radius 10f, Opacity 1f, Brush Brush.Black, Offset a Point.
+            // maui::core::shadow is a CTOR-ONLY i_shadow (not a bindable_object, so not register_type'd),
+            // so — exactly like <RoundRectangle> and <FontImageSource> above — its attributes are consumed
+            // here and it is minted boxed AS shared_ptr<i_shadow>, the Shadow property's exact type, so
+            // apply_value_core's any_cast matches directly with no coercion.
+            //
+            // Brush takes a COLOR literal only: core::shadow models the C# Brush as a colorizing solid
+            // paint (set_color), which covers every <Shadow> the reference twins use. A gradient shadow
+            // brush would need shadow to carry a real paint — not reproduced, and not currently expressible.
+            if (node.type().is_of_any_type({"Shadow"}))
+            {
+                auto made = std::make_shared<maui::core::shadow>();
+                try
+                {
+                    if (const std::optional<std::string> r = literal_attribute(node, "Radius"); r.has_value())
+                    {
+                        made->set_radius(convert_double(*r));
+                    }
+                    if (const std::optional<std::string> o = literal_attribute(node, "Opacity"); o.has_value())
+                    {
+                        made->set_opacity(convert_double(*o));
+                    }
+                    if (const std::optional<std::string> b = literal_attribute(node, "Brush"); b.has_value())
+                    {
+                        made->set_color(convert_color(*b));
+                    }
+                    if (const std::optional<std::string> f = literal_attribute(node, "Offset"); f.has_value())
+                    {
+                        made->set_offset(convert_point(*f));
+                    }
+                }
+                catch (const xaml_convert_error& error)
+                {
+                    throw xaml_parse_exception(error.what(), node.line_number(), node.line_position());
+                }
+                context_->set_value(node, std::any{std::shared_ptr<maui::core::i_shadow>(made)});
+                context_->set_type(node, maui::core::type_tag::of<maui::core::shadow>());
+                return;
+            }
+
             if (node.type().is_of_any_type({"FontImageSource"}))
             {
                 const std::string glyph = literal_attribute(node, "Glyph").value_or(std::string{});
@@ -2357,8 +2400,10 @@ namespace maui::xaml
             // "Cannot assign property Height"). W9: a <RoundRectangle>'s CornerRadius is consumed at CREATE
             // time too (minted as a non-bindable graphics::i_shape). W17: a <FontImageSource>'s
             // Glyph/FontFamily/Size/Color are consumed at CREATE time (minted as a non-bindable i_image_source).
+            // W-SHADOW: a <Shadow>'s Brush/Radius/Offset/Opacity likewise (minted as a non-bindable i_shadow).
             if (parent_element->type().is_of_any_type({"Style", "Setter", "Trigger", "RowDefinition",
-                                                       "ColumnDefinition", "RoundRectangle", "FontImageSource"}))
+                                                       "ColumnDefinition", "RoundRectangle", "FontImageSource",
+                                                       "Shadow"}))
             {
                 return;
             }

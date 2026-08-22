@@ -1203,6 +1203,39 @@ namespace
         EXPECT_DOUBLE_EQ(ellipse_clip->radius_y(), 100.0);
     }
 
+    // W-SHADOW: <BoxView.Shadow><Shadow .../></BoxView.Shadow>. core::shadow is a CTOR-ONLY i_shadow,
+    // so the loader MINTS it from its literals (xaml_visitors.cpp) and boxes it as shared_ptr<i_shadow>.
+    // Property names/defaults are Shadow.cs:9-18 (Radius 10f, Opacity 1f, Brush Brush.Black).
+    // The gap this closes was live: box_view.xaml had to drop its Shadow, so the twin rendered no shadow
+    // while the code-first builder page rendered one -- the two port columns disagreed on the same page.
+    TEST(xaml_loader, element_form_box_view_shadow)
+    {
+        controls::box_view box;
+        (void)xaml_loader::load_into(box, R"xml(
+<BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <BoxView.Shadow><Shadow Brush="Red" Radius="6" Offset="6,6" /></BoxView.Shadow>
+</BoxView>)xml");
+        const maui::core::i_shadow* made = box.shadow();
+        ASSERT_NE(made, nullptr) << "Shadow not minted";
+        EXPECT_DOUBLE_EQ(made->radius(), 6.0);
+        EXPECT_EQ(made->offset(), (maui::graphics::point{6, 6}));
+        EXPECT_DOUBLE_EQ(made->opacity(), 1.0);   // Shadow.cs OpacityProperty default
+    }
+
+    // Unset attributes keep Shadow.cs' defaults rather than zeroing.
+    TEST(xaml_loader, element_form_shadow_defaults)
+    {
+        controls::box_view box;
+        (void)xaml_loader::load_into(box, R"xml(
+<BoxView xmlns="http://schemas.microsoft.com/dotnet/2021/maui">
+    <BoxView.Shadow><Shadow /></BoxView.Shadow>
+</BoxView>)xml");
+        const maui::core::i_shadow* made = box.shadow();
+        ASSERT_NE(made, nullptr);
+        EXPECT_DOUBLE_EQ(made->radius(), 10.0);   // Shadow.cs RadiusProperty default 10f
+        EXPECT_DOUBLE_EQ(made->opacity(), 1.0);
+    }
+
     TEST(xaml_loader, element_form_image_clip_geometry_group_nested_children)
     {
         // GeometryGroup's [ContentProperty("Children")]: nested <EllipseGeometry> elements are plain
