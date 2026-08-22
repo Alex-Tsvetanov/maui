@@ -4,11 +4,12 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
-## Board reaches ZERO REDS; 1277→1303+ green (2026-08-22)
+## Board 1277 → 1320 green (2026-08-22)
 
-The parity board went 1277 green / 97 yellow / 2 red -> 1303 / 73 / **0**, then a further 10 cells green as
-four lanes were worked in parallel. Root causes, not symptom patches — each derived from `src/` and cited
-in the commit:
+The parity board went 1277 green / 97 yellow / 2 red -> **1320 / 55 / 1** across the day, working four lanes
+in parallel. It passed through 1303/73/**0** mid-session; the single red now standing is `box_view/ios/pixel`,
+and it is a **real defect a stale run had been hiding**, surfaced by a recapture rather than newly broken.
+Root causes, not symptom patches — each derived from `src/` and cited in the commit:
 
 | area | defect | commit |
 |---|---|---|
@@ -21,13 +22,37 @@ in the commit:
 | android/field | the underline tint was wiped by our own `setBackgroundTintList(view, null)` one call later — AOSP treats that null as a tint STATE | `fa2e2e4d9a` |
 | apple/radio | the port used `CALayer.borderWidth` (band `[0,t]`); MAUI strokes its template Border's `shape_self_inset` at double width (band `[0.5, 0.5+t]`) | `9f6894e40b` |
 
-**~20 of the remaining yellows are unwinnable by construction** and are documented as such in
-`docs/comparison/PHASE_TRIAGE.md`. This said ~22 and named `maccatalyst/ios_date_picker` x2 as the first
-group — that was WRONG and is fixed (`0e97fa9652`): `present` was resizing the UIDatePicker's POPOVER
-rather than the page, an ordinary capture bug, not a structural limit. What remains is ~20 android
-PHASE-ONLY cells
-(`--stability` over 4 runs: 12 of 16 flip VERDICTS, not scores). Subtract them before reading the yellow
-count as a work queue.
+**The "unwinnable by construction" group is now ~20, and its evidence has been RETRACTED.** It said ~22
+and named `maccatalyst/ios_date_picker` x2 first — wrong, and fixed (`0e97fa9652`): `present` was resizing
+the UIDatePicker's POPOVER rather than the page (System Events orders windows front-to-back), an ordinary
+capture bug. What remains is ~20 android PHASE-ONLY cells.
+
+**The "12 of 16 flip VERDICTS" figure that justified capping them is retracted (`5e8df15d02`).**
+`--stability` selected run directories by recency with **no commit filter**, and every android run dir on
+disk sits at a different commit — so the four "runs" were four different *builds of the port*, with fixes
+landing between them. A verdict changing across them is the expected outcome. The figure shows neither that
+the drive is noisy nor that it is clean; it is uninterpretable. `--stability` now groups by sidecar commit,
+and a cell with no same-commit pair is counted separately rather than as agreement.
+
+`NON_REPRODUCIBLE_DRIVE = {"android"}` **stays for now anyway** — retracting a bad measurement leaves *no*
+measurement, not a passing one. A same-commit clean run is in progress. Early evidence points the other way
+from the cap: on `title_bar` @ `716da124e5`, three same-commit runs held **4/4 verdicts stable** while
+self-motion repeated to six significant figures (20.9439 / 20.9441 / 20.9441) against a 2.2x move in the
+cross-column worst frame (3.58% -> 7.90%). If that holds, the drive is reproducible and the **cross-column
+sampling correspondence** is not — i.e. the cap names the wrong noun, and the remedy is a scenario/scorer
+change rather than a permanent cap.
+
+Subtract the group before reading the yellow count as a work queue, but do not treat it as settled.
+
+**A second board-wide staleness axis, found the same day.** The largest single cause of yellows was not port
+defects but **stale board entries**: `border/android` published 0.9605 / 3.49% while the stills on disk read
+**0.9943 / 0.29%** — the fix had landed and the board had never been rescored. Two guards now exist:
+`freshness.py` refuses a capture whose artifacts predate their source (all four lanes, `09a7b521d5`,
+`48fb03451a`), every scored cell is stamped with the stills it was scored on (`9984a92dd6`), and
+`freshness.py --unverified --only <pages>` is the triage command to run **before** debugging any cell.
+A third check, `column_skew` (`e48309e3b6`), flags cells whose two columns were captured under different
+conditions — it measured the iOS lane's median column gap at **421.1h**, i.e. cross-run columns are that
+lane's normal state.
 
 **Tooling traps found the hard way, all now recorded in the files that own them:** a `.lib` relinks while
 one `.obj` inside it is stale (ask the BINARY for the symbol, not mtimes); `git checkout` on `captures/`
