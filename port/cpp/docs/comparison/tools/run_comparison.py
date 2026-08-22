@@ -73,8 +73,9 @@ def png_size(path):
 
 
 def shoot_presented(env, ccfg, g, remote_shot, pid=None, attempts=3):
-    """Present the window at the fixed geometry and capture THAT rect. Returns bounds, or None if the
-    window could not be presented.
+    """Present the window at the fixed geometry and capture THAT rect. Returns (bounds, None) on success
+    and (None, why) if the window could not be presented — `why` is the AGENT's own error string, which
+    the caller must print instead of guessing at the cause (see the note at the return below).
 
     Never falls back to a whole-display shot. That fallback used to live inline at the call site and was
     the worst failure mode of this runner: when the VM's WindowServer/AX session desyncs (windows stop
@@ -99,13 +100,19 @@ def shoot_presented(env, ccfg, g, remote_shot, pid=None, attempts=3):
             args += ["--pid", pid]
         pr = env.agent(*args)
         if pr.get("rect") and pr.get("window") and pr.get("shot"):
-            return pr.get("bounds")
+            return pr.get("bounds"), None
+        why = pr.get("error") or ("no window id — Quartz could not see the window" if pr.get("rect") else "?")
         if attempt < attempts - 1:
-            why = pr.get("error") or ("no window id — Quartz could not see the window" if pr.get("rect") else "?")
             print(f"  ~ present failed ({why}) — resolution-toggle self-heal, retrying")
             env.agent("set-resolution", env.display["width"], env.display["height"])
             time.sleep(2.0)
-    return None
+    # RETURN THE REASON, don't just fail. The caller used to print a fixed "no window to capture", which
+    # is a GUESS at the cause and was wrong for two years of maccatalyst/ios_date_picker: the agent was
+    # saying `window did not reach target: got 139x174, want 1024x800` (present was sizing a POPOVER,
+    # 0e97fa9652) while the summary said the window could not be found. The specific line existed only on
+    # the `~ ... retrying` rows, so anyone reading the DROPPED lines — which is what PHASE_TRIAGE.md
+    # quoted — saw only the guess, and filed the page as a structural capture limitation it never was.
+    return None, why
 
 
 def load_manifest() -> list[dict]:
@@ -1043,10 +1050,10 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                             # columns and scored ~80% for a full day as a phantom port defect, across four
                             # separate full board passes. check_capture_integrity.py found it only by
                             # hashing bytes across columns (3b95065b77, 3a15e1613c).
-                            presented = shoot_presented(env, ccfg, g, remote_shot, pid=pid)
+                            presented, why_failed = shoot_presented(env, ccfg, g, remote_shot, pid=pid)
                             if presented is None:
                                 print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — present failed after "
-                                      f"self-heal (no window to capture)")
+                                      f"self-heal: {why_failed}")
                                 failed_frames.append(f"{tag}/{col}/{theme}#{n}")
                                 continue
                             bounds = presented
@@ -1272,6 +1279,23 @@ def _selftest() -> int:
     # DELEGATES rather than duplicating. Two files pinning one byte sequence means two edits per change,
     # and the copy that does not live next to the code is the one that goes stale — which is exactly
     # what happened when the agents grew the pointer save/restore.
+    # shoot_presented's CONTRACT: always a 2-tuple. The failure half must carry the AGENT's own error,
+    # because printing a fixed guess instead is what let maccatalyst/ios_date_picker be filed as a
+    # structural limitation for two years (see the note at shoot_presented's return).
+    class _FakeEnv:
+        display = {"width": 1920, "height": 1080}
+        def __init__(self, reply): self._reply = reply
+        def agent(self, *a, **k):
+            return self._reply if a[0] == "present" else {}
+    _cfg = {"process": "gallery"}
+    _geom = {"x": 128, "y": 30, "w": 1024, "h": 800}
+    ok = shoot_presented(_FakeEnv({"rect": "128,30,1024,800", "window": 7, "shot": "/tmp/s.png",
+                                   "bounds": [128, 30, 1024, 800]}), _cfg, _geom, "/tmp/s.png", attempts=1)
+    assert ok == ([128, 30, 1024, 800], None), ok
+    bad = shoot_presented(_FakeEnv({"error": "window did not reach target: got 139x174, want 1024x800"}),
+                          _cfg, _geom, "/tmp/s.png", attempts=1)
+    assert bad[0] is None and "139x174" in bad[1], bad   # the REASON survives, not a generic guess
+
     import contextlib  # noqa: PLC0415  selftest-only
     import io  # noqa: PLC0415
     import types  # noqa: PLC0415  selftest-only (stands in for an ssh_run reply)
