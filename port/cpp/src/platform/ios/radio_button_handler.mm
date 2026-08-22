@@ -55,6 +55,35 @@
 }
 @end
 
+// The radio's UIButton, subclassed for ONE reason: to TOP-ALIGN the title the way MAUI's template does.
+//
+// MAUI renders a RadioButton through a ControlTemplate whose content column is a ContentPresenter
+// (RadioButton.cs:569-573, HorizontalOptions/VerticalOptions = Fill) holding a ContentLabel that
+// ContentConverter.ConvertToLabel builds for string Content (ContentConverter.cs:47-66). That Label
+// fills the Grid row and draws its text at TextAlignment.Start — the top of its frame. A plain UIButton
+// instead CENTERS titleLabel in its content box, so the title sits (row - line)/2 low, which is a
+// different amount for every font face and therefore cannot be a constant.
+//
+// Pinning super's rect is exact BY CONSTRUCTION: super has already applied contentEdgeInsets,
+// titleEdgeInsets and UILabel's own intrinsic-height rounding, so only the origin needs moving. Font
+// tables cannot reproduce that rounding — computing (row - lineHeight)/2 from ascender/descender/leading
+// runs 0.45-1.2px optimistic on every one of the four faces the two content pages exercise.
+@interface MauiIosRadioButton : UIButton
+@end
+
+@implementation MauiIosRadioButton
+- (CGRect)titleRectForContentRect:(CGRect)contentRect
+{
+    CGRect rect = [super titleRectForContentRect:contentRect];
+#if !TARGET_OS_MACCATALYST
+    // Mac Catalyst renders the radio differently and its pages are already green, so it keeps the
+    // centered title + the k_title_rise constant below — the same lane split get_desired_size draws.
+    rect.origin.y = contentRect.origin.y;
+#endif
+    return rect;
+}
+@end
+
 namespace
 {
     // Key for the associated MauiIosRadioButtonProxy kept alive by the UIButton (targets are weak).
@@ -106,14 +135,20 @@ namespace
         // MAUI's template Label is TOP-aligned in the Grid row — Label.VerticalTextAlignment defaults to
         // TextAlignment.Start (Label.cs:24), which MauiLabel.AlignVertical turns into a rect pinned to
         // the top of the frame (MauiLabel.cs:60-77) — whereas a plain UIButton vertically CENTERS its
-        // titleLabel in the content box. MEASURED on radio_button_group_gallery_light and
-        // radio_button_border_light @3x: with the ring ink landing on the reference's ring to the pixel,
-        // the port's title glyphs are byte-identical to the reference's but sit exactly 6px = 2pt lower
-        // (a whole-region shift search bottoms out at dy=+6 with residual 0.0). The port renders the
-        // radio natively rather than through the template, so the template's top-alignment has to be
-        // expressed as a title offset here; 2pt is calibrated to the shipped render (RENDER-BREAKS-TIES)
-        // because UIButton's internal titleLabel metrics are not derivable from the C# geometry.
+        // titleLabel in the content box.
+#if TARGET_OS_MACCATALYST
+        // Catalyst still expresses that as a CONSTANT rise, calibrated on radio_button_group_gallery /
+        // radio_button_border @3x against the ONE font face those pages use (the port's glyphs were
+        // byte-identical to the reference's but exactly 6px = 2pt lower). It only holds for that face:
+        // the gap is (row - line)/2, which is a different number for every font, and iOS measured it at
+        // 4 distinct values across the 4 faces on radio_button_content / radio_content_properties
+        // (0px, +2px, -5px, +6px relative to this 2pt rise). iOS therefore pins the title rect exactly
+        // instead — MauiIosRadioButton.titleRectForContentRect: above. Catalyst is left on the constant
+        // because its lane could not be measured here and its radio pages are already green.
         constexpr CGFloat k_title_rise = 2;
+#else
+        constexpr CGFloat k_title_rise = 0; // see MauiIosRadioButton.titleRectForContentRect:
+#endif
         button.imageEdgeInsets = UIEdgeInsetsMake(0, -k_gap / 2, 0, k_gap / 2);
         button.titleEdgeInsets = UIEdgeInsetsMake(-k_title_rise, k_gap / 2, k_title_rise, -k_gap / 2);
         button.contentEdgeInsets = UIEdgeInsetsMake(pad, pad + k_gap / 2, pad, pad + k_gap / 2);
@@ -312,7 +347,7 @@ namespace maui::core
         // Custom (not System): the iOS-26 system button paints a tint-colored fill behind the SELECTED
         // state (a white box once the tint is the dynamic label color), which MAUI's templated radio has
         // no analog for. A custom button still tints the template SF-symbol indicators via tintColor.
-        UIButton* const button = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIButton* const button = [[MauiIosRadioButton alloc] initWithFrame:CGRectZero];
         // The DefaultTemplate's indicator pair, DRAWN to the oracle's exact geometry rather than borrowed
         // from SF Symbols. RadioButton.cs:546-556 specifies the outer Ellipse as WidthRequest =
         // HeightRequest = 21 with StrokeThickness = 2, and the CheckedIndicator (:558-566) as an 11pt
@@ -567,10 +602,12 @@ namespace maui::core
             // (indicator + content/title insets). Subtract that to get the text column at this constraint.
             const CGFloat reserved = std::max<CGFloat>(0, fitting.width - one_line.width);
             const CGFloat text_width = std::max<CGFloat>(1, width - reserved);
+#if TARGET_OS_MACCATALYST
             const CGRect wrapped = [title boundingRectWithSize:CGSizeMake(text_width, CGFLOAT_MAX)
                                                        options:NSStringDrawingUsesLineFragmentOrigin
                                                     attributes:attrs
                                                        context:nil];
+#endif
             // Size the row from MAUI's DefaultTemplate geometry DIRECTLY: the outer Ellipse measures 21pt
             // (63px @3x) and the chrome around it is 2 * template_pad(BorderWidth) — 14pt for an unset
             // radio (the 35pt row the reference draws), 24pt at BorderWidth = 4 (a 45pt row). Thus
@@ -590,7 +627,14 @@ namespace maui::core
 #else
             constexpr CGFloat k_ring_pt = 21.0; // Ellipse HeightRequest, shipped render
             const CGFloat chrome = button.contentEdgeInsets.top + button.contentEdgeInsets.bottom;
-            result.height = std::max<double>(k_ring_pt, std::ceil(wrapped.size.height)) + chrome;
+            // Measure the title THROUGH THE BUTTON'S OWN UILabel — the same call MAUI makes on the
+            // template's ContentLabel. LabelHandler.iOS.cs:25 hands straight to the base GetDesiredSize,
+            // which is UIView.SizeThatFits on the UILabel, and nothing on that path rounds; the Grid row
+            // is Auto so it takes that raw height. `boundingRect` is a DIFFERENT measurement (no
+            // UILabel line-fragment padding) and lands a fraction of a point off on a wrapped title:
+            // ceil'ing it put radio_button_content's Frame 1px tall, not ceil'ing it 1px short.
+            const CGFloat label_h = [button.titleLabel sizeThatFits:CGSizeMake(text_width, CGFLOAT_MAX)].height;
+            result.height = std::max<double>(k_ring_pt, label_h) + chrome;
 #endif
         }
         // NOTE: BorderWidth is NOT added here. It is already in the row via template_pad, which
