@@ -21,9 +21,11 @@ in the commit:
 | android/field | the underline tint was wiped by our own `setBackgroundTintList(view, null)` one call later — AOSP treats that null as a tint STATE | `fa2e2e4d9a` |
 | apple/radio | the port used `CALayer.borderWidth` (band `[0,t]`); MAUI strokes its template Border's `shape_self_inset` at double width (band `[0.5, 0.5+t]`) | `9f6894e40b` |
 
-**~22 of the remaining yellows are unwinnable by construction** and are documented as such in
-`docs/comparison/PHASE_TRIAGE.md`: `maccatalyst/ios_date_picker` x2 (opening the compact UIDatePicker leaves
-the runner with no window — it fails in the GROUND-TRUTH column too) and ~20 android PHASE-ONLY cells
+**~20 of the remaining yellows are unwinnable by construction** and are documented as such in
+`docs/comparison/PHASE_TRIAGE.md`. This said ~22 and named `maccatalyst/ios_date_picker` x2 as the first
+group — that was WRONG and is fixed (`0e97fa9652`): `present` was resizing the UIDatePicker's POPOVER
+rather than the page, an ordinary capture bug, not a structural limit. What remains is ~20 android
+PHASE-ONLY cells
 (`--stability` over 4 runs: 12 of 16 flip VERDICTS, not scores). Subtract them before reading the yellow
 count as a work queue.
 

@@ -262,8 +262,8 @@ taken from, light / dark. `[ident]` marks a byte-identical still.
 | maccatalyst | check_box | pixel_xaml | 0.9965@0.12% (light only) | 0.9965/0.12% · 0.9966/0.11% | **CAPTURE CORRUPTION** | §5 |
 | maccatalyst | slider | pixel | 0.9978@0.08% (dark only) | 0.9978/0.09% · 0.9978/0.08% | **CAPTURE CORRUPTION** | §5 — MAUI banked `[initial]`, port `[initial, dragged-right]` (light) |
 | maccatalyst | slider | pixel_xaml | 0.9966@0.11% (dark only) | 0.9965/0.12% · 0.9966/0.11% | **CAPTURE CORRUPTION** | §5 |
-| maccatalyst | ios_date_picker | pixel | n/a — no frames | 0.9978/0.09% · 0.9978/0.08% | **CAPTURE CORRUPTION** | §5 — the `opened` step never fired in EITHER column |
-| maccatalyst | ios_date_picker | pixel_xaml | n/a — no frames | 0.9965/0.12% · 0.9966/0.11% | **CAPTURE CORRUPTION** | §5 |
+| maccatalyst | ios_date_picker | pixel | n/a — no frames | 0.9978/0.09% · 0.9978/0.08% | **CAPTURE BUG — FIXED `0e97fa9652`** | present sized the POPOVER, not the page; see the ios_date_picker section below |
+| maccatalyst | ios_date_picker | pixel_xaml | n/a — no frames | 0.9965/0.12% · 0.9966/0.11% | **CAPTURE BUG — FIXED `0e97fa9652`** | as above |
 | android | box_view | pixel | 0.9772@1.74% / 0.9762@1.31% | 1.0000/0.00% [ident] · 1.0000/0.00% | SCORING ARTIFACT | single-frame spike at burst frame 3, tail 0.00% (§4) |
 | android | box_view | pixel_xaml | 0.9146@5.95% / 0.8368@14.79% | 1.0000/0.00% [ident] · 1.0000/0.00% | SCORING ARTIFACT | per-frame `0/0/14.79/0.03/0.53/0…0`; self-motion 36.31% vs 36.29% |
 | android | path_gallery | pixel | 0.9771@1.69% / 0.9995@0.03% | 1.0000/0.00% [ident] · 1.0000/0.00% | SCORING ARTIFACT | per-frame `0/1.38/1.69/0…0` |
@@ -352,9 +352,10 @@ names the real cause and lists the steps each column banked. Verified with
 only on the next re-measure of those tags.
 
 **Request to the orchestrator:** a *targeted* recapture of `check_box`, `slider` and
-`ios_date_picker` on maccatalyst only. `ios_date_picker` additionally needs its aim re-checked — its
-`opened` step produced no frame in *either* column, which is an aim/actuation failure, not a
-capture-write failure. (`at_macos-arm64 = [0.036, 0.0488]` in `scenarios/ios_date_picker.toml`.)
+`ios_date_picker` on maccatalyst only. `ios_date_picker` needed no aim change: the aim is correct and the click fires. Its `opened` step
+produced no frame in *either* column because `present` resized the POPOVER — root-caused and fixed in
+`0e97fa9652`, see the ios_date_picker section below. (`at_macos-arm64 = [0.036, 0.0488]` in
+`scenarios/ios_date_picker.toml` is CORRECT — do not retune it.)
 Their stills are 0.08–0.12%, so no midnight-rollover date skew is present in these pairs.
 
 ### 5b. A SEVENTH cell sits on the same capture gap — and it is scoring GREEN
@@ -419,27 +420,59 @@ left exactly as they are.
 
 ## Structurally unwinnable cells — the honest ceiling (added 2026-08-22)
 
-The board's yellow count is not a count of fixable defects. Two groups are unwinnable **by construction**,
+The board's yellow count is not a count of fixable defects. Two groups were filed here as unwinnable **by
+construction** — but ONE OF THE TWO HAS SINCE BEEN SOLVED (`maccatalyst/ios_date_picker`, `0e97fa9652`),
+so treat "unwinnable by construction" in this file as a claim to re-test, not a settled fact. Each was
 each established by measurement rather than by giving up on them.
 
-### maccatalyst/ios_date_picker — 2 cells — CAPTURE-SIDE LIMITATION
+### maccatalyst/ios_date_picker — 2 cells — ~~CAPTURE-SIDE LIMITATION~~ **SOLVED 2026-08-22 (`0e97fa9652`)**
 
-Not an aim problem, and not a port defect. The aim was verified correct (`at_macos-arm64 =
-[0.036, 0.0488]` matches the Catalyst envname, key resolution works, no `SCENARIO SKIPPED` line, and the
-coordinate lands on the "31.12.2020" text in the MAUI capture). The click fires. What fails is `present`,
-and the run says so in its own words:
+**This section's original verdict was WRONG and is retained only so the reasoning can be audited.** It
+said "no port change can green these 2 cells; only a different way of presenting or capturing that
+popover could." The second half was right, the conclusion drawn from it was not: the capture path had an
+ordinary bug, and finding it took reading the run log rather than the summary.
+
+What the original got right: the aim IS correct (`at_macos-arm64 = [0.036, 0.0488]`), the click DOES
+fire, and `present` IS what fails, identically in the GROUND-TRUTH column. What it got wrong was calling
+that failure structural. `run_comparison.py` reports the generic `no window to capture` line, but the
+AGENT's own error, in `_recapture_logs/2026-08-19-013237-macos-catalyst--capture.log`, is specific and
+names the cause twice per column:
 
 ```
-! ios_date_picker/maui_xaml/light#2: DROPPED — present failed after self-heal (no window to capture)
-! ios_date_picker/cpp/light#2:       DROPPED — present failed after self-heal (no window to capture)
-! ios_date_picker/cpp_xaml/light#2:  DROPPED — present failed after self-heal (no window to capture)
-! ios_date_picker/maui_xaml/dark#4:  DROPPED — present failed after self-heal (no window to capture)
+  ~ present failed (window did not reach target: got 139x174, want 1024x800) — resolution-toggle self-heal, retrying
+  ~ present failed (window did not reach target: got 139x174, want 1024x800) — resolution-toggle self-heal, retrying
+  ! ios_date_picker/cpp/light#2: DROPPED — present failed after self-heal (no window to capture)
 ```
 
-Opening the compact `UIDatePicker` on Catalyst leaves the runner with no window to capture, so the frame is
-dropped (`run_comparison.py:592-605` drops only on agent refusal). **It fails identically in the
-GROUND-TRUTH column.** No port change can green these 2 cells; only a different way of presenting or
-capturing that popover could.
+139x174 is the popover. `cmd_present` drove `set position/size of window 1`, and System Events orders a
+process's windows FRONT TO BACK — so the moment the click opens the compact `UIDatePicker`
+(`DatePickerHandler.MacCatalyst.cs`), that popover BECOMES window 1. present then tried to resize the
+popover, missed the target by construction, self-healed, failed again, and the frame was dropped. All 6
+action frames, all three columns, both themes — deterministic, which is exactly why it read as structural.
+
+**Fix (`0e97fa9652`): address the LARGEST window instead of `window 1`.** A no-op on the ~170 pages that
+only ever have one window, and it also stops present from resizing popover chrome. Measured on the VM,
+all three columns, before → after:
+
+```
+before   present(opened) -> error "window did not reach target: got 139x174, want 1024x800"
+after    present(opened) -> rect 128,30,1024,800, popover still up (count of windows = 2)
+```
+
+The CAPTURE side needed no change: `_window_info_quartz` already picks the largest layer-0 window, and
+`screencapture -l <page id>` composites the popover into the page window's own backing store — verified
+by eye, the opened December-2020 calendar is in the resulting frame.
+
+**⚠ 1px of headroom, watch this in the recapture.** The popover sits at x=125 while the page sits at
+x=128, so the `opened` frame comes back **1027x800**, not 1024x800. `run_comparison`'s size guard is
+`abs(w - 1024) > 4`, so 1027 passes with ONE pixel to spare. All three columns measured 1027 (they agree),
+but if any column's popover ever lands at a different x, that column's frames drop and the cell is
+unpairable again — with no error message pointing here. If that happens, the fix is to crop the shot to
+the page window's own Quartz bounds, not to widen the guard.
+
+**Status: the fix is committed and verified at the agent level; the 2 cells are still yellow pending a
+targeted recapture** (`--platforms macos --examples ios_date_picker --frameworks maui_xaml,cpp,cpp_xaml
+--no-measure --skip-build`).
 
 ### android PHASE-ONLY — ~20 cells — CAP STANDS, BUT THE 12/16 DID NOT MEASURE WHAT IT CLAIMED
 
@@ -488,7 +521,9 @@ leaves NO measurement, not a passing one, and one page's four cells cannot retir
 
 ### What this means for reading the board
 
-Subtract these ~22 before treating a yellow count as a work queue. They are correctly yellow — the board is
+Subtract these ~20 before treating a yellow count as a work queue — ~20, not the ~22 this file and
+STATUS.md originally said: `maccatalyst/ios_date_picker`'s 2 cells were NOT unwinnable and have been
+fixed (`0e97fa9652`), leaving only the android PHASE-ONLY group. They are correctly yellow — the board is
 saying "not established", which is true — but they are not defects awaiting a fix, and a plan that budgets
 time for them is budgeting for something unreachable.
 
