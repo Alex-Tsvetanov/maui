@@ -52,6 +52,37 @@ namespace
         EXPECT_EQ(control.selected_index(), -1);
     }
 
+    // The coerced -1 is PERMANENT — appending items later does not restore the index that was
+    // originally asked for. This is the exact order XAML produces for
+    //
+    //     <Picker SelectedIndex="1"><Picker.Items><x:String>…</x:String>…</Picker.Items></Picker>
+    //
+    // (attributes apply before property-element children — MAUI's ApplyPropertiesVisitor, mirrored by
+    // register_xaml_pickers.cpp's Items sink), and it is why the reference renders
+    // border_clip_playground's shape Picker BLANK on every lane.
+    //
+    // Two C# steps make it permanent, and both have to hold for the reference's render to follow:
+    //   * CoerceSelectedIndex (Picker.cs:277-281) clamps into [-1, Items.Count - 1] AT SET TIME, and
+    //     Count is 0, so `1` is stored as -1.
+    //   * AddItems (Picker.cs:385-398) re-clamps ONLY when the insertion shifted the selection —
+    //     `if (insertIndex <= index)`. GetSelectedIndex returns -1 (SelectedItem is null,
+    //     Picker.cs:429-437), and the appends have insertIndex 0/1/2, so `0 <= -1` is false every
+    //     time and ClampSelectedIndex is never reached.
+    TEST(picker, items_appended_after_a_coerced_index_do_not_restore_it)
+    {
+        picker control;
+        control.set_selected_index(1);
+        EXPECT_EQ(control.selected_index(), -1); // coerced against the empty Items
+
+        control.items().add("Rectangle");
+        control.items().add("RoundRectangle");
+        control.items().add("Ellipse");
+
+        EXPECT_EQ(control.items().count(), 3U);
+        EXPECT_EQ(control.selected_index(), -1);
+        EXPECT_FALSE(control.selected_item().has_value());
+    }
+
     TEST(picker, selected_index_clamps_into_items_range)
     {
         picker control;
