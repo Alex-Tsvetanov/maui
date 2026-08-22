@@ -380,20 +380,46 @@ def cmd_present(a) -> int:
     # seconds to actually apply the resize, and a short 2s loop timed out and returned the WRONG (restored,
     # e.g. 548-tall) size. The caller treats a short return as a failure and self-heals (see below), so it
     # is better to wait here than to bounce through a resolution toggle.
+    # THE PAGE WINDOW IS NOT ALWAYS `window 1`. System Events orders a process's windows front-to-back, so
+    # the instant a control opens a POPOVER that popover becomes window 1 and every `set size` below aims at
+    # it instead of the page. Measured on maccatalyst/ios_date_picker: clicking the compact UIDatePicker
+    # (DatePickerHandler.MacCatalyst.cs's bare UIDatePicker) puts up a 139x174 chrome window in front of the
+    # 1024x800 page, so present reported `window did not reach target: got 139x174, want 1024x800`, self-
+    # healed, failed again, and the runner DROPPED the frame — in all three columns and both themes, which is
+    # what made the cell unscoreable rather than merely wrong. Addressing the LARGEST window instead is a
+    # no-op on the ~170 pages that only ever have one, and it also stops present from resizing a popover,
+    # which is not a thing the board ever wants to do.
+    #
+    # Only the RESIZE target moves. The capture still goes through `_window_info_quartz`, which independently
+    # picks the largest layer-0 window and was already returning the page — and `screencapture -l <page id>`
+    # composites the popover in with it (verified: the opened December-2020 calendar is present in the page
+    # window's own shot), so the opened state is photographed without ever pointing the shot at popover chrome.
     out = _osa(
         'with timeout of 30 seconds\n'
         f'tell application "System Events" to tell process "{a.proc}"\n'
         '  set frontmost to true\n'
+        '  set mainW to 1\n'
+        '  set bestA to -1\n'
+        '  repeat with i from 1 to (count of windows)\n'
+        '    try\n'
+        '      set s to size of window i\n'
+        '      set aa to (item 1 of s) * (item 2 of s)\n'
+        '      if aa > bestA then\n'
+        '        set bestA to aa\n'
+        '        set mainW to i\n'
+        '      end if\n'
+        '    end try\n'
+        '  end repeat\n'
         '  repeat 20 times\n'
         '    try\n'
-        f'      set position of window 1 to {{{x}, {y}}}\n'
-        f'      set size of window 1 to {{{w}, {h}}}\n'
+        f'      set position of window mainW to {{{x}, {y}}}\n'
+        f'      set size of window mainW to {{{w}, {h}}}\n'
         '    end try\n'
         '    delay 0.4\n'
-        '    set s to size of window 1\n'
+        '    set s to size of window mainW\n'
         f'    if (item 1 of s) > {w - 5} and (item 2 of s) > {h - 5} then exit repeat\n'
         '  end repeat\n'
-        '  set p to position of window 1\n  set s to size of window 1\n'
+        '  set p to position of window mainW\n  set s to size of window mainW\n'
         '  return (item 1 of p as string) & "," & (item 2 of p as string) & "," & '
         '(item 1 of s as string) & "," & (item 2 of s as string)\n'
         'end tell\nend timeout')
