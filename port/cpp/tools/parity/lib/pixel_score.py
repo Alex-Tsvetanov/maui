@@ -165,6 +165,14 @@ def score_images(ia, ib, crop_top=0):
             ia, ib = ia.crop((0, crop_top, w, h)), ib.crop((0, crop_top, w, h))
     a_rgb = np.asarray(ia.convert("RGB"), dtype=np.int16)
     b_rgb = np.asarray(ib.convert("RGB"), dtype=np.int16)
+    # diff_pct IS A PERCENTAGE OF FRAME AREA, AND THE FOUR LANES' FRAMES DIFFER BY ~4x
+    # (ios 1206x2622 = 3.16M px, android 1080x2340 = 2.53M, maccatalyst/windows 1024x800 = 819K). The
+    # SAME absolute defect therefore scores differently per lane: border_stroke differs by 14,592 px on
+    # ios and 21,334 px on maccatalyst — comparable — yet reads 0.46% GREEN and 2.60% yellow.
+    # So a green on a LARGE-frame lane is weaker evidence than the same green on a small-frame one, and
+    # "lane A is green, so the cause is lane-B-specific" is INVALID unless normalised. Compare lanes in
+    # ABSOLUTE differing pixels. Worked example + the numbers: src/platform/ios/ios_border_ops.hpp, at
+    # the `stroke_layer.zPosition` line.
     diff_pct = float(np.mean(np.max(np.abs(a_rgb - b_rgb), axis=-1) > DIFF_THRESHOLD) * 100)
     s = ssim(to_luma(ia), to_luma(ib))
     return {"ssim": round(s, 4), "diff_pct": round(diff_pct, 2)}

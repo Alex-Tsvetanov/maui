@@ -231,6 +231,24 @@ namespace
 // template with HeightRequest=100 (VariedSize MilkTemplate) occupies 100pt, a HeightRequest=50 one 50pt,
 // and an auto cell its natural content height, instead of every cell collapsing to the 44pt estimate. A
 // default (label-only, no template) cell keeps the proposed frame — UILabel autoresizing fits the estimate.
+//
+// ⚠ HELD FINDING, NOT ROOT-CAUSED — varied_size_selector's cell BOUNDARY row (2026-08-22).
+// This is the likeliest seam (where a cell's scroll-axis extent, and so where one cell ends and the next
+// begins, is decided) but the mechanism is NOT identified. Do not read the placement as a diagnosis.
+// What is measured, maccatalyst maui vs cpp:
+//   * cell INTERIORS are byte-identical — exactly (245,222,179), the twin's BackgroundColor="Wheat";
+//   * exactly 7 full-width rows differ, at a pitch of 77 px = the template's HeightRequest="100" DIP
+//     times the Catalyst UIKit->AppKit scale 0.7697 (= 76.97), i.e. one row per cell boundary;
+//   * in DARK, MAUI's boundary row is luminance ~12 against endpoints [30 page background, 215 cell] —
+//     OUTSIDE BOTH. A coverage blend of cell-over-background cannot leave that interval, so MAUI is
+//     DRAWING something there that the port does not. A positive observation, not an absence.
+//   * in LIGHT the same row is an ordinary in-range blend in both columns, which is exactly why the cell
+//     is green in light (0.09%) and yellow in dark (1.07%).
+// NOT Catalyst-only, so rule 4 holds and the fix is unlanded: ios shows the SAME light/dark asymmetry,
+// smaller (dark 0.57%, light 0.00%). The same code paints both lanes.
+// WHAT WOULD FALSIFY a candidate fix: if the port starts drawing the boundary row and ios does NOT move
+// from its dark 0.57%, the mechanism is wrong. Score both Apple lanes in ABSOLUTE differing pixels, not
+// diff_pct — the frames differ ~4x in area (tools/parity/lib/pixel_score.py, at the diff_pct line).
 - (UICollectionViewLayoutAttributes*)preferredLayoutAttributesFittingAttributes:
     (UICollectionViewLayoutAttributes*)layoutAttributes
 {
