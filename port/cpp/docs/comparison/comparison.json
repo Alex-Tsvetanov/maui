@@ -3096,7 +3096,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22) \u2014 worst SSIM 0.9854 at frame 2 'driven' (1.00% pixels differ), mean SSIM 0.9927; per-frame diff% 0.00/1.00; self-motion MAUI 33.9879% (1074741 px) vs C++ 34.8921% (1103335 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22) \u2014 worst SSIM 0.9874 at frame 2 'driven' (1.00% pixels differ), mean SSIM 0.9937; per-frame diff% 0.00/1.00; self-motion MAUI 33.9899% (1074805 px) vs C++ 34.8941% (1103399 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-23_43_45, commit 3455bec7ac, 2026-08-22) \u2014 worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 34.8445% (1101829 px) vs C++ 34.8921% (1103335 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-23_43_45, commit 3455bec7ac, 2026-08-22) \u2014 worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 34.8465% (1101893 px) vs C++ 34.8941% (1103399 px)",
           "stills": "e20ca1bc199ab0ba",
           "motion": {
             "verdict": "PASS",
@@ -3105,11 +3105,11 @@
               "dark": "PASS"
             },
             "why": "",
-            "run": "2026-08-22-18_34_48",
-            "commit": "66476e7770",
+            "run": "2026-08-22-23_43_45",
+            "commit": "3455bec7ac",
             "captured_at": "2026-08-22",
             "self": {
-              "maui": 33.9879,
+              "maui": 34.8445,
               "port": 34.8921
             },
             "stills": "e20ca1bc199ab0ba"
@@ -3117,7 +3117,7 @@
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22) \u2014 worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 33.9879% (1074741 px) vs C++ & XAML 34.0355% (1076247 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22) \u2014 worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 33.9899% (1074805 px) vs C++ & XAML 34.0375% (1076311 px)",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-23_43_45, commit 3455bec7ac, 2026-08-22) \u2014 worst SSIM 0.9974 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 34.8445% (1101829 px) vs C++ & XAML 34.8921% (1103335 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-23_43_45, commit 3455bec7ac, 2026-08-22) \u2014 worst SSIM 0.9973 at frame 2 'driven' (0.12% pixels differ), mean SSIM 0.9987; per-frame diff% 0.00/0.12; self-motion MAUI 34.8465% (1101893 px) vs C++ & XAML 34.8941% (1103399 px)",
           "stills": "02a5f8d9407a817b",
           "motion": {
             "verdict": "PASS",
@@ -3126,12 +3126,12 @@
               "dark": "PASS"
             },
             "why": "",
-            "run": "2026-08-22-18_34_48",
-            "commit": "66476e7770",
+            "run": "2026-08-22-23_43_45",
+            "commit": "3455bec7ac",
             "captured_at": "2026-08-22",
             "self": {
-              "maui": 33.9879,
-              "port": 34.0355
+              "maui": 34.8445,
+              "port": 34.8921
             },
             "stills": "02a5f8d9407a817b"
           }
@@ -15650,43 +15650,43 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: !! MOTION MISMATCH: C++ ANIMATES and MAUI IS FROZEN (24.5186% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22) \u2014 worst SSIM 0.9615 at frame 2 'driven' (24.52% pixels differ), mean SSIM 0.9808; per-frame diff% 0.00/24.52; self-motion MAUI 0.0000% (0 px) vs C++ 24.5186% (775312 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22); driven frames aligned vertically by +0/+1 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 0.37% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9877 at frame 2 'driven' (0.36% pixels differ), mean SSIM 0.9939; per-frame diff% 0.00/0.36; self-motion MAUI 5.3755% (169979 px) vs C++ 5.3770% (170028 px)",
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-22_14_57, commit 101ac7fba3, 2026-08-22) \u2014 worst SSIM 0.9784 at frame 2 'driven' (0.75% pixels differ), mean SSIM 0.9892; per-frame diff% 0.00/0.75; self-motion MAUI 24.8763% (786622 px) vs C++ 25.1570% (795498 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-22_14_57, commit 101ac7fba3, 2026-08-22) \u2014 worst SSIM 0.9578 at frame 2 'driven' (4.02% pixels differ), mean SSIM 0.9789; per-frame diff% 0.00/4.02; self-motion MAUI 9.3933% (297030 px) vs C++ 5.3755% (169979 px)",
           "stills": "34639cd6a401767b",
           "motion": {
             "verdict": "FAIL",
             "themes": {
               "light": "FAIL",
-              "dark": "PASS"
+              "dark": "FAIL"
             },
-            "why": "mismatch",
-            "run": "2026-08-22-18_34_48",
-            "commit": "66476e7770",
+            "why": "frames-disagree",
+            "run": "2026-08-22-22_14_57",
+            "commit": "101ac7fba3",
             "captured_at": "2026-08-22",
             "self": {
-              "maui": 0.0,
-              "port": 24.5186
+              "maui": 24.8763,
+              "port": 25.157
             },
             "stills": "34639cd6a401767b"
           }
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: !! MOTION MISMATCH: C++ & XAML ANIMATES and MAUI IS FROZEN (24.4915% vs 0.0000% of its own frame changed across the sequence) \u2014 the end state may match while the animation does not. MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22) \u2014 worst SSIM 0.9618 at frame 2 'driven' (24.49% pixels differ), mean SSIM 0.9809; per-frame diff% 0.00/24.49; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 24.4915% (774452 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-18_34_48, commit 66476e7770, 2026-08-22) \u2014 worst SSIM 0.9997 at frame 2 'driven' (0.01% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01; self-motion MAUI 5.3755% (169979 px) vs C++ & XAML 5.3868% (170337 px)",
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-22_14_57, commit 101ac7fba3, 2026-08-22) \u2014 worst SSIM 0.9784 at frame 2 'driven' (0.75% pixels differ), mean SSIM 0.9892; per-frame diff% 0.00/0.75; self-motion MAUI 24.8763% (786622 px) vs C++ & XAML 25.1570% (795498 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-22_14_57, commit 101ac7fba3, 2026-08-22) \u2014 worst SSIM 0.9577 at frame 2 'driven' (4.02% pixels differ), mean SSIM 0.9788; per-frame diff% 0.00/4.02; self-motion MAUI 9.3933% (297030 px) vs C++ & XAML 5.3868% (170337 px)",
           "stills": "be1b024cc3c77d55",
           "motion": {
             "verdict": "FAIL",
             "themes": {
               "light": "FAIL",
-              "dark": "PASS"
+              "dark": "FAIL"
             },
-            "why": "mismatch",
-            "run": "2026-08-22-18_34_48",
-            "commit": "66476e7770",
+            "why": "frames-disagree",
+            "run": "2026-08-22-22_14_57",
+            "commit": "101ac7fba3",
             "captured_at": "2026-08-22",
             "self": {
-              "maui": 0.0,
-              "port": 24.4915
+              "maui": 24.8763,
+              "port": 25.157
             },
             "stills": "be1b024cc3c77d55"
           }
@@ -28417,12 +28417,12 @@
         "pixel": {
           "status": "green",
           "review": "Light: SSIM 0.9991, 0.01% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ",
-          "stills": "4d70e5240c50a58d"
+          "stills": "64b7512b9c25b647"
         },
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ",
-          "stills": "fc0d77934eb3914e"
+          "stills": "1d75a387cd3391ab"
         }
       },
       "maccatalyst": {
@@ -29897,12 +29897,12 @@
         "pixel": {
           "status": "green",
           "review": "Light: SSIM 0.9968, 0.22% pixels differ \u00b7 Dark: SSIM 0.9968, 0.22% pixels differ",
-          "stills": "4ba16cee560f8646"
+          "stills": "88999c0c334263d6"
         },
         "pixel_xaml": {
           "status": "green",
           "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ",
-          "stills": "e816c1f9639c23c5"
+          "stills": "4cdfd244152a4959"
         }
       },
       "maccatalyst": {
