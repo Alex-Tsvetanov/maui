@@ -379,10 +379,23 @@ namespace
     // is therefore the same root cause and not a carousel bug.
     // THE FIX IS TO ROUTE CONVEX SHAPES THROUGH THE CANVAS TOO — shape_needs_canvas() below is what sends
     // them here instead, and native_draw_border_stroke's canvas path is already feature-complete (float
-    // stroke width in POINTS, dash pattern + offset, cap/join/miter, gradient fill shader). What it does not
-    // yet carry is the elevation-shadow Outline and the corner-radius Outline clip the GradientDrawable
-    // route provides, so the flip is a real refactor, and it moves EVERY Border-bearing page — the greens
-    // included. Do not attempt it without a full re-score on a quiet machine.
+    // stroke width in POINTS, dash pattern + offset, cap/join/miter, gradient fill shader).
+    //
+    // ⚠ CORRECTION (2026-08-22). This paragraph previously claimed the canvas route "does not yet carry the
+    // elevation-shadow Outline and the corner-radius Outline clip the GradientDrawable route provides, so the
+    // flip is a real refactor". THAT WAS FALSE, and it deterred the fix on a false premise. Both are already
+    // present, and were before this note was written: arrange_native's canvas branch and its convex branch run
+    // IDENTICAL shadow/outline code — apply_shadow(…, corner_radii_of(shape).top_left) when a shadow exists,
+    // apply_outline_clip_path(empty) to tear down a stale clip otherwise — and the convex branch already
+    // installs the borderPeer for any non-null shape, so dispatchDraw's child clipPath is live on BOTH routes.
+    // Flipping therefore moves ONLY the fill and the stroke onto the canvas; it is one gating constant
+    // (k_convex_shapes_use_canvas below), not a refactor.
+    //
+    // The REAL precondition is the re-score, and it is a scope fact rather than an engineering one: Border's
+    // StrokeShape defaults to `new Rectangle()` (border.cpp:51-54, mirroring C#), so view.shape() is NEVER null
+    // for a Border and the flip moves EVERY Border-bearing page — the greens included — not just the ones with
+    // an explicit <Border.StrokeShape>. Land it only behind a full Android re-score on a quiet machine, and
+    // revert by setting that constant back to false.
     //
     // QUANTIZATION (the residual this helper leaves BEHIND, given the route above): Drawable bounds are
     // integer px, so the 1.375 px this is at density 2.75 rounds to 1 — 0.36 DIP instead of 0.5, leaving
@@ -688,19 +701,55 @@ namespace
     // clip already cover faithfully) is arbitrary. round_rectangle covers the plain-rectangle case too (a
     // rectangle StrokeShape is a round_rectangle with 0 radius on the port's shape hierarchy) — but the
     // graphics::shapes::rectangle primitive is a distinct type, so it is excluded explicitly as well.
+    // THE CONVEX-ROUTE SWITCH. false = the legacy GradientDrawable route for convex StrokeShapes; true =
+    // route them through the canvas path like MAUI does.
+    //
+    // src/Core/src/Platform/Android/StrokeExtensions.cs:8-26 (UpdateBorderStroke) sends EVERY Border — plain
+    // Rectangle and RoundRectangle included — through MauiDrawable. Its draw is PlatformDrawable.java:
+    // `new Paint(Paint.ANTI_ALIAS_FLAG)` + `Style.STROKE` (:57-58), `setStrokeWidth(strokeThickness)` with a
+    // FLOAT px width (:207), `canvas.drawPath(this.clipPath, this.borderPaint)` (:225). MAUI has NO
+    // GradientDrawable path for a Border at all, so the reference stroke is an ANTIALIASED float-width canvas
+    // path and every integer quantization on the drawable route is a port artifact, not a platform limit.
+    //
+    // MEASURED (android board, border_stroke light, 5 DIP stroke at density 2.75, x=600 vertical profile,
+    // green channel, 0 = solid red): MAUI [1, 98, 255, 253, 95, 0 … 0, 33, 255] feathers its edges; the port
+    // [0, 3, 252, 0, 0, 0 … 0, 1, 255] hard-edges them. That edge difference IS the whole residual on
+    // border_stroke (2.76%) — its diff mask is the box outlines and nothing else — and it is the same cause
+    // as border_playground's dash PHASE (GradientDrawable.setStroke starts its dash on the drawable's own
+    // internal rounded-rect path; MauiDrawable runs a DashPathEffect along the path it builds, so the
+    // measured ~11px phase offset and 2px centreline offset follow, while the dash PERIOD matches at 28px
+    // because the dash array itself is interpreted identically). PHASE_TRIAGE's D9 secondary finding on
+    // carousel_page ("MAUI x1=(176,96,176) antialiased, port hard-edged") is this cause too.
+    //
+    // WHY THE FLIP IS SMALL: the note this replaces feared the canvas route lacked the elevation-shadow
+    // Outline and the corner-radius Outline clip. Both are already present — arrange_native's canvas branch
+    // and its convex branch run IDENTICAL shadow/outline code (apply_shadow with corner_radii_of(shape) when
+    // a shadow exists, apply_outline_clip_path(empty) to tear down a stale clip otherwise), and the convex
+    // branch already installs the borderPeer for any non-null shape, so dispatchDraw's child clipPath is
+    // live either way. Flipping this constant therefore only moves the FILL and the STROKE onto the canvas.
+    //
+    // ⚠ THIS MOVES EVERY BORDER-BEARING PAGE, INCLUDING CURRENTLY-GREEN ONES. It is gated on a full Android
+    // re-score; set it back to false to revert the whole behaviour in one line without touching the routing.
+    // ponytail: one constant rather than a runtime flag — the board builds Release and an env var would need
+    // harness plumbing to A/B; flip and rebuild is cheaper. Make it runtime only if A/B in ONE run is needed.
+    inline constexpr bool k_convex_shapes_use_canvas = true;
+
     [[nodiscard]] bool shape_needs_canvas(const maui::graphics::i_shape* shape)
     {
         if (shape == nullptr)
         {
             return false; // no StrokeShape → default background, no canvas draw
         }
-        if (dynamic_cast<const maui::graphics::shapes::round_rectangle*>(shape) != nullptr ||
-            dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr ||
-            dynamic_cast<const maui::graphics::shapes::rectangle*>(shape) != nullptr)
+        if constexpr (!k_convex_shapes_use_canvas)
         {
-            return false; // GradientDrawable + Outline clip already handle these convex shapes
+            if (dynamic_cast<const maui::graphics::shapes::round_rectangle*>(shape) != nullptr ||
+                dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr ||
+                dynamic_cast<const maui::graphics::shapes::rectangle*>(shape) != nullptr)
+            {
+                return false; // legacy: GradientDrawable + Outline clip handle these convex shapes
+            }
         }
-        return true; // Polygon / Path / Line / any other geometry → canvas draw
+        return true; // MAUI routes every StrokeShape through MauiDrawable's canvas path
     }
 
     // The Border's shape path fitted to the STROKE bounds, in POINTS — the fill + stroke both trace this.
@@ -1053,9 +1102,10 @@ namespace
         {
             return;
         }
-        // Convex shapes (rectangle / round-rect / ellipse) keep the GradientDrawable for their fill + stroke;
-        // the borderPeer only drives the dispatchDraw CHILD-clip for them (header). Draw the canvas fill ONLY
-        // for a shape the GradientDrawable cannot trace, so a convex border is not double-filled.
+        // Draw the canvas fill only for a shape routed to the canvas — with k_convex_shapes_use_canvas that is
+        // every non-null StrokeShape, and update_background/push_border_to_host have already suppressed the
+        // GradientDrawable for it, so there is no double-fill. A null shape keeps the drawable route and fills
+        // there instead.
         if (!shape_needs_canvas(platform->border.shape))
         {
             return;
@@ -1118,9 +1168,10 @@ namespace
             return;
         }
         const maui::core::border_stroke_spec& spec = platform->border;
-        // Convex shapes stroke via the GradientDrawable (full width, behind the children); the borderPeer only
-        // drives the dispatchDraw child-clip for them (header). Trace the canvas stroke ONLY for a shape the
-        // GradientDrawable cannot express, so a convex border is not double-stroked.
+        // Trace the canvas stroke only for a shape routed to the canvas — with k_convex_shapes_use_canvas that
+        // is every non-null StrokeShape, and push_border_to_host has cleared the GradientDrawable for it, so
+        // there is no double-stroke. This is the ANTIALIASED float-width path MAUI's PlatformDrawable.java
+        // draws (:57-58, :207, :225) and the reason the flip exists.
         if (!shape_needs_canvas(spec.shape))
         {
             return;
