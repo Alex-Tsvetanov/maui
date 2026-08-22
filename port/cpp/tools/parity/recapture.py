@@ -129,13 +129,40 @@ VM_LANES = [
 COL_TO_DIR = {"maui_xaml": "maui", "cpp": "cpp", "cpp_xaml": "xaml",
               "appkit_cpp": "appkit_cpp", "appkit_xaml": "appkit_xaml"}
 
-# Pages a single still cannot represent (was capture_all.ANIMATED) — recorded as a GIF on every
-# platform. The purely-interactive ones (gesture/pan/pointer) still only show the idle state: nothing
-# taps them, so their GIF is honest but motionless.
+# Pages a single still cannot represent — recorded as a GIF on every platform (was capture_all.ANIMATED).
+#
+# THIS SET USED TO CONFLATE THREE DIFFERENT THINGS, and the conflation cost real work: 10 of the 14 keys
+# had no scenario in docs/comparison/scenarios/, which reads as "10 missing scenarios to author". It is
+# not. Classified against the TWINS in port/maui-reference/pages/ (2026-08-22):
+#
+#   1. SELF-ANIMATING — moves with no input, so a burst captures real motion and NO scenario is wanted:
+#      activity_indicator (IsRunning="true"). Correctly ANIMATED.
+#
+#   2. DRIVABLE — has its logic and needs a gesture; a scenario WOULD produce motion. These are the only
+#      three of the ten where authoring one is useful work:
+#      empty_view_load_simulate, ios_blur_effect, swipe_item_position.
+#
+#   3. LOGIC OMITTED IN THE TWIN — the twin is a STRUCTURAL twin that deliberately drops the handlers, so
+#      NOTHING can move in EITHER column, whatever scenario you write. animation.xaml says it in as many
+#      words: "The Clicked handlers / animation logic are omitted (structural twin)". These are static
+#      pages, and calling them ANIMATED makes the board demand motion evidence that cannot exist —
+#      producing a motionless GIF and a "both frozen" verdict that looks like a finding and is not.
+#      MOVED OUT below: animation, swipe_gesture, pan_gesture_events, pointer_gesture, ios_pan_gesture,
+#      ios_swipe_transition.
+#
+# Restoring the omitted logic to those six twins is the PORT-MUST-EXPRESS-IT-correct fix and is much
+# larger (the port would have to express the animation/gesture APIs in both dialects). Until someone
+# takes that on, classing them as static is the honest description of what they are.
 ANIMATED = {
-    "activity_indicator", "animation", "carousel_page", "swipe_refresh", "empty_view_load_simulate",
-    "swipe_gesture", "swipe_item_position", "gestures", "pan_gesture_events", "pointer_gesture",
-    "ios_pan_gesture", "ios_swipe_transition", "ios_blur_effect", "chrome",
+    "activity_indicator", "carousel_page", "swipe_refresh", "empty_view_load_simulate",
+    "swipe_item_position", "gestures", "ios_blur_effect", "chrome",
+}
+
+# Category 3 above. Kept as a NAMED set rather than deleted, so the next person to notice these pages sit
+# still does not "fix" them by adding them back — the stillness is the twin's, not the port's.
+STATIC_TWIN_NO_LOGIC = {
+    "animation", "swipe_gesture", "pan_gesture_events", "pointer_gesture", "ios_pan_gesture",
+    "ios_swipe_transition",
 }
 
 MAC_VM = os.environ.get("MAC_VM_USER", "testinguser") + "@" + \
@@ -1434,20 +1461,27 @@ def selftest() -> int:
         ("catalyst", "cpp", "captures/maccatalyst/cpp/button_dark.png"),
         ("appkit", "cpp", "captures/maccatalyst/appkit_cpp/button_dark.png"),
     }, got   # AppKit has no MAUI column: maui_xaml must fan out to catalyst ONLY, never to appkit_*
-    for plat, want in (("ios", "captures/ios/xaml/animation_light.gif"),
-                       ("android", "captures/android/xaml/animation_light.gif"),
-                       ("windows", "captures/windows/xaml/animation_light.gif")):
-        row = plan_rows([plat], ["cpp_xaml"], ["light"], ["animation"])[0]
+    # Exemplar is activity_indicator, NOT animation: `animation` was removed from ANIMATED on 2026-08-22
+    # (its twin drops the Clicked handlers, so it cannot move — see STATIC_TWIN_NO_LOGIC). The invariant
+    # under test is unchanged; only the page standing in for it is.
+    for plat, want in (("ios", "captures/ios/xaml/activity_indicator_light.gif"),
+                       ("android", "captures/android/xaml/activity_indicator_light.gif"),
+                       ("windows", "captures/windows/xaml/activity_indicator_light.gif")):
+        row = plan_rows([plat], ["cpp_xaml"], ["light"], ["activity_indicator"])[0]
         assert row[5] == "png+gif" and row[6] == COMP / want, row   # animated => GIF on every platform
     assert plan_rows(["ios"], ["cpp"], ["light"], ["button"])[0][5] == "png"
+    # The six STATIC_TWIN_NO_LOGIC pages must plan as a plain still and must never be re-added to
+    # ANIMATED: their twins have no handlers, so a GIF of them is motionless by construction.
+    assert not (ANIMATED & STATIC_TWIN_NO_LOGIC), "a page cannot be both animated and a static twin"
+    assert plan_rows(["ios"], ["cpp"], ["light"], ["animation"])[0][5] == "png"
 
     # --- scenarios. A page with no scenario must still get exactly ONE idle shot, the authored
     # scenarios must SURVIVE into the lane dir, and the GIF burst must COMPOSE with them.
     scen = Path(tempfile.mkdtemp())
     try:
-        animated = write_gif_scenarios(scen, ["button", "animation"], ["light"], 3, 0.25)
-        steps = tomllib.loads((scen / "animation.toml").read_text())["steps"]
-        assert animated == ["animation"] and not (scen / "button.toml").exists()
+        animated = write_gif_scenarios(scen, ["button", "activity_indicator"], ["light"], 3, 0.25)
+        steps = tomllib.loads((scen / "activity_indicator.toml").read_text())["steps"]
+        assert animated == ["activity_indicator"] and not (scen / "button.toml").exists()
         # The still keeps the full --settle (no per-step key); only the burst frames override it.
         assert steps[0] == {"name": "initial"} and len(steps) == 4, steps
         assert all(s["settle"] == 0.25 and s["name"].startswith("gif") for s in steps[1:]), steps
@@ -1534,14 +1568,14 @@ def selftest() -> int:
 
         # (b) an animated page that ALSO has an authored scenario keeps its actions IN ORDER and gets
         #     the burst after them, with its own themes/settle untouched.
-        (scen / "animation.toml").write_text(
-            'tag = "animation"\nthemes = ["dark"]\nsettle = 5.0\n\n'
+        (scen / "activity_indicator.toml").write_text(
+            'tag = "activity_indicator"\nthemes = ["dark"]\nsettle = 5.0\n\n'
             '[[steps]]\nname = "initial"\n\n'
             '[[steps]]\nname = "go"\naction = "click"\nat = [10, 20]\n\n'
             '[[steps]]\nname = "more"\naction = "scroll"\nat = [10, 20]\ndy = -400\n')
-        animated = write_gif_scenarios(scen, ["button", "animation"], ["light"], 2, 0.25)
-        comp = tomllib.loads((scen / "animation.toml").read_text())
-        assert animated == ["animation"] and comp["themes"] == ["dark"] and comp["settle"] == 5.0, comp
+        animated = write_gif_scenarios(scen, ["button", "activity_indicator"], ["light"], 2, 0.25)
+        comp = tomllib.loads((scen / "activity_indicator.toml").read_text())
+        assert animated == ["activity_indicator"] and comp["themes"] == ["dark"] and comp["settle"] == 5.0, comp
         assert [s["name"] for s in comp["steps"]] == ["initial", "go", "more", "gif01", "gif02"], comp
         assert comp["steps"][1] == {"name": "go", "action": "click", "at": [10, 20]}, comp
         # a non-animated authored page is not rewritten at all
