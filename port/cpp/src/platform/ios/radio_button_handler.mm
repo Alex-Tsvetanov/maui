@@ -19,15 +19,18 @@
 #include <string>
 #include <string_view>
 
+#include "ios_border_ops.hpp"
 #include "ios_conversions.hpp"
 #include "ios_text_ops.hpp"
 #include "ios_visual_ops.hpp"
 #include "maui/core/bindable_object.hpp"
+#include "maui/core/border_handler.hpp"
 #include "maui/core/i_radio_button.hpp"
 #include "maui/core/radio_button_handler.hpp"
 #include "maui/core/visibility.hpp"
 #include "maui/graphics/paint.hpp"
 #include "maui/graphics/rect.hpp"
+#include "maui/graphics/shapes/round_rectangle.hpp"
 #include "maui/graphics/size.hpp"
 #include "maui/graphics/solid_paint.hpp"
 
@@ -114,6 +117,93 @@ namespace
         button.imageEdgeInsets = UIEdgeInsetsMake(0, -k_gap / 2, 0, k_gap / 2);
         button.titleEdgeInsets = UIEdgeInsetsMake(-k_title_rise, k_gap / 2, k_title_rise, -k_gap / 2);
         button.contentEdgeInsets = UIEdgeInsetsMake(pad, pad + k_gap / 2, pad, pad + k_gap / 2);
+    }
+
+    // Repaint the radio's BorderColor/BorderWidth/CornerRadius chrome through the SAME funnel every
+    // other Border goes through (ios_border_ops.hpp apply_border_stroke), instead of CALayer's own
+    // borderWidth.
+    //
+    // WHY IT CANNOT BE CALayer.borderWidth. MAUI renders a RadioButton through its DefaultTemplate,
+    // whose root is a *Border* (RadioButton.cs:520) with StrokeThickness bound to BorderWidth
+    // (RadioButton.cs:528) and the DEFAULT StrokeShape. That Border paints like every other one: the
+    // layer is masked to shape_self_inset(bounds, thickness) — the default StrokeShape's own 0.5
+    // DIP/side deflate, derived in full at core/border_handler.hpp — and the stroke is laid on that
+    // same path at DOUBLE width so the mask cuts its outer half. The visible band is therefore
+    // [0.5, 0.5 + thickness] from the layout edge. CALayer.borderWidth draws INWARD FROM THE BOUNDS
+    // EDGE, i.e. [0, thickness]: same width, wrong place, on all four edges.
+    //
+    // MEASURED on captures/ios/{maui,cpp}/radio_button_border_light.png @3x, column x=600, subpixel
+    // coverage from the green channel (white/red/yellow are all g-separable there):
+    //   Option 1 (Red, BorderWidth 4)   maui [387.5,399.5) + [507.5,519.5)   cpp [386,398) + [509,521)
+    //   Option 4 (Green, BorderWidth 4) maui [786.5,798.5)                   cpp [785,797)
+    // Both columns paint exactly 12px = 4pt of stroke; the port's sits a constant 1.5px = 0.5pt
+    // further OUT on every edge. The outermost 0.5pt is PAGE WHITE in the reference (row 386 is
+    // (255,255,255) in maui and pure red in cpp), which is the mask, not the stroke.
+    //
+    // And the thickness > 0 latch is visible in the same capture: Option 2 carries BackgroundColor
+    // Yellow with NO border, and its yellow row is BYTE-IDENTICAL between the columns (rows 539-643
+    // in both). shape_self_inset deflates only when the thickness is positive, so an unbordered radio
+    // must keep painting flush to its bounds.
+    //
+    // WHY THIS DOES NOT JUST CALL apply_border_stroke. That helper masks the HOST layer, because on a
+    // real Border the background IS the shape and MAUI clips it (border_stroke's row boundaries match
+    // the reference byte for byte through it). A RadioButton is the other arrangement: the template
+    // Border lives INSIDE the RadioButton, so RadioButton.BackgroundColor paints the radio's own
+    // platform view over the FULL bounds and only the template Border's stroke is inset.
+    //
+    // MEASURED — and this is the correction to a first attempt that did reuse apply_border_stroke:
+    // masking the host moved the stroke to exactly the right place and then cut the fill, leaving page
+    // white where the reference has Background. At x=603 (x=600 cannot see it — yellow and white share
+    // g=255, so a green-channel read calls them equal):
+    //   row 386   maui (255,255,0) YELLOW      host-masked port (255,255,255) WHITE
+    //   row 387   maui (255,127,0)             host-masked port (255,127,127)
+    // So the fill runs to the bounds edge and the stroke starts 0.5 DIP inside it. Masking only the
+    // STROKE layer reproduces MauiCALayer.DrawBorder's "double the width, clip the outer half" without
+    // touching the fill.
+    void apply_radio_border(UIButton* button, const maui::core::i_radio_button& view)
+    {
+        CALayer* const host = button.layer;
+        // The stroke is a sublayer now — a CALayer border would draw a second one, flush to the edge.
+        host.borderWidth = 0;
+
+        // BorderElement's -1d "not set" sentinel never paints; `> 0` is the same gate C#'s
+        // UpdateBorderWidth and shape_self_inset both key off.
+        const double thickness = view.stroke_thickness();
+        CAShapeLayer* stroke_layer = maui::platform::ios::find_border_layer(host);
+        if (thickness <= 0)
+        {
+            [stroke_layer removeFromSuperlayer];
+            return;
+        }
+        if (stroke_layer == nil)
+        {
+            stroke_layer = [CAShapeLayer layer];
+            stroke_layer.name = maui::platform::ios::k_border_layer_name;
+            [host addSublayer:stroke_layer];
+        }
+
+        const CGSize size = button.bounds.size;
+        // CornerRadius is an int on IButtonStroke; parenthesise rather than brace (int -> double is a
+        // narrowing conversion in list-initialization).
+        const maui::graphics::shapes::round_rectangle shape(static_cast<double>(view.corner_radius()));
+        const maui::graphics::rect bounds{0.0, 0.0, size.width, size.height};
+        const maui::graphics::path_f path = shape.path_for_bounds(maui::core::shape_self_inset(bounds, thickness));
+        CGPathRef cg = maui::platform::ios::path_to_cg_path(path);
+
+        // The stroke's own mask — the same path, FILLED — so the outer half of the double-width stroke
+        // is cut and the visible band is [0.5, 0.5 + thickness]. On a Border this mask sits on the host
+        // and clips the fill too; here it must not (see above).
+        CAShapeLayer* const clip = [CAShapeLayer layer];
+        clip.path = cg;
+        stroke_layer.mask = clip;
+
+        stroke_layer.zPosition = 1; // MAUI strokes last — over the title and the ring
+        stroke_layer.frame = CGRectMake(0, 0, size.width, size.height);
+        stroke_layer.fillColor = nil;
+        stroke_layer.path = cg;
+        CGPathRelease(cg);
+        stroke_layer.strokeColor = maui::platform::ios::to_ui_color(view.stroke_color()).CGColor;
+        stroke_layer.lineWidth = static_cast<CGFloat>(2 * thickness);
     }
 
     using maui::platform::ios::to_ui_color;
@@ -413,7 +503,7 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_button(platform->native).layer.borderColor = to_ui_color(view.stroke_color()).CGColor;
+            apply_radio_border(as_button(platform->native), view);
         }
     }
 
@@ -423,11 +513,11 @@ namespace maui::core
         if (platform != nullptr)
         {
             UIButton* const button = as_button(platform->native);
-            // The PAINT: clamp the -1d sentinel to 0 the way every C# UpdateStrokeThickness does (it keys
-            // off `>= 0` before overriding the native default) — CALayer has no sentinel and a negative
-            // borderWidth is undefined.
+            // The PAINT: the template Border's masked, double-width stroke — NOT CALayer.borderWidth,
+            // which would sit 0.5 DIP too far out on every edge. Derivation + measurement in
+            // apply_radio_border.
             const double stroke = view.stroke_thickness();
-            button.layer.borderWidth = static_cast<CGFloat>(stroke > 0 ? stroke : 0.0);
+            apply_radio_border(button, view);
             // The MEASURE: BorderWidth is an input to the template's own chrome, NOT just a paint. The
             // DefaultTemplate's Border insets its content by `Padding + StrokeThickness` (Border.cs:354),
             // so a bordered radio is BOTH taller and wider than an unset one — MAUI grows the row around
@@ -443,7 +533,10 @@ namespace maui::core
         auto* platform = handler.typed_platform_view();
         if (platform != nullptr)
         {
-            as_button(platform->native).layer.cornerRadius = static_cast<CGFloat>(view.corner_radius());
+            UIButton* const button = as_button(platform->native);
+            button.layer.cornerRadius = static_cast<CGFloat>(view.corner_radius());
+            // The radius is also the border shape's, so the stroke + mask have to be rebuilt on it.
+            apply_radio_border(button, view);
         }
     }
 
@@ -481,8 +574,8 @@ namespace maui::core
             // Size the row from MAUI's DefaultTemplate geometry DIRECTLY: the outer Ellipse measures 21pt
             // (63px @3x) and the chrome around it is 2 * template_pad(BorderWidth) — 14pt for an unset
             // radio (the 35pt row the reference draws), 24pt at BorderWidth = 4 (a 45pt row). Thus
-            // row = max(21pt ring, text) + 2 * template_pad. UIButton's own sizeThatFits height is NOT used: it adds its
-            // internal title metrics and over-measures a large-font (e.g. 18pt) title by ~2pt, and that
+            // row = max(21pt ring, text) + 2 * template_pad. UIButton's own sizeThatFits height is NOT used: it adds
+            // its internal title metrics and over-measures a large-font (e.g. 18pt) title by ~2pt, and that
             // per-large-radio excess accumulated into the vertical drift that reddened the content-heavy radio
             // pages (radio_content_properties / radio_button_group_gallery / radio_button_content). Prior tries
             // with chrome=16 (too tall) or ring-floor=16 (too short) both missed; this pair matches MAUI at
@@ -515,7 +608,16 @@ namespace maui::core
         {
             return;
         }
-        [as_button(platform->native) setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        UIButton* const button = as_button(platform->native);
+        [button setFrame:CGRectMake(frame.x, frame.y, frame.width, frame.height)];
+        // The border mask and stroke path are built from the LOCAL bounds, so they are stale until the
+        // frame is known — the mappers run before the first arrange. Neither a CAShapeLayer mask nor a
+        // path resizes itself with its host (unlike CALayer.borderWidth, which the mappers used to set
+        // and which needed no arrange hook), so rebuild them here on every arrange.
+        if (auto* const view = virtual_view())
+        {
+            apply_radio_border(button, *view);
+        }
     }
 
     // Render transform pushed to the native UIView via the shared ios apply_transform helper
