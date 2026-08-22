@@ -1039,6 +1039,18 @@ tools/gate.sh               # FULL GATE: headless tidy asan-ubsan tsan apple ios
 tools/gate.sh --fast        #   quick pre-commit subset (headless tidy apple); --clean for from-scratch
 ```
 
+**Two flag traps, both of which cost a false start on 2026-08-22:**
+- **`--clean` is `gate.sh`'s flag, NOT `dev.sh`'s.** `dev.sh --clean` exits 64 ("unknown option"). To force a
+  from-scratch inner-loop build, wipe `build/<preset>` by hand — which you MUST do after changing a
+  polymorphic base's vtable (adding a virtual to `i_shape`, `view.hpp`, `element.hpp`), because the headless
+  dep-tracking has a gap there and a stale `.o` will link against the old layout.
+- **`dev.sh -j N` caps the BUILD as well as ctest** (fixed 2026-08-22 — it previously reached only `ctest`,
+  so the build silently ran ninja at core count). **Use it whenever a capture or a timed measurement is
+  live**: a 16-way rebuild on this 14-core host took load 15 → 52 and the Windows lane's capture time went
+  from a 12.7s mean / 32.6s worst to 18.6s / 109.6s. Nothing errored, but a starved capture is how this
+  project has previously banked plausible-but-wrong frames, and re-running a 3h capture costs hours where a
+  slower build costs minutes.
+
 Raw commands (what the scripts run; `-j` = cores):
 ```bash
 export VCPKG_ROOT="$HOME/vcpkg"          # registry clone; brew's vcpkg binary alone lacks the toolchain file

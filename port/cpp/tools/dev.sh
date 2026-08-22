@@ -39,10 +39,17 @@ if [[ ${reconfigure} -eq 1 || ! -f "build/${preset}/CMakeCache.txt" ]]; then
   cmake --preset "${preset}"
 fi
 
+# `-j` CAPS THE BUILD TOO, NOT JUST CTEST. It used to reach only `ctest_args` below, so
+# `dev.sh -j 6` still ran a bare `cmake --build`, which lets ninja default to core count.
+# MEASURED 2026-08-22: a 16-way rebuild on this 14-core host took load 15 -> 52 while two
+# unrepeatable timed captures were live, and the Windows lane's capture time went from a
+# 12.7s mean / 32.6s worst to 18.6s / 109.6s. Nothing errored, but a starved capture is how
+# this project has previously banked plausible-but-wrong frames, and re-running a 3h capture
+# costs hours where a slower build costs minutes.
 if [[ -n "${target}" ]]; then
-  cmake --build --preset "${preset}" --target "${target}"
+  cmake --build --preset "${preset}" -j "${jobs}" --target "${target}"
 else
-  cmake --build --preset "${preset}"
+  cmake --build --preset "${preset}" -j "${jobs}"
 fi
 
 ctest_args=(--preset "${preset}" -j "${jobs}" --output-on-failure)
