@@ -630,10 +630,19 @@ def build(platform: str, frameworks: list[str]) -> None:
         args = examples_configure_args(exdir.replace("-release", ""), preset)
         run_step(f"{platform}: configure {exdir} (Release, first use)", ["bash", "-c",
                  f"cd '{CPP}' && cmake -S examples -B examples/{exdir} {' '.join(args)}"], timeout=1800)
-    run_step(f"{platform}: build framework + {' '.join(targets)} (Release)", ["bash", "-c",
-             f"cd '{CPP}' && cmake --build --preset {preset} && "
+    # CAP THE BUILD. `cmake --build --preset` with no -j lets ninja default to core count, and this
+    # function runs on a machine that is, by construction, also CAPTURING — the whole point of the
+    # script. MEASURED 2026-08-22: an uncapped 16-way rebuild on this 14-core host took load 15 -> 52
+    # and the Windows lane's capture time went from a 12.7s mean / 32.6s worst to 18.6s / 109.6s.
+    # Nothing errored, but a starved capture is how this project has previously banked
+    # plausible-but-wrong frames, and re-running a 3h capture costs hours where a slower build costs
+    # minutes. Half the cores is the compromise; override with MAUI_PARITY_BUILD_JOBS when nothing
+    # else is running. Same defect and same fix as tools/dev.sh (d3bf9e8377).
+    jobs = os.environ.get("MAUI_PARITY_BUILD_JOBS") or str(max(2, (os.cpu_count() or 4) // 2))
+    run_step(f"{platform}: build framework + {' '.join(targets)} (Release, -j {jobs})", ["bash", "-c",
+             f"cd '{CPP}' && cmake --build --preset {preset} -j {jobs} && "
              f"cmake --install build/{preset} --prefix /tmp/maui-prefix-{preset} && "
-             f"cmake --build examples/{exdir} --target {' '.join(targets)}"], timeout=3600)
+             f"cmake --build examples/{exdir} --target {' '.join(targets)} -j {jobs}"], timeout=3600)
 
 
 def ios_install(frameworks: list[str]) -> None:
