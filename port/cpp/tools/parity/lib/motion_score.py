@@ -226,8 +226,40 @@ GREEN_DIFF = 1.0
 # to six significant figures. One page's four cells cannot retire a lane-wide cap — but it is the first
 # evidence on this question that holds the port still, and it points the other way.
 #
-# TO RETIRE THIS SET you need N back-to-back repeats of the capped pages at ONE commit, with HEAD frozen
-# and no rebuild between repeats, then `--stability` (which now refuses to compare across commits).
+# THE CLEAN MEASUREMENT WAS RUN (2026-08-22) AND THE SET STAYS — on evidence this time.
+# 4 back-to-back repeats, 6 capped pages, 24 cells, all three base.apk md5s byte-identical before,
+# between and after (HEAD moved; that is informational — a commit that misses Android changes the label
+# and not the artefact). RESULT: 19 stable, 5 FLIPPED. The android verdict IS irreproducible at a
+# constant binary on ~21% of cells, so the cap is correct — but almost nothing else in this block was.
+#
+# A CELL FLIPS IFF THE GREEN CONJUNCTION IS UNSTABLE: 5 of 5 flipped, 0 of 19 stable. The flippers are
+# not a special kind of page, they are the cells near the bar.
+#
+# AND THE CAUSE IS NOT THE PAGE LIST'S OBVIOUS READING. All 5 flips are on caret-blink pages and none
+# on the scroll pages, which invites "blinking caret". Wrong. Worst-SSIM range across the 4 repeats:
+#     caret  n=11  median 0.0201      fling  n=8  median 0.0744      picker  n=4  median 0.0189
+# The FLING pages vary ~4x MORE and never flip, because they sit far outside green in every repeat.
+# Sampling-phase variation is general; the caret pages just sit near the threshold.
+#
+# WHAT IS IRREPRODUCIBLE IS THE CORRESPONDENCE, NOT THE DRIVE. Median relative run-to-run spread:
+#     each column's OWN self-motion (the DRIVE):       0.65%   (clip_views/dark, path_gallery/dark: 0.00-0.06%)
+#     cross-column worst-frame diff (CORRESPONDENCE): 53.3%
+# An 80x separation. The gesture travels the same distance every run; what varies is which MOMENT each
+# burst photographs, hence which offset _align picks, hence the verdict:
+#     title_bar/cpp/light   PASS(shift-2, 0.61%) / INCONCLUSIVE(shift0, 1.74%) / PASS(shift0, 0.82%) / PASS(shift-1, 0.51%)
+# Exceptions, stated rather than rounded off: picker/*/dark self-motion swings 33.7% (one repeat's
+# dialog did not open the same way) and search_bar/xaml/dark 10.6%.
+#
+# SO THE NAME IS WRONG. `NON_REPRODUCIBLE_DRIVE` caps the wrong noun, and the `input swipe` fling story
+# in the review text below describes both a mechanism no longer in use and the wrong pages. Renaming it
+# is deferred only because the constant is read by pixel_score and PHASE_TRIAGE.md by name.
+#
+# THE TRACTABLE FIX is the correspondence: score the settled tail, or compare each column's own
+# trajectory — self-motion is ALREADY computed, already in the review string, and reproducible to 0.65%
+# — instead of frame-index-matched cross-column SSIM. Do not attempt it by moving a threshold.
+#
+# POPULATION LIMIT: 6 of the 19 capped pages. A 2-repeat pass over the remaining 13 would falsify the
+# generalisation cheaply if it does not hold.
 NON_REPRODUCIBLE_DRIVE = {"android"}
 # WHEN THE TWO COLUMNS' OWN MOTION DIFFERS BY THIS MUCH, SAY SO — even though the cell may still be a
 # legitimate PASS. Measured across the whole board (302 PASS theme-readings carrying a motion number),

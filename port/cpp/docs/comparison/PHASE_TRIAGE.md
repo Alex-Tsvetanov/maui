@@ -524,9 +524,66 @@ self-motion agrees to six significant figures (20.9439 / 20.9441 / 20.9441). Sam
 build. So the variance is not a property of the lane or of the page — it is whether a burst sample
 happens to land mid-transition.
 
-**THE CAP STANDS.** `NON_REPRODUCIBLE_DRIVE={"android"}` is unchanged. Retracting a bad measurement
-leaves NO measurement, not a passing one, and one page's four cells cannot retire a lane-wide cap. A
-6-page × 4-repeat single-commit run is in progress to settle it in one direction or the other.
+### THE CLEAN MEASUREMENT — 4 same-commit repeats, 6 pages, 24 cells
+
+Run 2026-08-22, repeats `16_24_40` / `17_19_32` / `17_41_01` / `18_00_44`. **Validity rests on binary
+identity, not on HEAD**: all three `base.apk` md5s were byte-identical before and after the whole run
+(`4a78781e…` / `2c6c1df3…` / `256326a9…`), sampled again between every repeat. HEAD moved during the
+window — other lanes were committing — and that is deliberately treated as informational, because a
+commit that does not touch Android changes the label without changing the artefact. Three run dirs are
+excluded with cause (see `EXCLUDE` in the analysis): one contaminated by the board measure's TTFF stage
+running 20 cold app launches on the same emulator, two truncated by a killed capture process.
+
+**RESULT: 19 stable, 5 FLIPPED.** So the android verdict IS irreproducible at a constant binary, on
+about 21% of cells — and the cap's *conclusion* survives even though its *justification* was void.
+
+**WHY a cell flips, exactly.** A cell flips **iff** the board's green conjunction
+(`ssim >= 0.98 AND diff <= 1.0`) is unstable across repeats — **5 of 5 flipped, 0 of 19 stable**. No
+exceptions. The flips are not a different kind of page; they are the cells sitting close enough to the
+bar that ordinary sampling variation carries them across it.
+
+**AND THE MECHANISM IS NOT WHAT THE PAGE LIST SUGGESTS.** All 5 flips land on caret-blink pages
+(`title_bar`, `search_bar`, `clip_views`) and none on the scroll pages — which invites the conclusion
+that a blinking caret is the cause. It is not. Worst-SSIM RANGE across the 4 repeats, by page class:
+
+    caret   n=11   median range 0.0201   max 0.0919
+    fling   n= 8   median range 0.0744   max 0.1405     <- the LARGEST variation
+    picker  n= 4   median range 0.0189   max 0.0222
+
+The scroll pages vary nearly **4x more** run-to-run than the caret pages and never flip, because they
+sit far outside the green region in every repeat. Sampling-phase variation is GENERAL and largest on
+the fling pages; the caret pages merely happen to sit near the threshold. Reading the page list without
+this table gives a confident wrong answer.
+
+**WHAT IS ACTUALLY IRREPRODUCIBLE — the correspondence, not the drive.** Median relative run-to-run
+spread over the 24 cells:
+
+    each column's OWN self-motion (THE DRIVE):        0.65%
+    cross-column worst-frame diff (CORRESPONDENCE):  53.3%
+
+An 80x separation. `clip_views/*/dark` and `path_gallery/*/dark` repeat their self-motion to
+0.00-0.06%. The gesture lands the same distance every time; what varies is WHICH MOMENT of that motion
+each column's burst photographs, and therefore which offset `_align` picks — and the offset determines
+the verdict. Worked example, `title_bar/cpp/light`:
+
+    16_24_40  PASS          shift=-2  worst 0.61% @f3
+    17_19_32  INCONCLUSIVE  shift= 0  worst 1.74% @f3   <- only run above the 1.0% bar
+    17_41_01  PASS          shift= 0  worst 0.82% @f3
+    18_00_44  PASS          shift=-1  worst 0.51% @f4
+
+Two honest exceptions: `picker/*/dark` self-motion swings 33.7% (one repeat read 53.62 against ~80.8
+elsewhere — the dialog did not open the same way) and `search_bar/xaml/dark` 10.6%. So "the drive is
+reproducible" holds for most pages, not all.
+
+**THE CAP STANDS** — `NON_REPRODUCIBLE_DRIVE={"android"}` is unchanged, now on a valid same-commit
+measurement rather than on the void one. But its NAME and its stated reason are both wrong: the drive
+is not the irreproducible part, and the `input swipe` fling story in the review text describes a
+mechanism no longer in use AND the wrong pages. The tractable follow-up is the CORRESPONDENCE — score
+the settled tail, or compare each column's own trajectory (self-motion is already computed, already in
+the review string, and reproducible to 0.65%), rather than frame-index-matched cross-column SSIM.
+
+**Population limit, stated next to the result:** 6 of the 19 capped pages, chosen for phase-shape
+coverage. A 2-repeat pass over the remaining 13 would cheaply falsify the generalisation.
 
 ### What this means for reading the board
 
