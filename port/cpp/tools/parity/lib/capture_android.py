@@ -70,11 +70,23 @@ CPP = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 # pipeline shoots the same `adb exec-out screencap -p` this probe does. The wash has never once been
 # reproduced outside a pipeline run.
 #
-# Still unexplained, and the remaining differences to bisect: the pipeline flips night mode ONCE PER
-# THEME PASS and then launches each of the three apps in turn (so an app can start while the
-# configuration change is still propagating, which no settle here covers); the GIF pass turns animations
-# back ON mid-run (recapture.py lane_android_gifs) and box_view/date_picker are both DRIVEN pages that
-# get one; and the build stage reinstalls the port APKs between passes.
+# AND THE REASON THE PROBES ABOVE PROVE LESS THAN THEY LOOK: THE ANDROID STILL PASS IS NOT THIS FILE.
+# recapture.lane_android shoots the board's PNGs by shelling out to capture_all_csharp_android.sh (maui)
+# and build_android_apphost*.sh (cpp / xaml) with env MAUI_APPEARANCE — "a shell pipeline with no
+# injection hook", per its own comment. capture_gif() here is only the GIF pass. So every hand-probe
+# above reproduced the PYTHON path while the wash lives in the SHELL path, which is why they all read 18.
+#
+# What the shell script does differently, and the next thing to test:
+#   * it flips `cmd uimode night` and then `sleep 2` — TWO seconds — before capturing the whole page
+#     list (capture_all_csharp_android.sh:81-83). Every page in the pass inherits that single settle.
+#   * it pins demo mode BEFORE the flip, not after (device_state.py --android at :64, flip at :81).
+#   * it deliberately passes NO MAUI_THEME extra, so MauiReference follows the DEVICE uiMode. That
+#     decision is sound and measured (:65-73 records UserAppTheme=Dark doing nothing on Android: body
+#     mean 137.7 light vs 139.3 "dark", while the C++ columns go 136.1 -> 81.1), but it makes the MAUI
+#     column's darkness depend ENTIRELY on a system-wide flip that a 2s sleep may not have finished
+#     applying — and note 84.6 in that same comment, which is neither 18 nor 47.
+# Bisect by running the shell script directly for one page with the sleep lengthened, not by driving adb
+# by hand: the hand path is already known to be clean.
 #
 # CONSEQUENCE: do not commit an android dark recapture of a ScrollView-rooted page without checking the
 # dominant background of BOTH columns first. Four cells (date_picker/time_picker x pixel,pixel_xaml)
