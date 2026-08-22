@@ -416,6 +416,14 @@ namespace
         {
             return 0; // Border.UpdateStrokeShape latched the shape's own thickness to 0 — shape_self_inset's gate
         }
+        // DELIBERATELY 2-ARG — do NOT pass spec.shape here, unlike the two path call sites (the
+        // border_shape_path_points / border_content_inner_path_points ones, which do). 40562417f2's
+        // applies_own_stroke_inset() opt-out exists because a CONTROLS shape already took the deflate
+        // inside its own path_for_bounds, so feeding it to the helper counts it twice. This route never
+        // calls path_for_bounds at all — a GradientDrawable draws from corner radii (see the derivation
+        // at the top of this function) — so the shape's own deflate never happens here and this manual
+        // 0.5 DIP is its ONLY source. Passing spec.shape would suppress it and under-inset by 0.5 DIP a
+        // side, on exactly the convex Ellipse/Rectangle the XAML loader mints (xaml_visitors.cpp:1955).
         const maui::graphics::rect inset = maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, 0.0, 0.0}, 1.0);
         return static_cast<jint>(std::lround(inset.x * static_cast<double>(density)));
     }
@@ -797,7 +805,8 @@ namespace
         // Gated on `sw`, not on spec.thickness: this file already treats "thickness set but no Stroke brush"
         // as unstroked everywhere (MauiDrawable would not), so the inset follows the same convention rather
         // than introducing a second, inconsistent one.
-        return spec.shape->path_for_bounds(maui::core::shape_self_inset(maui::graphics::rect{x, y, w, h}, sw));
+        return spec.shape->path_for_bounds(
+            maui::core::shape_self_inset(maui::graphics::rect{x, y, w, h}, sw, spec.shape));
     }
 
     // The Border CONTENT clip path (in POINTS, over the host's laid-out size) — the ONE mirror of C#'s
@@ -851,7 +860,7 @@ namespace
         // through PathForBounds. Measured on border_stroke: MAUI's orange content edge sits +0.50 pt
         // inward of the port's at StrokeThickness 1 and 5, the same constant as the stroke itself.
         const maui::graphics::rect inner =
-            maui::core::shape_self_inset(maui::graphics::rect{1.5 * st, 1.5 * st, inner_w3, inner_h3}, st);
+            maui::core::shape_self_inset(maui::graphics::rect{1.5 * st, 1.5 * st, inner_w3, inner_h3}, st, shape);
         if (dynamic_cast<const maui::graphics::shapes::ellipse*>(shape) != nullptr)
         {
             path.append_ellipse(static_cast<float>(inner.x), static_cast<float>(inner.y),
