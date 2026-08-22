@@ -490,44 +490,31 @@ namespace maui::platform::android
         // Then the decisive bisect: the tint was forced to OPAQUE RED (0xFFFF0000), rebuilt, redeployed.
         // The line stayed (0,0,0) — BLACK, unchanged, not one pixel of red.
         //
-        // So THIS DRAWABLE IS NOT WHAT PAINTS THAT LINE. setTintList reaches the InsetDrawable, executes
-        // cleanly, and has no bearing on the rendered pixels. Every tint-shaped fix here is futile — do not
-        // write a fourth one. The black 2px line is drawn by something this function never touches, and
-        // finding it is the ONLY next step: dump the view's drawable tree after setBackground (LayerDrawable
-        // children, their classes AND bounds), and check whether a later call replaces the background this
-        // function installs.
-        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
-        {
-            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
-                                                     "(I)Landroid/content/res/ColorStateList;");
-            jmethodID set_tint_list = cache.method(env.get(), "android/graphics/drawable/Drawable", "setTintList",
-                                                   "(Landroid/content/res/ColorStateList;)V");
-            if (value_of != nullptr && set_tint_list != nullptr)
-            {
-                const local_ref<jobject> tint{env.get(),
-                                              env->CallStaticObjectMethod(csl_class, value_of, underline_argb)};
-                if (env->ExceptionCheck() != JNI_TRUE && tint)
-                {
-                    env->CallVoidMethod(old_bg.get(), set_tint_list, tint.get());
-                }
-                env->ExceptionClear();
-            }
-        }
-        if (jclass mode_class = cache.find_class(env.get(), "android/graphics/PorterDuff$Mode"))
-        {
-            jmethodID set_tint_mode = cache.method(env.get(), "android/graphics/drawable/Drawable", "setTintMode",
-                                                   "(Landroid/graphics/PorterDuff$Mode;)V");
-            jfieldID src_in = env->GetStaticFieldID(mode_class, "SRC_IN", "Landroid/graphics/PorterDuff$Mode;");
-            if (set_tint_mode != nullptr && src_in != nullptr)
-            {
-                const local_ref<jobject> mode{env.get(), env->GetStaticObjectField(mode_class, src_in)};
-                if (env->ExceptionCheck() != JNI_TRUE && mode)
-                {
-                    env->CallVoidMethod(old_bg.get(), set_tint_mode, mode.get());
-                }
-            }
-            env->ExceptionClear();
-        }
+        // So THIS DRAWABLE IS NOT WHAT PAINTS THAT LINE — *as the call was ordered*. setTintList reached
+        // the InsetDrawable and executed cleanly, and the pixels never moved.
+        //
+        // FOUND, and it was never the tint: IT WAS THE ORDER. The tint used to be applied HERE, and two
+        // calls later (below) this function does `View.setBackgroundTintList(null)` to drop the create-time
+        // view-level tint before installing the stack. At that moment `old_bg` is STILL the view's
+        // background, and AOSP View.setBackgroundTintList(null) does not mean "no tint state" — it sets
+        // mBackgroundTint.mHasTintList = true with a null list and then applyBackgroundTint() runs
+        // `mBackground = mBackground.mutate(); mBackground.setTintList(null);`. So the null was pushed
+        // straight back down into the very drawable this block had just tinted. One constraint explains
+        // every earlier measurement at once: the clean call, the zero pixel movement, the failed mutate(),
+        // the forced RED that never appeared, and a theme-INDEPENDENT (0,0,0) coming out of a
+        // theme-dependent constant — what rendered was always the untinted stock 9-patch.
+        //
+        // Two consequences the fix has to respect, both AOSP mechanics rather than guesses:
+        //   * mHasTintList can never be cleared again, so `setBackground(layer)` ALSO runs
+        //     applyBackgroundTint() and pushes the null into the LayerDrawable — and LayerDrawable
+        //     .setTintList forwards to every child. Tinting before the install therefore cannot survive
+        //     it either. The tint must go on LAST, after setBackground.
+        //   * that same applyBackgroundTint() calls mutate(), and LayerDrawable.mutate() rebuilds its
+        //     children from their ConstantState (LayerState's ChildDrawable copy-ctor calls
+        //     cs.newDrawable()), so `old_bg` is no longer the installed instance. The tint must go on the
+        //     drawable RE-FETCHED from the view, via LayerDrawable.getDrawable(1) — see below.
+        // The tint itself (a semi-transparent colour with SRC_IN, so out.a = ninepatch.a x tint.a) and the
+        // constants passed in were correct all along; they are applied at the bottom of this function now.
 
         // Build the fill drawable beneath the underline. gradient → GradientDrawable (the shared helper);
         // solid / system_background → a flat ColorDrawable of the resolved argb (system_background_paint
@@ -602,9 +589,74 @@ namespace maui::platform::android
         }
         jmethodID set_background = cache.method(env.get(), detail::k_visual_view_class, "setBackground",
                                                 "(Landroid/graphics/drawable/Drawable;)V");
-        if (set_background != nullptr)
+        if (set_background == nullptr)
         {
-            env->CallVoidMethod(view, set_background, layer.get());
+            return;
+        }
+        env->CallVoidMethod(view, set_background, layer.get());
+        env->ExceptionClear();
+
+        // ...AND ONLY NOW TINT THE UNDERLINE — on the child of the drawable the VIEW actually holds, not on
+        // the `old_bg`/`layer` handles built above. Both of those are stale by this line: setBackground ran
+        // applyBackgroundTint(), which mutate()s the LayerDrawable and rebuilds its children from their
+        // ConstantState, and which would have wiped any tint applied earlier (the long note above). Layer 1
+        // is the underline (index 0 = fill), by construction of the array a few lines up.
+        const local_ref<jobject> installed{env.get(), env->CallObjectMethod(view, get_background)};
+        env->ExceptionClear();
+        if (!installed)
+        {
+            return;
+        }
+        jmethodID get_layer = cache.method(env.get(), "android/graphics/drawable/LayerDrawable", "getDrawable",
+                                           "(I)Landroid/graphics/drawable/Drawable;");
+        if (get_layer == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> underline{env.get(), env->CallObjectMethod(installed.get(), get_layer, 1)};
+        env->ExceptionClear();
+        if (!underline)
+        {
+            return;
+        }
+        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
+        {
+            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
+                                                     "(I)Landroid/content/res/ColorStateList;");
+            jmethodID set_tint_list = cache.method(env.get(), "android/graphics/drawable/Drawable", "setTintList",
+                                                   "(Landroid/content/res/ColorStateList;)V");
+            if (value_of != nullptr && set_tint_list != nullptr)
+            {
+                const local_ref<jobject> tint{env.get(),
+                                              env->CallStaticObjectMethod(csl_class, value_of, underline_argb)};
+                if (env->ExceptionCheck() != JNI_TRUE && tint)
+                {
+                    env->CallVoidMethod(underline.get(), set_tint_list, tint.get());
+                }
+                env->ExceptionClear();
+            }
+        }
+        if (jclass mode_class = cache.find_class(env.get(), "android/graphics/PorterDuff$Mode"))
+        {
+            jmethodID set_tint_mode = cache.method(env.get(), "android/graphics/drawable/Drawable", "setTintMode",
+                                                   "(Landroid/graphics/PorterDuff$Mode;)V");
+            jfieldID src_in = env->GetStaticFieldID(mode_class, "SRC_IN", "Landroid/graphics/PorterDuff$Mode;");
+            if (set_tint_mode != nullptr && src_in != nullptr)
+            {
+                const local_ref<jobject> mode{env.get(), env->GetStaticObjectField(mode_class, src_in)};
+                if (env->ExceptionCheck() != JNI_TRUE && mode)
+                {
+                    env->CallVoidMethod(underline.get(), set_tint_mode, mode.get());
+                }
+            }
+            env->ExceptionClear();
+        }
+        // The tint lands after the view has already drawn its (untinted) first frame in some orderings, so
+        // ask for a repaint rather than relying on the next layout pass to schedule one.
+        jmethodID invalidate = cache.method(env.get(), detail::k_visual_view_class, "invalidate", "()V");
+        if (invalidate != nullptr)
+        {
+            env->CallVoidMethod(view, invalidate);
             env->ExceptionClear();
         }
     }

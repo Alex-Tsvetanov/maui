@@ -361,8 +361,32 @@ namespace
     // and on `border_stroke` MAUI leaves a 2 px white gap between vertically adjacent Grid Borders where
     // the port had them abutting (a merged 17 px red run vs MAUI's 3 + gap + 14).
     //
-    // QUANTIZATION (a documented residual, not a derivation): Drawable bounds are integer px, so the
-    // 1.375 px this is at density 2.75 rounds to 1 — 0.36 DIP instead of 0.5, leaving ~0.375 px/side.
+    // ⚠ THE WHOLE GRADIENTDRAWABLE ROUTE IS A DEVIATION, AND THE ORACLE SAYS SO EXPLICITLY (2026-08-22).
+    // MAUI has no GradientDrawable path for a Border AT ALL. StrokeExtensions.cs:8-26 (UpdateBorderStroke)
+    // sends EVERY Border — plain Rectangle and RoundRectangle included — through MauiDrawable, whose draw
+    // is PlatformDrawable.java: `new Paint(Paint.ANTI_ALIAS_FLAG)` with `Style.STROKE` (:57-58),
+    // `borderPaint.setStrokeWidth(strokeThickness)` with a FLOAT px width (:207), and
+    // `canvas.drawPath(this.clipPath, this.borderPaint)` (:225). So the reference stroke is a float-width
+    // ANTIALIASED canvas path, and every integer quantization below — this inset AND setStroke's int width —
+    // is a port artifact, not a platform limit. MEASURED on the android board, border_stroke light, the 5 DIP
+    // stroke at density 2.75 (13.75 px), left edge of the Grid Border at view-x 33:
+    //     MAUI  x=34 (255,96,96) → 0.62 cover, x=35..47 solid, x=48 (255,223,223) → 0.13   ink 34.38..48.13
+    //     port  x=34 (255,1,1)   → 1.00 cover, x=35..46 solid, x=47 white                  ink 34.00..47.00
+    // i.e. MAUI feathers both edges and the port hard-edges them, 0.38 px late and 0.75 px thin. That is the
+    // ENTIRE residual on the border_stroke cell (2.76%): its diff is 22 full-width rows at exactly the
+    // stroke edges plus the mirrored column pairs, and nothing else. It is also PHASE_TRIAGE's D9 secondary
+    // finding on carousel_page ("MAUI x1=(176,96,176) … antialiased, port x1..x5 solid, hard-edged"), which
+    // is therefore the same root cause and not a carousel bug.
+    // THE FIX IS TO ROUTE CONVEX SHAPES THROUGH THE CANVAS TOO — shape_needs_canvas() below is what sends
+    // them here instead, and native_draw_border_stroke's canvas path is already feature-complete (float
+    // stroke width in POINTS, dash pattern + offset, cap/join/miter, gradient fill shader). What it does not
+    // yet carry is the elevation-shadow Outline and the corner-radius Outline clip the GradientDrawable
+    // route provides, so the flip is a real refactor, and it moves EVERY Border-bearing page — the greens
+    // included. Do not attempt it without a full re-score on a quiet machine.
+    //
+    // QUANTIZATION (the residual this helper leaves BEHIND, given the route above): Drawable bounds are
+    // integer px, so the 1.375 px this is at density 2.75 rounds to 1 — 0.36 DIP instead of 0.5, leaving
+    // ~0.375 px/side.
     // ROUND, not the ContextExtensions.ToPixels CEIL `to_pixels` uses elsewhere: MAUI never converts this
     // inset to px at all (MauiDrawable strokes a float canvas path), so there is no ToPixels convention to
     // mirror here, and rounding is simply the nearest reachable geometry. Exactness on this route would
