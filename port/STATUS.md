@@ -1071,6 +1071,10 @@ tools/gate.sh --fast        #   quick pre-commit subset (headless tidy apple); -
   from-scratch inner-loop build, wipe `build/<preset>` by hand — which you MUST do after changing a
   polymorphic base's vtable (adding a virtual to `i_shape`, `view.hpp`, `element.hpp`), because the headless
   dep-tracking has a gap there and a stale `.o` will link against the old layout.
+- **Capping costs ~8 minutes, so cap by default.** MEASURED 2026-08-22, `-j 6` iOS Release, near-cold after a
+  core-header change: MauiReference 105s + framework `ios-release` 195s + both galleries 187s = **8m07s**.
+  That is the whole price of not starving a concurrent capture, against a 3h capture that has to be re-run
+  if it is starved. `-j 6` is the default posture on this machine, not a concession.
 - **`dev.sh -j N` caps the BUILD as well as ctest** (fixed 2026-08-22 — it previously reached only `ctest`,
   so the build silently ran ninja at core count). **Use it whenever a capture or a timed measurement is
   live**: a 16-way rebuild on this 14-core host took load 15 → 52 and the Windows lane's capture time went
