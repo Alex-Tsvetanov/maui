@@ -5016,3 +5016,44 @@ Android's is the STROKE's ink extent — MAUI feathered 34.38-48.13 via `MauiDra
 On Apple the stroke's outer edges already agree (delta 3) and the gap EXTENTS match exactly; only fill
 boundary COVERAGE differs. Different component, different scaling law. They read as opposite directions
 because they were never the same measurement.
+
+### header_footer_grid_horizontal — two explanations tested and REFUTED, and what the 1143 actually is
+
+Measured first, so the rest is anchored: item rows are at y708-746 in BOTH columns; MAUI's row 2 at
+y1851, the port's at y1582 with row 3 at y2456. Pitch MAUI 1143px = 381pt, port 874px = 291.3pt.
+`pitch = CVheight / span` (LayoutFactory2.cs:258-274, item = FractionalHeight(1f/Span), group =
+FractionalHeight(1f)) holds in BOTH columns — MAUI CV 1143pt, port CV 874pt. Same formula, different
+input, so the disagreement is upstream of the grid layout.
+
+**REFUTED #1 — "the twin degrades CollectionView.Header/.Footer to plain siblings, so MAUI's 1143
+includes a header/footer the twin cannot express."** The MAUI reference app compiles THE SAME twin
+files: `<MauiXaml Include="..\pages\*.xaml" Link="Pages\%(Filename).xaml" />` (maui-reference/app
+csproj:66, whose own comment calls them "THE canonical shared XAML pages"). MAUI's CollectionView has
+no Header/Footer here either — both columns render plain siblings. Nothing to close as an expression
+gap; the difference is real.
+
+**REFUTED #2 — "the VerticalStackLayout hands its child a different height allocation."**
+`VerticalStackLayoutManager.Measure` passes `double.PositiveInfinity` as the child height constraint
+UNCONDITIONALLY (VerticalStackLayoutManager.cs:31), regardless of what the stack itself received. Both
+columns therefore measure the CV at hc = infinity. The stack is not the differing input.
+
+**WHAT IT IS.** With hc = infinity, `ItemsViewHandler2.GetDesiredSize` returns `contentSize.Height`
+unclamped (ItemsViewHandler2.iOS.cs:177-192), and for a HORIZONTAL grid contentSize.Height IS the
+collection view's own current frame height, because the group is FractionalHeight(1f). MAUI's source
+names this in as many words (ItemsViewHandler2.iOS.cs:269-274):
+
+    // This creates a circular sizing issue in Auto-height containers: the frame grows based
+    // on the incorrect content height and stays locked in even after items load.
+
+So 1143pt is not derivable from the markup — it is a LATCHED frame height from a transient arrange,
+which MAUI mitigates (`contentSize.Height = 0`) but does not prevent on this page. The port's 874pt is
+what a clean non-latched measure yields.
+
+**Consequence for whoever picks this up.** The standing doctrine says MAUI's render is ground truth
+even when it is a bug, so this is still a port gap — but no STATIC layout rule can express it, because
+the value depends on MAUI's init/arrange ORDER, not on the markup. Reproducing it means reproducing
+that ordering, and any constant that happens to yield 1143 on this page is a calibration to one page,
+not a port. The earlier "InvalidateMeasureIfContentSizeChanged is unbounded" blocker is separately
+wrong: `_previousContentSize` is assigned every call and the whole body is gated on
+`if (_initialized && (widthChanged || heightChanged))` (ItemsViewController2.cs:418-463), so it
+terminates when the content size stops moving and never reaches the `<= cvHeight` guard at all.
