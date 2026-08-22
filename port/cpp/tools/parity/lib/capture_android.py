@@ -88,6 +88,25 @@ CPP = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 # Bisect by running the shell script directly for one page with the sleep lengthened, not by driving adb
 # by hand: the hand path is already known to be clean.
 #
+# DONE, AND IT DOES NOT REPRODUCE. Ran capture_all_csharp_android.sh directly with MAUI_APPEARANCE=dark
+# for `box_view` and then for `time_picker` — the actual failing page — at the stock 2s settle. Both came
+# back (18,18,18). So the shell still pass is exonerated too, and with it the 2s settle, the
+# demo-before-flip ordering and the no-MAUI_THEME decision.
+#
+# EVERY path is now clean: hand-driven adb, the Python capture path, and the shell still pass. The wash
+# occurred only inside a bounded window (roughly 05:36-05:57 on 2026-08-22) and has not recurred since,
+# which downgrades it from "a pipeline step does this" to "the device entered a bad state and stayed
+# there for ~20 minutes". The most likely trigger, and the one thing that is certainly true, is that the
+# window opened right after an emulator restart that LOADED A QUICKBOOT SNAPSHOT rather than cold-booting
+# (`emulator -avd maui-test` with no flags). Prefer `-no-snapshot-load -no-snapshot-save` when restarting
+# this AVD, and note that `emulator -list-avds | head -1` is NOT `maui-test` — booting the wrong AVD gives
+# you a device with none of the apps installed.
+#
+# WHAT SURVIVES AS A RULE, because the cost of missing it is four cells scored RED on nothing: before
+# trusting an android DARK score, check the dominant lower-half background of all three columns. They
+# agree at (18,18,18) in a healthy state. A column sitting at (47,47,47) while another sits at 18 is the
+# device, not the port — no port change has ever been shown to move it.
+#
 # CONSEQUENCE: do not commit an android dark recapture of a ScrollView-rooted page without checking the
 # dominant background of BOTH columns first. Four cells (date_picker/time_picker x pixel,pixel_xaml)
 # were about to be committed RED purely on this. They were restored.
