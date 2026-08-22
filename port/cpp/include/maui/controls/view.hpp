@@ -1065,7 +1065,7 @@ namespace maui::controls
         // Math.Max(explicitSize, ResolveMinimum(minimumSize)), which resolve_size_request already models.
         [[nodiscard]] double measure_minimum_width() const
         {
-#if defined(__ANDROID__)
+#ifdef MAUI_PLATFORM_ANDROID
             return maui::core::dimension::is_explicit_set(this->width()) ? this->minimum_width()
                                                                          : maui::core::dimension::unset;
 #else
@@ -1074,7 +1074,7 @@ namespace maui::controls
         }
         [[nodiscard]] double measure_minimum_height() const
         {
-#if defined(__ANDROID__)
+#ifdef MAUI_PLATFORM_ANDROID
             return maui::core::dimension::is_explicit_set(this->height()) ? this->minimum_height()
                                                                           : maui::core::dimension::unset;
 #else
