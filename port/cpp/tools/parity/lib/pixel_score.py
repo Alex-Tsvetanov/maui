@@ -338,12 +338,27 @@ def classify(theme_scores):
         # observation, not missing evidence. An expired or pruned run yields no such measurement, so the
         # pruned-run hole this cap was built for stays shut, and an ASYMMETRIC result is still forced RED
         # by the `mismatch` rule earlier.
-        # ALL, not ANY — matching never_expected above (line ~233), which gates the SAME cap. The
-        # justification this exemption rests on is per-theme: "both_frozen means motion_score MEASURED both
-        # columns and found neither moved". With `any`, ONE theme carrying that positive observation
-        # exempted the cell while the OTHER theme's genuine INVALID — missing evidence — was waved through
-        # with it. That is the pruned-run hole this cap exists to shut, reopened from the side.
-        frozen_both = bool(have) and all(v.get("both_frozen") for v in have.values())
+        # NEITHER `any` NOR `all` — per-theme, exactly like `_capped` above (line ~211), and for the same
+        # measured reason.
+        #
+        # `any` was wrong: ONE theme carrying the positive observation exempted the cell while the OTHER
+        # theme's genuine INVALID — missing evidence — was waved through with it. That is the pruned-run
+        # hole this cap exists to shut, reopened from the side.
+        #
+        # `all(both_frozen)` was ALSO wrong, and is the same error `_capped`'s comment already documents
+        # one cap higher: it conflates "not frozen" with "genuinely INVALID". A theme that MOVED AND
+        # MATCHED is not frozen, and that is the opposite of a problem. MEASURED 2026-08-22 on
+        # stepper/android (both columns): light scored a real 13-frame motion at worst SSIM 0.9997 / 0.00%
+        # while dark measured both columns frozen. Under `all`, light's PASS — an excellent result —
+        # cancelled dark's exemption and took the cell green -> YELLOW with a byte-identical review string.
+        # Two cells moved that way on one rescore with no capture change.
+        #
+        # So a theme counts toward the exemption when it is EITHER frozen-symmetric OR not INVALID at all.
+        # The pruned-run hole stays shut: a pruned or expired run yields `no-frames` / `unpairable` /
+        # `not-driven`, which are INVALID and not both_frozen, so the predicate is False and the cap fires.
+        def _frozen_ok(v):
+            return bool(v.get("both_frozen")) or v.get("verdict") != motion_score.INVALID
+        frozen_both = bool(have) and all(_frozen_ok(v) for v in have.values())
         if (governing == motion_score.INVALID and status == "green"
                 and not never_expected and not frozen_both):
             status = "yellow"
