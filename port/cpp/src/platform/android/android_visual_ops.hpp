@@ -470,9 +470,24 @@ namespace maui::platform::android
         // into an opaque tint plus Drawable.setAlpha(a)". Implemented, built clean, deployed, measured —
         // the pixels did not move at all (still (0,0,0) at y=517). So the alpha is not what is lost, and
         // whatever paints that line is not this setTintList call taking effect with the wrong alpha.
-        // Next place to look is whether this tint reaches the drawable AT ALL on this path: getBackground()
-        // above may not be returning the framework 9-patch by the time update_background runs, in which
-        // case the black line is some other drawable entirely and tinting is a no-op.
+        // WHAT old_bg ACTUALLY IS, logged from the device with a temporary __android_log_print probe:
+        //     apply_field_background old_bg=android.graphics.drawable.InsetDrawable
+        // i.e. the framework wraps @android:drawable/edit_text's 9-patch in an InsetDrawable for its
+        // padding, so every setTintList/setTintMode/setAlpha here lands on a WRAPPER, not on the 9-patch.
+        //
+        // SECOND REFUTED HYPOTHESIS: "a Drawable inflated from a resource shares its ConstantState, so
+        // tinting it without mutate() is the classic Android silent no-op". Implemented properly —
+        // mutate() called on old_bg with the RETURNED handle replacing it, since tinting the pre-mutate
+        // object would change nothing — built clean, deployed, re-measured. The pixels again did not move
+        // by one level ((0,0,0) at y=517, (0,0,2) at y=518, identical to before).
+        //
+        // So BOTH "the tint is applied with the wrong alpha" and "the tint is dropped because the drawable
+        // is shared" are dead. Two builds, two device measurements, zero pixels moved. The remaining
+        // reading is that THIS DRAWABLE IS NOT WHAT PAINTS THAT LINE — the black 2px line at the field's
+        // bottom is something else (the EditText's own foreground/compound chrome, or a layer of the stack
+        // this function installs sitting above the tinted one). Verify that before writing any more tint
+        // code: log the LayerDrawable's child classes and their bounds after setBackground, rather than
+        // theorising about SRC_IN again.
         if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
         {
             jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
