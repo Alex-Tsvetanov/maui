@@ -43,6 +43,7 @@
 
 #include "maui/core/aspect.hpp"
 #include "maui/core/cancellation_token.hpp"
+#include "maui/core/dimension.hpp"
 #include "maui/core/i_image.hpp"
 #include "maui/core/i_image_source.hpp"
 #include "maui/core/i_stream_image_source.hpp" // image_bytes
@@ -432,6 +433,28 @@ namespace maui::core
         // the image's natural dimensions, ignoring the constraint — which leaves an AspectFit image measured
         // to its full natural height inside a width-constrained stack (the bundled dotnet_bot was sized 694pt
         // tall, pushing its content below the fold). size_that_fits_image computes the aspect-aware fit.
+        //
+        // An EXPLICIT WidthRequest / HeightRequest REPLACES the incoming constraint before that fit — the two
+        // lines the port was missing (src/Core/src/Handlers/ViewHandlerExtensions.iOS.cs:85-86, the
+        // `platformView is UIImageView` branch). Without them the aspect ratio is applied against the parent's
+        // available width, so `image`'s WidthRequest=200 gif (400x300 natural, 378pt of stack width) measured
+        // 200 x 283.5pt instead of 200 x 150pt; AspectFit then centred the 150pt of artwork inside the 283.5pt
+        // box and pushed the heart 66.75pt (200px @3x) down the page. Note this is a REPLACE, not a clamp:
+        // C# assigns the virtual dimension rather than min()-ing it, so an explicit request larger than the
+        // slot still measures at its requested size (the label handler's clamp is LabelHandler's own rule,
+        // not this one).
+        const i_image* const v = virtual_view();
+        if (v != nullptr)
+        {
+            if (const double virtual_width = v->width(); maui::core::dimension::is_explicit_set(virtual_width))
+            {
+                width_constraint = virtual_width;
+            }
+            if (const double virtual_height = v->height(); maui::core::dimension::is_explicit_set(virtual_height))
+            {
+                height_constraint = virtual_height;
+            }
+        }
         const CGFloat width = std::isfinite(width_constraint) ? static_cast<CGFloat>(width_constraint) : CGFLOAT_MAX;
         const CGFloat height = std::isfinite(height_constraint) ? static_cast<CGFloat>(height_constraint) : CGFLOAT_MAX;
         const CGSize fitting =

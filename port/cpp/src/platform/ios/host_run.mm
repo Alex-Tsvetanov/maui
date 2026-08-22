@@ -283,15 +283,53 @@ namespace
             if (const char* dump = getenv("MAUI_GEOMETRY_DUMP"); dump != nullptr && strcmp(dump, "1") == 0)
             {
                 UIWindow* const w = self.window;
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)),
-                               dispatch_get_main_queue(), ^{
-                    UIView* const root = w.rootViewController.view;
-                    NSLog(@"[GEOMDUMP] page.ContentView frame=%@ safeArea=%@",
-                          NSStringFromCGRect(root.frame), NSStringFromUIEdgeInsets(root.safeAreaInsets));
-                    __block void (^walk)(UIView*) = nil;
-                    walk = ^(UIView* v) {
-                        if ([v isKindOfClass:[UIScrollView class]] &&
-                            ![v isKindOfClass:[UICollectionView class]])
+                dispatch_after(
+                    dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                      UIView* const root = w.rootViewController.view;
+                      NSLog(@"[GEOMDUMP] page.ContentView frame=%@ safeArea=%@", NSStringFromCGRect(root.frame),
+                            NSStringFromUIEdgeInsets(root.safeAreaInsets));
+                      // THE WHOLE TREE, class + frame, indented by depth. The scroll/collection lines below
+                      // stay because they carry terms a bare frame does not (contentSize, insets, offset),
+                      // but a frame-per-view walk is what actually localises a layout delta: it shows which
+                      // ANCESTOR is the wrong size, which a leaf frame alone never does.
+                      __block void (^tree)(UIView*, int) = nil;
+                      tree = ^(UIView* v, int depth) {
+                        NSMutableString* const pad = [NSMutableString string];
+                        for (int i = 0; i < depth; ++i)
+                        {
+                            [pad appendString:@"  "];
+                        }
+                        NSLog(@"[GEOMTREE] %@%@ frame=%@", pad, NSStringFromClass([v class]),
+                              NSStringFromCGRect(v.frame));
+                        for (UIView* sub in v.subviews)
+                        {
+                            tree(sub, depth + 1);
+                        }
+                      };
+                      tree(root, 0);
+                      __block void (^walk)(UIView*) = nil;
+                      walk = ^(UIView* v) {
+                        // A UICollectionView's own frame + content size + the SUPERVIEW it was sized
+                        // against: the horizontal-grid row pitch is contentSize.height / span, and whether
+                        // that height tracks the stack slot or the page is exactly the superview question.
+                        if ([v isKindOfClass:[UICollectionView class]])
+                        {
+                            UICollectionView* const cv = (UICollectionView*)v;
+                            NSLog(@"[GEOMDUMP] collection frame=%@ contentSize=%@ layoutContentSize=%@ "
+                                  @"super=%@ superFrame=%@",
+                                  NSStringFromCGRect(cv.frame), NSStringFromCGSize(cv.contentSize),
+                                  NSStringFromCGSize(cv.collectionViewLayout.collectionViewContentSize),
+                                  cv.superview == nil ? @"(nil)" : NSStringFromClass([cv.superview class]),
+                                  NSStringFromCGRect(cv.superview.frame));
+                        }
+                        if ([v isKindOfClass:[UIImageView class]])
+                        {
+                            UIImageView* const iv = (UIImageView*)v;
+                            NSLog(@"[GEOMDUMP] image frame=%@ natural=%@ mode=%ld", NSStringFromCGRect(iv.frame),
+                                  iv.image == nil ? @"(none)" : NSStringFromCGSize(iv.image.size),
+                                  (long)iv.contentMode);
+                        }
+                        if ([v isKindOfClass:[UIScrollView class]] && ![v isKindOfClass:[UICollectionView class]])
                         {
                             UIScrollView* const sv = (UIScrollView*)v;
                             NSLog(@"[GEOMDUMP] scroll frame=%@ contentSize=%@ adjInset=%@ offset=%@",
@@ -311,10 +349,10 @@ namespace
                         {
                             walk(sub);
                         }
-                    };
-                    walk(root);
-                    NSLog(@"[GEOMDUMP] end");
-                });
+                      };
+                      walk(root);
+                      NSLog(@"[GEOMDUMP] end");
+                    });
             }
         }
         @catch (NSException* exception)
