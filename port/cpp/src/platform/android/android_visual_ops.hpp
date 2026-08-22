@@ -482,12 +482,20 @@ namespace maui::platform::android
         // by one level ((0,0,0) at y=517, (0,0,2) at y=518, identical to before).
         //
         // So BOTH "the tint is applied with the wrong alpha" and "the tint is dropped because the drawable
-        // is shared" are dead. Two builds, two device measurements, zero pixels moved. The remaining
-        // reading is that THIS DRAWABLE IS NOT WHAT PAINTS THAT LINE — the black 2px line at the field's
-        // bottom is something else (the EditText's own foreground/compound chrome, or a layer of the stack
-        // this function installs sitting above the tinted one). Verify that before writing any more tint
-        // code: log the LayerDrawable's child classes and their bounds after setBackground, rather than
-        // theorising about SRC_IN again.
+        // is shared" are dead. Two builds, two device measurements, zero pixels moved.
+        //
+        // PROVEN, and it closes the whole tint line of enquiry. Instrumented at the moment of the call:
+        //     tint: value_of=1 set_tint_list=1 argb=b3ffffff   <- correct constant, so is_night_mode is fine
+        //     tint: setTintList CALLED, threw=0                <- the call runs and does not throw
+        // Then the decisive bisect: the tint was forced to OPAQUE RED (0xFFFF0000), rebuilt, redeployed.
+        // The line stayed (0,0,0) — BLACK, unchanged, not one pixel of red.
+        //
+        // So THIS DRAWABLE IS NOT WHAT PAINTS THAT LINE. setTintList reaches the InsetDrawable, executes
+        // cleanly, and has no bearing on the rendered pixels. Every tint-shaped fix here is futile — do not
+        // write a fourth one. The black 2px line is drawn by something this function never touches, and
+        // finding it is the ONLY next step: dump the view's drawable tree after setBackground (LayerDrawable
+        // children, their classes AND bounds), and check whether a later call replaces the background this
+        // function installs.
         if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
         {
             jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
