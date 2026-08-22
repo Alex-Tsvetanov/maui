@@ -612,9 +612,7 @@ def build(platform: str, frameworks: list[str]) -> None:
 def ios_install(frameworks: list[str]) -> None:
     # Release on BOTH sides -- see build(). The MAUI reference must match the port's grade or the
     # comparison is a strawman in one direction.
-    apps = {"maui_xaml": PORT / "maui-reference/app/bin/Release/net10.0-ios/iossimulator-arm64/MauiReference.app",
-            "cpp": CPP / "examples/build-ios-release/gallery/gallery.app",
-            "cpp_xaml": CPP / "examples/build-ios-release/gallery_xaml/gallery_xaml.app"}
+    apps = freshness.IOS_APPS       # ONE definition; the freshness gate checks these same bundles
     for fw in frameworks:
         app = apps[fw]
         # The EXECUTABLE, not the bundle directory. CMake creates the .app skeleton at CONFIGURE time,
@@ -718,6 +716,26 @@ def lane_ios(frameworks, themes, examples, visible, skip_build, settle, gif_secs
     if not skip_build:
         build("ios", frameworks)
         ios_install(frameworks)
+    # FRESHNESS GATE, after the build so it judges what will actually be captured. It is not made
+    # redundant by that build: build() covers the C++ GALLERIES ONLY -- "the MAUI reference app is
+    # built by hand" is its own docstring -- so the ground-truth column every score is measured
+    # against is unguarded on every lane, and that is the column that went a MONTH stale on Catalyst
+    # across 61 changed twins. With --skip-build nothing above ran at all and all three columns are
+    # whatever was last built.
+    if os.environ.get("PARITY_ALLOW_STALE") != "1":
+        try:
+            stale, advisory = freshness.check("ios", "ios", list(frameworks), lane="ios")
+        except Exception as exc:
+            stale, advisory = [f"freshness probe failed ({exc.__class__.__name__}: {exc})"], []
+        for p in advisory:
+            log(f"      ~~ {p}")
+        if stale:
+            for p in stale:
+                log(f"      !! {p}")
+            fail(f"ios: freshness gate ({len(stale)} stale artifact(s)) — lane SKIPPED. Rebuild "
+                 f"(drop --skip-build; the MAUI reference needs its own `dotnet build`), or set "
+                 f"PARITY_ALLOW_STALE=1 to capture anyway.")
+            return
 
     import capture_ios
 
@@ -1296,7 +1314,7 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
             try:
                 stale, advisory = freshness.check(
                     platform, plat_dir, [fw for fw in frameworks if fw in cols],
-                    scores=bool({"cpp", "cpp_xaml"} & set(columns)))
+                    scores=bool({"cpp", "cpp_xaml"} & set(columns)), lane=lane)
             except Exception as exc:                      # a probe that cannot run must not silently pass
                 stale, advisory = [f"freshness probe failed ({exc.__class__.__name__}: {exc})"], []
             # ADVISORY, not fatal: a stale SCORE is resolved by the very run this would be blocking

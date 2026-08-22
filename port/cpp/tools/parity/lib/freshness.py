@@ -3,20 +3,22 @@
 
 WHY
 ---
-The Windows lane declares `artifact_remote` for all three columns, so recapture.py's build() skips it
-outright ("the Windows guest builds its own artifacts") and the guest builds are run BY HAND via
-build_gallery_windows.ps1 / build_maui_reference.ps1. The lane log goes straight from
-`=== LANE windows/windows` to `--- windows/windows: capture`: there is no build stage between a
-hand-run build and a three-hour capture, and therefore nothing that asserts the binaries are newer
-than the source. A whole run can silently score last week's build while every artifact-level check
-passes, because every artifact-level check only asks whether the file EXISTS.
+NO LANE REBUILDS ITS GROUND TRUTH. recapture.py's build() says so itself -- "the MAUI reference app is
+built by hand" -- so on every one of the four lanes the column every score is measured against is
+hand-built, and nothing between that hand-run build and a multi-hour capture asserts it is newer than
+the source. Windows is the extreme case (all three columns are `artifact_remote`, prebuilt on the
+guest, and build() skips the lane entirely), but it is a difference of degree: on ios `--skip-build`
+leaves all three columns at whatever was last built, and on catalyst/appkit build() refreshes the two
+galleries and never the reference. A whole run can silently score last week's build while every
+artifact-level check passes, because every artifact-level check only asks whether the file EXISTS.
 
 This has cost real time more than once:
   * `containers` (2026-08-22) needed no code change at all -- gallery.exe was from 08-18.
   * `selection_synchronization` (2026-08-22) likewise -- MauiReference.exe from 08-19, scored against
     a twin edited 08-20.
   * Catalyst's MauiReference was once a MONTH old across 61 changed twins.
-It is NOT Windows-specific: recapture.py rebuilds neither MauiReference nor the galleries on ANY lane.
+  * The android reference is the same shape of exposure and is deliberately NOT covered here -- see
+    the note at the bottom of this docstring, its artifact is the INSTALLED package, not a file.
 
 WHAT THIS CATCHES, AND WHAT IT DOES NOT
 ---------------------------------------
@@ -49,6 +51,14 @@ Measured 2026-08-22 on the windows board: exactly 2 still-scored pages tripped i
 while `pixel` on byte-identical bytes said green (SSIM 0.9958, 0.09%); a write-free rescore moved it
 yellow -> green. The cell was a stale SCORE, not a port defect, and it had already survived one
 round of forensics into the loader's SelectedItems path.
+
+ANDROID IS DELIBERATELY OUT OF SCOPE, and not by oversight. capture_all_csharp_android.sh states it
+"only DRIVES an already-installed app; it does not build", so the artifact being scored is the app
+INSTALLED ON THE DEVICE, not any file in the tree. Measured 2026-08-22 those two disagree completely:
+the newest reference APK on disk was 8 days old (08-14 18:10, older than three twin edits) while the
+device reported lastUpdateTime 08-22 02:44 -- fresh. A file-mtime check would have screamed STALE at a
+perfectly good lane, which is the false positive that gets a guard switched off. The honest probe there
+is `adb shell dumpsys package <pkg>` and it belongs with whoever owns the android lane.
 
 NOTE the weak-signal trap: on the Windows lane byte-identical cpp/xaml columns are COMMON, because
 only window/content_page/layout/label/button are real WinUI handlers so far (windows.toml) and every
@@ -92,7 +102,7 @@ def windows_artifacts() -> dict[str, str]:
     The config already carries both halves per column: `artifact_remote` (the directory the runner
     uses in place of deploying from the host) and `process` (gallery.exe / gallery_xaml.exe /
     MauiReference.exe). Joining them is the whole derivation, and it keeps the guard honest to the
-    same doctrine windows_source_roots() follows -- a hand-copied second list of these paths would
+    same doctrine source_roots() follows -- a hand-copied second list of these paths would
     drift the moment C:/maui-build moves, and a guard that then reports DECLARED BUT MISSING on three
     healthy artifacts gets switched off rather than fixed.
 
@@ -138,8 +148,9 @@ def newest(roots: list[Path]) -> tuple[float, Path | None]:
     return best, where
 
 
-def windows_source_roots(column: str, compiled_src_dirs: list[str]) -> list[Path]:
-    """The host paths a Windows column's artifact is built FROM.
+def source_roots(column: str, compiled_src_dirs: list[str]) -> list[Path]:
+    """The host paths a column's artifact is built FROM. Lane-agnostic: only `compiled_src_dirs`
+    differs per lane, and that always comes from the build's OWN object tree.
 
     THREE distinct dependency sets, not two. The third is the one a `git log -- src/platform/windows/`
     check is structurally blind to, and that exact wrong check was once used to rebut a staleness
@@ -169,8 +180,10 @@ def windows_source_roots(column: str, compiled_src_dirs: list[str]) -> list[Path
     plat = inc / "platform"
     if plat.is_dir():
         roots += [p for p in plat.iterdir() if p.is_dir() and p.name in compiled_platforms]
-    roots.append(CPP / "examples" / ("gallery" if column == "cpp" else "gallery_xaml"))
-    if column == "cpp_xaml":
+    # appkit names its columns appkit_cpp / appkit_xaml; catalyst, ios and windows use cpp / cpp_xaml.
+    xaml_col = column in ("cpp_xaml", "appkit_xaml")
+    roots.append(CPP / "examples" / ("gallery_xaml" if xaml_col else "gallery"))
+    if xaml_col:
         roots.append(PORT / "maui-reference" / "pages")
     return roots
 
@@ -187,11 +200,11 @@ def windows_facts(artifacts: list[str]) -> dict:
     return json.loads(out.replace("\r", "").strip())
 
 
-def verdicts(facts: dict, columns: list[str]) -> list[str]:
+def verdicts(facts: dict, artifacts: dict[str, str], columns: list[str] | None = None) -> list[str]:
     """The stale/fresh DECISION, separated from the SSH that feeds it so the selftest can pin it.
 
     Empty list == every artifact is newer than its source."""
-    want = [c for c in columns if c in WINDOWS_ARTIFACTS]
+    want = [c for c in (columns if columns is not None else artifacts) if c in artifacts]
     import datetime as _dt
 
     def epoch(iso: str) -> float:
@@ -199,14 +212,16 @@ def verdicts(facts: dict, columns: list[str]) -> list[str]:
 
     problems = []
     for col in want:
-        path = WINDOWS_ARTIFACTS[col]
+        path = artifacts[col]
         info = facts["artifacts"].get(path, {"exists": False})
         if not info.get("exists"):
-            problems.append(f"{col}: DECLARED BUT MISSING on the guest -- {path}. Build it "
-                            f"({'build_maui_reference.ps1' if col == 'maui_xaml' else 'build_gallery_windows.ps1'}).")
+            how = ("the MAUI reference is built BY HAND on every lane -- see build()'s docstring"
+                   if col in ("maui_xaml",) else "run the lane's release build")
+            problems.append(f"{col}: DECLARED BUT MISSING -- {path}. Nothing can be captured from it "
+                            f"({how}).")
             continue
         art = epoch(info["mtime"])
-        src, where = newest(windows_source_roots(col, facts.get("source_dirs", [])))
+        src, where = newest(source_roots(col, facts.get("source_dirs", [])))
         if src > art + TOLERANCE_S:
             gap = src - art
             rel = where.relative_to(REPO) if where else "?"
@@ -227,7 +242,121 @@ def stale_windows(columns: list[str]) -> list[str]:
     want = [c for c in columns if c in WINDOWS_ARTIFACTS]
     if not want:
         return []
-    return verdicts(windows_facts([WINDOWS_ARTIFACTS[c] for c in want]), want)
+    return verdicts(windows_facts([WINDOWS_ARTIFACTS[c] for c in want]), WINDOWS_ARTIFACTS, want)
+
+
+# --------------------------------------------------------------------------- the local lanes
+# ios / catalyst / appkit deploy from LOCAL paths, so their facts need no SSH at all -- the same
+# decision function, fed by a stat instead of a probe.
+#
+# WHY THEY NEED THE GUARD AT ALL, given build() runs first: build() covers the C++ GALLERIES ONLY.
+# It says so in its own docstring -- "the MAUI reference app is built by hand". So the ground-truth
+# column, the one every score is measured against, is hand-built on EVERY lane and is exactly what
+# went a MONTH stale on Catalyst across 61 changed twins. And on ios the galleries are skippable too:
+# lane_ios does `if not skip_build: build(...); ios_install(...)`, so --skip-build leaves all three
+# columns at whatever was last built.
+IOS_APPS = {
+    # The bundles ios_install() deploys. Defined HERE rather than inside ios_install so there is one
+    # definition: recapture.py imports these back. The reverse (freshness importing recapture) would
+    # be an import cycle, since recapture imports freshness for the gate.
+    # RELEASE on both sides -- see build(): a Release port against a Debug reference is a strawman,
+    # and a Debug MAUI bundle additionally runs the INTERPRETED XAML loader, which disagrees with
+    # XamlC on exactly the SelectedItems arms this board scores.
+    "maui_xaml": PORT / "maui-reference/app/bin/Release/net10.0-ios/iossimulator-arm64/MauiReference.app",
+    "cpp": CPP / "examples/build-ios-release/gallery/gallery.app",
+    "cpp_xaml": CPP / "examples/build-ios-release/gallery_xaml/gallery_xaml.app",
+}
+# lane -> the build dir whose object tree scopes that lane's sources (see local_compiled_dirs).
+LANE_BUILD_ROOT = {"ios": CPP / "examples/build-ios-release",
+                   "catalyst": CPP / "examples/build-maccatalyst-release",
+                   "appkit": CPP / "examples/build-apple-release"}
+
+
+def executable(artifact: Path) -> Path:
+    """The BINARY inside a deployable, under whichever of the three shapes this repo uses.
+
+    Never the bundle directory: ios_install() spells out why -- CMake creates the .app skeleton at
+    CONFIGURE time, so an exists() check on it passed on a build that had compiled nothing, and the
+    lane published 73 stale port frames as a fresh Release board.
+
+    The process name is the artifact's own stem (MauiReference.app -> MauiReference, gallery.app ->
+    gallery, and the AppKit target DIRECTORY build-apple-release/gallery -> gallery), so this needs no
+    second table of process names to drift out of step with local.toml's `process` keys.
+        Catalyst/AppKit .app  <bundle>/Contents/MacOS/<stem>
+        iOS .app              <bundle>/<stem>
+        AppKit target dir     <dir>/<stem>
+    """
+    if artifact.is_file():
+        return artifact
+    for cand in (artifact / "Contents" / "MacOS" / artifact.stem, artifact / artifact.stem):
+        if cand.is_file():
+            return cand
+    return artifact / artifact.stem      # absent: reported as DECLARED BUT MISSING under this name
+
+
+def local_compiled_dirs(build_root: Path) -> list[str]:
+    """The local twin of artifact_facts.ps1's derivation, and for the same reason: ask the BUILD which
+    sources it compiled instead of hand-maintaining a per-platform exclude list.
+
+    Measured 2026-08-22 it returns, per lane, exactly the platform dirs that lane compiles --
+    catalyst and ios: apple_shared + headless + ios (Catalyst reuses the iOS UIKit backend verbatim);
+    appkit: apple + apple_shared + headless -- and never windows or android. The examples build dir
+    holds the framework objects too (the framework is add_subdirectory'd into it), so one root covers
+    both halves, exactly as on the guest."""
+    dirs = set()
+    for obj in build_root.rglob("*.o"):
+        rel = str(obj).split(".dir/", 1)[-1]
+        d = os.path.dirname(rel)
+        if d.startswith("src/"):
+            dirs.add(d)
+    return sorted(dirs)
+
+
+def local_artifacts(lane: str, columns: list[str]) -> dict[str, str]:
+    """column -> the EXECUTABLE this lane will actually run.
+
+    For the two VM lanes this defers to run_comparison.column_artifact rather than reading the config
+    itself, because that function encodes a trap worth not re-deriving: local.toml's `artifact` keys
+    point at DEBUG paths while `artifact_release` holds the Release ones, the board captures RELEASE
+    on every lane, and a declared-but-unbuilt `artifact_release` must be a loud skip and never a
+    fall back to the Debug bundle. Reading `artifact` here would have this guard certifying the
+    freshness of a bundle the runner is not going to deploy."""
+    if lane == "ios":
+        return {c: str(executable(p)) for c, p in IOS_APPS.items() if c in columns}
+    import tomllib
+    sys.path.insert(0, str(COMP / "tools"))
+    import run_comparison
+    cfg = tomllib.loads((COMP / "config" / "local.toml").read_text())
+    env = "macos-arm64" if lane == "catalyst" else "macos-appkit"
+    cols = cfg["environments"][env]["columns"]
+    out = {}
+    for name in columns:
+        ccfg = cols.get(name)
+        if ccfg is None:
+            continue
+        art = run_comparison.column_artifact(name, dict(ccfg))
+        # None == declared-but-not-built; column_artifact already said so on stdout. Point at the
+        # release path anyway so the verdict names it rather than silently dropping the column.
+        out[name] = str(executable(art if art else REPO / ccfg.get("artifact_release", ccfg["artifact"])))
+    return out
+
+
+def stale_local(lane: str, columns: list[str]) -> list[str]:
+    import datetime as _dt
+    arts = local_artifacts(lane, columns)
+    if not arts:
+        return []
+    facts = {"now": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+             "source_dirs": local_compiled_dirs(LANE_BUILD_ROOT[lane]),
+             "artifacts": {}}
+    for path in arts.values():
+        p = Path(path)
+        st = p.stat() if p.is_file() else None
+        facts["artifacts"][path] = {
+            "exists": st is not None,
+            "mtime": _dt.datetime.fromtimestamp(st.st_mtime, _dt.timezone.utc).isoformat() if st else "",
+            "length": st.st_size if st else 0}
+    return verdicts(facts, arts)
 
 
 # --------------------------------------------------------------------------- score contradictions
@@ -333,7 +462,8 @@ def unverified_cells(plat_dir: str) -> list[tuple[str, str, str]]:
     return out
 
 
-def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = True) -> tuple[list[str], list[str]]:
+def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = True,
+          lane: str = "") -> tuple[list[str], list[str]]:
     """(fatal, advisory) for a lane about to capture.
 
     `plat_dir` is the BOARD directory, which is not the platform name -- macos writes `maccatalyst`.
@@ -350,7 +480,7 @@ def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = Tr
     on it would refuse the cure and, being unfixable from inside the lane, would get the whole gate
     switched off. So the score checks are reported into the log and the run proceeds.
     """
-    fatal = stale_windows(frameworks) if platform == "windows" else []
+    fatal = stale_windows(frameworks) if platform == "windows" else stale_local(lane, frameworks)
     advisory = score_contradictions(plat_dir) if scores else []
     return fatal, advisory
 
@@ -388,9 +518,9 @@ def selftest() -> None:
     # Dependency scoping. The object tree decides which platform dirs count, so an iOS edit is
     # invisible to a Windows build and a twin edit reaches BOTH xaml-bearing columns.
     compiled = ["src/core", "src/xaml", "src/platform/headless", "src/platform/windows"]
-    cpp_roots = windows_source_roots("cpp", compiled)
-    xaml_roots = windows_source_roots("cpp_xaml", compiled)
-    ref_roots = windows_source_roots("maui_xaml", compiled)
+    cpp_roots = source_roots("cpp", compiled)
+    xaml_roots = source_roots("cpp_xaml", compiled)
+    ref_roots = source_roots("maui_xaml", compiled)
     assert CPP / "src/platform/windows" in cpp_roots
     assert CPP / "src/platform/headless" in cpp_roots         # headless DOES compile in -- not an exclude
     assert CPP / "src/platform/ios" not in cpp_roots          # …and iOS does not
@@ -399,6 +529,16 @@ def selftest() -> None:
     twins = PORT / "maui-reference" / "pages"
     assert twins in xaml_roots, "a twin edit must invalidate cpp_xaml (CMakeLists.txt:80 globs them)"
     assert twins not in cpp_roots, "…but not the non-XAML gallery, which does not read them"
+    # EVERY xaml column, under either naming. appkit calls its columns appkit_cpp/appkit_xaml, and a
+    # rule written only for "cpp_xaml" silently stops guarding the AppKit XAML column -- the twins are
+    # the dependency most likely to move (they are edited to author pages) and least likely to be
+    # noticed, since no port source is touched at all.
+    assert twins in source_roots("appkit_xaml", compiled), "appkit_xaml reads the twins too"
+    assert twins not in source_roots("appkit_cpp", compiled)
+    for xcol in ("cpp_xaml", "appkit_xaml"):
+        assert CPP / "examples/gallery_xaml" in source_roots(xcol, compiled), xcol
+    for ccol in ("cpp", "appkit_cpp"):
+        assert CPP / "examples/gallery" in source_roots(ccol, compiled), ccol
     assert ref_roots == [PORT / "maui-reference"]
 
     # --- THE STALE/FRESH DECISION, replayed against the two incidents that motivated this guard.
@@ -413,28 +553,60 @@ def selftest() -> None:
         return {"source_dirs": compiled,
                 "artifacts": {WINDOWS_ARTIFACTS[col]: {"exists": True, "mtime": iso(when), "length": 1}}}
 
+    def verdict(col: str, when: float) -> list[str]:
+        return verdicts(facts_at(col, when), WINDOWS_ARTIFACTS, [col])
+
     now = time.time()
     for col in ("cpp", "cpp_xaml", "maui_xaml"):
-        src, _ = newest(windows_source_roots(col, compiled))
-        assert verdicts(facts_at(col, src + 3600), [col]) == [], col          # built an hour after: fresh
+        src, _ = newest(source_roots(col, compiled))
+        assert verdict(col, src + 3600) == [], col          # built an hour after: fresh
         # `containers` was gallery.exe from 08-18; `selection_synchronization` was MauiReference.exe
         # from 08-19 against a twin edited 08-20. Both are "artifact a day or more behind its source".
-        late = verdicts(facts_at(col, src - 86400), [col])
+        late = verdict(col, src - 86400)
         assert len(late) == 1 and "STALE ARTIFACT" in late[0], (col, late)
         assert f"{24.0:.1f}h newer" in late[0], late[0]
     # The ground-truth column must additionally name the board signature, because a stale reference
     # is the one that reads as a PORT regression rather than as a missing build.
-    assert "green->yellow" in verdicts(facts_at("maui_xaml", 0.0), ["maui_xaml"])[0]
+    assert "green->yellow" in verdict("maui_xaml", 0.0)[0]
     # Skew and build duration must not fire; a day must.
-    src, _ = newest(windows_source_roots("cpp", compiled))
-    assert verdicts(facts_at("cpp", src - TOLERANCE_S + 30), ["cpp"]) == [], "within tolerance"
-    assert verdicts(facts_at("cpp", src - TOLERANCE_S - 30), ["cpp"]) != [], "past tolerance"
+    src, _ = newest(source_roots("cpp", compiled))
+    assert verdict("cpp", src - TOLERANCE_S + 30) == [], "within tolerance"
+    assert verdict("cpp", src - TOLERANCE_S - 30) != [], "past tolerance"
 
     # A declared-but-missing artifact is a LOUD problem, never a silent pass -- matching how this
     # lane already treats a missing artifact everywhere else.
     missing = {"source_dirs": compiled,
                "artifacts": {WINDOWS_ARTIFACTS["cpp"]: {"exists": False, "mtime": "", "length": 0}}}
-    assert "DECLARED BUT MISSING" in verdicts(missing, ["cpp"])[0]
+    assert "DECLARED BUT MISSING" in verdicts(missing, WINDOWS_ARTIFACTS, ["cpp"])[0]
+
+    # --- THE LOCAL LANES. The three things that would silently certify the wrong file.
+    # 1. The EXECUTABLE, never the bundle dir -- the whole point of the 73-stale-frames incident.
+    for lane, col in (("ios", "cpp"), ("catalyst", "cpp"), ("appkit", "appkit_cpp")):
+        arts = local_artifacts(lane, [col])
+        assert col in arts, (lane, arts)
+        exe = Path(arts[col])
+        assert exe.name in ("gallery", "gallery.exe"), exe
+        assert exe.parent.name != "examples", exe          # not the build dir itself
+        assert not exe.name.endswith(".app"), exe          # not the bundle
+    # 2. Release, not Debug -- local.toml's `artifact` points at Debug and the board captures Release;
+    #    deploying Debug MAUI additionally swaps XamlC for the INTERPRETED loader, which disagrees on
+    #    exactly the SelectedItems arms this board scores.
+    ref = local_artifacts("catalyst", ["maui_xaml"]).get("maui_xaml", "")
+    assert "/bin/Release/" in ref and "/bin/Debug/" not in ref, ref
+    assert local_artifacts("ios", ["maui_xaml"])["maui_xaml"].count("/bin/Release/") == 1
+    # 3. Per-lane source scoping, derived from each lane's OWN object tree. Catalyst reuses the iOS
+    #    UIKit backend verbatim, AppKit does not -- so one edited .mm is in scope for two lanes and
+    #    out of scope for the other two. Hand-maintaining that would be wrong within a week.
+    for lane, want, unwanted in (("ios", "src/platform/ios", "src/platform/apple"),
+                                 ("catalyst", "src/platform/ios", "src/platform/apple"),
+                                 ("appkit", "src/platform/apple", "src/platform/ios")):
+        root = LANE_BUILD_ROOT[lane]
+        if not root.is_dir():
+            continue                                       # lane never built here; nothing to pin
+        dirs = local_compiled_dirs(root)
+        assert want in dirs, (lane, want, dirs)
+        assert unwanted not in dirs, (lane, unwanted, dirs)
+        assert "src/platform/windows" not in dirs and "src/platform/android" not in dirs, (lane, dirs)
 
     # The guest artifact paths are DERIVED from windows.toml, so a config move must reach the guard.
     assert set(WINDOWS_ARTIFACTS) == {"maui_xaml", "cpp", "cpp_xaml"}, WINDOWS_ARTIFACTS
@@ -477,6 +649,7 @@ def main() -> int:
     ap.add_argument("--board-dir", default=None,
                     help="board captures/ directory (defaults to --platform; macos writes maccatalyst)")
     ap.add_argument("--columns", default="maui_xaml,cpp,cpp_xaml")
+    ap.add_argument("--lane", default="", help="ios | catalyst | appkit (ignored for windows)")
     ap.add_argument("--scores-only", action="store_true", help="skip the guest probe (no SSH)")
     ap.add_argument("--unverified", action="store_true",
                     help="list cells whose published verdict was NOT taken on the stills now on disk "
@@ -501,7 +674,7 @@ def main() -> int:
     if a.scores_only:
         fatal, advisory = [], score_contradictions(board)
     else:
-        fatal, advisory = check(a.platform, board, a.columns.split(","))
+        fatal, advisory = check(a.platform, board, a.columns.split(","), lane=a.lane)
     for p in fatal:
         print(f"  !! {p}")
     for p in advisory:
