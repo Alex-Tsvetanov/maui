@@ -1,119 +1,4 @@
 // web_view_handler — Android (JNI) platform partial: a REAL android.webkit.WebView held as a JNI
-
-// NATURAL HEIGHT: THE PORT MEASURES AN UNLOADED WebView, MAUI MEASURES A LOADED ONE (measured
-// 2026-08-21, android emulator API 34, context_flyout's `<WebView Source="https://example.com/"
-// MinimumHeightRequest="400" />` inside a ScrollView, so the height constraint is infinite).
-//
-//     MAUI renders the WebView band 607px tall   -- example.com's actual content height
-//     the port renders it            1100px      -- 400dp x 2.75 density, i.e. the MINIMUM, not a measure
-//     the port with that floor removed  121px    -- what its WebView actually measures: an EMPTY page
-//
-// So the port's 1100px was never a measurement; it was MinimumHeightRequest masking a 121px natural
-// height. MAUI's 607 comes from the native measure alone -- GetDesiredSizeFromHandler
-// (ViewHandlerExtensions.Android.cs:79) creates the spec and returns the platform measure with nothing
-// applied afterwards (the `Math.Max(platformView.MinimumHeight, ...)` at :72 is a DIFFERENT function and
-// does not run for a leaf). The real gap is that MAUI re-measures once the page finishes loading and this
-// partial does not: it measures once, before any content exists, and never invalidates.
-//
-// AND DO NOT "FIX" THIS BY MATCHING MAUI'S MINIMUM RULE FIRST. MAUI's android leaf measure genuinely
-// ignores Minimum*Request when no explicit Width/Height is set -- ContextExtensions.cs:418 reads
-// minimumSize ONLY inside `if (IsExplicitSet(explicitSize))`, and nothing downstream re-applies it
-// (VerticalStackLayoutManager:40 clamps the STACK's own minimum, not the child's). That is true, it was
-// implemented, and it made the board WORSE: context_flyout barely moved (4.04%/26.19% -> 3.39%/25.90%,
-// still red) while border_stroke went yellow -> RED (2.76% -> 9.82%), because its Labels carry
-// MinimumHeightRequest="20" with no explicit height and the port's floor is currently COMPENSATING for
-// their natural measure too. Reverted.
-//
-// THE RE-MEASURE WAS BUILT AND IS NOT ENOUGH (2026-08-21, verified on device). A dev.mauicpp
-// MauiWebViewClient subclass forwarding onPageFinished into a native invalidate_measure() was
-// implemented, ran correctly, and changed NOTHING. The logs are unambiguous:
-//     measure -> 1080x0 px = 392.7x44.0 dp      first measure: height 0
-//     onPageFinished -> invalidate_measure       the callback fires
-//     measure -> 1080x0 px = 392.7x44.0 dp      the re-measure runs and STILL gets 0
-//     contentHeight=0 css scale=2.750           getContentHeight() is 0 at that callback too
-// So android.webkit.WebView reports 0 under an UNSPECIFIED spec before AND after load, and its content
-// height is not available at onPageFinished either. (Correction to an earlier note: the port's "121px"
-// was never a measurement — it is the 44dp MinimumSize fallback below, at 2.75 density.) Both the client
-// and a getContentHeight() fallback were REVERTED as infrastructure with no working consumer.
-//
-// AND MAUI'S 607px IS STILL UNEXPLAINED. Every obvious source has been ruled out in the C# oracle:
-//     ScrollViewHandler.Android.cs:276-277  passes double.PositiveInfinity down the scroll axis, exactly
-//                                           as the port does -- so MAUI's WebView is measured UNSPECIFIED too
-//     GetDesiredSizeFromHandler (:79)       returns the platform measure with nothing applied after it
-//     MeasureVirtualView's Math.Max(platformView.MinimumHeight, ...) (:72) is the CONTAINER path and does
-//                                           not run for a leaf
-// Whatever produces 607 (= 220.7dp, ~example.com's content height) is somewhere none of those cover.
-//
-// TIMING IS NOT THE ANSWER EITHER (phased probe, on device). The callback was re-run at 0ms, 100ms and
-// 800ms after onPageFinished, reading the WebView each time:
-//     phase=0 measuredH=1100 contentH=0 scale=2.750
-//     phase=1 measuredH=1100 contentH=0 scale=2.750
-//     phase=2 measuredH=1100 contentH=0 scale=2.750
-// getContentHeight() is 0 PERMANENTLY on the port's WebView -- not merely early -- even though the page
-// visibly renders in the capture. So neither a later re-measure nor getContentHeight() can source a
-// height here. Experiment reverted.
-//
-// WHAT THE DEVICE SAYS ABOUT MAUI, read with `uiautomator dump` (no rebuild needed -- this is the cheap
-// instrument for any live layout question on this lane):
-//     MAUI  android.webkit.WebView  y 908-1515  h=607
-//     port  android.webkit.WebView  y 884-1984  h=1100   (the 400dp floor)
-// and MAUI's height is CONTENT-DEPENDENT, not a constant: context_flyout 607, web_view 660,
-// hybrid_web_view 1462. MauiWebView.Android.cs has NO OnMeasure override (all 111 lines read), so MAUI
-// measures a stock WebView under the same infinite constraint the port uses.
-//
-// THE STRUCTURAL HYPOTHESIS IS DISPROVEN. It read: MAUI's android layout runs through ANDROID's measure
-// pass so the WebView is sized by its parent ViewGroup, while the port arranges children to exact
-// C++-computed frames. `uiautomator dump` of MauiReference kills it:
-//     parent ViewGroup  y 136-2274  h=2138
-//     children (Button 100, TextView 52, Switch 132, TextView 52, EditText 109, ImageView 162,
-//               WebView 607, TextView 52, TextView 97) sum to 1363, and content ends at y=1719
-// There is ~555px of SLACK. The WebView is not absorbing remaining space and is not filling its parent --
-// it is ASSIGNED 607 as its own measured height. Do not rewrite the layout seam for this.
-//
-// AND THE PORT'S WebView NEVER REPORTS A HEIGHT, under any spec (measured, one pass, same widget):
-//     spec probe: UNSPEC=0  AT_MOST(4000)=0  EXACTLY(4000)=4000
-// It only ever fills what it is told. Its getContentHeight() is 0 permanently -- on a REMOTE url and on
-// STATIC html alike, at 0/100/800ms after onPageFinished -- even though the page visibly renders. So the
-// gap is not the measure spec, not the timing, and not the content source.
-//
-// ALSO RULED OUT: the missing WebChromeClient. C# installs a MauiWebChromeClient and this partial installs
-// none (see the header), and a chrome-client-less WebView is a documented reason for content metrics never
-// populating. Installing a base android.webkit.WebChromeClient changed NOTHING (same 0/0/4000).
-//
-// WHAT IS LEFT is narrow and specific: MAUI's WebView has a populated contentHeight and the port's does
-// not, for a reason in how the widget is CREATED or HOSTED -- not in how it is measured, loaded, or timed.
-// That is where the next attempt should start, with the C# CreatePlatformView compared line by line
-// against this one, and `uiautomator dump` (no rebuild) as the instrument.
-//
-// ORDER OF WORK: settle that structural question FIRST. Then the natural measure, and only then the
-// minimum rule. The floor is load-bearing scaffolding until those are right.
-//
-// 2026-08-22 — TWO MECHANISMS FOUND IN THE C# ORACLE, AND THE REMAINING BLOCKER NAMED.
-//
-// (1) ARRANGE MUST NOT MEASURE. PlatformArrangeHandler (ViewHandlerExtensions.Android.cs:120-133) calls
-//     platformView.Layout(l,t,r,b) and NOTHING else; the port measured EXACTLY first. Fixed below. This
-//     is a fidelity fix on its own; whether it is what unsticks Chromium's contentHeight is still
-//     UNVERIFIED (see platform_arrange for why a post-load sample is not reachable from here yet).
-//
-// (2) THE MINIMUM RULE — WHY THE EARLIER EXPERIMENT REGRESSED border_stroke, and what the real shape is.
-//     The note above is right that Android's measure spec ignores Minimum*Request; what it MISSES is
-//     where the minimum then comes from. MAUI applies NO size request cross-platform at all —
-//     LayoutExtensions.ComputeDesiredSize (src/Core/src/Layouts/LayoutExtensions.cs:11-31) adds the margin
-//     to the handler's GetDesiredSize and that is the whole method. The minimum is PER-PLATFORM: on
-//     Android it is pushed onto the widget, ViewHandler.cs:52 MapMinimumHeight ->
-//     ViewExtensions.cs:433-438 UpdateMinimumHeight -> View.SetMinimumHeight(px). So every widget that
-//     honours View.getSuggestedMinimumHeight() — TextView, Button, EditText, border_stroke's Labels with
-//     MinimumHeightRequest="20" — keeps its floor, which is exactly what the earlier experiment destroyed
-//     when it removed the port's cross-platform clamp wholesale. android.webkit.WebView is the widget
-//     that does NOT honour it: AwContents.onMeasure reports the content size and never consults the view
-//     minimum, which is why MAUI renders this page's `<WebView MinimumHeightRequest="400" />` at its
-//     220 dp content height and the port renders it at 400 dp.
-//     The port applies the minimum in maui::controls::view::measure (include/maui/controls/view.hpp,
-//     resolve_size_request), i.e. cross-platform — the iOS shape (ViewHandlerExtensions.ResolveConstraints
-//     applies it unconditionally) generalised to every backend. Undoing that for this ONE handler needs a
-//     per-handler opt-out in a CORE header, which is not this file's to change; it is written up in the
-//     android lane's report. Until it lands the 400 dp floor still wins and this page's WebView band stays
-//     1100 px no matter what the native measure says.
 // global reference in web_view_platform::native. The android twin of
 // src/platform/apple_shared/web_view_handler.mm (the WKWebView recipe) and the real-native sibling of the
 // in-memory headless mirror (src/platform/headless/web_view_handler.cpp). Ported DIRECTLY from
@@ -131,13 +16,13 @@
 //   - No MauiWebViewClient SUBCLASS / no MauiWebChromeClient: C# installs a WebViewClient that forwards
 //     onPageStarted/onPageFinished/shouldOverrideUrlLoading into Navigating/Navigated and a WebChromeClient
 //     for the JS dialogs (the android analog of the WKNavigationDelegate / WKUIDelegate the apple .mm
-//     installs). Those *subclasses* are dev.mauicpp Java classes the AAR-less app_process backend does not
-//     carry yet, so the REAL native navigation CALLBACKS (and the JS alert/confirm/prompt panels) are NOT
-//     wired — remote-URL navigation EVENTS + the JS bridge are DEFERRED. The headless mirror still drives
-//     the simulated navigation channel for the unit suite.
-//     The BASE android.webkit.WebViewClient IS installed, though (create_platform_view), because that part
-//     is load-bearing for the RENDER and needs no Java class: see the k_web_view_client_class block for why
-//     a client-less WebView escapes a remote navigation to the system browser.
+//     installs). Neither FORWARDING subclass exists here, so the REAL native navigation CALLBACKS (and the
+//     JS alert/confirm/prompt panels) are NOT wired — remote-URL navigation EVENTS + the JS bridge are
+//     DEFERRED. The headless mirror still drives the simulated navigation channel for the unit suite.
+//     A BASE android.webkit.WebViewClient IS installed, though — by dev.mauicpp.MauiWebView's constructor
+//     on the normal path, and by create_platform_view on the stock-widget fallback — because that part is
+//     load-bearing for the RENDER: see the k_web_view_client_class block for why a client-less WebView
+//     escapes a remote navigation to the system browser.
 //   - UserAgent: WebView's user agent is on android.webkit.WebSettings (getUserAgentString /
 //     setUserAgentString) rather than WKWebView's CustomUserAgent KVC. map_user_agent pushes a set value to
 //     WebSettings.setUserAgentString and reads the default back into the virtual view (the bidirectional
@@ -157,50 +42,63 @@
 // WITHOUT a Java VM) observes exactly the headless partial's behavior, and the gallery app host (a real
 // Activity WITH a JavaVM + Activity context) additionally drives the real android.webkit.WebView.
 
-// SOLVED 2026-08-22 — THE 607-vs-1100 GAP IS THE MINIMUM, AND MAUI DROPS IT ON ANDROID.
+// CLOSED 2026-08-22 — context_flyout is SSIM 1.0000 / 0.00% in both themes and both port columns. The
+// board's last RED was ONE band, the <WebView Source="https://example.com/" MinimumHeightRequest="400" />
+// on port/maui-reference/pages/context_flyout.xaml:33, and it took TWO independent fixes. Recorded
+// together because either one alone makes the page WORSE, which is how an earlier attempt failed.
 //
-// MEASURED on the emulator (density 440, so 1dp = 2.75px), both apps on context_flyout, same session:
-//     MAUI  WebView y 908..1515  =  607 px  =  220.7 dp
-//     PORT  WebView y 908..2008  = 1100 px  =  400.0 dp
-// The twin declares <WebView Source="https://example.com/" MinimumHeightRequest="400" />
-// (port/maui-reference/pages/context_flyout.xaml:33). 400 dp is 1100 px EXACTLY, so the port applies the
-// minimum literally and MAUI does not apply it at all. Both columns start at y=908 — everything above the
-// WebView already matches element for element — so this band is the whole residual of the board's last RED.
+// MEASURED, both apps, same session, emulator-5554 at density 440 (1 dp = 2.75 px):
+//     MAUI  WebView y 908..1515 = 607 px = 220.7 dp        <- example.com's content height
+//     PORT  WebView y 908..2008 = 1100 px = 400.0 dp       <- the MINIMUM, applied literally
+// Everything above y=908 already matched element for element, so this band was the whole residual.
 //
-// WHY MAUI DROPS IT, derived and verified line by line:
-//   1. A leaf's desired size comes from ViewHandlerExtensions.Android.cs:78+ GetDesiredSizeFromHandler,
-//      which passes the minimum ONLY into ContextExtensions.CreateMeasureSpec.
-//   2. CreateMeasureSpec (ContextExtensions.cs:418-434) reads `minimumSize` ONLY inside
-//      `if (IsExplicitSet(explicitSize))`. The WebView has no explicit Height, so the minimum never
-//      enters the spec.
-//   3. The remaining channel is the NATIVE floor: ViewExtensions.cs:433-438 UpdateMinimumHeight calls
-//      platformView.SetMinimumHeight(px). That only bites if the widget's own onMeasure consults
-//      getSuggestedMinimumHeight() — android.webkit.WebView does not.
-//   Net: on Android a MinimumHeightRequest on a WebView is silently inert. On iOS it is NOT —
-//   ViewHandlerExtensions.iOS.cs:125-126 applies ResolveConstraints(measured, Width, Min, Max)
-//   unconditionally. MAUI is genuinely platform-divergent here; do not "unify" the two.
+// (1) THE MINIMUM. MAUI does not apply Minimum*Request on Android at all when no explicit size is set.
+//     GetDesiredSizeFromHandler (ViewHandlerExtensions.Android.cs:78-97) passes it ONLY into
+//     ContextExtensions.CreateMeasureSpec, which reads `minimumSize` exclusively inside
+//     `if (IsExplicitSet(explicitSize))` (ContextExtensions.cs:418-434), and nothing downstream re-applies
+//     it. Its only channel is the native floor — ViewHandler.cs:52 MapMinimumHeight ->
+//     ViewExtensions.cs:433-444 UpdateMinimumHeight -> View.SetMinimumHeight(px) — which bites only for a
+//     widget whose own onMeasure consults getSuggestedMinimumHeight(). TextView/Button/EditText do;
+//     android.webkit.WebView does not. iOS is the opposite: ViewHandlerExtensions.iOS.cs:125-126 applies
+//     ResolveConstraints(measured, Width, Min, Max) UNCONDITIONALLY. MAUI is genuinely platform-divergent
+//     here — do NOT unify the two.
+//     Ported as a MATCHED PAIR: view<>::measure stands the shared clamp down on android
+//     (view.hpp measure_minimum_width/height) AND the mapper pushes the minimum onto the widget
+//     (src/platform/android/view_size_ops.cpp). Landing only the first half is what reddened border_stroke
+//     twice (2.76% -> 9.82%): its Labels carry MinimumHeightRequest="20" and were getting that floor for
+//     free from the shared clamp. With the native push they are back at 2.76%.
+//     A DECOY, recorded so it does not cost a third session an hour: ViewHandlerExtensions.Android.cs:72-74
+//     says "Minimum values win over everything" and clamps Math.Max(platformView.MinimumHeight, ...). It
+//     lives in MeasureVirtualView — the native OnMeasure path MAUI's own view groups take — NOT in the leaf
+//     desired-size path, so it does not run for a WebView.
 //
-// A DECOY THAT COST ME AN HOUR, recorded so it does not cost anyone else one: ViewHandlerExtensions
-// .Android.cs:72-74 says "Minimum values win over everything" and clamps
-// Math.Max(platformView.MinimumHeight, platformHeight). That looks like it should floor the WebView
-// whatever its onMeasure does — but it lives in MeasureVirtualView, the NATIVE OnMeasure path MAUI's own
-// view groups take, NOT in the leaf desired-size path above. Reading it as universal is what made me
-// wrongly reject the 220dp measurement.
+// (2) THE NATURAL MEASURE, which the minimum had been masking. With the floor gone the WebView measured
+//     44 dp: android.webkit.WebView reports 0 under any non-EXACTLY spec until Chromium publishes the
+//     document's content size, and that happens ~200 ms AFTER onPageFinished, silently — sampling
+//     getContentHeight() every 200 ms without measuring showed 0 at t=200 ms and 187 at t=400 ms, with NO
+//     requestLayout() emitted when it landed. MAUI never notices because its layout is Android's own and
+//     any later measure traversal re-enters LayoutViewGroup.OnMeasure -> CrossPlatformMeasure
+//     (LayoutViewGroup.cs:96-129); the port measures each leaf once per top-down pass and had nothing to
+//     re-trigger it. dev.mauicpp.MauiWebView (java/MauiWebView.java) supplies the missing signal from
+//     onDraw — the first moment the value is readable, and the one callback that fires again when the
+//     document reflows at its new height, so it CONVERGES: 0 -> 514 -> 580 -> 599 -> 605 -> 607 px, then
+//     stops. 607 px is MAUI's number exactly.
 //
-// WHAT THE FIX IS NOT: a per-handler "honors_minimum_size_request()" opt-out. That approximates the
-// symptom for one control. The port applies min/max in the SHARED view<>::measure via
-// resolve_size_request (view.hpp:1038), which is exactly right for iOS and wrong for Android.
-// WHAT THE FIX IS: reproduce the Android rule — the virtual minimum must not enter the shared measure
-// when no explicit size is set, and must instead be pushed to the native widget (setMinimumWidth/Height)
-// so controls whose onMeasure DOES honour getSuggestedMinimum* keep their floor.
-// That distinction is load-bearing: an earlier session tried dropping the minimum WITHOUT adding the
-// native push and it reddened border_stroke — those widgets lost a floor they were getting for free.
+// ALSO FIXED HERE, and it is what made (2) reachable: create_platform_view forced
+// setLayerType(LAYER_TYPE_SOFTWARE) unconditionally, where WebViewHandler.Android.cs:31-34 applies it only
+// when the app is NOT hardware-accelerated. Now ported literally (ApplicationInfo.FLAG_HARDWARE_ACCELERATED).
+// The dark window-hole it had been guarding against is already covered by the apphost painting the WINDOW
+// background — verified: web_view and hybrid_web_view dark are unchanged at 0.00% / 0.38%.
+// (Refuted along the way, do not re-run: a missing WebChromeClient; the measure SPEC; timing/onPageFinished
+// re-measures; and the "MAUI's ViewGroup sizes the WebView" structural theory — MAUI's parent has ~555 px
+// of slack, so 607 is the WebView's own measured height, not a fill.)
 
 #include "maui/core/web_view_handler.hpp"
 
 #include <jni.h>
 
 #include <any>
+#include <array>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -242,6 +140,10 @@ namespace
     constexpr const char* k_web_settings_class = "android/webkit/WebSettings";
     constexpr const char* k_web_view_client_class = "android/webkit/WebViewClient";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
+    // The port twin of C#'s MauiWebView (WebViewHandler.Android.cs:23 constructs one instead of a stock
+    // AWebView). Present in the app host's / test host's dex; absent from a VM-less or dex-less host, where
+    // create_platform_view falls back to the stock widget and the async re-measure is simply not wired.
+    constexpr const char* k_maui_web_view_class = "dev/mauicpp/MauiWebView";
 
     // MauiWebView.AssetBaseUrl — the base url an html source with no BaseUrl falls back to.
     constexpr const char* k_asset_base_url = "file:///android_asset/";
@@ -269,6 +171,44 @@ namespace
     [[nodiscard]] jobject widget_of(const maui::core::web_view_platform& platform) noexcept
     {
         return static_cast<jobject>(platform.native);
+    }
+
+    // MauiWebView.nativeInvalidateMeasure — Chromium reported a NEW document content height and asked the
+    // view hierarchy to re-measure (AwLayoutSizer -> View.requestLayout()); the Java side has already
+    // coalesced that onto the UI-thread message queue and gated it on the height actually changing. In MAUI
+    // the bubbled request lands in LayoutViewGroup.OnMeasure -> CrossPlatformMeasure
+    // (src/Core/src/Platform/Android/LayoutViewGroup.cs:96-129); the port drives layout top-down from C++,
+    // so the faithful equivalent is the imperative relayout view::invalidate_measure's header describes.
+    // `peer` is the web_view_platform*; 0 / a disconnected view makes this a no-op (setPeer(0) on disconnect).
+    void native_invalidate_measure(JNIEnv* /*env*/, jobject /*self*/, jlong peer)
+    {
+        if (peer == 0)
+        {
+            return;
+        }
+        auto* platform = reinterpret_cast<maui::core::web_view_platform*>(static_cast<intptr_t>(peer));
+        if (platform->connected_view != nullptr)
+        {
+            platform->connected_view->invalidate_measure();
+        }
+    }
+
+    // Binds nativeInvalidateMeasure to MauiWebView (RegisterNatives — no Java_* export needed). Idempotent,
+    // so calling it on every widget creation is safe (the MauiShapeView.nativeDraw recipe).
+    [[nodiscard]] bool register_invalidate_natives(JNIEnv* env, jclass view_class)
+    {
+        static const std::array<JNINativeMethod, 1> k_methods{
+            JNINativeMethod{.name = const_cast<char*>("nativeInvalidateMeasure"),
+                            .signature = const_cast<char*>("(J)V"),
+                            .fnPtr = reinterpret_cast<void*>(&native_invalidate_measure)},
+        };
+        const jint status = env->RegisterNatives(view_class, k_methods.data(), static_cast<jint>(k_methods.size()));
+        if (status != JNI_OK)
+        {
+            env->ExceptionClear();
+            return false;
+        }
+        return true;
     }
 
     // Clears any pending Java exception (the handler must never leak JNI pending-exception state into the
@@ -551,19 +491,35 @@ namespace maui::core
             return platform; // VM-less / context-less: the headless-mirror degradation (header note)
         }
         auto& cache = default_jni_cache();
-        jclass web_view_class = cache.find_class(env.get(), k_web_view_class);
+        // WebViewHandler.CreatePlatformView constructs a MauiWebView, not a stock AWebView
+        // (WebViewHandler.Android.cs:23). The port's twin lives in the app/test host's dex and carries the
+        // async content-height re-measure (see MauiWebView.java); a host without it degrades to the stock
+        // widget, which renders identically and simply never re-measures.
+        jclass maui_web_view_class = cache.find_class(env.get(), k_maui_web_view_class);
+        if (maui_web_view_class == nullptr)
+        {
+            clear_pending(env.get());
+        }
+        const char* const widget_class_name = maui_web_view_class != nullptr ? k_maui_web_view_class : k_web_view_class;
+        jclass web_view_class = maui_web_view_class != nullptr ? maui_web_view_class
+                                                              : cache.find_class(env.get(), k_web_view_class);
         if (web_view_class == nullptr)
         {
             // android.webkit.WebView not resolvable (no WebView provider) — stay on the headless mirror.
             clear_pending(env.get());
             return platform;
         }
+        if (maui_web_view_class != nullptr && !register_invalidate_natives(env.get(), maui_web_view_class))
+        {
+            // The dex has the class but the binding failed — keep the widget, lose only the re-measure.
+            maui_web_view_class = nullptr;
+        }
         // WebViewHandler.CreatePlatformView: `new MauiWebView(handler, Context)`. The android.webkit.WebView
         // (Context) ctor requires a WebView provider + a per-app data directory; under a real Activity host
         // (the gallery APK) both exist, so it constructs. clear_pending guards the case where it cannot
         // (e.g. a data-dir-less app_process host): the widget stays null and the handler falls back to the
         // headless mirror, never crashing the page (the network-image-stack deferral shape).
-        jmethodID ctor = cache.method(env.get(), k_web_view_class, "<init>", "(Landroid/content/Context;)V");
+        jmethodID ctor = cache.method(env.get(), widget_class_name, "<init>", "(Landroid/content/Context;)V");
         if (ctor == nullptr)
         {
             return platform;
@@ -586,7 +542,10 @@ namespace maui::core
         // gallery for context_flyout (the page's <WebView Source="https://bing.com">), while a static
         // HtmlWebViewSource (the web_view page) never redirects and so never escaped.
         // Installed HERE rather than from a mapper so it is in place before map_source drives the first load.
-        jclass client_class = cache.find_class(env.get(), k_web_view_client_class);
+        // MauiWebView installs its own client in its constructor (it needs onPageFinished for the async
+        // content-height re-measure), so only the stock-widget fallback needs one installed here.
+        jclass client_class = maui_web_view_class != nullptr ? nullptr
+                                                            : cache.find_class(env.get(), k_web_view_client_class);
         jmethodID client_ctor = cache.method(env.get(), k_web_view_client_class, "<init>", "()V");
         jmethodID set_web_view_client =
             cache.method(env.get(), k_web_view_class, "setWebViewClient", "(Landroid/webkit/WebViewClient;)V");
@@ -660,20 +619,57 @@ namespace maui::core
                 clear_pending(env.get());
             }
         }
-        // Force a SOFTWARE render layer so the WebView draws IN-VIEW rather than through a hardware
-        // SurfaceView that punches a WINDOW-LEVEL hole. That hole is what let the (white) window background
-        // show through on WebView-hosting pages in dark — the apphost paints the content-root VIEW #121212,
-        // but a SurfaceView composites against the window, not the view. An in-view (software) WebView lets
-        // the dark #121212 root/ContentPage surface show below/around the cell, matching MAUI. (The window
-        // background is also painted #121212 in the apphost as a belt-and-suspenders for the same reason.)
+        // WebViewHandler.Android.cs:31-34 — the SOFTWARE layer is CONDITIONAL, and the condition is the
+        // app's own hardware-acceleration flag:
+        //     if (IsAndroidVersionAtLeast(23) && Context?.ApplicationInfo?.Flags
+        //             .HasFlag(ApplicationInfoFlags.HardwareAccelerated) == false)
+        //         platformView.SetLayerType(LayerType.Software, null);
+        // (minSdk 24 here, so the version half is always true.) A prior port revision applied the software
+        // layer UNCONDITIONALLY, to stop a hardware WebView punching a window-level hole that let the white
+        // window background through in dark — but the apphost also paints the window background #121212 for
+        // exactly that case, so the hole is already covered, and forcing the layer is a deviation from the
+        // oracle in the one path the header block names as unexplored ("how the widget is CREATED or
+        // HOSTED"). Ported literally: read ApplicationInfo.flags and honour FLAG_HARDWARE_ACCELERATED.
         if (jmethodID set_layer_type =
                 cache.method(env.get(), k_web_view_class, "setLayerType", "(ILandroid/graphics/Paint;)V"))
         {
-            constexpr jint k_layer_type_software = 1; // android.view.View.LAYER_TYPE_SOFTWARE
-            env->CallVoidMethod(widget.get(), set_layer_type, k_layer_type_software, static_cast<jobject>(nullptr));
-            clear_pending(env.get());
+            constexpr jint k_layer_type_software = 1;                 // android.view.View.LAYER_TYPE_SOFTWARE
+            constexpr jint k_flag_hardware_accelerated = 0x2000'0000; // ApplicationInfo.FLAG_HARDWARE_ACCELERATED
+            bool hardware_accelerated = true; // unreadable flags → assume the platform default (accelerated)
+            jmethodID get_application_info = cache.method(env.get(), "android/content/Context", "getApplicationInfo",
+                                                          "()Landroid/content/pm/ApplicationInfo;");
+            jfieldID flags_field = cache.field(env.get(), "android/content/pm/ApplicationInfo", "flags", "I");
+            if (get_application_info != nullptr && flags_field != nullptr)
+            {
+                const local_ref<jobject> info{env.get(), env->CallObjectMethod(context, get_application_info)};
+                if (!clear_pending(env.get()) && info)
+                {
+                    const jint flags = env->GetIntField(info.get(), flags_field);
+                    if (!clear_pending(env.get()))
+                    {
+                        hardware_accelerated = (flags & k_flag_hardware_accelerated) != 0;
+                    }
+                }
+            }
+            if (!hardware_accelerated)
+            {
+                env->CallVoidMethod(widget.get(), set_layer_type, k_layer_type_software, static_cast<jobject>(nullptr));
+                clear_pending(env.get());
+            }
         }
         platform->native = env->NewGlobalRef(widget.get()); // released in ~web_view_platform
+        // Install the peer LAST, so the widget is fully built before any requestLayout() can call back.
+        // Cleared to 0 in on_disconnect_handler, before the platform struct can die (the
+        // MauiLayout.setCrossPlatformPeer convention).
+        if (maui_web_view_class != nullptr)
+        {
+            if (jmethodID set_peer = cache.method(env.get(), k_maui_web_view_class, "setPeer", "(J)V"))
+            {
+                env->CallVoidMethod(widget.get(), set_peer,
+                                    static_cast<jlong>(reinterpret_cast<intptr_t>(platform.get())));
+                clear_pending(env.get());
+            }
+        }
         return platform;
     }
 
@@ -688,6 +684,19 @@ namespace maui::core
     void web_view_handler::on_disconnect_handler(web_view_platform& platform)
     {
         platform.connected_view = nullptr;
+        // Drop the MauiWebView back-pointer before this struct can die (see create_platform_view).
+        if (platform.native != nullptr)
+        {
+            const scoped_env env;
+            if (env)
+            {
+                if (jmethodID set_peer = default_jni_cache().method(env.get(), k_maui_web_view_class, "setPeer", "(J)V"))
+                {
+                    env->CallVoidMethod(widget_of(platform), set_peer, static_cast<jlong>(0));
+                }
+                clear_pending(env.get());
+            }
+        }
     }
 
     // WebViewHandler.MapSource + WebViewExtensions.UpdateSource: the platform view is the i_web_view_delegate

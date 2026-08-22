@@ -643,8 +643,13 @@ namespace maui::controls
                                                          height_constraint - view_margin.vertical_thickness());
                 content_floor = view_handler->content_is_minimum_size();
             }
-            double resolved_width = resolve_size_request(content.width, width(), minimum_width(), maximum_width());
-            double resolved_height = resolve_size_request(content.height, height(), minimum_height(), maximum_height());
+            // PLATFORM-DIVERGENT MINIMUM (see resolve_size_request below): apple/windows resolve
+            // Minimum*Request in the cross-platform measure; Android does NOT — it only reaches the widget
+            // through View.setMinimumWidth/Height. measure_minimum_width/height() encode that split.
+            double resolved_width =
+                resolve_size_request(content.width, width(), measure_minimum_width(), maximum_width());
+            double resolved_height =
+                resolve_size_request(content.height, height(), measure_minimum_height(), maximum_height());
             if (content_floor)
             {
                 // The handler reports its measured content as a hard lower bound (a native iOS/macOS button
@@ -1035,6 +1040,47 @@ namespace maui::controls
         // caps and min (resolved to 0 when unset) floors. Kept inline here so view<> does not depend on the
         // layouts library; maui::layouts::layout_manager::resolve_size_request is the identical sibling the
         // managers use.
+        // The Minimum*Request a leaf's CROSS-PLATFORM measure may apply, which is NOT the same on every
+        // backend — MAUI applies no size request in the shared layer at all (LayoutExtensions
+        // .ComputeDesiredSize, src/Core/src/Layouts/LayoutExtensions.cs:11-31, only adds the margin to the
+        // handler's GetDesiredSize), so the minimum is whatever each platform's own measure path does with
+        // it:
+        //   apple  — ViewHandlerExtensions.iOS.cs:125-126 calls ResolveConstraints(measured, Width, Minimum,
+        //            Maximum) UNCONDITIONALLY, so the minimum always floors the desired size.
+        //   android— ViewHandlerExtensions.Android.cs:88-89 feeds the minimum ONLY into
+        //            ContextExtensions.CreateMeasureSpec, which reads it exclusively inside
+        //            `if (IsExplicitSet(explicitSize))` (ContextExtensions.cs:418-434). With no explicit
+        //            Width/Height the minimum never enters the spec and nothing downstream re-applies it —
+        //            GetDesiredSizeFromHandler (:90-97) returns the raw platform measure. Its only channel
+        //            is the NATIVE floor, ViewHandler.cs:52 MapMinimumHeight → ViewExtensions.cs:433-444
+        //            UpdateMinimumHeight → View.SetMinimumHeight(px), which bites only for widgets whose own
+        //            onMeasure consults getSuggestedMinimumHeight() (TextView, Button, …). The port pushes
+        //            that in the android backend's apply_native_minimum_size.
+        //            (The `Math.Max(platformView.MinimumHeight, platformHeight)` at
+        //            ViewHandlerExtensions.Android.cs:72-74 is NOT a counter-example: it lives in
+        //            MeasureVirtualView, the native OnMeasure path MAUI's own view groups take, not the leaf
+        //            desired-size path.)
+        // So on Android the shared clamp must stand down whenever the size is not explicitly set — the
+        // explicit branch keeps it, because CreateMeasureSpec's explicit branch is exactly
+        // Math.Max(explicitSize, ResolveMinimum(minimumSize)), which resolve_size_request already models.
+        [[nodiscard]] double measure_minimum_width() const
+        {
+#if defined(__ANDROID__)
+            return maui::core::dimension::is_explicit_set(this->width()) ? this->minimum_width()
+                                                                         : maui::core::dimension::unset;
+#else
+            return this->minimum_width();
+#endif
+        }
+        [[nodiscard]] double measure_minimum_height() const
+        {
+#if defined(__ANDROID__)
+            return maui::core::dimension::is_explicit_set(this->height()) ? this->minimum_height()
+                                                                          : maui::core::dimension::unset;
+#else
+            return this->minimum_height();
+#endif
+        }
         [[nodiscard]] static double resolve_size_request(double measured, double exact, double min, double max)
         {
             double resolved = maui::core::dimension::is_explicit_set(exact) ? exact : measured;

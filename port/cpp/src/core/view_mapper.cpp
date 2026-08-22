@@ -15,6 +15,7 @@
 #include "maui/core/property_mapper.hpp"
 #include "maui/core/view_chrome_ops.hpp"
 #include "maui/core/view_platform_base.hpp"
+#include "maui/core/view_size_ops.hpp"
 
 namespace maui::core
 {
@@ -45,6 +46,17 @@ namespace maui::core
             {
                 base->update_is_enabled(view.is_enabled());
             }
+        }
+
+        // ViewHandler.MapMinimumWidth / MapMinimumHeight (ViewHandler.cs:52-55). Both keys route here —
+        // the per-platform Update extensions are a matched pair on the same native view, and pushing both
+        // whenever either moves is the transform-bundle precedent above. The push is a per-BACKEND free
+        // function (view_size_ops.hpp) because the minimum is genuinely platform-divergent: apple resolves
+        // it in the leaf desired-size path, android only through View.SetMinimum*, and view<>::measure's
+        // measure_minimum_width/height is the other half of that same split.
+        void map_minimum_size(i_view_handler& handler, i_view& view)
+        {
+            apply_native_minimum_size(handler.native_view(), view.minimum_width(), view.minimum_height());
         }
 
         void map_automation_id(i_view_handler& handler, i_view& view)
@@ -190,6 +202,9 @@ namespace maui::core
             {"opacity", &map_opacity},
             {"is_enabled", &map_is_enabled},
             {"automation_id", &map_automation_id},
+            // The size floor: a per-backend native push, not a cross-platform clamp (see map_minimum_size).
+            {"minimum_width", &map_minimum_size},
+            {"minimum_height", &map_minimum_size},
             // The ten transform scalars all route to the single map_transform (rebuilds the whole spec).
             {"translation_x", &map_transform},
             {"translation_y", &map_transform},

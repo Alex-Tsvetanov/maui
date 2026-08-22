@@ -541,6 +541,9 @@ else()
     src/platform/headless/tabbed_page_handler.cpp
     src/platform/headless/flyout_page_handler.cpp
     src/platform/headless/view_chrome_ops.cpp # (W1-11 chrome) tooltip/context-flyout native push (no-op)
+    # Minimum*Request native push — a no-op everywhere the leaf measure already resolves it; the android
+    # build swaps in the real View.setMinimumWidth/Height (see maui/core/view_size_ops.hpp).
+    src/platform/headless/view_size_ops.cpp
     src/platform/headless/view_focus_ops.cpp # (W8-53 focus) first-responder push (no-op; focus always succeeds)
     src/platform/headless/web_view_handler.cpp
     # (G5 hybrid_web_view) the message-bridge mirror (records sent/received messages, the invoke-task table).
@@ -554,6 +557,11 @@ else()
     # keeps the headless mirrors live (the pure-native cross-platform suite runs on the emulator
     # WITHOUT a Java VM) and additionally drives the real android.widget view when a VM + app
     # context exist (the widget test host / a real app host).
+    # Minimum*Request: on android the ONLY channel is View.setMinimumWidth/Height, because
+    # ContextExtensions.CreateMeasureSpec drops the minimum unless an explicit size is set. The shared
+    # measure clamp stands down there (view.hpp measure_minimum_width/height), so this push replaces it.
+    list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/view_size_ops.cpp)
+    list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/view_size_ops.cpp)
     list(REMOVE_ITEM MAUI_CORE_PLATFORM_SOURCES src/platform/headless/button_handler.cpp)
     list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/android/button_handler.cpp)
     # label: android.widget.TextView partial (the second control of the fan-out; the display-only text
