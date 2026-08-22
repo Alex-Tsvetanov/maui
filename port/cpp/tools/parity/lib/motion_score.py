@@ -1170,7 +1170,11 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
             # a rendering diff respectively. The numbers were already computed here and spent only on
             # the prose sentence, so nothing new is measured.
             "self": {"maui": round(move_m, 4), "port": round(move_o, 4)},
+            # `apk_md5` is the BINARY that drew these frames; `commit` is only the label HEAD carried
+            # at capture time. capture_android.write_run_unit records it; lanes that do not yet write
+            # it leave "" and callers fall back to the commit. See stability()'s grouping.
             "evidence": {"run": run.name, "commit": meta.get("commit", "?"),
+                         "apk_md5": str(meta.get("apk_md5", "") or ""),
                          "captured_at": str(meta.get("captured_at", "?"))[:10]}}
 
 
@@ -1241,7 +1245,15 @@ def stability(comp=COMP, only=None, platforms=None, max_runs=4) -> int:
                         r = score_cell(page["name"], plat, fw, theme, crop_top,
                                        {"ssim": 1.0, "diff_pct": 0.0}, comp, only_run=run)
                         if r and r.get("evidence"):          # this run really did hold the frames
-                            by_commit.setdefault(r["evidence"]["commit"], {})[run.name] = r["verdict"]
+                            ev = r["evidence"]
+                            # THE BINARY when the lane records it, the commit only as a fallback. A
+                            # source commit that misses this platform changes `commit` without changing
+                            # what rendered; a rebuild+reinstall changes the binary without changing
+                            # `commit`. Grouping on the label is what let the retracted 12/16 compare
+                            # four different builds. Prefixed so a hash can never collide with a sha.
+                            key_id = ("apk:" + ev["apk_md5"]) if ev.get("apk_md5") \
+                                else ("commit:" + ev["commit"])
+                            by_commit.setdefault(key_id, {})[run.name] = r["verdict"]
                     if not by_commit:
                         continue
                     checked += 1

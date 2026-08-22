@@ -29,6 +29,7 @@ assumption that scheme both encodes and enforces.
 """
 from __future__ import annotations
 
+import functools
 import json
 import os
 import re
@@ -204,6 +205,39 @@ def step_name(sample: int, secs: float, frame_count: int) -> str:
     return f"gif{sample:02d}@{secs:g}s/{frame_count}f"
 
 
+@functools.lru_cache(maxsize=8)
+def apk_md5(app: str) -> str:
+    """md5 of the INSTALLED base.apk for this app — the identity of what actually rendered the frames.
+
+    The sidecar's `commit` is a LABEL, not the artefact. Measured on this lane 2026-08-22: the two port
+    APKs were installed at 15:19/15:21 while HEAD moved repeatedly through the afternoon for other
+    lanes, so frames captured at 16:24 carried a `commit` two commits newer than the binary that drew
+    them. Both directions are real — a source commit with no rebuild changes the label and not the
+    binary; a rebuild+reinstall with no commit changes the binary and not the label.
+
+    That matters because motion_score.stability() GROUPS BY COMMIT to decide which runs are comparable.
+    Grouping on a label that only correlates with the binary is how "12 of 16 cells disagreed across
+    runs" came to compare four different builds and be read as lane noise. This gives that grouping a
+    key it can trust.
+
+    Cached: one md5 of a ~50MB apk costs ~1s on the emulator and the answer cannot change within a
+    capture process. "" on any failure — an unreadable hash must never masquerade as a real one.
+    """
+    try:
+        path = adb("shell", "pm", "path", app_pkg(app), capture_output=True, text=True).stdout
+        path = next((l.replace("package:", "").strip() for l in path.splitlines() if l.strip()), "")
+        if not path:
+            return ""
+        out = adb("shell", "md5sum", path, capture_output=True, text=True).stdout.split()
+        return out[0] if out else ""
+    except Exception:
+        return ""
+
+
+def app_pkg(app: str) -> str:
+    return APPS[app]["pkg"]
+
+
 def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
                    samples: list[tuple[int, str]], secs: float, frame_count: int,
                    at_rest: str | None = None) -> str:
@@ -237,6 +271,7 @@ def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
             highest = max(highest, int(sidecar.stem))
 
     commit, when = _git_commit(), datetime.now().astimezone().isoformat()
+    apk = apk_md5(app)                      # the ARTEFACT's identity; `commit` is only its label
     n = highest
 
     def put(src: str, step: str) -> None:
@@ -245,7 +280,8 @@ def write_run_unit(run_dir: str, column: str, app: str, key: str, theme: str,
         shutil.copyfile(src, unit / f"{n:04d}.png")
         (unit / f"{n:04d}.json").write_text(json.dumps(
             {"tag": key, "platform": RUN_PLAT_DIR, "column": column, "theme": theme,
-             "step": step, "frame": n, "commit": commit, "captured_at": when}, indent=2))
+             "step": step, "frame": n, "commit": commit, "apk_md5": apk,
+             "captured_at": when}, indent=2))
 
     # THE BEFORE FRAME. Prefer the one the BURST shot, not the board still.
     #
@@ -804,19 +840,48 @@ def _selftest() -> None:
     assert [ADB, "-s", SERIAL, *tap] == [ADB, "-s", SERIAL, "shell", "input", "tap", "540", "468"]
 
     # scroll: negative dy reveals lower rows, i.e. the finger travels UP (y decreases).
+    #
+    # STALE ASSERTION FIXED 2026-08-22. This asserted the old single `input swipe` argv and had failed
+    # on every run since 342236e316 replaced it with an explicit DOWN/MOVE/dwell/UP motionevent
+    # sequence — so capture_android's selftest has been red for as long as the deterministic scroll has
+    # existed, and nothing in this file was checked by it. A permanently-failing check is worse than no
+    # check: it trains its readers to skip the output.
+    #
+    # Asserted STRUCTURALLY (endpoints, monotonic descent, trailing dwell) rather than as a literal
+    # argv list, because the intermediate step count is a tuning parameter of the injector — pinning
+    # all 17 rows would make this assertion fail again the next time anyone retunes it, which is
+    # exactly how it broke the first time.
     sc = input_argv({"action": "scroll", "at": [0.5, 0.5], "dy": -0.25}, size)
-    assert sc == ["shell", "input", "swipe", "540", "1170", "540", "585", "800"], sc
+    assert all(a[:2] == ["shell", "input"] and a[2] == "motionevent" for a in sc), sc
+    assert [a[3] for a in sc][0] == "DOWN" and [a[3] for a in sc][-1] == "UP", sc
+    ys = [int(a[5]) for a in sc]
+    assert ys[0] == 1170 and ys[-1] == 585, ys        # travels from at to at+dy, in device pixels
+    assert all(a[4] == "540" for a in sc), sc         # x is constant: a vertical scroll
+    assert ys == sorted(ys, reverse=True), ys         # monotonic: never backtracks mid-drag
+    # The DWELL before UP is what kills the fling — repeated final-position samples, so the
+    # VelocityTracker sees zero velocity at release. Without it Android coasts a random distance.
+    assert ys.count(585) >= 2, f"no dwell before UP — the fling would not be suppressed: {ys}"
     # ...and a dy that runs off the top clamps to row 0 rather than failing: a shorter drag, like a
     # real finger, is a truer answer than no gesture at all.
-    assert input_argv({"action": "scroll", "at": [0.5, 0.1], "dy": -0.9}, size)[5:7] == ["540", "0"]
+    # Same staleness as above: [5:7] indexed the old FLAT swipe argv, and the motionevent path returns
+    # a LIST of argvs, so this silently indexed into the wrong structure once the injector changed.
+    clamped = input_argv({"action": "scroll", "at": [0.5, 0.1], "dy": -0.9}, size)
+    assert clamped[-1][3] == "UP" and clamped[-1][4:6] == ["540", "0"], clamped[-1]
 
+    # Third instance of the same staleness — `swipe` goes down the motionevent path too.
     sw = input_argv({"action": "swipe", "at": [0.8, 0.5], "to": [0.2, 0.5], "duration": 1.5}, size)
-    assert sw == ["shell", "input", "swipe", "864", "1170", "216", "1170", "1500"], sw
+    assert all(a[2] == "motionevent" for a in sw), sw
+    assert sw[0][3:6] == ["DOWN", "864", "1170"], sw[0]     # starts at `at`
+    assert sw[-1][3:6] == ["UP", "216", "1170"], sw[-1]     # ends at `to`
+    xs = [int(a[4]) for a in sw]
+    assert xs == sorted(xs, reverse=True), xs               # horizontal, monotonic right-to-left
+    assert all(a[5] == "1170" for a in sw), sw              # y constant
+    assert xs.count(216) >= 2, f"no dwell before UP: {xs}"
     # The axis form, and `steps` (a desktop-agent knob) accepted and ignored rather than rejected.
     ax = input_argv({"action": "swipe", "at": [0.5, 0.5], "direction": "left", "steps": 10}, size)
-    assert ax == ["shell", "input", "swipe", "540", "1170", "270", "1170", "800"], ax
-    assert input_argv({"action": "drag", "at": [0.5, 0.5], "direction": "up",
-                       "distance": 0.1}, size)[5:7] == ["540", "936"]
+    assert ax[0][3:6] == ["DOWN", "540", "1170"] and ax[-1][3:6] == ["UP", "270", "1170"], ax
+    drag = input_argv({"action": "drag", "at": [0.5, 0.5], "direction": "up", "distance": 0.1}, size)
+    assert drag[-1][3:6] == ["UP", "540", "936"], drag[-1]
     for bad in ({"action": "swipe", "at": [0.5, 0.5]},                       # no `to`, no direction
                 {"action": "swipe", "at": [0.5, 0.5], "direction": "sideways"},
                 {"action": "drag", "at": [0.5, 0.0], "direction": "up"}):    # clamps to a no-op
@@ -874,7 +939,9 @@ def _selftest() -> None:
     drag = {"name": "d", "action": "swipe", "at": [0.5, 0.5], "to": [0.9, 0.5],
             "at_android": [0.1, 0.2], "to_android": [0.8, 0.2]}
     argv = input_argv(drag, size)
-    assert argv[:3] == ["shell", "input", "swipe"] and argv[3:7] == ["108", "468", "864", "468"], argv
+    assert all(a[2] == "motionevent" for a in argv), argv
+    assert argv[0][3:6] == ["DOWN", "108", "468"], argv[0]      # at_android promoted
+    assert argv[-1][3:6] == ["UP", "864", "468"], argv[-1]      # to_android promoted, independently
 
     print("capture_android selftest: coordinate scaling + adb argv OK")
 
