@@ -356,6 +356,73 @@ namespace maui::platform::android
     // Measured target for the disabled entry: 0.26 alpha against 0.60 enabled, i.e. ~43% of the enabled
     // alpha, which is consistent with Material dimming the control colour rather than a fixed value.
     // Worth ~0.6-0.9% on date_picker and time_picker, which are yellow on exactly this residual.
+    // A TWO-STATE ColorStateList: {-state_enabled -> disabled_argb, default -> enabled_argb}.
+    //
+    // ColorStateList.valueOf() answers ONE colour for EVERY state, so a field tinted with it keeps its
+    // enabled underline after setEnabled(false). MAUI does not: its AppCompat background tint carries a
+    // disabled entry, and the difference is visible on the board. Measured on time_picker (android),
+    // underline level at the disabled row against the enabled rows:
+    //     light   enabled maui 102 / port 102      disabled maui 189 / port 102
+    //     dark    enabled maui 184 / port 184      disabled maui  90 / port 184
+    // The enabled constants are already right; only the disabled state was missing. Note MAUI moves the
+    // colour TOWARD the page in both themes (lighter on white, darker on #121212) — it is reducing
+    // contrast, not applying one fixed dim colour, which is why this takes two constants and not one.
+    //
+    // android.R.attr.state_enabled is 0x0101009e; NEGATING it (storing -attr) is how Android spells
+    // "this state must be absent". The default row is an EMPTY int[], which matches anything and so must
+    // come LAST — a ColorStateList is first-match-wins.
+    [[nodiscard]] inline local_ref<jobject> make_enabled_disabled_tint(JNIEnv* env, jint enabled_argb,
+                                                                       jint disabled_argb)
+    {
+        constexpr jint k_attr_state_enabled = 0x0101009e;
+        auto& cache = default_jni_cache();
+        jclass csl_class = cache.find_class(env, "android/content/res/ColorStateList");
+        jclass int_array_class = env->FindClass("[I");
+        if (csl_class == nullptr || int_array_class == nullptr)
+        {
+            env->ExceptionClear();
+            return local_ref<jobject>{env, nullptr};
+        }
+        jmethodID ctor = cache.method(env, "android/content/res/ColorStateList", "<init>", "([[I[I)V");
+        if (ctor == nullptr)
+        {
+            return local_ref<jobject>{env, nullptr};
+        }
+        // states[0] = {-state_enabled}  (disabled)   states[1] = {}  (everything else)
+        local_ref<jintArray> disabled_state{env, env->NewIntArray(1)};
+        if (!disabled_state)
+        {
+            env->ExceptionClear();
+            return local_ref<jobject>{env, nullptr};
+        }
+        const jint negated = -k_attr_state_enabled;
+        env->SetIntArrayRegion(disabled_state.get(), 0, 1, &negated);
+        local_ref<jintArray> default_state{env, env->NewIntArray(0)};
+        local_ref<jobjectArray> states{env, env->NewObjectArray(2, int_array_class, nullptr)};
+        if (!default_state || !states)
+        {
+            env->ExceptionClear();
+            return local_ref<jobject>{env, nullptr};
+        }
+        env->SetObjectArrayElement(states.get(), 0, disabled_state.get());
+        env->SetObjectArrayElement(states.get(), 1, default_state.get());
+        local_ref<jintArray> colors{env, env->NewIntArray(2)};
+        if (!colors)
+        {
+            env->ExceptionClear();
+            return local_ref<jobject>{env, nullptr};
+        }
+        const jint values[2] = {disabled_argb, enabled_argb};
+        env->SetIntArrayRegion(colors.get(), 0, 2, values);
+        local_ref<jobject> tint{env, env->NewObject(csl_class, ctor, states.get(), colors.get())};
+        if (env->ExceptionCheck())
+        {
+            env->ExceptionClear();
+            return local_ref<jobject>{env, nullptr};
+        }
+        return tint;
+    }
+
     inline void apply_field_background(void* native, const maui::graphics::paint* fill, jint underline_argb)
     {
         if (native == nullptr)

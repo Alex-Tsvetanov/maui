@@ -704,20 +704,27 @@ namespace maui::core
         // PLAIN (no-explicit-Background) path; a colored/gradient Background instead composites the underline
         // via apply_field_background (update_background), which also clears this view-level tint so it does
         // not double-tint the fill.
-        const jint k_field_underline_tint = maui::platform::android::detail::is_night_mode(env.get())
-                                                ? static_cast<jint>(0xFFB8B8B8U)
-                                                : static_cast<jint>(0xFF666666U);
-        if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
+        // …AND IT MUST DIM WHEN THE FIELD IS DISABLED. valueOf() answers one colour for every state, so a
+        // field tinted with it keeps its enabled underline after setEnabled(false); MAUI's AppCompat tint
+        // carries a disabled entry. Measured on this page, underline level at the disabled row vs enabled:
+        //     light   enabled maui 102 / port 102     disabled maui 189 / port 102
+        //     dark    enabled maui 184 / port 184     disabled maui  90 / port 184
+        // MAUI moves the colour TOWARD the page surface in both themes — lighter on white, darker on
+        // #121212 — i.e. it reduces contrast rather than applying one fixed dim value, which is why this
+        // needs two constants per theme and not a shared one.
+        const bool night = maui::platform::android::detail::is_night_mode(env.get());
+        const jint k_field_underline_tint =
+            night ? static_cast<jint>(0xFFB8B8B8U) : static_cast<jint>(0xFF666666U);
+        const jint k_field_underline_disabled =
+            night ? static_cast<jint>(0xFF5A5A5AU) : static_cast<jint>(0xFFBDBDBDU);
         {
-            jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
-                                                     "(I)Landroid/content/res/ColorStateList;");
             jmethodID set_bg_tint = cache.method(env.get(), k_edit_text_class, "setBackgroundTintList",
                                                  "(Landroid/content/res/ColorStateList;)V");
-            if (value_of != nullptr && set_bg_tint != nullptr)
+            if (set_bg_tint != nullptr)
             {
-                const local_ref<jobject> tint{env.get(),
-                                              env->CallStaticObjectMethod(csl_class, value_of, k_field_underline_tint)};
-                if (!clear_pending(env.get()) && tint)
+                const local_ref<jobject> tint = maui::platform::android::make_enabled_disabled_tint(
+                    env.get(), k_field_underline_tint, k_field_underline_disabled);
+                if (tint)
                 {
                     env->CallVoidMethod(widget.get(), set_bg_tint, tint.get());
                     clear_pending(env.get());
