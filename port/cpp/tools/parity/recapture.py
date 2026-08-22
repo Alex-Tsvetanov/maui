@@ -1294,15 +1294,21 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
         # class is fixed at source by sync_tree.ps1's arrival stamp).
         if os.environ.get("PARITY_ALLOW_STALE") != "1":
             try:
-                problems = freshness.check(platform, plat_dir, [fw for fw in frameworks if fw in cols],
-                                           scores=bool({"cpp", "cpp_xaml"} & set(columns)))
+                stale, advisory = freshness.check(
+                    platform, plat_dir, [fw for fw in frameworks if fw in cols],
+                    scores=bool({"cpp", "cpp_xaml"} & set(columns)))
             except Exception as exc:                      # a probe that cannot run must not silently pass
-                problems = [f"freshness probe failed ({exc.__class__.__name__}: {exc})"]
-            if problems:
-                for p in problems:
+                stale, advisory = [f"freshness probe failed ({exc.__class__.__name__}: {exc})"], []
+            # ADVISORY, not fatal: a stale SCORE is resolved by the very run this would be blocking
+            # (the capture replaces the stills, measure() rescores them), so refusing here would
+            # refuse the cure. A stale BINARY is the opposite -- only a rebuild fixes it.
+            for p in advisory:
+                log(f"      ~~ {p}")
+            if stale:
+                for p in stale:
                     log(f"      !! {p}")
-                fail(f"{platform}/{lane}: freshness gate ({len(problems)} problem(s)) — lane SKIPPED. "
-                     f"Rebuild/rescore, or set PARITY_ALLOW_STALE=1 to capture anyway.")
+                fail(f"{platform}/{lane}: freshness gate ({len(stale)} stale artifact(s)) — lane "
+                     f"SKIPPED. Rebuild on the guest, or set PARITY_ALLOW_STALE=1 to capture anyway.")
                 continue
         if platform == "macos":
             mac_vm_clean()

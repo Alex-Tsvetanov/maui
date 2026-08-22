@@ -316,8 +316,8 @@ def unverified_cells(plat_dir: str) -> list[tuple[str, str, str]]:
     return out
 
 
-def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = True) -> list[str]:
-    """Everything a lane can assert before it spends three hours capturing.
+def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = True) -> tuple[list[str], list[str]]:
+    """(fatal, advisory) for a lane about to capture.
 
     `plat_dir` is the BOARD directory, which is not the platform name -- macos writes `maccatalyst`.
     Deriving it here from `platform` would have silently checked a captures/macos/ that does not
@@ -325,13 +325,17 @@ def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = Tr
 
     `scores` is False on a lane that does not own the cpp/xaml capture dirs (appkit writes
     appkit_cpp/appkit_xaml), so the same board cells are not reported twice per platform.
+
+    ONLY ARTIFACT STALENESS IS FATAL, and the split matters. A stale BINARY is a genuine
+    precondition: capturing it produces wrong frames, and no amount of capturing fixes it -- somebody
+    has to rebuild. A stale SCORE is the opposite: the capture about to run REPLACES the captures and
+    measure() rescores them, so the run being gated is precisely the thing that resolves it. Aborting
+    on it would refuse the cure and, being unfixable from inside the lane, would get the whole gate
+    switched off. So the score checks are reported into the log and the run proceeds.
     """
-    problems = []
-    if platform == "windows":
-        problems += stale_windows(frameworks)
-    if scores:
-        problems += score_contradictions(plat_dir)
-    return problems
+    fatal = stale_windows(frameworks) if platform == "windows" else []
+    advisory = score_contradictions(plat_dir) if scores else []
+    return fatal, advisory
 
 
 # --------------------------------------------------------------------------- selftest
@@ -422,10 +426,14 @@ def selftest() -> None:
     assert pixel_score.SLOTS == [("cpp", "pixel"), ("xaml", "pixel_xaml")], pixel_score.SLOTS
     rows = unverified_cells("windows")
     assert all(w.startswith(("no fingerprint", "the stills have changed")) for _, _, w in rows)
-    # …and it must NOT be part of the abortive gate: the weak arm covers most of the board until a
-    # rescore stamps it, so gating on it would refuse every lane forever.
-    gate = check("windows", "windows", [], scores=True)
-    assert not any("unverified" in g or "fingerprint" in g for g in gate), gate
+    # THE FATAL/ADVISORY SPLIT. Only a stale ARTIFACT may abort a lane; a stale SCORE is resolved by
+    # the very run that would be blocked, so it must land in the advisory list. `frameworks=[]` keeps
+    # this off the guest, and the windows board really does carry contradictions today, so the
+    # advisory arm is exercised rather than merely asserted empty.
+    fatal, advisory = check("windows", "windows", [], scores=True)
+    assert fatal == [], fatal
+    assert advisory and all("BYTE-IDENTICAL" in a for a in advisory), advisory
+    assert not any("fingerprint" in x for x in fatal + advisory), "unverified cells are triage-only"
 
     # The contradiction rule, exercised on the real board.
     real = score_contradictions("windows")
@@ -461,12 +469,16 @@ def main() -> int:
               f"pixel_score.py --platform {board}" + (f" --only {a.only}" if a.only else "") +
               " (--verify to see the move without writing).")
         return 1 if rows else 0
-    problems = (score_contradictions(board) if a.scores_only
-                else check(a.platform, board, a.columns.split(",")))
-    for p in problems:
+    if a.scores_only:
+        fatal, advisory = [], score_contradictions(board)
+    else:
+        fatal, advisory = check(a.platform, board, a.columns.split(","))
+    for p in fatal:
         print(f"  !! {p}")
-    print(f"{len(problems)} freshness problem(s) on {a.platform}")
-    return 1 if problems else 0
+    for p in advisory:
+        print(f"  ~~ {p}")
+    print(f"{len(fatal)} stale artifact(s), {len(advisory)} stale score(s) on {a.platform}")
+    return 1 if fatal or advisory else 0
 
 
 if __name__ == "__main__":
