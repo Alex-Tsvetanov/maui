@@ -4965,3 +4965,54 @@ SCORECARD for the 11 corrupted references found by reference_guard.py:
   2 maccatalyst swipe_item_size  — real regression, NOT a build issue, drive path unexamined
   2 maccatalyst header_footer_view — NOT a regression, dismissed (baseline was the outlier)
   1 windows drag_drop_dark — unexamined, needs the guest-tree check first
+
+---
+
+## The DIP-vs-pixel discriminator — and the retirement of "green at 3x" (2026-08-22, apple lane)
+
+**RETIRED RULE, do not cite it again: "iOS is GREEN on the same shared source at 3x, therefore the
+Catalyst difference is a scale/sub-pixel artifact."** That inference is backwards. It was established
+prior art, and it mis-filed `maccatalyst/radio_button_border` as unfixable. A 0.5 DIP geometric defect is
+1.5px at iOS 3x — real, but a thin band on a tall page, comfortably under the green bar — and 0.385px at
+Catalyst's 0.7697, where on 1000px-wide horizontal strokes it becomes a pure antialias change across many
+full-width rows, which is exactly what inflates a diff%. Green at 3x was the SYMPTOM of the defect being
+small there, not evidence of no defect. The defect was on both lanes the whole time.
+
+**The replacement is a real test, and it needs two lanes at different densities. Measure the quantity in
+BOTH device pixels and DIP; whichever is constant names the class:**
+
+| observation | pixels | DIP | class |
+|---|---|---|---|
+| radio border offset (maui vs port) | 1.5px @3x, 0.385px @0.77x | **0.5 DIP both** | GEOMETRY — fixable |
+| border_stroke fill/stroke seam white | **0.302px @0.77x, 0.247px @3x** (ratio 0.82) | 0.392pt vs 0.082pt (ratio 0.21) | RASTERIZATION — not fixable by layout |
+
+Constant in DIP -> a layout/path offset; go find the missing inset. Constant in device pixels -> the two
+stacks rasterize the same geometry differently; no layout change will move it. "Green at 3x" tests neither.
+
+**Applied, with outcomes:**
+
+* `radio_button_border` — constant in DIP, so geometry. The port painted the border with CALayer's
+  `borderWidth` (band `[0, thickness]` inward from the bounds edge) where MAUI renders the DefaultTemplate
+  `Border` (RadioButton.cs:520, StrokeThickness bound at :528) stroking `shape_self_inset` at double width
+  with the outer half clipped (band `[0.5, 0.5 + thickness]`; Shape.cs:312-323). FIXED in `9f6894e40b`:
+  maccatalyst 1.77% -> 0.16% (-91%, yellow x2 -> GREEN), ios 0.66% -> 0.072% (-89%, already green).
+  This is PLATFORM-INDEPENDENT — it is what the C# template does, not an Apple detail. `radio_button_border`
+  is on the android and windows boards too; the same coverage-centroid read at their density will show it.
+* `border_stroke` — constant in PIXELS, so rasterization. CLOSED as non-geometric: the stroke's OUTER edge
+  (background<->stroke) agrees to 0.012px of coverage, and classifying every edge at x=300 by what borders
+  it gives outer delta 3 vs inner deltas 19-57. There is no 0.5-DIP band component for `shape_self_inset`
+  to fix. MAUI retains ~0.25-0.30px of page-white at the fill<->stroke seam where the port retains none.
+* `varied_size_selector` (Catalyst dark 1.07%) — NOT stale (recaptured 2026-08-22, byte-identical) and not
+  layout. The whole cell decomposes to **7 full-width rows at y=31,108,185,262,339,416,493 — pitch exactly
+  77px — contributing 7167 of 7623 content pixels**, the cell boundaries of a `Border`-templated
+  CollectionView, at the SAME y in both columns. Only the boundary pixel's coverage differs. The 3x test:
+  on iOS the same gap spans rows 484-487 in both columns with a byte-identical core, and only the edge
+  pixel's fraction differs (MAUI 24% wheat vs port 50%) — the same ~26-point gap as at 0.77x. Density-
+  invariant, so the same rasterization class as the `border_stroke` seam, NOT a fill inset.
+
+**Not the same as the android `border_stroke` finding, and the difference is measured, not assumed.**
+Android's is the STROKE's ink extent — MAUI feathered 34.38-48.13 via `MauiDrawable` float geometry
+(StrokeExtensions.cs:8-26), the port hard-edged 34.00-47.00 on integer insets — which IS geometric there.
+On Apple the stroke's outer edges already agree (delta 3) and the gap EXTENTS match exactly; only fill
+boundary COVERAGE differs. Different component, different scaling law. They read as opposite directions
+because they were never the same measurement.
