@@ -300,10 +300,23 @@ class Env:
         subprocess.run(["rsync", "-a", "--delete", "--exclude", "CMakeFiles", "--exclude",
                         "cmake_install.cmake", "-e", "ssh -o BatchMode=yes", src, dst], check=True)
 
-    def pull(self, remote: str, local: Path) -> bool:
+    def pull(self, remote: str, local: Path) -> tuple[bool, str | None]:
+        """Fetch one remote file. Returns (True, None) or (False, why) — `why` being scp's OWN stderr.
+
+        scp used to run with stderr UNCAPTURED, so its message ('ssh_dispatch_run_fatal: ... Broken pipe',
+        'scp: Connection closed') landed in the log wherever it happened to flush, while the frame's own
+        line said only 'DROPPED — capture pull failed'. The two were never joined up, so a transport drop
+        read as an unexplained capture failure: that is what dropped check_box/maui_xaml/dark#4 in run
+        2026-08-19-08_27_20 and left the cell unpairable. Same class as shoot_presented printing a fixed
+        guess instead of the agent's error (see its return)."""
         local.parent.mkdir(parents=True, exist_ok=True)
-        rc = subprocess.run(["scp", "-o", "BatchMode=yes", f"{self.hostspec}:{remote}", str(local)]).returncode
-        return rc == 0 and local.is_file()
+        rc = subprocess.run(["scp", "-o", "BatchMode=yes", f"{self.hostspec}:{remote}", str(local)],
+                            capture_output=True, text=True)
+        if rc.returncode != 0:
+            return False, (rc.stderr or rc.stdout).strip().replace("\n", "; ")[:200] or f"scp exit {rc.returncode}"
+        if not local.is_file():
+            return False, "scp reported success but the file is not on disk"
+        return True, None
 
     # -- guest agent --------------------------------------------------------
     def agent(self, subcmd: str, *args, timeout: int = 120) -> dict:
@@ -1064,11 +1077,12 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                         else:
                             env.agent("shot", remote_shot)  # whole-display last resort
                         local = run_root / tag / env.platform / col / f"{n:04d}.png"
-                        if not env.pull(remote_shot, local):
+                        pulled, why_pull = env.pull(remote_shot, local)
+                        if not pulled:
                             # Recorded too: a frame that never reached the host is exactly as absent
                             # as one that was never captured, and the end-of-run list is what tells
                             # the operator this page kept its STALE board still.
-                            print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — capture pull failed")
+                            print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — capture pull failed: {why_pull}")
                             failed_frames.append(f"{tag}/{col}/{theme}#{n}")
                             continue
                         # The window is presented at an EXPLICIT size, so a correct shot is exactly g[w]xg[h].
@@ -1295,6 +1309,21 @@ def _selftest() -> int:
     bad = shoot_presented(_FakeEnv({"error": "window did not reach target: got 139x174, want 1024x800"}),
                           _cfg, _geom, "/tmp/s.png", attempts=1)
     assert bad[0] is None and "139x174" in bad[1], bad   # the REASON survives, not a generic guess
+
+    # Env.pull's contract, same rule: the failure half carries scp's OWN stderr, not "capture pull failed".
+    class _FakePullEnv(Env):
+        def __init__(self, rc, err): self.hostspec = "u@h"; self._rc, self._err = rc, err
+    import subprocess as _sp   # noqa: PLC0415  selftest-only
+    import tempfile as _tf      # noqa: PLC0415  selftest-only
+    import types as _ty         # noqa: PLC0415  selftest-only
+    _real_run = _sp.run
+    try:
+        _sp.run = lambda *a, **k: _ty.SimpleNamespace(returncode=1, stderr="scp: Connection closed", stdout="")
+        e = _FakePullEnv(1, "x")
+        ok, why = Env.pull(e, "/tmp/r.png", Path(_tf.mkdtemp()) / "f.png")
+        assert ok is False and "Connection closed" in why, (ok, why)
+    finally:
+        _sp.run = _real_run
 
     import contextlib  # noqa: PLC0415  selftest-only
     import io  # noqa: PLC0415
