@@ -338,7 +338,12 @@ def classify(theme_scores):
         # observation, not missing evidence. An expired or pruned run yields no such measurement, so the
         # pruned-run hole this cap was built for stays shut, and an ASYMMETRIC result is still forced RED
         # by the `mismatch` rule earlier.
-        frozen_both = bool(have) and any(v.get("both_frozen") for v in have.values())
+        # ALL, not ANY — matching never_expected above (line ~233), which gates the SAME cap. The
+        # justification this exemption rests on is per-theme: "both_frozen means motion_score MEASURED both
+        # columns and found neither moved". With `any`, ONE theme carrying that positive observation
+        # exempted the cell while the OTHER theme's genuine INVALID — missing evidence — was waved through
+        # with it. That is the pruned-run hole this cap exists to shut, reopened from the side.
+        frozen_both = bool(have) and all(v.get("both_frozen") for v in have.values())
         if (governing == motion_score.INVALID and status == "green"
                 and not never_expected and not frozen_both):
             status = "yellow"
