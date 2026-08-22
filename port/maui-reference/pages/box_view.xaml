@@ -1,3 +1,9 @@
+<!-- KNOWN PORT GAP (do not "fix" the twin back): the "Clip" section's BoxView carries an
+     EllipseGeometry clip in the original C# sample. A Geometry is not an IShape, and the port's
+     view::set_clip seam takes a graphics::i_shape with no Geometry-as-clip primitive behind it, so
+     that one BoxView is deliberately rendered as a plain pink block on ALL THREE columns. This is a
+     degraded twin representing a REAL missing capability (PORT-MUST-EXPRESS-IT), not an oversight.
+     The "Shadow" section is NOT degraded: <Shadow> was restored once the loader learned to mint it. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiReference.Pages.BoxViewPage" Title="BoxView">
@@ -32,7 +38,11 @@
             <BoxView Color="Pink" WidthRequest="160" HeightRequest="160" />
 
             <Label Text="Shadow" />
-            <BoxView Color="Pink" WidthRequest="160" HeightRequest="160" />
+            <BoxView Color="Pink" WidthRequest="160" HeightRequest="160">
+                <BoxView.Shadow>
+                    <Shadow Brush="Red" Radius="6" Offset="6,6" />
+                </BoxView.Shadow>
+            </BoxView>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
