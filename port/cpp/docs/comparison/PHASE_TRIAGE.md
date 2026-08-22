@@ -455,3 +455,34 @@ above `NON_REPRODUCIBLE_DRIVE` in `tools/parity/lib/motion_score.py`.
 Subtract these ~22 before treating a yellow count as a work queue. They are correctly yellow — the board is
 saying "not established", which is true — but they are not defects awaiting a fix, and a plan that budgets
 time for them is budgeting for something unreachable.
+
+
+---
+
+## Correction: the "0px face" discriminator on the iOS radio cells was a BAD MEASUREMENT (2026-08-22)
+
+This document, and the briefs derived from it, told successive agents that `ios/radio_button_content` and
+`ios/radio_content_properties` showed content offsets of **+6/+7/+8/+12 px**, and that a `(row - line)/2`
+title-rise model was dead because it predicted **7px against a measured 0px** for Baskerville Italic 14 —
+a contradiction no constant could survive.
+
+**The disk does not show that.** Re-measured on the current build: the residuals are **0px** (system 14),
+**+2px** (Baskerville Italic 14), **-5px** (system 14, wrapped 2-line) and **+6px** (Arial Bold 12).
+Baskerville needs **+2px**, not 0. The font-table arithmetic predicts 1px there — a **1px miss**, not the
+7-vs-0 contradiction that was recorded as fatal.
+
+So the model was never wrong. It was **uniformly 0.45-1.2px optimistic across all four faces**, because
+font tables do not expose `UILabel`'s intrinsic-height rounding. It reproduces the earlier agent's
+Arial-Bold-12 figure (10.8 predicted vs 12 measured) exactly. **Dead-end #1 was the right idea killed by
+the wrong instrument.**
+
+The real fix does not need the model at all: `RadioButtonHandler.iOS.cs` hosts a bare `ContentView` whose
+content column is a Fill/Fill `ContentPresenter` (`RadioButton.cs:569-573`) holding the `ContentLabel`
+`ContentConverter.ConvertToLabel` builds (`ContentConverter.cs:47-66`). That Label fills the Grid row and
+draws at `TextAlignment.Start` — the TOP. The port's `UIButton` CENTERS `titleLabel`, so the title sits
+`(row - line)/2` low. `MauiIosRadioButton` now overrides `-titleRectForContentRect:` and pins super's rect
+to `contentRect.origin.y`, which is exact by construction and needs no font arithmetic.
+
+**The lesson for this document:** a recorded "measured 0px" killed a correct hypothesis for two passes. When
+a single data point is the sole reason a model is rejected, re-measure it before writing the model off —
+and record HOW it was measured, not just the number.
