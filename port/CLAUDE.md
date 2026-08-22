@@ -234,6 +234,28 @@ Use a question (don't guess) when:
   A commit whose message says "comment only" or "no behaviour change" is the one nobody re-reads, so it
   is exactly the one to diff before pushing the button.
 
+  **Three more shapes of the same hazard, all measured on 2026-08-22. Only the first is a correctness
+  risk; the others cost real time anyway.**
+
+  - **Your work can land inside someone else's commit.** `40562417f2` carries a fix it does not
+    describe: another agent's deletion of a `background` member that SHADOWED `view_platform_base`'s,
+    which was the root cause of every convex Border losing its fill on Android. The code landed
+    complete and correct — only the provenance is wrong, so `git log` no longer finds that fix by its
+    message. If you discover your work in another commit, say so; do not silently re-commit it.
+  - **An in-place edit REMOVES the other direction.** Fixing a file at HEAD with `sed`/`Edit` cannot
+    distinguish another agent's uncommitted lines from the ones you meant to revert. Doing that
+    disarmed a held fix so quietly it would have compiled and passed all 4017 tests — the third
+    parameter defaulted to `nullptr`, so the fix simply would not have fired on the one lane it
+    existed for. **Count the other agent's dirty files before and after your edit.**
+  - **`git stash` is a GLOBAL STACK.** `pop` takes no pathspec, so another agent's bare `git stash pop`
+    takes yours. It happened. Shelve with `git checkout -- <paths spelled inline>` plus a saved patch
+    you have verified reverse-applies — never `stash` — and note that `checkout` bumps mtime without
+    changing content, which is why `freshness.py` dates tracked-clean files by their commit instead.
+
+  And in `zsh`, `cmd -- $PATHS` does **not** word-split: a multi-path variable becomes one pathspec,
+  matches nothing, and exits 0. `git diff -- $VAR` silently wrote EMPTY backstop patches this way.
+  Spell paths inline.
+
 ---
 
 ## LANGUAGE-SPECIFIC — C++26
