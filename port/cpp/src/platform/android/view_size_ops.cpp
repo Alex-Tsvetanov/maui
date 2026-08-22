@@ -73,7 +73,7 @@ namespace maui::core
         {
             return;
         }
-        auto view = static_cast<jobject>(native_view);
+        auto* view = static_cast<jobject>(native_view);
         const float density = maui::platform::android::detail::view_display_density(env.get(), view);
         push(env.get(), view, "setMinimumWidth", to_pixels(resolve_minimum(minimum_width), density));
         push(env.get(), view, "setMinimumHeight", to_pixels(resolve_minimum(minimum_height), density));

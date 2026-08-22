@@ -405,6 +405,10 @@ if(MAUI_BACKEND STREQUAL "apple")
     # (W1-11 chrome) the shared NSMenu builder + the NSView toolTip/menu push.
     src/platform/apple/apple_menu_ops.mm
     src/platform/apple/view_chrome_ops.mm
+    # Minimum*Request native push: apple resolves the minimum in the leaf desired-size path itself
+    # (ViewHandlerExtensions.iOS.cs:125-126 ResolveConstraints), so it takes the shared NO-OP definition —
+    # only android needs a real one. Plain C++ in an .mm list, like hide_soft_input_on_tapped_manager.cpp.
+    src/platform/headless/view_size_ops.cpp
     # (W8-53 focus) the NSWindow makeFirstResponder: focus/unfocus push behind the view_command_mapper.
     src/platform/apple/view_focus_ops.mm
     # (W1-08 web_view) the WKWebView recipe, ONE .mm shared with the ios backend (WebKit's API is
@@ -494,6 +498,10 @@ elseif(MAUI_BACKEND STREQUAL "ios")
   set(MAUI_CORE_PLATFORM_SOURCES
     ${MAUI_IOS_MM_SOURCES})
   set_source_files_properties(${MAUI_IOS_MM_SOURCES} PROPERTIES COMPILE_OPTIONS "-fobjc-arc")
+  # Minimum*Request native push: iOS resolves the minimum in the leaf desired-size path itself
+  # (ViewHandlerExtensions.iOS.cs:125-126 ResolveConstraints), so it takes the shared NO-OP definition.
+  # Appended AFTER the -fobjc-arc property so the plain .cpp does not carry an ObjC-only flag.
+  list(APPEND MAUI_CORE_PLATFORM_SOURCES src/platform/headless/view_size_ops.cpp)
 else()
   # headless AND android (M-android scaffold): the android preset compiles these pure-C++ headless
   # partials unchanged and runs them on the emulator — exactly how the ios bring-up started before its
