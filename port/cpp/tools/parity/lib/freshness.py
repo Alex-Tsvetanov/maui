@@ -421,12 +421,21 @@ def _md5(p: Path) -> str | None:
         return None
 
 
-def score_contradictions(plat_dir: str) -> list[str]:
-    """Cells whose recorded review cannot describe the captures now on disk. See the module header."""
-    jf = COMP / "comparison.json"
+def score_contradictions(plat_dir: str, root: "Path | None" = None) -> list[str]:
+    """Cells whose recorded review cannot describe the captures now on disk. See the module header.
+
+    `root` overrides the board directory so selftest() can exercise this on a SYNTHETIC board. That
+    matters: this arm used to be asserted against the LIVE board, with a comment defending it because
+    "the windows board really does carry contradictions today". It stopped being true the moment those
+    contradictions were fixed (2026-08-22, the first honest `pixel_score --platform windows`), and the
+    selftest went red for the entirely correct reason that the defect it needed was gone. A test whose
+    pass depends on live data being broken fails when the data is repaired -- which is the one time you
+    least want a red guard, because a red guard is one nobody trusts a week later."""
+    base = root or COMP
+    jf = base / "comparison.json"
     if not jf.is_file():
         return []
-    caps = COMP / "captures" / plat_dir
+    caps = base / "captures" / plat_dir
     out = []
     for entry in json.loads(jf.read_text()):
         name = entry["name"]
@@ -776,7 +785,9 @@ def selftest() -> None:
     # advisory arm is exercised rather than merely asserted empty.
     fatal, advisory = check("windows", "windows", [], scores=True)
     assert fatal == [], fatal
-    assert advisory and all("BYTE-IDENTICAL" in a for a in advisory), advisory
+    # NOT `assert advisory and ...` — that required the LIVE board to be broken, and went red the day
+    # the contradictions were fixed. The arm itself is exercised on a synthetic board below.
+    assert all("BYTE-IDENTICAL" in a for a in advisory), advisory
     assert not any("fingerprint" in x for x in fatal + advisory), "unverified cells are triage-only"
 
     # The android parse (no device): the real dumpsys shape, the absent case, and the near-miss that
@@ -830,7 +841,31 @@ def selftest() -> None:
     f2, a2 = check("windows", "windows", [], scores=True)
     assert f2 == [], f2
 
-    # The contradiction rule, exercised on the real board.
+    # The contradiction rule, exercised on a SYNTHETIC board so the arm is tested whether or not the
+    # live board happens to be broken today. Two byte-identical stills carrying different reviews is
+    # the defect; a matching pair in the same fixture proves it does not fire on healthy cells.
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        for col in ("maui", "cpp", "xaml"):
+            (root / "captures" / "windows" / col).mkdir(parents=True)
+        for col, blob in (("maui", b"M"), ("cpp", b"X"), ("xaml", b"X")):
+            for page in ("contradicts", "agrees"):
+                for theme in ("light", "dark"):
+                    (root / "captures" / "windows" / col / f"{page}_{theme}.png").write_bytes(blob)
+        (root / "comparison.json").write_text(json.dumps([
+            {"name": "contradicts", "platforms": {"windows": {
+                "pixel":      {"review": "Light: SSIM 0.9978, 0.09% pixels differ"},
+                "pixel_xaml": {"review": "Light: SSIM 0.9711, 0.64% pixels differ"}}}},
+            {"name": "agrees", "platforms": {"windows": {
+                "pixel":      {"review": "Light: SSIM 0.9978, 0.09% pixels differ"},
+                "pixel_xaml": {"review": "Light: SSIM 0.9978, 0.09% pixels differ"}}}},
+        ]))
+        syn = score_contradictions("windows", root=root)
+        assert len(syn) == 1, syn                      # fires on the contradiction...
+        assert "contradicts" in syn[0], syn            # ...on the right page...
+        assert "BYTE-IDENTICAL" in syn[0], syn         # ...with the right wording
+    # And reported against the live board, informationally — never asserted, see the docstring.
     real = score_contradictions("windows")
     assert all("BYTE-IDENTICAL" in r for r in real)
     print(f"freshness selftest OK ({len(real)} live contradiction(s) on the windows board)")
