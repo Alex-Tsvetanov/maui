@@ -118,6 +118,29 @@ def has_soft_keyboard(path: str) -> bool:
 # (the gap_* placeholders, the Catalyst menu_bar page, whose menu lives outside the captured window).
 # So this one drives a RETRY and then ACCEPTS — a persistent blank is evidence the page really is
 # empty, while a blank that fills in on a re-shoot was a race. Never drop on it.
+# OPEN GAP (2026-08-22): A BLANK WHITE MAUI PAGE PASSED THIS CHECK. An android recapture at 13:34
+# returned a page with NO CONTENT, body mean 254.5, and blank_verdict did not flag it — so the frame was
+# only caught because a human looked. It was restored rather than committed, which unfortunately means the
+# failing artifact no longer exists to test a fix against.
+#
+# I tried to close it and STOPPED, because the obvious gates are unsafe and the data says so. Measured
+# across the 727 committed maui light captures:
+#   * COLOUR DOMINANCE (the signal this file's header rightly prefers over raw count) reaches 1.0000 on
+#     LEGITIMATE pages — swipe_refresh, menu_bar, ios_safe_area, gap_title_bar, ios_date_picker. A
+#     dominance rule fires on pages that really are empty by construction.
+#   * QUANTIZING before the count (body//8, to collapse the resize interpolation that can inflate a
+#     uniform page past BLANK_COLOURS) changes almost nothing: real content pages sit at 27-155 quantized
+#     colours (menu_bar 27, label 84, box_view 155) and the 25 captures that trip <=4 already trip it on
+#     the RAW count. So interpolation was not what let 13:34 through.
+#   * MEAN BRIGHTNESS is the tempting third option and has only ~7 levels of headroom: the failing frame
+#     was 254.5, while legitimate light pages reach 247.4 (ios activity_indicator) and 244.3 (ios
+#     absolute_layout). A threshold in that gap would be a guess, and a false positive here costs a
+#     re-shoot on every run of those pages.
+#
+# So the honest state is: the failure is real and reproducible in principle, but NOT diagnosable from the
+# committed corpus, because every candidate discriminator either misfires on known-empty pages or has no
+# safe margin. THE NEXT PERSON TO SEE ONE MUST KEEP THE FRAME — copy it aside before restoring — and the
+# gate should then be designed against it rather than against this reasoning.
 BLANK_COLOURS = 4          # distinct body colours at the sample size below
 BLANK_SAMPLE = (160, 340)
 
