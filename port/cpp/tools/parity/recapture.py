@@ -1425,8 +1425,47 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
 
 
 # --------------------------------------------------------------------------- measure
+def drop_orphan_gifs(dry_run: bool = False) -> list[str]:
+    """Delete GIFs belonging to pages that are NO LONGER driven, on every lane.
+
+    `gif.drop_stale()` is the rule that stops a failed recording shadowing a fresh PNG, but it is only
+    reached on the WRITE path — `assemble_vm_gifs`/`capture_ios`/`capture_android` call it just before
+    writing a new GIF. A page REMOVED from `ANIMATED` never takes that path again, so its old GIF
+    survives forever and `build_comparison_json.py` keeps preferring it over the PNG.
+
+    MEASURED 2026-08-22: `c892e89fc7` moved six pages to STATIC_TWIN_NO_LOGIC, leaving 12 orphan GIFs
+    (10 ios, 2 maccatalyst) dated 08-19/08-20. The iOS lane then ran a full 1032-capture pass in which
+    every PNG was fresh, and those cells STILL scored against three-day-old GIFs — the pass's own
+    `--skew` check reported 2 residual findings that were entirely this.
+
+    Third instance in one day of correct cleanup code not being on the path that needed it, after
+    `dev.sh -j` reaching only ctest and `recapture.py build()` running uncapped.
+    """
+    import gif as gifmod                     # same local import as assemble_vm_gifs (sys.path carries LIB)
+    # `dry_run` exists because the only way to find out what this deleted used to be to RUN it, and I
+    # deleted 692 board GIFs doing exactly that while checking the predicate. A function whose test is
+    # its own side effect has no safe test.
+    dropped = []
+    for gif in sorted((COMP / "captures").rglob("*.gif")):
+        page = gif.stem.rsplit("_", 1)[0]
+        # ONLY the static-twin set. `page not in ANIMATED` was the obvious-looking condition and it is
+        # WRONG by a factor of 58: GIFs are also written for every DRIVEN page, which is a much larger
+        # set than ANIMATED. Measured 2026-08-22 — that predicate selected 692 of 805 board GIFs.
+        if page in STATIC_TWIN_NO_LOGIC:
+            if gif.with_suffix(".png").is_file():        # never drop a GIF that is a cell's ONLY artifact
+                if not dry_run:
+                    gifmod.drop_stale(str(gif))
+                dropped.append(str(gif))
+    return dropped
+
+
 def measure(platforms: list[str]) -> None:
     log("=== MEASURE (board rebuild + scoring)")
+    # BEFORE the rebuild: the manifest prefers a .gif over a .png, so an orphan must be gone first or
+    # it is baked into comparison.json for another cycle.
+    orphans = drop_orphan_gifs()
+    if orphans:
+        log(f"board: dropped {len(orphans)} orphan GIF(s) — pages no longer driven (see drop_orphan_gifs)")
     # ORDER MATTERS: build_comparison_json.py only CARRIES OVER pixel scores, it cannot compute them.
     run_step("board: refresh comparison.json", [sys.executable, str(CTOOLS / "build_comparison_json.py")],
              timeout=900)
