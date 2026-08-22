@@ -126,7 +126,39 @@ def score_images(ia, ib, crop_top=0):
     system STATUS BAR (clock/battery/wifi), which differs between captures purely because they were shot at
     different times, not because of any port rendering (the same capture-chrome exemption the iOS harness
     inset gets under the capture-chrome carve-out). Measured: the status bar occupies rows 0..~135 and differs on 100% of pages;
-    the page content below it aligns. Both hosts run NoActionBar, so there is no app title bar to keep."""
+    the page content below it aligns. Both hosts run NoActionBar, so there is no app title bar to keep.
+
+    THERE IS NO MACCATALYST EQUIVALENT, AND THE OBVIOUS ONE WAS TRIED AND REJECTED (2026-08-22).
+    Do not re-add it without reading this. On maccatalyst the three columns are three APPS with three
+    window titles (gallery / gallery_xaml / MauiReference), so every cell carries a constant ~771 px
+    (0.09%) mismatch in the title bar. That much is true, it IS chrome and not app content, and it looks
+    like the same carve-out the Android status bar gets above. It fails for three separate reasons, any
+    one of which is sufficient:
+
+      1. THE REGION IS NOT PAGE-INDEPENDENT. Hashing the candidate box per column across all 172 pages,
+         13 of them carry page-SPECIFIC content there: borderless, clipping, data_template_selector,
+         empty_view{,_swap,_template,_view}, gap_menu_bar, GAP_TITLE_BAR, header_footer_string,
+         ios_search_bar, swipe_transition_mode, table_view. Masking would hide the subject matter of
+         `gap_title_bar`, a page that exists to test the title bar. This one alone ends it.
+      2. THE BOX IS EASY TO MIS-MEASURE. The first sizing said x 96-211 — that sampled only the `cpp`
+         column. `xaml`'s title is longer and the true union across all three is x 96-262, y 11-23. Size
+         against every column, never one.
+      3. THE ONLY CELLS IT MOVES ARE ONES THAT MUST NOT MOVE THIS WAY. Measured by monkeypatching this
+         function and running the real classifier over the whole lane: 4 cells, all yellow->green, all
+         hair's-breadth crossings on pages with separately-measured REAL differences.
+         varied_size_selector dark crosses on diff_pct by 0.01pp (1.07% -> 0.99%), on the page where MAUI
+         draws a cell boundary at lum 12 against endpoints [30,215] that the port does not;
+         header_footer_grid_horizontal dark crosses on SSIM by 0.0013 (0.9791 -> 0.9813), on a pair whose
+         columns came from different runs, at different commits, at different display modes. A scorer
+         change whose entire observable outcome is greening cells with known defects is not one we make.
+
+    Isolate before believing a count here: a first pass measured 16 moved cells, but 12 of those were an
+    unrelated ANIMATED-set change showing through a comparison.json written before it. Run the no-mask
+    control and subtract, or the change looks 4x more consequential than it is, in its own favour.
+
+    (A self-validating variant — mask only where the region matches that column's modal title, so a
+    content-bearing page scores normally — answers 1 and 2 but NOT 3: all four of those pages are in the
+    common-title group, so it greens exactly the same four cells.)"""
     if crop_top > 0:
         w, h = ia.size
         if h > crop_top:

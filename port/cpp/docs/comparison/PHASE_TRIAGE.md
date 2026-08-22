@@ -400,6 +400,15 @@ should be confirmed rather than assumed benign.
 
 ## 6. What would actually move these cells
 
+**One exemption WAS proposed, measured, and rejected — do not re-propose it from the numbers alone.**
+Every maccatalyst cell carries a constant ~771 px (0.09%) mismatch in the WINDOW TITLE BAR, because the
+three columns are three apps with three titles. It is genuinely chrome rather than app content, so a
+mask looks like the Android `crop_top` carve-out — and it is not. The three reasons it fails, with the
+measurements, are recorded in `tools/parity/lib/pixel_score.py` beside `crop_top` itself (short version:
+13 pages carry real content in that box, `gap_title_bar` among them; the box is x 96-262 and is easy to
+mis-size from one column; and the only 4 cells it moves are hair's-breadth crossings on pages with known
+real defects). Read that note before spending time on it again.
+
 Nothing here proposes relaxing a threshold, widening a tolerance, or loosening an alignment. The
 `phase_only` and `INVALID` caps are adjudicated policy (USER RULING 2026-08-10 / 2026-08-16) and are
 left exactly as they are.
