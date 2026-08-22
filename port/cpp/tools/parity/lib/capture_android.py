@@ -47,6 +47,35 @@ SERIAL = os.environ.get("MAUI_ANDROID_SERIAL", "emulator-5554")
 ADB = os.environ.get("MAUI_ADB", "adb")
 HERE = os.path.dirname(os.path.abspath(__file__))
 CPP = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+# OPEN BLOCKER (2026-08-22) — ANDROID DARK RECAPTURE IS NOT CURRENTLY TRUSTWORTHY.
+#
+# The dark page background of SCROLLVIEW-ROOTED pages moves between (18,18,18) = #121212 and
+# (47,47,47) = #2F2F2F depending on emulator state, and the two columns do not always move together.
+# Measured this session, all on AVD `maui-test`, same APKs throughout:
+#
+#   pipeline recapture 03:59   box_view      maui 18            (agreed; cell scored GREEN)
+#   snapshot-loaded boot       box_view      maui 47 / port 18  (manual probe, force-stop + relaunch)
+#   clean -no-snapshot-load    box_view      maui 18            (manual probe — the wash GONE)
+#   pipeline recapture 05:57   box_view      maui 47 / port 47  (AGREE at 47; still green)
+#   pipeline recapture 05:54   date_picker   maui 47 / port 18  (DISAGREE -> 85% diff, would be RED)
+#   pipeline recapture 05:57   label         maui 18 / port 18  (non-ScrollView: unaffected either way)
+#
+# So it is neither purely environmental nor purely a port defect: a manual probe and the pipeline
+# disagree on the SAME page minutes apart, and on box_view both columns land on 47 together while on
+# date_picker only MAUI does. What the pipeline does that a manual probe does not — demo mode, the
+# night-mode toggle between column passes, animation scales pinned to 0 — is the place to look.
+#
+# CONSEQUENCE: do not commit an android dark recapture of a ScrollView-rooted page without checking the
+# dominant background of BOTH columns first. Four cells (date_picker/time_picker x pixel,pixel_xaml)
+# were about to be committed RED purely on this. They were restored.
+#
+# NOT the cause, each ruled out by measurement rather than argument: the MauiReference rebuild (the
+# 03:59 captures already used the new APK and read 18); the local-time fix in 6a06e704d2 (the LIGHT
+# captures improved to 0.62%/0.55% and both columns read 8/22/2026 — the fix is verified working); the
+# safe-area producer (label is unaffected, and where box_view moved BOTH columns moved).
+# Related and NOT the same thing: the older "dark #2F2F2F was a capture artifact" note refers to a
+# whole-frame wash both apps hit; this one is per-page and column-asymmetric.
+
 COMP_CAP = os.path.join(CPP, "docs", "comparison", "captures", "android")
 
 # package + page-extra per column. MauiReference reads MAUI_COMPARE_PAGE, the C++ app hosts read
