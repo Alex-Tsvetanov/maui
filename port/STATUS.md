@@ -4,6 +4,36 @@
 > partial port as done silently — use the Notes column.
 > Legend: ✅ done · 🚧 in progress · ⬜ not started · — n/a
 
+## Board reaches ZERO REDS; 1277→1303+ green (2026-08-22)
+
+The parity board went 1277 green / 97 yellow / 2 red -> 1303 / 73 / **0**, then a further 10 cells green as
+four lanes were worked in parallel. Root causes, not symptom patches — each derived from `src/` and cited
+in the commit:
+
+| area | defect | commit |
+|---|---|---|
+| windows/clip | `build_geometry` returned nullptr for PathGeometry + GeometryGroup, and `apply_native_clip` reads that as "leave the clip alone" — those shapes were **never clipped** | `081da38dcb` |
+| controls/border + 4 siblings | `measure()` overrides never folded Margin while `compute_frame` subtracts it regardless — 2x the margin lost | `0468289207`, `2f9889ca6d` |
+| core/date_time | `now()` returned UTC where C# `DateTime.Now` is LOCAL — a whole-day text error in the capture window | `6a06e704d2` |
+| xaml/selection | the shared twins used `<CollectionView.SelectedItems><x:Array>`, which XamlC adds as ONE entry, so they preselected nothing | `c851d7b55e` |
+| android/safe-area | the port was not edge-to-edge, putting every centred element 35px low; built the per-view inset producer | `e115eafe6a` |
+| android/webview | MAUI drops `MinimumHeightRequest` on Android (`CreateMeasureSpec` reads it only when an explicit size is set); plus the WebView's natural measure via `onDraw` | `633c7da041`, `804574a796` |
+| android/field | the underline tint was wiped by our own `setBackgroundTintList(view, null)` one call later — AOSP treats that null as a tint STATE | `fa2e2e4d9a` |
+| apple/radio | the port used `CALayer.borderWidth` (band `[0,t]`); MAUI strokes its template Border's `shape_self_inset` at double width (band `[0.5, 0.5+t]`) | `9f6894e40b` |
+
+**~22 of the remaining yellows are unwinnable by construction** and are documented as such in
+`docs/comparison/PHASE_TRIAGE.md`: `maccatalyst/ios_date_picker` x2 (opening the compact UIDatePicker leaves
+the runner with no window — it fails in the GROUND-TRUTH column too) and ~20 android PHASE-ONLY cells
+(`--stability` over 4 runs: 12 of 16 flip VERDICTS, not scores). Subtract them before reading the yellow
+count as a work queue.
+
+**Tooling traps found the hard way, all now recorded in the files that own them:** a `.lib` relinks while
+one `.obj` inside it is stale (ask the BINARY for the symbol, not mtimes); `git checkout` on `captures/`
+does NOT undo a recapture, because `motion_score` reads the newest *untracked* run directory; the board
+captures RELEASE on every lane and a Debug MAUI bundle runs the *interpreted* XAML loader, which disagrees
+with XamlC; and BUILT is not DEPLOYED — recapture installs neither MauiReference nor, on some lanes, the
+galleries.
+
 ## nested_collection loader HANGS (not just blank) — deep bug, reverted (2026-07-18)
 
 Attempted the "render nested CVs in the loader" fix (the xaml column renders nested_collection blank because
