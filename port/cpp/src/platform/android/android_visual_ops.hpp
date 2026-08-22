@@ -453,6 +453,26 @@ namespace maui::platform::android
         // Tint the underline 9-patch DIRECTLY to the at-rest underline color. A SEMI-TRANSPARENT tint with
         // SRC_IN keeps the 9-patch shape (only the line pixels are opaque) and composites over the fill.
         // setTintList / setTintMode resolve on Drawable and dispatch to the 9-patch subclass instance.
+        //
+        // OPEN DEFECT (2026-08-22) — THIS DOES NOT PRODUCE MAUI'S UNDERLINE OVER A COLOURED FILL, and it
+        // is the larger half of what keeps android date_picker / time_picker YELLOW in dark.
+        // MEASURED on time_picker's `<TimePicker BackgroundColor="Blue" />` row, at the underline rows
+        // (y=517-518; the field's geometry is IDENTICAL in both columns, blue band 432..540, so this is
+        // purely colour):
+        //     dark    MAUI (179,179,255)  port (0,0,0)
+        //     light   MAUI (0,0,102)      port (0,0,0)
+        // MAUI's dark value is EXACTLY 0xB3FFFFFF (white@70%) composited over pure blue, and its light
+        // value is EXACTLY 0x99000000 (black@60%) over the same — i.e. THE CONSTANTS PASSED IN HERE AND
+        // THE is_night_mode() SELECTION ARE BOTH ALREADY CORRECT. The port nevertheless paints an opaque
+        // black line in BOTH themes, which is neither constant.
+        //
+        // REFUTED, so nobody spends the hour again: "SRC_IN drops the tint colour's alpha, so split it
+        // into an opaque tint plus Drawable.setAlpha(a)". Implemented, built clean, deployed, measured —
+        // the pixels did not move at all (still (0,0,0) at y=517). So the alpha is not what is lost, and
+        // whatever paints that line is not this setTintList call taking effect with the wrong alpha.
+        // Next place to look is whether this tint reaches the drawable AT ALL on this path: getBackground()
+        // above may not be returning the framework 9-patch by the time update_background runs, in which
+        // case the black line is some other drawable entirely and tinting is a no-op.
         if (jclass csl_class = cache.find_class(env.get(), "android/content/res/ColorStateList"))
         {
             jmethodID value_of = cache.static_method(env.get(), "android/content/res/ColorStateList", "valueOf",
