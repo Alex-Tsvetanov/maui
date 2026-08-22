@@ -108,15 +108,32 @@ function Sync-Tree {
     $copied = 0
     foreach ($rel in $s.Keys) {
         $si = $s[$rel]; $di = $d[$rel]
+        # ONE-SIDED, and the file gets a FRESH mtime on arrival. Both halves are required and they are
+        # coupled - see the incident note below.
+        #
         # 2s tolerance: WebDAV timestamps are coarser than NTFS, so exact equality would copy forever.
+        # The comparison is `si NEWER than di`, not `si DIFFERS from di`: a source that is OLDER than its
+        # copy is still a source that has not changed, and the symmetric form treated "older" as "differs"
+        # only when the sizes happened to match, which is not a distinction worth acting on.
         if ($null -eq $di -or $si.Length -ne $di.Length -or
-            [Math]::Abs(($si.LastWriteTimeUtc - $di.LastWriteTimeUtc).Ticks) -gt [TimeSpan]::FromSeconds(2).Ticks) {
+            ($si.LastWriteTimeUtc - $di.LastWriteTimeUtc).Ticks -gt [TimeSpan]::FromSeconds(2).Ticks) {
             $dst = Join-Path $To $rel
             $dir = Split-Path $dst -Parent
             if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
-            # File.Copy carries the source timestamp across, which keeps the NEXT sync cheap and the
-            # build incremental: an unchanged file never gets a new mtime, so nothing recompiles.
             Copy-Item -LiteralPath $si.FullName -Destination $dst -Force
+            # STAMP IT WITH ARRIVAL TIME. Copy-Item preserves the SOURCE mtime, which this comment used to
+            # defend as an optimisation ("an unchanged file never gets a new mtime, so nothing
+            # recompiles"). It is also how a FRESH file can land wearing an OLD timestamp and be ignored by
+            # ninja for the rest of the day. MEASURED 2026-08-22: xaml_visitors.cpp was edited on the host
+            # at 00:28:48 and synced here at 03:02, so it arrived stamped 00:28:48 - OLDER than the
+            # 00:36:07 object built from the PREVIOUS content. ninja called the object up to date;
+            # `dumpbin /SYMBOLS` on it showed 0 hits for the function the edit added. The whole Windows
+            # column then rendered pre-edit code while every artifact-level freshness check passed.
+            #
+            # The stamp and the one-sided guard above MUST land together: stamping alone would make every
+            # destination newer than its source, and a symmetric |si - di| > 2s guard would then re-copy
+            # the entire tree on every sync, forever.
+            (Get-Item -LiteralPath $dst).LastWriteTimeUtc = [DateTime]::UtcNow
             $copied++
         }
     }
