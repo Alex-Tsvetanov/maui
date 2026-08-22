@@ -15,6 +15,7 @@
 #include <jni.h>
 
 #include <algorithm>
+#include <array>
 
 #include "jni/app_context.hpp"
 #include "jni/jni_ref.hpp"
@@ -140,7 +141,7 @@ namespace maui::platform::android::apphost
     // and the device safe area over it. Writes `out` and returns true on success; returns false on older API
     // / any failure, so display_size falls back to the legacy DisplayMetrics - content_chrome_height_px path
     // (which yields a ZERO safe area, i.e. exactly the pre-edge-to-edge behavior).
-    [[nodiscard]] inline bool window_frame_px(JNIEnv* env, jobject activity, jint (&out)[6])
+    [[nodiscard]] inline bool window_frame_px(JNIEnv* env, jobject activity, std::array<jint, 6>& out)
     {
         if (env == nullptr || activity == nullptr)
         {
@@ -171,12 +172,12 @@ namespace maui::platform::android::apphost
             return false;
         }
         auto* const array = static_cast<jintArray>(result.get());
-        if (env->GetArrayLength(array) != 6)
+        if (env->GetArrayLength(array) != static_cast<jsize>(out.size()))
         {
             clear();
             return false;
         }
-        env->GetIntArrayRegion(array, 0, 6, static_cast<jint*>(out));
+        env->GetIntArrayRegion(array, 0, static_cast<jsize>(out.size()), out.data());
         if (env->ExceptionCheck() == JNI_TRUE)
         {
             clear();
@@ -185,12 +186,17 @@ namespace maui::platform::android::apphost
         return out[0] > 0 && out[1] > 0;
     }
 
-    // The Activity's display metrics (widthPixels x heightPixels) via JNI:
-    // activity.getResources().getDisplayMetrics().{widthPixels,heightPixels}, divided by the metrics
-    // `density` to yield framework POINTS. The height is reduced by the system chrome the content view does
-    // not receive (status bar + navigation bar; NO action bar — see content_chrome_height_px). Falls back to a portrait
-    // phone viewport (the headless/ios default) when any step fails, so the mount still settles. The
-    // Activity is reached through app_context() — the JNI export below pinned it as the process context.
+    // The Activity's viewport in framework POINTS. The `density` (px per dp) always comes from
+    // activity.getResources().getDisplayMetrics(); the RECTANGLE comes from windowFramePx() above — the FULL
+    // edge-to-edge window plus the safe area over it — because MauiHostActivity turns decor fitting off
+    // (MauiAppCompatActivity.cs:31) and MAUI lays out over the whole window, insetting per view.
+    //
+    // Legacy fallback (API < 30, where the decor still fits): DisplayMetrics.{widthPixels,heightPixels}
+    // minus the system chrome the content view does not receive (status bar + navigation bar; NO action bar
+    // — see content_chrome_height_px), with a ZERO safe area, i.e. the pre-edge-to-edge behavior unchanged.
+    // Falls back further to a portrait phone viewport (the headless/ios default) when any step fails, so the
+    // mount still settles. The Activity is reached through app_context() — the host's JNI entry pinned it as
+    // the process context.
     inline viewport display_size(JNIEnv* env)
     {
         constexpr viewport fallback{402.0, 874.0, {}}; // the ios/headless gallery default (host_run.cpp)
@@ -268,7 +274,7 @@ namespace maui::platform::android::apphost
         // Fallback (API < 30 / helper unavailable): the legacy heightPixels - dimen-chrome with a ZERO safe
         // area — i.e. the pre-edge-to-edge behavior, unchanged, because the decor still fits there. Clamped
         // so a bogus read can never zero/invert the height.
-        jint frame[6] = {0, 0, 0, 0, 0, 0};
+        std::array<jint, 6> frame{};
         if (window_frame_px(env, activity, frame))
         {
             const auto to_dip = [density](jint px) { return static_cast<double>(px) / density; };
@@ -317,6 +323,11 @@ namespace maui::platform::android::apphost
         // area insets are additive rather than overlapping" (its words: 20px margin + 30px safe area = 50px
         // total offset). frame() is already the post-margin frame (compute_frame / LayoutExtensions.
         // ComputeFrame), so backing the margin out returns the parent-relative origin the C# uses.
+        //
+        // The C# reads the rect off the native view (GetLocationOnScreen), i.e. in SCREEN coordinates; here
+        // frame() is PAGE-local, and the two agree because this host's page IS the window's content view and
+        // the window is now edge-to-edge, so the page origin is the screen origin. A host that ever insets or
+        // offsets the page again would have to add that offset back before the comparison.
         maui::core::thickness insets = view.safe_area;
         const auto* page = dynamic_cast<const maui::core::i_content_view*>(window.content());
         const maui::core::i_view* content = page != nullptr ? page->content() : nullptr;
