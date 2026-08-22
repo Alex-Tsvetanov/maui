@@ -105,6 +105,8 @@ CTOOLS = COMP / "tools"
 SCENARIOS = COMP / "scenarios"             # the AUTHORED interaction scenarios (button, entry, …)
 sys.path.insert(0, str(LIB))
 
+import freshness  # noqa: E402  (lives under LIB, so it needs the sys.path line above)
+
 PLATFORMS = ("android", "ios", "macos", "windows")
 FRAMEWORKS = ("maui_xaml", "cpp", "cpp_xaml")
 THEMES = ("light", "dark")
@@ -1279,6 +1281,29 @@ def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif
             log(f"=== LANE {platform}/{lane}: no selected framework has a column here — skipped")
             continue
         log(f"=== LANE {platform}/{lane}")
+        # FRESHNESS GATE, BEFORE the three hours of capture rather than after them. This lane's
+        # columns are `artifact_remote` -- PREBUILT paths on the guest -- so build() above skips
+        # Windows entirely and the guest builds are run by hand. Nothing else between a hand-run
+        # build and a capture asserts that the binaries are newer than the source they claim to
+        # render, and every artifact-level check passes while they are not, because they only ask
+        # whether the file EXISTS. `containers` and `selection_synchronization` both needed no code
+        # change at all on 2026-08-22 -- their binaries were days behind their twins.
+        # ABORT, not warn: a lane that captures stale binaries does not merely waste three hours, it
+        # PUBLISHES wrong frames that then read as port defects. See lib/freshness.py for what this
+        # does and does not catch (it cannot catch a file that arrived wearing an old mtime -- that
+        # class is fixed at source by sync_tree.ps1's arrival stamp).
+        if os.environ.get("PARITY_ALLOW_STALE") != "1":
+            try:
+                problems = freshness.check(platform, plat_dir, [fw for fw in frameworks if fw in cols],
+                                           scores=bool({"cpp", "cpp_xaml"} & set(columns)))
+            except Exception as exc:                      # a probe that cannot run must not silently pass
+                problems = [f"freshness probe failed ({exc.__class__.__name__}: {exc})"]
+            if problems:
+                for p in problems:
+                    log(f"      !! {p}")
+                fail(f"{platform}/{lane}: freshness gate ({len(problems)} problem(s)) — lane SKIPPED. "
+                     f"Rebuild/rescore, or set PARITY_ALLOW_STALE=1 to capture anyway.")
+                continue
         if platform == "macos":
             mac_vm_clean()
             if lane == "catalyst":
@@ -1742,6 +1767,10 @@ def selftest() -> int:
         sys.modules[__name__].log = real_log    # type: ignore[attr-defined]
     assert len(seen) == 4 and "framework=cpp_xaml theme=light example=button" in seen[0], seen
     assert "no END" in seen[1] and "(exited)" in seen[3], seen
+    # The freshness gate lane_vm now runs BEFORE spending three hours capturing. Device-free like
+    # everything else here: synthetic guest facts, real source tree, no SSH.
+    freshness.selftest()
+
     print("recapture selftest: mapping + markers + scenarios + coordinate gates + gif burst + "
           "device-lane run dir OK")
     return 0
