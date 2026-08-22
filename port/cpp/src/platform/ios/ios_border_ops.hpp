@@ -103,7 +103,8 @@ namespace maui::platform::ios
                                                    maui::graphics::rect bounds)
     {
         const maui::graphics::path_f path = spec.shape->path_for_bounds(
-            maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness));
+            maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness,
+                                         spec.shape));
         CGPathRef filled = path_to_cg_path(path); // +1 owned
         if (has_fill)
         {
@@ -250,7 +251,7 @@ namespace maui::platform::ios
         // stroke would shift its inner edge while the mask still cut at the undeflated outer edge, turning
         // a pure 0.5 DIP offset into a `thickness + 0.5` wide band. The general View.Clip route through
         // ios_visual_ops.hpp's apply_clip is NOT affected — MAUI never deflates that one.
-        const maui::graphics::rect shape_bounds = maui::core::shape_self_inset(bounds, spec.thickness);
+        const maui::graphics::rect shape_bounds = maui::core::shape_self_inset(bounds, spec.thickness, spec.shape);
 
         // The shape mask: clips background + content + the stroke's outer half (see the header).
         apply_clip(native, spec.shape, shape_bounds);
@@ -273,6 +274,40 @@ namespace maui::platform::ios
         // ABOVE this stroke sublayer at the default zPosition 0 (the content is added after the stroke), so
         // the content painted over the border stroke. MAUI draws the border stroke ON TOP of the content
         // (MauiCALayer.DrawInContext strokes last), so lift the stroke above the content via zPosition.
+        // ⚠ OPEN HYPOTHESIS — the leading explanation for border_stroke's residual, WITH the test that
+        // would confirm or kill it. Do not land a change here without running that test.
+        //
+        // THIS is the two-pass seam: the stroke is a SEPARATE CAShapeLayer composited over the content
+        // layer, where MAUI strokes inside ONE MauiCALayer.DrawInContext pass. Two rasterisations, each
+        // rounded to 8-bit and then blended, versus one.
+        //
+        // What is MEASURED on border_stroke (2026-08-22, maccatalyst, maui vs cpp):
+        //   * stroke GEOMETRY is byte-identical — spans, thicknesses and x-positions all match;
+        //   * fills are exactly (255,165,0);
+        //   * both columns antialias over the SAME rows — the port is NOT hard-edged — only the blend
+        //     RATIO at those rows differs (e.g. y=224 maui (255,147,68) vs cpp (255,97,33));
+        //   * the sub-pixel edge offset has NO systematic component: mean cpp-maui = -0.024 px light,
+        //     +0.011 px dark, both signs, n=32. So a rounding/offset "fix" here would be FITTING NOISE.
+        // Two-pass compositing predicts exactly that signature; a path-arithmetic error does not (it
+        // would show a constant offset), which is why that alternative is already excluded.
+        //
+        // THE TEST, if someone collapses this into a single pass. Score BOTH Apple lanes and use ABSOLUTE
+        // differing-pixel counts, never diff_pct — the two frames are 3.9x different in area, so the
+        // percentage flatters iOS (see below). Today's baseline:
+        //     maccatalyst  1024x800   21,334 px differ (2.60%, yellow)
+        //     ios          1206x2622  14,592 px differ (0.46%, GREEN — largely the bigger denominator)
+        // If the hypothesis holds, maccatalyst falls sharply AND iOS moves measurably from 14,592. If
+        // iOS does not move, the hypothesis is WRONG — the same code paints both lanes, so a real fix
+        // cannot be Catalyst-only. iOS being green today is NOT evidence this path is correct.
+        //
+        // Normalised per unit edge length iOS is still ~5.7x better than Catalyst, so a genuine
+        // Catalyst-specific component remains on top of this: the non-integral 0.7697 UIKit->AppKit
+        // scale puts every edge mid-pixel, where AA blends turn sensitive to sub-pixel path differences,
+        // while iOS's integral 3x lands clean. Expect a single-pass fix to shrink the residual, not
+        // necessarily to zero it.
+        //
+        // NOT the Android cause: android/border_stroke is 66,508 px across 935 rows against ~21 edge
+        // rows here — a different defect with a different mechanism. Nothing here transfers to it.
         stroke_layer.zPosition = 1;
         stroke_layer.frame = CGRectMake(bounds.x, bounds.y, bounds.width, bounds.height);
         stroke_layer.fillColor = nil; // stroke only — the background is the container layer's
