@@ -619,10 +619,57 @@ One column takes a single-run ~11% excursion and the gap crosses the tolerance. 
 tail.** The 80x separation was a statement about typical runs and said nothing about the worst case,
 which is exactly what a threshold meets.
 
-**So the real residual is not the correspondence alone** — it is single-run self-motion excursions of
-~11-75% in ONE column (search_bar/dark 10.6-10.7%, picker/dark 22.5%, clip_views/dark 75.3%), cause
-unknown. Any verdict built on comparing the two columns' travel inherits them. **That is the next
-thing to investigate, and the frames are already banked in the four run dirs.**
+**So the real residual is not the correspondence alone** — it is self-motion divergence between the two
+columns. **CORRECTION: these are not one phenomenon, and the largest one is not an excursion at all.**
+The list first written here (search_bar/dark 10.6-10.7%, picker/dark 22.5%, clip_views/dark 75.3%) came
+from a script taking `max(gap)` ACROSS repeats, which cannot tell a one-run spike from a constant
+offset. Read per-repeat:
+
+    search_bar/dark    MAUI 20.74 / 23.20 / 20.79 / 20.77     one-run EXCURSION
+    title_bar/cpp/dark port 20.73 / 20.73 / 23.12 / 20.76     one-run EXCURSION
+    clip_views/dark    MAUI 96.43 / 96.42 / 96.43 / 96.37     STABLE, every run
+                       port 26.25 / 23.83 / 23.80 / 23.83     STABLE, every run
+
+### clip_views/dark 75.3% — SOLVED, and it is the #2F2F2F capture wash
+
+Not scorer noise and not a port defect. Measured on the empty page background (x100-900, y1150-1250),
+run `2026-08-22-17_41_01`:
+
+    maui_xaml at-rest   RGB [47 47 47]      <- #2F2F2F, the Android dark-wash artifact
+    maui_xaml settled   RGB [18 18 18]
+    cpp       at-rest   RGB [18 18 18]
+    cpp       settled   RGB [18 18 18]
+
+MAUI's AT-REST BURST FRAME ALONE carries the wash; its own settled frames do not, and the port's frames
+never do. Delta 29 against `pixel_score.DIFF_THRESHOLD = 25` — just over, so it counts. That is the
+documented artifact whose signature is exactly this: environmental drift both apps hit, which becomes a
+signal only because the three columns are captured in three SEPARATE PASSES.
+
+So MAUI's 96.4% self-motion is "keyboard + the whole background clearing 47->18" while the port's 23.8%
+is "keyboard" — same page, same gesture, one contaminated frame.
+
+**AND IT COSTS TWO RED CELLS.** Cross-column, in that run:
+
+    TRUE at-rest   93.49% differ (SSIM 0.7437)     <- entirely the wash
+    TRUE settled    0.43% differ (SSIM 0.9889)     <- the columns AGREE
+
+`phase_only` requires `at_rest_diff <= PHASE_AT_REST_PCT (1.0)`. At 93.49% it cannot fire, so
+`clip_views/{cpp,xaml}/dark` fall through to `FAIL/frames-disagree` with worst-frame SSIM 0.82-0.91 at
+8.55-24.15% and colour RED — on a page whose PUBLISHED STILLS are clean and agree. Verified: the
+published `clip_views_dark.png` reads [18 18 18] in all three columns, so the still pass is unaffected
+and only the burst carries it. This is the "cell is red and the artifact a human can open shows nothing
+wrong" failure mode again, and the fix is a recapture of that page's GIF pass, not a port change.
+
+**A SECOND, SEPARATE BUG — in the analysis, not the scorer.** The rest/peak/tail table above took
+"rest" as `per-frame[0]`. After `_align` shifts by a nonzero offset, `pairs[0]` is no longer at-rest vs
+at-rest: at offset -1 it is MAUI's gif01 against the port's at-rest. So every cell with a nonzero offset
+had a wrong "rest" figure (clip_views/dark was reported 3.60%; it is really 93.49%), and the
+8/10/6 trajectory prediction is built on partly wrong inputs and MUST be recomputed against true
+at-rest frames before it is quoted. `trajectory_score` itself matches on `rest_step` and uses the
+correct frame — the code is right, the analysis of it was not.
+
+**Still open:** the two genuine one-run excursions (search_bar/dark, title_bar/cpp/dark, ~11%) and
+picker/dark (22.5%) are NOT explained. Frames are banked in the four run dirs.
 
 **STATUS OF THE FIX: DESIGNED, HELD OFF, AND NOT WORKING AS SPECIFIED.** The cause is localised (`_align`'s offset selection, driven by
 which moment each burst samples) and the remedy is specified above, but neither is built. Three gates
