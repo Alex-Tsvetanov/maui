@@ -214,6 +214,25 @@ Use a question (don't guess) when:
   tree (decided with the language profile; e.g. `port/<lang>/`).
 - Prefer `grep`/Glob to locate tests and source by type name over guessing paths.
 - Keep commits/changes scoped to one component slice; verify before moving on.
+- **This is a SHARED WORKTREE — several agents edit it at once. Never `git commit -a`, `git add -A` or
+  `git add .`; always `git add <explicit path>`. That rule is necessary and NOT sufficient: a path you
+  own can still carry another agent's UNCOMMITTED edits to the same file, and staging the path sweeps
+  them in. So verify the staged CONTENT, not just the paths, before committing:**
+
+  ```sh
+  git diff --cached -- <path>          # every line you are about to commit; nothing unexpected?
+  git show HEAD:<path> | grep <symbol> # after committing, confirm HEAD holds what you meant
+  ```
+
+  Measured cost of skipping it (2026-08-22, `13f13ba224`): a 37-line comment-only commit to
+  `ios_border_ops.hpp` also swept in another agent's in-progress 2-arg -> 3-arg `shape_self_inset`
+  call-site edit. HEAD then called a 2-parameter function with 3 arguments and **a clean checkout
+  failed to compile on the Apple lanes for about an hour**. It hid because the working tree carried the
+  matching uncommitted header on top, so every local build and suite still passed — only a fresh
+  checkout would have shown it. Reverted in `db057931bc`.
+
+  A commit whose message says "comment only" or "no behaviour change" is the one nobody re-reads, so it
+  is exactly the one to diff before pushing the button.
 
 ---
 
