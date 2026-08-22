@@ -549,12 +549,26 @@ def unverified_cells(plat_dir: str) -> list[tuple[str, str, str]]:
     before pixel_score started stamping stills carry no evidence either way, and silently calling
     those fresh would reintroduce the whole failure.
 
+    "REWRITTEN", NOT "CHANGED" -- the wording is load-bearing and the first cut overstated it.
+    stills_fingerprint is a sha256 over the FILE BYTES, so it answers "were these bytes rewritten",
+    which is a strict superset of "did the pixels move": a recapture that lands a pixel-identical
+    frame re-encodes the PNG and trips it. MEASURED 2026-08-22: of 74 maccatalyst cells this flagged,
+    a full `pixel_score --platform maccatalyst` moved ZERO of them -- all 74 were re-encodes. So the
+    flag fails SAFE (it can say "go and check" when nothing moved; it can never miss something that
+    did), but it must not be read as evidence that a verdict is wrong, and the board-wide count is
+    substantially re-encode noise rather than pending movement.
+
+    THE REAL FIX, deliberately not taken here: hash the DECODED PIXELS instead of the file bytes.
+    That is one line inside stills_fingerprint, but it is pixel_score's own primitive and it also
+    governs motion carry-forward, so changing it silently changes which carried verdicts survive a
+    re-encode. It wants its own change with its own rescore, not a drive-by from this module.
+
     DELIBERATELY NOT A LANE GATE, unlike the other two checks here. Until a full rescore has stamped
     the board, the "no fingerprint" arm covers every still cell -- measured at first run, 258 per
     platform -- so gating on it would abort every lane on every platform forever, and the gate would
     be switched off within the day. It is a TRIAGE tool: run it before debugging a cell, which is
     exactly the moment the android agent needed it and did not have it. The arm that matters
-    long-term ("the stills have changed") is already sharp, and the weak arm empties itself as soon
+    long-term ("the stills were rewritten") is already sharp, and the weak arm empties itself as soon
     as the next scoring pass runs.
     """
     jf = COMP / "comparison.json"
@@ -577,7 +591,7 @@ def unverified_cells(plat_dir: str) -> list[tuple[str, str, str]]:
             if not recorded:
                 out.append((entry["name"], slot, "no fingerprint recorded — scored before stamping"))
             elif recorded != pixel_score.stills_fingerprint(paths):
-                out.append((entry["name"], slot, "the stills have changed since this verdict"))
+                out.append((entry["name"], slot, "the stills were rewritten since this verdict"))
     return out
 
 
@@ -834,7 +848,7 @@ def selftest() -> None:
         return
     assert pixel_score.SLOTS == [("cpp", "pixel"), ("xaml", "pixel_xaml")], pixel_score.SLOTS
     rows = unverified_cells("windows")
-    assert all(w.startswith(("no fingerprint", "the stills have changed")) for _, _, w in rows)
+    assert all(w.startswith(("no fingerprint", "the stills were rewritten")) for _, _, w in rows)
     # THE FATAL/ADVISORY SPLIT. Only a stale ARTIFACT may abort a lane; a stale SCORE is resolved by
     # the very run that would be blocked, so it must land in the advisory list. `frameworks=[]` keeps
     # this off the guest, and the windows board really does carry contradictions today, so the
