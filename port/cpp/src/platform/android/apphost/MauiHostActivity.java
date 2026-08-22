@@ -27,31 +27,56 @@ public final class MauiHostActivity extends Activity {
     // connects a maui window to it, and returns the window's content FrameLayout (or null on failure).
     private native View nativeMount(String pageKey, String appearance);
 
-    // The window's USABLE CONTENT height in PIXELS = getCurrentWindowMetrics().getBounds().height() minus the
-    // system-bar insets (status bar top + navigation/gesture bar bottom), via the timing-safe
-    // WindowManager.getCurrentWindowMetrics() (API 30+, valid at mount time — no view-attachment dependency).
-    // This is exactly the area MAUI lays its content into. The native display_size uses it DIRECTLY instead of
-    // DisplayMetrics.heightPixels - navigation_bar_height dimen, which double-subtracted the chrome on API 30+
-    // (DisplayMetrics.heightPixels already excludes the bars there), leaving *-row / auto-sized pages ~200px
-    // short of the gesture-nav pill the real MAUI app reaches. Returns 0 on older APIs / any failure, so the
-    // caller falls back to the legacy DisplayMetrics - dimen-chrome path. Called via JNI ("usableContentHeightPx" "()I").
-    public int usableContentHeightPx() {
+    // The FULL window frame plus the safe-area insets, all in PIXELS, as
+    //     { width, height, insetLeft, insetTop, insetRight, insetBottom }
+    // read from the timing-safe WindowManager.getCurrentWindowMetrics() (API 30+, valid at mount time — no
+    // view-attachment dependency). Called via JNI ("windowFramePx" "()[I"); returns null on older APIs / any
+    // failure, so the native display_size falls back to the legacy DisplayMetrics - dimen-chrome path.
+    //
+    // width/height are the WHOLE window (bars included) because onCreate below turns off decor fitting —
+    // MAUI is edge-to-edge by construction (MauiAppCompatActivity.cs:31,
+    // WindowCompat.SetDecorFitsSystemWindows(Window, false)) and lays its content out over the full window,
+    // then insets PER VIEW. This method used to return bounds.height() MINUS the bars, which is what confined
+    // every page between the status and navigation bars and put every centred element 35px low: MAUI centres
+    // the `border` page's Border at y=1169.5 (2340/2) and the port centred it at 1204.5 ((136+2274)/2).
+    //
+    // The insets are max(systemBars, displayCutout) per edge, exactly
+    // WindowInsetsExtensions.ToSafeAreaInsetsPx (src/Core/src/Platform/Android/SafeAreaPadding.cs:26-33).
+    public int[] windowFramePx() {
         try {
             if (android.os.Build.VERSION.SDK_INT >= 30) {
                 android.view.WindowMetrics wm = getWindowManager().getCurrentWindowMetrics();
-                android.graphics.Insets bars = wm.getWindowInsets()
-                    .getInsets(android.view.WindowInsets.Type.systemBars());
-                return wm.getBounds().height() - bars.top - bars.bottom;
+                android.view.WindowInsets wi = wm.getWindowInsets();
+                android.graphics.Insets bars = wi.getInsets(android.view.WindowInsets.Type.systemBars());
+                android.graphics.Insets cut = wi.getInsets(android.view.WindowInsets.Type.displayCutout());
+                return new int[] {
+                    wm.getBounds().width(), wm.getBounds().height(),
+                    Math.max(bars.left, cut.left), Math.max(bars.top, cut.top),
+                    Math.max(bars.right, cut.right), Math.max(bars.bottom, cut.bottom)
+                };
             }
         } catch (Throwable t) {
-            // fall through to 0 -> native dimen fallback
+            // fall through to null -> native dimen fallback
         }
-        return 0;
+        return null;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // EDGE-TO-EDGE, exactly as MAUI is by construction: MauiAppCompatActivity.OnCreate calls
+        // WindowCompat.SetDecorFitsSystemWindows(Window, false) (src/Core/src/Platform/Android/
+        // MauiAppCompatActivity.cs:31). Measured on this emulator with `uiautomator dump`: MAUI's content
+        // root spans y=0..2340 (the whole window, with the status-bar band 0..136 and the navigation band
+        // 2274..2340 as separate sibling nodes drawn OVER it), while the port's spanned 136..2274. That is
+        // the entire 35px vertical offset on every centred page — MAUI centres in 2340, the port in 2138.
+        //
+        // This line alone is NOT the fix and must never ship alone: with the decor no longer fitting, the
+        // safe area has to reach the views that inset by it (windowFramePx above -> app_host.cpp's
+        // drive_layout(window, full_bounds, safe_area_bounds)). A previous attempt went edge-to-edge with no
+        // inset producer and drew every page under the status bar: 27 regressions, 13 green cells to red.
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         // THE APP THEME COMES FROM THE DEVICE, exactly as it does for a real MAUI app.
         //
         // This used to read the MAUI_APPEARANCE intent extra and drive the theme from it. That was wrong,

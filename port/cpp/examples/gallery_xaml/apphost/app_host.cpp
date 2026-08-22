@@ -45,6 +45,8 @@
 #include "jni/jni_string.hpp"
 #include "jni/relayout.hpp" // set_relayout_hook — replay this host's layout pass on a late resize
 
+#include "apphost/viewport.hpp" // display_size / drive_layout_viewport — shared with the C++ builder apphost
+
 #include "maui/controls/application.hpp"
 #include "maui/controls/content_page.hpp"
 #include "maui/controls/window.hpp"
@@ -64,14 +66,12 @@ namespace
 {
     using maui::platform::android::to_utf8;
 
-    // The Activity's display size in framework POINTS (px / density); defined after mount_gallery (the JNI
-    // walk is long). Mirrors the C++ host's display_size.
-    struct size2
-    {
-        double width;
-        double height;
-    };
-    size2 display_size(JNIEnv* env);
+    // The Activity's viewport (full edge-to-edge window + the device safe area, in framework POINTS) and the
+    // layout pass that routes the safe area to the views that inset by it. Shared with the C++ builder host —
+    // see src/platform/android/apphost/viewport.hpp; it used to be a line-for-line copy in each.
+    using maui::platform::android::apphost::display_size;
+    using maui::platform::android::apphost::drive_layout_viewport;
+    using maui::platform::android::apphost::viewport;
 
     // The loader knobs every page load on this host runs under. The ONLY one set is C#'s doNotThrow knob
     // (HydrationContext.ExceptionHandler, wired from ResourceLoader.ExceptionHandler2 in
@@ -189,23 +189,22 @@ namespace
         //     android.widget.FrameLayout content view + hosts the page's native view in it).
         maui::hosting::mount_window(app, *window);
 
-        // (4) One layout pass over the window's content bounds, sized to the device display.
-        const auto [width, height] = display_size(env);
-        maui::hosting::drive_layout(*window, width, height);
+        // (4) One layout pass over the FULL, edge-to-edge window, with the device safe area routed to the
+        //     views that inset by it (viewport.hpp).
+        const viewport view = display_size(env);
+        drive_layout_viewport(*window, view);
 
         // (4b) Register that pass as the process' RELAYOUT hook (jni/relayout.hpp) — the twin of the
         //      non-XAML host's step 4b. A view whose desired size changes AFTER this one-shot mount (the
         //      image handler's async uri decode) replays it; `app` is leaked for the process lifetime, so
         //      the captured window outlives every callback.
-        maui::platform::android::set_relayout_hook(
-            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
+        maui::platform::android::set_relayout_hook([window, view] { drive_layout_viewport(*window, view); });
 
         // (4c) ALSO install the general window::request_relayout hook (window.hpp) — the twin of the
         //      non-XAML host's step 4c. view<>::invalidate_measure routes through containing_window(), not
         //      through the Android-only slot above, so without this the now-live invalidate_measure() call
         //      sites would stay no-ops on this example host.
-        window->set_relayout_hook(
-            [window, width = width, height = height] { maui::hosting::drive_layout(*window, width, height); });
+        window->set_relayout_hook([window, view] { drive_layout_viewport(*window, view); });
 
         // (5) Reach the native FrameLayout through the window's handler and return a fresh local ref.
         const auto handler = std::dynamic_pointer_cast<maui::core::window_handler>(window->handler());
@@ -221,201 +220,6 @@ namespace
         return env->NewLocalRef(native);
     }
 
-    // The system-chrome height (PIXELS) the content view does NOT receive: the status bar (top).
-    // NO action/title bar (2026-07-01): the XAML host's manifest now references MauiAppHost.Theme, which is
-    // NoActionBar (build_android_apphost_xaml.sh writes a matching values/styles.xml), so there is no title
-    // bar above the content frame to reserve — matching the C++ host and MAUI's native-default ContentPage.
-    [[nodiscard]] jint content_chrome_height_px(JNIEnv* env, jobject activity)
-    {
-        if (env == nullptr || activity == nullptr)
-        {
-            return 0;
-        }
-        const auto clear = [&]() {
-            if (env->ExceptionCheck() == JNI_TRUE)
-            {
-                env->ExceptionClear();
-            }
-        };
-        jint total = 0;
-        const maui::platform::android::local_ref<jclass> activity_class{env, env->GetObjectClass(activity)};
-        if (!activity_class)
-        {
-            clear();
-            return 0;
-        }
-        jmethodID get_resources =
-            env->GetMethodID(activity_class.get(), "getResources", "()Landroid/content/res/Resources;");
-        if (get_resources == nullptr)
-        {
-            clear();
-            return 0;
-        }
-        const maui::platform::android::local_ref<jobject> resources{env,
-                                                                    env->CallObjectMethod(activity, get_resources)};
-        if (env->ExceptionCheck() == JNI_TRUE || !resources)
-        {
-            clear();
-            return 0;
-        }
-        const maui::platform::android::local_ref<jclass> resources_class{env, env->GetObjectClass(resources.get())};
-
-        // --- status bar ---
-        jmethodID get_identifier = env->GetMethodID(resources_class.get(), "getIdentifier",
-                                                    "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I");
-        jmethodID get_dimension_pixel_size = env->GetMethodID(resources_class.get(), "getDimensionPixelSize", "(I)I");
-        if (get_identifier != nullptr && get_dimension_pixel_size != nullptr)
-        {
-            const maui::platform::android::local_ref<jstring> name{env, env->NewStringUTF("status_bar_height")};
-            const maui::platform::android::local_ref<jstring> deftype{env, env->NewStringUTF("dimen")};
-            const maui::platform::android::local_ref<jstring> defpkg{env, env->NewStringUTF("android")};
-            const jint res_id =
-                env->CallIntMethod(resources.get(), get_identifier, name.get(), deftype.get(), defpkg.get());
-            if (env->ExceptionCheck() == JNI_TRUE)
-            {
-                clear();
-            }
-            else if (res_id > 0)
-            {
-                const jint status_px = env->CallIntMethod(resources.get(), get_dimension_pixel_size, res_id);
-                if (env->ExceptionCheck() == JNI_TRUE)
-                {
-                    clear();
-                }
-                else if (status_px > 0)
-                {
-                    total += status_px;
-                }
-            }
-        }
-
-        // NO action/title-bar measurement: MauiAppHost.Theme is NoActionBar, so there is no title bar above
-        // the content frame to reserve height for. Removed 2026-07-01 to match the C++ host + MAUI's Android
-        // gallery, which render these native-default ContentPages with no top app-title bar.
-        return total;
-    }
-
-    // MauiHostActivity.usableContentHeightPx() via JNI — the window's usable content height in PIXELS
-    // (getCurrentWindowMetrics().getBounds().height() minus the system-bar insets, API 30+). Used DIRECTLY by
-    // display_size to avoid the DisplayMetrics.heightPixels double-subtract of the chrome (see the C++ builder
-    // host's twin). 0 on older API / failure => the legacy DisplayMetrics - content_chrome_height_px fallback.
-    [[nodiscard]] jint usable_content_height_px(JNIEnv* env, jobject activity)
-    {
-        if (env == nullptr || activity == nullptr)
-        {
-            return 0;
-        }
-        const auto clear = [&]() {
-            if (env->ExceptionCheck() == JNI_TRUE)
-            {
-                env->ExceptionClear();
-            }
-        };
-        const maui::platform::android::local_ref<jclass> activity_class{env, env->GetObjectClass(activity)};
-        if (!activity_class)
-        {
-            clear();
-            return 0;
-        }
-        const jmethodID mid = env->GetMethodID(activity_class.get(), "usableContentHeightPx", "()I");
-        if (mid == nullptr)
-        {
-            clear();
-            return 0;
-        }
-        const jint px = env->CallIntMethod(activity, mid);
-        if (env->ExceptionCheck() == JNI_TRUE)
-        {
-            clear();
-            return 0;
-        }
-        return px > 0 ? px : 0;
-    }
-
-    // The Activity's display metrics -> framework POINTS, reduced by the system chrome. Verbatim from the
-    // C++ host (falls back to the ios/headless portrait phone viewport when any JNI step fails).
-    size2 display_size(JNIEnv* env)
-    {
-        constexpr size2 fallback{402.0, 874.0};
-        jobject activity = maui::platform::android::app_context();
-        if (env == nullptr || activity == nullptr)
-        {
-            return fallback;
-        }
-        const maui::platform::android::local_ref<jclass> context_class{env, env->GetObjectClass(activity)};
-        if (!context_class)
-        {
-            return fallback;
-        }
-        jmethodID get_resources =
-            env->GetMethodID(context_class.get(), "getResources", "()Landroid/content/res/Resources;");
-        if (get_resources == nullptr || env->ExceptionCheck() == JNI_TRUE)
-        {
-            env->ExceptionClear();
-            return fallback;
-        }
-        const maui::platform::android::local_ref<jobject> resources{env,
-                                                                    env->CallObjectMethod(activity, get_resources)};
-        if (env->ExceptionCheck() == JNI_TRUE || !resources)
-        {
-            env->ExceptionClear();
-            return fallback;
-        }
-        const maui::platform::android::local_ref<jclass> resources_class{env, env->GetObjectClass(resources.get())};
-        jmethodID get_metrics =
-            env->GetMethodID(resources_class.get(), "getDisplayMetrics", "()Landroid/util/DisplayMetrics;");
-        if (get_metrics == nullptr || env->ExceptionCheck() == JNI_TRUE)
-        {
-            env->ExceptionClear();
-            return fallback;
-        }
-        const maui::platform::android::local_ref<jobject> metrics{env,
-                                                                  env->CallObjectMethod(resources.get(), get_metrics)};
-        if (env->ExceptionCheck() == JNI_TRUE || !metrics)
-        {
-            env->ExceptionClear();
-            return fallback;
-        }
-        const maui::platform::android::local_ref<jclass> metrics_class{env, env->GetObjectClass(metrics.get())};
-        jfieldID width_field = env->GetFieldID(metrics_class.get(), "widthPixels", "I");
-        jfieldID height_field = env->GetFieldID(metrics_class.get(), "heightPixels", "I");
-        jfieldID density_field = env->GetFieldID(metrics_class.get(), "density", "F");
-        if (width_field == nullptr || height_field == nullptr)
-        {
-            env->ExceptionClear();
-            return fallback;
-        }
-        const jint width_px = env->GetIntField(metrics.get(), width_field);
-        const jint height_px = env->GetIntField(metrics.get(), height_field);
-        jfloat density = density_field != nullptr ? env->GetFloatField(metrics.get(), density_field) : 1.0F;
-        if (density <= 0.0F)
-        {
-            density = 1.0F;
-        }
-        if (width_px <= 0 || height_px <= 0)
-        {
-            return fallback;
-        }
-        // Prefer the TRUE usable content height from the window metrics (bounds - system-bar insets), matching
-        // MAUI and avoiding the DisplayMetrics.heightPixels double-subtract on API 30+ (see the C++ builder
-        // host's twin). Fallback: the legacy heightPixels - dimen-chrome (which here also omitted the bottom
-        // nav inset, so the page over-extended under the gesture-nav pill).
-        jint content_height_px = height_px;
-        const jint usable_px = usable_content_height_px(env, activity);
-        if (usable_px > 0)
-        {
-            content_height_px = usable_px;
-        }
-        else
-        {
-            const jint chrome_px = content_chrome_height_px(env, activity);
-            if (chrome_px > 0 && chrome_px < height_px)
-            {
-                content_height_px -= chrome_px;
-            }
-        }
-        return {static_cast<double>(width_px) / density, static_cast<double>(content_height_px) / density};
-    }
 } // namespace
 
 // MauiHostActivity.nativeMount(String pageKey) -> android.view.View. The JNI export name encodes the

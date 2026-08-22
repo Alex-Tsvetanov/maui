@@ -196,7 +196,19 @@ namespace maui::hosting
                 // ios_blur_effect green 0.12% -> red 8.8%). The two platforms genuinely differ (the standing doctrine —
                 // match each platform's render); same theme as the CollectionView .Never fork. See
                 // PARITY_REVIEW.md item 3. Headless (non-Apple) pushes zero insets, so this is a no-op there.
-#if !defined(TARGET_OS_MACCATALYST) || !TARGET_OS_MACCATALYST
+                //
+                // NOT ON ANDROID EITHER, and the guard says so explicitly now that Android pushes REAL insets
+                // (src/platform/android/apphost/app_host.cpp's drive_layout_viewport). Android is ADDITIVE like
+                // Catalyst, not overlapping like iOS: SafeAreaExtensions.ApplyAdjustedSafeAreaInsetsPx backs the
+                // margin out of the view's origin BEFORE the overlap test
+                // (`viewTop = Math.Max(0, viewTop - ToPixels(margins.Top))`, SafeAreaExtensions.cs:150-155) and
+                // then pads by the FULL inset, its own comment spelling out "20px margin + 30px safe area = 50px
+                // total offset". So a root layout with Margin="12" renders at margin + inset. This guard was
+                // `#if !TARGET_OS_MACCATALYST`, which is TRUE on Android — inert only while Android pushed zero
+                // insets, and a 33px regression on every Margin-carrying page the moment it stopped. Narrowed to
+                // Apple-minus-Catalyst; unchanged (and still inert) on headless, Windows and AppKit, which all
+                // pass equal rects.
+#if defined(__APPLE__) && (!defined(TARGET_OS_MACCATALYST) || !TARGET_OS_MACCATALYST)
                 if (const auto* content_view = dynamic_cast<const maui::core::i_view*>(content_host->content()))
                 {
                     const maui::core::thickness margin = content_view->margin();

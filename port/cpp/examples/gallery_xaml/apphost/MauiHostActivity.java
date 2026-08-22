@@ -25,27 +25,37 @@ public final class MauiHostActivity extends Activity {
     // returns the window's content FrameLayout (or null on failure).
     private native View nativeMount(String pageKey, String appearance);
 
-    // The window's USABLE CONTENT height in PIXELS = getCurrentWindowMetrics().getBounds().height() minus the
-    // system-bar insets — see the C++ builder host's twin (src/platform/android/apphost/MauiHostActivity.java)
-    // for the full rationale (DisplayMetrics.heightPixels double-subtract on API 30+). The native display_size
-    // uses this DIRECTLY. 0 => the legacy DisplayMetrics - dimen-chrome fallback. Called via JNI ("usableContentHeightPx" "()I").
-    public int usableContentHeightPx() {
+    // The FULL window frame plus the safe-area insets, in PIXELS, as
+    //     { width, height, insetLeft, insetTop, insetRight, insetBottom }
+    // — see the C++ builder host's twin (src/platform/android/apphost/MauiHostActivity.java) for the full
+    // rationale. null => the legacy DisplayMetrics - dimen-chrome fallback. Called via JNI ("windowFramePx" "()[I").
+    public int[] windowFramePx() {
         try {
             if (android.os.Build.VERSION.SDK_INT >= 30) {
                 android.view.WindowMetrics wm = getWindowManager().getCurrentWindowMetrics();
-                android.graphics.Insets bars = wm.getWindowInsets()
-                    .getInsets(android.view.WindowInsets.Type.systemBars());
-                return wm.getBounds().height() - bars.top - bars.bottom;
+                android.view.WindowInsets wi = wm.getWindowInsets();
+                android.graphics.Insets bars = wi.getInsets(android.view.WindowInsets.Type.systemBars());
+                android.graphics.Insets cut = wi.getInsets(android.view.WindowInsets.Type.displayCutout());
+                return new int[] {
+                    wm.getBounds().width(), wm.getBounds().height(),
+                    Math.max(bars.left, cut.left), Math.max(bars.top, cut.top),
+                    Math.max(bars.right, cut.right), Math.max(bars.bottom, cut.bottom)
+                };
             }
         } catch (Throwable t) {
-            // fall through to 0 -> native dimen fallback
+            // fall through to null -> native dimen fallback
         }
-        return 0;
+        return null;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // EDGE-TO-EDGE, exactly as MAUI is by construction (MauiAppCompatActivity.cs:31,
+        // WindowCompat.SetDecorFitsSystemWindows(Window, false)) — see the C++ builder host's twin for the
+        // measured rationale. Never ship this without the inset producer behind it (viewport.hpp).
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         // Match MAUI's status-bar colorization (parity C1/C3): MauiReference's Maui.MainTheme sets
         // colorPrimaryDark = #BDBDBD (both themes) as android:statusBarColor — a light-gray bar with dark
         // icons. This bare host otherwise leaves the default ~#F0F0F3 bar. Set the color + light-status-bar
