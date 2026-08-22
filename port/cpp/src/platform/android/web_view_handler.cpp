@@ -157,6 +157,45 @@
 // WITHOUT a Java VM) observes exactly the headless partial's behavior, and the gallery app host (a real
 // Activity WITH a JavaVM + Activity context) additionally drives the real android.webkit.WebView.
 
+// SOLVED 2026-08-22 — THE 607-vs-1100 GAP IS THE MINIMUM, AND MAUI DROPS IT ON ANDROID.
+//
+// MEASURED on the emulator (density 440, so 1dp = 2.75px), both apps on context_flyout, same session:
+//     MAUI  WebView y 908..1515  =  607 px  =  220.7 dp
+//     PORT  WebView y 908..2008  = 1100 px  =  400.0 dp
+// The twin declares <WebView Source="https://example.com/" MinimumHeightRequest="400" />
+// (port/maui-reference/pages/context_flyout.xaml:33). 400 dp is 1100 px EXACTLY, so the port applies the
+// minimum literally and MAUI does not apply it at all. Both columns start at y=908 — everything above the
+// WebView already matches element for element — so this band is the whole residual of the board's last RED.
+//
+// WHY MAUI DROPS IT, derived and verified line by line:
+//   1. A leaf's desired size comes from ViewHandlerExtensions.Android.cs:78+ GetDesiredSizeFromHandler,
+//      which passes the minimum ONLY into ContextExtensions.CreateMeasureSpec.
+//   2. CreateMeasureSpec (ContextExtensions.cs:418-434) reads `minimumSize` ONLY inside
+//      `if (IsExplicitSet(explicitSize))`. The WebView has no explicit Height, so the minimum never
+//      enters the spec.
+//   3. The remaining channel is the NATIVE floor: ViewExtensions.cs:433-438 UpdateMinimumHeight calls
+//      platformView.SetMinimumHeight(px). That only bites if the widget's own onMeasure consults
+//      getSuggestedMinimumHeight() — android.webkit.WebView does not.
+//   Net: on Android a MinimumHeightRequest on a WebView is silently inert. On iOS it is NOT —
+//   ViewHandlerExtensions.iOS.cs:125-126 applies ResolveConstraints(measured, Width, Min, Max)
+//   unconditionally. MAUI is genuinely platform-divergent here; do not "unify" the two.
+//
+// A DECOY THAT COST ME AN HOUR, recorded so it does not cost anyone else one: ViewHandlerExtensions
+// .Android.cs:72-74 says "Minimum values win over everything" and clamps
+// Math.Max(platformView.MinimumHeight, platformHeight). That looks like it should floor the WebView
+// whatever its onMeasure does — but it lives in MeasureVirtualView, the NATIVE OnMeasure path MAUI's own
+// view groups take, NOT in the leaf desired-size path above. Reading it as universal is what made me
+// wrongly reject the 220dp measurement.
+//
+// WHAT THE FIX IS NOT: a per-handler "honors_minimum_size_request()" opt-out. That approximates the
+// symptom for one control. The port applies min/max in the SHARED view<>::measure via
+// resolve_size_request (view.hpp:1038), which is exactly right for iOS and wrong for Android.
+// WHAT THE FIX IS: reproduce the Android rule — the virtual minimum must not enter the shared measure
+// when no explicit size is set, and must instead be pushed to the native widget (setMinimumWidth/Height)
+// so controls whose onMeasure DOES honour getSuggestedMinimum* keep their floor.
+// That distinction is load-bearing: an earlier session tried dropping the minimum WITHOUT adding the
+// native push and it reddened border_stroke — those widgets lost a floor they were getting for free.
+
 #include "maui/core/web_view_handler.hpp"
 
 #include <jni.h>
