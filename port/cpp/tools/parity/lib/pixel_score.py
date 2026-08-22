@@ -475,6 +475,15 @@ def declare_lane(theme_scores, lane):
             for t, v in theme_scores.items()}
 
 
+# (screenshot framework key, comparison.json slot) — the two required MAUI-vs-<framework> pairs
+# per port/CLAUDE.md "Parity comparison policy" §5: cpp -> "pixel" (comparisons 1/3), xaml ->
+# "pixel_xaml" (comparisons 2/4). Mirrors comparison_paths.review_slot()'s cpp->bare/xaml->_xaml.
+# MODULE SCOPE so there is exactly ONE definition of the pairing: freshness.py reads it back to check
+# a recorded verdict against the stills it names, and a second hand-copied list would drift silently.
+SLOTS = [("cpp", "pixel"), ("xaml", "pixel_xaml")]
+FW_LABEL = {"cpp": "C++", "xaml": "C++ & XAML"}   # how the motion review names the port column
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="", help="comma-separated page keys (default: all)")
@@ -495,12 +504,6 @@ def main():
         ap.error(f"unknown platform(s) {','.join(unknown)}; known: {','.join(PLATFORMS)}")
     pages = json.load(open(JSON, encoding="utf-8"))
     want = set(k.strip() for k in args.only.split(",") if k.strip()) if args.only else None
-
-    # (screenshot framework key, comparison.json slot) — the two required MAUI-vs-<framework> pairs
-    # per port/CLAUDE.md "Parity comparison policy" §5: cpp -> "pixel" (comparisons 1/3), xaml ->
-    # "pixel_xaml" (comparisons 2/4). Mirrors comparison_paths.review_slot()'s cpp->bare/xaml->_xaml.
-    SLOTS = [("cpp", "pixel"), ("xaml", "pixel_xaml")]
-    FW_LABEL = {"cpp": "C++", "xaml": "C++ & XAML"}   # how the motion review names the port column
 
     lanes = lane_status()
     scored = 0
@@ -527,6 +530,7 @@ def main():
                 other = sc.get(fw, {})
                 crop_top = 140 if plat == "android" else 0  # exclude the Android status bar (see score_images)
                 paths = [full_res(maui.get(t)) for t in themes] + [full_res(other.get(t)) for t in themes]
+                fingerprint = stills_fingerprint(paths)   # hoisted: EVERY cell is stamped, see below
                 theme_scores = {t: score_theme(full_res(maui.get(t)), full_res(other.get(t)), crop_top)
                                 for t in themes}
                 if page["name"] in motion_score.ANIMATED or page["name"] in driven_pages():
@@ -550,15 +554,25 @@ def main():
                     theme_scores = {t: motion_score.score_cell(page["name"], plat, fw, t, crop_top, v,
                                                                fw_label=FW_LABEL[fw])
                                     for t, v in theme_scores.items()}
-                    fingerprint = stills_fingerprint(paths)
                     prior = (platform.get(slot) or {}).get("motion")
                     theme_scores = carry_forward(theme_scores, prior, fingerprint)
                     theme_scores = declare_lane(theme_scores, lanes.get(plat))
-                else:
-                    fingerprint = None
                 was = platform.get(slot) or {}
                 status, review, motion = classify(theme_scores)
-                cell = {"status": status, "review": review}
+                # STAMP EVERY CELL, not just the motion ones. The fingerprint used to be computed only
+                # inside the motion branch, so a STILL cell's verdict recorded no evidence of which
+                # pictures it was taken on -- and a recorded number nobody can tie to a picture is
+                # indistinguishable from a current one. That is a second staleness axis, separate from
+                # the stale-BINARY problem freshness.py's header describes, and it cost real time on
+                # 2026-08-22: an agent was sent to debug 14 android cells of which 11 were ALREADY
+                # GREEN on the stills then on disk (`border` published 0.9605/3.49%, actual
+                # 0.9943/0.29%) because comparison.json lagged a recapture that had landed 20 minutes
+                # earlier. build_comparison_json.py CARRIES pixel scores over -- it cannot recompute
+                # them -- so the file's own mtime is no evidence at all: it is bumped by every board
+                # refresh while the carried score underneath stays as old as it was. Only the stills'
+                # own hash can answer it, which is exactly what stills_fingerprint already asks.
+                # freshness.py reads this back; a cell without it reports as unverified, not as fresh.
+                cell = {"status": status, "review": review, "stills": fingerprint}
                 if motion:
                     motion["stills"] = fingerprint
                     cell["motion"] = motion

@@ -261,6 +261,61 @@ def score_contradictions(plat_dir: str) -> list[str]:
     return out
 
 
+def unverified_cells(plat_dir: str) -> list[tuple[str, str, str]]:
+    """(page, slot, why) for cells whose recorded verdict was NOT taken on the stills now on disk.
+
+    THE SECOND STALENESS AXIS, and a different one from stale_windows(): there the BINARY lags the
+    source; here the BOARD lags the CAPTURES. A published number that nobody has recomputed since the
+    pictures changed is not a measurement, and it reads exactly like a current one.
+
+    Measured cost, 2026-08-22: an agent was handed 14 android cells to debug and found 11 ALREADY
+    GREEN on the stills then on disk -- `border` was published as 0.9605 / 3.49% while the actual
+    score was 0.9943 / 0.29%, because comparison.json lagged a recapture that had landed 20 minutes
+    before. That is most of a working session spent hunting bugs that were already fixed.
+
+    WHY NOT MTIMES -- checked, and it fails on exactly that case. comparison.json's own mtime was
+    15:36, NEWER than border's 15:16/15:18 captures, so "is any capture newer than the board file?"
+    answers NO for a cell that is provably stale. build_comparison_json.py CARRIES pixel scores over
+    (it cannot recompute them), so every board refresh bumps the file's mtime while the carried score
+    underneath stays as old as it was. Only content can answer this, which is what stills_fingerprint
+    already computes -- so this reads that back rather than inventing a second mechanism.
+
+    A cell with no recorded fingerprint is reported as UNVERIFIED, never as fresh: entries written
+    before pixel_score started stamping stills carry no evidence either way, and silently calling
+    those fresh would reintroduce the whole failure.
+
+    DELIBERATELY NOT A LANE GATE, unlike the other two checks here. Until a full rescore has stamped
+    the board, the "no fingerprint" arm covers every still cell -- measured at first run, 258 per
+    platform -- so gating on it would abort every lane on every platform forever, and the gate would
+    be switched off within the day. It is a TRIAGE tool: run it before debugging a cell, which is
+    exactly the moment the android agent needed it and did not have it. The arm that matters
+    long-term ("the stills have changed") is already sharp, and the weak arm empties itself as soon
+    as the next scoring pass runs.
+    """
+    jf = COMP / "comparison.json"
+    if not jf.is_file():
+        return []
+    sys.path.insert(0, str(HERE))
+    import pixel_score
+
+    out = []
+    for entry in json.loads(jf.read_text()):
+        plat = (entry.get("platforms") or {}).get(plat_dir) or {}
+        sc = plat.get("screenshots") or {}
+        for fw, slot in pixel_score.SLOTS:          # the pairing is pixel_score's to define, not ours
+            cell = plat.get(slot)
+            if not cell or not cell.get("review"):
+                continue
+            paths = ([(sc.get("maui") or {}).get(t) for t in ("light", "dark")] +
+                     [(sc.get(fw) or {}).get(t) for t in ("light", "dark")])
+            recorded = cell.get("stills") or (cell.get("motion") or {}).get("stills")
+            if not recorded:
+                out.append((entry["name"], slot, "no fingerprint recorded — scored before stamping"))
+            elif recorded != pixel_score.stills_fingerprint(paths):
+                out.append((entry["name"], slot, "the stills have changed since this verdict"))
+    return out
+
+
 def check(platform: str, plat_dir: str, frameworks: list[str], scores: bool = True) -> list[str]:
     """Everything a lane can assert before it spends three hours capturing.
 
@@ -360,6 +415,18 @@ def selftest() -> None:
                "artifacts": {WINDOWS_ARTIFACTS["cpp"]: {"exists": False, "mtime": "", "length": 0}}}
     assert "DECLARED BUT MISSING" in verdicts(missing, ["cpp"])[0]
 
+    # Board staleness. A cell is fresh ONLY when its recorded fingerprint matches the stills it
+    # names; absent evidence must read as unverified, never as fresh.
+    sys.path.insert(0, str(HERE))
+    import pixel_score
+    assert pixel_score.SLOTS == [("cpp", "pixel"), ("xaml", "pixel_xaml")], pixel_score.SLOTS
+    rows = unverified_cells("windows")
+    assert all(w.startswith(("no fingerprint", "the stills have changed")) for _, _, w in rows)
+    # …and it must NOT be part of the abortive gate: the weak arm covers most of the board until a
+    # rescore stamps it, so gating on it would refuse every lane forever.
+    gate = check("windows", "windows", [], scores=True)
+    assert not any("unverified" in g or "fingerprint" in g for g in gate), gate
+
     # The contradiction rule, exercised on the real board.
     real = score_contradictions("windows")
     assert all("BYTE-IDENTICAL" in r for r in real)
@@ -374,12 +441,26 @@ def main() -> int:
                     help="board captures/ directory (defaults to --platform; macos writes maccatalyst)")
     ap.add_argument("--columns", default="maui_xaml,cpp,cpp_xaml")
     ap.add_argument("--scores-only", action="store_true", help="skip the guest probe (no SSH)")
+    ap.add_argument("--unverified", action="store_true",
+                    help="list cells whose published verdict was NOT taken on the stills now on disk "
+                         "— run this BEFORE debugging a cell, so you do not chase a number nobody has "
+                         "recomputed since the pictures changed")
+    ap.add_argument("--only", default="", help="restrict --unverified to these pages")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
         selftest()
         return 0
     board = a.board_dir or ("maccatalyst" if a.platform == "macos" else a.platform)
+    if a.unverified:
+        want = {k.strip() for k in a.only.split(",") if k.strip()}
+        rows = [r for r in unverified_cells(board) if not want or r[0] in want]
+        for name, slot, why in rows:
+            print(f"  ?? {name}/{slot}: {why}")
+        print(f"{len(rows)} unverified cell(s) on {board}. Recompute before trusting them: "
+              f"pixel_score.py --platform {board}" + (f" --only {a.only}" if a.only else "") +
+              " (--verify to see the move without writing).")
+        return 1 if rows else 0
     problems = (score_contradictions(board) if a.scores_only
                 else check(a.platform, board, a.columns.split(",")))
     for p in problems:
