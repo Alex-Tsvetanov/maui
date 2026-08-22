@@ -5057,3 +5057,28 @@ not a port. The earlier "InvalidateMeasureIfContentSizeChanged is unbounded" blo
 wrong: `_previousContentSize` is assigned every call and the whole body is gated on
 `if (_initialized && (widthChanged || heightChanged))` (ItemsViewController2.cs:418-463), so it
 terminates when the content size stops moving and never reaches the `<= cvHeight` guard at all.
+
+**UPDATE 2026-08-22 — the PREMISE needs re-taking, but this analysis is NOT refuted. Read the scope
+carefully, because the two lanes are in different positions.**
+
+*maccatalyst: retired.* Its two cells were yellow because the PAIR WAS INVALID, not because of anything
+above. The MAUI column came from run `2026-08-19-08_27_20` / `06dcfcef48` captured at the OLD 1512x950
+display mode, while both port columns came from `2026-08-22-04_06_14` / `9a13dc8f9f` at 1920x1080 —
+different run, different commit, different display. Recaptured same-run/same-commit/same-display
+(`97e41f3d02`): 0.9802/0.52% -> 0.9840/0.39% light and 0.9791/0.70% -> 0.9831/0.53% dark, both cells
+GREEN with no port change. And this lane never showed the structure described above at all: its residual
+is confined to x4-247 (a narrow left column, 35-37 differing rows) with ZERO rows wider than 40% of the
+frame, so there is no pitch offset here to explain. Caveat: the worst SSIM margin is 0.0019 over the 0.98
+bar (`pixel_xaml` dark 0.9819), so this green is close enough to flip on noise — recheck it if anything
+nearby moves.
+
+*ios: unchanged in substance, but re-measure before building on it.* Every number in the entry above —
+y708-746, y1851, y1582, y2456, pitch 1143 vs 874 — is an iOS-frame measurement, and the iOS pair for this
+page is ALSO cross-run (maui 16:29 vs port 03:48). So the measurements should be re-taken from a same-run
+pair before the latched-frame model is treated as established. That is a caution, NOT a refutation: a
+269px pitch difference is far too large to be a capture artifact of the kind that explained maccatalyst,
+and the `pitch = CVheight / span` derivation and both REFUTED entries stand on `src/` rather than on the
+captures. Expect the re-measure to confirm it; do not assume it.
+
+The general lesson is the one now recorded at `pixel_score.score_images`: a cell whose two columns come
+from different runs can be perfectly self-consistent and still compare two different worlds.
