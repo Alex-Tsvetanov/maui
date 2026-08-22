@@ -788,9 +788,8 @@ namespace
             return;
         }
         // LIGHT underline #D9D9D9 matches MAUI's faint plate; DARK's Material underline is #444444.
-        const jint underline_tint = maui::platform::android::detail::is_night_mode(env)
-                                        ? static_cast<jint>(0xFF444444U)
-                                        : k_underline_tint;
+        const jint underline_tint =
+            maui::platform::android::detail::is_night_mode(env) ? static_cast<jint>(0xFF444444U) : k_underline_tint;
         const local_ref<jobject> tint{env, env->CallStaticObjectMethod(csl_class, value_of, underline_tint)};
         if (!clear_pending(env) && tint)
         {
@@ -1470,9 +1469,9 @@ namespace maui::core
             // white when unset + night (light + explicit paths unchanged), mirroring editor/entry.
             const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
             const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
-            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
-                                  ? static_cast<jint>(0xFFFFFFFFU)
-                                  : static_cast<jint>(view.text_color().to_int());
+            const jint argb = color_is_set
+                                  ? static_cast<jint>(view.text_color().to_int())
+                                  : maui::platform::android::detail::edit_text_unset_text_color_argb(env.get());
             if (const local_ref<jobject> query = text_widget_of(env.get(), *platform))
             {
                 call_void_int(env.get(), query.get(), "setTextColor", argb);

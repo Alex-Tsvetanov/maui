@@ -119,6 +119,32 @@ namespace maui::platform::android
             return is_night_mode(env) ? static_cast<jint>(0xFF121212U) : static_cast<jint>(0xFFFFFFFFU);
         }
 
+        // The colour an EditText-backed control must paint when TextColor is UNSET.
+        //
+        // src/Core/src/Platform/Android/EditTextExtensions.cs:45-58 — UpdateTextColor sets the colour only
+        // when `textColor is not null`; on the null (unset) branch it does NOT paint black, it re-reads the
+        // CONTEXT THEME's android:attr/textColorPrimary via ObtainStyledAttributes and installs that. In
+        // Theme.Material.Light textColorPrimary is #DE000000 — black at 0xDE/87% alpha — which composites
+        // over the white field to exactly (33,33,33), the value measured off the shipped MAUI render.
+        //
+        // The port models TextColor as a NON-nullable value type whose default (color{}) is opaque BLACK, so
+        // every unset Entry/Editor/Picker/SearchBar painted (0,0,0) against MAUI's (33,33,33) — measured on
+        // 12 Android pages (editor 9892px, entry 4835, search_bar 4830, border_playground 3928, …). The four
+        // handlers each carried a comment asserting opaque black was "correct on the LIGHT white field";
+        // that assumption is false and this helper replaces it in one place.
+        //
+        // TRANSLUCENT, not the flattened opaque #212121, for the same reason label_handler seeds 0xB8FFFFFF
+        // in dark: setTextColor honours the alpha channel, so 0xDE000000 composites correctly over a
+        // non-white parent (a coloured Border, a Grid cell) exactly as MAUI's theme ColorStateList does.
+        //
+        // DARK keeps the existing 0xFFFFFFFF seed: the port's AAR-less Theme.DeviceDefault dark
+        // textColorPrimary is not MAUI's Material value, so reading the theme there would regress the many
+        // already-green dark pages (the same DeviceDefault-vs-Material gap label_handler documents).
+        [[nodiscard]] inline jint edit_text_unset_text_color_argb(JNIEnv* env)
+        {
+            return is_night_mode(env) ? static_cast<jint>(0xFFFFFFFFU) : static_cast<jint>(0xDE000000U);
+        }
+
         // GradientDrawable.GradientType.RADIAL_GRADIENT (LINEAR_GRADIENT is the constructed default = 0).
         inline constexpr jint k_radial_gradient_type = 1;
 

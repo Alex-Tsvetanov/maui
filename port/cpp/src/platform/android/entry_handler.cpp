@@ -966,15 +966,16 @@ namespace maui::core
             // (restore the theme default) collapses for the port's non-nullable color (header deviations);
             // the ColorStateList path is replaced by the int overload (header deviations).
             //
-            // The port's non-nullable TextColor default (color{}) is opaque BLACK — correct on the LIGHT
-            // white field (and the password dots), but invisible on MAUI's #121212 DARK surface where MAUI
-            // keeps the EditText's WHITE textColorPrimary. Discriminate on BindableObject.IsSet (C#'s
-            // `!= null` stand-in) and seed white when unset + night; light + explicit paths unchanged.
+            // The port's non-nullable TextColor default (color{}) is opaque BLACK, but C#'s null branch
+            // restores the theme's textColorPrimary — #DE000000 in light (composites to the measured
+            // (33,33,33)), white on MAUI's #121212 DARK surface. Discriminate on BindableObject.IsSet (C#'s
+            // `!= null` stand-in) and defer the unset colour to edit_text_unset_text_color_argb, which
+            // carries the citation for BOTH themes; the explicit-colour path is unchanged.
             const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
             const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
-            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
-                                  ? static_cast<jint>(0xFFFFFFFFU)
-                                  : static_cast<jint>(view.text_color().to_int());
+            const jint argb = color_is_set
+                                  ? static_cast<jint>(view.text_color().to_int())
+                                  : maui::platform::android::detail::edit_text_unset_text_color_argb(env.get());
             call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
         }
     }

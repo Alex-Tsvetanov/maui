@@ -965,9 +965,9 @@ namespace maui::core
             // #121212 field, where MAUI shows white).
             const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
             const bool color_is_set = bindable != nullptr && bindable->is_property_set("text_color");
-            const jint argb = (!color_is_set && maui::platform::android::detail::is_night_mode(env.get()))
-                                  ? static_cast<jint>(0xFFFFFFFFU)
-                                  : static_cast<jint>(view.text_color().to_int());
+            const jint argb = color_is_set
+                                  ? static_cast<jint>(view.text_color().to_int())
+                                  : maui::platform::android::detail::edit_text_unset_text_color_argb(env.get());
             call_void_int(env.get(), widget_of(*platform), "setTextColor", argb);
         }
     }
