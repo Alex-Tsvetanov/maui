@@ -84,9 +84,16 @@ foreach ($a in ($Artifacts -split ',' | Where-Object { $_ })) {
     $p = $a.Trim()
     $i = Get-Item -LiteralPath $p -ErrorAction SilentlyContinue
     if ($i) {
-        $art[$p] = @{ exists = $true; mtime = $i.LastWriteTimeUtc.ToString("o"); length = $i.Length }
+        # MD5 TOO, not just mtime+length. A repeat-measurement ("did the verdict change with the
+        # binary held still?") is only as good as its proof that the binary WAS held still, and
+        # mtime+length can both survive a rebuild. The android lane pinned its equivalent claim with
+        # base.apk md5 endpoints; this is the same control for this lane. Note the commit is NOT that
+        # control: _git_commit() runs per unit, so HEAD moves DURING a long pass and a run directory
+        # can carry several. A run does not have a commit -- the artifact has a hash.
+        $art[$p] = @{ exists = $true; mtime = $i.LastWriteTimeUtc.ToString("o"); length = $i.Length;
+                      md5 = (Get-FileHash -LiteralPath $p -Algorithm MD5).Hash }
     } else {
-        $art[$p] = @{ exists = $false; mtime = ""; length = 0 }
+        $art[$p] = @{ exists = $false; mtime = ""; length = 0; md5 = "" }
     }
 }
 $facts["artifacts"] = $art
