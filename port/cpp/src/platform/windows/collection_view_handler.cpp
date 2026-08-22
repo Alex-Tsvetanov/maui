@@ -380,10 +380,10 @@ namespace
     //
     // What differs between the two pages is the LAYOUT and the SOURCE SHAPE:
     //   * preselected_items is ItemsLayout="VerticalGrid, 4" over 50 items; multiple_bound_selection is a
-    //     linear list over 4. This chrome branches on `grid` (selection_fill_brush's second parameter), and
-    //     a grid the xaml path builds via the "VerticalGrid, 4" STRING CONVERTER may not be recognised the
-    //     way the code-first grid_items_layout object is — but that would paint the LINEAR chrome, not
-    //     nothing, so it is a lead rather than an explanation.
+    //     linear list over 4. NOT the string converter, though: xaml_loader.collection_view_items_layout_
+    //     string_vertical_grid already asserts that "VerticalGrid, 3" resolves to a real grid_items_layout
+    //     with span 3 and vertical orientation — the same OBJECT TYPE the code-first page constructs. That
+    //     lead is dead; the layout kind reaching this handler is identical in both columns.
     //   * the xaml ItemsSource is the fixed-snapshot item_collection try_set_items_source_from_array builds
     //     (changed() is null); the code-first one is a live observable_collection.
     // Next probe: log selected_paths and the resolved layout kind for both columns on this one page.
