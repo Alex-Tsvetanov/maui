@@ -195,34 +195,39 @@ GREEN_DIFF = 1.0
 #
 # Membership is a MEASURED property of the lane's injector, not a preference. Re-measure before editing:
 # launch one column twice, drive it, screenshot after settle, diff below the status bar.
-# RE-MEASURED 2026-08-22, AND THE SET STAYS. An earlier note here argued this membership had EXPIRED:
-# the 11.57% figure above was measured on `adb shell input swipe`, and android scroll has used the
-# deterministic `input motionevent` path since 342236e316 (0.0000-0.0136% self-variance). That reasoning
-# was sound and the conclusion was WRONG, which is why the note deliberately did not act on it.
+# THE 12/16 THAT USED TO JUSTIFY THIS SET IS RETRACTED (2026-08-22). The set STAYS, but for a weaker
+# reason than the one written here before, and the difference matters.
 #
-# The file's own rule — "Membership is a MEASURED property of the lane's injector, not a preference" —
-# is now satisfiable, because enough post-342236e316 runs exist to vary. `motion_score.py --stability
-# --platform android --only box_view,clip,scroll_view,path_gallery --runs 4`:
+# An earlier note argued membership had EXPIRED: the 11.57% figure above was measured on `adb shell input
+# swipe`, and android scroll has used the deterministic `input motionevent` path since 342236e316
+# (0.0000-0.0136% self-variance). That note deliberately did not act on itself, and instead cited:
 #
+#     `--stability --platform android --runs 4`
 #     16 cell(s) scored across up to 4 runs each; 0 had only ONE run; 12 DISAGREED ACROSS RUNS
 #
-# Twelve of sixteen. Examples, and note these are VERDICT flips, not score jitter:
-#     scroll_view/cpp/light   09_13_47=FAIL         03_51_29=PASS
-#     scroll_view/xaml/dark   09_13_47=FAIL         03_51_29=FAIL      19-01_32_37=INCONCLUSIVE
-#     box_view/cpp/dark       03_51_29=PASS         09_21_55=INCONCLUSIVE
-#     path_gallery/cpp/dark   18-13_59_11=PASS      19-01_32_37=INCONCLUSIVE
+# and concluded "the same build scores them differently across runs". IT WAS NOT THE SAME BUILD. Until
+# this commit `stability()` picked run dirs by RECENCY with no commit filter, and every android run dir
+# on disk carries a DIFFERENT commit (a9e594470f, 716da124e5, c511b85708, e115eafe6a, 1812647b56,
+# 342236e316 — see stability()'s docstring for the table). The four runs it compared per cell were four
+# different builds, captured while the android rendering agent was landing fixes. Verdicts SHOULD differ
+# across those. The number measured the port changing, not the lane being noisy.
 #
-# Read it honestly: the run set spans 08-18 to 08-22, so it mixes pre- and post-deterministic-scroll runs,
-# and 2026-08-22-05_56_05 is a KNOWN-CONTAMINATED run (the #2F2F2F dark-wash window — see the OPEN BLOCKER
-# in capture_android.py) whose FAILs should be discounted. Even discounting it, cells still flip between
-# adjacent post-fix runs (box_view/cpp/dark PASS then INCONCLUSIVE; scroll_view/cpp/light FAIL then PASS).
-# So the DRIVE is deterministic and the VERDICT still is not — the instability moved rather than vanished.
+# So there is currently NO valid measurement of android drive reproducibility, in either direction. That
+# is why the set stays: retracting a bad measurement leaves nothing behind it, and dropping the cap on
+# "we no longer have evidence against it" would convert an unknown into green cells. The rule at the top
+# of this block is unchanged and is now actually enforceable — stability() groups by commit.
 #
-# CONSEQUENCE, and it is a real answer rather than a deferral: the ~20 android PHASE-ONLY cells are
-# CORRECTLY capped yellow. No port change can green them, because the same build scores them differently
-# across runs. Retiring this set would have converted measurement noise into red cells. Do not retire it
-# on the strength of the injector alone; re-run --stability first, and require agreement across runs that
-# are ALL post-fix and none of them contaminated.
+# WHAT IS MEASURED, so far, and it is narrow. `title_bar` is the only capped page with a same-commit
+# repeat in the corpus (3 runs at 716da124e5, no rebuild between). All 4 of its cells held the SAME
+# verdict in all 3 runs, while the inputs behind that verdict moved:
+#     title_bar/cpp/light   INCONCLUSIVE x3   _align offset 0/-1/0   worst frame 4.32% / 3.58% / 7.90%
+#     title_bar/cpp/dark    PASS         x3   _align offset 0/ 0/0   worst frame 0.06% / 0.07% / 0.06%
+# Light spikes wherever a burst sample lands mid-transition; dark never does, and its self-motion repeats
+# to six significant figures. One page's four cells cannot retire a lane-wide cap — but it is the first
+# evidence on this question that holds the port still, and it points the other way.
+#
+# TO RETIRE THIS SET you need N back-to-back repeats of the capped pages at ONE commit, with HEAD frozen
+# and no rebuild between repeats, then `--stability` (which now refuses to compare across commits).
 NON_REPRODUCIBLE_DRIVE = {"android"}
 # WHEN THE TWO COLUMNS' OWN MOTION DIFFERS BY THIS MUCH, SAY SO — even though the cell may still be a
 # legitimate PASS. Measured across the whole board (302 PASS theme-readings carrying a motion number),
@@ -1155,6 +1160,31 @@ def stability(comp=COMP, only=None, platforms=None, max_runs=4) -> int:
     A disagreeing cell is not automatically a bug — a genuine recapture between runs SHOULD change a
     verdict. It is a cell whose reported verdict is a function of run selection, which is the thing
     that must be known before anyone ANDs this layer into the board's colour. Read-only: no writes.
+
+    AND THE RUN MUST BE THE ONLY THING THAT VARIES — which is why runs are GROUPED BY COMMIT here.
+    The first cut of this function compared the newest `max_runs` directories outright, and that is
+    NOT a stability measurement: a run directory records the commit its frames were captured at, and
+    on an actively worked lane consecutive runs are consecutive BUILDS OF THE PORT. A verdict that
+    changes between them is the board doing its job.
+
+    That defect produced a headline number this repo then acted on. `--stability --platform android
+    --runs 4` reported "12 of 16 cells DISAGREED ACROSS RUNS", and the block above
+    NON_REPRODUCIBLE_DRIVE cited it as proof that the android VERDICT is irreproducible even though
+    the DRIVE is deterministic. MEASURED 2026-08-22, every android run directory on disk carries a
+    DIFFERENT commit:
+
+        2026-08-22-09_21_55  a9e594470f      2026-08-22-03_27_31  e115eafe6a
+        2026-08-22-05_56_05  716da124e5      2026-08-22-02_07_26  1812647b56
+        2026-08-22-03_51_29  c511b85708      2026-08-21-09_13_47  342236e316
+
+    So the four runs it compared were four different builds, and the 12/16 measured the android
+    rendering work landing between captures. It is not evidence that the drive is noisy; it is not
+    evidence that the drive is clean either. It is uninterpretable, and PHASE_TRIAGE.md's gloss —
+    "the same build scores these cells differently on consecutive runs" — was false as written.
+
+    Grouping makes the failure mode visible instead: a cell with no two runs at ONE commit is counted
+    under "no two runs AT ONE COMMIT", never silently folded in as agreement or disagreement. To get a
+    real reading, capture N back-to-back repeats with HEAD held still, then run this.
     """
     import pixel_score  # noqa: PLC0415  see _compare on the import cycle
 
@@ -1171,23 +1201,29 @@ def stability(comp=COMP, only=None, platforms=None, max_runs=4) -> int:
             for fw in ("cpp", "xaml"):
                 for theme in ("light", "dark"):
                     runs = _run_dirs(comp, plat, page["name"])[:max_runs]
-                    seen = {}
+                    # GROUPED BY THE COMMIT THE FRAMES WERE CAPTURED AT — see the docstring. Two runs
+                    # at different commits are two different builds of the port, so their verdicts are
+                    # allowed to differ and a difference measures nothing.
+                    by_commit: dict[str, dict[str, str]] = {}
                     for run in runs:
                         r = score_cell(page["name"], plat, fw, theme, crop_top,
                                        {"ssim": 1.0, "diff_pct": 0.0}, comp, only_run=run)
                         if r and r.get("evidence"):          # this run really did hold the frames
-                            seen[run.name] = r["verdict"]
-                    if not seen:
+                            by_commit.setdefault(r["evidence"]["commit"], {})[run.name] = r["verdict"]
+                    if not by_commit:
                         continue
                     checked += 1
-                    if len(seen) == 1:
-                        single += 1        # only one run has these frames: nothing to disagree with
-                    elif len(set(seen.values())) > 1:
-                        flapped.append((f"{page['name']}/{plat}/{fw}/{theme}", seen))
+                    groups = {c: s for c, s in by_commit.items() if len(s) > 1}
+                    if not groups:
+                        single += 1        # no two runs at ONE commit: nothing comparable to disagree
+                        continue
+                    for commit, seen in groups.items():
+                        if len(set(seen.values())) > 1:
+                            flapped.append((f"{page['name']}/{plat}/{fw}/{theme} @{commit}", seen))
     for name, seen in flapped:
         print(f"  UNSTABLE {name}: " + ", ".join(f"{r}={v}" for r, v in sorted(seen.items())))
     print(f"--stability: {checked} cell(s) scored across up to {max_runs} runs each; "
-          f"{single} had only ONE run to read (not a stability measurement); "
+          f"{single} had no two runs AT ONE COMMIT (not a stability measurement); "
           f"{len(flapped)} disagreed across runs")
     return 1 if flapped else 0
 

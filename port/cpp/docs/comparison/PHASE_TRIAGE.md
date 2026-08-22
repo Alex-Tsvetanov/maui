@@ -441,14 +441,50 @@ dropped (`run_comparison.py:592-605` drops only on agent refusal). **It fails id
 GROUND-TRUTH column.** No port change can green these 2 cells; only a different way of presenting or
 capturing that popover could.
 
-### android PHASE-ONLY — ~20 cells — MEASURED NON-REPRODUCIBLE
+### android PHASE-ONLY — ~20 cells — CAP STANDS, BUT THE 12/16 DID NOT MEASURE WHAT IT CLAIMED
 
-`motion_score.py --stability --platform android --runs 4` → **12 of 16 cells disagreed across runs**, and
-these are verdict flips (FAIL↔PASS↔INCONCLUSIVE), not score jitter. The DRIVE became deterministic when
-scroll moved to `input motionevent` (342236e316); the VERDICT did not. The same build scores these cells
-differently on consecutive runs, so no port change can green them, and retiring
-`NON_REPRODUCIBLE_DRIVE={"android"}` would convert measurement noise into RED cells. Details in the block
-above `NON_REPRODUCIBLE_DRIVE` in `tools/parity/lib/motion_score.py`.
+**RETRACTED 2026-08-22.** This section previously read: "`--stability --platform android --runs 4` →
+**12 of 16 cells disagreed across runs** … The same build scores these cells differently on consecutive
+runs". **The second sentence is false as written, and the first does not support the conclusion drawn
+from it.** It was not the same build.
+
+`--stability` selected run directories by RECENCY (`_run_dirs`, newest first) with no commit filter, and
+every android run directory on disk carries a DIFFERENT commit:
+
+| run | commit | | run | commit |
+|---|---|---|---|---|
+| `2026-08-22-09_21_55` | `a9e594470f` | | `2026-08-22-03_27_31` | `e115eafe6a` |
+| `2026-08-22-05_56_05` | `716da124e5` | | `2026-08-22-02_07_26` | `1812647b56` |
+| `2026-08-22-03_51_29` | `c511b85708` | | `2026-08-21-09_13_47` | `342236e316` |
+
+So the four runs compared per cell were four different builds of the port, captured while the android
+rendering agent was actively landing fixes. A verdict that changes across them is the board doing its
+job. The 12/16 is **uninterpretable as a drive-reproducibility measurement** — it is not evidence the
+drive is noisy, and it is not evidence the drive is clean.
+
+**The tool defect is fixed.** `stability()` now groups runs BY THE COMMIT recorded in their sidecars and
+compares only within a group; a cell with no two runs at one commit is reported under "no two runs AT ONE
+COMMIT (not a stability measurement)" rather than silently folded in as agreement. An absent measurement
+must not read as a passing one.
+
+**First same-commit control, from frames already on disk.** `title_bar`, three runs at `716da124e5`
+(`05_32_17` / `05_40_00` / `05_50_30`), no rebuild between them — the only capped page with a
+same-commit repeat in the corpus. **All 4 cells (cpp/xaml × light/dark) held the SAME verdict in all
+three runs.** The inputs behind the verdict did move:
+
+```
+title_bar/cpp/light   INCONCLUSIVE ×3   shift 0/-1/0   worst 4.32% / 3.58% / 7.90%
+title_bar/cpp/dark    PASS         ×3   shift 0/ 0/0   worst 0.06% / 0.07% / 0.06%
+```
+
+Light spikes at burst frame 3 and its `_align` offset flips between 0 and −1; dark never spikes, and its
+self-motion agrees to six significant figures (20.9439 / 20.9441 / 20.9441). Same page, same runs, same
+build. So the variance is not a property of the lane or of the page — it is whether a burst sample
+happens to land mid-transition.
+
+**THE CAP STANDS.** `NON_REPRODUCIBLE_DRIVE={"android"}` is unchanged. Retracting a bad measurement
+leaves NO measurement, not a passing one, and one page's four cells cannot retire a lane-wide cap. A
+6-page × 4-repeat single-commit run is in progress to settle it in one direction or the other.
 
 ### What this means for reading the board
 
