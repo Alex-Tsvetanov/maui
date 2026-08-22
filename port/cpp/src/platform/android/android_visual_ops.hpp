@@ -337,6 +337,25 @@ namespace maui::platform::android
     // This is a NEW composer kept SEPARATE from apply_background (which must not change behavior for its other
     // generic-IView callers): only the date/time picker update_background overrides call it, precisely because
     // those fields carry the defStyleRes underline chrome the plain apply_background would erase.
+    // MEASURED GAP (2026-08-22): the underline DOES NOT DIM WHEN THE FIELD IS DISABLED, and MAUI's does.
+    // time_picker_light, sampling the underline band of every row (implied alpha = 1 - level/255):
+    //     y= 324  maui 0.60  port 0.59      y=1333  maui 0.60  port 0.59
+    //     y=1721  maui 0.60  port 0.60      y=1915  maui 0.60  port 0.59
+    //     y=1527  maui 0.26  port 0.59   <- the ONLY row that differs
+    // y=1527 is `<TimePicker IsEnabled="False" />` (time_picker.xaml:33). So the 60% constant below is
+    // RIGHT for the enabled states — nine of ten bands match to within 0.01 — and wrong only for disabled.
+    //
+    // It is NOT a missing setEnabled: `uiautomator dump` on both apps reads the same enabled flags in the
+    // same order, with index 5 `false` in BOTH. The widget is disabled; the TEXT dims correctly in both
+    // (darkest pixel 189 vs 189 on that row); only the underline stays dark.
+    //
+    // The mechanism to fix is right here: ColorStateList.valueOf() below builds a SINGLE-STATE list, which
+    // by construction answers the same colour for state_enabled=false as for every other state. MAUI goes
+    // through AppCompat's tinted background, whose ColorStateList carries a disabled entry. The fix is a
+    // two-state ColorStateList — {-state_enabled: dimmed, default: underline_argb} — not a new constant.
+    // Measured target for the disabled entry: 0.26 alpha against 0.60 enabled, i.e. ~43% of the enabled
+    // alpha, which is consistent with Material dimming the control colour rather than a fixed value.
+    // Worth ~0.6-0.9% on date_picker and time_picker, which are yellow on exactly this residual.
     inline void apply_field_background(void* native, const maui::graphics::paint* fill, jint underline_argb)
     {
         if (native == nullptr)
