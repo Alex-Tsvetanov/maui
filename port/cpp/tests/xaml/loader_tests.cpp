@@ -67,6 +67,9 @@
 #include "maui/controls/image.hpp"                   // W17: Image.Source element form
 #include "maui/controls/items/carousel_view.hpp"     // CarouselView.Position gap closure
 #include "maui/controls/items/collection_view.hpp"   // W4: ItemTemplate inflation target
+#include "maui/controls/items/collection_view_handler.hpp" // the platform selection mirror probe
+#include "maui/controls/items/selection_mode.hpp"
+#include "maui/core/i_layout.hpp"
 #include "maui/controls/items/grid_items_layout.hpp" // W14: ItemsLayout="VerticalGrid,N"
 #include "maui/controls/label.hpp"
 #include "maui/controls/picker.hpp" // W12: <Picker.Items> x:String child sink
@@ -800,6 +803,52 @@ namespace
         ASSERT_EQ(view.selected_items().count(), 1U);
         EXPECT_TRUE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 2"})));
         EXPECT_FALSE(view.selected_items().contains(maui::controls::boxed_item::of(std::string{"Item 1"})));
+    }
+
+    // END-TO-END: the real SHIPPED twin (not a hand-written excerpt), hydrated whole, must land its three
+    // <CollectionView.SelectedItems><x:String> children in the PLATFORM mirror
+    // (collection_view_platform::selected_paths) -- the field every backend's selection chrome paints from.
+    // The isolated markup tests above stop at selected_items(); this one carries the boxed strings through
+    // items_view_source::get_index_for_item on a 50-item VerticalGrid source, so a regression anywhere in
+    // that chain fails here rather than only in a capture.
+    //
+    // HONEST SCOPE: this does NOT guard the bug it was written during. The windows cpp_xaml column showed
+    // no selection chrome on this page because the GUEST'S xaml_visitors.cpp.obj was compiled before the
+    // direct-child arm existed (Sync-Tree preserves source mtimes, so ninja saw the new file as older than
+    // its own output) -- see the SOLVED block in src/platform/windows/collection_view_handler.cpp. This test
+    // passed throughout. No unit test catches a stale object; only the build path can.
+    TEST(xaml_loader, preselected_items_twin_reaches_the_platform_selection_mirror)
+    {
+        maui::xaml::register_runtime_bindings(); // the twin's ItemTemplate uses {Binding .}
+        std::ifstream stream{std::filesystem::path{SHARED_PAGES_DIR} / "preselected_items.xaml"};
+        std::ostringstream buffer;
+        buffer << stream.rdbuf();
+        ASSERT_FALSE(buffer.str().empty());
+
+        controls::content_page page;
+        const auto result = xaml_loader::load_into(page, buffer.str()); // owns the tree
+        auto* stack = dynamic_cast<maui::core::i_layout*>(page.content());
+        ASSERT_NE(stack, nullptr);
+        maui::controls::collection_view* view = nullptr;
+        for (int index = 0; index < stack->count(); index++)
+        {
+            if (auto* candidate = dynamic_cast<maui::controls::collection_view*>(&stack->at(index)))
+            {
+                view = candidate;
+            }
+        }
+        ASSERT_NE(view, nullptr);
+        EXPECT_EQ(view->selection_mode(), maui::controls::selection_mode::multiple);
+        ASSERT_NE(view->items_source(), nullptr);
+        EXPECT_EQ(view->items_source()->count(), 50U);
+        ASSERT_EQ(view->selected_items().count(), 3U);
+
+        auto handler = std::make_shared<maui::controls::collection_view_handler>();
+        view->set_handler(handler);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+        EXPECT_TRUE(platform->allows_multiple_selection);
+        EXPECT_EQ(platform->selected_paths.size(), 3U);
     }
 
     TEST(xaml_loader, collection_view_selected_item_literal_preselection)
