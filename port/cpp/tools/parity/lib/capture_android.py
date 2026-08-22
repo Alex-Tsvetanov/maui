@@ -60,10 +60,21 @@ CPP = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 #   pipeline recapture 05:54   date_picker   maui 47 / port 18  (DISAGREE -> 85% diff, would be RED)
 #   pipeline recapture 05:57   label         maui 18 / port 18  (non-ScrollView: unaffected either way)
 #
-# So it is neither purely environmental nor purely a port defect: a manual probe and the pipeline
-# disagree on the SAME page minutes apart, and on box_view both columns land on 47 together while on
-# date_picker only MAUI does. What the pipeline does that a manual probe does not — demo mode, the
-# night-mode toggle between column passes, animation scales pinned to 0 — is the place to look.
+# NARROWED FURTHER, by bisecting the pipeline's device state by hand. A MANUAL probe — force-stop,
+# `am start`, sleep, `adb exec-out screencap -p` — reads (18,18,18) for BOTH apps on BOTH box_view and
+# time_picker, under EVERY combination tried:
+#     plain dark                                  maui 18 / port 18
+#     dark + animation scales pinned to 0         maui 18 / port 18
+#     dark + animations 0 + SystemUI demo mode    maui 18 / port 18
+# So demo mode and the animation pinning are BOTH ruled out, and so is the capture primitive: the
+# pipeline shoots the same `adb exec-out screencap -p` this probe does. The wash has never once been
+# reproduced outside a pipeline run.
+#
+# Still unexplained, and the remaining differences to bisect: the pipeline flips night mode ONCE PER
+# THEME PASS and then launches each of the three apps in turn (so an app can start while the
+# configuration change is still propagating, which no settle here covers); the GIF pass turns animations
+# back ON mid-run (recapture.py lane_android_gifs) and box_view/date_picker are both DRIVEN pages that
+# get one; and the build stage reinstalls the port APKs between passes.
 #
 # CONSEQUENCE: do not commit an android dark recapture of a ScrollView-rooted page without checking the
 # dominant background of BOTH columns first. Four cells (date_picker/time_picker x pixel,pixel_xaml)
