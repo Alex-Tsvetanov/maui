@@ -103,8 +103,7 @@ namespace maui::platform::ios
                                                    maui::graphics::rect bounds)
     {
         const maui::graphics::path_f path = spec.shape->path_for_bounds(
-            maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness,
-                                         spec.shape));
+            maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness));
         CGPathRef filled = path_to_cg_path(path); // +1 owned
         if (has_fill)
         {
@@ -251,7 +250,7 @@ namespace maui::platform::ios
         // stroke would shift its inner edge while the mask still cut at the undeflated outer edge, turning
         // a pure 0.5 DIP offset into a `thickness + 0.5` wide band. The general View.Clip route through
         // ios_visual_ops.hpp's apply_clip is NOT affected — MAUI never deflates that one.
-        const maui::graphics::rect shape_bounds = maui::core::shape_self_inset(bounds, spec.thickness, spec.shape);
+        const maui::graphics::rect shape_bounds = maui::core::shape_self_inset(bounds, spec.thickness);
 
         // The shape mask: clips background + content + the stroke's outer half (see the header).
         apply_clip(native, spec.shape, shape_bounds);
