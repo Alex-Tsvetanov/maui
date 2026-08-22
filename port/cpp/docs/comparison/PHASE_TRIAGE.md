@@ -668,8 +668,38 @@ had a wrong "rest" figure (clip_views/dark was reported 3.60%; it is really 93.4
 at-rest frames before it is quoted. `trajectory_score` itself matches on `rest_step` and uses the
 correct frame — the code is right, the analysis of it was not.
 
-**Still open:** the two genuine one-run excursions (search_bar/dark, title_bar/cpp/dark, ~11%) and
-picker/dark (22.5%) are NOT explained. Frames are banked in the four run dirs.
+### The remaining excursions — SOLVED for two of three, and they refute the trajectory design's premise
+
+The wash is REFUTED here: at-rest backgrounds are byte-stable across all four runs (search_bar 24.3,
+title_bar 18.4, picker 63.0). The cause is in the LATER frames:
+
+    picker/maui/dark     0.0 80.9 53.3 53.3 ...   transient CAUGHT   -> travel 80.86
+                         0.0  0.0 53.6 53.3 ...   transient MISSED   -> travel 53.62
+    title_bar/cpp/dark   0.0  0.1 23.1 20.6 ...   transient CAUGHT   -> travel 23.12
+                         0.0  0.0 20.8 20.6 ...   transient MISSED   -> travel 20.76
+
+Both pairs SETTLE identically. The dialog scrim and the IME slide OVERSHOOT their settled state, so
+whether the burst samples during the overshoot is a coin flip.
+
+**That refutes the load-bearing claim of the trajectory design.** It asserted that each column's own
+travel is "phase-invariant by construction" because it is a max over the sequence. A max is
+phase-invariant only for a MONOTONIC trajectory, and these are not monotonic. So `travel` samples the
+same race as the correspondence it was meant to replace, one layer down.
+
+**RE-MEASURED BY RUNNING THE CODE** (the first evaluation reimplemented the clauses by hand and used
+the wrong "rest" frame):
+
+    TRAJECTORY:  PASS 7 / FAIL 10 / FLIP 7      predicted 16 / 8 / 0      paired path: 19 stable / 5 flipped
+
+The correction did NOT rescue it — 7 flips against the paired path's 5. The design fails, now
+established on correct inputs and with the reason understood rather than guessed.
+
+**Direction for a next attempt:** compare the SETTLED value (the last frame) rather than the MAX. That
+is monotonic-free by construction. Deliberately not built here — it is a different design and deserves
+its own pre-registration rather than being retro-fitted onto this one's.
+
+**Still unexplained, and NOT a transient:** `search_bar/maui_xaml/dark` SETTLES at 23.2% in run
+`17_19_32` and 20.7% in the other three — a genuine end-state difference across runs of one binary.
 
 **STATUS OF THE FIX: DESIGNED, HELD OFF, AND NOT WORKING AS SPECIFIED.** The cause is localised (`_align`'s offset selection, driven by
 which moment each burst samples) and the remedy is specified above, but neither is built. Three gates

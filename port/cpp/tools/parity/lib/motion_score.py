@@ -1232,8 +1232,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
 # WHAT IS COMPARED — three phase-free quantities, none of which pairs two mid-motion frames:
 #   rest_diff   cross-column, at the at-rest frame. Pre-gesture, so there is no phase to get wrong.
 #   end_diff    cross-column, at the LAST frame. Both columns have settled, so likewise.
-#   travel      each column's OWN max self-motion. A max over the sequence is phase-INVARIANT by
-#               construction: it does not matter WHEN the peak was sampled.
+#   travel      each column's OWN max self-motion. THIS CLAIM WAS WRONG AND IT IS WHY THE DESIGN
+#               FAILS -- see the measured refutation below. A max over the sequence is phase-invariant
+#               only when the trajectory is MONOTONIC.
 # PASS iff the columns start together, end together, and travelled the same distance.
 #
 # WHAT THIS GIVES UP, stated plainly because it is the real cost: a port that reaches the right end
@@ -1269,12 +1270,35 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
 # forgive clip_views/dark's genuine 75.3% travel difference. That is threshold-tuning to hide noise,
 # which is the one move this whole investigation exists to refuse.
 #
-# WHAT THE NEGATIVE RESULT ACTUALLY ESTABLISHES, and it is worth more than the design was:
-#   * The residual instability is NOT the cross-column correspondence alone. It is single-run
-#     self-motion excursions of ~11-75% in ONE column, cause UNKNOWN and unmeasured — the next thing
-#     to investigate, on the frames already banked in the four run dirs.
-#   * Any verdict built on comparing the two columns' travel distances inherits those excursions. A
-#     working redesign has to explain or exclude them FIRST.
+# RE-MEASURED BY RUNNING THIS CODE (the first evaluation reimplemented the clauses by hand and fed
+# them a "rest" taken from per-frame[0], which after a nonzero _align offset is NOT the at-rest pair):
+#
+#     TRAJECTORY:  PASS 7  / FAIL 10 / FLIP 7        <- measured by running score_cell
+#     predicted:   PASS 16 / FAIL  8 / FLIP 0
+#     paired path: 19 stable / 5 flipped
+#
+# The correction did NOT rescue it. 7 flips against the paired path's 5.
+#
+# AND THE REASON IS THE `travel` CLAIM ABOVE, refuted by measurement. Self-motion is a MAX over the
+# burst, and a max is phase-invariant only for a MONOTONIC trajectory. These are not monotonic — the
+# dialog scrim and the IME slide OVERSHOOT their settled state, so the max depends on whether the
+# burst happened to sample during the overshoot:
+#
+#   picker/maui/dark     0.0 80.9 53.3 53.3 ...   transient CAUGHT     -> travel 80.86
+#                        0.0  0.0 53.6 53.3 ...   transient MISSED     -> travel 53.62
+#   title_bar/cpp/dark   0.0  0.1 23.1 20.6 ...   transient CAUGHT     -> travel 23.12
+#                        0.0  0.0 20.8 20.6 ...   transient MISSED     -> travel 20.76
+#
+# Both settle identically in each pair. So `travel` is just as phase-dependent as the correspondence
+# it was meant to replace — it samples the same race, one layer down. Any redesign resting on peak
+# travel inherits this. A SETTLED-VALUE comparison (the last frame, not the max) would not, and is
+# the direction to try next; it is deliberately NOT built here, because it is a different design and
+# should get its own pre-registration rather than being retro-fitted onto this one's.
+#
+# STILL UNEXPLAINED, and it is NOT a transient: search_bar/maui_xaml/dark SETTLES at 23.2% in run
+# 17_19_32 and 20.7% in the other three — a genuine end-state difference across runs of one binary.
+# The #2F2F2F wash is REFUTED for all three excursions (at-rest backgrounds are byte-stable across
+# runs: 24.3 / 18.4 / 63.0).
 # The code below is kept, off, because the phase-free framing is still right and the measurement that
 # refutes this particular clause is recorded next to it. Re-deriving it from scratch would cost another
 # session and reach the same wall.
