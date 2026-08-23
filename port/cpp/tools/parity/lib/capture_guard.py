@@ -196,37 +196,160 @@ def is_splash(path: str) -> bool:
     return splash_verdict(path)[0]
 
 
-def capture_until_ready(shoot, out_path: str, attempts: int = 4, backoff: float = 3.0) -> bool:
-    """Call shoot() -> writes out_path; retry while it lands on a splash.
+def capture_until_ready(shoot, out_path: str, attempts: int = 4, backoff: float = 3.0,
+                        blank_retries: int = 1, have_frame: bool = False) -> bool:
+    """Call shoot() -> writes out_path; re-shoot while the frame is not a capture of THIS page.
 
-    `shoot` takes no arguments and must (re)write out_path. Returns True when a NON-splash frame was
-    obtained, False when every attempt was a splash — in which case the CALLER SHOULD DROP THE FRAME
-    rather than bank it. Banking a known-bad frame is what produced the 38 corrupt captures.
+    `shoot` takes no arguments and must (re)write out_path. Returns True when the frame may be banked,
+    False when the caller SHOULD DROP IT. Banking a known-bad frame is what produced the 38 corrupt
+    captures.
+
+    TWO FAILURE SHAPES, TWO POLICIES — and the asymmetry is the whole point:
+
+      SPLASH -> retry, and DROP if it never clears. A .NET splash is unambiguously the wrong thing;
+                no page legitimately renders as near-solid #5729DD.
+
+      BLANK  -> retry ONCE, then ACCEPT. A blank verdict is AMBIGUOUS and this module's header has
+                always said so: some pages genuinely render empty (the gap_* placeholders, the
+                Catalyst menu_bar page whose menu lives outside the captured window). A blank that
+                fills in on a re-shoot was a race; one that persists is evidence the page really is
+                empty. NEVER drop on it.
+
+    WHY THERE IS NO THIRD, DROPPING PREDICATE HERE — measured 2026-08-23, after three were proposed:
+      * "non-trivial ink": under this module's own body crop the known-bad android frame
+        (swipe_item_position/cpp/light) is INDISTINGUISHABLE from a legitimate gap_title_bar
+        placeholder — both dominant (255,255,255) at fraction 1.0, 1 distinct colour, mean 255.0.
+        Any ink floor that catches the first deletes the second; 619 of 5086 committed frames sit
+        under 0.01. An earlier margin of 0.00287 vs 0.0306 was an artifact of a crop that left the
+        android nav bar inside the body, i.e. it was measuring chrome, not content.
+      * "dark frame washed to #2F2F2F": that colour is a LEGITIMATE dark surface here — it is the
+        dominant background of 100 of 542 known-good android dark frames, and on 143 pages all three
+        columns share it at identical dominance. The red-producing condition is the columns
+        DISAGREEING about the background, which is a cross-column fact and cannot be evaluated at the
+        shutter, where the other columns do not exist yet.
+    Both would have dropped good frames, which is strictly worse than the artifact they targeted. The
+    ambiguity is real, so retry-then-accept is the strongest honest policy — this module said that
+    before either was proposed.
+
+    MEASURED COST of the blank arm: 165 of 5086 committed frames (3.2%) take ONE extra shot and none
+    are dropped — maccatalyst 99, windows 32, ios 22, android 12.
     """
     import time
+    blanks = 0
     for attempt in range(attempts):
-        shoot()
+        # `have_frame` means out_path ALREADY holds a shot, so judge that one before spending another.
+        # Without it a caller that has just captured normally pays a second shot on every frame, which
+        # would turn "costs nothing on a healthy frame" -- the sentence this whole design rests on --
+        # into doubling the pass.
+        if not (have_frame and attempt == 0):
+            shoot()
         if not os.path.exists(out_path):
             return False
-        if not is_splash(out_path):
-            return True
-        wait = backoff * (attempt + 1)
-        print(f"  ~ splash detected in {os.path.basename(out_path)} — "
-              f"retry {attempt + 1}/{attempts - 1} after {wait:.0f}s")
-        time.sleep(wait)
-    return False
+        if is_splash(out_path):
+            wait = backoff * (attempt + 1)
+            print(f"  ~ splash detected in {os.path.basename(out_path)} — "
+                  f"retry {attempt + 1}/{attempts - 1} after {wait:.0f}s")
+            time.sleep(wait)
+            continue
+        if blanks < blank_retries and is_blank(out_path):
+            blanks += 1
+            print(f"  ~ blank frame in {os.path.basename(out_path)} — one re-shoot "
+                  f"(a persistent blank is ACCEPTED: some pages really are empty)")
+            time.sleep(backoff)
+            continue
+        return True
+    # Only a frame that is STILL a splash may be dropped here. Falling out of the loop having last
+    # seen a blank must ACCEPT it, or the accept-on-persistent-blank rule above would be a lie in the
+    # one case that exercises it.
+    return os.path.exists(out_path) and not is_splash(out_path)
+
+
+def selftest() -> None:
+    """The retry POLICY, which is the part that fails silently: a wrong branch here either drops good
+    frames or banks bad ones, and both look like a normal run in the log."""
+    import tempfile
+    import numpy as np
+    from PIL import Image
+
+    d = tempfile.mkdtemp()
+    out = os.path.join(d, "f.png")
+
+    def write(kind):
+        if kind == "splash":
+            a = np.full((300, 160, 3), NET_PURPLE, dtype="uint8")
+        elif kind == "blank":
+            a = np.full((300, 160, 3), 255, dtype="uint8")
+        else:                                   # real content: many colours, no dominance
+            rng = np.random.default_rng(0)
+            a = rng.integers(0, 255, (300, 160, 3), dtype="uint8")
+        Image.fromarray(a).save(out)
+
+    def run(seq, **kw):
+        """seq is consumed one entry per shoot(); the last entry repeats forever."""
+        calls = []
+
+        def shoot():
+            kind = seq[min(len(calls), len(seq) - 1)]
+            calls.append(kind)
+            write(kind)
+        return capture_until_ready(shoot, out, backoff=0.0, **kw), len(calls)
+
+    assert write("good") is None and is_splash(out) is False        # fixtures behave
+    write("splash"); assert is_splash(out), "splash fixture must read as a splash"
+    write("blank"); assert is_blank(out), "blank fixture must read as blank"
+
+    # GOOD: banked on the first shot, no retry cost on a healthy frame.
+    assert run(["good"]) == (True, 1)
+    # SPLASH that clears: retried, then banked.
+    assert run(["splash", "good"]) == (True, 2)
+    # SPLASH forever: DROPPED. A splash is unambiguously the wrong thing.
+    ok, n = run(["splash"], attempts=3)
+    assert ok is False and n == 3, (ok, n)
+    # BLANK that fills in: exactly ONE re-shoot, then banked.
+    assert run(["blank", "good"]) == (True, 2)
+    # BLANK forever: ACCEPTED after one re-shoot, NEVER dropped — some pages really are empty.
+    # This is the case the whole asymmetry exists for; if it ever returns False, the gap_*
+    # placeholders and the Catalyst menu_bar page start disappearing from the board.
+    ok, n = run(["blank"], attempts=4)
+    assert ok is True and n == 2, (ok, n)
+    # …and with retries disabled a blank is still banked, not dropped.
+    assert run(["blank"], blank_retries=0) == (True, 1)
+    # THE FALL-OUT PATH, which the cases above never reach: when the blank retries outlast `attempts`
+    # the loop ENDS mid-retry and the final return decides. That line is the one that must not say
+    # False. Added after a mutation that changed it to `return False` passed every other case here —
+    # the whole no-drop guarantee lived on a line no test executed.
+    ok, n = run(["blank"], attempts=2, blank_retries=5)
+    assert ok is True and n == 2, (ok, n)
+    # A frame that is still a SPLASH on the same fall-out path must still drop.
+    ok, n = run(["splash"], attempts=2, blank_retries=5)
+    assert ok is False and n == 2, (ok, n)
+
+    # have_frame: a caller that already shot must pay NOTHING for a healthy frame, and exactly one
+    # re-shoot for a blank one. This is what keeps the guard free on the ~97% of frames that are fine.
+    write("good")
+    assert run(["good"], have_frame=True) == (True, 0), "a healthy existing frame must not be re-shot"
+    write("blank")
+    assert run(["good"], have_frame=True) == (True, 1), "a blank existing frame gets one re-shoot"
+    write("splash")
+    ok, n = run(["splash"], attempts=2, have_frame=True)
+    assert ok is False and n == 1, (ok, n)
+    print("capture_guard selftest: splash drops, blank accepts, good frames cost no retry — OK")
 
 
 def main() -> int:
     import argparse
     import glob
     ap = argparse.ArgumentParser(description="report splash / soft-keyboard frames under one or more paths")
-    ap.add_argument("paths", nargs="+")
+    ap.add_argument("paths", nargs="*")
     ap.add_argument("--keyboard", action="store_true",
                     help="check for a stray Android soft keyboard instead of a .NET splash. Exit 1 on a "
                          "hit, so a shell capture loop can `if ! python3 capture_guard.py --keyboard f`.")
     ap.add_argument("--quiet", action="store_true", help="exit code only (for per-frame shell checks)")
+    ap.add_argument("--selftest", action="store_true", help="check the retry policy; no files needed")
     a = ap.parse_args()
+    if a.selftest:
+        selftest()
+        return 0
     bad = 0
     for p in a.paths:
         files = sorted(glob.glob(os.path.join(p, "*.png"))) if os.path.isdir(p) else [p]

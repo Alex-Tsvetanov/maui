@@ -38,6 +38,12 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent          # …/docs/comparison/tools
 COMP = HERE.parent                              # …/docs/comparison  (== pixel_score.COMP)
 REPO = COMP.parents[3]                          # repo root (…/maui)
+
+# The shared capture guard lives with the parity tooling, not with this runner. Importing it rather
+# than re-implementing its predicates is the point: it is the module that already decided a splash is
+# unambiguous and a blank is not, and having two answers to that would be worse than having none.
+sys.path.insert(0, str(COMP.parents[1] / "tools" / "parity" / "lib"))
+import capture_guard  # noqa: E402  (needs the sys.path line above)
 # The guest agent is chosen by the environment's `os` key — the per-OS seam vm_agent_macos.py's header
 # describes. Each agent exposes the SAME subcommands, so nothing below this line is OS-specific except
 # the small guest_ops indirection (mkdir/env-prefix/reboot/copy differ between a POSIX and a Windows
@@ -1083,6 +1089,47 @@ def run_env(env: Env, tags: list[str], scenarios_dir: Path, run_root: Path,
                             # as one that was never captured, and the end-of-run list is what tells
                             # the operator this page kept its STALE board still.
                             print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — capture pull failed: {why_pull}")
+                            failed_frames.append(f"{tag}/{col}/{theme}#{n}")
+                            continue
+                        # READINESS AT THE SHUTTER. Nothing here asserted that OUR OWN CONTENT had
+                        # drawn — every existing guard (present, foreground, keyboard) catches FOREIGN
+                        # content, and a frame of our own app that simply had not painted yet passes
+                        # all of them. Two lanes lost frames to that in one night: a partially-painted
+                        # first frame on windows (ios_scroll_view / search_bar, which scored as two
+                        # port REDS against a port that was byte-identical to MAUI once painted) and a
+                        # fully blank one on android (swipe_item_position/cpp/light, 0 content pixels).
+                        # capture_guard's header already prescribed the remedy for the splash case and
+                        # it generalises verbatim: "any fixed settle is a bet on how busy the machine
+                        # happens to be … Detect and retry costs nothing on a healthy frame and is
+                        # correct under any load."
+                        #
+                        # NO DROPPING PREDICATE FOR BLANKNESS — three were proposed and all three were
+                        # refuted on measurement (see capture_until_ready's docstring). A blank is
+                        # AMBIGUOUS, so it is re-shot once and then ACCEPTED; only a persistent splash
+                        # is dropped. Measured over 5086 committed frames: 3.2% take one extra shot,
+                        # none are dropped. `have_frame=True` is what keeps the other 96.8% free.
+                        def _reshoot(_pid=pid, _local=local):
+                            # RE-SHOOT DOWN THE SAME BRANCH. Falling back to a whole-display shot here
+                            # would re-create this runner's worst bug: on the `present` path a desktop
+                            # screenshot is not a degraded capture, it is a capture of something else,
+                            # and 154 of them were banked once before anyone noticed.
+                            if env.present:
+                                b, _why = shoot_presented(env, ccfg, g, remote_shot, pid=_pid)
+                                if b is None:
+                                    _local.unlink(missing_ok=True)   # absent => the caller drops it
+                                    return
+                            elif win_id:
+                                env.agent("shot", remote_shot, "--window", win_id)
+                            elif win_rect:
+                                env.agent("shot", remote_shot, "--rect", win_rect)
+                            else:
+                                env.agent("shot", remote_shot)
+                            env.pull(remote_shot, _local)
+
+                        if not capture_guard.capture_until_ready(_reshoot, str(local), attempts=3,
+                                                                 have_frame=True):
+                            print(f"  ! {tag}/{col}/{theme}#{n}: DROPPED — frame never became a "
+                                  f"capture of this page (persistent splash)")
                             failed_frames.append(f"{tag}/{col}/{theme}#{n}")
                             continue
                         # The window is presented at an EXPLICIT size, so a correct shot is exactly g[w]xg[h].
