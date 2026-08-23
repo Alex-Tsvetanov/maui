@@ -261,6 +261,17 @@ def classify(theme_scores):
     # theme still reds the cell.
     if status == "red" and have and all(v.get("authored_asymmetry") for v in have.values()):
         status = "yellow"
+    # THE GROUND TRUTH WAS NEVER DRIVEN (motion_score's drive_failed_gt). Cap at YELLOW from EITHER
+    # side: not red, because the port reacted correctly and is being marked down FOR WORKING; not
+    # green, because a capture that never drove MAUI demonstrated no parity either. `any`, not `all`,
+    # UNLIKE the two caps above: those exempt a REASON that is evaluated per theme, so one genuinely
+    # red theme must still red the cell. This one says the cell's EVIDENCE is contaminated, and the
+    # status is taken from the WORST theme — so a single contaminated theme decides it. Pre-registered
+    # blast radius (2026-08-22, before scoring): 4 cells, all red -> yellow — windows/ios_scroll_view,
+    # windows/search_bar, ios/ios_date_picker x2. Zero cells move the other way, because no cell
+    # anywhere currently has the PORT frozen while MAUI moved.
+    if have and any(v.get("drive_failed_gt") for v in have.values()):
+        status = "yellow"
     # WAS MOTION EVER EXPECTED HERE? Computed once, because TWO different caps below would otherwise
     # colour a page nobody ever drove — and the second one silently defeated the first when this ruling
     # was first written (the rescore moved 0 cells until this hoist landed).

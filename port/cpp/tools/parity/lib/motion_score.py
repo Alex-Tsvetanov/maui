@@ -186,6 +186,19 @@ PHASE_AT_REST_PCT = 1.0       # how tightly the first paired (pre-gesture) frame
 #   * the phase gate below   — only call a cell "not decidable" when it ISN'T already green anyway
 #   * the conjunctive PASS   — motion PASS means the frames would be called green
 # That last one is what makes "static green AND motion PASS" a statement about one bar rather than two.
+# THE MISMATCH RULE IS DIRECTION-BLIND, AND ONE DIRECTION IS NOT THE PORT'S FAULT.
+# "one column ANIMATES and the other is FROZEN is a parity failure by definition" is right when the
+# PORT is the frozen one — it failed to react to something MAUI handled. It is WRONG when the GROUND
+# TRUTH is frozen and the port moved: that is the capture failing to drive MAUI, and the port is then
+# marked red FOR WORKING. Measured 2026-08-22, ios_date_picker/light: at rest the columns are
+# byte-identical (0.0000%), after the tap the port opened its picker (24.5186% self-motion) and MAUI
+# did not move AT ALL (0.0000%) — an instantaneous `idb ui tap` too brief for MAUI's UIDatePicker.
+# Narrow ON PURPOSE: only an EXACT 0.0 on a DRIVEN page counts. `m_frozen` alone is a threshold and
+# would swallow real small reactions; 0.0 means the frames were visibly identical, i.e. nothing at all
+# happened. Both-frozen and both-moved are untouched. Flip this to False to restore the old behaviour.
+DETECT_DRIVE_FAILURE = False
+WHY_DRIVE_FAILED = "drive-failed-ground-truth"
+
 GREEN_SSIM = 0.98
 GREEN_DIFF = 1.0
 # AND THE CLAUSE THE FIRST CUT OF THIS GATE WAS MISSING — the lane's motion must actually be
@@ -1025,6 +1038,9 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     if roi_moved_o:
         o_moved, o_frozen = True, False
     mismatch = (m_moved and o_frozen) or (o_moved and m_frozen)
+    # The one direction that is a CAPTURE failure, not a port defect (see DETECT_DRIVE_FAILURE).
+    drive_failed_gt = bool(DETECT_DRIVE_FAILURE and driven_page and o_moved and m_frozen
+                           and move_m == 0.0)
     # NEITHER column moved on a page the board calls animated. That is not parity — it is the original
     # bug: a page nobody managed to drive, whose GIF is N copies of one frame. Two frozen columns match
     # each other perfectly and would otherwise score a confident green, which is precisely the
@@ -1118,6 +1134,19 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
                   f"ground-truth column has nothing to react WITH, so no motion parity can be "
                   f"established here either way. Retire this by adding the handler to the twin, not by "
                   f"changing the port. {detail}")
+    elif drive_failed_gt:
+        # NAME THE COLUMN THAT FAILED, AND THE EVIDENCE. The three tool bugs this class of verdict
+        # replaces (`no window to capture`, `capture pull failed`, PHASE_TRIAGE's "structural
+        # limitation") all asserted a cause nobody had measured. This one states its two numbers.
+        detail = (f"!! DRIVE FAILED ON THE GROUND TRUTH — **the MAUI column was never driven**, so this "
+                  f"is a CAPTURE failure, not a port defect. {label} reacted ({move_o:.4f}% of its own "
+                  f"frame changed) while MAUI moved by EXACTLY 0.0000% — the frames are visibly "
+                  f"identical, i.e. the injected action did nothing to it at all. An action IS declared "
+                  f"({key}.toml), and at rest the two columns agree to {at_rest_diff:.2f}%, so the port "
+                  f"is being marked down FOR REACTING. Fix the SCENARIO on this lane (a zero-duration "
+                  f"tap is a common cause — see lib/capture_ios.py's UISwitch note), then rescore. "
+                  f"Capped YELLOW: parity was NOT demonstrated either, so this is not a green. "
+                  f"{detail}")
     elif mismatch:
         still_side, moved_side = ("MAUI", label) if m_frozen else (label, "MAUI")
         # FIRST in the string and in caps, because this is the finding the whole pass exists to make.
@@ -1164,6 +1193,10 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
         # FIRST, ahead of every other clause: this is the one finding the whole-frame numbers actively
         # HIDE, so anything that reads them — including the frames_agree test below — would overrule it.
         verdict, why = FAIL, "roi-split"
+    elif drive_failed_gt:
+        # INVALID, not FAIL: the GROUND TRUTH was never driven, so nothing was demonstrated about the
+        # port in either direction. pixel_score caps the cell at yellow — it must not go green either.
+        verdict, why = INVALID, WHY_DRIVE_FAILED
     elif mismatch and not authored_asymmetry:
         verdict, why = FAIL, "mismatch"
     elif both_frozen:
@@ -1190,6 +1223,7 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
     # committed comparison.json so a verdict outlives the gitignored run directory it came from.
     return {"ssim": round(ssims[worst_i], 4), "diff_pct": round(scores[worst_i]["diff_pct"], 2),
             "detail": detail, "mismatch": mismatch, "both_frozen": both_frozen,
+            "drive_failed_gt": drive_failed_gt,
             "phase_only": phase_only, "authored_asymmetry": authored_asymmetry,
             "verdict": verdict, "why": why,
             # STRUCTURED so the README can say WHICH COLUMN moved, not merely whether the comparison
@@ -1551,6 +1585,7 @@ def _selftest() -> int:
         publish(comp, "frozen", "cpp", "light", do / "0001.png")
         r = score_cell("frozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("frozen column: flagged", r["mismatch"], True)
+
         check("frozen column: says so first", r["detail"].startswith("!! MOTION MISMATCH"), True)
         # Both measurements must be IN THE TEXT, so a forced red can be argued from the review alone.
         # Asserted as a PERCENT (with the pixel count alongside) because the percent is what the
@@ -1682,6 +1717,45 @@ def _selftest() -> int:
         r = score_cell("tinyfrozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
         check("small widget frozen column: flagged", r["mismatch"], True)
         check("small widget frozen column: names the frozen side", "cpp IS FROZEN" in r["detail"], True)
+
+        # (2b) THE OTHER DIRECTION — the GROUND TRUTH is the frozen one. Same mismatch shape, opposite
+        #      culprit: the capture failed to drive MAUI and the port is the only column that reacted.
+        #      Must NOT be FAIL/mismatch (that blames the port for working) and must NOT be a green
+        #      either — INVALID, named, and capped yellow by pixel_score.classify.
+        # drive_failed_gt is DRIVEN-ONLY by design: without an authored action there is nothing that
+        # could have failed to fire, and both-frozen already covers that. So the scenario must exist.
+        (comp / "scenarios").mkdir(exist_ok=True)
+        (comp / "scenarios" / "gtfrozen.toml").write_text(
+            'tag = "gtfrozen"\n[[steps]]\nname = "initial"\n\n'
+            '[[steps]]\nname = "tapped"\naction = "click"\nat = [0.5, 0.5]\n')
+        dm = unit(run, "gtfrozen", "maui_xaml", "light", seq([10, 10, 10]))
+        do = unit(run, "gtfrozen", "cpp", "light", moving)
+        publish(comp, "gtfrozen", "maui", "light", dm / "0001.png")
+        publish(comp, "gtfrozen", "cpp", "light", do / "0001.png")
+        # THE ARM SHIPS OFF (DETECT_DRIVE_FAILURE = False) AND MUST STILL BE TESTED. Gating this block
+        # on the flag was the obvious move and is the wrong one: the test would go dormant WITH the
+        # code, so whoever flips the flag would be enabling an arm nothing had ever exercised. Flip it
+        # for this one call instead, and assert the shipped default separately -- that way the arm is
+        # covered while it sleeps, and the fact that it sleeps is itself covered.
+        _prev_detect = globals()["DETECT_DRIVE_FAILURE"]
+        globals()["DETECT_DRIVE_FAILURE"] = True
+        try:
+            rg = score_cell("gtfrozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        finally:
+            globals()["DETECT_DRIVE_FAILURE"] = _prev_detect
+        check("gt frozen: the arm ships OFF", _prev_detect, False)
+        check("gt frozen: flagged as drive failure", rg["drive_failed_gt"], True)
+        check("gt frozen: NOT blamed on the port", rg["why"], WHY_DRIVE_FAILED)
+        check("gt frozen: verdict INVALID not FAIL", rg["verdict"], INVALID)
+        check("gt frozen: names the column", "MAUI column was never driven" in rg["detail"], True)
+        # and the cap: an INVALID cell is never green and never red.
+        import pixel_score as _ps
+        got, _rev, _mo = _ps.classify({"light": dict(rg), "dark": None})
+        check("gt frozen: capped yellow", got, "yellow")
+        # With the arm OFF -- the shipped configuration -- the SAME frames take the old path. Asserted
+        # so "held" means something checkable rather than a comment.
+        rg_off = score_cell("gtfrozen", "maccatalyst", "cpp", "light", 0, STILL, comp)
+        check("gt frozen: arm OFF restores the old verdict", rg_off["why"], "mismatch")
 
         # (13) A PURE SAMPLING DRIFT IS NOT A DEFECT. Both columns move the box through the SAME
         #      positions; column B is simply sampled one step later. Index pairing scores that as a

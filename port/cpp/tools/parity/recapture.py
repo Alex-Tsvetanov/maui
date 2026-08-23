@@ -125,6 +125,19 @@ VM_LANES = [
     ("windows", "windows", "windows.toml", "windows-arm64",
      {"maui_xaml": "maui_xaml", "cpp": "cpp", "cpp_xaml": "cpp_xaml"}, "windows"),
 ]
+# WHICH VM SUB-LANES ARE IN PLAY. `--platforms macos` means TWO lanes on ONE guest (Catalyst, then
+# AppKit), and a run that only needs the board's four lanes pays for AppKit anyway -- on the guest that
+# is, by construction, the critical path of a parallel recapture. This is the filter `--lanes` sets.
+# Module-level ON PURPOSE so plan_rows() and lane_vm() read the SAME answer: a --plan that enumerates a
+# lane the run then skips is the "instrument that does not model the system" shape this project keeps
+# paying for. Empty means "every lane", so nothing changes for a caller that never passes --lanes.
+LANE_FILTER: set[str] = set()
+
+
+def lane_selected(lane: str) -> bool:
+    return not LANE_FILTER or lane in LANE_FILTER
+
+
 # run_comparison column -> the framework DIRECTORY import_run_captures.py copies it into.
 COL_TO_DIR = {"maui_xaml": "maui", "cpp": "cpp", "cpp_xaml": "xaml",
               "appkit_cpp": "appkit_cpp", "appkit_xaml": "appkit_xaml"}
@@ -392,7 +405,7 @@ def plan_rows(platforms, frameworks, themes, examples):
                 lanes = [("android", ANDROID_SCRIPT[fw][1])]
             else:
                 lanes = [(lane, cols[fw]) for p, lane, _c, _e, cols, _d in VM_LANES
-                         if p == platform and fw in cols]
+                         if p == platform and fw in cols and lane_selected(lane)]
             for lane, column in lanes:
                 for theme in themes:
                     for key in examples:
@@ -1328,7 +1341,7 @@ def assemble_vm_gifs(run_dir: Path, plat_dir: str, animated, columns, themes, in
 
 def lane_vm(platform: str, frameworks, themes, examples, settle, gif_frames, gif_interval) -> None:
     for p, lane, cfg, envname, cols, plat_dir in VM_LANES:
-        if p != platform:
+        if p != platform or not lane_selected(lane):
             continue
         columns = [cols[fw] for fw in frameworks if fw in cols]
         if not columns:
@@ -1890,6 +1903,10 @@ def main(argv=None) -> int:
     ap.add_argument("--frameworks", default=",".join(FRAMEWORKS), help=f"default: {','.join(FRAMEWORKS)}")
     ap.add_argument("--themes", default=",".join(THEMES), help="default: light,dark")
     ap.add_argument("--examples", default="all", help="comma-separated page keys (default: all 172)")
+    ap.add_argument("--lanes", default="",
+                    help="restrict the VM sub-lanes to these (catalyst,appkit,windows). Default: all "
+                         "of them. `--platforms macos` otherwise runs Catalyst AND AppKit on the one "
+                         "guest, which doubles the slowest lane of a parallel recapture.")
     ap.add_argument("--visible", choices=("yes", "no"), default="yes",
                     help="give the mobile emulators a window you can watch (default yes). iOS: "
                          "cosmetic — shots come from the device framebuffer either way. Android: "
@@ -1928,6 +1945,12 @@ def main(argv=None) -> int:
     examples = known if a.examples == "all" else csv_arg(a.examples, tuple(known), "example")
     if not (platforms and frameworks and themes and examples):
         raise SystemExit("nothing selected")
+
+    if a.lanes:
+        # Validated against the real lane names, not accepted blindly: a typo'd `--lanes catalist`
+        # would otherwise silently select NOTHING and report a clean run that captured nothing at all.
+        known_lanes = tuple(dict.fromkeys(lane for _p, lane, *_r in VM_LANES))
+        LANE_FILTER.update(csv_arg(a.lanes, known_lanes, "lane"))
 
     rows = plan_rows(platforms, frameworks, themes, examples)
     if a.plan:
