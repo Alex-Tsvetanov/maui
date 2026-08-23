@@ -47,6 +47,18 @@ name = "initial"
 name = "opened"
 action = "click"
 at = [0.5, 0.09]          # the DatePicker (MinimumDate 01/01/2020, MaximumDate 12/31/2020)
+# DURATION: an INSTANTANEOUS `idb ui tap` is too brief for MAUI's UIDatePicker to accept. Measured on
+# the 2026-08-22 iOS pass: at rest the columns are IDENTICAL (0.0000%), after the tap the port opened
+# its picker (24.5186% self-motion) and MAUI did NOT MOVE AT ALL (0.0000%) — so the whole 24.52% red
+# is a DRIVE failure on the ground-truth column, not a rendering difference. Same precedent as the
+# UISwitch, recorded in lib/capture_ios.py: a zero-duration tap is "a press too brief for that control
+# to accept", and --duration 0.5 actuated it. NOT the maccatalyst `window 1` cause (0e97fa9652) — the
+# iOS lane addresses the DEVICE via idb and has no window in the path at all (capture_ios.py:54).
+duration = 0.5
+# SETTLE: the tap now OPENS a popover, which is an animation — so the same rule as the fling pages
+# applies. At the default STEP_SETTLE (0.6s) both columns are photographed mid-open and disagree by
+# 4.04-5.05% at SSIM 0.92-0.96. Testing whether the residual is the open animation or a real defect.
+settle = 2.0
 # MACCATALYST: 0.09 resolves to y=72, which is the "Toggle DatePicker UpdateMode" BUTTON (band
 # y[64..74]) — a different control with a different handler, so the tap "worked" and proved nothing
 # about the DatePicker. The DatePicker on this lane is the COMPACT LEFT-ALIGNED "31.12.2020" field

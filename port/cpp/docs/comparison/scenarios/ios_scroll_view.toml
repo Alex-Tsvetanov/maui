@@ -78,3 +78,11 @@ to = [0.85, 0.09]         # drags the thumb toward Maximum=100, well inside the 
 to_windows-arm64 = [0.85, 0.0588]
 steps = 20                # a deliberate pan, not a flick — matches carousel_page.toml's calibration
 duration = 0.5
+# SETTLE: an inertial/animated surface is STILL MOVING when the default STEP_SETTLE (0.6s)
+# fires, so the shot measures WHERE THE FLING HAD GOT TO, not parity. Measured on box_view/ios
+# (4 launches per column, same injected gesture): at 0.6s MAUI's OWN landings spread 52px
+# (1694/1658/1684/1642); at 2.0s all 8 launches across both apps land at 1690px and rows
+# 200..1216 are byte-identical. Not a scorer change -- it photographs the at-rest state the
+# page actually reaches, which is what every undriven page on the board is already compared at.
+settle = 2.0
+

@@ -36,3 +36,11 @@ name = "scrolled-down"
 action = "scroll"
 at = [0.5, 0.4]           # mid-window, over the BoxView stack (no interactive controls on this page)
 dy = -400
+# SETTLE: an inertial/animated surface is STILL MOVING when the default STEP_SETTLE (0.6s)
+# fires, so the shot measures WHERE THE FLING HAD GOT TO, not parity. Measured on box_view/ios
+# (4 launches per column, same injected gesture): at 0.6s MAUI's OWN landings spread 52px
+# (1694/1658/1684/1642); at 2.0s all 8 launches across both apps land at 1690px and rows
+# 200..1216 are byte-identical. Not a scorer change -- it photographs the at-rest state the
+# page actually reaches, which is what every undriven page on the board is already compared at.
+settle = 2.0
+
