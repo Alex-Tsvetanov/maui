@@ -126,6 +126,28 @@ namespace maui::core
             [platform, handler_ptr, view_ptr](const image_source_result& result) {
                 apply_loaded_result(*platform, result);
                 map_is_animation_playing(*handler_ptr, *view_ptr);
+                // RE-MEASURE, because this bitmap arrived AFTER the layout pass that sized the view.
+                // ImageHandler.iOS.cs:70-71 does the same thing right here, one line after its own
+                // UpdateValue(IsAnimationPlaying). Without it the Image keeps the desired size it was
+                // measured at while the source was still empty -- 0x0 -- so the picture never appears and
+                // every sibling below it slides up into the gap. MEASURED on ios/image (2026-08-23): the
+                // bytes were on disk 8s before the screenshot and the Image still rendered at zero height,
+                // displacing the rest of the page and scoring 70.64%.
+                //
+                // NO GATE, and that is deliberate rather than an omission. C# guards this with
+                // `image.Source is IStreamImageSource` (UriImageSource.cs:13 -- UriImageSource IS one), but
+                // in this port uri_image_source derives from i_uri_image_source : i_image_source and the
+                // ONLY implementer of i_stream_image_source is stream_image_source. Transliterating the
+                // guard as a dynamic_cast<const i_stream_image_source*> would therefore compile, read as a
+                // faithful port, and never fire for the exact case that needs it. The guard's INTENT is
+                // "only the async path needs a re-measure", and this closure IS the async path -- the file
+                // fast-path returned above, before we got here -- so the condition is already satisfied by
+                // position and does not need restating.
+                //
+                // The port's Windows backend already carries the equivalent invalidate for the same reason
+                // (platform/windows/image_handler.cpp:388, header note 2: the C++-side desired_size_ cache
+                // does not auto-correct), and that file records that a second invalidate is harmless.
+                view_ptr->invalidate_measure();
             },
             std::move(on_loading));
     }

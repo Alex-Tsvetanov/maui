@@ -235,6 +235,47 @@ namespace
 
     // ---- (b) begin_load cancels the previous in-flight load (identity recheck) ----
 
+    // A bitmap that arrives AFTER the layout pass that sized the view must RE-MEASURE, or the Image keeps
+    // the desired size it had while the source was still empty -- 0x0 -- and never appears.
+    // ImageHandler.iOS.cs:70-71 invalidates right after its own UpdateValue(IsAnimationPlaying); the port's
+    // shared async apply (core/image_handler.cpp) does the same.
+    //
+    // THE ASSERTION IS COUNTED ACROSS THE PUMP, not merely "> 0" at the end: set_source itself invalidates
+    // (view.hpp's on_property_changed), so a test that only checked the final count would pass with the
+    // apply-side invalidate DELETED. Sampling before run_pending() is what makes this a regression test for
+    // the async apply specifically -- verified by reverting the fix, at which point after == before.
+    TEST(image_seam, async_apply_re_measures_when_the_bitmap_lands_after_layout)
+    {
+        // Counting subclass rather than a mounted window: invalidate_measure() reaches a relayout hook only
+        // via containing_window(), and mounting an app here would test the hosting seam instead of this one.
+        struct counting_image : image
+        {
+            int invalidations = 0;
+            void invalidate_measure() override
+            {
+                ++invalidations;
+                image::invalidate_measure();
+            }
+        };
+
+        counting_image control;
+        auto handler = std::make_shared<image_handler>();
+        manual_dispatcher disp;
+        control.set_handler(handler);
+        handler->source_loader().set_dispatcher(disp);
+        auto* platform = handler->typed_platform_view();
+        ASSERT_NE(platform, nullptr);
+
+        control.set_source(make_stream_source(4));
+        ASSERT_FALSE(platform->source_loaded); // still marshalled; the apply has not run yet
+        const int before = control.invalidations;
+
+        ASSERT_GE(disp.run_pending(), 1U);
+        ASSERT_TRUE(platform->source_loaded); // the apply really did run
+
+        EXPECT_GT(control.invalidations, before);
+    }
+
     TEST(image_seam, begin_load_cancels_the_previous_in_flight_load)
     {
         image control;
