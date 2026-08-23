@@ -429,6 +429,46 @@ left exactly as they are.
 
 ## Structurally unwinnable cells — the honest ceiling (added 2026-08-22)
 
+### `selection_synchronization/ios/pixel_xaml` — a CollectionView fling does not land reproducibly (2026-08-23)
+
+Measured: three repeats of the dark scroll, **same binary, same gesture, same theme**, plus the board's own run:
+
+```
+run0   +14px    raw err  7.92  ->  aligned 1.39
+run1   -70px    raw err 17.52  ->  aligned 0.00
+run2   -64px    raw err 15.81  ->  aligned 1.41
+board +174px    raw err 17.54  ->  aligned 1.68
+```
+
+**~244px of landing scatter on four samples of identical code**, and in every one the frames match **once
+aligned at the correct offset** (residual 0.00-1.68). All three columns are **byte-identical at rest
+(0.000%)** in both themes and all three move 15-20%. There is no rendering difference and no drive failure;
+only where the fling stopped. Two of the three repeats would *also* exceed `DRIVE_SHIFT_MAX_PX = 48`, so the
+cell is roughly a **coin-flip between red and green independent of the port**.
+
+**Three ways to green it, all rejected:**
+1. Widen `DRIVE_SHIFT_MAX_PX` — scorer-weakening, and that bound exists to stay above the real **32px
+   maccatalyst page offset** it must never absorb.
+2. Re-roll captures until one lands inside 48px — score-shopping.
+3. Shorten `dy` so the fling cannot develop — changes what the page tests.
+
+**`settle` does not fix this, and the contrast is the transferable finding.** At `settle = 2.0` the plain
+`ScrollView` page `box_view` landed at **exactly 1690px on 8/8 launches**. This is a **CollectionView**
+fling and does not converge — plausibly because deceleration runs against a content size that changes as
+cells realize. So `settle` fixes *mid-flight* capture but cannot make a CV landing reproducible. Do not add
+`settle` to a CollectionView page expecting convergence.
+
+**Pre-registered but NOT taken:** `_drive_shift`'s own comment says the discriminator is *"did the columns
+already agree at rest"*, not magnitude — and that gate passes here. A fling-step-aware bound would be
+defensible on that reasoning, but it is a board-wide scorer change and needs per-lane pre-registration of
+how many cells it moves, before anything is scored with it.
+
+**One premise this correction killed:** "three sibling cells pass, so the failing one is the odd cell out"
+was wrong. `find_frames` had fallen back to a **two-day-old run** for both light cells, so the real
+comparison was one cell against ONE same-run sibling. Check `motion.run` per cell before treating siblings
+as controls.
+
+
 The board's yellow count is not a count of fixable defects. Two groups were filed here as unwinnable **by
 construction** — but ONE OF THE TWO HAS SINCE BEEN SOLVED (`maccatalyst/ios_date_picker`, `0e97fa9652`),
 so treat "unwinnable by construction" in this file as a claim to re-test, not a settled fact. Each was
