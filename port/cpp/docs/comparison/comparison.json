@@ -254,7 +254,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 10 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 4 frame(s) had no partner and were NOT scored; column frames realigned by -2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9971 at frame 10 'gif12' (0.12% pixels differ), mean SSIM 0.9975; per-frame diff% 0.10/0.09/0.09/0.09/0.09/0.09/0.09/0.10/0.11/0.12; self-motion MAUI 0.0303% (248 px) vs C++ 0.0320% (262 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9972 at frame 8 'gif09' (0.12% pixels differ), mean SSIM 0.9975; per-frame diff% 0.10/0.09/0.09/0.09/0.09/0.09/0.09/0.12/0.12/0.11/0.11; self-motion MAUI 0.0343% (281 px) vs C++ 0.0371% (304 px)",
+          "review": "Light: SSIM 0.9973, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9976, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "07ed2ca4078d408f",
           "motion": {
             "verdict": "PASS",
@@ -266,16 +266,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0303,
-              "port": 0.032
-            },
             "stills": "07ed2ca4078d408f"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 10 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 4 frame(s) had no partner and were NOT scored; column frames realigned by +2 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9961 at frame 2 'gif02' (0.14% pixels differ), mean SSIM 0.9963; per-frame diff% 0.13/0.14/0.13/0.13/0.12/0.12/0.12/0.13/0.12/0.13; self-motion MAUI 0.0303% (248 px) vs C++ & XAML 0.0303% (248 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9962 at frame 3 'gif03' (0.14% pixels differ), mean SSIM 0.9965; per-frame diff% 0.13/0.12/0.14/0.13/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0343% (281 px) vs C++ & XAML 0.0398% (326 px)",
+          "review": "Light: SSIM 0.9958, 0.15% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9963, 0.13% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "de843ac3984caae8",
           "motion": {
             "verdict": "PASS",
@@ -287,10 +283,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0303,
-              "port": 0.0303
-            },
             "stills": "de843ac3984caae8"
           }
         }
@@ -2519,14 +2511,14 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 0.9943, 0.29% pixels differ \u00b7 Dark: SSIM 0.9940, 0.28% pixels differ",
-          "stills": "6272cb241fcf1893"
+          "status": "red",
+          "review": "Light: SSIM 0.6211, 9.43% pixels differ \u00b7 Dark: SSIM 0.4600, 33.46% pixels differ",
+          "stills": "670327108aaf6197"
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 0.9958, 0.27% pixels differ \u00b7 Dark: SSIM 0.9960, 0.23% pixels differ",
-          "stills": "3575f3ec52470552"
+          "status": "red",
+          "review": "Light: SSIM 0.6190, 9.51% pixels differ \u00b7 Dark: SSIM 0.4585, 33.49% pixels differ",
+          "stills": "c993e243305e3974"
         }
       },
       "android": {
@@ -2831,7 +2823,7 @@
         "pixel": {
           "status": "yellow",
           "review": "Light: SSIM 0.9835, 2.02% pixels differ \u00b7 Dark: SSIM 0.9973, 1.16% pixels differ",
-          "stills": "1754e8360643ef7b"
+          "stills": "6826955637b8fde5"
         },
         "pixel_xaml": {
           "status": "yellow",
@@ -3447,7 +3439,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9907 at frame 1 'initial' (0.36% pixels differ), mean SSIM 0.9907; per-frame diff% 0.36/0.36; self-motion MAUI 0.0050% (41 px) vs C++ 0.0050% (41 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9907 at frame 1 'initial' (0.35% pixels differ), mean SSIM 0.9907; per-frame diff% 0.35/0.35; self-motion MAUI 0.0059% (48 px) vs C++ 0.0059% (48 px)",
+          "review": "Light: SSIM 0.9907, 0.36% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9907, 0.35% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "5dff7288d0d8fbbc",
           "motion": {
             "verdict": "PASS",
@@ -3459,16 +3451,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.005,
-              "port": 0.005
-            },
             "stills": "5dff7288d0d8fbbc"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9894 at frame 1 'initial' (0.39% pixels differ), mean SSIM 0.9894; per-frame diff% 0.39/0.39; self-motion MAUI 0.0050% (41 px) vs C++ & XAML 0.0050% (41 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9895 at frame 1 'initial' (0.39% pixels differ), mean SSIM 0.9895; per-frame diff% 0.39/0.39; self-motion MAUI 0.0059% (48 px) vs C++ & XAML 0.0059% (48 px)",
+          "review": "Light: SSIM 0.9894, 0.39% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9895, 0.39% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "77d7adbf601d7aa0",
           "motion": {
             "verdict": "PASS",
@@ -3480,10 +3468,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.005,
-              "port": 0.005
-            },
             "stills": "77d7adbf601d7aa0"
           }
         }
@@ -3729,8 +3713,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif02' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9979 at frame 1 'gif02' (0.08% pixels differ), mean SSIM 0.9979; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "f30eb3043f19b14a",
           "motion": {
             "verdict": "INVALID",
@@ -3742,16 +3726,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "f30eb3043f19b14a"
           }
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif02' (0.12% pixels differ), mean SSIM 0.9966; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 10 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 7 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif03' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9966, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "61550eb4a1e72e47",
           "motion": {
             "verdict": "INVALID",
@@ -3763,10 +3743,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "61550eb4a1e72e47"
           }
         }
@@ -4160,7 +4136,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9972 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9972; per-frame diff% 0.11/0.11; self-motion MAUI 0.0133% (109 px) vs C++ 0.0133% (109 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9973 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9973; per-frame diff% 0.11/0.11; self-motion MAUI 0.0109% (89 px) vs C++ 0.0109% (89 px)",
+          "review": "Light: SSIM 0.9972, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9973, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "7ad368d3d66c8061",
           "motion": {
             "verdict": "PASS",
@@ -4172,16 +4148,12 @@
             "run": "2026-08-22-13_27_17",
             "commit": "7377b18060",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.0133,
-              "port": 0.0133
-            },
             "stills": "7ad368d3d66c8061"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.0133% (109 px) vs C++ & XAML 0.0133% (109 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.0109% (89 px) vs C++ & XAML 0.0109% (89 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "07d03b22fdac2b48",
           "motion": {
             "verdict": "PASS",
@@ -4193,10 +4165,6 @@
             "run": "2026-08-22-13_27_17",
             "commit": "7377b18060",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.0133,
-              "port": 0.0133
-            },
             "stills": "07d03b22fdac2b48"
           }
         }
@@ -4435,7 +4403,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 14 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0631% (517 px) vs C++ 0.0631% (517 px) \u00b7 Dark: MOTION 14 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0883% (723 px) vs C++ 0.0883% (723 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "9cfadc331d0d4ac2",
           "motion": {
             "verdict": "PASS",
@@ -4447,16 +4415,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0631,
-              "port": 0.0631
-            },
             "stills": "9cfadc331d0d4ac2"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 14 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0631% (517 px) vs C++ & XAML 0.0631% (517 px) \u00b7 Dark: MOTION 14 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0883% (723 px) vs C++ & XAML 0.0883% (723 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "db87cd9f8c0f88b5",
           "motion": {
             "verdict": "PASS",
@@ -4468,10 +4432,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0631,
-              "port": 0.0631
-            },
             "stills": "db87cd9f8c0f88b5"
           }
         }
@@ -5415,7 +5375,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9975 at frame 1 'initial' (0.72% pixels differ), mean SSIM 0.9977; per-frame diff% 0.72/0.09/0.09; self-motion MAUI 0.9154% (7499 px) vs C++ 1.5475% (12677 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08; self-motion MAUI 1.0470% (8577 px) vs C++ 1.0470% (8577 px)",
+          "review": "Light: SSIM 0.9975, 0.72% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "8ed8350e4ac43f13",
           "motion": {
             "verdict": "PASS",
@@ -5427,16 +5387,12 @@
             "run": "2026-08-21-18_51_18",
             "commit": "d235271efd",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 0.9154,
-              "port": 1.5475
-            },
             "stills": "8ed8350e4ac43f13"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.13; self-motion MAUI 0.9154% (7499 px) vs C++ & XAML 0.9155% (7500 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11; self-motion MAUI 1.0470% (8577 px) vs C++ & XAML 1.0470% (8577 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "8b037e41017877d9",
           "motion": {
             "verdict": "PASS",
@@ -5448,10 +5404,6 @@
             "run": "2026-08-21-18_51_18",
             "commit": "d235271efd",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 0.9154,
-              "port": 0.9155
-            },
             "stills": "8b037e41017877d9"
           }
         }
@@ -6620,7 +6572,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9961 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9961; per-frame diff% 0.12/0.12; self-motion MAUI 0.0023% (19 px) vs C++ 0.0034% (28 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9962 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9962; per-frame diff% 0.12/0.12; self-motion MAUI 0.0061% (50 px) vs C++ 0.0068% (56 px)",
+          "review": "Light: SSIM 0.9961, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9962, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "64dd85f602fcc00b",
           "motion": {
             "verdict": "PASS",
@@ -6632,16 +6584,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0023,
-              "port": 0.0034
-            },
             "stills": "64dd85f602fcc00b"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9948 at frame 1 'initial' (0.16% pixels differ), mean SSIM 0.9949; per-frame diff% 0.16/0.15; self-motion MAUI 0.0023% (19 px) vs C++ & XAML 0.0049% (40 px); !! SELF-MOTION ASYMMETRY 2x \u2014 C++ & XAML moved far more over its OWN sequence than the other column did. The verdict is taken on the PAIRED frames only, so this does not by itself contradict it, and it is not treated as a defect. It is flagged because a ratio this size means the two columns did visibly different amounts of work and the paired numbers cannot say why \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9949 at frame 1 'initial' (0.16% pixels differ), mean SSIM 0.9950; per-frame diff% 0.16/0.15; self-motion MAUI 0.0061% (50 px) vs C++ & XAML 0.0068% (56 px)",
+          "review": "Light: SSIM 0.9948, 0.16% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9949, 0.16% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "2321e5075eacb68a",
           "motion": {
             "verdict": "PASS",
@@ -6653,10 +6601,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0023,
-              "port": 0.0049
-            },
             "stills": "2321e5075eacb68a"
           }
         }
@@ -7515,7 +7459,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9977 at frame 2 'focus-field' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09; self-motion MAUI 0.9108% (7461 px) vs C++ 0.9097% (7452 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08; self-motion MAUI 1.1284% (9244 px) vs C++ 1.1284% (9244 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "fe0db34d5b07d19f",
           "motion": {
             "verdict": "PASS",
@@ -7527,16 +7471,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.9108,
-              "port": 0.9097
-            },
             "stills": "fe0db34d5b07d19f"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.9108% (7461 px) vs C++ & XAML 0.9108% (7461 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.12/0.12; self-motion MAUI 1.1284% (9244 px) vs C++ & XAML 1.1293% (9251 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "e313b95e438f4a7c",
           "motion": {
             "verdict": "PASS",
@@ -7548,10 +7488,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.9108,
-              "port": 0.9108
-            },
             "stills": "e313b95e438f4a7c"
           }
         }
@@ -8410,7 +8346,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09; self-motion MAUI 0.0400% (328 px) vs C++ 0.0409% (335 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08; self-motion MAUI 0.0444% (364 px) vs C++ 0.0443% (363 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "ad0b278aca8e4547",
           "motion": {
             "verdict": "PASS",
@@ -8422,16 +8358,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.04,
-              "port": 0.0409
-            },
             "stills": "ad0b278aca8e4547"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.0400% (328 px) vs C++ & XAML 0.0409% (335 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.12; self-motion MAUI 0.0444% (364 px) vs C++ & XAML 0.0443% (363 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "db4e2d4f7adbced2",
           "motion": {
             "verdict": "PASS",
@@ -8443,10 +8375,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.04,
-              "port": 0.0409
-            },
             "stills": "db4e2d4f7adbced2"
           }
         }
@@ -9580,7 +9508,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 1 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9965 at frame 2 'focus-field' (0.13% pixels differ), mean SSIM 0.9966; per-frame diff% 0.13/0.13; self-motion MAUI 0.7664% (6278 px) vs C++ 0.7966% (6526 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9951 at frame 3 'typed' (0.20% pixels differ), mean SSIM 0.9960; per-frame diff% 0.14/0.14/0.20; self-motion MAUI 0.9138% (7486 px) vs C++ 0.9250% (7578 px)",
+          "review": "Light: SSIM 0.9966, 0.13% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9964, 0.14% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "a8a0985f34bfa7c6",
           "motion": {
             "verdict": "PASS",
@@ -9592,16 +9520,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.7664,
-              "port": 0.7966
-            },
             "stills": "a8a0985f34bfa7c6"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 1 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.7664% (6278 px) vs C++ & XAML 0.7965% (6525 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9953 at frame 3 'typed' (0.18% pixels differ), mean SSIM 0.9962; per-frame diff% 0.11/0.11/0.18; self-motion MAUI 0.9138% (7486 px) vs C++ & XAML 0.9244% (7573 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "6dbc68e9e709c981",
           "motion": {
             "verdict": "PASS",
@@ -9613,10 +9537,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.7664,
-              "port": 0.7965
-            },
             "stills": "6dbc68e9e709c981"
           }
         }
@@ -9855,7 +9775,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 3 'typed' (0.13% pixels differ), mean SSIM 0.9974; per-frame diff% 0.09/0.09/0.13; self-motion MAUI 1.0023% (8211 px) vs C++ 0.9990% (8184 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 1 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.9928% (8133 px) vs C++ 1.0107% (8280 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "dd688094f2cdbb33",
           "motion": {
             "verdict": "PASS",
@@ -9867,16 +9787,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 1.0023,
-              "port": 0.999
-            },
             "stills": "dd688094f2cdbb33"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9953 at frame 3 'typed' (0.16% pixels differ), mean SSIM 0.9961; per-frame diff% 0.12/0.12/0.16; self-motion MAUI 1.0023% (8211 px) vs C++ & XAML 0.9988% (8182 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 1 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.12; self-motion MAUI 0.9928% (8133 px) vs C++ & XAML 1.0110% (8282 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9965, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "a8f404418b0248f7",
           "motion": {
             "verdict": "PASS",
@@ -9888,10 +9804,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 1.0023,
-              "port": 0.9988
-            },
             "stills": "a8f404418b0248f7"
           }
         }
@@ -10594,8 +10506,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'focus-field' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'focus-field' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "f631b2a0de50e75e",
           "motion": {
             "verdict": "INVALID",
@@ -10607,16 +10519,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "f631b2a0de50e75e"
           }
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 1 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'focus-field' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "11476a12dd966c4a",
           "motion": {
             "verdict": "INVALID",
@@ -10628,10 +10536,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "11476a12dd966c4a"
           }
         }
@@ -11955,7 +11859,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 14 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9971 at frame 3 'gif01' (0.12% pixels differ), mean SSIM 0.9972; per-frame diff% 0.09/0.09/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0298% (244 px) vs C++ 0.0298% (244 px) \u00b7 Dark: MOTION 14 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9972 at frame 2 'tapped' (0.11% pixels differ), mean SSIM 0.9972; per-frame diff% 0.08/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0277% (227 px) vs C++ 0.0343% (281 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "272b25a95b577903",
           "motion": {
             "verdict": "PASS",
@@ -11967,16 +11871,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0298,
-              "port": 0.0298
-            },
             "stills": "272b25a95b577903"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 14 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9949 at frame 2 'tapped' (0.17% pixels differ), mean SSIM 0.9949; per-frame diff% 0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17; self-motion MAUI 0.0298% (244 px) vs C++ & XAML 0.0282% (231 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9951 at frame 1 'gif02' (0.17% pixels differ), mean SSIM 0.9951; per-frame diff% 0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17/0.17; self-motion MAUI 0.0277% (227 px) vs C++ & XAML 0.0328% (269 px)",
+          "review": "Light: SSIM 0.9950, 0.17% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9950, 0.18% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "a312c3e029b09d36",
           "motion": {
             "verdict": "PASS",
@@ -11988,10 +11888,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0298,
-              "port": 0.0282
-            },
             "stills": "a312c3e029b09d36"
           }
         }
@@ -15450,7 +15346,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif04' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif04' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "096413b8669e0ab2",
           "motion": {
             "verdict": "INVALID",
@@ -15462,16 +15358,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "096413b8669e0ab2"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'gif04' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif04' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "e8d703274a88fb9f",
           "motion": {
             "verdict": "INVALID",
@@ -15483,10 +15375,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "e8d703274a88fb9f"
           }
         }
@@ -15733,7 +15621,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-20_37_01, commit 5ebec5f48d, 2026-08-22) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.7921% (6489 px) vs C++ 0.8135% (6664 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-20_37_01, commit 5ebec5f48d, 2026-08-22) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 1.0146% (8312 px) vs C++ 1.0372% (8497 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-20_37_01 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-20_37_01 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "63bb97dcda939bb3",
           "motion": {
             "verdict": "PASS",
@@ -15745,16 +15633,12 @@
             "run": "2026-08-22-20_37_01",
             "commit": "5ebec5f48d",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.7921,
-              "port": 0.8135
-            },
             "stills": "63bb97dcda939bb3"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-20_37_01, commit 5ebec5f48d, 2026-08-22) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.7921% (6489 px) vs C++ & XAML 0.8624% (7065 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-20_37_01, commit 5ebec5f48d, 2026-08-22) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 1.0146% (8312 px) vs C++ & XAML 1.0826% (8869 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-20_37_01 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-20_37_01 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "f6de711a79449b03",
           "motion": {
             "verdict": "PASS",
@@ -15766,10 +15650,6 @@
             "run": "2026-08-22-20_37_01",
             "commit": "5ebec5f48d",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.7921,
-              "port": 0.8624
-            },
             "stills": "f6de711a79449b03"
           }
         }
@@ -16473,7 +16353,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.08; self-motion MAUI 94.1802% (771524 px) vs C++ 94.1781% (771507 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 2 'opened' (0.08% pixels differ), mean SSIM 0.9979; per-frame diff% 0.08/0.08; self-motion MAUI 1.9984% (16371 px) vs C++ 1.9984% (16371 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "4cf39a913de37dd7",
           "motion": {
             "verdict": "PASS",
@@ -16485,16 +16365,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 94.1802,
-              "port": 94.1781
-            },
             "stills": "4cf39a913de37dd7"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9966; per-frame diff% 0.12/0.12; self-motion MAUI 94.1802% (771524 px) vs C++ & XAML 94.1576% (771339 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 1.9984% (16371 px) vs C++ & XAML 1.9984% (16371 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "096fe048dec8d699",
           "motion": {
             "verdict": "PASS",
@@ -16506,10 +16382,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 94.1802,
-              "port": 94.1576
-            },
             "stills": "096fe048dec8d699"
           }
         }
@@ -16903,7 +16775,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.2185% (1790 px) vs C++ 0.2185% (1790 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.3932% (3221 px) vs C++ 0.3932% (3221 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "15ddea6f8125da33",
           "motion": {
             "verdict": "PASS",
@@ -16915,16 +16787,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.2185,
-              "port": 0.2185
-            },
             "stills": "15ddea6f8125da33"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.2185% (1790 px) vs C++ & XAML 0.2185% (1790 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.3932% (3221 px) vs C++ & XAML 0.3932% (3221 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "cf4a3731e739afc4",
           "motion": {
             "verdict": "PASS",
@@ -16936,10 +16804,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.2185,
-              "port": 0.2185
-            },
             "stills": "cf4a3731e739afc4"
           }
         }
@@ -19968,7 +19832,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 6.4034% (52457 px) vs C++ 6.4034% (52457 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 6.6978% (54868 px) vs C++ 6.6978% (54868 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "8b2de99f8ebfec89",
           "motion": {
             "verdict": "PASS",
@@ -19980,16 +19844,12 @@
             "run": "2026-08-21-18_51_18",
             "commit": "d235271efd",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 6.4034,
-              "port": 6.4034
-            },
             "stills": "8b2de99f8ebfec89"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 6.4034% (52457 px) vs C++ & XAML 6.4034% (52457 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 6.6978% (54868 px) vs C++ & XAML 6.6978% (54868 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "1bbcac0993e99074",
           "motion": {
             "verdict": "PASS",
@@ -20001,10 +19861,6 @@
             "run": "2026-08-21-18_51_18",
             "commit": "d235271efd",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 6.4034,
-              "port": 6.4034
-            },
             "stills": "1bbcac0993e99074"
           }
         }
@@ -20398,7 +20254,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.08; self-motion MAUI 97.4930% (798663 px) vs C++ 97.4908% (798645 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9977 at frame 2 'opened' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 9.8480% (80675 px) vs C++ 9.8507% (80697 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "7be16d8bef66d9c8",
           "motion": {
             "verdict": "PASS",
@@ -20410,16 +20266,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 97.493,
-              "port": 97.4908
-            },
             "stills": "7be16d8bef66d9c8"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 97.4930% (798663 px) vs C++ & XAML 97.4703% (798477 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 9.8480% (80675 px) vs C++ & XAML 9.8481% (80676 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "6edb990c57738485",
           "motion": {
             "verdict": "PASS",
@@ -20431,10 +20283,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 97.493,
-              "port": 97.4703
-            },
             "stills": "6edb990c57738485"
           }
         }
@@ -21735,7 +21583,7 @@
         "pixel": {
           "status": "green",
           "review": "Light: SSIM 0.9977, 0.14% pixels differ \u00b7 Dark: SSIM 0.9973, 0.15% pixels differ",
-          "stills": "26b0976463aa0888"
+          "stills": "b77dbae3e983f829"
         },
         "pixel_xaml": {
           "status": "green",
@@ -21913,7 +21761,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9976 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9976; per-frame diff% 0.11/0.12; self-motion MAUI 0.0082% (67 px) vs C++ 0.0079% (65 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9976 at frame 1 'initial' (0.13% pixels differ), mean SSIM 0.9976; per-frame diff% 0.13/0.13; self-motion MAUI 0.0093% (76 px) vs C++ 0.0090% (74 px)",
+          "review": "Light: SSIM 0.9976, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9976, 0.13% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "a103fd5efe236fe5",
           "motion": {
             "verdict": "PASS",
@@ -21925,16 +21773,12 @@
             "run": "2026-08-22-02_01_49",
             "commit": "1812647b56",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.0082,
-              "port": 0.0079
-            },
             "stills": "a103fd5efe236fe5"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9964 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9964; per-frame diff% 0.15/0.15; self-motion MAUI 0.0082% (67 px) vs C++ & XAML 0.0079% (65 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9964 at frame 1 'initial' (0.16% pixels differ), mean SSIM 0.9964; per-frame diff% 0.16/0.17; self-motion MAUI 0.0093% (76 px) vs C++ & XAML 0.0090% (74 px)",
+          "review": "Light: SSIM 0.9964, 0.15% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9964, 0.16% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "50990991418276c3",
           "motion": {
             "verdict": "PASS",
@@ -21946,10 +21790,6 @@
             "run": "2026-08-22-02_01_49",
             "commit": "1812647b56",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.0082,
-              "port": 0.0079
-            },
             "stills": "50990991418276c3"
           }
         }
@@ -22652,8 +22492,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9893 at frame 1 'initial' (0.56% pixels differ), mean SSIM 0.9893; per-frame diff% 0.56/0.56; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9910 at frame 1 'initial' (0.49% pixels differ), mean SSIM 0.9910; per-frame diff% 0.49/0.49; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9893, 0.56% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9910, 0.49% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "fe2183b75d55247c",
           "motion": {
             "verdict": "INVALID",
@@ -22665,16 +22505,12 @@
             "run": "2026-08-22-02_01_49",
             "commit": "1812647b56",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "fe2183b75d55247c"
           }
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9881 at frame 1 'initial' (0.59% pixels differ), mean SSIM 0.9881; per-frame diff% 0.59/0.59; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-22-02_01_49, commit 1812647b56, 2026-08-22) \u2014 worst SSIM 0.9898 at frame 1 'initial' (0.52% pixels differ), mean SSIM 0.9898; per-frame diff% 0.52/0.52; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9881, 0.59% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9898, 0.52% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-22-02_01_49 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "c8d7ab4607a81f3e",
           "motion": {
             "verdict": "INVALID",
@@ -22686,10 +22522,6 @@
             "run": "2026-08-22-02_01_49",
             "commit": "1812647b56",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "c8d7ab4607a81f3e"
           }
         }
@@ -23858,7 +23690,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09; self-motion MAUI 0.3887% (3184 px) vs C++ 0.3887% (3184 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08; self-motion MAUI 0.4552% (3729 px) vs C++ 0.4552% (3729 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "ebd0199aae85c962",
           "motion": {
             "verdict": "PASS",
@@ -23870,16 +23702,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.3887,
-              "port": 0.3887
-            },
             "stills": "ebd0199aae85c962"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.3887% (3184 px) vs C++ & XAML 0.3907% (3201 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.12/0.11; self-motion MAUI 0.4552% (3729 px) vs C++ & XAML 0.4552% (3729 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "498f949fbd40d068",
           "motion": {
             "verdict": "PASS",
@@ -23891,10 +23719,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.3887,
-              "port": 0.3907
-            },
             "stills": "498f949fbd40d068"
           }
         }
@@ -24141,7 +23965,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 1.4167% (11606 px) vs C++ 1.4167% (11606 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 2.0343% (16665 px) vs C++ 2.0343% (16665 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "07aa0050ff6bc8b4",
           "motion": {
             "verdict": "PASS",
@@ -24153,16 +23977,12 @@
             "run": "2026-08-21-18_51_18",
             "commit": "d235271efd",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 1.4167,
-              "port": 1.4167
-            },
             "stills": "07aa0050ff6bc8b4"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 1.4167% (11606 px) vs C++ & XAML 1.4167% (11606 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-21-18_51_18, commit d235271efd, 2026-08-21) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 2.0343% (16665 px) vs C++ & XAML 2.0343% (16665 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-21-18_51_18 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "737424082afabe4d",
           "motion": {
             "verdict": "PASS",
@@ -24174,10 +23994,6 @@
             "run": "2026-08-21-18_51_18",
             "commit": "d235271efd",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 1.4167,
-              "port": 1.4167
-            },
             "stills": "737424082afabe4d"
           }
         }
@@ -24416,7 +24232,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 1 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.8936% (7320 px) vs C++ 0.8936% (7320 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9976 at frame 2 'focus-field' (0.09% pixels differ), mean SSIM 0.9977; per-frame diff% 0.08/0.09/0.08; self-motion MAUI 1.0305% (8442 px) vs C++ 1.0294% (8433 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9977, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "194c19b09417aa13",
           "motion": {
             "verdict": "PASS",
@@ -24428,16 +24244,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.8936,
-              "port": 0.8936
-            },
             "stills": "194c19b09417aa13"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.8936% (7320 px) vs C++ & XAML 0.8934% (7319 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9965; per-frame diff% 0.11/0.12/0.12; self-motion MAUI 1.0305% (8442 px) vs C++ & XAML 1.0306% (8443 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9965, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "9f8f7eacc120d43a",
           "motion": {
             "verdict": "PASS",
@@ -24449,10 +24261,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.8936,
-              "port": 0.8934
-            },
             "stills": "9f8f7eacc120d43a"
           }
         }
@@ -24845,8 +24653,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-21-03_37_07, commit f13a0aa7b2, 2026-08-21) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-21-03_37_07, commit f13a0aa7b2, 2026-08-21) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-21-03_37_07 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-21-03_37_07 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "72b3d6dbedb42381",
           "motion": {
             "verdict": "INVALID",
@@ -24858,16 +24666,12 @@
             "run": "2026-08-21-03_37_07",
             "commit": "f13a0aa7b2",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "72b3d6dbedb42381"
           }
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-21-03_37_07, commit f13a0aa7b2, 2026-08-21) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 2 frames paired by step (run 2026-08-21-03_37_07, commit f13a0aa7b2, 2026-08-21) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-21-03_37_07 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-21-03_37_07 (2026-08-21), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "1b23432d32e0c1fb",
           "motion": {
             "verdict": "INVALID",
@@ -24879,10 +24683,6 @@
             "run": "2026-08-21-03_37_07",
             "commit": "f13a0aa7b2",
             "captured_at": "2026-08-21",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "1b23432d32e0c1fb"
           }
         }
@@ -25121,7 +24921,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09; self-motion MAUI 0.8905% (7295 px) vs C++ 0.8918% (7306 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.09/0.08; self-motion MAUI 1.0212% (8366 px) vs C++ 1.0184% (8343 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "1d42c2009cee5fd5",
           "motion": {
             "verdict": "PASS",
@@ -25133,16 +24933,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.8905,
-              "port": 0.8918
-            },
             "stills": "1d42c2009cee5fd5"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.8905% (7295 px) vs C++ & XAML 0.8905% (7295 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9965; per-frame diff% 0.11/0.12/0.11; self-motion MAUI 1.0212% (8366 px) vs C++ & XAML 1.0211% (8365 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9965, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "4a50f32aadf179b7",
           "motion": {
             "verdict": "PASS",
@@ -25154,10 +24950,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.8905,
-              "port": 0.8905
-            },
             "stills": "4a50f32aadf179b7"
           }
         }
@@ -26016,7 +25808,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.3010% (2466 px) vs C++ 0.3010% (2466 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.5101% (4179 px) vs C++ 0.5101% (4179 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "f609cc9d6f5c0a5e",
           "motion": {
             "verdict": "PASS",
@@ -26028,16 +25820,12 @@
             "run": "2026-08-22-13_27_17",
             "commit": "7377b18060",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.301,
-              "port": 0.301
-            },
             "stills": "f609cc9d6f5c0a5e"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.3010% (2466 px) vs C++ & XAML 0.3010% (2466 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-22-13_27_17, commit 7377b18060, 2026-08-22) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.5101% (4179 px) vs C++ & XAML 0.5101% (4179 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-22-13_27_17 (2026-08-22), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "abe91e2555dfa13f",
           "motion": {
             "verdict": "PASS",
@@ -26049,10 +25837,6 @@
             "run": "2026-08-22-13_27_17",
             "commit": "7377b18060",
             "captured_at": "2026-08-22",
-            "self": {
-              "maui": 0.301,
-              "port": 0.301
-            },
             "stills": "abe91e2555dfa13f"
           }
         }
@@ -26756,7 +26540,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09; self-motion MAUI 0.0024% (20 px) vs C++ 0.0024% (20 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08; self-motion MAUI 0.0042% (34 px) vs C++ 0.0042% (34 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "cddcda01ca3a5525",
           "motion": {
             "verdict": "PASS",
@@ -26768,16 +26552,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0024,
-              "port": 0.0024
-            },
             "stills": "cddcda01ca3a5525"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12; self-motion MAUI 0.0024% (20 px) vs C++ & XAML 0.0024% (20 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9966 at frame 1 'initial' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11; self-motion MAUI 0.0042% (34 px) vs C++ & XAML 0.0042% (34 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "2863ccab18e3ee82",
           "motion": {
             "verdict": "PASS",
@@ -26789,10 +26569,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0024,
-              "port": 0.0024
-            },
             "stills": "2863ccab18e3ee82"
           }
         }
@@ -27341,7 +27117,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif04' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9979 at frame 1 'gif04' (0.08% pixels differ), mean SSIM 0.9979; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9979, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "c44ded5090553c92",
           "motion": {
             "verdict": "INVALID",
@@ -27353,16 +27129,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "c44ded5090553c92"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'gif04' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/swipe_item_position.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port finding and nothing about the port can be concluded from it; the missing artifact is the scenario. 80 of the 139 cells that carried the old 'NOTHING MOVED' banner were this, including 10 of the 14 hard-coded ANIMATED pages. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif04' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "6db312094fbd541c",
           "motion": {
             "verdict": "INVALID",
@@ -27374,10 +27146,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "6db312094fbd541c"
           }
         }
@@ -27778,8 +27546,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif02' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9978 at frame 1 'gif02' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08/0.08; self-motion MAUI 0.0000% (0 px) vs C++ 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "4dfcf5407e66e798",
           "motion": {
             "verdict": "INVALID",
@@ -27791,16 +27559,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "4dfcf5407e66e798"
           }
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 9 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 8 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9965 at frame 1 'gif04' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12/0.12; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px) \u00b7 Dark: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING MOVED' bucket: 59 of the 139 cells that carried it. MOTION 11 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9966 at frame 1 'gif02' (0.11% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11/0.11; self-motion MAUI 0.0000% (0 px) vs C++ & XAML 0.0000% (0 px)",
+          "status": "yellow",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded INVALID verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "3d015bf4d37aab4a",
           "motion": {
             "verdict": "INVALID",
@@ -27812,10 +27576,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0,
-              "port": 0.0
-            },
             "stills": "3d015bf4d37aab4a"
           }
         }
@@ -28519,7 +28279,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9969 at frame 1 'initial' (0.15% pixels differ), mean SSIM 0.9969; per-frame diff% 0.15/0.15; self-motion MAUI 0.1044% (855 px) vs C++ 0.1038% (850 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9977 at frame 1 'initial' (0.14% pixels differ), mean SSIM 0.9977; per-frame diff% 0.14/0.14; self-motion MAUI 0.1068% (875 px) vs C++ 0.1080% (885 px)",
+          "review": "Light: SSIM 0.9969, 0.15% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9977, 0.14% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "70b740cb2cc3886a",
           "motion": {
             "verdict": "PASS",
@@ -28531,16 +28291,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.1044,
-              "port": 0.1038
-            },
             "stills": "70b740cb2cc3886a"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9957 at frame 1 'initial' (0.18% pixels differ), mean SSIM 0.9957; per-frame diff% 0.18/0.18; self-motion MAUI 0.1044% (855 px) vs C++ & XAML 0.1038% (850 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9964 at frame 1 'initial' (0.17% pixels differ), mean SSIM 0.9964; per-frame diff% 0.17/0.17; self-motion MAUI 0.1068% (875 px) vs C++ & XAML 0.1080% (885 px)",
+          "review": "Light: SSIM 0.9957, 0.18% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9964, 0.17% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "8cc9f77085e186a2",
           "motion": {
             "verdict": "PASS",
@@ -28552,10 +28308,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.1044,
-              "port": 0.1038
-            },
             "stills": "8cc9f77085e186a2"
           }
         }
@@ -29414,7 +29166,7 @@
         },
         "pixel": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9977 at frame 3 'typed' (0.09% pixels differ), mean SSIM 0.9978; per-frame diff% 0.09/0.09/0.09; self-motion MAUI 0.0988% (809 px) vs C++ 0.0996% (816 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9978 at frame 1 'initial' (0.08% pixels differ), mean SSIM 0.9978; per-frame diff% 0.08/0.08/0.08; self-motion MAUI 0.1228% (1006 px) vs C++ 0.1228% (1006 px)",
+          "review": "Light: SSIM 0.9978, 0.09% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "d9e10dafacb9b91a",
           "motion": {
             "verdict": "PASS",
@@ -29426,16 +29178,12 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0988,
-              "port": 0.0996
-            },
             "stills": "d9e10dafacb9b91a"
           }
         },
         "pixel_xaml": {
           "status": "green",
-          "review": "Light: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 1 'initial' (0.12% pixels differ), mean SSIM 0.9965; per-frame diff% 0.12/0.12/0.12; self-motion MAUI 0.0988% (809 px) vs C++ & XAML 0.0996% (816 px) \u00b7 Dark: MOTION 3 frames paired by step (run 2026-08-19-08_27_20, commit 06dcfcef48, 2026-08-19) \u2014 worst SSIM 0.9965 at frame 2 'focus-field' (0.12% pixels differ), mean SSIM 0.9966; per-frame diff% 0.11/0.12/0.11; self-motion MAUI 0.1228% (1006 px) vs C++ & XAML 0.1228% (1006 px)",
+          "review": "Light: SSIM 0.9965, 0.12% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has light frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it. \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ (single frame only) \u2014 NOT motion-scored: no run directory under docs/comparison/ has dark frames for both columns of this cell (run dirs are per-run and gitignored, so this says the evidence EXPIRED \u2014 never that it disagreed) \u2014 CARRIED FORWARD: the published stills are byte-identical to those behind the recorded PASS verdict from run 2026-08-19-08_27_20 (2026-08-19), so the evidence EXPIRED rather than disagreed. Re-capture to re-derive it.",
           "stills": "025df5456efc423f",
           "motion": {
             "verdict": "PASS",
@@ -29447,10 +29195,6 @@
             "run": "2026-08-19-08_27_20",
             "commit": "06dcfcef48",
             "captured_at": "2026-08-19",
-            "self": {
-              "maui": 0.0988,
-              "port": 0.0996
-            },
             "stills": "025df5456efc423f"
           }
         }
