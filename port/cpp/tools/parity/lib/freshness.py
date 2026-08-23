@@ -459,12 +459,26 @@ def stale_android(columns: list[str], serial: str = "emulator-5554") -> list[str
     facts = {"now": _dt.datetime.now(_dt.timezone.utc).isoformat(), "source_dirs": [], "artifacts": {}}
     for col, art in arts.items():
         pkg = art.split(":", 1)[1]
+        # ADB UNREACHABLE IS NOT "PACKAGE ABSENT". Both used to land in the same empty string, so a
+        # missing `adb` on PATH produced "DECLARED BUT MISSING -- Nothing can be captured from it",
+        # which is the opposite of the truth and points the reader at a rebuild they do not need.
+        # MEASURED 2026-08-23, straight after a 1032-capture pass that had just driven all three
+        # packages successfully: `pm list packages` showed all three installed while this probe called
+        # all three missing, purely because `adb` was not on PATH (ANDROID_HOME alone does not put it
+        # there; export ADB or add platform-tools). That is absence-of-evidence read as
+        # evidence-of-absence -- the exact failure `motion_score`'s WHY_NO_FRAMES exists to prevent --
+        # inside the probe written to keep this lane honest.
+        adb = os.environ.get("ADB", "adb")
         try:
-            out = subprocess.run([os.environ.get("ADB", "adb"), "-s", serial, "shell",
-                                  "dumpsys", "package", pkg],
-                                 capture_output=True, text=True, timeout=30).stdout
-        except Exception:                                    # noqa: BLE001  no adb / no device
-            out = ""
+            proc = subprocess.run([adb, "-s", serial, "shell", "dumpsys", "package", pkg],
+                                  capture_output=True, text=True, timeout=30)
+            out = proc.stdout
+        except FileNotFoundError:
+            return [f"cannot run `{adb}`: adb is not on PATH, so this probe measured NOTHING. "
+                    f"Set $ADB or add platform-tools to PATH. This is not a verdict about the lane."]
+        except Exception:                                    # noqa: BLE001  device busy/offline
+            return [f"`{adb} -s {serial}` failed, so this probe measured NOTHING — not a verdict "
+                    f"about the lane. Check `adb devices`."]
         stamp = android_last_update(out)
         facts["artifacts"][art] = {"exists": stamp is not None, "mtime": stamp or "", "length": 1}
     return verdicts(facts, arts)
