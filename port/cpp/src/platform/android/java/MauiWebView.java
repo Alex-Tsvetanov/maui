@@ -39,6 +39,7 @@
 package dev.mauicpp;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -64,9 +65,51 @@ public final class MauiWebView extends WebView {
         }
     };
 
+    // THE CLIP. src/Core/src/Platform/Android/MauiWebView.cs:23-25 — C#'s ctor seeds ClipBounds with an
+    // EMPTY rect and OnSizeChanged/OnAttachedToWindow (MauiWebView.cs:28-40) narrow it to the view's exact
+    // bounds, "to prevent the WebView from briefly rendering at full screen size before layout is complete"
+    // (dotnet/maui#31475). The port had no clip at all, and on a HARDWARE-accelerated WebView that is not a
+    // brief flash: the draw functor paints the document's background over the WHOLE WINDOW for as long as
+    // the page is up. Measured on emulator-5554, web_view dark: the page surface read (255,255,255) edge to
+    // edge instead of #121212, and both unset Labels — which seed 0xB8FFFFFF and so composite to 189 over
+    // #121212 — vanished into it, while the opaque Buttons (drawn after the WebView) survived. The root and
+    // window backgrounds MauiHostActivity paints are drawn BEFORE the functor and were erased by it: a
+    // colour-coded probe (root GREEN, window RED) showed neither colour anywhere on this page and GREEN
+    // filling every other page.
+    //
+    // This is why WebViewHandler.Android.cs:31-34's setLayerType(SOFTWARE) is CONDITIONAL and still correct:
+    // a software layer renders into an offscreen bitmap the size of the view, which clips the functor as a
+    // side effect. That is what the port's old unconditional layer was really doing, and porting the
+    // condition literally (633c7da041) removed the accidental clip along with it. ClipBounds is the guard
+    // C# actually relies on, so it is the one the port must have.
+    //
+    // C#'s `Parent is WrapperView -> ClipBounds = null` branch (MauiWebView.cs:44-50) exists so a shadow can
+    // paint outside the view; the port has NO WrapperView on Android (a documented deferral —
+    // android_visual_ops.hpp:27-39), so every parent takes the exact-bounds branch below.
     public MauiWebView(Context context) {
         super(context);
         setWebViewClient(new WebViewClient());
+        setClipBounds(new Rect(0, 0, 0, 0));
+    }
+
+    @Override
+    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight);
+        updateClipBounds(width, height);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        // Re-evaluate on re-parent, exactly as MauiWebView.cs:34-40 does.
+        updateClipBounds(getWidth(), getHeight());
+    }
+
+    // A FRESH Rect each time, unlike C#'s reused _clipRect field: View.setClipBounds COPIES the rect it is
+    // given, but getClipBounds hands back that copy, and mutating a shared instance in place is a trap the
+    // port gains nothing from reproducing.
+    private void updateClipBounds(int width, int height) {
+        setClipBounds(width > 0 && height > 0 ? new Rect(0, 0, width, height) : new Rect(0, 0, 0, 0));
     }
 
     public void setPeer(long peer) {
