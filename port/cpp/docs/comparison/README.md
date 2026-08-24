@@ -7,11 +7,11 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <table>
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
-<tr><td>iOS</td><td>165</td><td>5</td><td>2</td><td>0</td><td>0</td><td>166</td><td>4</td><td>2</td><td>0</td><td>0</td></tr>
+<tr><td>iOS</td><td>166</td><td>5</td><td>1</td><td>0</td><td>0</td><td>167</td><td>4</td><td>1</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>168</td><td>3</td><td>1</td><td>0</td><td>0</td><td>169</td><td>2</td><td>1</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>157</td><td>14</td><td>1</td><td>0</td><td>0</td><td>157</td><td>13</td><td>2</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>171</td><td>1</td><td>0</td><td>0</td><td>0</td><td>171</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>661</strong></td><td><strong>23</strong></td><td><strong>4</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>663</strong></td><td><strong>20</strong></td><td><strong>5</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>662</strong></td><td><strong>23</strong></td><td><strong>3</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>664</strong></td><td><strong>20</strong></td><td><strong>4</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -53,9 +53,9 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 165 | 166 |
+| 🟢 Match | 166 | 167 |
 | 🟡 Minor | 5 | 4 |
-| 🔴 Major | 2 | 2 |
+| 🔴 Major | 1 | 1 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -1301,20 +1301,20 @@ Light: SSIM 0.9883, 0.50% pixels differ · Dark: SSIM 0.9881, 0.50% pixels diffe
 
 Light: SSIM 0.9883, 0.50% pixels differ · Dark: SSIM 0.9881, 0.50% pixels differ
 
-### 79. Image — 🔴/🔴
+### 79. Image — 🟢/🟢
 <sub>image</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/image_light.png" /></td><td><img width="300px" src="captures/ios/cpp/image_light.png" /></td><td><img width="300px" src="captures/ios/xaml/image_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/image_dark.png" /></td><td><img width="300px" src="captures/ios/cpp/image_dark.png" /></td><td><img width="300px" src="captures/ios/xaml/image_dark.png" /></td></tr></table>
 
 ports ImagePage.xaml (+ ImagePage.xaml.cs)
 
-#### 🔴 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.4955, 70.64% pixels differ · Dark: SSIM 0.9993, 0.13% pixels differ
+Light: SSIM 0.9993, 0.13% pixels differ · Dark: SSIM 0.9993, 0.13% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.4954, 70.64% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
+Light: SSIM 1.0000, 0.00% pixels differ · Dark: SSIM 1.0000, 0.00% pixels differ
 
 ### 80. Image Button — 🟢/🟢
 <sub>image_button</sub>

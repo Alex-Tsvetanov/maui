@@ -14414,14 +14414,14 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: SSIM 0.4955, 70.64% pixels differ \u00b7 Dark: SSIM 0.9993, 0.13% pixels differ",
-          "stills": "e61b85468a2c4fe8"
+          "status": "green",
+          "review": "Light: SSIM 0.9993, 0.13% pixels differ \u00b7 Dark: SSIM 0.9993, 0.13% pixels differ",
+          "stills": "790290f27342d076"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.4954, 70.64% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ",
-          "stills": "a6993d0a302c11b5"
+          "status": "green",
+          "review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ",
+          "stills": "e58a7ba6107d7cc9"
         }
       },
       "maccatalyst": {
