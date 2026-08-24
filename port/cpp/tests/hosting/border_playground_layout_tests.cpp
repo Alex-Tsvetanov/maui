@@ -89,4 +89,17 @@ namespace
         EXPECT_GT(picker_frame.height, 0.0) << "content_picker_ (\"Border Content\" Picker) measured to "
                                                "zero height in core layout";
     }
+
+    // maccatalyst dark-theme regression (2026-08-24): BorderLineJoinPicker/BorderLineCapPicker's Title
+    // (port/maui-reference/pages/border_playground.xaml:73,82) was never set by build_border_shape_row,
+    // so the platform placeholder text (view.title()) was empty -- rendering as a blank box rather than
+    // "black text on black background". Not a colour bug: PickerExtensions.cs's UpdatePickerTitle (C#
+    // oracle) passes a nil foreground when TitleColor is unset, which correctly defers to the system's
+    // theme-adaptive placeholder color; that logic was already correct on both backends.
+    TEST(border_playground_layout, line_join_and_line_cap_pickers_carry_their_title)
+    {
+        maui::samples::border_playground_page page;
+        EXPECT_EQ(page.line_join_picker().title(), "Border LineJoin");
+        EXPECT_EQ(page.line_cap_picker().title(), "Border LineCap");
+    }
 } // namespace

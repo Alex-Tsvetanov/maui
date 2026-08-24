@@ -183,6 +183,14 @@ namespace maui::samples
         {
             return shape_picker_;
         }
+        [[nodiscard]] maui::controls::picker& line_join_picker()
+        {
+            return line_join_picker_;
+        }
+        [[nodiscard]] maui::controls::picker& line_cap_picker()
+        {
+            return line_cap_picker_;
+        }
         [[nodiscard]] maui::controls::slider& width_slider()
         {
             return width_slider_;
@@ -296,6 +304,8 @@ namespace maui::samples
             // Line join picker (Miter / Round / Bevel).
             line_join_caption_.set_text("Border LineJoin");
             controls_.add(line_join_caption_);
+            line_join_picker_.set_title(
+                "Border LineJoin"); // twin: <Picker Title="Border LineJoin"> (border_playground.xaml:73)
             line_join_picker_.set_items_source(make_items({"Miter", "Round", "Bevel"}));
             line_join_picker_.selected_index_changed.connect([this] { update_border_shape(); });
             controls_.add(line_join_picker_);
@@ -303,6 +313,8 @@ namespace maui::samples
             // Line cap picker (Butt / Round / Square).
             line_cap_caption_.set_text("Border LineCap");
             controls_.add(line_cap_caption_);
+            line_cap_picker_.set_title(
+                "Border LineCap"); // twin: <Picker Title="Border LineCap"> (border_playground.xaml:82)
             line_cap_picker_.set_items_source(make_items({"Butt", "Round", "Square"}));
             line_cap_picker_.selected_index_changed.connect([this] { update_border_shape(); });
             controls_.add(line_cap_picker_);
