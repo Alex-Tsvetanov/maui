@@ -72,7 +72,10 @@ namespace
 
     constexpr const char* k_scroll_view_class = "android/widget/ScrollView";
     constexpr const char* k_view_group_class = "android/view/ViewGroup";
-    constexpr const char* k_layout_params_class = "android/view/ViewGroup$LayoutParams";
+    // FrameLayout.LayoutParams (extends MarginLayoutParams): ScrollView IS-A FrameLayout, and
+    // FrameLayout.onLayout positions its single child at (paddingLeft + lp.leftMargin, paddingTop +
+    // lp.topMargin, ...) — see add_scroll_child below for why the port drives Padding through this.
+    constexpr const char* k_frame_layout_params_class = "android/widget/FrameLayout$LayoutParams";
     constexpr const char* k_measure_spec_class = "android/view/View$MeasureSpec";
 
     constexpr jint k_view_visible = 0;
@@ -214,20 +217,46 @@ namespace
     // Add `child` as the ScrollView's single document child: MATCH_PARENT width, WRAP_CONTENT height so
     // the content can overflow vertically and scroll (the android scroll-content convention — the apple
     // documentView analog). Detaches the child from any prior parent first.
-    void add_scroll_child(JNIEnv* env, jobject scroller, jobject child)
+    //
+    // margin_left/top/right/bottom (px) carry the ScrollView's own Padding. C# ScrollViewHandler.Android.cs
+    // (InsertInsetView / "Problem 1" comment): "Android treats Padding differently than what we want for
+    // MAUI; Padding creates space _around_ the scrollable area, rather than padding the content inside of
+    // it" — so real MAUI never calls setPadding on the native ScrollView; it inserts a ContentViewGroup
+    // shim that insets its child in its OWN cross-platform arrange pass. The port's core scroll_view.cpp
+    // already computes that inset correctly (content_->arrange({inset.left, inset.top, ...}), host-
+    // relative) and the content's own platform_arrange calls View.layout() with it — but android.widget.
+    // ScrollView IS-A FrameLayout, and FrameLayout.onLayout (which the scroller's own platform_arrange
+    // re-triggers on every arrange pass via scroller.layout()) unconditionally repositions its single
+    // child from the child's LayoutParams, clobbering that explicit position back to (0,0). The port has
+    // no MAUI-equivalent no-op-onLayout ScrollView subclass to intercept that, so instead of the shim we
+    // give the child FrameLayout.LayoutParams with the padding baked in as MARGINS: FrameLayout.onLayout
+    // honors lp.leftMargin/topMargin when placing the child, so the child lands at (padding.left,
+    // padding.top) every pass instead of getting reset to (0,0). Simpler than the shim, and correct for
+    // the child's PLACEMENT; the one known gap vs. the shim (ponytail: margin, not a shim layer — revisit
+    // if a page needs the last `padding.bottom` px of scroll range) is that Android's ScrollView computes
+    // its scrollable range from the child's laid-out bottom, which reflects topMargin but not
+    // bottomMargin, so the final `padding.bottom` px of scroll extent may not be reachable.
+    void add_scroll_child(JNIEnv* env, jobject scroller, jobject child, jint margin_left, jint margin_top,
+                          jint margin_right, jint margin_bottom)
     {
         detach_from_parent(env, child);
         auto& cache = default_jni_cache();
-        jclass params_class = cache.find_class(env, k_layout_params_class);
-        jmethodID params_ctor = cache.method(env, k_layout_params_class, "<init>", "(II)V");
+        jclass params_class = cache.find_class(env, k_frame_layout_params_class);
+        jmethodID params_ctor = cache.method(env, k_frame_layout_params_class, "<init>", "(II)V");
+        jmethodID set_margins = cache.method(env, k_frame_layout_params_class, "setMargins", "(IIII)V");
         jmethodID add_view = cache.method(env, k_view_group_class, "addView",
                                           "(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V");
-        if (params_class == nullptr || params_ctor == nullptr || add_view == nullptr)
+        if (params_class == nullptr || params_ctor == nullptr || set_margins == nullptr || add_view == nullptr)
         {
             return;
         }
         const local_ref<jobject> params{env, env->NewObject(params_class, params_ctor, k_match_parent, k_wrap_content)};
         if (clear_pending(env) || !params)
+        {
+            return;
+        }
+        env->CallVoidMethod(params.get(), set_margins, margin_left, margin_top, margin_right, margin_bottom);
+        if (clear_pending(env))
         {
             return;
         }
@@ -422,7 +451,15 @@ namespace maui::core
         }
         if (jobject child = native_child(*platform->hosted_content))
         {
-            add_scroll_child(env.get(), scroller, child);
+            // C# ScrollView.Padding (IPadding.Padding, no PropertyMapper entry — it is a pure layout
+            // concern, see add_scroll_child's comment above). Baked in as native margins here, at
+            // content-set time; a Padding change with no Content change won't refresh them (documented
+            // gap above — no gallery page exercises that mutation today).
+            const maui::core::thickness inset =
+                virtual_view() != nullptr ? virtual_view()->padding() : maui::core::thickness{};
+            const float density = display_density(env.get(), scroller);
+            add_scroll_child(env.get(), scroller, child, to_pixels(inset.left, density), to_pixels(inset.top, density),
+                             to_pixels(inset.right, density), to_pixels(inset.bottom, density));
         }
     }
 
