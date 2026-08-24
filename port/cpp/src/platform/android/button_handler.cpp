@@ -144,27 +144,33 @@ namespace
     // a LightBlue panel behind a disabled button reads (152,190,202) = panel x 0.88, not opaque #E0E0E0).
     // Over a white parent both composite to the historical #E0E0E0 fill / #8B8B8B label, so white-bg pages are
     // unchanged. The ~36dp button height is content-driven (the 8.5dp vertical padding), NOT a min-height floor.
-    // THEME-DEPENDENT, and MEASURED FROM MAUI'S RENDER rather than named in its source (the standing doctrine:
-    // MAUI's render is ground truth for content, and rule 4 (RENDER-BREAKS-TIES): where a value cannot be read off `src/`,
-    // the render decides). Sampled on the alerts button band, where both columns cover an identical
-    // 86793 px so geometry is not a factor:
-    //     light   MAUI 227 (#E3E3E3)      dark   MAUI 201 (#C9C9C9)
-    // The single #E0E0E0 (224) that stood here was the LIGHT value, applied in both themes -- one of the
-    // handful of theme-blind constants in this backend, and the reason its light captures score near-exact
-    // while dark does not.
+    // THEME-INVARIANT #E0E0E0, MEASURED FROM MAUI'S RENDER rather than named in its source (the standing
+    // doctrine: MAUI's render is ground truth for content, and rule 4 (RENDER-BREAKS-TIES): where a value
+    // cannot be read off `src/`, the render decides).
     //
-    // WHY DARK WAS THE ONLY ONE THE BOARD FLAGGED: the port rendered 207 in light against MAUI's 227, a
-    // 20-level error that sits UNDER pixel_score's 25/channel visibility threshold and therefore counted
-    // as zero differing pixels. Dark was off by 27 and counted. A metric with a threshold hides an error
-    // just below it, so "light is clean" meant "light is wrong by less than 25", not "light is right".
-    constexpr auto k_material_default_button_color_light = static_cast<jint>(0xFFE3E3E3U);
-    constexpr auto k_material_default_button_color_dark = static_cast<jint>(0xFFC9C9C9U);
+    // A prior cut of this constant split light/dark ("light MAUI 227 #E3E3E3, dark MAUI 201 #C9C9C9"),
+    // sampled off the alerts button band. That sample was CONTAMINATED: 201/227 is not a themed fill, it is
+    // Android's transient focus-highlight ring, which lands only on the page's first focusable widget and
+    // only on SOME captures — not a Material color at all. Proof it's an artifact, not a theme, sampled
+    // 2026-08-24 off the committed board (docs/comparison/captures/android/maui/):
+    //   button_dark.png     1st "Button" = (201,201,201)   2nd "Clicked" button = (224,224,224)  [same page]
+    //   alerts_dark.png     1st "Alert Simple" = (201,201,201) every later button = (224,224,224) [same page]
+    //   alerts_light.png    1st "Alert Simple" = (224,224,224) — no split in light at all
+    //   layout_is_enabled_dark.png  1st "Enabled" button = (224,224,224) — no split on THIS page's dark render
+    // The last row is the tell: the same "first focusable widget" position renders 201 on one dark page and
+    // 224 on another — the darkening is a race between the capture and the OS's initial-focus ring settling,
+    // not a per-theme Material default. shadow_playground_dark's lone "Remove Shadow" button and its four
+    // Sliders (also focusable, also ahead of the button in tab order) are exactly the kind of page this hits:
+    // MAUI's OWN render is non-deterministic there, which is why two recaptures of the SAME binaries scored
+    // this page 71.34% and then 9.36% RED — the board was chasing MAUI's focus-ring flicker, not a port bug.
+    // The always-224 baseline (both themes, on pages/positions the ring didn't land) is the real native
+    // default; hard-coding the artifact's 201 made the port WRONG (and deterministically so) every dark run.
+    constexpr auto k_material_default_button_color = static_cast<jint>(0xFFE0E0E0U);
 
-    // One place decides the themed default, so the two call sites below cannot drift apart.
-    [[nodiscard]] inline jint material_default_button_color(JNIEnv* env)
+    // One place decides the default, so the two call sites below cannot drift apart.
+    [[nodiscard]] inline jint material_default_button_color(JNIEnv* /*env*/)
     {
-        return maui::platform::android::detail::is_night_mode(env) ? k_material_default_button_color_dark
-                                                                   : k_material_default_button_color_light;
+        return k_material_default_button_color;
     }
 
     // Disabled-state overlays (colorOnSurface = black in the light Material theme): container @~12%, label @~38%.
