@@ -588,7 +588,33 @@ namespace maui::core
         // attempts at this "ran" and moved no pixels. frame.y IS that inset by the time it is non-zero: the
         // page pushes the scroller down by precisely the safe-area top, and MAUI's settled scroller carries
         // the same pair (frame {{0,41},{1330,998}} with offset {0,41}).
-        if (!platform->did_settle_catalyst_offset && extent.height > 0.0 && frame.y > 0.0)
+        // frame.y > 0 is ambiguous as a "the safe area just applied" signal: true on a page where the
+        // scroller IS the page's content (clip / path_gallery / swipe_item_size), but border_playground
+        // sits a 200pt Border ABOVE the ScrollView in the same Grid, so frame.y is nonzero from that
+        // alone with nothing to do with the safe area. MEASURED with MAUI_GEOMETRY_DUMP on both apps:
+        // MauiReference's own scroller rests at contentOffset {0,0} for border_playground (never 41, never
+        // any other value) — the resting-offset quirk this settle exists to reproduce simply does not
+        // occur when something precedes the ScrollView in its container. So this is not a timing question
+        // (a later arrange pass does not fix it — verified: even using the FINAL, fully-settled frame,
+        // the computed "settle" is a nonzero value MAUI never produces) — the settle must not run at all
+        // for that shape. Walk the ScrollView's own logical siblings for one with real content preceding
+        // it; skip entirely if there is one.
+        bool has_preceding_content = false;
+        if (auto* const shape_ctl = dynamic_cast<maui::controls::scroll_view*>(virtual_view()))
+        {
+            if (auto* const parent = dynamic_cast<maui::core::i_container*>(shape_ctl->logical_parent()))
+            {
+                for (int i = 0; i < parent->count() && &parent->at(i) != shape_ctl; ++i)
+                {
+                    if (parent->at(i).frame().height > 0.0)
+                    {
+                        has_preceding_content = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!platform->did_settle_catalyst_offset && extent.height > 0.0 && frame.y > 0.0 && !has_preceding_content)
         {
             if (UIWindow* const win = scroller.window)
             {
@@ -610,8 +636,7 @@ namespace maui::core
                     // parked at offset 1 where MAUI sits at 0, and that single pixel lit up every edge in
                     // the frame (0.09% -> 1.56%, green -> yellow). MAUI clamps its own offset to the range
                     // of the REAL content, so this must too.
-                    const CGFloat max_scroll =
-                        std::max<CGFloat>(0.0, measured_extent.height - frame.height);
+                    const CGFloat max_scroll = std::max<CGFloat>(0.0, measured_extent.height - frame.height);
                     const CGFloat inset_top =
                         page_safe_area.top > 0.0 ? static_cast<CGFloat>(page_safe_area.top) : frame.y;
                     const CGFloat settle = std::min<CGFloat>(inset_top, max_scroll);

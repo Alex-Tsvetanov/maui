@@ -35,15 +35,15 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 16574066,
+    "total_bytes": 16573938,
     "file_count": 12,
     "buckets": {
      "resources": 531242,
-     "code": 16042824
+     "code": 16042696
     },
     "main_binary": {
      "name": "gallery",
-     "bytes": 16042824,
+     "bytes": 16042696,
      "linkedit_bytes": 7831552,
      "stripped_bytes": 9125928
     },
@@ -59,15 +59,15 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 41066836,
+    "total_bytes": 41066708,
     "file_count": 12,
     "buckets": {
      "resources": 531220,
-     "code": 40535616
+     "code": 40535488
     },
     "main_binary": {
      "name": "gallery_xaml",
-     "bytes": 40535616,
+     "bytes": 40535488,
      "linkedit_bytes": 24526848,
      "stripped_bytes": 23179152
     },
@@ -375,7 +375,7 @@
    }
   }
  },
- "size_measured_at": "2026-08-24T16:13:55Z",
+ "size_measured_at": "2026-08-24T18:31:05Z",
  "ttff": {
   "android": {
    "maui_xaml": {
