@@ -268,21 +268,43 @@ namespace maui::samples
 
         // Join the CV's current selection captions (the "selected" readout); "(none)" when empty — the
         // observable signal for each CV's "should be selected" expectation.
+        //
+        // cv.selected_item()/selected_items() are the RAW bindable values — set_selected_item(s) never
+        // prunes them against the source (matching C#: SelectionList is a plain pass-through, see
+        // CoerceSelectedItems/SelectionList.cs, no membership check). What DOES filter by source
+        // membership is update_platform_selection (collection_view_handler.cpp) — but it only builds the
+        // native paint list (platform->selected_paths); it never writes back to the bindable collection.
+        // So a "selected item not in source" scenario leaves the raw value sitting there unchanged while
+        // no cell is actually highlighted — which is exactly the state this readout needs to describe (it
+        // stands in for that highlight, per the file header), so it has to do its own membership check
+        // rather than trust the raw value. Missed this the first time and shipped a readout that echoed
+        // the raw "Foo, Bar, Baz" seed straight back, which is what the real device board caught.
         void update_readout(maui::controls::collection_view& cv, maui::controls::label& readout)
         {
+            const auto& source = cv.items_source();
+            const auto in_source = [&source](const maui::controls::boxed_item& item) {
+                return source != nullptr && source->index_of(item) != -1;
+            };
             std::string joined;
             // Single-mode CVs surface selection through selected_item; multiple-mode through selected_items.
             if (cv.selection_mode() == maui::controls::selection_mode::single)
             {
-                if (const auto value = cv.selected_item().as<std::string>())
+                if (const maui::controls::boxed_item& selected = cv.selected_item(); in_source(selected))
                 {
-                    joined = *value;
+                    if (const auto value = selected.as<std::string>())
+                    {
+                        joined = *value;
+                    }
                 }
             }
             else
             {
                 for (const maui::controls::boxed_item& item : cv.selected_items().items())
                 {
+                    if (!in_source(item))
+                    {
+                        continue;
+                    }
                     if (const auto value = item.as<std::string>())
                     {
                         if (!joined.empty())
