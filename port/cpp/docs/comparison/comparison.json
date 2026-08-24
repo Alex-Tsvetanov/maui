@@ -7425,14 +7425,14 @@
           "review": ""
         },
         "pixel": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9785, 0.71% pixels differ \u00b7 Dark: SSIM 0.9809, 0.69% pixels differ",
-          "stills": "df8898176ffed5ec"
+          "status": "green",
+          "review": "Light: SSIM 0.9834, 0.70% pixels differ \u00b7 Dark: SSIM 0.9809, 0.69% pixels differ",
+          "stills": "fafaced1ab32ffa5"
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: SSIM 0.9785, 0.71% pixels differ \u00b7 Dark: SSIM 0.9809, 0.69% pixels differ",
-          "stills": "6c7f72cba769c1e9"
+          "status": "green",
+          "review": "Light: SSIM 0.9834, 0.70% pixels differ \u00b7 Dark: SSIM 0.9809, 0.69% pixels differ",
+          "stills": "fe21ee878a93b7b3"
         }
       },
       "windows": {
