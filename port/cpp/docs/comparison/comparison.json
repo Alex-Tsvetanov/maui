@@ -30106,9 +30106,9 @@
           "stills": "f9cd7e0893cdd00f"
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: SSIM 0.8368, 6.73% pixels differ \u00b7 Dark: SSIM 0.8195, 7.01% pixels differ",
-          "stills": "621ef66fb4cec66d"
+          "status": "green",
+          "review": "Light: SSIM 0.9997, 0.00% pixels differ \u00b7 Dark: SSIM 0.9986, 0.05% pixels differ",
+          "stills": "0324edaabd6fa09a"
         }
       },
       "windows": {

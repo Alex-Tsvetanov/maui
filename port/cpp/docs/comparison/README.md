@@ -9,9 +9,9 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
 <tr><td>iOS</td><td>166</td><td>5</td><td>1</td><td>0</td><td>0</td><td>167</td><td>4</td><td>1</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>168</td><td>3</td><td>1</td><td>0</td><td>0</td><td>169</td><td>2</td><td>1</td><td>0</td><td>0</td></tr>
-<tr><td>Android</td><td>158</td><td>13</td><td>1</td><td>0</td><td>0</td><td>158</td><td>12</td><td>2</td><td>0</td><td>0</td></tr>
+<tr><td>Android</td><td>158</td><td>13</td><td>1</td><td>0</td><td>0</td><td>159</td><td>12</td><td>1</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>171</td><td>1</td><td>0</td><td>0</td><td>0</td><td>171</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>663</strong></td><td><strong>22</strong></td><td><strong>3</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>665</strong></td><td><strong>19</strong></td><td><strong>4</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>663</strong></td><td><strong>22</strong></td><td><strong>3</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>666</strong></td><td><strong>19</strong></td><td><strong>3</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -5543,9 +5543,9 @@ Real .NET MAUI vs the C++ port vs the compile-time-XAML gallery, captured on the
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 158 | 158 |
+| 🟢 Match | 158 | 159 |
 | 🟡 Minor | 13 | 12 |
-| 🔴 Major | 1 | 2 |
+| 🔴 Major | 1 | 1 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
 
@@ -8142,7 +8142,7 @@ Light: SSIM 0.9995, 0.00% pixels differ · Dark: SSIM 0.9979, 0.12% pixels diffe
 
 Light: SSIM 0.9995, 0.00% pixels differ · Dark: SSIM 0.9979, 0.12% pixels differ
 
-### 164. Transform Playground — 🟢/🔴
+### 164. Transform Playground — 🟢/🟢
 <sub>transform_playground</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/android/maui/transform_playground_light.png" /></td><td><img width="300px" src="captures/android/cpp/transform_playground_light.png" /></td><td><img width="300px" src="captures/android/xaml/transform_playground_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/android/maui/transform_playground_dark.png" /></td><td><img width="300px" src="captures/android/cpp/transform_playground_dark.png" /></td><td><img width="300px" src="captures/android/xaml/transform_playground_dark.png" /></td></tr></table>
@@ -8153,9 +8153,9 @@ ports TransformPlaygroundGallery.xaml A code-first port of the MAUI Shapes sub-g
 
 Light: SSIM 0.9960, 0.24% pixels differ · Dark: SSIM 0.9949, 0.29% pixels differ
 
-#### 🔴 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.8368, 6.73% pixels differ · Dark: SSIM 0.8195, 7.01% pixels differ
+Light: SSIM 0.9997, 0.00% pixels differ · Dark: SSIM 0.9986, 0.05% pixels differ
 
 ### 165. Transformations — 🟢/🟢
 <sub>transformations</sub>
