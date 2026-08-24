@@ -56,10 +56,25 @@ appearance="${MAUI_APPEARANCE:-light}"
 python3 "${script_dir}/device_state.py" --android >&2 || true
 # Record the device's CURRENT night mode so the trap restores what we found rather than forcing light —
 # an emulator that was already dark would otherwise be silently flipped by running a capture.
-maui_night_before="$("${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no)"
-"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night \
-  "$([[ "${appearance}" == "dark" ]] && echo yes || echo no)" > /dev/null 2>&1 || true
-sleep 2
+# Read-back-verify, not "set + sleep 2 + hope" — see capture_all_csharp_android.sh's twin block for the
+# 2026-08-24 incident this closes (a not-yet-settled emulator silently captured mis-themed stills).
+uimode_night_read() {
+  "${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no
+}
+wait_uimode_night() {
+  local target="$1"
+  for _ in $(seq 1 40); do # ~10s ceiling
+    [[ "$(uimode_night_read)" == "${target}" ]] && return 0
+    sleep 0.25
+  done
+  return 1
+}
+
+maui_night_before="$(uimode_night_read)"
+maui_night_target="$([[ "${appearance}" == "dark" ]] && echo yes || echo no)"
+"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night "${maui_night_target}" > /dev/null 2>&1 || true
+wait_uimode_night "${maui_night_target}" ||
+  echo "[apphost-xaml] WARNING: uimode night did not settle to '${maui_night_target}' within 10s; captures may be mis-themed" >&2
 trap '"${maui_adb:-adb}" -s "${maui_serial:-emulator-5554}" shell cmd uimode night "${maui_night_before}" > /dev/null 2>&1 || true;
       python3 "${script_dir}/device_state.py" --android --clear >&2 || true' EXIT
 # Canonical layout ALWAYS suffixes the theme: captures/android/xaml/<key>_<theme>.png.

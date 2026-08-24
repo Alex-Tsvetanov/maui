@@ -77,10 +77,31 @@ python3 "${script_dir}/device_state.py" --android >&2 || true
 # the next LIGHT pass and read as a port regression.
 # Record the device's CURRENT night mode so the trap restores what we found rather than forcing light —
 # an emulator that was already dark would otherwise be silently flipped by running a capture.
-maui_night_before="$("${maui_adb}" -s "${maui_serial}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no)"
-"${maui_adb}" -s "${maui_serial}" shell cmd uimode night \
-  "$([[ "${MAUI_APPEARANCE:-light}" == "dark" ]] && echo yes || echo no)" > /dev/null 2>&1 || true
-sleep 2
+# Read-back-verify, not "set + sleep 2 + hope": under emulator load (e.g. right after a heavy burst of
+# manual install/launch cycles) the `cmd uimode night` broadcast can lag well past 2s, or the command can
+# silently no-op — swallowed by the `|| true` below, since a transient adb hiccup shouldn't abort the
+# whole pass. That produced a real incident 2026-08-24: the FIRST script in a run (this one, maui_xaml)
+# hit a not-yet-settled emulator and captured 7 pages' "light" MAUI reference still dark, reading as a
+# port regression on every page that derives its score from the still (not the driven pages, which are
+# rescored fresh by android_gifs). Poll for the change to actually land instead of assuming a fixed delay
+# covers it; the driving loop's other steps (wait_process_gone, wait_displayed) already use this shape.
+uimode_night_read() {
+  "${maui_adb}" -s "${maui_serial}" shell cmd uimode night 2>/dev/null | grep -qi yes && echo yes || echo no
+}
+wait_uimode_night() {
+  local target="$1"
+  for _ in $(seq 1 40); do # ~10s ceiling
+    [[ "$(uimode_night_read)" == "${target}" ]] && return 0
+    sleep 0.25
+  done
+  return 1
+}
+
+maui_night_before="$(uimode_night_read)"
+maui_night_target="$([[ "${MAUI_APPEARANCE:-light}" == "dark" ]] && echo yes || echo no)"
+"${maui_adb}" -s "${maui_serial}" shell cmd uimode night "${maui_night_target}" > /dev/null 2>&1 || true
+wait_uimode_night "${maui_night_target}" ||
+  echo "[csharp-android] WARNING: uimode night did not settle to '${maui_night_target}' within 10s; captures may be mis-themed" >&2
 trap '"${maui_adb}" -s "${maui_serial}" shell cmd uimode night "${maui_night_before}" > /dev/null 2>&1 || true;
       python3 "${script_dir}/device_state.py" --android --clear >&2 || true' EXIT
 [[ "${appearance}" == "dark" || "${appearance}" == "light" ]] || maui_die "MAUI_APPEARANCE must be light|dark"
