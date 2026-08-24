@@ -37,6 +37,7 @@
 #include "ios_text_ops.hpp"
 #include "ios_view_ops.hpp"
 #include "ios_visual_ops.hpp"
+#include "maui/core/bindable_object.hpp"
 #include "maui/core/i_picker.hpp"
 #include "maui/core/picker_handler.hpp"
 #include "maui/core/text_alignment.hpp"
@@ -227,11 +228,18 @@ namespace
     }
 
     // PickerExtensions.UpdatePickerTitle: the Title (in TitleColor) as the attributed placeholder.
+    // PickerExtensions.cs:36 passes `picker?.TitleColor?.ToPlatform()` -- a null foreground when
+    // TitleColor is unset, deferring to UIKit's own theme-adaptive placeholder color. `color{}` (the
+    // property's unset default, see bindable_property<T>'s `T default_value = T{}`) is opaque BLACK, so
+    // a raw `!= color{}` comparison would misread an EXPLICITLY-set opaque-black TitleColor as unset
+    // (the cpp-unset-color-sentinel-collision shape). Use BindableObject.IsSet via is_property_set, as
+    // the Android twin already does (picker_handler.cpp's map_title_color) and its own comment claims
+    // for this file -- that claim did not match the code here until this fix.
     void update_picker_title(UITextField* field, const maui::core::i_picker& view)
     {
-        const maui::graphics::color title_color = view.title_color();
-        UIColor* const foreground =
-            title_color != maui::graphics::color{} ? maui::platform::ios::to_ui_color(title_color) : nil;
+        const auto* bindable = dynamic_cast<const maui::core::bindable_object*>(&view);
+        const bool title_color_set = bindable != nullptr && bindable->is_property_set("title_color");
+        UIColor* const foreground = title_color_set ? maui::platform::ios::to_ui_color(view.title_color()) : nil;
         NSDictionary* const attributes = foreground != nil ? @{NSForegroundColorAttributeName : foreground} : nil;
         field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:to_ns_string(view.title())
                                                                       attributes:attributes];
