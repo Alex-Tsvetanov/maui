@@ -603,5 +603,66 @@ namespace maui::core
         }
         env->CallVoidMethod(scroller, layout, left, top, left + width, top + height);
         clear_pending(env.get());
+
+        // Re-sync the child's margins (add_scroll_child bakes them ONCE, from ScrollView.Padding, at
+        // content-set time) to the position content_->arrange() computed for THIS pass — which, unlike
+        // the content-set-time value, includes the realized safe-area top inset (scroll_view::arrange:
+        // {safe_x + inset.left, safe_y + inset.top, ...}). The content-set-time bake predates the
+        // two-pass safe-area resolution (drive_layout_viewport resolves it AFTER set_content), so it
+        // permanently under-insets any page whose ScrollView content is tall/heavy enough to provoke a
+        // later Android-internal relayout of the scroller (per add_scroll_child's own comment: "FrameLayout.
+        // onLayout unconditionally repositions its single child from the child's LayoutParams", clobbering
+        // whatever this pass's arrange just set). MAUI's real Android host has no such gap —
+        // SafeAreaExtensions.ApplyAdjustedSafeAreaInsetsPx (src/Core/src/Platform/Android/
+        // SafeAreaExtensions.cs) is wired to a WindowInsets listener that re-applies on every dispatch,
+        // not once.
+        //
+        // Two things beyond just updating the LayoutParams fields are required for this to actually take
+        // effect, both confirmed by direct instrumentation (child.getTop() checked immediately after):
+        //   1. Mutating an already-attached LayoutParams object does not itself schedule a relayout — this
+        //      port drives Android layout IMPERATIVELY (measure()/layout() called directly, as above)
+        //      rather than through Choreographer, so nothing else will pick the change up.
+        //   2. View.layout(l,t,r,b) SKIPS calling onLayout() when l/t/r/b are unchanged from last time,
+        //      unless PFLAG_LAYOUT_REQUIRED is set — and the scroller's OWN bounds are identical between
+        //      the two arrange passes that expose this bug (only the child's margin changes), so a bare
+        //      re-measure+re-layout silently no-ops. forceLayout() sets that flag explicitly.
+        if (platform->hosted_content == nullptr)
+        {
+            return;
+        }
+        jobject child = native_child(*platform->hosted_content);
+        if (child == nullptr)
+        {
+            return;
+        }
+        jmethodID get_layout_params =
+            cache.method(env.get(), "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;");
+        jmethodID set_margins = cache.method(env.get(), k_frame_layout_params_class, "setMargins", "(IIII)V");
+        jclass params_class = cache.find_class(env.get(), k_frame_layout_params_class);
+        if (get_layout_params == nullptr || set_margins == nullptr || params_class == nullptr)
+        {
+            return;
+        }
+        const local_ref<jobject> params{env.get(), env->CallObjectMethod(child, get_layout_params)};
+        if (clear_pending(env.get()) || !params || !env->IsInstanceOf(params.get(), params_class))
+        {
+            return;
+        }
+        const maui::graphics::rect content_frame = platform->hosted_content->frame();
+        const maui::core::thickness inset =
+            virtual_view() != nullptr ? virtual_view()->padding() : maui::core::thickness{};
+        env->CallVoidMethod(params.get(), set_margins, to_pixels(content_frame.x, density),
+                            to_pixels(content_frame.y, density), to_pixels(inset.right, density),
+                            to_pixels(inset.bottom, density));
+        clear_pending(env.get());
+        if (jmethodID force_layout = cache.method(env.get(), "android/view/View", "forceLayout", "()V"))
+        {
+            env->CallVoidMethod(scroller, force_layout);
+            clear_pending(env.get());
+        }
+        env->CallVoidMethod(scroller, measure, width_spec, height_spec);
+        clear_pending(env.get());
+        env->CallVoidMethod(scroller, layout, left, top, left + width, top + height);
+        clear_pending(env.get());
     }
 } // namespace maui::core

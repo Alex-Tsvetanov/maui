@@ -35,20 +35,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 16573938,
+    "total_bytes": 16574066,
     "file_count": 12,
     "buckets": {
      "resources": 531242,
-     "code": 16042696
+     "code": 16042824
     },
     "main_binary": {
      "name": "gallery",
-     "bytes": 16042696,
+     "bytes": 16042824,
      "linkedit_bytes": 7831552,
      "stripped_bytes": 9125928
     },
     "total_bytes_stripped": 9657170,
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -59,20 +59,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 41066708,
+    "total_bytes": 41066836,
     "file_count": 12,
     "buckets": {
      "resources": 531220,
-     "code": 40535488
+     "code": 40535616
     },
     "main_binary": {
      "name": "gallery_xaml",
-     "bytes": 40535488,
+     "bytes": 40535616,
      "linkedit_bytes": 24526848,
      "stripped_bytes": 23179152
     },
     "total_bytes_stripped": 23710372,
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file"
    }
   },
@@ -98,7 +98,7 @@
      "stripped_bytes": 8942600
     },
     "total_bytes_stripped": 9472457,
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file"
    },
    "appkit_xaml": {
@@ -122,7 +122,7 @@
      "stripped_bytes": 22979216
     },
     "total_bytes_stripped": 23509073,
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file"
    }
   },
@@ -256,7 +256,7 @@
      "stripped_bytes": 9125768
     },
     "total_bytes_stripped": 9657010,
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -280,7 +280,7 @@
      "stripped_bytes": 23178928
     },
     "total_bytes_stripped": 23710148,
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file"
    }
   },
@@ -323,22 +323,22 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 29595831,
+    "total_bytes": 29599927,
     "file_count": 811,
     "buckets": {
-     "other": 68589,
+     "other": 68588,
      "resources": 1767109,
      "code": 4865776,
-     "native_libs": 22746096
+     "native_libs": 22747840
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 22746096,
+     "bytes": 22747840,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 22746096
+     "arm64-v8a": 22747840
     },
     "abi_count": 1,
     "built_at": "2026-08-24",
@@ -352,22 +352,22 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "mobile.toml",
-    "total_bytes": 44353789,
+    "total_bytes": 44357885,
     "file_count": 812,
     "buckets": {
-     "other": 68698,
+     "other": 68699,
      "resources": 1767281,
      "code": 4865793,
-     "native_libs": 37503960
+     "native_libs": 37505648
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 37503960,
+     "bytes": 37505648,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 37503960
+     "arm64-v8a": 37505648
     },
     "abi_count": 1,
     "built_at": "2026-08-24",
@@ -375,7 +375,7 @@
    }
   }
  },
- "size_measured_at": "2026-08-24T04:06:43Z",
+ "size_measured_at": "2026-08-24T14:34:31Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -385,23 +385,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     2.932,
-     2.928,
-     3.205,
-     3.098,
-     2.954,
-     2.803,
-     2.381,
-     2.739,
-     2.426,
-     2.693
+     6.638,
+     4.641,
+     4.723,
+     4.981,
+     4.341,
+     3.227,
+     5.586,
+     4.777,
+     5.077,
+     4.321
     ],
-    "poll_resolution_s": 0.635,
+    "poll_resolution_s": 1.071,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 2.381,
-    "median_s": 2.865,
-    "p95_s": 3.098,
-    "max_s": 3.205
+    "min_s": 3.227,
+    "median_s": 4.75,
+    "p95_s": 5.586,
+    "max_s": 6.638
    },
    "cpp": {
     "measured": true,
@@ -410,23 +410,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     2.746,
-     2.591,
-     2.353,
-     2.477,
-     2.705,
-     2.609,
-     2.339,
-     2.762,
-     2.556,
-     2.443
+     4.419,
+     3.434,
+     3.2,
+     1.981,
+     5.877,
+     3.629,
+     1.513,
+     1.409,
+     4.027,
+     1.42
     ],
-    "poll_resolution_s": 0.765,
+    "poll_resolution_s": 1.3,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 2.339,
-    "median_s": 2.574,
-    "p95_s": 2.746,
-    "max_s": 2.762
+    "min_s": 1.409,
+    "median_s": 3.317,
+    "p95_s": 4.419,
+    "max_s": 5.877
    },
    "cpp_xaml": {
     "measured": true,
@@ -435,23 +435,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     2.402,
-     2.442,
-     2.373,
-     2.466,
-     2.272,
-     2.387,
-     2.374,
-     2.335,
-     2.56,
-     2.469
+     5.5,
+     4.965,
+     3.748,
+     1.398,
+     3.525,
+     4.174,
+     1.37,
+     4.265,
+     4.198,
+     1.314
     ],
-    "poll_resolution_s": 0.662,
+    "poll_resolution_s": 1.23,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 2.272,
-    "median_s": 2.394,
-    "p95_s": 2.469,
-    "max_s": 2.56
+    "min_s": 1.314,
+    "median_s": 3.961,
+    "p95_s": 4.965,
+    "max_s": 5.5
    }
   },
   "ios": {
