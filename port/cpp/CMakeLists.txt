@@ -2374,6 +2374,7 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     tests/hosting/lifecycle_events_tests.cpp
     tests/hosting/app_host_tests.cpp
     tests/hosting/gallery_twin_render_tests.cpp # phase-4 render gate: each twin must mount + lay out
+    tests/hosting/border_playground_layout_tests.cpp # border_playground/border_stroke parity diagnostic (headless + apple control)
     tests/devflow/agent_tests.cpp # the DevFlow agent (self-gates on MAUI_DEVFLOW; empty TU when OFF)
   )
   target_link_libraries(maui_hosting_tests PRIVATE
@@ -2381,6 +2382,9 @@ if(NOT MAUI_BACKEND STREQUAL "ios")
     maui_xaml # phase-4 render gate loads the twins via xaml_loader
     GTest::gmock_main
   )
+  # gallery pages (pages/<key>_page.hpp) for border_playground_layout_tests.cpp, same include-dir
+  # pattern as maui_ui_tests below.
+  target_include_directories(maui_hosting_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/examples/gallery)
   # Corpus dirs (absolute source paths) for the parametrized render gate: the canonical shared pages
   # (the same .xaml real MAUI compiles) + the not-yet-migrated legacy twins.
   target_compile_definitions(maui_hosting_tests
