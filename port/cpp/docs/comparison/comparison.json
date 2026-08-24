@@ -25111,45 +25111,45 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (32.6730% vs 32.5077% of their own frame, 0.5% apart) from a resting frame that already agreed to 0.74%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-24-16_55_42, commit b8f9cbe724, 2026-08-24); driven frames aligned vertically by +0/+0/-23/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 9.72% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9692 at frame 3 'gif02@4s/12f' (1.79% pixels differ), mean SSIM 0.9759; per-frame diff% 0.74/0.73/1.79/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11; self-motion MAUI 32.6730% (776311 px) vs C++ 32.5077% (772384 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-24-16_55_42, commit b8f9cbe724, 2026-08-24); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.6045 at frame 2 'gif02@4s/12f' (32.80% pixels differ), mean SSIM 0.8510; per-frame diff% 31.12/32.80/6.13/5.84/5.84/5.84/5.84/5.84/5.84/5.84/5.84/5.84; self-motion MAUI 96.6798% (2297111 px) vs C++ 51.3189% (1219337 px)",
-          "stills": "612545d62fc526c9",
+          "status": "yellow",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (32.4777% vs 32.5681% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-24-18_29_47, commit abad40ba6a, 2026-08-24); driven frames aligned vertically by +0/+11/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 7.77% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9709 at frame 2 'gif01@4s/12f' (1.79% pixels differ), mean SSIM 0.9757; per-frame diff% 0.73/1.79/1.19/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11; self-motion MAUI 32.4777% (771671 px) vs C++ 32.5681% (773817 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (33.0274% vs 33.1125% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.80%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-24-18_29_47, commit abad40ba6a, 2026-08-24); driven frames aligned vertically by +0/+0/-23/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 10.18% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9710 at frame 3 'gif02@4s/12f' (0.75% pixels differ), mean SSIM 0.9780; per-frame diff% 0.80/0.80/0.75/0.67/0.67/0.67/0.67/0.67/0.67/0.67/0.67/0.67/0.67; self-motion MAUI 33.0274% (784731 px) vs C++ 33.1125% (786754 px)",
+          "stills": "4e1e0dac5e44e795",
           "motion": {
-            "verdict": "FAIL",
+            "verdict": "INCONCLUSIVE",
             "themes": {
               "light": "INCONCLUSIVE",
-              "dark": "FAIL"
+              "dark": "INCONCLUSIVE"
             },
-            "why": "frames-disagree",
-            "run": "2026-08-24-16_55_42",
-            "commit": "b8f9cbe724",
+            "why": "phase-only",
+            "run": "2026-08-24-18_29_47",
+            "commit": "abad40ba6a",
             "captured_at": "2026-08-24",
             "self": {
-              "maui": 96.6798,
-              "port": 51.3189
+              "maui": 32.4777,
+              "port": 32.5681
             },
-            "stills": "612545d62fc526c9"
+            "stills": "4e1e0dac5e44e795"
           }
         },
         "pixel_xaml": {
-          "status": "red",
-          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (32.6730% vs 32.5077% of their own frame, 0.5% apart) from a resting frame that already agreed to 0.74%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-24-16_55_42, commit b8f9cbe724, 2026-08-24); driven frames aligned vertically by +0/+0/-23/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 9.72% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9692 at frame 3 'gif02@4s/12f' (1.79% pixels differ), mean SSIM 0.9759; per-frame diff% 0.74/0.73/1.79/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11; self-motion MAUI 32.6730% (776311 px) vs C++ & XAML 32.5077% (772384 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-24-16_55_42, commit b8f9cbe724, 2026-08-24) \u2014 worst SSIM 0.8103 at frame 3 'gif02@4s/12f' (10.51% pixels differ), mean SSIM 0.8709; per-frame diff% 63.06/0.80/10.51/5.84/5.84/5.84/5.84/5.84/5.84/5.84/5.84/5.84/5.84; self-motion MAUI 96.6798% (2297111 px) vs C++ & XAML 52.4160% (1245403 px)",
-          "stills": "d5134cab0f5e22f7",
+          "status": "yellow",
+          "review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (32.4777% vs 32.5681% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-24-18_29_47, commit abad40ba6a, 2026-08-24); driven frames aligned vertically by +0/+11/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 7.77% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9709 at frame 2 'gif01@4s/12f' (1.79% pixels differ), mean SSIM 0.9757; per-frame diff% 0.73/1.79/1.19/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11/1.11; self-motion MAUI 32.4777% (771671 px) vs C++ & XAML 32.5681% (773817 px) \u00b7 Dark: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (33.0274% vs 33.1125% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.80%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by up to 11.57% across two runs of the same page while it is byte-stable at rest \u2014 so the per-frame SSIM below samples two different moments of the same motion. Capped YELLOW: frame parity was NOT established, and no port defect is evidenced either. MOTION 13 frames paired by step (run 2026-08-24-18_29_47, commit abad40ba6a, 2026-08-24); driven frames aligned vertically by +0/+0/-23/+10/+10/+10/+10/+10/+10/+10/+10/+10/+10 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 10.18% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9710 at frame 3 'gif02@4s/12f' (0.75% pixels differ), mean SSIM 0.9780; per-frame diff% 0.80/0.80/0.75/0.67/0.67/0.67/0.67/0.67/0.67/0.67/0.67/0.67/0.67; self-motion MAUI 33.0274% (784731 px) vs C++ & XAML 33.1125% (786754 px)",
+          "stills": "fb9f42a6094895d5",
           "motion": {
-            "verdict": "FAIL",
+            "verdict": "INCONCLUSIVE",
             "themes": {
               "light": "INCONCLUSIVE",
-              "dark": "FAIL"
+              "dark": "INCONCLUSIVE"
             },
-            "why": "frames-disagree",
-            "run": "2026-08-24-16_55_42",
-            "commit": "b8f9cbe724",
+            "why": "phase-only",
+            "run": "2026-08-24-18_29_47",
+            "commit": "abad40ba6a",
             "captured_at": "2026-08-24",
             "self": {
-              "maui": 96.6798,
-              "port": 52.416
+              "maui": 32.4777,
+              "port": 32.5681
             },
-            "stills": "d5134cab0f5e22f7"
+            "stills": "fb9f42a6094895d5"
           }
         }
       },
