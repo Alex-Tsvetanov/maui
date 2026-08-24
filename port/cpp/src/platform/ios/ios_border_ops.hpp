@@ -102,9 +102,8 @@ namespace maui::platform::ios
     inline CGPathRef border_shadow_silhouette_path(const maui::core::border_stroke_spec& spec, bool has_fill,
                                                    maui::graphics::rect bounds)
     {
-        const maui::graphics::path_f path = spec.shape->path_for_bounds(
-            maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness,
-                                         spec.shape));
+        const maui::graphics::path_f path = spec.shape->path_for_bounds(maui::core::shape_self_inset(
+            maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness, spec.shape));
         CGPathRef filled = path_to_cg_path(path); // +1 owned
         if (has_fill)
         {
@@ -255,6 +254,24 @@ namespace maui::platform::ios
 
         // The shape mask: clips background + content + the stroke's outer half (see the header).
         apply_clip(native, spec.shape, shape_bounds);
+
+        // MauiCALayer pins ITS OWN ContentsScale to the screen's native scale (MauiCALayer.cs:40,
+        // `ContentsScale = UIScreen.MainScreen.Scale`) before drawing this exact inset fill+clip in ONE
+        // CGContext pass (DrawInContext -> ctx.Clip() + ctx.DrawPath(Fill), MauiCALayer.cs:85-98,325-339).
+        // apply_clip's mask is a bare CAShapeLayer (default contentsScale 1.0, un-pinned) used as
+        // `layer.mask` — a second, separately-rasterized composite MAUI's Border never goes through.
+        // Under Mac Catalyst's non-integral UIKit->AppKit compositor scale that un-pinned mask can
+        // rasterize the 0.5-DIP inset edge at a coarser resolution than the layer it clips, softening the
+        // hairline gap the inset reveals between adjacent, un-stroked Border cells (measured on
+        // varied_size_selector/maccatalyst: every interior fill pixel is byte-identical to MAUI's capture;
+        // only the antialiasing blend at each cell's inset edge differs — maui ~(0,12,24) vs cpp
+        // ~(74,69,60) at the SAME row). Pin the mask to the host layer's own (UIKit-managed) scale to match
+        // the oracle's explicit pin. Documented deviation per RENDER-BREAKS-TIES (port/CLAUDE.md):
+        // shape_self_inset's geometry is unchanged, only the mask layer's rasterization resolution.
+        if (CAShapeLayer* const mask_layer = (CAShapeLayer*)layer.mask)
+        {
+            mask_layer.contentsScale = layer.contentsScale;
+        }
 
         CAShapeLayer* stroke_layer = find_border_layer(layer);
         const bool draws_border = spec.has_stroke && spec.thickness > 0 && spec.shape != nullptr;
