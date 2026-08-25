@@ -173,6 +173,7 @@ namespace maui::platform::android
 
         // The Java class names / signatures this seam speaks.
         inline constexpr const char* k_dialog_bridge_class = "dev/mauicpp/MauiDialogBridge";
+        inline constexpr const char* k_checked_item_factory_class = "dev/mauicpp/MauiCheckedItemInflaterFactory";
         inline constexpr const char* k_dialog_class = "android/app/Dialog";
         inline constexpr const char* k_date_dialog_class = "android/app/DatePickerDialog";
         inline constexpr const char* k_time_dialog_class = "android/app/TimePickerDialog";
@@ -294,6 +295,59 @@ namespace maui::platform::android
                 return false;
             }
             return true;
+        }
+
+        // Ensures MaterialAlertDialogBuilder's single-choice row layout renders its radio-ring indicator
+        // (see MauiCheckedItemInflaterFactory.java for the full mechanism). `builder_context` is
+        // `builder.getContext()` — the ContextThemeWrapper the Builder mints for itself, NOT the raw
+        // Activity context and NOT the eventual dialog's own context: AlertParams/CheckedItemAdapter
+        // inflate item rows through THIS SPECIFIC wrapper's LayoutInflater, captured at Builder
+        // construction time, before AppCompatDialog's onCreate() ever runs — so this must be called
+        // right after `new MaterialAlertDialogBuilder(context)`, before `.create()`. Idempotent and
+        // side-effect-free if the factory is already installed (LayoutInflater#setFactory2 throws
+        // otherwise) or if MauiCheckedItemInflaterFactory.class didn't make it into this dex (degrades to
+        // the framework's plain CheckedTextView — a chrome miss, not a crash).
+        inline void install_checked_item_inflater_factory(JNIEnv* env, jobject builder_context)
+        {
+            if (builder_context == nullptr)
+            {
+                return;
+            }
+            auto& cache = default_jni_cache();
+            jclass li_class = cache.find_class(env, "android/view/LayoutInflater");
+            jmethodID li_from = cache.static_method(env, "android/view/LayoutInflater", "from",
+                                                    "(Landroid/content/Context;)Landroid/view/LayoutInflater;");
+            jmethodID get_factory2 = cache.method(env, "android/view/LayoutInflater", "getFactory2",
+                                                  "()Landroid/view/LayoutInflater$Factory2;");
+            jmethodID set_factory2 = cache.method(env, "android/view/LayoutInflater", "setFactory2",
+                                                  "(Landroid/view/LayoutInflater$Factory2;)V");
+            if (li_class == nullptr || li_from == nullptr || get_factory2 == nullptr || set_factory2 == nullptr)
+            {
+                return;
+            }
+            local_ref<jobject> inflater{env, env->CallStaticObjectMethod(li_class, li_from, builder_context)};
+            if (dialog_clear_pending(env) || !inflater)
+            {
+                return;
+            }
+            local_ref<jobject> existing{env, env->CallObjectMethod(inflater.get(), get_factory2)};
+            if (dialog_clear_pending(env) || existing)
+            {
+                return; // already set — nothing to do (or setFactory2 would throw)
+            }
+            jclass factory_class = cache.find_class(env, k_checked_item_factory_class);
+            jmethodID factory_ctor = cache.method(env, k_checked_item_factory_class, "<init>", "()V");
+            if (factory_class == nullptr || factory_ctor == nullptr)
+            {
+                return; // host-provided class missing (see MauiCheckedItemInflaterFactory.java)
+            }
+            local_ref<jobject> factory{env, env->NewObject(factory_class, factory_ctor)};
+            if (dialog_clear_pending(env) || !factory)
+            {
+                return;
+            }
+            env->CallVoidMethod(inflater.get(), set_factory2, factory.get());
+            dialog_clear_pending(env);
         }
 
         // new dev.mauicpp.MauiDialogBridge(peer) — the listener object the widget and the dialogs hold.
@@ -561,12 +615,15 @@ namespace maui::platform::android
         return detail::show_and_pin(env.get(), dialog, bridge.get());
     }
 
-    // PickerHandler.OnClick's single-choice list. DOCUMENTED DEVIATION (also recorded in
-    // picker_handler.cpp): C# builds it with MaterialAlertDialogBuilder from the
-    // Google.Android.Material AAR, which this APK-less backend does not carry; the FRAMEWORK
-    // android.app.AlertDialog.Builder exposes the same three calls MAUI uses (SetTitle,
-    // SetSingleChoiceItems, SetNegativeButton(android.R.string.cancel)) and produces the same
-    // interaction, in the framework's chrome rather than Material 3's.
+    // PickerHandler.OnClick's single-choice list, built on the REAL MaterialAlertDialogBuilder
+    // (k_alert_builder_class, detail namespace above) — the claim that this APK-less backend falls back
+    // to the framework android.app.AlertDialog.Builder is STALE; the AndroidX + Material AAR closure is
+    // staged and dexed into both app hosts (tools/parity/lib/android-aar-lib.sh) and this function speaks
+    // MaterialAlertDialogBuilder's real, covariant method signatures throughout. What WAS missing until
+    // install_checked_item_inflater_factory (detail namespace) landed: the single-choice row's radio-ring
+    // indicator, because this backend's host Activity is a plain android.app.Activity rather than
+    // AppCompatActivity — see that helper's header comment for the mechanism, and
+    // MauiCheckedItemInflaterFactory.java for the Java-side fix it installs.
     [[nodiscard]] inline void* show_items_dialog(jobject context, const dialog_trampoline* peer,
                                                  const std::vector<std::string>& items, std::string_view title,
                                                  int checked_item)
@@ -595,9 +652,23 @@ namespace maui::platform::android
         {
             return nullptr;
         }
+        // Must run BEFORE create(): AlertParams/CheckedItemAdapter capture the builder's OWN
+        // ContextThemeWrapper's LayoutInflater at construction time, not at show() time — see
+        // install_checked_item_inflater_factory's header comment for the full mechanism.
+        if (jmethodID get_builder_context =
+                cache.method(env.get(), detail::k_alert_builder_class, "getContext", "()Landroid/content/Context;"))
+        {
+            const local_ref<jobject> builder_context{env.get(),
+                                                     env->CallObjectMethod(builder.get(), get_builder_context)};
+            if (!detail::dialog_clear_pending(env.get()))
+            {
+                detail::install_checked_item_inflater_factory(env.get(), builder_context.get());
+            }
+        }
         // SetTitle(VirtualView.Title ?? string.Empty).
-        if (jmethodID set_title = cache.method(env.get(), detail::k_alert_builder_class, "setTitle",
-                                               "(Ljava/lang/CharSequence;)Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;"))
+        if (jmethodID set_title = cache.method(
+                env.get(), detail::k_alert_builder_class, "setTitle",
+                "(Ljava/lang/CharSequence;)Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;"))
         {
             const local_ref<jstring> text = to_jstring(env.get(), title);
             const local_ref<jobject> chained{env.get(), env->CallObjectMethod(builder.get(), set_title, text.get())};
@@ -617,10 +688,10 @@ namespace maui::platform::android
             env->SetObjectArrayElement(array.get(), static_cast<jsize>(index), text.get());
             detail::dialog_clear_pending(env.get());
         }
-        jmethodID set_items = cache.method(
-            env.get(), detail::k_alert_builder_class, "setSingleChoiceItems",
-            "([Ljava/lang/CharSequence;ILandroid/content/DialogInterface$OnClickListener;)"
-            "Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;");
+        jmethodID set_items =
+            cache.method(env.get(), detail::k_alert_builder_class, "setSingleChoiceItems",
+                         "([Ljava/lang/CharSequence;ILandroid/content/DialogInterface$OnClickListener;)"
+                         "Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;");
         if (set_items == nullptr)
         {
             return nullptr;
@@ -637,9 +708,9 @@ namespace maui::platform::android
         // SetNegativeButton(Android.Resource.String.Cancel, no-op): the framework string id, read as a
         // static field so no literal id is baked in. A null listener IS the C# empty lambda.
         jclass string_ids = cache.find_class(env.get(), "android/R$string");
-        jmethodID set_negative =
-            cache.method(env.get(), detail::k_alert_builder_class, "setNegativeButton",
-                         "(ILandroid/content/DialogInterface$OnClickListener;)Lcom/google/android/material/dialog/MaterialAlertDialogBuilder;");
+        jmethodID set_negative = cache.method(env.get(), detail::k_alert_builder_class, "setNegativeButton",
+                                              "(ILandroid/content/DialogInterface$OnClickListener;)Lcom/google/android/"
+                                              "material/dialog/MaterialAlertDialogBuilder;");
         if (string_ids != nullptr && set_negative != nullptr)
         {
             const jfieldID cancel_field = env->GetStaticFieldID(string_ids, "cancel", "I");

@@ -32,22 +32,27 @@
 //     navigation because the field is read-only); we reproduce the read-only intent with
 //     setKeyListener(null) + setFocusable(false) + setClickable(true) (see create_platform_view) — the
 //     MovementMethod knob has no plain-widget setter analog and is approximated by the KeyListener removal.
-//   - The selection dialog is the FRAMEWORK android.app.AlertDialog, not MaterialAlertDialogBuilder.
-//     C#'s ConnectHandler wires platformView.Click += OnClick, and OnClick builds a
-//     MaterialAlertDialogBuilder single-choice list (Google.Android.Material) that, on a row tap, sets
-//     VirtualView.SelectedIndex and re-runs UpdatePicker. That builder lives in an AAR this APK-less
-//     backend does not carry — the same gradle/AAR gap as the plain-EditText-for-MauiPicker deviation
-//     above — so the click listener IS installed (dev.mauicpp.MauiDialogBridge, see the LIFETIME note)
-//     and the dialog is built with android.app.AlertDialog.Builder, which exposes the exact three calls
-//     MAUI uses: SetTitle(Title), SetSingleChoiceItems(items, SelectedIndex, rowTapped) and
-//     SetNegativeButton(android.R.string.cancel), plus SetCanceledOnTouchOutside(true). The interaction
-//     (single-choice list, radio marks, Cancel, tap-outside dismiss, row tap → SelectedIndex +
-//     UpdatePicker + dismiss, dismiss → IsOpen/IsFocused false) is identical; the CHROME is the framework
-//     theme's rather than Material 3's. Two Material-only trimmings ride along: the ForegroundColorSpan
-//     TitleColor tint (C# spans the title when TitleColor is set — skipped, the port's colors are
-//     non-nullable so there is no "is set" branch here, the same collapse the title/text-color mappers
-//     already document) and MaterialAlertDialog's flow-direction pass (_dialog.UpdateFlowDirection).
-//     MapIsOpen / ShowDialog / DismissDialog now drive the real dialog.
+//   - The selection dialog IS the real MaterialAlertDialogBuilder (Google.Android.Material) — NOT a
+//     framework android.app.AlertDialog.Builder fallback (a stale claim this comment carried until the
+//     radio-ring investigation below; the AndroidX + Material AAR closure is staged and dexed into both
+//     app hosts by tools/parity/lib/android-aar-lib.sh, and android_dialog_ops.hpp's show_items_dialog
+//     speaks MaterialAlertDialogBuilder's real, covariant method signatures throughout). The click
+//     listener is dev.mauicpp.MauiDialogBridge (see the LIFETIME note), and the dialog is built with
+//     SetTitle(Title), SetSingleChoiceItems(items, SelectedIndex, rowTapped) and
+//     SetNegativeButton(android.R.string.cancel), plus SetCanceledOnTouchOutside(true) — the exact three
+//     calls MAUI uses. The interaction (single-choice list, radio marks, Cancel, tap-outside dismiss, row
+//     tap → SelectedIndex + UpdatePicker + dismiss, dismiss → IsOpen/IsFocused false) and the Material 3
+//     chrome are both real. One infrastructure gap DID cost the radio-ring indicator specifically (not
+//     the whole dialog): this backend's host Activity is a plain android.app.Activity rather than
+//     AppCompatActivity, so the LayoutInflater the single-choice row adapter captures never inherits
+//     AppCompat's view-inflation factory the way it would in a normal AppCompatActivity-hosted app — see
+//     android_dialog_ops.hpp's install_checked_item_inflater_factory (called from show_items_dialog,
+//     right after the builder is constructed) for the full mechanism and the fix. Two Material-only
+//     trimmings still ride along, genuine feature gaps rather than infrastructure ones: the
+//     ForegroundColorSpan TitleColor tint (C# spans the title when TitleColor is set — skipped, the
+//     port's colors are non-nullable so there is no "is set" branch here, the same collapse the
+//     title/text-color mappers already document) and MaterialAlertDialog's flow-direction pass
+//     (_dialog.UpdateFlowDirection). MapIsOpen / ShowDialog / DismissDialog drive the real dialog.
 //   - The native EditText color setters take a ColorStateList (C# routes through
 //     PlatformInterop.CreateEditTextColorStateList in UpdateTextColor / UpdateTitleColorCore). The
 //     plain-widget cut uses the single-int overloads setTextColor(int) / setHintTextColor(int) — the
