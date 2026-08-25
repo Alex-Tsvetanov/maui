@@ -102,9 +102,8 @@ namespace maui::platform::ios
     inline CGPathRef border_shadow_silhouette_path(const maui::core::border_stroke_spec& spec, bool has_fill,
                                                    maui::graphics::rect bounds)
     {
-        const maui::graphics::path_f path = spec.shape->path_for_bounds(
-            maui::core::shape_self_inset(maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness,
-                                         spec.shape));
+        const maui::graphics::path_f path = spec.shape->path_for_bounds(maui::core::shape_self_inset(
+            maui::graphics::rect{0.0, 0.0, bounds.width, bounds.height}, spec.thickness, spec.shape));
         CGPathRef filled = path_to_cg_path(path); // +1 owned
         if (has_fill)
         {
@@ -308,6 +307,23 @@ namespace maui::platform::ios
         //
         // NOT the Android cause: android/border_stroke is 66,508 px across 935 rows against ~21 edge
         // rows here — a different defect with a different mechanism. Nothing here transfers to it.
+        //
+        // FOLLOW-UP (2026-08-25, PARITY_REVIEW.md "border_stroke on maccatalyst: PREMISE CORRECTION +
+        // light/dark asymmetry decomposed"): the maccatalyst residual is NOT theme-uniform — light runs
+        // ~2x dark's diff_pct (2.02% vs 1.16%). Coverage-centroid measurement at the stroke/fill seam
+        // (T5, T10, both grids, 8+ columns) decomposes that into two components, do not re-merge them:
+        //   (a) a ~0.7-0.8px LIGHT-THEME-ONLY fill-height delta, T-invariant and x-invariant. NOT this
+        //       two-pass hypothesis (that predicts a theme-independent effect) and NOT a one-sided port
+        //       bug either: cpp's OWN fill height also drifts between themes on the HeightRequest-driven
+        //       grid (46.370 -> 45.733), just less than MAUI's drift in the same box (47.061 -> 45.806).
+        //       Traced to a shared ~1.5px page-level Y placement shift between the light/dark capture
+        //       runs (measured on box1's one edge that borders true background, not another Border) —
+        //       at this backend's non-integral 0.7697 scale that lands every box at a different
+        //       sub-pixel phase per theme, which each renderer's path rasterizer resolves differently.
+        //       Placement-quantization noise, not a fixed constant to correct in this function.
+        //   (b) a ~0.07-0.09px floor present in BOTH themes — small enough to plausibly BE this comment's
+        //       two-pass signal (or more of (a) at smaller scale). Still not disambiguated; still needs
+        //       the THE TEST above, not a guess.
         stroke_layer.zPosition = 1;
         stroke_layer.frame = CGRectMake(bounds.x, bounds.y, bounds.width, bounds.height);
         stroke_layer.fillColor = nil; // stroke only — the background is the container layer's

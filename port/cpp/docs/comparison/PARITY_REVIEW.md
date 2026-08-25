@@ -5275,6 +5275,101 @@ followed by the same full-board re-score `k_convex_shapes_use_canvas`'s gating c
 No source change made this pass; `border_handler.cpp` is untouched, and the committed captures already
 reflect current source (verified live, not stale).
 
+## border_stroke on maccatalyst: PREMISE CORRECTION (wrong file) + light/dark asymmetry decomposed — no fix (2026-08-25)
+
+**Correction to the entry above (`border_stroke on android/maccatalyst: NOT the same missing-inset bug`)
+and to whatever task text derives from it: `apple_border_ops.hpp` does NOT render the `maccatalyst`
+pixel score.** `CMakeLists.txt` (top-level, ~line 38) states it outright: "Mac Catalyst reuses the iOS
+UIKit backend VERBATIM — the same `src/platform/ios/*.mm` handlers... driven as `ios` for source
+selection." `recapture.py` confirms at the tooling level: the `maccatalyst`/`cpp`/`xaml` columns build
+from the `maccatalyst-release` preset (aliased to `ios` sources), while a SEPARATE `apple-release` preset
+(genuinely `src/platform/apple/*`, AppKit/NSView) feeds only the `appkit_cpp`/`appkit_xaml` columns —
+which comparison.json carries as extra screenshots on the SAME `maccatalyst` page but does **not** score
+(`pixel`/`pixel_xaml` only compare the `cpp`/`xaml` columns). Measured directly: `captures/maccatalyst/
+cpp/border_stroke_light.png` is 1024x800 (the Catalyst window rect); `captures/maccatalyst/appkit_cpp/
+border_stroke_light.png` is 480x752 (the separate AppKit lane's frame, per `cpp-appkit-vm-capture-lane`).
+The score this task/entry is about (SSIM 0.9835/0.9973, 2.02%/1.16%) is rendered by
+**`src/platform/ios/ios_border_ops.hpp`** compiled for macabi, not `apple_border_ops.hpp`. The prior
+entry's "AppKit (maccatalyst)" phrasing conflated the two backends; treat that entry's mechanism
+description as describing the *appkit* lane only, which has no score of its own to investigate.
+
+**`ios_border_ops.hpp` already carries an open, dated, untested hypothesis for this exact residual**
+(lines ~277-310, 2026-08-22): stroke and content composite as TWO separate CALayers (a `CAShapeLayer`
+over the content subview) where MauiCALayer draws both in ONE `DrawInContext` pass, and the note
+proposes a specific test (collapse to single-pass, rescore both `ios` and `maccatalyst` by ABSOLUTE pixel
+count) that "must not be landed without running." That test was not run this session — re-architecting
+`apply_border_stroke` into a custom-drawn layer is a real, board-wide-risk change (shared by every Border
+on iOS + maccatalyst), not something to attempt speculatively inside a single-page investigation.
+
+**What this session added: the diff decomposes almost entirely into Border stroke/fill seam rows, and
+the light-theme excess (2.02% vs dark's 1.16%, ~2x) has an identified, non-arbitrary cause that is
+NOT the two-pass hypothesis.** Diff-location histogram (25/255 threshold, matching `pixel_score.py`):
+7 contiguous row-bands; excluding one small band that is the app's own WINDOW TITLE text ("MauiReference"
+vs "MAUI C++ — gallery" — unrelated to Border), 95.7% (light) / 93.0% (dark) of differing pixels sit
+exactly on the six Borders' (two grids x T=1/5/10) top/bottom stroke-to-fill seam rows.
+
+**The blend-fraction / coverage-centroid measurement (task's own prescribed methodology), at the
+stroke-fill seam, T5 and T10, both grids, 8+ x-columns each (T=1 excluded — its ~2px stroke is thin
+enough that the background→stroke and stroke→fill transitions overlap in the same rows, contaminating
+a clean single-transition read):**
+
+    metric: FILL HEIGHT = (row where stroke→fill reaches 50%) to (row where fill→stroke starts),
+            via a coverage-centroid integral on the G channel (RED=(255,0,0), ORANGE=(255,165,0))
+
+    grid1 (natural content size, fill ~15px)      T5              T10
+      maui   light                                15.594          15.594
+      maui   dark                                 14.915          14.879
+      cpp/xaml (byte-identical to each other)      14.824          14.794   <- SAME in both themes
+      cpp-vs-maui delta   light / dark            -0.770 / -0.091  -0.800 / -0.085
+
+    grid2 (HeightRequest=60 via slider, fill ~46px)   T5              T10
+      maui   light                                   47.061          46.339
+      maui   dark                                    45.806          45.673
+      cpp/xaml   light                               46.370          45.588
+      cpp/xaml   dark                                45.733          45.588
+      cpp-vs-maui delta   light / dark              -0.691 / -0.073  -0.752 / -0.085
+
+Both x-invariant (deviation < 0.02px across 8 columns per box) and T-invariant (≈0.7-0.8px light,
+≈0.07-0.09px dark, regardless of T=5 vs T=10 or grid1 vs grid2's very different absolute fill height) —
+the signature the task asks for to distinguish a fixed geometric effect from noise.
+
+**This reconciles with, rather than contradicts, the 2026-08-22 comment's "mean cpp-maui = -0.024px
+light, +0.011px dark, both signs, n=32."** That average was taken across edges without separating top
+from bottom. This session's decomposition shows WHY it averages near zero: top edges shift one way,
+bottom edges shift the other (a symmetric FILL-HEIGHT change), which cancels in a signed positional
+average but is fully systematic as a WIDTH. Not a new mechanism contradicting the old finding — the part
+of it the averaging hid.
+
+**Important correction made mid-investigation (do not repeat the initial mistake): the port is NOT
+theme-invariant in general.** In grid1, `cpp`/`xaml`'s fill height is exactly identical between light
+and dark (14.824 both, 14.794 both) — literally zero drift, because grid1's height comes from natural
+content sizing. But in grid2 (explicit `HeightRequest`, a different measure/arrange path), `cpp`/`xaml`
+ALSO shifts between themes (46.370 -> 45.733, -0.637px) — just by less than MAUI's shift in the same box
+(47.061 -> 45.806, -1.255px). So this is not "port consistent, MAUI inconsistent"; both renderers are
+sensitive to theme, by different amounts depending on layout path. The unifying explanation: the light
+and dark capture runs place the whole page at a measured ~1.5px different absolute Y position (confirmed
+on box1's OUTER edge — the one edge on the page that borders true background on only one side, not
+another Border — which shifts ~1.46px for maui and ~1.59px for cpp between themes, both frameworks
+similarly, most plausibly from the title text above box1 rendering a hair differently by appearance).
+At Catalyst's non-integral UIKit->AppKit scale (0.7697x, already established in-file), every box therefore
+lands at a different sub-pixel phase per theme, and each renderer's OWN path rasterization resolves that
+phase with its own rounding — not identically between MAUI and the port, and (per grid1 vs grid2) not
+even identically between the port's own two layout paths. That is placement-dependent quantization noise,
+not a bug in `apply_border_stroke`'s geometry math (which is provably theme-blind — no theme reference
+anywhere in the function) or a wrong constant to fix.
+
+**Verdict: measured, decomposed, NOT fixed.** Two components are now distinguished: (1) a ~0.7-0.8px
+light-theme-specific placement-quantization component, explained above, not attributable to any specific
+line of port code and not something a source change can chase (fixing it for this capture pair could
+easily worsen a different capture pair, since the "correct" sub-pixel phase to snap to isn't stable); (2)
+a ~0.07-0.09px floor present in BOTH themes, small enough to plausibly be the still-open two-pass
+compositing hypothesis from 2026-08-22 (or more of the same placement noise at smaller scale) — not
+disambiguated this session, and doing so requires the pre-registered single-pass-collapse test, not a
+guess. No source change made. `ios_border_ops.hpp` gets a comment-only addition (below) recording this
+decomposition so a future session does not re-derive it or re-conflate the two components; no behavior
+changes. Regression scope for any FUTURE fix here is the `ios` lane (currently green, 0.46%/0.46%) plus
+`maccatalyst`, not the `apple`/`appkit_*` lane — the two backends do not share `apply_border_stroke`.
+
 ## Windows drag/swipe mechanism: mouse cannot drive WinUI DirectManipulation, only touch can (2026-08-25)
 
 `carousel_page`/`swipe_refresh`/windows sat at "NO MOTION EVIDENCE (0px vs 0px)" on every column, including
