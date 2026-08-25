@@ -242,6 +242,18 @@ namespace maui::controls
         void update_is_enabled(bool value) override;
         void update_automation_id(std::string_view value) override;
         void update_background(const maui::graphics::paint* value) override;
+
+        // ---- CAROUSEL PAGED PATH: the reverse direction ----
+        // arrange_native's is_carousel branch only READS carousel_view::position() to decide what to lay
+        // out (Position -> layout, one-way). This token is the other direction: on_connect_handler
+        // (backend .cpp) subscribes the ScrollViewer's ViewChanged event once, and on every SETTLED
+        // (non-intermediate) change writes the new page back via the shared set_position_from_scroll —
+        // the Windows twin of android's page_settled callback and apple/ios's native scroll-delegate call,
+        // both of which already do this. Windows never did, which is why a real touch-driven pan (the
+        // only gesture WinUI's DirectManipulation recognises — see vm_agent_windows.py's cmd_drag
+        // docstring) paged MAUI's own WinUI CarouselView but left the port frozen (MEASURED LIVE
+        // 2026-08-25). 0 = not registered, matching scroll_view_platform::view_changed_token's convention.
+        std::int64_t carousel_view_changed_token = 0;
 #endif
 
         // ---- the fake viewport ----
@@ -478,6 +490,21 @@ namespace maui::controls
         // The text the realized item at `path` currently displays (the default-item label / the item's
         // text mirror). Empty when the path is not realized.
         [[nodiscard]] std::string native_cell_text(const index_path& path) const;
+#endif
+
+#ifdef MAUI_PLATFORM_WINDOWS
+        // ---- the Windows native bridge ----
+        // Unlike the apple/iOS bridges above (a full native data-source/delegate), Windows realizes
+        // every item directly (arrange_native, no data-source indirection) so the only native EVENT this
+        // backend needs to observe is the carousel's settled scroll position — see
+        // collection_view_platform::carousel_view_changed_token's comment for why. No-op for a
+        // non-carousel CollectionView (set_position_from_scroll's own dynamic_cast<carousel_view*> guard
+        // makes every callback a no-op there), so this is wired unconditionally rather than gated on
+        // is_carousel at registration time.
+        void on_connect_handler(collection_view_platform& platform);
+        // Revoke the ViewChanged token (the shared on_disconnect_handler's windows block calls this —
+        // it lives here, not there, because the shared .cpp has no WinRT/ScrollViewer types available).
+        void native_detach_carousel_view_changed(collection_view_platform& platform);
 #endif
 
     private:

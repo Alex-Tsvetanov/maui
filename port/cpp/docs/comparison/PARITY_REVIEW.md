@@ -5274,3 +5274,119 @@ directive it should still eventually be done, just not as a side effect of a bor
 followed by the same full-board re-score `k_convex_shapes_use_canvas`'s gating comment already requires.
 No source change made this pass; `border_handler.cpp` is untouched, and the committed captures already
 reflect current source (verified live, not stale).
+
+## Windows drag/swipe mechanism: mouse cannot drive WinUI DirectManipulation, only touch can (2026-08-25)
+
+`carousel_page`/`swipe_refresh`/windows sat at "NO MOTION EVIDENCE (0px vs 0px)" on every column, including
+MAUI's own reference — a same-day SendInput-based fix (SetCursorPos teleports -> real injected
+`MOUSEEVENTF_MOVE|ABSOLUTE` moves, on the theory that WinUI only promotes INJECTED mouse input to
+`WM_POINTERUPDATE`) landed, passed its own stub selftest, and STILL measured 0px live. Investigated for
+real on the guest rather than guessing again.
+
+**Ruled out first, from code, no VM time spent:** the relayed hypothesis that `_send_move_absolute`'s
+`GetSystemMetrics(SM_XVIRTUALSCREEN..)` normalisation reads the wrong virtual-screen rect. Checked
+directly: over plain SSH (session 0, the sshd service session) `GetSystemMetrics` reports a bogus default
+1024x768; routed through the REAL session-1 agent (`schtasks /it`, the interactive console — the only way
+the real board ever calls it) it correctly reports 1512x949, matching `windows.toml`. A one-line trap for
+the next person: never trust a live diagnostic run over bare SSH for anything position/metrics-related.
+Also ruled out: `cmd_present`'s `--defocus` (deactivate-to-shell-before-shot) theory — it defaults OFF and
+`run_comparison.shoot_presented` never passes it, so the window is never deactivated before a drag fires.
+
+**Decisive live test.** Launched real `MauiReference.exe` on `carousel_page`, at rest on "Card 1". A full
+press/20-move/release SendInput MOUSE drag (the already-landed fix, mechanically verified separately —
+`SendInput MOUSEEVENTF_MOVE|ABSOLUTE` lands the cursor exactly where commanded, confirmed via
+`GetCursorPos`) left the window BYTE-IDENTICAL to the unstarted frame. The IDENTICAL coordinates and
+timing driven through `InitializeTouchInjection`/`InjectTouchInput` (`POINTER_FLAG_DOWN`, a run of
+UPDATEs, `POINTER_FLAG_UP`) instead paged it to "Card 2" — visually confirmed via screenshot, byte-hash
+confirmed. **Root cause: WinUI 3's DirectManipulation pan/pull gesture recogniser never starts a
+manipulation from a PT_MOUSE-origin pointer, injected or not — only PT_TOUCH (or PT_PEN) does.** The
+same-day mouse fix was half right (SendInput-vs-SetCursorPos, injected-vs-teleported, IS a real WinUI
+distinction) but fixed the wrong layer — the actual gate is pointer TYPE, not injection fidelity. Its
+`_normalize_absolute`/`_send_move_absolute`/`_drag_move_to` mechanism is removed (not merely reverted —
+its reasoning is preserved in `cmd_drag`'s new docstring) and replaced with real touch-contact injection.
+`click`/`hover`/`scroll` are untouched (unaffected — ordinary clicks and wheel-scroll already work fine
+via mouse on WinUI; this was never in question).
+
+**FIXED, `docs/comparison/tools/vm_agent_windows.py`:** `cmd_drag` (backs both `drag` and `swipe`) now
+injects a synthetic touch contact instead of mouse events. Touch injection never moves the system mouse
+cursor at all, so the whole POINTER CONTAMINATION save/restore dance (`_mouse_to`/`_restore_pointer`)
+that `click`/`scroll` still need is now moot for `drag` — simpler code, not just a different mechanism.
+Selftest rewritten to stub the new `_touch_send` seam exactly like the existing `_send` (mouse SendInput)
+seam is stubbed; passes both off-Windows (macOS dev machine) and live on the guest (13 checks).
+
+**VERIFIED via the real production pipeline**, not just the standalone probe —
+`python3 tools/parity/recapture.py --platforms windows --examples carousel_page,swipe_refresh`:
+- `carousel_page`/`maui_xaml`: real motion, both themes, reproduced across three separate recapture runs
+  (one dark-theme miss on the first run was chased down as a one-off — 4/4 direct repeats succeeded, and
+  the very next full-pipeline run succeeded too; not a flaw in the mechanism).
+- `ios_scroll_view`/windows (drag-the-Slider-thumb): **RESOLVED**, closing an earlier open question in
+  this file ("the drag is delivered, starts ON the thumb, and the Slider does not move... the plausible
+  remaining cause is that WinUI's Slider needs pointer capture that a synthetic SendInput drag does not
+  establish, but that is untested"). Now measured: `self-motion MAUI 0.1943% (1592px) vs C++ 0.1943%
+  (1592px)` light, `0.2366% vs 0.2363%` dark — byte-identical thumb landing, verdict PASS. Confirms the
+  same touch-vs-mouse mechanism, not a separate pointer-capture issue.
+- `slider`/windows: a SEPARATE, pre-existing bug surfaced once the mechanism was fixed — this scenario had
+  no `at_windows-arm64`/`to_windows-arm64` override at all (unlike macOS/Android), so the portable
+  fraction landed 55px right / 20px below the Default slider's actual thumb (measured centre (16.5, 77.5)
+  of the 1024x800 frame, byte-identical across all three columns). Added the override in
+  `docs/comparison/scenarios/slider.toml`, matching the file's own measurement methodology; now green
+  (`self-motion MAUI == C++` both themes).
+- `swipe_refresh`: **STILL UNRESOLVED**, but with a sharper diagnosis than before. Sampled MID-DRAG, not
+  just after release+settle (matching this file's own iOS `swipe_refresh` methodology, which explicitly
+  "sampled MID-DRAG as well as after release") — every frame from before the touch DOWN through the touch
+  held fully extended through 2s after release is byte-identical, on ALL THREE columns. Not "the pull
+  registers and retracts before capture" (that would show a difference while held); the pull genuinely
+  never registers at all. The shared twin's `ScrollView` content (one `SwipeView` row + one `Label`) is
+  far shorter than the window, so there is no scrollable overflow for the ScrollViewer to rubber-band
+  against — the same *shape* of limitation this file already accepted for iOS's `UIRefreshControl`
+  ("a synthetic drag may not actuate it... That stands as a harness limitation"), now measured on Windows
+  too, not merely asserted. Left INVALID/not-driven, honestly.
+
+**`carousel_page`/windows `cpp` + `cpp_xaml`: the mechanism fix reveals a REAL port defect, now root-caused
+three layers deep, two layers fixed, one left open.** With the drag now genuinely delivered, MAUI's own
+CarouselView pages (Card 1 -> Card 3) while the port's stays frozen — invisible before because neither
+side reacted, so it read as a symmetric harness limitation. Chased with the SAME "look at the actual
+mechanism, don't stop at plausible" discipline as the rest of this file:
+1. `collection_view_handler.cpp`'s Windows `is_carousel` path had **no reverse-direction wiring at all** —
+   `arrange_native` only ever READS `carousel_view::position()` to decide what to lay out; nothing writes
+   a settled user pan back. The shared `set_position_from_scroll` (self-guarding: no-ops for a non-carousel
+   view, empty source, or before the initial position is established) already exists and is already called
+   by android (`page_settled` callback) and apple/ios (native scroll delegate) — Windows never called it.
+   **FIXED**: `on_connect_handler` (new, Windows-only, mirrors the apple/ios optional-hook pattern already
+   used by ~10 other handlers) subscribes `ScrollViewer.ViewChanged` once, and on every settled
+   (non-intermediate) change computes the page via `round(HorizontalOffset / ViewportWidth)` — the same
+   one-liner shape as apple's `set_position_from_scroll(lround(offset / page))` — and writes it back.
+   Token revoked in the shared `on_disconnect_handler`'s new `#ifdef MAUI_PLATFORM_WINDOWS` block, mirroring
+   `scroll_view_handler.cpp`'s own `detach_view_changed` discipline exactly.
+2. Even with that wired, `set_position_from_scroll`'s `initial_position_set_` guard was NEVER armed on
+   Windows (android arms it via `mark_initial_position_set()` right after its first pager build; Windows
+   called it nowhere), so every writeback was a guaranteed no-op regardless of whether `ViewChanged` fired.
+   **FIXED**: armed once, in `arrange_native`'s `is_carousel` branch, immediately after the first item
+   realizes — same one-shot semantics as android's `platform->recycler == nullptr` first-build guard.
+3. **NOT FIXED, and this is the real remaining blocker, confirmed by a live rebuild+recapture with (1) and
+   (2) both landed still showing 0.0000% self-motion.** The Windows carousel path realizes and frames
+   ONLY the single current item, and the host Canvas panel is sized to `cursor`, which for a carousel only
+   ever accumulates ONE `viewport_main` (`cursor += viewport_main`, once, per pass — never a second item's
+   width). So `panel.Width()`/`Height()` == the ScrollViewer's own `ViewportWidth`/`Height` exactly, always
+   — `ScrollableWidth = Extent - Viewport` is therefore always 0. There is categorically nothing for ANY
+   gesture, mouse or touch, to scroll through: (1) and (2) are correct, necessary infrastructure, but they
+   sit on top of a carousel that never lays out a neighbouring item to scroll toward. This is a different
+   KIND of gap from android's, not just a different mechanism — android's paged path owns a real
+   virtualized RecyclerView + PagerSnapHelper with genuine multi-item content; this Canvas panel never has
+   more than one item's worth of extent. Closing it needs laying out (at minimum) the current item's
+   neighbours with real scrollable extent and re-realizing across a settle — a second wave on this path
+   (it is explicitly versioned "wave 25" in this file's own header comment), not a one-line fix. Documented
+   in-line at the `cursor += viewport_main` call site for the next person. `carousel_page`/windows/cpp
+   correctly reads RED now (MOTION MISMATCH: MAUI animates, C++ is frozen) instead of a green/INVALID that
+   was hiding it — the honest state.
+
+Verification: full headless suite unaffected by the header/shared-.cpp changes (4020/4020 passed, 1
+skipped as before) — the new fields/methods are entirely `#ifdef MAUI_PLATFORM_WINDOWS`-gated, additive.
+Two guest rebuild+recapture cycles confirm (1)+(2) land cleanly and (3) is the precise, sole remaining
+blocker (identical 0.0000% self-motion both before and after (1)+(2), which is itself the decisive
+evidence for (3) — there being nothing to scroll makes the result deterministic, not flaky).
+
+Files: `docs/comparison/tools/vm_agent_windows.py` (touch injection), `docs/comparison/scenarios/slider.toml`
+(Windows coordinate override), `include/maui/controls/items/collection_view_handler.hpp` +
+`src/controls/items/collection_view_handler.cpp` + `src/platform/windows/collection_view_handler.cpp`
+(ViewChanged wiring + initial-position arming, gap (3) documented not fixed).

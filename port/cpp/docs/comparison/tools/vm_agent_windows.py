@@ -91,6 +91,20 @@ KEYEVENTF_UNICODE = 0x0004
 KEYEVENTF_KEYUP = 0x0002
 WHEEL_DELTA = 120
 
+# InjectTouchInput / POINTER_TOUCH_INFO — see cmd_drag's docstring for why the drag verb is injected
+# as a TOUCH contact rather than a mouse button: WinUI's DirectManipulation pan/pull gesture recogniser
+# only starts a manipulation from a PT_TOUCH (or PT_PEN) pointer, never from PT_MOUSE, no matter how
+# faithfully the mouse input is injected. MEASURED LIVE 2026-08-25 (see that docstring).
+PT_TOUCH = 0x00000002
+TOUCH_FEEDBACK_DEFAULT = 0x00000001
+POINTER_FLAG_INRANGE = 0x00000002
+POINTER_FLAG_INCONTACT = 0x00000004
+POINTER_FLAG_DOWN = 0x00010000
+POINTER_FLAG_UPDATE = 0x00020000
+POINTER_FLAG_UP = 0x00040000
+TOUCH_MASK_CONTACTAREA = 0x00000001
+TOUCH_CONTACT_RADIUS = 4  # px half-width/height reported in rcContact — a plausible fingertip size
+
 # ChangeDisplaySettingsEx
 ENUM_CURRENT_SETTINGS = -1
 CDS_UPDATEREGISTRY = 0x00000001
@@ -122,6 +136,26 @@ class _INPUTunion(ctypes.Union):
 
 class INPUT(ctypes.Structure):
     _fields_ = [("type", wintypes.DWORD), ("u", _INPUTunion)]
+
+
+class POINTER_INFO(ctypes.Structure):
+    _fields_ = [("pointerType", ctypes.c_uint32), ("pointerId", ctypes.c_uint32),
+                ("frameId", ctypes.c_uint32), ("pointerFlags", ctypes.c_uint32),
+                ("sourceDevice", wintypes.HANDLE), ("hwndTarget", wintypes.HWND),
+                ("ptPixelLocation", wintypes.POINT), ("ptPixelLocationRaw", wintypes.POINT),
+                ("ptHimetricLocation", wintypes.POINT), ("ptHimetricLocationRaw", wintypes.POINT),
+                ("dwTime", wintypes.DWORD), ("historyCount", ctypes.c_uint32),
+                ("InputData", ctypes.c_int32), ("dwKeyStates", wintypes.DWORD),
+                ("PerformanceCount", ctypes.c_uint64), ("ButtonChangeType", ctypes.c_int32)]
+
+
+class POINTER_TOUCH_INFO(ctypes.Structure):
+    """One synthetic finger contact for InjectTouchInput — see cmd_drag's docstring for why the drag
+    verb sends these instead of SendInput mouse events."""
+    _fields_ = [("pointerInfo", POINTER_INFO), ("touchFlags", ctypes.c_uint32),
+                ("touchMask", ctypes.c_uint32), ("rcContact", wintypes.RECT),
+                ("rcContactRaw", wintypes.RECT), ("orientation", ctypes.c_uint32),
+                ("pressure", ctypes.c_uint32)]
 
 
 class BITMAPINFOHEADER(ctypes.Structure):
@@ -804,64 +838,101 @@ def _drag_points(x1: int, y1: int, x2: int, y2: int, steps: int) -> list[tuple[i
             for i in range(1, steps + 1)]
 
 
+_touch_injection_ready = False
+
+
+def _touch_send(contact: POINTER_TOUCH_INFO) -> bool:
+    """The one real Win32 surface InjectTouchInput needs — isolated so cmd_selftest can stub exactly
+    this, the same way it stubs _send (SendInput) for the mouse verbs, with no live touch-injection
+    session needed off-Windows. InitializeTouchInjection is one-time-per-process; remembered here so a
+    20-point drag does not pay for it on every point. A prior failure is retried, not cached, since a
+    fresh Session1Agent process is what would actually change the answer."""
+    global _touch_injection_ready
+    if not _touch_injection_ready:
+        _touch_injection_ready = bool(user32.InitializeTouchInjection(10, TOUCH_FEEDBACK_DEFAULT))
+        if not _touch_injection_ready:
+            return False
+    user32.InjectTouchInput.argtypes = [ctypes.c_uint32, ctypes.POINTER(POINTER_TOUCH_INFO)]
+    return bool(user32.InjectTouchInput(1, ctypes.byref(contact)))
+
+
+def _touch_move(x: int, y: int, flags: int) -> tuple[bool, str]:
+    """One touch contact at (x, y) with the given POINTER_FLAG_* combination — DOWN starts the
+    contact, UPDATE moves it, UP lifts it. No clamp readback (unlike _mouse_to): touch injection has
+    no analogue of SetCursorPos's silent edge-clamp, it simply succeeds or fails."""
+    t = POINTER_TOUCH_INFO()
+    ctypes.memset(ctypes.byref(t), 0, ctypes.sizeof(t))
+    t.pointerInfo.pointerType = PT_TOUCH
+    t.pointerInfo.pointerFlags = flags
+    t.pointerInfo.ptPixelLocation.x = int(x)
+    t.pointerInfo.ptPixelLocation.y = int(y)
+    t.touchMask = TOUCH_MASK_CONTACTAREA
+    r = TOUCH_CONTACT_RADIUS
+    t.rcContact.left, t.rcContact.top = int(x) - r, int(y) - r
+    t.rcContact.right, t.rcContact.bottom = int(x) + r, int(y) + r
+    if not _touch_send(t):
+        # No ctypes.get_last_error() here (contrast _mouse_to): that call is Windows-only, and unlike
+        # _mouse_to -- which selftest replaces WHOLESALE -- _touch_move itself always runs for real,
+        # with only the lower _touch_send seam stubbed, so this message must stay evaluable off-Windows.
+        return False, f"InjectTouchInput({int(x)}, {int(y)}, flags={flags:#06x}) failed"
+    return True, ""
+
+
 def cmd_drag(a) -> int:
     """Press at (x1,y1), MOVE through interpolated points, release at (x2,y2). `swipe` is this same
     function with a faster default duration — one implementation, two names (see main()).
 
-    THE INTERMEDIATE MOVES ARE THE POINT. A LEFTDOWN immediately followed by a LEFTUP is a click as
-    far as XAML's pointer/manipulation pipeline is concerned: no pan, no swipe, no SwipeView reveal —
-    and the resulting frame is identical to the un-driven one, which reads on the board as "the page
-    does not react".
+    INJECTED AS A TOUCH CONTACT, NOT A MOUSE BUTTON. This used to be SendInput LEFTDOWN / interior
+    MOVEs / LEFTUP — first via SetCursorPos teleports, then (a same-day fix) via real injected
+    SendInput MOUSEEVENTF_MOVE|ABSOLUTE moves, on the theory that WinUI's pointer pipeline only
+    promotes INJECTED mouse input to WM_POINTERUPDATE. That theory was half right and still produced
+    zero motion end to end. MEASURED LIVE on this guest, 2026-08-25, against a real MauiReference.exe
+    carousel_page window at rest on "Card 1": a full press/20-move/release SendInput mouse drag (the
+    fix above, landed and passing its own stub selftest) left the window BYTE-IDENTICAL to the
+    unstarted frame; the IDENTICAL coordinates and timing driven through InjectTouchInput instead
+    (POINTER_FLAG_DOWN, a run of UPDATEs, POINTER_FLAG_UP — see _touch_move) paged it to "Card 2".
+    So the actual gate is the pointer TYPE, not the injection fidelity: WinUI's DirectManipulation
+    pan/pull gesture recogniser (what CarouselView paging and RefreshView's pull both run on) never
+    starts a manipulation from a PT_MOUSE-origin pointer, injected or not — only PT_TOUCH (or PT_PEN)
+    does. A Slider/Thumb-style drag (ios_scroll_view.toml, slider.toml) is unaffected: dragging a
+    Thumb is ordinary PointerPressed/PointerMoved handling, not DirectManipulation, and touch input
+    routes to it exactly the way mouse input already did.
 
-    The moves go through _mouse_to (SetCursorPos), the same primitive cmd_click already relies on to
-    land its clicks: the cursor move synthesizes WM_MOUSEMOVE to the window under it, in the physical
-    pixels this process is DPI-aware in (hazard 1). Known ceiling: SetCursorPos is a cursor-position
-    API, not an injected input event, so a window that reads the raw input stream directly rather than
-    the message queue could miss it. Upgrade path if a WinUI drag turns out not to track: send each
-    move as SendInput MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE, with the coordinates normalised to
-    0..65535 over the virtual screen (GetSystemMetrics SM_XVIRTUALSCREEN..SM_CYVIRTUALSCREEN).
+    THE INTERMEDIATE MOVES ARE STILL THE POINT, same as before: a DOWN immediately followed by an UP
+    is a tap, not a pan, and would bank a frame identical to the un-driven one.
 
-    `duration` is a FLOOR, not a target (_mouse_to's own settle adds to it), so the measured `elapsed`
-    is emitted for calibration."""
+    `duration` is a FLOOR, not a target (each move's own sleep adds to it), so the measured `elapsed`
+    is emitted for calibration. No cursor save/restore here (contrast cmd_click/cmd_scroll): a
+    synthetic touch contact never moves the system mouse cursor, so there is nothing to contaminate —
+    see the POINTER CONTAMINATION note above _cursor_pos."""
     pts = _drag_points(a.x1, a.y1, a.x2, a.y2, a.steps)
     per_step = max(0.0, float(a.duration)) / len(pts)
     started = time.time()
-    down = INPUT(type=INPUT_MOUSE, u=_INPUTunion(mi=MOUSEINPUT(0, 0, 0, MOUSEEVENTF_LEFTDOWN, 0, None)))
-    up = INPUT(type=INPUT_MOUSE, u=_INPUTunion(mi=MOUSEINPUT(0, 0, 0, MOUSEEVENTF_LEFTUP, 0, None)))
-    saved = _cursor_pos()  # read BEFORE the press; the release below lands on the far end
     fails: list[str] = []
+    DOWN = POINTER_FLAG_DOWN | POINTER_FLAG_INRANGE | POINTER_FLAG_INCONTACT
+    UPDATE = POINTER_FLAG_UPDATE | POINTER_FLAG_INRANGE | POINTER_FLAG_INCONTACT
 
-    # The PRESS POINT is checked, unlike before. SetCursorPos succeeds while CLAMPING (see _mouse_to),
-    # so an off-surface x1,y1 pressed the desktop or the wrong control and the drag then "worked" on
-    # nothing — a banked frame identical to the un-driven one, which is what this verb exists to stop.
-    ok, at, err = _mouse_to(a.x1, a.y1)
+    ok, err = _touch_move(a.x1, a.y1, DOWN)
     if not ok:
-        _restore_pointer(saved)
-        return _emit(ok=False, gesture=a.gesture, at=at, error=f"press point not reached: {err}")
-    if not _send(down):
-        _restore_pointer(saved)
-        return _emit(ok=False, gesture=a.gesture, error="SendInput LEFTDOWN failed")
+        return _emit(ok=False, gesture=a.gesture, error=f"press point not reached: {err}")
     try:
         time.sleep(min(per_step, 0.05))  # let the press register before the first move
         # The FULL list — pts[-1] IS (x2, y2), so this both interpolates and lands on the endpoint.
         for px, py in pts:
-            moved_ok, _at, moved_err = _mouse_to(px, py)
+            moved_ok, moved_err = _touch_move(px, py, UPDATE)
             if not moved_ok:
                 fails.append(moved_err)
             time.sleep(per_step)
     finally:
-        # ALWAYS release. A button left down is not a dropped step, it is a wedged GUEST: the mouse
-        # stays captured, every later frame of every later page is captured mid-drag, and that reads
-        # on the board as a port defect rather than as tooling — the same shape as the `or bounds`
-        # bug run_comparison.py documents.
-        if not _send(up):
-            fails.append("SendInput LEFTUP failed")
-        # …and only THEN put the cursor back. Restoring before the release would drag the content all
-        # the way home and undo the gesture; restoring after leaves nothing parked on the far end.
-        restored = _restore_pointer(saved)
+        # ALWAYS lift the contact. A touch left "down" is not a dropped step, it is a wedged GUEST:
+        # every later frame of every later page is captured mid-drag, and that reads on the board as
+        # a port defect rather than as tooling — the same shape as the `or bounds` bug
+        # run_comparison.py documents.
+        ok, err = _touch_move(a.x2, a.y2, POINTER_FLAG_UP)
+        if not ok:
+            fails.append(f"touch release failed: {err}")
     return _emit(ok=not fails, gesture=a.gesture, points=len(pts), to=[a.x2, a.y2],
-                 elapsed=round(time.time() - started, 3), pointer_restored=restored,
-                 error="; ".join(fails)[:400])
+                 elapsed=round(time.time() - started, 3), error="; ".join(fails)[:400])
 
 
 def cmd_scroll(a) -> int:
@@ -968,16 +1039,23 @@ def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we
     session-1 `serve` dispatch, so a mid-assertion abort must not leak a patched _mouse_to into a run.
     """
     N = argparse.Namespace
-    real_mouse, real_cursor, real_send = _mouse_to, _cursor_pos, _send
+    real_mouse, real_cursor, real_send, real_touch_send = _mouse_to, _cursor_pos, _send, _touch_send
     moves: list[tuple[int, int]] = []
     flags: list[int] = []
+    touches: list[tuple[int, int, int]] = []
     checks = 0
 
-    def fake_env(clamp_at=None, send_ok=True, start=(700, 400)):
+    def fake_env(clamp_at=None, send_ok=True, touch_down_ok=True, touch_move_ok=True, start=(700, 400)):
         """Patch the OS seam. `clamp_at` is a point SetCursorPos pretends to clamp (lands 1px short),
-        which is the failure that looks like success."""
+        which is the failure that looks like success — affects click/hover/scroll only (cmd_drag no
+        longer touches the mouse cursor at all, see its docstring). `touch_down_ok=False` fails only
+        the drag's PRESS contact (POINTER_FLAG_DOWN); `touch_move_ok=False` fails only its interior
+        UPDATE contacts — the release (POINTER_FLAG_UP) always succeeds in the fake, pinning the
+        "press worked, movement did not, but the release must still fire" shape without a real
+        touch-injection seam (there is none off-Windows)."""
         moves.clear()
         flags.clear()
+        touches.clear()
 
         def _fake_mouse_to(x, y):
             moves.append((int(x), int(y)))
@@ -990,9 +1068,19 @@ def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we
             flags.append(inputs[0].u.mi.dwFlags)
             return send_ok
 
+        def _fake_touch_send(contact):
+            f = contact.pointerInfo.pointerFlags
+            touches.append((contact.pointerInfo.ptPixelLocation.x, contact.pointerInfo.ptPixelLocation.y, f))
+            if f & POINTER_FLAG_DOWN and not touch_down_ok:
+                return False
+            if f & POINTER_FLAG_UPDATE and not touch_move_ok:
+                return False
+            return True
+
         globals()["_mouse_to"] = _fake_mouse_to
         globals()["_cursor_pos"] = lambda: list(start) if start else None
         globals()["_send"] = _fake_send
+        globals()["_touch_send"] = _fake_touch_send
 
     def drive(fn, ns, **kw) -> dict:
         import contextlib  # noqa: PLC0415 — selftest-only
@@ -1005,6 +1093,7 @@ def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we
             globals()["_mouse_to"] = real_mouse
             globals()["_cursor_pos"] = real_cursor
             globals()["_send"] = real_send
+            globals()["_touch_send"] = real_touch_send
         return json.loads(out.getvalue())
 
     # (a) POINTER CONTAMINATION — click, scroll and drag all end back at the saved position; hover
@@ -1024,18 +1113,24 @@ def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we
     assert res["ok"] and flags == [MOUSEEVENTF_WHEEL] and res["wheel"] < 0, (res, flags)
     checks += 1
 
+    DOWN = POINTER_FLAG_DOWN | POINTER_FLAG_INRANGE | POINTER_FLAG_INCONTACT
+    UPDATE = POINTER_FLAG_UPDATE | POINTER_FLAG_INRANGE | POINTER_FLAG_INCONTACT
+    UP = POINTER_FLAG_UP
     dns = N(x1=0, y1=0, x2=100, y2=0, steps=4, duration=0.0, gesture="drag")
     res = drive(cmd_drag, dns)
-    assert moves == [(0, 0), (25, 0), (50, 0), (75, 0), (100, 0), (700, 400)], moves
-    assert flags == [MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP], flags
-    assert res["ok"] and res["pointer_restored"] and res["points"] == 4, res
-    checks += 1
-    # The restore comes AFTER the release: restoring first would drag the content back to the start.
-    assert moves.index((700, 400)) == len(moves) - 1, moves
+    # cmd_drag no longer touches _mouse_to/_send AT ALL — it is injected as a TOUCH contact
+    # (POINTER_FLAG DOWN/UPDATE/UP via _touch_send), not a mouse button. See cmd_drag's docstring for
+    # why: a mouse-origin drag, however faithfully injected, MEASURED LIVE to never pan a real
+    # carousel_page window, where the identical touch-injected gesture did.
+    assert moves == [] and flags == [], (moves, flags)
+    assert touches == [(0, 0, DOWN), (25, 0, UPDATE), (50, 0, UPDATE), (75, 0, UPDATE),
+                       (100, 0, UPDATE), (100, 0, UP)], touches
+    assert res["ok"] and res["points"] == 4 and "pointer_restored" not in res, res
     checks += 1
 
     # (d) a CLAMPED move is a failed step, not a plausible frame. SetCursorPos returns TRUE while
-    #     clamping, which is why the landing point is read back rather than assumed.
+    #     clamping, which is why the landing point is read back rather than assumed. (click/hover/
+    #     scroll only — cmd_drag has no SetCursorPos step left to clamp.)
     res = drive(cmd_click, N(x=9999, y=20), clamp_at=(9999, 20))
     assert not res["ok"] and res["at"] == [9998, 20], res
     assert flags == [], "a click whose cursor never arrived must not press anything"
@@ -1046,14 +1141,17 @@ def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we
     assert not res["ok"] and res["error"], f"hover could never report failure before: {res}"
     checks += 1
 
-    res = drive(cmd_drag, dns, clamp_at=(0, 0))
+    res = drive(cmd_drag, dns, touch_down_ok=False)
     assert not res["ok"] and "press point" in res["error"], res
-    assert flags == [], "a drag whose press point was never reached must not press"
+    assert touches == [(0, 0, DOWN)], \
+        f"a drag whose press contact was refused must not attempt any move or release: {touches}"
     checks += 1
 
-    res = drive(cmd_drag, dns, clamp_at=(50, 0))     # a mid-gesture clamp
-    assert not res["ok"] and "CLAMPED" in res["error"], res
-    assert flags == [MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP], f"the press must still be released: {flags}"
+    res = drive(cmd_drag, dns, touch_move_ok=False)     # every interior UPDATE contact fails
+    assert not res["ok"] and "InjectTouchInput" in res["error"], res
+    assert touches == [(0, 0, DOWN), (25, 0, UPDATE), (50, 0, UPDATE), (75, 0, UPDATE),
+                       (100, 0, UPDATE), (100, 0, UP)], \
+        f"the contact must still be released: {touches}"
     checks += 1
 
     res = drive(cmd_scroll, N(x=10, y=20, dy=-400), clamp_at=(10, 20))
@@ -1063,11 +1161,18 @@ def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we
     # If the SAVE fails (GetCursorPos refused) there is nothing to restore TO, so the restore is
     # skipped entirely. That is this fix silently not running, so it must be visible:
     # `pointer_restored: false` (plus the stderr line _restore_pointer prints), never a bare ok.
-    for fn, ns in ((cmd_click, N(x=10, y=20)), (cmd_scroll, N(x=10, y=20, dy=-400)), (cmd_drag, dns)):
+    # cmd_drag is exempt: it never saves/restores a cursor position at all (see its docstring), so a
+    # missing GetCursorPos reading cannot affect it — asserted separately, right below.
+    for fn, ns in ((cmd_click, N(x=10, y=20)), (cmd_scroll, N(x=10, y=20, dy=-400))):
         res = drive(fn, ns, start=None)
         assert res["pointer_restored"] is False, (fn.__name__, res)
         assert moves[-1] != (700, 400), (fn.__name__, moves)
         checks += 1
+
+    res = drive(cmd_drag, dns, start=None)
+    assert res["ok"] and "pointer_restored" not in res, \
+        f"a drag must not care whether GetCursorPos has anything to save: {res}"
+    checks += 1
 
     # (e) _rect_at_target — the guard that lets `cmd_present` skip its reposition dance on a GIF burst.
     # Exact match, and within the SAME +/-2px / -5px tolerance the retry loop itself accepts (a window

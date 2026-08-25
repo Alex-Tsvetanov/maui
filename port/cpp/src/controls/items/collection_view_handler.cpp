@@ -138,7 +138,7 @@ namespace maui::controls
     {
     }
 
-    void collection_view_handler::on_disconnect_handler(collection_view_platform& /*platform*/)
+    void collection_view_handler::on_disconnect_handler([[maybe_unused]] collection_view_platform& platform)
     {
         // C# DisconnectHandler: Controller.Disconnect — drop the source plumbing while everything is
         // still alive (subscriptions first, §8).
@@ -157,6 +157,19 @@ namespace maui::controls
         // it to an empty state so it never touches freed data after the platform struct's destructor
         // releases the native tree (§8: drop data while alive).
         native_reload();
+#endif
+#ifdef MAUI_PLATFORM_WINDOWS
+        // Unhook the carousel ViewChanged subscription BEFORE the platform struct's own destructor
+        // drops the native ScrollViewer — scroll_view_handler.cpp's detach_view_changed follows the
+        // identical discipline (see its comment) and this mirrors it exactly, one token, one control.
+        // A subscription left hooked would fire set_position_from_scroll on a handler whose source_ was
+        // just reset above, which is harmless today (the source_ guard inside it returns early) but
+        // leaves a dangling native->C++ callback alive for no reason once the handler is gone.
+        if (platform.native != nullptr && platform.carousel_view_changed_token != 0)
+        {
+            native_detach_carousel_view_changed(platform);
+            platform.carousel_view_changed_token = 0;
+        }
 #endif
     }
 

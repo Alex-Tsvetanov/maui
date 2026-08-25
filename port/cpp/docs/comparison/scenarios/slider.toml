@@ -78,3 +78,17 @@ to_android = [0.833, 0.353]      # 900/1080 -- rightward along the track, clear 
 
 at_macos-arm64 = [0.014, 0.081]
 to_macos-arm64 = [0.50, 0.081]
+
+# WINDOWS NEEDS ITS OWN AIM TOO -- the portable `at` above (0.070, 0.122) was never actually
+# calibrated for this lane (no at_windows-arm64 existed at all until this override), and on a
+# 1024x800 window it lands at (72, 98): 55px right of and 20px below the Default slider's thumb, on
+# bare whitespace between the thumb row and the "BackgroundColor" row beneath it. A drag starting
+# there presses nothing, which is indistinguishable from "the gesture mechanism doesn't work" --
+# it is the SAME symptom the touch-vs-mouse investigation below fixed, but this page needed a second,
+# unrelated fix (a miscalibrated coordinate) on top before it could show it.
+#
+# MEASURED on frame 0001 (at-rest, light), thumb circle bounds, ALL THREE COLUMNS (byte-identical):
+#   x[12,21] y[74,81] -> centre (16.5, 77.5), i.e. this fraction of the 1024x800 rect.
+# TO RECALIBRATE: rescan frame 0001 rows 60..95, columns 0..40 for the near-(0,103,192) blue run.
+at_windows-arm64 = [0.016, 0.097]
+to_windows-arm64 = [0.50, 0.097]

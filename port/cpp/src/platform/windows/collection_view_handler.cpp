@@ -889,6 +889,68 @@ namespace maui::controls
         return platform;
     }
 
+    // CAROUSEL PAGED PATH, the reverse direction (see collection_view_platform::carousel_view_changed_
+    // token's header comment for the full "why"). arrange_native's is_carousel branch only READS
+    // carousel_view::position() to decide what to realize; this is what WRITES it back after a user pan
+    // settles, mirroring the C# oracle exactly: CarouselViewHandler.Windows.cs:99
+    // `_scrollViewer.ViewChanged += OnScrollViewChanged`, and this port's own android (page_settled
+    // callback -> handler.set_position_from_scroll) and apple/ios (native scroll delegate ->
+    // handler->set_position_from_scroll) backends, which already do this — Windows never did.
+    //
+    // Wired ONCE, unconditionally (not gated on is_carousel — a CollectionView shares this same
+    // ScrollViewer): set_position_from_scroll's own dynamic_cast<carousel_view*> guard is a no-op for a
+    // grid/list, so subscribing here for every collection_view costs one always-false dynamic_cast per
+    // settle rather than a second is_carousel-aware registration path to keep in sync with
+    // arrange_native's.
+    //
+    // PAGE MATH mirrors apple/collection_view_handler.mm's one-liner
+    // (`set_position_from_scroll(lround(offset / page))`) rather than reimplementing the C# oracle's
+    // fuller GetItemPositionInCarousel: this port's carousel paged path always frames exactly one item
+    // per page at the viewport's own main-axis extent (arrange_native's is_carousel branch, CROSS/MAIN
+    // sizing block), so `round(HorizontalOffset / ViewportWidth)` IS the settled page index, no item-
+    // width lookup required.
+    void collection_view_handler::on_connect_handler(collection_view_platform& platform)
+    {
+        if (platform.native == nullptr || platform.carousel_view_changed_token != 0)
+        {
+            return; // already wired (on_connect_handler can re-fire across a disconnect/reconnect cycle)
+        }
+        const scroll_viewer viewer = as_scroll_viewer(platform.native);
+        platform.carousel_view_changed_token =
+            viewer
+                .ViewChanged([this](const winrt::Windows::Foundation::IInspectable&,
+                                    const winui::Controls::ScrollViewerViewChangedEventArgs& args) {
+                    if (args.IsIntermediate())
+                    {
+                        return; // only the SETTLED view counts, matching the C# oracle's OnScrollViewChanged
+                    }
+                    auto* const live_platform = typed_platform_view();
+                    if (live_platform == nullptr || live_platform->native == nullptr)
+                    {
+                        return; // torn down mid-callback (on_disconnect_handler revokes before this can
+                                // fire again, but a WinRT callback already in flight can still land)
+                    }
+                    const scroll_viewer live_viewer = as_scroll_viewer(live_platform->native);
+                    const double page = live_viewer.ViewportWidth();
+                    if (!(page > 0))
+                    {
+                        return; // not yet laid out — nothing to divide by
+                    }
+                    set_position_from_scroll(
+                        static_cast<int>(std::lround(live_viewer.HorizontalOffset() / page)));
+                })
+                .value;
+    }
+
+    void collection_view_handler::native_detach_carousel_view_changed(collection_view_platform& platform)
+    {
+        if (platform.native == nullptr)
+        {
+            return;
+        }
+        as_scroll_viewer(platform.native).ViewChanged(winrt::event_token{platform.carousel_view_changed_token});
+    }
+
     void collection_view_handler::arrange_native(const maui::graphics::rect& frame)
     {
         auto* platform = typed_platform_view();
@@ -1193,7 +1255,29 @@ namespace maui::controls
             // Advance the content cursor by the WHOLE viewport main extent (not item_main, which is
             // narrower by the peek insets) so the host panel below sizes to exactly ONE page — the same
             // `cursor_dp += main_viewport_dp` device android's paged path uses.
+            //
+            // KNOWN GAP, not fixed here: this is why a settled user pan can never produce motion even
+            // with on_connect_handler's ViewChanged wiring correctly hooked up -- the panel (and so the
+            // ScrollViewer's Extent) is sized to EXACTLY one viewport, every pass, for every position.
+            // ScrollableWidth/Height = Extent - Viewport is therefore always 0: there is no scrollable
+            // surface for a drag to move through, independent of gesture correctness. android's paged
+            // path is genuinely different in kind, not just mechanism -- its RecyclerView + PagerSnapHelper
+            // owns real multi-item virtualized content; this Canvas panel never lays out a neighbour.
+            // Closing this needs laying out (at minimum) the current item's neighbours with real
+            // scrollable extent and re-realizing across a settle, i.e. a second wave on this path, not a
+            // one-line fix -- see PARITY_REVIEW.md's 2026-08-25 carousel_page/windows entry.
             cursor += viewport_main;
+
+            // C# CarouselViewController2.UpdateInitialPosition: establish the initial page WITHOUT
+            // writeback, THEN arm it -- arming before this first realize would let a startup ViewChanged
+            // (there isn't one yet on this path, see the gap above, but the ordering is the same
+            // discipline android's build_carousel_pager follows immediately after ITS first realize)
+            // clobber a nonzero initial Position with 0. One-shot: has_initial_position_set() gates it,
+            // matching android's `platform->recycler == nullptr` first-build guard.
+            if (!has_initial_position_set())
+            {
+                mark_initial_position_set();
+            }
         }
 
         // The global (structured) header — realized BEFORE the items/empty region, independent of it
