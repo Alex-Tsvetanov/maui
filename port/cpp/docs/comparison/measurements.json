@@ -158,23 +158,23 @@
     "artifact": "C:/maui-build/examples/gallery",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 9622201,
+    "total_bytes": 9622713,
     "file_count": 15,
     "buckets": {
      "resources": 529857,
-     "code": 9092344
+     "code": 9092856
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 9622201,
+    "total_bytes_stripped": 9622713,
     "main_binary": {
      "name": "gallery.exe",
-     "bytes": 5213696,
+     "bytes": 5214208,
      "linkedit_bytes": 0,
-     "stripped_bytes": 5213696
+     "stripped_bytes": 5214208
     },
     "remote_only": true,
     "config_file": "windows.toml"
@@ -193,7 +193,7 @@
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-23",
+    "built_at": "2026-08-24",
     "built_at_from": "newest measured file (guest)",
     "total_bytes_stripped": 13746649,
     "main_binary": {
@@ -326,22 +326,22 @@
     "total_bytes": 29599927,
     "file_count": 811,
     "buckets": {
-     "other": 68589,
+     "other": 68590,
      "resources": 1767109,
-     "code": 4865776,
-     "native_libs": 22747952
+     "code": 4865745,
+     "native_libs": 22750216
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 22747952,
+     "bytes": 22750216,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 22747952
+     "arm64-v8a": 22750216
     },
     "abi_count": 1,
-    "built_at": "2026-08-24",
+    "built_at": "2026-08-25",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -355,27 +355,27 @@
     "total_bytes": 44357885,
     "file_count": 812,
     "buckets": {
-     "other": 68699,
+     "other": 68702,
      "resources": 1767281,
-     "code": 4865793,
-     "native_libs": 37505648
+     "code": 4865799,
+     "native_libs": 37507448
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 37505648,
+     "bytes": 37507448,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 37505648
+     "arm64-v8a": 37507448
     },
     "abi_count": 1,
-    "built_at": "2026-08-24",
+    "built_at": "2026-08-25",
     "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-24T19:50:49Z",
+ "size_measured_at": "2026-08-25T03:19:01Z",
  "ttff": {
   "android": {
    "maui_xaml": {
@@ -385,23 +385,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     1.025,
-     0.987,
-     0.86,
-     0.811,
-     0.961,
-     0.794,
-     0.803,
-     0.847,
-     0.816,
-     0.813
+     3.089,
+     2.541,
+     2.878,
+     3.397,
+     3.23,
+     3.45,
+     3.149,
+     2.989,
+     2.679,
+     3.05
     ],
-    "poll_resolution_s": 0.221,
+    "poll_resolution_s": 0.877,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 0.794,
-    "median_s": 0.831,
-    "p95_s": 0.987,
-    "max_s": 1.025
+    "min_s": 2.541,
+    "median_s": 3.069,
+    "p95_s": 3.397,
+    "max_s": 3.45
    },
    "cpp": {
     "measured": true,
@@ -410,23 +410,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     0.842,
-     0.953,
-     1.021,
-     1.011,
-     0.986,
-     0.886,
-     0.81,
-     1.048,
-     1.17,
-     0.972
+     2.674,
+     2.682,
+     2.798,
+     2.695,
+     2.618,
+     2.397,
+     1.479,
+     1.27,
+     2.897,
+     2.53
     ],
-    "poll_resolution_s": 0.215,
+    "poll_resolution_s": 0.813,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 0.81,
-    "median_s": 0.979,
-    "p95_s": 1.048,
-    "max_s": 1.17
+    "min_s": 1.27,
+    "median_s": 2.646,
+    "p95_s": 2.798,
+    "max_s": 2.897
    },
    "cpp_xaml": {
     "measured": true,
@@ -435,23 +435,23 @@
     "n": 10,
     "misses": 0,
     "samples_s": [
-     0.767,
-     0.974,
-     0.987,
-     0.777,
-     1.143,
-     0.987,
-     0.979,
-     1.152,
-     1.084,
-     1.137
+     2.827,
+     2.444,
+     2.684,
+     2.507,
+     2.352,
+     2.549,
+     2.567,
+     2.916,
+     2.381,
+     2.801
     ],
-    "poll_resolution_s": 0.206,
+    "poll_resolution_s": 0.799,
     "note": "TTFF = launch -> first captured frame that is neither flat nor the .NET splash and differs from the pre-launch baseline; NOT window-exists. Resolution is the median poll interval and bounds the precision of every figure here.",
-    "min_s": 0.767,
-    "median_s": 0.987,
-    "p95_s": 1.143,
-    "max_s": 1.152
+    "min_s": 2.352,
+    "median_s": 2.558,
+    "p95_s": 2.827,
+    "max_s": 2.916
    }
   },
   "ios": {
