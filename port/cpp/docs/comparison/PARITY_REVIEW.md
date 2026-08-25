@@ -5716,3 +5716,106 @@ finding (a full trajectory/landing rescorer was already tried and refuted elsewh
 
 Files: `src/platform/windows/collection_view_handler.cpp`,
 `docs/comparison/scenarios/basic_grouping.toml` (new).
+
+## RESOLVED — Android `empty_view_rtl` Picker shows "Left to Right" instead of MAUI's "FlowDirection": a real MAUI XAML-coercion bug, replicated on purpose (RENDER-BREAKS-TIES) (2026-08-25)
+
+The board's ground truth (`docs/comparison/captures/android/maui/empty_view_rtl_dark.png`) shows the
+FlowDirection `Picker` displaying its `Title` as a hint ("FlowDirection"), NOT the selected item's text
+("Left to Right"), even though the shared twin's markup sets `SelectedIndex="0"`. The `cpp` (code-first)
+column showed "Left to Right" — by ordinary `Picker` semantics that LOOKS more correct, which is exactly
+the trap RENDER-BREAKS-TIES exists for. The `xaml` (loader) column already matched MAUI correctly.
+
+**Root cause — confirmed in `Picker.cs`, not a handler/mapper defect.** `Picker.SelectedIndexProperty`
+carries a `coerceValue: CoerceSelectedIndex`, `Clamp(-1, Items.Count - 1)`. The shared twin markup is:
+
+```xml
+<Picker Title="FlowDirection" SelectedIndex="0">
+    <Picker.Items>
+        <x:String>Left to Right</x:String>
+        <x:String>Right to Left</x:String>
+    </Picker.Items>
+</Picker>
+```
+
+XAML attributes apply before property-element children (both XamlC and the port's own
+`apply_properties_visitor`, BottomUp — `xml_name_map`'s own header comment already documents this:
+"C#'s Dictionary iterates in insertion order in practice and the visitors rely on document order").
+So `SelectedIndex="0"` hits `CoerceSelectedIndex` while `Items` is still empty (`Count == 0`), clamps to
+`-1`, and **stays -1 forever**: `Picker.ResetItems()`'s post-populate re-clamp
+(`ClampSelectedIndex(SelectedIndex)`) re-validates the ALREADY-coerced `-1` against the now-populated
+list — `-1` is still inside `[-1, Count-1]`, so nothing changes it back. `PickerExtensions.
+UpdatePickerCore` then does exactly what it's told: `SelectedIndex == -1` → `Text = null` → the native
+`EditText` falls back to its `Hint` (`Title`). Real MAUI has this bug; the port must match it.
+
+**Where the port's two columns actually diverged.** The port's `controls::picker` business object
+ALREADY replicates `CoerceSelectedIndex`/`ClampSelectedIndex` faithfully (`src/controls/picker.cpp`,
+`picker_descriptor_access::coerce_selected_index`) — confirmed with a new regression test,
+`xaml_loader.picker_selected_index_attribute_coerces_against_empty_items`
+(`tests/xaml/loader_tests.cpp`): loading the exact markup above through the port's real XAML loader
+yields `picker.selected_index() == -1`, matching MAUI. That's WHY the `xaml` column was already green.
+The `cpp` (code-first) gallery page, `examples/gallery/pages/empty_view_rtl_page.hpp`, populated
+`flow_options_` (the two items) FIRST and only THEN called `picker_.set_selected_index(0)` at the very
+end of the ctor — items already non-empty at that point, so the coercion never bit and `SelectedIndex`
+stuck at `0`. Not a handler-mapper ordering bug (`PickerHandler.Android.cs`'s `MapSelectedIndex`/
+`MapItems` ordering was a red herring — both ultimately call the same `UpdatePickerCore`, which
+recomputes the full `Hint`/`Text` state from the CURRENT `VirtualView`, so mapper firing order between
+`SelectedIndex`/`Items`/`Title` cannot itself produce this divergence). Also worth recording: the
+original upstream `EmptyViewRTLGallery.xaml.cs` (`src/Controls/tests/TestCases.HostApp/...`) papers over
+this same bug with a redundant `Picker.SelectedIndex = 0;` line AFTER `InitializeComponent()` (by then
+`Items` is already populated from XAML, so the reassignment sticks) — but `port/maui-reference`'s
+generated code-behind partial for this page (`EmptyViewRtlPage.xaml.cs`) is trivial
+(`InitializeComponent()` only, per the generator's own header comment: "pages needing interactivity
+replace this file... drop the GENERATED marker"), so the board's actual ground-truth capture never gets
+that rescue and keeps the `-1`.
+
+**Fix.** Reordered `empty_view_rtl_page.hpp`'s ctor: `picker_.set_selected_index(0)` now runs BEFORE
+`flow_options_->add(...)`/`set_items_source(...)`, reproducing the coercion-against-empty-Items ordering
+intentionally — mirroring an existing precedent already in this codebase, `picker_page.hpp`'s
+`markup_picker_` (`// XAML attribute order: coerced to -1 (see above)`), which I hadn't noticed until
+after independently deriving the same fix — good corroboration, not the source of the idea.
+`selected_index_changed`'s connected handler (`apply_flow_direction`) still leaves the page
+`left_to_right` by default even though the event never fires (`-1 -> -1` is not a value change, matching
+real MAUI where `OnPickerSelectedIndexChanged` likewise never runs for this page) — the RTL-toggle
+behavior itself is unaffected, only the Picker's own displayed text changes.
+
+**The secondary "keyboard already open at rest" finding — investigated, NOT reproduced, left alone.**
+The task that led to this investigation also flagged the port's `empty_view_rtl` GIF's frame 0 (before
+any driven interaction) showing the soft keyboard already open with an expanded toolbar row, while
+MAUI's frame 0 shows no keyboard — a plausible contributor to a previously-flagged `SELF-MOTION
+ASYMMETRY 17x-47x` (`comparison.json`, run `2026-08-24-10_39_42`). Checked: no `showSoftInput`/
+`requestFocus` call exists anywhere in the port's Android platform handlers (grepped
+`src/platform/android/*.cpp`); the Picker's native `EditText` is `setFocusable(FALSE)` (stronger than
+even C#'s `Focusable=true, FocusableInTouchMode=false`), so it cannot be the auto-focus target either. A
+live manual reproduction attempt on `emulator-5554` (fresh `am force-stop` + `am start -W`, matching
+`capture_android.py`'s own launch sequence) did NOT show the keyboard. **On this pass's fresh recapture
+(same code, no keyboard-related change), the keyboard is gone from frame 0 on both columns, and the
+asymmetry is gone too** (`self-motion MAUI 7.5190% vs C++ 7.4854%` light, `20.6888% vs 20.6536%` dark —
+both within rounding, `pixel`/`pixel_xaml` now green). Conclusion: the earlier keyboard sighting was a
+one-off capture-timing artifact from a stale run (same shape as this project's own documented
+`cpp-capture-fabricates-plausible-data` / `cpp-android-dark-window-wash` findings — environmental
+capture drift, not port code), not a deterministic defect. No code change made for it; noted here rather
+than silently dropped, per the task's own allowance for a well-documented negative result.
+
+**Regression check.** `dev.sh` targeted runs: the new regression test, all `gallery_structure_equivalence`
+tests (`182/182` pass, `empty_view_rtl` individually confirmed), and every `[Pp]icker`-matching test
+(`136/136` pass) — including the two picker galleries this page's fix could plausibly disturb
+(`picker.xaml`, `ios_picker.xaml` twins). Live Android recapture of all three pages
+(`empty_view_rtl`, `picker`, `ios_picker`, both themes) confirms: `empty_view_rtl` `pixel`/`pixel_xaml`
+YELLOW → **GREEN** (was flagged `SELF-MOTION ASYMMETRY`, now resolved); `picker` and `ios_picker` both
+stayed GREEN, byte-for-byte self-motion unchanged (`53.1032%`/`53.3907%` before and after) — confirming
+no regression to either page's normal "open dialog, tap a row, displayed text updates" behavior.
+
+**An unrelated flip surfaced by the same board-wide rescore, NOT caused by this change:**
+`basic_grouping`/android `pixel` and `pixel_xaml` moved green → yellow. Its underlying capture files are
+byte-identical (not touched by this recapture — only `empty_view_rtl`/`picker`/`ios_picker` were
+recaptured) and its own review text says why: `"NOT motion-scored: no run directory under
+docs/comparison/ has light/dark frames for both columns of this cell (run dirs are per-run and
+gitignored, so this says the evidence EXPIRED — never that it disagreed)"`. This is the documented
+run-directory-expiry mechanism (run dirs are gitignored and this project's board-refresh step scores
+from whatever run directories still happen to be on local disk), unrelated to Android `Picker`/`
+empty_view_rtl` — flagged here for visibility rather than silently folded into this commit's story.
+
+Files: `examples/gallery/pages/empty_view_rtl_page.hpp`, `tests/xaml/loader_tests.cpp` (new regression
+test), `docs/comparison/README.md`, `docs/comparison/comparison.json`, `docs/comparison/
+measurements.json` (board refresh), `docs/comparison/captures/android/{cpp,maui,xaml}/
+empty_view_rtl_{light,dark}.{png,gif}`.

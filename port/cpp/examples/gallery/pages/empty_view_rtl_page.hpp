@@ -27,7 +27,14 @@
 //     as its items_source) over the search_ ("Filter"); the picker's selected_index_changed sets the
 //     PAGE'S flow_direction (view::set_flow_direction — content_page is a view, so it carries the knob),
 //     exactly OnPickerSelectedIndexChanged (index 0 -> left_to_right, 1 -> right_to_left). The ctor sets
-//     selected_index = 0 (the C# Picker.SelectedIndex = 0), so the page starts left_to_right;
+//     selected_index = 0 BEFORE items_source is populated (NOT after, despite the upstream gallery's
+//     redundant post-InitializeComponent reassignment — see the ctor comment): port/maui-reference's
+//     shared twin markup sets SelectedIndex="0" as an XAML ATTRIBUTE, which XamlC/the loader apply
+//     before the <Picker.Items> property-element populates Items, so Picker.CoerceSelectedIndex clamps
+//     it to -1 against the still-empty list and it never recovers. The ground-truth capture shows the
+//     Picker's Title as a hint ("FlowDirection"), not "Left to Right" — replicated here on purpose
+//     (RENDER-BREAKS-TIES). The page still starts left_to_right (its own default), just not via the
+//     SelectedIndexChanged event, which never fires (-1 -> -1 is not a value change);
 //   - the search_'s search_command filters the live source by the current text (the C#
 //     SearchBar.SearchCommand = FilterItems(SearchBar.Text)); filter_items reconciles the live source
 //     against the master list (DemoFilteredItemSource.FilterItems);
@@ -106,10 +113,29 @@ namespace maui::samples
             // ---- row 0: the vertical StackLayout — Picker over SearchBar ----
             // The Picker (Title="FlowDirection") with the two flow-direction strings as its items_source.
             picker_.set_title("FlowDirection");
+            // MAUI BUG, replicated on purpose (RENDER-BREAKS-TIES): the shared twin's markup is
+            // `<Picker Title="FlowDirection" SelectedIndex="0"><Picker.Items>…</Picker.Items></Picker>`.
+            // XamlC/the port's loader apply attributes before property-element children, so SelectedIndex="0"
+            // hits Picker.CoerceSelectedIndex (Clamp(-1, Items.Count-1)) while Items is STILL EMPTY and gets
+            // clamped to -1 — and it stays -1 forever, because ResetItems' post-populate re-clamp
+            // (ClampSelectedIndex) only re-validates the ALREADY-COERCED -1, which is still in range. The
+            // upstream gallery sample papers over this with a redundant `Picker.SelectedIndex = 0;` in its
+            // code-behind AFTER InitializeComponent() (Items already populated by then, so it sticks), but
+            // port/maui-reference's generated partial for this page is trivial (InitializeComponent() only —
+            // see EmptyViewRtlPage.xaml.cs), so the ground-truth capture keeps the -1: the Android Picker
+            // shows its Title as a hint ("FlowDirection"), never "Left to Right". Setting selected_index here
+            // — BEFORE items_source is populated — reproduces the same coercion-against-empty-Items ordering
+            // in the code-first page, so the cpp column matches. (Mirrors register_xaml_pickers.cpp's
+            // documented `Picker.Items` case and the xaml_loader.picker_selected_index_attribute_coerces_
+            // against_empty_items regression test.)
+            picker_.set_selected_index(0);
             flow_options_->add(std::string{"Left to Right"});
             flow_options_->add(std::string{"Right to Left"});
             picker_.set_items_source(flow_options_);
             // OnPickerSelectedIndexChanged: index 0 -> LeftToRight, index 1 -> RightToLeft (on the PAGE).
+            // Never actually fires at load (default -1 -> coerced -1 is not a value change, matching real
+            // MAUI where the property-changed callback likewise doesn't run) — the page keeps its own
+            // default FlowDirection, which is left_to_right, so the visible RTL behavior is unaffected.
             picker_.selected_index_changed.connect([this] { apply_flow_direction(); });
 
             // The SearchBar ("Filter") whose SearchCommand filters the live source by the current text.
@@ -138,10 +164,6 @@ namespace maui::samples
             grid_.set_row(list_, 1);
             grid_.add(list_);
             page_.set_content(grid_);
-
-            // C# ctor: Picker.SelectedIndex = 0 (the page starts LeftToRight). Set after the wiring so the
-            // selected_index_changed handler applies left_to_right to the page.
-            picker_.set_selected_index(0);
         }
 
         [[nodiscard]] maui::controls::content_page& page()

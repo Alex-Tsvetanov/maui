@@ -64,13 +64,12 @@
 #include "maui/controls/gestures/swipe_gesture_recognizer.hpp"
 #include "maui/controls/gestures/tap_gesture_recognizer.hpp"
 #include "maui/controls/grid.hpp"
-#include "maui/controls/image.hpp"                   // W17: Image.Source element form
-#include "maui/controls/items/carousel_view.hpp"     // CarouselView.Position gap closure
-#include "maui/controls/items/collection_view.hpp"   // W4: ItemTemplate inflation target
+#include "maui/controls/image.hpp"                         // W17: Image.Source element form
+#include "maui/controls/items/carousel_view.hpp"           // CarouselView.Position gap closure
+#include "maui/controls/items/collection_view.hpp"         // W4: ItemTemplate inflation target
 #include "maui/controls/items/collection_view_handler.hpp" // the platform selection mirror probe
+#include "maui/controls/items/grid_items_layout.hpp"       // W14: ItemsLayout="VerticalGrid,N"
 #include "maui/controls/items/selection_mode.hpp"
-#include "maui/core/i_layout.hpp"
-#include "maui/controls/items/grid_items_layout.hpp" // W14: ItemsLayout="VerticalGrid,N"
 #include "maui/controls/label.hpp"
 #include "maui/controls/picker.hpp" // W12: <Picker.Items> x:String child sink
 #include "maui/controls/resource_dictionary.hpp"
@@ -100,6 +99,7 @@
 #include "maui/core/bindable_property.hpp"
 #include "maui/core/binding_mode.hpp"
 #include "maui/core/font_attributes.hpp" // W8
+#include "maui/core/i_layout.hpp"
 #include "maui/core/property.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/graphics/color.hpp"
@@ -679,6 +679,37 @@ namespace
         EXPECT_EQ(picker.selected_index(), 1);
     }
 
+    TEST(xaml_loader, picker_selected_index_attribute_coerces_against_empty_items)
+    {
+        // The empty_view_rtl.xaml regression: `<Picker Title="FlowDirection" SelectedIndex="0">` with
+        // <Picker.Items> as a property-element CHILD (this is the port/maui-reference shared twin's
+        // exact markup shape). Attributes apply before property-element children (ApplyPropertiesVisitor,
+        // BottomUp — see register_xaml_pickers.cpp's W12 note), so SelectedIndex="0" hits
+        // Picker.CoerceSelectedIndex while Items is still empty and clamps to -1; ResetItems' post-populate
+        // re-clamp only re-validates the already-coerced -1 (still in [-1, Count-1]), so it never recovers.
+        // Real MAUI has the identical bug: the Android Picker shows its Title as a hint ("FlowDirection"),
+        // never "Left to Right" — confirmed on the live board (docs/comparison/captures/android/maui/
+        // empty_view_rtl_dark.png) and matched by the xaml capture column, which loads through this same
+        // path. The cpp (code-first) gallery page replicates it intentionally by setting selected_index
+        // BEFORE items_source, see examples/gallery/pages/empty_view_rtl_page.hpp.
+        controls::picker picker;
+        const std::string message = parse_error_message([&] {
+            (void)xaml_loader::load_into(picker, R"xml(
+<Picker xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FlowDirection" SelectedIndex="0">
+	<Picker.Items>
+		<x:String>Left to Right</x:String>
+		<x:String>Right to Left</x:String>
+	</Picker.Items>
+</Picker>)xml");
+        });
+        EXPECT_EQ(message, "(no xaml_parse_exception thrown)") << message;
+
+        ASSERT_EQ(picker.items().count(), 2);
+        EXPECT_EQ(picker.selected_index(), -1); // NOT 0 — the MAUI bug, replicated on purpose
+    }
+
     TEST(xaml_loader, collection_view_items_source_x_array_static_strings)
     {
         // W13: element-form <CollectionView.ItemsSource><x:Array Type="{x:Type x:String}"><x:String>…
@@ -1219,7 +1250,7 @@ namespace
         ASSERT_NE(made, nullptr) << "Shadow not minted";
         EXPECT_DOUBLE_EQ(made->radius(), 6.0);
         EXPECT_EQ(made->offset(), (maui::graphics::point{6, 6}));
-        EXPECT_DOUBLE_EQ(made->opacity(), 1.0);   // Shadow.cs OpacityProperty default
+        EXPECT_DOUBLE_EQ(made->opacity(), 1.0); // Shadow.cs OpacityProperty default
     }
 
     // Unset attributes keep Shadow.cs' defaults rather than zeroing.
@@ -1232,7 +1263,7 @@ namespace
 </BoxView>)xml");
         const maui::core::i_shadow* made = box.shadow();
         ASSERT_NE(made, nullptr);
-        EXPECT_DOUBLE_EQ(made->radius(), 10.0);   // Shadow.cs RadiusProperty default 10f
+        EXPECT_DOUBLE_EQ(made->radius(), 10.0); // Shadow.cs RadiusProperty default 10f
         EXPECT_DOUBLE_EQ(made->opacity(), 1.0);
     }
 
@@ -1848,8 +1879,8 @@ namespace
         EXPECT_EQ(view.selected_items().count(), 0U); // nothing until a context arrives
 
         auto context = std::make_shared<selection_sync_view_model>();
-        context->items.set(controls::make_item_collection(
-            std::vector<std::string>{"Item 1", "Item 2", "Item 3", "Item 4"}));
+        context->items.set(
+            controls::make_item_collection(std::vector<std::string>{"Item 1", "Item 2", "Item 3", "Item 4"}));
         context->selecteditems.set(controls::make_item_collection(std::vector<std::string>{"Item 3", "Item 2"}));
         view.set_binding_context(context);
 
