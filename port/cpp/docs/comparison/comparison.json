@@ -24967,8 +24967,8 @@
           "review": ""
         },
         "pixel": {
-          "status": "red",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-24-20_44_21, commit 5b5b7adfdf, 2026-08-24) \u2014 worst SSIM 0.8176 at frame 2 'driven' (10.06% pixels differ), mean SSIM 0.9088; per-frame diff% 0.00/10.06; self-motion MAUI 16.1636% (511114 px) vs C++ 20.6960% (654435 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-24-20_44_21, commit 5b5b7adfdf, 2026-08-24); driven frames aligned vertically by +0/-17 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 5.74% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9934 at frame 2 'driven' (0.27% pixels differ), mean SSIM 0.9967; per-frame diff% 0.00/0.27; self-motion MAUI 17.9364% (567174 px) vs C++ 16.6612% (526850 px)",
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-25-06_24_55, commit 46e7f65992, 2026-08-25); driven frames aligned vertically by +0/-36 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 7.65% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9800 at frame 2 'driven' (1.27% pixels differ), mean SSIM 0.9900; per-frame diff% 0.00/1.27; self-motion MAUI 19.6046% (619924 px) vs C++ 19.4738% (615787 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-25-06_24_55, commit 46e7f65992, 2026-08-25); driven frames aligned vertically by +0/-39 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 8.19% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9914 at frame 2 'driven' (0.39% pixels differ), mean SSIM 0.9957; per-frame diff% 0.00/0.39; self-motion MAUI 20.9098% (661194 px) vs C++ 19.7419% (624264 px)",
           "stills": "ddb4d64c3fa90884",
           "motion": {
             "verdict": "FAIL",
@@ -24977,19 +24977,19 @@
               "dark": "PASS"
             },
             "why": "frames-disagree",
-            "run": "2026-08-24-20_44_21",
-            "commit": "5b5b7adfdf",
-            "captured_at": "2026-08-24",
+            "run": "2026-08-25-06_24_55",
+            "commit": "46e7f65992",
+            "captured_at": "2026-08-25",
             "self": {
-              "maui": 16.1636,
-              "port": 20.696
+              "maui": 19.6046,
+              "port": 19.4738
             },
             "stills": "ddb4d64c3fa90884"
           }
         },
         "pixel_xaml": {
-          "status": "yellow",
-          "review": "Light: MOTION 2 frames paired by step (run 2026-08-24-20_44_21, commit 5b5b7adfdf, 2026-08-24); driven frames aligned vertically by +0/+42 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 8.05% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9762 at frame 2 'driven' (1.54% pixels differ), mean SSIM 0.9881; per-frame diff% 0.00/1.54; self-motion MAUI 16.1636% (511114 px) vs C++ & XAML 15.8963% (502661 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-24-20_44_21, commit 5b5b7adfdf, 2026-08-24); driven frames aligned vertically by +0/-48 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 8.35% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9374 at frame 2 'driven' (2.57% pixels differ), mean SSIM 0.9687; per-frame diff% 0.00/2.57; self-motion MAUI 17.9364% (567174 px) vs C++ & XAML 16.0025% (506020 px)",
+          "status": "red",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-25-06_24_55, commit 46e7f65992, 2026-08-25); driven frames aligned vertically by +0/-48 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 9.46% is a landing offset, not a rendering difference \u2014 worst SSIM 0.8417 at frame 2 'driven' (7.26% pixels differ), mean SSIM 0.9208; per-frame diff% 0.00/7.26; self-motion MAUI 19.6046% (619924 px) vs C++ & XAML 19.9925% (632189 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-25-06_24_55, commit 46e7f65992, 2026-08-25); driven frames aligned vertically by +0/-14 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 10.43% is a landing offset, not a rendering difference \u2014 worst SSIM 0.7811 at frame 2 'driven' (10.19% pixels differ), mean SSIM 0.8905; per-frame diff% 0.00/10.19; self-motion MAUI 20.9098% (661194 px) vs C++ & XAML 20.5303% (649194 px)",
           "stills": "b4067787d3f0d2dd",
           "motion": {
             "verdict": "FAIL",
@@ -24998,12 +24998,12 @@
               "dark": "FAIL"
             },
             "why": "frames-disagree",
-            "run": "2026-08-24-20_44_21",
-            "commit": "5b5b7adfdf",
-            "captured_at": "2026-08-24",
+            "run": "2026-08-25-06_24_55",
+            "commit": "46e7f65992",
+            "captured_at": "2026-08-25",
             "self": {
-              "maui": 16.1636,
-              "port": 15.8963
+              "maui": 19.6046,
+              "port": 19.9925
             },
             "stills": "b4067787d3f0d2dd"
           }
