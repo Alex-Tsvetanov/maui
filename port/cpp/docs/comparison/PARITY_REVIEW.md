@@ -5082,3 +5082,54 @@ captures. Expect the re-measure to confirm it; do not assume it.
 
 The general lesson is the one now recorded at `pixel_score.score_images`: a cell whose two columns come
 from different runs can be perfectly self-consistent and still compare two different worlds.
+
+## RESOLVED — android `carousel_page` settled 2.19-2.20% off MAUI's own resting frame; MAUI only snap-corrects on a FLING (2026-08-25)
+
+Follow-up to "RESOLVED + OPEN, Android `gestures` / `carousel_page` (2026-08-07)" above, which fixed
+the port not paging at all. Once it paged, its settled frame still disagreed with MAUI's own by
+2.19-2.20% (stable across 9 consecutive burst frames on both sides — genuinely at rest, not a
+still-animating tail): MAUI parks with ~32% of the previous card still peeking after the board's
+deterministic drag-then-hold swipe; the port always snapped fully to the next card.
+
+**Confirmed live, not just from source.** Driving the real `dev.mauicpp.mauireference` app directly:
+`adb shell input motionevent DOWN/MOVE.../UP` with the gesture held still at its endpoint before
+lifting (zero release velocity — the same technique `capture_android.py`'s `input_argv` uses for every
+scenario, specifically to avoid an irreproducible fling) reproduces the same ~32% peek MAUI's own board
+column shows. `adb shell input swipe` (interpolated, full release velocity — a real fling) pages fully
+on the same app. **This falsifies the assumption written into `capture_android.py`'s own comment**
+("a few repeated MOVEs at the same point drain the VelocityTracker... the container snaps to the
+nearest boundary every time") — that snap only holds for a genuine fling; a held-still release gets NO
+corrective snap from MAUI at all.
+
+**Root cause:** `CarouselView`'s default `ItemsLayout` is `SnapPointsType.MandatorySingle` +
+`SnapPointsAlignment.Center` (`CarouselView.cs:351-352`), which `SnapManager.CreateSnapHelper`
+resolves to `SingleSnapHelper` (`Handlers/Items/Android/SnapHelpers/SingleSnapHelper.cs`) — a
+`PagerSnapHelper` subclass whose `FindSnapView` returns non-null only once `FindTargetSnapPosition` has
+latched a target position, and AndroidX's `SnapHelper` machinery calls `findTargetSnapPosition` only
+from the fling path (`onFling` -> `snapFromFling`), never from the plain idle-settle path
+(`onScrollStateChanged(IDLE)` -> `snapToTargetExistingView()` -> `findSnapView()` alone). A release
+below the fling-velocity threshold never fires a fling, so the latch stays unset, `FindSnapView`
+returns null, and MAUI's own `RecyclerView` performs no corrective scroll — it simply rests wherever
+the drag left it. `Position`/`CurrentItem` tracking is architecturally separate
+(`CarouselViewOnScrollListener` / `RecyclerExtensions.GetCenteredView`, geometric — whichever child
+sits under the RecyclerView's own center — independent of the snap helper), so it stays correct
+regardless.
+
+The port's `MauiItemsAdapter.java` used a stock `androidx.recyclerview.widget.PagerSnapHelper`, whose
+own `findSnapView` has no such latch and always returns the nearest child on every idle settle — hence
+the port always snapped fully, fling or not.
+
+**Fix** (`94d6e2788`): ported `SingleSnapHelper.cs` to a `MauiSingleSnapHelper extends PagerSnapHelper`
+Java class (same latch, ±1-by-velocity-sign, RTL flip, item-count reset) and decoupled the port's own
+`Position`-tracking listener from the snap helper — it now reads
+`recycler.findChildViewUnder(width/2, height/2)` directly, mirroring `GetCenteredView`, so `Position`
+keeps updating on a non-fling settle even though the snap helper declines to correct the scroll offset.
+Settled-frame diff against MAUI dropped to 0.55-0.56%, matching the page's own pre-swipe resting-frame
+noise floor (0.75-0.76%). `indicator` (the only other gallery page on this `CarouselView`/
+`MauiItemsAdapter` path) is undriven and unaffected — recaptured and unchanged.
+
+**Bears on the wider board.** The falsified "snaps to the nearest boundary every time" premise is the
+same one several of the ~19 `PHASE ONLY, NOT DECIDABLE ON THIS LANE`-capped Android motion cells lean
+on when reasoning about where a swipe should land — this is one confirmed instance of MAUI's OWN
+landing depending on release-velocity in a way the port previously did not replicate, not necessarily
+the only one on that list.
