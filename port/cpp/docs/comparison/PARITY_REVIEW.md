@@ -5161,3 +5161,116 @@ gives no shortcut here.
 **Not investigated further this pass** — flagging the negative result (Windows fix doesn't transfer)
 so a future session doesn't re-derive it, and scoping what a real maccatalyst/android attempt would
 need to start from instead of assuming inheritance from the Windows finding.
+
+## border_stroke on android: root cause CONFIRMED — GradientDrawable int stroke width, not AA noise
+
+Follow-up to the scoping note directly above (same day, 2026-08-25): does the 2.76-2.78% Android
+`border_stroke` yellow have a real, fixable mechanism behind it, or is it inherent antialiasing noise?
+Re-investigated from scratch per this session's own measure-don't-assume mandate — sample exact pixel
+values at the seam, solve blend fractions via 3-colour arithmetic, check T-invariance — before reading
+`border_handler.cpp`'s own extensive prior diagnosis of this exact defect (lines ~340-430 and ~700-762,
+dated 2026-08-22). The independent measurement lands on the SAME mechanism, confirming it rather than
+just re-quoting it.
+
+**Where the diff actually lives.** Of the committed captures' 66,547 differing pixels (light) / 69,884
+(dark), 87% (light) / 83% (dark) sit in near-full-width rows that land EXACTLY on the six Border boxes'
+top/bottom stroke edges (T=1/5/10, both grids). Extending the same check to the LEFT/RIGHT stroke edges
+(column bands around each box's vertical strokes, restricted to that box's y-range) accounts for another
+~7% of the light-theme diff. That leaves only ~6%, concentrated in the "Updating the Content Height" /
+"Content height: 60" text rows and the slider thumb — ordinary font/anti-alias rendering differences
+unrelated to Border stroke geometry. So ~94% of this cell's score is the SAME single mechanism, not a
+grab-bag of small issues.
+
+**The blend-fraction solve, at the T=1 box's top edge (light, x=500, density 2.75).** Reading the G
+channel against a white(255)/red(0) two-colour blend (coverage f = 1 − G/255):
+
+    row   MAUI (255,G,G)   f_maui    cpp (255,G,G)   f_cpp
+    255   (255, 96, 96)    0.624     (255,  0,  0)   1.000
+    256   (255,  0,  0)    1.000     (255,  0,  0)   1.000
+    257   (255,  0,  0)    1.000     (255,255,255)   0.000
+    258   (255,223,223)    0.125     (255,255,255)   0.000
+
+MAUI's total coverage (effective stroke width contribution at this edge) = 0.624+1+1+0.125 = 2.749 px.
+cpp's = 1+1 = 2.000 px, with ZERO fractional coverage on either side — a hard cutoff, not merely "less
+antialiased." Dark theme reproduces the same fraction independently: MAUI (18,18,18)-background row 255
+reads (166,7,7), f = 1−7/18 = 0.611, matching light's 0.624 within quantization noise — the same seam,
+same mechanism, cross-theme.
+
+**T-invariance (discriminates a fixed quantization loss from a proportional/density error).** Measured
+the same way at all three thicknesses' top edges (light, x=500):
+
+    T (dp)   predicted px (T·2.75)   MAUI measured    cpp measured (hard, no AA)   deficit
+    1        2.75                    2.749             2.000                       0.749
+    5        13.75                   13.749            13.000                      0.749
+    10       27.50                   27.499            27.000                      0.499
+
+The deficit stays bounded under 1px regardless of T — it does NOT scale with thickness. A density/scale
+bug would grow linearly with T (a 10 DIP stroke would be off by ~5-7px, not 0.5px); a value that stays
+under 1px at every T is the signature of a single FLOOR/quantization step losing a fractional pixel once,
+which is exactly what the source's own width computation does (see below) — not noise, and not a scale
+defect.
+
+**Live-device cross-check (rules out a stale committed PNG).** Force-stopped and relaunched
+`dev.mauicpp.apphost` directly on `emulator-5554` (`am start -n dev.mauicpp.apphost/.MauiHostActivity
+--es MAUI_SAMPLE_PAGE border_stroke`), screencapped after waking the display (it had gone to sleep —
+`mWakefulness=Asleep`, fixed with `input keyevent KEYCODE_WAKEUP`), and sampled the identical column: rows
+255-256 solid red, row 257 immediately full background, zero blended row — bit-for-bit the same hard-edge
+row position as the committed capture (which is only 1 day newer than the last real change to
+`border_handler.cpp`, so no drift). The live app rendered in dark theme despite `--es MAUI_THEME Light`
+(theme seeds from the OS `uimode`, not the intent extra — see this session's `cpp-theme-source-os-not-env`
+memory note; the recapture pipeline sets `uimode` with a verify poll before launching, this ad-hoc probe
+did not, so this is expected and not itself a finding).
+
+**Root cause, verified against the actual oracle source (not just the in-file comment claiming it).**
+`src/Core/src/Platform/Android/StrokeExtensions.cs`'s `UpdateBorderStroke` routes every Border through
+`MauiDrawable.SetBorderWidth`, which ultimately reaches
+`src/Core/AndroidNative/maui/src/main/java/com/microsoft/maui/PlatformDrawable.java`: `setStrokeThickness`
+allocates `new Paint(Paint.ANTI_ALIAS_FLAG)` with `Style.STROKE`, and `onDraw` calls
+`borderPaint.setStrokeWidth(strokeThickness)` (a `float`) followed by `canvas.drawPath(this.clipPath,
+this.borderPaint)`. Confirmed directly from source: MAUI's Android stroke is a genuinely antialiased,
+float-width path stroke — there is no integer quantization on the reference side at all.
+
+The port's convex-shape route (`border_handler.cpp`, `shape_needs_canvas() == false` for
+round_rectangle/rectangle/ellipse — the common case, including every plain-Rectangle StrokeShape this
+page uses) instead installs an `android.graphics.drawable.GradientDrawable` as the host View's background
+and calls `GradientDrawable.setStroke(int width, int color)` — a JNI/Android SDK API that only accepts an
+**integer pixel width**, structurally unable to carry a fractional stroke thickness (T·density = 2.75,
+13.75, 27.5 px here). The port already applies the best available mitigation on this route: `width_px =
+floor(thickness · density)`, deliberately changed from an earlier `ceil` (which overshot MAUI's solid
+core by 1px on every side — see the in-file "MEASURED on border_stroke/dark" table at
+`border_handler.cpp:1017-1024`) to `floor`, which correctly matches MAUI's fully-saturated SOLID core
+width (floor(2.75)=2, floor(13.75)=13, floor(27.5)=27 — exactly what was measured above). What floor
+cannot do is reproduce the ~0.5-0.75px of soft antialiased feathering MAUI adds on top of that solid
+core, because `GradientDrawable`'s stroke, drawn from integer bounds with an integer width, has nothing
+fractional left to blend by construction. This is genuinely the same shape as hypothesis (a) in the
+Windows `border_stroke` investigation above (a geometry that lands exactly on integer pixels has nothing
+to feather) — but for a different, Android-specific reason (an integer-only SDK API), not a missing 0.5
+DIP inset (Android's inset is confirmed present, per the prior scoping note).
+
+**This is not a new bug — it is a real, already-attempted, already-reverted-for-cause fix.** Confirmed via
+`git log`: `8075d5197c` ("route convex StrokeShapes through the canvas, like MAUI does") flipped
+`k_convex_shapes_use_canvas` to `true`, `border_handler.cpp:761`, so every convex Border draws through the
+same float-width antialiased canvas path this diagnosis calls for. It was re-scored against a
+pre-registered criterion the same day and reverted by `58e5176a53` ("revert the canvas-route flip — it
+cost 24 green cells and every convex Border's fill") because: (R1) 24 of 72 cells flipped green→non-green
+across 8 unrelated pages (`border`, `borderless`, `containers/dark`, `custom_swipe_item_view`,
+`invalidate_shadow_host/dark`, `radio_button_content/dark`, `radio_template_from_style/dark`,
+`varied_size_selector`), cpp and xaml regressing identically; (R2) convex Borders LOST their background
+FILL entirely on several pages (`border`'s pale-yellow fill rendered white; 0 → hundreds of thousands of
+mismatched pixels on `varied_size_selector` and `custom_swipe_item_view`). The blocking mechanism is
+`native_draw_border_fill`'s canvas-fill path for convex shapes, which the in-file note traces to the SAME
+unresolved defect already flagged on `border_resize_content`'s Polygon row-3 cell (a "findings chain
+ruling out dangling ptr / stale overwrite / wrong paint type / set_fill_paint gap" that never landed a
+fix). Flipping the canvas route again without fixing that fill bug first would reproduce the exact same
+regression — confirmed reachable, not merely feared.
+
+**Verdict: genuine, root-caused, understood port defect — correctly NOT fixed in this pass.** The
+mechanism is confirmed (not assumed), independently re-derived via blend-fraction arithmetic and a live
+device probe rather than taken on the strength of the existing comment alone, and cross-validated against
+the actual C# + Java oracle source. But the only real fix (canvas routing for convex shapes) is already
+known to regress the board unless `native_draw_border_fill`'s convex-canvas-fill bug is fixed first — a
+separate, larger investigation (out of scope here; per this repo's own "heavy-infra is in scope" standing
+directive it should still eventually be done, just not as a side effect of a border_stroke-scoped pass)
+followed by the same full-board re-score `k_convex_shapes_use_canvas`'s gating comment already requires.
+No source change made this pass; `border_handler.cpp` is untouched, and the committed captures already
+reflect current source (verified live, not stale).
