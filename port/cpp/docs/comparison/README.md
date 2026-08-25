@@ -36,8 +36,8 @@ Per-lane artifact size, decomposed. Answers **H1** in `PREDICTIONS.md`. `Strippe
 | windows-arm64 | `cpp` | 9.2 MB | 9.2 MB | Release | built 2026-08-24 |
 | windows-arm64 | `cpp_xaml` | 13.1 MB | 13.1 MB | Release | built 2026-08-24 |
 | ios | `maui_xaml` | 99.3 MB | 49.6 MB | Release | symbols 49.3 MB · built 2026-08-23 |
-| ios | `cpp` | 15.8 MB | 9.2 MB | Release | symbols 7.5 MB · built 2026-08-24 |
-| ios | `cpp_xaml` | 39.2 MB | 22.6 MB | Release | symbols 23.4 MB · built 2026-08-24 |
+| ios | `cpp` | 15.8 MB | 9.2 MB | Release | symbols 7.5 MB · built 2026-08-25 |
+| ios | `cpp_xaml` | 39.2 MB | 22.6 MB | Release | symbols 23.4 MB · built 2026-08-25 |
 | android | `maui_xaml` | 28.9 MB | — | Release | native libs 21.0 MB · built 2026-08-23 |
 | android | `cpp` | 28.2 MB | — | Release | native libs 21.7 MB · built 2026-08-25 |
 | android | `cpp_xaml` | 42.3 MB | — | Release | native libs 35.8 MB · built 2026-08-25 |
@@ -395,15 +395,15 @@ Carousel Page
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-23-18_49_10 · 2026-08-23</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-25-08_20_18 · 2026-08-25</sub>
 
-Light: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9580 at frame 11 'gif02667' (2.24% pixels differ), mean SSIM 0.9712; per-frame diff% 0.00/2.23/0.00/0.00/2.18/2.17/2.18/1.57/2.17/2.18/2.24; self-motion MAUI 2.3045% (72872 px) vs C++ 2.4186% (76480 px) · Dark: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9572 at frame 11 'gif02667' (2.23% pixels differ), mean SSIM 0.9697; per-frame diff% 0.00/2.23/0.00/0.00/2.17/2.18/2.24/2.18/2.18/2.19/2.23; self-motion MAUI 2.3414% (74038 px) vs C++ 2.4401% (77160 px)
+Light: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored — worst SSIM 0.9596 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9853; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.21; self-motion MAUI 2.3069% (72946 px) vs C++ 2.2491% (71118 px) · Dark: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored — worst SSIM 0.9591 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9851; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.06; self-motion MAUI 2.3440% (74121 px) vs C++ 2.2864% (72300 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-23-18_49_10 · 2026-08-23</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-25-08_20_18 · 2026-08-25</sub>
 
-Light: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9582 at frame 2 'driven' (2.23% pixels differ), mean SSIM 0.9774; per-frame diff% 0.00/2.23/0.00/0.00/0.06/0.11/2.17/2.17/2.18/2.18/2.24; self-motion MAUI 2.3045% (72872 px) vs C++ &amp; XAML 2.3453% (74161 px) · Dark: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9574 at frame 11 'gif02667' (2.23% pixels differ), mean SSIM 0.9729; per-frame diff% 0.00/2.23/0.00/0.00/2.17/2.18/0.73/2.18/2.18/2.26/2.23; self-motion MAUI 2.3414% (74038 px) vs C++ &amp; XAML 2.4559% (77660 px)
+Light: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored — worst SSIM 0.9596 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9863; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.05; self-motion MAUI 2.3069% (72946 px) vs C++ &amp; XAML 2.2491% (71118 px) · Dark: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored — worst SSIM 0.9591 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9861; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/0.98; self-motion MAUI 2.3440% (74121 px) vs C++ &amp; XAML 2.2864% (72300 px)
 
 ### 23. Chat Example — 🟢/🟢
 <sub>chat_example</sub>

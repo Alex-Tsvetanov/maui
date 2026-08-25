@@ -3660,7 +3660,7 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9580 at frame 11 'gif02667' (2.24% pixels differ), mean SSIM 0.9712; per-frame diff% 0.00/2.23/0.00/0.00/2.18/2.17/2.18/1.57/2.17/2.18/2.24; self-motion MAUI 2.3045% (72872 px) vs C++ 2.4186% (76480 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9572 at frame 11 'gif02667' (2.23% pixels differ), mean SSIM 0.9697; per-frame diff% 0.00/2.23/0.00/0.00/2.17/2.18/2.24/2.18/2.18/2.19/2.23; self-motion MAUI 2.3414% (74038 px) vs C++ 2.4401% (77160 px)",
+          "review": "Light: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9596 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9853; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.21; self-motion MAUI 2.3069% (72946 px) vs C++ 2.2491% (71118 px) \u00b7 Dark: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9591 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9851; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.06; self-motion MAUI 2.3440% (74121 px) vs C++ 2.2864% (72300 px)",
           "stills": "994f6ffe5f837291",
           "motion": {
             "verdict": "FAIL",
@@ -3669,19 +3669,19 @@
               "dark": "FAIL"
             },
             "why": "frames-disagree",
-            "run": "2026-08-23-18_49_10",
-            "commit": "eb04de34e3",
-            "captured_at": "2026-08-23",
+            "run": "2026-08-25-08_20_18",
+            "commit": "fe2ad693ab",
+            "captured_at": "2026-08-25",
             "self": {
-              "maui": 2.3045,
-              "port": 2.4186
+              "maui": 2.3069,
+              "port": 2.2491
             },
             "stills": "994f6ffe5f837291"
           }
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9582 at frame 2 'driven' (2.23% pixels differ), mean SSIM 0.9774; per-frame diff% 0.00/2.23/0.00/0.00/0.06/0.11/2.17/2.17/2.18/2.18/2.24; self-motion MAUI 2.3045% (72872 px) vs C++ & XAML 2.3453% (74161 px) \u00b7 Dark: MOTION 11 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9574 at frame 11 'gif02667' (2.23% pixels differ), mean SSIM 0.9729; per-frame diff% 0.00/2.23/0.00/0.00/2.17/2.18/0.73/2.18/2.18/2.26/2.23; self-motion MAUI 2.3414% (74038 px) vs C++ & XAML 2.4559% (77660 px)",
+          "review": "Light: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9596 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9863; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.05; self-motion MAUI 2.3069% (72946 px) vs C++ & XAML 2.2491% (71118 px) \u00b7 Dark: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9591 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9861; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/0.98; self-motion MAUI 2.3440% (74121 px) vs C++ & XAML 2.2864% (72300 px)",
           "stills": "38ffddfd75c3b0d6",
           "motion": {
             "verdict": "FAIL",
@@ -3690,12 +3690,12 @@
               "dark": "FAIL"
             },
             "why": "frames-disagree",
-            "run": "2026-08-23-18_49_10",
-            "commit": "eb04de34e3",
-            "captured_at": "2026-08-23",
+            "run": "2026-08-25-08_20_18",
+            "commit": "fe2ad693ab",
+            "captured_at": "2026-08-25",
             "self": {
-              "maui": 2.3045,
-              "port": 2.3453
+              "maui": 2.3069,
+              "port": 2.2491
             },
             "stills": "38ffddfd75c3b0d6"
           }
