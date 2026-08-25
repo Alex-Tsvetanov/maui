@@ -5390,3 +5390,148 @@ Files: `docs/comparison/tools/vm_agent_windows.py` (touch injection), `docs/comp
 (Windows coordinate override), `include/maui/controls/items/collection_view_handler.hpp` +
 `src/controls/items/collection_view_handler.cpp` + `src/platform/windows/collection_view_handler.cpp`
 (ViewChanged wiring + initial-position arming, gap (3) documented not fixed).
+
+## `carousel_page`/windows gap (3) CLOSED — real motion on both port columns; a NEW, smaller, precisely
+## diagnosed gap (no snap points) is what is left (2026-08-25)
+
+Follow-up to the entry immediately above, which root-caused gap (3) but explicitly left it unfixed
+("Closing this needs laying out (at minimum) the current item's neighbours with real scrollable extent
+and re-realizing across a settle... not a one-line fix"). Closed this pass, plus one thing the diagnosis
+did not anticipate that turned out to be the ACTUAL remaining blocker once the extent existed.
+
+**Fix (1) — realize every item, not just the current one, each at its own absolute page slot.**
+`src/platform/windows/collection_view_handler.cpp`'s `is_carousel` branch of `arrange_native` now loops
+`index = 0..item_count-1` (previously it realized only the item at the clamped current `Position`) and
+places each at `cursor = index * viewport_main`, so the host Canvas panel's `Width`/`Height` — and
+therefore the ScrollViewer's `Extent` — spans the WHOLE carousel, not one viewport. Realizing every item
+EAGERLY (not a small prev/current/next window) was a deliberate choice, not the lazy half-measure the
+prior entry's "at minimum the neighbours" language might suggest, for two reasons found while
+implementing:
+
+1. This port never implements native UI virtualization/recycling anywhere (`carousel_view.hpp`'s own
+   header note: "no virtualization realizes real child views in the port's simulator"), and this exact
+   function already realizes every item of a grid/list CollectionView eagerly, every pass, in the
+   flow just below the `is_carousel` branch — a carousel doing the same is consistent with the file,
+   not a new pattern.
+2. It is the ONLY model consistent with `on_connect_handler`'s pre-existing settle math
+   (`round(HorizontalOffset / ViewportWidth)`, deliberately mirroring apple/AppKit's
+   `collection_view_handler.mm` — a REAL `NSCollectionView` whose real virtualization lays out item i at
+   absolute document offset `i * page`, confirmed by reading that file's `scrollViewDidEndLiveScroll:`).
+   That formula treats the offset as an ABSOLUTE page index. A small realized window around the current
+   position would break it for any window not starting at item 0 (the settle code would need a
+   `realized_start +` term added, which this fix deliberately left alone per the task's own
+   instruction), and — separately and more importantly — it would go STALE after every settle: nothing
+   re-invokes `arrange_native` when `carousel->set_position()` writes back (verified: it is a bare
+   bindable-property `set()` with no mapper and no invalidate — `position_property()` has no registered
+   mapper anywhere in this tree). Realizing every item sidesteps both problems: layout is
+   position-independent, so the diagnosis's other open question ("re-realize across a settle") simply
+   does not apply — every pass already lays out every item at its true absolute slot. For the gallery's
+   own 3-card `carousel_page`, "realize everything eagerly" costs nothing observable; a carousel with a
+   large data source would need real virtualization to avoid a large one-time realize cost, which is out
+   of scope here and consistent with this port's existing no-virtualization stance everywhere else.
+
+**Fix (2) — the ACTUAL remaining blocker, found only by instrumenting the live VM, not by re-reading
+`src/`.** With (1) alone, a full recapture still measured 0.0000% self-motion on both themes — the exact
+same frozen result as before. Live diagnosis (below) found the cause is NOT the extent: WinUI's
+`ScrollViewer.HorizontalScrollBarVisibility` / `VerticalScrollBarVisibility` both DEFAULT TO `Disabled`,
+and `Disabled` — unlike `Hidden` — disables scrolling on that axis outright, independent of how much
+content there is. `scroll_view_handler.cpp` already carries this exact fact for the plain `ScrollView`
+(its own comment plus a `viewer.HorizontalScrollBarVisibility(Disabled)` branch for the no-scroll case),
+but `collection_view_handler.cpp` never ported the carousel's half of it — grep-verified zero matches for
+`ScrollBarVisibility` anywhere in the file before this fix. The C# oracle sets exactly this pair per
+orientation in `CarouselViewHandler.Windows.cs`'s `CreateCarouselListLayout`
+(`ScrollViewer.Set{Horizontal,Vertical}ScrollBarVisibility` — `Auto` on the scrolling axis, `Disabled` on
+the other); ported here 1:1 as an unconditional (idempotent) pair-set at the top of the `is_carousel`
+branch, keyed off the same `vertical` bool the rest of the branch already uses.
+
+**How (2) was actually found — live VM instrumentation, decisive and reproducible.** After landing (1),
+a manual live test (`Session1Agent` CLI, launch → present → screenshot → synthetic touch swipe →
+screenshot, mirroring this file's own "Decisive live test" methodology from the entry two above) showed
+the swipe produced a byte-identical frame — confirming the recapture result was real, not a scoring
+artifact — while the SAME script against `MauiReference.exe` paged Card 1 → Card 3 as expected,
+confirming the swipe injection itself still works. Temporary diagnostic logging (removed before this
+commit; gated on an env var so it shipped as dead code to nobody) was added at three points: inside
+`arrange_native` right after `panel.Width()`/`Height()` are set, on the Canvas panel's own `SizeChanged`
+event (to see the value AFTER WinUI's own async layout catches up, not the stale synchronous read), and
+at the top of `on_connect_handler`'s `ViewChanged` lambda (to see whether WinUI's DirectManipulation
+gesture recognizer even attempted a pan). The decisive line, captured on `panel.SizeChanged` once the
+panel had genuinely resized to the full multi-item extent:
+
+    panel.SizeChanged: panel.ActualW=3024.00 sv.ExtentW=1008.00 sv.ViewportW=1008.00 sv.ScrollableW=0.00
+
+`panel.ActualWidth` (the REAL content width, confirming fix (1) worked) was 3024 against a 1008-wide
+viewport, yet `ScrollViewer.ExtentWidth` read exactly 1008 — pinned to the viewport, not the content —
+and `ViewChanged` never fired once during the swipe (confirming WinUI's manipulation engine decided
+up-front there was nothing to pan, rather than starting a manipulation that then measured zero
+distance). Setting `HorizontalScrollBarVisibility(Auto)` made the SAME diagnostic read
+`sv.ExtentW=3024.00 sv.ScrollableW=2016.00`, and the SAME manual swipe test then produced 55
+`ViewChanged` events (54 intermediate + 1 settled) and a real Card 1 → Card 2 page transition —
+confirmed by screenshot diff (previously `bbox of diff: None`, now a real content-region diff).
+
+**VERIFIED via the real production pipeline.** `python3 tools/parity/recapture.py --platforms windows
+--examples carousel_page`, full rebuild (`gallery` + `gallery_xaml`) preceding it: all 6 GIF assemblies
+that previously failed with "gif assembly failed (14 frames)" (ffmpeg's own `_distinct_frames(out) < 2`
+guard in `gif.py` — the burst was a single repeated frame wearing an animation's name) now succeed with
+real per-frame motion. `comparison.json`'s `carousel_page`/`windows` cell: `pixel`/`pixel_xaml` status
+went from RED (`MOTION MISMATCH: MAUI animates, C++ is frozen`, the state the prior entry left it in) to
+**yellow** — self-motion dark theme is now an exact match both columns (`self-motion MAUI 1.1453% (9382
+px) vs C++ 1.1453% (9382 px)`, 14/14 frames paired, worst SSIM 0.9902); light theme shows real but
+asymmetric motion (`MAUI 0.0247% (202 px) vs C++ 1.1447% (9377 px)`, flagged `SELF-MOTION ASYMMETRY 46x`
+— explained below, not a scoring bug).
+
+**Why yellow and not green — a genuinely different, smaller, precisely diagnosed remaining gap: no snap
+points.** Pulling the final frame of each published GIF: `maui_light` settles on "Card 3"; `cpp_light`
+settles on "Card 2". Both are REAL destinations reached by REAL motion — this is not the old
+frozen-vs-animating asymmetry, it is two different but genuine landing points. Root cause: WinUI's real
+`ListView` (the C# oracle's actual carousel host) has native mandatory snap points and can fling PAST
+the immediate next item to the one after it on a fast enough throw; this port's Canvas hosted in a plain
+`ScrollViewer` implements no `IScrollSnapPointsInfo` at all, so it decelerates smoothly under the same
+injected touch gesture and stops wherever inertia runs out — which this specific swipe's velocity puts
+one page short of MAUI's landing. The dark-theme cell's coincidentally-identical self-motion NUMBER
+(1.1453% both columns) is itself evidence for this exact story, not against it: the per-frame PAIRED
+comparison still fails (`worst SSIM 0.9902`, `frames-disagree`) because "Card 2" and "Card 3" differ by
+almost exactly the same number of pixels from "Card 1" (single-digit glyph swap, same position, same
+size) — so the totals coincide while the actual paired content does not.
+
+**Deliberately NOT fixed this pass**: implementing real snap points would mean authoring a custom
+`IScrollSnapPointsInfo` COM composition on the Canvas panel (or switching carousel to a genuinely
+different native host, e.g. WinUI's own `ListView`, matching the C# oracle exactly rather than
+approximating it) — a materially different, larger piece of work than either of the two fixes above, and
+one that risks the same shared-file blast radius this task was explicitly warned to avoid ("don't let a
+carousel-specific change leak into the non-carousel path"), since any change to snap behavior on the
+shared Canvas+ScrollViewer layout seam is reachable from the grid/list path too. Left as an honestly
+diagnosed, separate, smaller gap for the next pass, same discipline as this file's other left-open
+findings (`swipe_refresh`, the iOS radio-ring render, etc.) — not forced into a fragile partial fix to
+turn the cell green.
+
+**A related finding, not chased down this pass**: fix (2)'s `ScrollBarVisibility` default-`Disabled` fact
+is set only inside the `is_carousel` branch. The regular (non-carousel) grid/list path just below it in
+this same file never sets `ScrollBarVisibility` either — grep-verified, zero matches outside the fix
+just landed — so it is plausible that touch/swipe-driven panning of an ordinary Windows `CollectionView`
+is similarly non-functional today (mouse-wheel scrolling, e.g. `scroll_view.toml`'s `action = "scroll"`,
+is a different WinUI code path unaffected by this). Not measured — no driven touch-scroll scenario
+against a non-carousel Windows CollectionView page currently exists in this board to confirm either way
+— flagged for a follow-up investigation rather than asserted as fact.
+
+**Regarding the `Position`/`CurrentItem` XAML gap (checked, not a new regression):** the reference app's
+`gap_carousel_position_binding.xaml` sets `Position="{Binding CurrentPosition}"` with `CurrentPosition =
+1` (real MAUI starts on "Slide 2") — exactly the nonzero-initial-position case this entry's KNOWN GAP
+comment flags. Checked and ruled out as a regression: that page has no Windows captures at all (not on
+this platform's board), and even if it were, `register_xaml_items.cpp` already documents `Position`/
+`CurrentItem` as UNSUPPORTED in the XAML loader (a literal `Position="1"` throws at load) — a pre-existing,
+separately-tracked gap. So the port's `carousel_view::position()` stays at its default 0 for that page
+regardless of this fix, identically before and after: this pass neither fixes nor worsens it.
+`carousel_view.xaml` (the other CarouselView-named page on this board) sets no `ItemsSource` at all, so
+`item_count() == 0` and it never enters the branch this fix touches.
+
+**Regression check.** Change is confined to `src/platform/windows/collection_view_handler.cpp` (no
+shared/core files touched this pass — unlike gap (3)'s prior partial fix, which did touch the shared
+`.cpp`/`.hpp`). Full headless suite: 4020/4020 passed, 1 skipped (unchanged). `tools/gate.sh --fast`
+(headless + tidy + apple) run for the standing pre-push discipline even though none of those three lanes
+compile Windows-platform code; it exited FAIL on 5 pre-existing `apple` lane failures (entry-seam
+delegate teardown, `application_theme`/`app_theme_binding` OS-theme-dependent tests) — all unrelated to
+this change (none touch `collection_view`, `carousel`, or any Windows-platform file) and none newly
+introduced by it. Two full guest rebuild+recapture cycles (one per fix landed) confirm (1) alone was
+insufficient and (1)+(2) together are what closes the RED.
+
+Files: `src/platform/windows/collection_view_handler.cpp` only.

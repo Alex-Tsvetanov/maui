@@ -118,11 +118,16 @@
 // CAROUSEL PAGED PATH: CarouselView's one-item-per-page layout
 // ──────────────────────────────────────────────────────────────────────────────────────────────────
 // CarouselView reuses this handler wholesale (carousel_view.cpp registers collection_view_handler for
-// it), but a carousel PAGES — it shows ONE item at a time — not this file's all-items flow. arrange_native
-// takes an early is_carousel branch (SHAPE mirrors src/platform/android/collection_view_handler.cpp's
-// "wave 25" CarouselView paged path 1:1: dynamic_cast the virtual view, realize ONLY the item at the
-// clamped current Position, skip the header/items/empty/footer flow below via is_carousel) but SIZING is
-// Windows-specific, not android's both-axes-full-viewport framing:
+// it), but a carousel PAGES — it shows ONE item at a time — not this file's all-items flow (SHAPE
+// mirrors src/platform/android/collection_view_handler.cpp's "wave 25" CarouselView paged path:
+// dynamic_cast the virtual view, skip the header/items/empty/footer flow below via is_carousel). Unlike
+// android/apple, this branch REALIZES every item eagerly (not just the current one, and not native
+// UI-virtualized/recycled — this port never does that anywhere, see carousel_view.hpp's header note),
+// each at its own absolute page slot `index * viewport_main`, so the ScrollViewer's native Extent/
+// Viewport arithmetic gives it a real ScrollableWidth/Height to page through — see the in-line comment
+// at the `is_carousel` branch below for the full "why eager, why absolute" reasoning and the
+// PARITY_REVIEW.md 2026-08-25 entry it closes. SIZING is Windows-specific, not android's both-axes-
+// full-viewport framing:
 //   ORACLE: CarouselViewHandler.Windows.cs GetItemWidth()/GetItemHeight() (~line 291-313) — the CROSS
 //   axis reports the FULL ActualWidth/ActualHeight (unreduced); only the MAIN axis is reduced by THAT
 //   axis's two PeekAreaInsets plus ItemsLayout.ItemSpacing, both floored at 0 via Math.Max(x, 0). e.g. for
@@ -134,9 +139,10 @@
 //   item's main-axis origin is that leading peek inset, so the item's far edge lands
 //   `PeekTrailing + ItemSpacing` short of the viewport's far edge — the visible "peek" sliver of the next
 //   page. The cross-axis origin is 0 (unreduced, matching GetItemHeight/Width leaving that axis alone —
-//   there is no peek across the non-scrolling axis). DEFERRED, same as android: live swipe paging (no
-//   native gesture wiring in this partial at all — see the SELECTION CHROME note above); the gallery's
-//   Prev/Next buttons drive Position programmatically, which re-runs arrange_native and re-realizes.
+//   there is no peek across the non-scrolling axis). Live swipe paging now WORKS (real touch injection
+//   + on_connect_handler's ScrollViewer.ViewChanged writeback, both landed 2026-08-25 — see this file's
+//   `on_connect_handler`), in addition to the gallery's Prev/Next buttons driving Position
+//   programmatically, which also re-runs arrange_native and re-realizes.
 //   SCOPE CUT (also matches android): `is_carousel` swallows the empty/else branch whole, so an empty-
 //   source carousel renders nothing at all — no empty-view fallback — same as the android paged path,
 //   which never realizes an empty-view branch for a carousel either.
@@ -240,9 +246,9 @@ namespace
     // above copied Padding/Margin from but not this. The minimum applies to the CONTAINER, not the
     // header's content — the content renders at its natural height inset by Padding, and the container
     // tops up to MinHeight only if `lead_padding + natural_content_extent` falls short (see the
-    // realize_full_width is_group_header branch below). DOCUMENTED DEVIATION (parity rule 4 (RENDER-BREAKS-TIES)): neither
-    // theme resource's value is derivable from `src/` (no WindowsAppSDK generic.xaml on this machine),
-    // so the VALUE is measured from ground truth. It is 44 on BOTH paths.
+    // realize_full_width is_group_header branch below). DOCUMENTED DEVIATION (parity rule 4 (RENDER-BREAKS-TIES)):
+    // neither theme resource's value is derivable from `src/` (no WindowsAppSDK generic.xaml on this machine), so the
+    // VALUE is measured from ground truth. It is 44 on BOTH paths.
     //
     // Both captures agree once the label's ink inset is MEASURED instead of assumed. That inset is
     // calibrated off the port's own pre-fix geometry, where every term is known from the code: the old
@@ -487,8 +493,8 @@ namespace
     // left padding already clearing the square -- i.e. content offset = 12 + 20 = 32 measured from the
     // LISTVIEWITEM CONTENT ORIGIN. The port's cell `slot.x` is not that origin (it sits ~4px right of it,
     // which is also why left_inset is 14 rather than the oracle's 12 yet lands the box at MAUI's exact
-    // x27-46), so 32 cannot be transplanted directly. Per parity rule 4 (RENDER-BREAKS-TIES) the render decides the value;
-    // the oracle decides that a single constant offset is the right SHAPE for it.
+    // x27-46), so 32 cannot be transplanted directly. Per parity rule 4 (RENDER-BREAKS-TIES) the render decides the
+    // value; the oracle decides that a single constant offset is the right SHAPE for it.
     //
     // Note this reverses the DIRECTION of the previous pass's premise, which read MAUI as insetting content
     // flush past the checkbox's right edge. It does not: MAUI's content starts UNDER the square (its first
@@ -641,8 +647,8 @@ namespace
             // check internally, so no XAML FontSize governs the actual pixels. 16 is therefore
             // corroborated, not cited: measured against the MAUI capture, the previous 10 rendered the
             // glyph ink at 8x6 px where MAUI's is 12x9 — a 1.5x shortfall, i.e. ~15, which lands on 16
-            // within the +/-0.5px quantisation of an integer ink bbox. Per parity rule 4 (RENDER-BREAKS-TIES) the render
-            // wins; the XAML sibling is what makes 16 the principled reading of that measurement.
+            // within the +/-0.5px quantisation of an integer ink bbox. Per parity rule 4 (RENDER-BREAKS-TIES) the
+            // render wins; the XAML sibling is what makes 16 the principled reading of that measurement.
             glyph.FontSize(16);
             // ListViewItemCheckBrush -> TextOnAccentFillColorPrimaryBrush (generic.xaml:1778), whose colour
             // is theme-dependent and INVERTS: #FFFFFF light (:7552) but #000000 DARK (:1973). The hardcoded
@@ -936,8 +942,7 @@ namespace maui::controls
                     {
                         return; // not yet laid out — nothing to divide by
                     }
-                    set_position_from_scroll(
-                        static_cast<int>(std::lround(live_viewer.HorizontalOffset() / page)));
+                    set_position_from_scroll(static_cast<int>(std::lround(live_viewer.HorizontalOffset() / page)));
                 })
                 .value;
     }
@@ -1175,10 +1180,48 @@ namespace maui::controls
         };
 
         // ── CarouselView paged path (see this file's header "CAROUSEL PAGED PATH" comment for the full
-        // oracle citation) — realize ONLY the item at the clamped current Position, WINDOWS-sized (cross
-        // axis full-viewport, main axis reduced by that axis's two PeekAreaInsets + ItemSpacing, floored
-        // at 0), and skip the header/items/empty/footer flow below entirely via is_carousel — a carousel
-        // carries none of that chrome (mirrors android's identical is_carousel gating, different sizing).
+        // oracle citation) — WINDOWS-sized (cross axis full-viewport, main axis reduced by that axis's
+        // two PeekAreaInsets + ItemSpacing, floored at 0), and skips the header/items/empty/footer flow
+        // below entirely via is_carousel — a carousel carries none of that chrome (mirrors android's
+        // identical is_carousel gating, different sizing).
+        //
+        // REALIZES EVERY ITEM (not just the current one), each at its own ABSOLUTE page slot
+        // `cursor = index * viewport_main`. This closes the RED root-caused in PARITY_REVIEW.md's
+        // 2026-08-25 carousel_page/windows entry: realizing only the current item pinned the host
+        // panel's Width/Height to exactly one viewport on every pass, so ScrollableWidth/Height
+        // (Extent - Viewport) was always 0 — nothing for a settled drag to move through, independent of
+        // gesture correctness.
+        //
+        // Realizing the WHOLE source eagerly (not a small prev/current/next window) is deliberate, not
+        // a half-measure: this port never implements native UI virtualization/recycling anywhere
+        // (carousel_view.hpp's own header note: "no virtualization realizes real child views in the
+        // port's simulator"), and this exact function already realizes every item of a grid/list
+        // CollectionView eagerly, every pass, below (the item loop past this branch) — a carousel doing
+        // the same is consistent with the file, not a new pattern. It is ALSO the only model consistent
+        // with on_connect_handler's settle math (`round(HorizontalOffset / ViewportWidth)`, mirroring
+        // apple/collection_view_handler.mm's `lround(offset / page)`): that formula treats the offset as
+        // an ABSOLUTE page index, which only holds when item i's page truly sits at `i * viewport_main`
+        // from the panel origin — exactly what a real native ListView (CreateCarouselListLayout's
+        // ListViewBase, the actual WinUI oracle) or android's RecyclerView + PagerSnapHelper lays out. A
+        // small realized WINDOW around the current position would break that formula for any window not
+        // starting at item 0 (on_connect_handler would need a `realized_start +` term added, which this
+        // task deliberately left alone), AND would go stale after every settle — nothing re-invokes
+        // arrange_native when `carousel->set_position()` writes back (it is a bare bindable-property
+        // set with no mapper and no invalidate; grep-verified — position_property() has no registered
+        // mapper anywhere in this tree). Realizing every item sidesteps both problems at once: layout is
+        // position-independent, so "re-realize across a settle" (the diagnosis's other open question)
+        // does not apply — every pass already lays out every item at its true absolute slot.
+        //
+        // KNOWN GAP, not fixed here (does not affect the gallery's own carousel_page, which never sets
+        // an initial Position/CurrentItem and always starts at 0 — grep-verified against
+        // port/maui-reference/pages/carousel_page.xaml): a carousel whose initial `position()` is
+        // NONZERO would still visually open on item 0, because nothing here calls
+        // `ScrollViewer.ChangeView` to jump the initial HorizontalOffset to `position * viewport_main` —
+        // the C# oracle's `UpdateInitialPosition` calls `ListViewBase.ScrollIntoView(item)` for exactly
+        // this. Not added speculatively: WinUI's ScrollViewer Extent/ScrollableWidth only updates after
+        // a layout pass runs on the panel's just-set Width, so a same-pass ChangeView call would clamp
+        // against the STALE (pre-resize) extent — a live-VM-only thing to get right, and no page in this
+        // gallery exercises it today.
         const bool is_carousel = dynamic_cast<carousel_view*>(view) != nullptr;
         if (is_carousel && src != nullptr && src->item_count() > 0)
         {
@@ -1186,28 +1229,25 @@ namespace maui::controls
             // here too, rather than threading the first dynamic_cast's result through the branch).
             auto* const carousel = dynamic_cast<carousel_view*>(view);
             const int item_count = src->item_count();
-            // CarouselView.Position clamped into [0, count-1] (the settled page; a fresh carousel is at
-            // 0) — the same clamp android's paged path applies.
-            const int position = std::clamp(carousel != nullptr ? carousel->position() : 0, 0, item_count - 1);
-            const boxed_item value = src->item(index_path{.section = 0, .item = position});
             const std::shared_ptr<data_template> item_t = view->item_template();
-            const std::shared_ptr<data_template> resolved =
-                item_t ? resolve_item_template(item_t, value, container) : nullptr;
 
-            winui::UIElement native{nullptr};
-            std::shared_ptr<maui::core::bindable_object> realized =
-                realize_template_content(context, resolved, value, native);
-            if (native == nullptr)
+            // ScrollBarVisibility, not just Extent: a bare ScrollViewer's HorizontalScrollBarVisibility
+            // AND VerticalScrollBarVisibility both DEFAULT TO Disabled, which — unlike Hidden — disables
+            // scrolling on that axis outright (ScrollableWidth/Height reads 0 no matter how wide the
+            // content is; measured live on the VM: Canvas.ActualWidth=3024 against a 1008-wide viewport
+            // still read ScrollViewer.ExtentWidth=1008). scroll_view_handler.cpp already carries this
+            // exact fact (its own comment + `viewer.HorizontalScrollBarVisibility(Disabled)` default-off
+            // case) for the plain ScrollView; this file never ported the carousel's half of it.
+            // CarouselViewHandler.Windows.cs's CreateCarouselListLayout sets exactly this pair per
+            // orientation (`ScrollViewer.Set{Horizontal,Vertical}ScrollBarVisibility`, Auto on the
+            // scrolling axis / Disabled on the other) — ported here 1:1, each pass (idempotent, and
+            // this branch has no other per-pass cost gate to piggyback on).
+            if (const scroll_viewer viewer = as_scroll_viewer(platform->native))
             {
-                if (winui::UIElement boxed = boxed_view_native(context, value))
-                {
-                    native = boxed;
-                    realized = value.as_bindable();
-                }
-            }
-            if (native == nullptr)
-            {
-                native = make_text_block(value.text());
+                viewer.HorizontalScrollBarVisibility(vertical ? winui::Controls::ScrollBarVisibility::Disabled
+                                                              : winui::Controls::ScrollBarVisibility::Auto);
+                viewer.VerticalScrollBarVisibility(vertical ? winui::Controls::ScrollBarVisibility::Auto
+                                                            : winui::Controls::ScrollBarVisibility::Disabled);
             }
 
             // GetItemWidth()/GetItemHeight() (this file's header comment cites the exact oracle lines):
@@ -1215,6 +1255,7 @@ namespace maui::controls
             // floored at 0; CROSS axis = the viewport cross extent, unreduced. carousel_view::
             // peek_area_insets() (maui/controls/items/carousel_view.hpp) is the port's PeekAreaInsets
             // accessor; `spacing` (platform->item_spacing, bound above) mirrors ItemsLayout.ItemSpacing.
+            // Invariant across every item — hoisted out of the per-item loop below.
             const maui::core::thickness peek =
                 carousel != nullptr ? carousel->peek_area_insets() : maui::core::thickness{};
             const double viewport_main = vertical ? frame.height : frame.width;
@@ -1223,50 +1264,65 @@ namespace maui::controls
             const double item_main = std::max(0.0, viewport_main - peek_lead - peek_trail - spacing);
             const double item_cross = cross_extent;
 
-            // ORIGIN, NOT asserted as fact (the real WinUI Panel/margin arrange mechanics this depends on
-            // are not in `src/` — same caveat this file's footer bottom-anchor comment already carries).
-            // CreateCarouselListLayout's ListViewBase.Padding = PeekAreaInsets (all four sides) is the
-            // one piece that IS in the oracle, so the leading peek inset is used as the item's main-axis
-            // origin here: far edge lands `peek_trail + spacing` short of the viewport's far edge — the
-            // peek sliver. GetItemSpacing() (this file's header comment) returns a Thickness with the
-            // SAME spacing value on the leading edge only, which — if it is applied as a per-item margin
-            // by the real ListViewItem style, not accounted for separately here — would read as an
-            // ADDITIONAL `+ spacing` on this origin (trailing edge would then land exactly at `peek_trail`
-            // instead). Not distinguishable from `src/` alone and not visually checkable from this Mac
-            // (no WinUI toolchain here — see this file's build-verification note). Moot for the gallery's
-            // own carousel_page today: its CarouselView sets neither PeekAreaInsets nor ItemSpacing, so
-            // `peek_lead`/`peek_trail`/`spacing` are all 0 and both readings coincide. The cross axis
-            // origin is 0 either way — GetItemHeight/Width leaves that axis unreduced, so there is no
-            // cross-axis peek to make room for.
-            canvas::SetLeft(native, vertical ? 0.0 : peek_lead);
-            canvas::SetTop(native, vertical ? peek_lead : 0.0);
-            if (auto framework_element = native.try_as<winui::FrameworkElement>())
+            for (int index = 0; index < item_count; ++index)
             {
-                framework_element.Width(vertical ? item_cross : item_main);
-                framework_element.Height(vertical ? item_main : item_cross);
+                const boxed_item value = src->item(index_path{.section = 0, .item = index});
+                const std::shared_ptr<data_template> resolved =
+                    item_t ? resolve_item_template(item_t, value, container) : nullptr;
+
+                winui::UIElement native{nullptr};
+                std::shared_ptr<maui::core::bindable_object> realized =
+                    realize_template_content(context, resolved, value, native);
+                if (native == nullptr)
+                {
+                    if (winui::UIElement boxed = boxed_view_native(context, value))
+                    {
+                        native = boxed;
+                        realized = value.as_bindable();
+                    }
+                }
+                if (native == nullptr)
+                {
+                    native = make_text_block(value.text());
+                }
+
+                // ORIGIN, NOT asserted as fact (the real WinUI Panel/margin arrange mechanics this
+                // depends on are not in `src/` — same caveat this file's footer bottom-anchor comment
+                // already carries). CreateCarouselListLayout's ListViewBase.Padding = PeekAreaInsets
+                // (all four sides) is the one piece that IS in the oracle, so the leading peek inset is
+                // used as each item's main-axis origin within its own page slot: far edge lands
+                // `peek_trail + spacing` short of that page's far edge — the peek sliver. GetItemSpacing()
+                // (this file's header comment) returns a Thickness with the SAME spacing value on the
+                // leading edge only, which — if it is applied as a per-item margin by the real
+                // ListViewItem style, not accounted for separately here — would read as an ADDITIONAL
+                // `+ spacing` on this origin (trailing edge would then land exactly at `peek_trail`
+                // instead). Not distinguishable from `src/` alone and not visually checkable from this
+                // Mac (no WinUI toolchain here — see this file's build-verification note). Moot for the
+                // gallery's own carousel_page today: its CarouselView sets neither PeekAreaInsets nor
+                // ItemSpacing, so `peek_lead`/`peek_trail`/`spacing` are all 0 and both readings
+                // coincide. The cross axis origin is 0 either way — GetItemHeight/Width leaves that axis
+                // unreduced, so there is no cross-axis peek to make room for.
+                canvas::SetLeft(native, vertical ? 0.0 : cursor + peek_lead);
+                canvas::SetTop(native, vertical ? cursor + peek_lead : 0.0);
+                if (auto framework_element = native.try_as<winui::FrameworkElement>())
+                {
+                    framework_element.Width(vertical ? item_cross : item_main);
+                    framework_element.Height(vertical ? item_main : item_cross);
+                }
+                panel.Children().Append(native);
+                if (realized)
+                {
+                    arrange_realized_view(
+                        realized, vertical ? maui::graphics::rect{0.0, cursor + peek_lead, item_cross, item_main}
+                                           : maui::graphics::rect{cursor + peek_lead, 0.0, item_main, item_cross});
+                    platform->retained_natives.push_back(std::move(realized));
+                }
+                // Advance the content cursor by the WHOLE viewport main extent (not item_main, which is
+                // narrower by the peek insets) so each item lands on its own absolute page slot and the
+                // host panel below sizes to item_count pages — the same `cursor_dp += main_viewport_dp`
+                // device android's paged path uses, just repeated per item instead of once.
+                cursor += viewport_main;
             }
-            panel.Children().Append(native);
-            if (realized)
-            {
-                arrange_realized_view(realized, vertical ? maui::graphics::rect{0.0, peek_lead, item_cross, item_main}
-                                                         : maui::graphics::rect{peek_lead, 0.0, item_main, item_cross});
-                platform->retained_natives.push_back(std::move(realized));
-            }
-            // Advance the content cursor by the WHOLE viewport main extent (not item_main, which is
-            // narrower by the peek insets) so the host panel below sizes to exactly ONE page — the same
-            // `cursor_dp += main_viewport_dp` device android's paged path uses.
-            //
-            // KNOWN GAP, not fixed here: this is why a settled user pan can never produce motion even
-            // with on_connect_handler's ViewChanged wiring correctly hooked up -- the panel (and so the
-            // ScrollViewer's Extent) is sized to EXACTLY one viewport, every pass, for every position.
-            // ScrollableWidth/Height = Extent - Viewport is therefore always 0: there is no scrollable
-            // surface for a drag to move through, independent of gesture correctness. android's paged
-            // path is genuinely different in kind, not just mechanism -- its RecyclerView + PagerSnapHelper
-            // owns real multi-item virtualized content; this Canvas panel never lays out a neighbour.
-            // Closing this needs laying out (at minimum) the current item's neighbours with real
-            // scrollable extent and re-realizing across a settle, i.e. a second wave on this path, not a
-            // one-line fix -- see PARITY_REVIEW.md's 2026-08-25 carousel_page/windows entry.
-            cursor += viewport_main;
 
             // C# CarouselViewController2.UpdateInitialPosition: establish the initial page WITHOUT
             // writeback, THEN arm it -- arming before this first realize would let a startup ViewChanged
@@ -1440,7 +1496,8 @@ namespace maui::controls
                     // clamps -- so a linear row must use its true measured extent, and a grid row keeps
                     // its own SDK-default floor. k_grid_item_min_extent's comment carries the DOCUMENTED
                     // DEVIATION note: the SDK value isn't derivable from `src/`, so it is measured from the
-                    // ground-truth capture (parity rule 4 (RENDER-BREAKS-TIES)) instead of this port's prior 24 stand-in.
+                    // ground-truth capture (parity rule 4 (RENDER-BREAKS-TIES)) instead of this port's prior 24
+                    // stand-in.
                     //
                     // MEASURED: basic_grouping (LINEAR) puts MAUI's text rows at 104/122/142/161/180/199/
                     // ... -- a ~19px pitch, matched once a linear row uses its true measured extent
@@ -1659,8 +1716,9 @@ namespace maui::controls
         // Size the panel to the greater of the real content and the viewport (the scroll_view_handler
         // layout-seam pattern) so ScrollableWidth/Height falls out of native ScrollViewer arithmetic.
         // `!is_carousel` gated: the carousel branch above advances `cursor` by the bare viewport main
-        // extent with NO trailing spacing added (there is no next row to space away from — a carousel
-        // page IS the whole content), so subtracting `spacing` here would under-size a carousel whose
+        // extent PER ITEM with NO trailing spacing added after the last one (ItemSpacing is already
+        // folded into each page's own `item_main`, not appended between pages — see the is_carousel
+        // branch's per-item loop), so subtracting `spacing` here would under-size a carousel whose
         // ItemsLayout sets a nonzero ItemSpacing; every non-carousel path DOES append a trailing spacing
         // after its last row/band (realize_full_width's `cursor += ... + spacing`, the item loop's
         // `cursor += row_extent + spacing`), which is what this subtraction exists to drop.
