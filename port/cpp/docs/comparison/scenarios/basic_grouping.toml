@@ -1,0 +1,72 @@
+# Scenario for the `basic_grouping` page: capture at rest, then SWIPE (touch-injected drag, not a
+# mouse-wheel `scroll`) up over the grouped CollectionView so native touch-panning reveals the groups
+# below the fold.
+#
+# WHY THIS PAGE: twin basic_grouping.xaml has a CollectionView as the ContentPage's ONLY/ROOT child (no
+# wrapping ScrollView, no siblings) — so, unlike scroll_mode_test.xaml (a CollectionView nested inside a
+# VerticalStackLayout, which measures its stacking-axis children at Infinity, i.e. natural/full-content
+# height — VERIFIED DEAD: a full swipe there left maui_xaml/cpp/cpp_xaml byte-identical to `initial`,
+# because the CollectionView never gets bounded enough to need its OWN internal scroll — see git history
+# for that scenario, removed), the ContentPage here gives its single child the FULL WINDOW as a FINITE
+# measure constraint, so the CollectionView's own content genuinely overflows ITS OWN bounds and must
+# scroll internally. builder basic_grouping_page.hpp has ZERO .connect() calls (confirmed via full-file
+# grep) and sets no SelectionMode (defaults to None, so a drag cannot accidentally paint selection
+# chrome even if WinUI's tap-vs-pan gesture disambiguation were somehow fooled by it) — CONTROL-INTRINSIC
+# per TRIAGE.md's own methodology, even though this specific page predates that sweep.
+#
+# VERIFIED OVERFLOW directly against captures/windows/maui/basic_grouping_light.png: Avengers (12
+# members) + Fantastic Four (4) + Defenders (7) fill the 800px window and "Heroes for Hire" (a 4th of 6
+# SuperTeams() rosters) is already cut off at the very bottom edge — real, substantial overflow.
+#
+# THIS SCENARIO EXISTS TO TEST DIRECTMANIPULATION PANNING SPECIFICALLY, not just "does the list repaint
+# after a scroll". scroll_view.toml's (and box_view.toml's, selection_synchronization.toml's) `action =
+# "scroll"` is a mouse-wheel event (MOUSEEVENTF_WHEEL on Windows) — a WinUI ScrollViewer answers wheel
+# input through a completely different path than a touch/pen drag, which instead has to start a
+# DirectManipulation pan gesture (see carousel_page.toml's `cmd_drag` header comment: that gesture only
+# starts from a PT_TOUCH/PT_PEN-origin pointer, never PT_MOUSE). Hence `swipe`, not `scroll`, here.
+#
+# COORDINATE SPACE — fractions of the captured surface (0..1 on both axes), scaled against the presented
+# window rect on desktop, the Simulator screen rect on iOS, `wm size` on Android (full rationale in
+# carousel_page.toml). No interactive controls anywhere on this page, so any x/y clear of the title bar
+# lands safely.
+#
+# `steps`/`duration` mirror carousel_page.toml's calibrated touch-drag values (a deliberate PAN, not a
+# flick — the intermediate move events are what a real finger-drag needs to start/continue the
+# manipulation).
+#
+# TO RECALIBRATE: find the pixel you want in any run frame, divide by that image's width/height.
+#
+# WHAT THIS SCENARIO ACTUALLY GUARDS: NOT a "stuck un-scrollable" regression — measured directly (revert
+# the `!is_carousel` block in src/platform/windows/collection_view_handler.cpp's arrange_native, rebuild,
+# recapture this page), a plain VERTICAL CollectionView already scrolled on Windows via a bare
+# ScrollViewer's native VerticalScrollBarVisibility default (Visible, not Disabled — only the HORIZONTAL
+# default is Disabled, confirmed separately by the carousel's own live measurement). So this page moving
+# is not itself proof that block does anything; it is a byte-identical-render witness (that block was
+# confirmed render-neutral here before/after) plus the touch-pan pipeline's regression guard. If this
+# ever reads NOTHING MOVED, first suspect the swipe/InjectTouchInput pipeline itself (carousel_page.toml
+# exercises the identical mechanism), not the ScrollBarVisibility wiring.
+
+tag = "basic_grouping"
+themes = ["light"]
+timeout_seconds = 30
+
+[[steps]]
+name = "initial"          # no action -> settle + screenshot. MUST stay named "initial": that is the
+                          # frame import_run_captures.initial_frame copies to the board still, so the
+                          # board PNG is byte-identical to a no-scenario run.
+
+[[steps]]
+name = "scrolled-up"
+action = "swipe"
+at = [0.5, 0.85]          # inside the Defenders group's item rows, well clear of the title bar
+to = [0.5, 0.15]          # drag the touch point UP -> content pans up, revealing lower groups
+steps = 20                # a deliberate PAN, not a flick: panning needs the intermediate move events
+                          # (see header comment)
+duration = 0.5            # 25ms per move — above the ~20ms floor where both OSes coalesce moves
+# SETTLE: an inertial/animated surface is STILL MOVING when the default STEP_SETTLE (0.6s)
+# fires, so the shot measures WHERE THE FLING HAD GOT TO, not parity. Measured on box_view/ios
+# (4 launches per column, same injected gesture): at 0.6s MAUI's OWN landings spread 52px
+# (1694/1658/1684/1642); at 2.0s all 8 launches across both apps land at 1690px and rows
+# 200..1216 are byte-identical. Not a scorer change -- it photographs the at-rest state the
+# page actually reaches, which is what every undriven page on the board is already compared at.
+settle = 2.0

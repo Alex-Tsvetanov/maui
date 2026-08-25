@@ -190,6 +190,7 @@
 #include "maui/core/i_maui_context.hpp"
 #include "maui/core/i_view.hpp"
 #include "maui/core/i_view_handler.hpp"
+#include "maui/core/scroll_bar_visibility.hpp"
 #include "maui/core/type_tag.hpp"
 #include "maui/core/view_chrome_ops.hpp"
 #include "maui/graphics/rect.hpp"
@@ -277,6 +278,32 @@ namespace
     canvas as_panel(void* native)
     {
         return as_scroll_viewer(native).Content().as<canvas>();
+    }
+
+    // ItemsViewHandler.Windows.cs's Update{Horizontal,Vertical}ScrollBarVisibility, adapted for this
+    // file's bare ScrollViewer (this handler realizes NO real ListViewBase — see this file's header
+    // comment — so, unlike the oracle, there is no native control-template default to read back from;
+    // the value a real ListViewBase's Fluent style would resolve to for the scrolling vs. cross axis is
+    // reproduced directly instead — same shape the is_carousel branch below already hardcodes for its
+    // own two axes). Each axis resolves INDEPENDENTLY, unlike scroll_view_handler.cpp's
+    // apply_scroll_bar_visibility: Always/Never are honoured even on the cross axis (the oracle shows a
+    // bar there too — ScrollableWidth/Height on that axis just stays 0 regardless, since this handler
+    // never lets the cross axis overflow). `scroll_axis` is true for the axis the ItemsLayout actually
+    // scrolls along (main axis), matching `vertical` at each call site below.
+    winui::Controls::ScrollBarVisibility resolve_bar_visibility(maui::core::scroll_bar_visibility value,
+                                                                bool scroll_axis)
+    {
+        switch (value)
+        {
+            case maui::core::scroll_bar_visibility::always:
+                return winui::Controls::ScrollBarVisibility::Visible;
+            case maui::core::scroll_bar_visibility::never:
+                return winui::Controls::ScrollBarVisibility::Hidden;
+            case maui::core::scroll_bar_visibility::default_:
+            default:
+                return scroll_axis ? winui::Controls::ScrollBarVisibility::Auto
+                                   : winui::Controls::ScrollBarVisibility::Disabled;
+        }
     }
 
     // Measure a BARE native UIElement (the default, no-template TextBlock cell/header/footer) at `cross`
@@ -1223,6 +1250,42 @@ namespace maui::controls
         // against the STALE (pre-resize) extent — a live-VM-only thing to get right, and no page in this
         // gallery exercises it today.
         const bool is_carousel = dynamic_cast<carousel_view*>(view) != nullptr;
+
+        // PLAIN grid/list path's half of the same bare-ScrollViewer gap the is_carousel branch below
+        // documents and fixes for itself — NARROWER than that branch's own comment implies, per two
+        // live measurements on this guest: a bare ScrollViewer's Horizontal/VerticalScrollBarVisibility
+        // do NOT share one default. HorizontalScrollBarVisibility defaults to Disabled (the carousel's
+        // own live measurement: Canvas.ActualWidth=3024 against a 1008-wide viewport still read
+        // ExtentWidth=1008/ScrollableWidth=0 until set to Auto — a HORIZONTAL-axis reading). But
+        // VerticalScrollBarVisibility defaults to Visible, NOT Disabled: reverting this exact block,
+        // rebuilding on the guest (confirmed via dumpbin — the resolve_bar_visibility symbol was
+        // genuinely absent), and driving a real vertical CollectionView (basic_grouping, 6 groups,
+        // ~35 items, well past the viewport) still panned it byte-identically to both the pre-revert
+        // and post-restore captures. So a plain VERTICAL list already scrolled on Windows before this
+        // block existed — this closes two narrower, still-real gaps instead: (1) a plain HORIZONTAL
+        // (non-carousel) grid/list, which never worked, same mechanism as the carousel bug; (2) an
+        // explicit Always/Never override on either axis, which the mapper already tracked into
+        // platform->{horizontal,vertical}_bar_visibility (map_{horizontal,vertical}_scroll_bar_
+        // visibility below) but no Windows partial ever read — confirmed dead by grep before this
+        // change. Applied unconditionally (not gated on item_count, unlike the carousel branch): a real
+        // ListViewBase's scroll configuration exists whether or not it currently has any items.
+        // `vertical` (bound above from platform->orientation) is this ItemsLayout's own scrolling axis
+        // — resolve_bar_visibility's `scroll_axis` argument. RENDER-BREAKS-TIES: Default on the
+        // scrolling axis resolves to Auto here rather than mirroring the native Visible/Disabled split
+        // exactly, but the two are confirmed RENDER-IDENTICAL at rest (same byte-identical basic_
+        // grouping capture) — Windows' dynamic overlay scrollbars don't visibly distinguish Auto from
+        // Visible until actively scrolling, so Auto (matching the carousel branch's own existing choice
+        // and the C# oracle's own Default fallback shape) was kept rather than special-cased per axis.
+        if (!is_carousel)
+        {
+            if (const scroll_viewer viewer = as_scroll_viewer(platform->native))
+            {
+                viewer.HorizontalScrollBarVisibility(
+                    resolve_bar_visibility(platform->horizontal_bar_visibility, !vertical));
+                viewer.VerticalScrollBarVisibility(resolve_bar_visibility(platform->vertical_bar_visibility, vertical));
+            }
+        }
+
         if (is_carousel && src != nullptr && src->item_count() > 0)
         {
             // Redundant with is_carousel above (deliberate — android's identical paged path re-casts
@@ -1232,12 +1295,17 @@ namespace maui::controls
             const std::shared_ptr<data_template> item_t = view->item_template();
 
             // ScrollBarVisibility, not just Extent: a bare ScrollViewer's HorizontalScrollBarVisibility
-            // AND VerticalScrollBarVisibility both DEFAULT TO Disabled, which — unlike Hidden — disables
-            // scrolling on that axis outright (ScrollableWidth/Height reads 0 no matter how wide the
-            // content is; measured live on the VM: Canvas.ActualWidth=3024 against a 1008-wide viewport
-            // still read ScrollViewer.ExtentWidth=1008). scroll_view_handler.cpp already carries this
-            // exact fact (its own comment + `viewer.HorizontalScrollBarVisibility(Disabled)` default-off
-            // case) for the plain ScrollView; this file never ported the carousel's half of it.
+            // DEFAULTS TO Disabled, which — unlike Hidden — disables scrolling on that axis outright
+            // (ScrollableWidth/Height reads 0 no matter how wide the content is; measured live on the
+            // VM: Canvas.ActualWidth=3024 against a 1008-wide viewport still read ScrollViewer.
+            // ExtentWidth=1008). CORRECTION: an earlier version of this comment claimed
+            // VerticalScrollBarVisibility shares that default — it does NOT. A later live test (revert
+            // + rebuild + drive a real vertical CollectionView, see the `!is_carousel` block below)
+            // found the native vertical default is Visible, i.e. already scrollable; irrelevant here
+            // regardless, since this branch sets BOTH axes explicitly on every pass either way.
+            // scroll_view_handler.cpp already carries the horizontal-default fact (its own comment +
+            // `viewer.HorizontalScrollBarVisibility(Disabled)` default-off case) for the plain
+            // ScrollView; this file never ported the carousel's half of it.
             // CarouselViewHandler.Windows.cs's CreateCarouselListLayout sets exactly this pair per
             // orientation (`ScrollViewer.Set{Horizontal,Vertical}ScrollBarVisibility`, Auto on the
             // scrolling axis / Disabled on the other) — ported here 1:1, each pass (idempotent, and

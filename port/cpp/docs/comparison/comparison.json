@@ -1636,15 +1636,15 @@
       "windows": {
         "screenshots": {
           "maui": {
-            "light": "captures/windows/maui/basic_grouping_light.png",
+            "light": "captures/windows/maui/basic_grouping_light.gif",
             "dark": "captures/windows/maui/basic_grouping_dark.png"
           },
           "cpp": {
-            "light": "captures/windows/cpp/basic_grouping_light.png",
+            "light": "captures/windows/cpp/basic_grouping_light.gif",
             "dark": "captures/windows/cpp/basic_grouping_dark.png"
           },
           "xaml": {
-            "light": "captures/windows/xaml/basic_grouping_light.png",
+            "light": "captures/windows/xaml/basic_grouping_light.gif",
             "dark": "captures/windows/xaml/basic_grouping_dark.png"
           }
         },
@@ -1657,14 +1657,46 @@
           "review": ""
         },
         "pixel": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9999, 0.01% pixels differ",
-          "stills": "2d65c8b4a38b0664"
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-25-19_04_31, commit 18a7811846, 2026-08-25) \u2014 worst SSIM 0.9705 at frame 2 'scrolled-up' (1.29% pixels differ), mean SSIM 0.9852; per-frame diff% 0.01/1.29; self-motion MAUI 35.2546% (288806 px) vs C++ 35.9771% (294724 px) \u00b7 Dark: SSIM 0.9999, 0.01% pixels differ (single frame only) \u2014 NOT motion-scored: run 2026-08-24-00_15_44 has 0 MAUI and 0 C++ frames \u2014 MAUI and C++ contributed no comparable frame, so nothing can be paired (steps present: MAUI ['initial'], C++ ['initial']); a comparison by frame index would be a guess. Re-capture this page",
+          "stills": "2d65c8b4a38b0664",
+          "motion": {
+            "verdict": "FAIL",
+            "themes": {
+              "light": "FAIL",
+              "dark": "INVALID"
+            },
+            "why": "frames-disagree",
+            "run": "2026-08-25-19_04_31",
+            "commit": "18a7811846",
+            "captured_at": "2026-08-25",
+            "self": {
+              "maui": 35.2546,
+              "port": 35.9771
+            },
+            "stills": "2d65c8b4a38b0664"
+          }
         },
         "pixel_xaml": {
-          "status": "green",
-          "review": "Light: SSIM 1.0000, 0.01% pixels differ \u00b7 Dark: SSIM 0.9999, 0.01% pixels differ",
-          "stills": "c051200a105e3522"
+          "status": "yellow",
+          "review": "Light: MOTION 2 frames paired by step (run 2026-08-25-19_04_31, commit 18a7811846, 2026-08-25) \u2014 worst SSIM 0.9705 at frame 2 'scrolled-up' (1.29% pixels differ), mean SSIM 0.9852; per-frame diff% 0.01/1.29; self-motion MAUI 35.2546% (288806 px) vs C++ & XAML 35.9771% (294724 px) \u00b7 Dark: SSIM 0.9999, 0.01% pixels differ (single frame only) \u2014 NOT motion-scored: run 2026-08-24-00_15_44 has 0 MAUI and 0 C++ & XAML frames \u2014 MAUI and C++ & XAML contributed no comparable frame, so nothing can be paired (steps present: MAUI ['initial'], C++ & XAML ['initial']); a comparison by frame index would be a guess. Re-capture this page",
+          "stills": "c051200a105e3522",
+          "motion": {
+            "verdict": "FAIL",
+            "themes": {
+              "light": "FAIL",
+              "dark": "INVALID"
+            },
+            "why": "frames-disagree",
+            "run": "2026-08-25-19_04_31",
+            "commit": "18a7811846",
+            "captured_at": "2026-08-25",
+            "self": {
+              "maui": 35.2546,
+              "port": 35.9771
+            },
+            "stills": "c051200a105e3522"
+          }
         }
       }
     }

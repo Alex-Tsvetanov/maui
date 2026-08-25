@@ -10,8 +10,8 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <tr><td>iOS</td><td>168</td><td>4</td><td>0</td><td>0</td><td>0</td><td>166</td><td>5</td><td>1</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>169</td><td>3</td><td>0</td><td>0</td><td>0</td><td>170</td><td>2</td><td>0</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>163</td><td>9</td><td>0</td><td>0</td><td>0</td><td>165</td><td>7</td><td>0</td><td>0</td><td>0</td></tr>
-<tr><td>Windows</td><td>170</td><td>2</td><td>0</td><td>0</td><td>0</td><td>170</td><td>2</td><td>0</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>670</strong></td><td><strong>18</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>671</strong></td><td><strong>16</strong></td><td><strong>1</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td>Windows</td><td>169</td><td>3</td><td>0</td><td>0</td><td>0</td><td>169</td><td>3</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>669</strong></td><td><strong>19</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>670</strong></td><td><strong>17</strong></td><td><strong>1</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -8288,8 +8288,8 @@ Real .NET MAUI as **WinUI 3** (`Microsoft.UI.Xaml`) — MAUI's actual Windows ba
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 170 | 170 |
-| 🟡 Minor | 2 | 2 |
+| 🟢 Match | 169 | 169 |
+| 🟡 Minor | 3 | 3 |
 | 🔴 Major | 0 | 0 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -8433,20 +8433,24 @@ Light: SSIM 0.9946, 0.45% pixels differ · Dark: SSIM 0.9946, 0.45% pixels diffe
 
 Light: SSIM 0.9946, 0.45% pixels differ · Dark: SSIM 0.9946, 0.45% pixels differ
 
-### 10. Basic Grouping — 🟢/🟢
+### 10. Basic Grouping — 🟡/🟡 · ▶ both move — comparison FAIL
 <sub>basic_grouping</sub>
 
-<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/basic_grouping_light.png" /></td><td><img width="300px" src="captures/windows/cpp/basic_grouping_light.png" /></td><td><img width="300px" src="captures/windows/xaml/basic_grouping_light.png" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/basic_grouping_dark.png" /></td></tr></table>
+<table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/windows/maui/basic_grouping_light.gif" /></td><td><img width="300px" src="captures/windows/cpp/basic_grouping_light.gif" /></td><td><img width="300px" src="captures/windows/xaml/basic_grouping_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/windows/maui/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/windows/cpp/basic_grouping_dark.png" /></td><td><img width="300px" src="captures/windows/xaml/basic_grouping_dark.png" /></td></tr></table>
 
 ports GroupingGalleries/BasicGrouping.xaml (+ .xaml.cs) of the C# CollectionView gallery
 
-#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 0.9999, 0.01% pixels differ
+**Motion:** ❌ FAIL · `frames-disagree` · dark INVALID / light FAIL · <sub>run 2026-08-25-19_04_31 · 2026-08-25</sub>
 
-#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+Light: MOTION 2 frames paired by step (run 2026-08-25-19_04_31, commit 18a7811846, 2026-08-25) — worst SSIM 0.9705 at frame 2 'scrolled-up' (1.29% pixels differ), mean SSIM 0.9852; per-frame diff% 0.01/1.29; self-motion MAUI 35.2546% (288806 px) vs C++ 35.9771% (294724 px) · Dark: SSIM 0.9999, 0.01% pixels differ (single frame only) — NOT motion-scored: run 2026-08-24-00_15_44 has 0 MAUI and 0 C++ frames — MAUI and C++ contributed no comparable frame, so nothing can be paired (steps present: MAUI ['initial'], C++ ['initial']); a comparison by frame index would be a guess. Re-capture this page
 
-Light: SSIM 1.0000, 0.01% pixels differ · Dark: SSIM 0.9999, 0.01% pixels differ
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+
+**Motion:** ❌ FAIL · `frames-disagree` · dark INVALID / light FAIL · <sub>run 2026-08-25-19_04_31 · 2026-08-25</sub>
+
+Light: MOTION 2 frames paired by step (run 2026-08-25-19_04_31, commit 18a7811846, 2026-08-25) — worst SSIM 0.9705 at frame 2 'scrolled-up' (1.29% pixels differ), mean SSIM 0.9852; per-frame diff% 0.01/1.29; self-motion MAUI 35.2546% (288806 px) vs C++ &amp; XAML 35.9771% (294724 px) · Dark: SSIM 0.9999, 0.01% pixels differ (single frame only) — NOT motion-scored: run 2026-08-24-00_15_44 has 0 MAUI and 0 C++ &amp; XAML frames — MAUI and C++ &amp; XAML contributed no comparable frame, so nothing can be paired (steps present: MAUI ['initial'], C++ &amp; XAML ['initial']); a comparison by frame index would be a guess. Re-capture this page
 
 ### 11. Basic Swipe — 🟢/🟢
 <sub>basic_swipe</sub>

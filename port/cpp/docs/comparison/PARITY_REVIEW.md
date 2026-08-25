@@ -5535,3 +5535,89 @@ introduced by it. Two full guest rebuild+recapture cycles (one per fix landed) c
 insufficient and (1)+(2) together are what closes the RED.
 
 Files: `src/platform/windows/collection_view_handler.cpp` only.
+
+## Follow-up to the entry above: the non-carousel touch-scroll gap is real but NARROWER than flagged — a bare ScrollViewer's two axes do NOT share one default (2026-08-25)
+
+The entry immediately above flagged, not measured: "it is plausible that touch/swipe-driven panning of
+an ordinary Windows `CollectionView` is similarly non-functional today" (same `ScrollBarVisibility`
+mechanism as gap (2), just never wired for the plain grid/list path). Investigated this pass. The
+plausible claim was **half right and half wrong** — caught only by reverting the fix and measuring, not
+by re-reading `src/` or trusting the mechanism-analogy.
+
+**What's actually true, measured live on the guest, not assumed:** a bare `Microsoft.UI.Xaml.Controls.
+ScrollViewer`'s `HorizontalScrollBarVisibility` and `VerticalScrollBarVisibility` do **not** share one
+default. `HorizontalScrollBarVisibility` really does default to `Disabled` — that's gap (2) above's own
+live measurement (`Canvas.ActualWidth=3024` against a 1008-wide viewport still reading `ScrollViewer.
+ExtentWidth=1008`/`ScrollableWidth=0`), a HORIZONTAL-axis reading, not a general one. `Vertical
+ScrollBarVisibility` defaults to `Visible`, not `Disabled`. Proven by: reverting the `!is_carousel` block
+in `src/platform/windows/collection_view_handler.cpp`'s `arrange_native` (the fix this entry lands),
+rebuilding on the guest, confirming via `dumpbin /SYMBOLS` on the specific `.obj` that the new
+`resolve_bar_visibility` symbol was genuinely absent (the exact staleness trap this file's own header
+comment already documents from 2026-08-22 — checked, not assumed), then driving a real vertical
+`CollectionView` (`basic_grouping` — `IsGrouped=True`, 6 Marvel rosters / ~35 items, `SuperTeams()`, well
+past an 800px viewport) with a touch-injected swipe. It scrolled all the way to the footer, byte-
+identical to the same capture taken with the fix restored. `items_layout` defaults to vertical, so the
+common case — the overwhelming majority of CollectionView/ListView usage — was never actually broken.
+
+**What is still real, and what this fix (already landed above, this entry is the correction + closure)
+actually does:**
+1. A plain **horizontal** (non-carousel) grid/list `CollectionView` — same `Disabled`-by-default
+   mechanism as gap (2), genuinely unfixed before this pass. NOT independently live-verified: no board
+   page currently overflows horizontally enough to test it (`header_footer_grid_horizontal`, the one
+   horizontal-orientation page on the board, is only 10 items / span 3 = 4 columns, all of which fit
+   inside the 1024px window — checked directly against its own capture). Verified by mechanism instead —
+   the fix applies the identical `resolve_bar_visibility` call this same pass proved correct on the
+   vertical axis, to the same setter, on the other axis.
+2. An explicit `Always`/`Never` `ScrollBarVisibility` override on **either** axis was silently ignored on
+   the plain path. `collection_view_handler.cpp`'s cross-platform mapper (`map_horizontal_scroll_bar_
+   visibility` / `map_vertical_scroll_bar_visibility`) already tracked a developer's override into
+   `collection_view_platform::{horizontal,vertical}_bar_visibility` — but grep-verified, nothing on
+   Windows ever read those two fields outside the `is_carousel` branch. A developer setting
+   `VerticalScrollBarVisibility="Never"` on a plain Windows CollectionView had zero effect before this
+   fix.
+
+**The fix itself**, mirroring `ItemsViewHandler.Windows.cs`'s `Update{Horizontal,Vertical}
+ScrollBarVisibility` (each axis resolved INDEPENDENTLY — unlike `scroll_view_handler.cpp`'s
+`apply_scroll_bar_visibility`, which forces the non-scrolling axis to `Disabled` regardless of an
+explicit override): a `resolve_bar_visibility(value, scroll_axis)` helper — `Always`→`Visible`,
+`Never`→`Hidden`, `Default`→`Auto` on the scrolling axis / `Disabled` on the cross axis — applied
+unconditionally in the plain (`!is_carousel`) path of `arrange_native`, reading the previously-dead
+mirror fields. `Default` resolves to `Auto` rather than mirroring the measured native split (`Visible`
+vertical / `Disabled` horizontal) exactly — deliberate, not an oversight: the two are confirmed RENDER-
+IDENTICAL at rest in the same `basic_grouping` capture (Windows' dynamic overlay scrollbars don't
+visibly distinguish `Auto` from `Visible` until actively scrolling), so one shape serves both axes
+without a per-axis special case, matching gap (2)'s own existing `Auto`/`Disabled` choice.
+
+**A genuinely separate, unrelated dead end hit while picking a page to test this on**: the first-choice
+scenario page, `scroll_mode_test` (TRIAGE.md's own pick for a `scroll`-verb-safe CollectionView), turned
+out to be **unscrollable on every column, MAUI included** — not a port bug. Its `CollectionView` sits
+inside a bare `VerticalStackLayout` with no `HeightRequest`, which — like any stacking layout on any
+platform — measures its stacking-axis children at Infinity (natural/full-content height), so the
+CollectionView never gets bounded enough to need its own internal scroll; the ~80px of items past row 16
+simply gets clipped by the WINDOW itself, unscrollable, because the page also has no outer `ScrollView`.
+Confirmed by driving it: a full swipe left `maui_xaml`/`cpp`/`cpp_xaml` byte-identical to `initial`
+(hashes matched exactly, all three). `basic_grouping` was used instead — its `CollectionView` is the
+`ContentPage`'s sole/root child, so the page gives it a FINITE bound (the window) and it genuinely
+scrolls. Not chased further (TRIAGE.md's "safe verb" methodology was about avoiding handler-driven false
+reds, not about confirming genuine scrollability — out of scope for this pass to correct), but worth
+knowing before reaching for `scroll_mode_test` as a scroll-scenario candidate again.
+
+**Regression check.** `src/platform/windows/collection_view_handler.cpp` only (plus the corrected
+comments on gap (2)'s own `is_carousel` branch, which had carried the same "both axes default to
+Disabled" overclaim this entry corrects — comment-only, diff --cached checked). `basic_grouping`'s
+Windows board capture confirmed byte-identical before/after this fix (the vertical case was already
+correct), so this is additive/render-neutral for the common case and closes two real, narrower gaps for
+the horizontal + explicit-override cases.
+
+**Board score, now that `basic_grouping` is driven for the first time**: `pixel`/`pixel_xaml` moved
+GREEN → YELLOW (169/170 Windows pages match → 169/3, board total 670→669 match / 18→19 minor). Not a
+regression from this fix — it is the FIRST time this page has ever been motion-scored, and both port
+columns' self-motion (35.98% pixels moved) already track MAUI's own (35.25%) within under one point;
+the worst per-frame SSIM (0.9705 at the settled `scrolled-up` frame) is the already-documented ±2-4px
+scroll-landing nondeterminism (`cpp-drive-landing-nondeterminism` in project memory — MAUI cannot
+reproduce its own landing offset either), the same tolerance gap already capping ~19 other motion-scored
+cells project-wide. Left yellow rather than tuned tighter, consistent with that standing, measured
+finding (a full trajectory/landing rescorer was already tried and refuted elsewhere in this project).
+
+Files: `src/platform/windows/collection_view_handler.cpp`,
+`docs/comparison/scenarios/basic_grouping.toml` (new).
