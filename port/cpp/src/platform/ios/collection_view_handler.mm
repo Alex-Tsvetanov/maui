@@ -660,7 +660,18 @@ namespace maui::controls
 
             UICollectionViewCompositionalLayoutConfiguration* const config =
                 [[UICollectionViewCompositionalLayoutConfiguration alloc] init];
-            config.scrollDirection = scroll_direction;
+            // LayoutFactory2.CreateCarouselLayout never touches layoutConfiguration.ScrollDirection, so
+            // it stays at UIKit's default (Vertical) EVEN FOR A HORIZONTAL CAROUSEL — the paging on that
+            // axis comes entirely from the section's OrthogonalScrollingBehavior below, which is UIKit's
+            // "orthogonal section" mechanism: a section pages/scrolls PERPENDICULAR to the layout's own
+            // main axis, via its own nested, independent scroll view + pan gesture recognizer. Setting
+            // scrollDirection to Horizontal here (matching the carousel's orientation, as the regular
+            // list/grid path correctly does) makes the section's orthogonal axis COINCIDE with the main
+            // axis instead of being perpendicular to it — an unsupported configuration that silently
+            // disabled the whole collection view's touch handling (a swipe produced zero movement, even
+            // after 7+ seconds live on-device). Only a carousel goes through this section provider with
+            // is_carousel true, so gating on it leaves the list/grid path's scrollDirection untouched.
+            config.scrollDirection = is_carousel ? UICollectionViewScrollDirectionVertical : scroll_direction;
 
             // The supplementary boundary item size: full cross extent, estimated scroll extent (mirrors the
             // C# group width/height passed to CreateSupplementaryItems — the same dimensions the section's
@@ -756,6 +767,17 @@ namespace maui::controls
 
                   NSCollectionLayoutSection* const section = [NSCollectionLayoutSection sectionWithGroup:group];
                   section.interGroupSpacing = item_spacing;
+                  // LayoutFactory2.CreateCarouselLayout sets section.OrthogonalScrollingBehavior =
+                  // GroupPagingCentered for a horizontal carousel (None otherwise, i.e. the regular CV
+                  // path below is unaffected) — this is what gives UIKit its native page-snap physics on
+                  // release. Without it the section behaves like plain free-scrolling content: dragging a
+                  // full page and releasing lands wherever momentum happens to stop, a few points short of
+                  // or past the exact page boundary, leaving a persistent sliver of the next/previous card
+                  // visible at rest. Missing this line was the cause of the iOS carousel_page peek defect.
+                  section.orthogonalScrollingBehavior =
+                      (is_carousel && horizontal)
+                          ? UICollectionLayoutSectionOrthogonalScrollingBehaviorGroupPagingCentered
+                          : UICollectionLayoutSectionOrthogonalScrollingBehaviorNone;
                   // The peek shifts the section's content edges inward (leading/trailing on the scroll
                   // axis), so the first item starts inset and adjacent items peek in (CarouselView).
                   if (horizontal)
