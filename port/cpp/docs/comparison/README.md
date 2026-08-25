@@ -7,11 +7,11 @@ Per-page MAUI-vs-C++ visual parity for the **172 gallery pages**, on **iOS**, **
 <table>
 <tr><th rowspan="2">Platform</th><th colspan="5">Pixel-Perfect Score — C++ (C1/C3)</th><th colspan="5">Pixel-Perfect Score — C++ &amp; XAML (C2/C4)</th></tr>
 <tr><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th><th>🟢</th><th>🟡</th><th>🔴</th><th>⬛</th><th>⏳</th></tr>
-<tr><td>iOS</td><td>167</td><td>5</td><td>0</td><td>0</td><td>0</td><td>167</td><td>4</td><td>1</td><td>0</td><td>0</td></tr>
+<tr><td>iOS</td><td>168</td><td>4</td><td>0</td><td>0</td><td>0</td><td>166</td><td>5</td><td>1</td><td>0</td><td>0</td></tr>
 <tr><td>macOS</td><td>169</td><td>3</td><td>0</td><td>0</td><td>0</td><td>170</td><td>2</td><td>0</td><td>0</td><td>0</td></tr>
 <tr><td>Android</td><td>163</td><td>9</td><td>0</td><td>0</td><td>0</td><td>165</td><td>7</td><td>0</td><td>0</td><td>0</td></tr>
 <tr><td>Windows</td><td>171</td><td>1</td><td>0</td><td>0</td><td>0</td><td>171</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>670</strong></td><td><strong>18</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>673</strong></td><td><strong>14</strong></td><td><strong>1</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+<tr><td><strong>Total</strong></td><td><strong>671</strong></td><td><strong>17</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>0</strong></td><td><strong>672</strong></td><td><strong>15</strong></td><td><strong>1</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
 </table>
 
 _macOS row = **Mac Catalyst**. The AppKit columns (`appkit_cpp`, `appkit_xaml`) are captured and shown per page but are not pixel-scored — AppKit is a different UI framework (NSViews vs UIKit) and cannot pixel-match, so its requirement is element completeness plus cpp-vs-xaml agreement, not a parity score._
@@ -53,8 +53,8 @@ Real .NET MAUI (native-default) vs the C++ port vs the compile-time-XAML gallery
 
 | Classification | Pixel-Perfect Score — C++ (C1/C3) | Pixel-Perfect Score — C++ &amp; XAML (C2/C4) |
 | --- | --- | --- |
-| 🟢 Match | 167 | 167 |
-| 🟡 Minor | 5 | 4 |
+| 🟢 Match | 168 | 166 |
+| 🟡 Minor | 4 | 5 |
 | 🔴 Major | 0 | 1 |
 | ⬛ Blank | 0 | 0 |
 | ⏳ Unreviewed | 0 | 0 |
@@ -1434,15 +1434,15 @@ ports iOSDatePickerPage.xaml (+ iOSDatePickerPage.xaml.cs)
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · dark FAIL / light PASS · <sub>run 2026-08-23-18_49_10 · 2026-08-23</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · dark FAIL / light PASS · <sub>run 2026-08-25-09_18_53 · 2026-08-25</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9822 at frame 2 'driven' (0.64% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/0.64; self-motion MAUI 24.8059% (784395 px) vs C++ 25.0743% (792884 px) · Dark: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9568 at frame 2 'driven' (3.80% pixels differ), mean SSIM 0.9784; per-frame diff% 0.00/3.80; self-motion MAUI 8.5188% (269377 px) vs C++ 8.5261% (269605 px)
+Light: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) — worst SSIM 0.9822 at frame 2 'driven' (0.64% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/0.64; self-motion MAUI 24.8059% (784395 px) vs C++ 25.0743% (792884 px) · Dark: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) — worst SSIM 0.9659 at frame 2 'driven' (3.15% pixels differ), mean SSIM 0.9829; per-frame diff% 0.00/3.15; self-motion MAUI 5.3755% (169979 px) vs C++ 8.5261% (269605 px)
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ❌ FAIL · `frames-disagree` · dark FAIL / light PASS · <sub>run 2026-08-23-18_49_10 · 2026-08-23</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · dark FAIL / light PASS · <sub>run 2026-08-25-09_18_53 · 2026-08-25</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9822 at frame 2 'driven' (0.64% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/0.64; self-motion MAUI 24.8059% (784395 px) vs C++ &amp; XAML 25.0743% (792884 px) · Dark: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 0.9670 at frame 2 'driven' (3.15% pixels differ), mean SSIM 0.9835; per-frame diff% 0.00/3.15; self-motion MAUI 8.5188% (269377 px) vs C++ &amp; XAML 5.3866% (170331 px)
+Light: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) — worst SSIM 0.9889 at frame 2 'driven' (0.30% pixels differ), mean SSIM 0.9945; per-frame diff% 0.00/0.30; self-motion MAUI 24.8059% (784395 px) vs C++ &amp; XAML 24.5073% (774954 px) · Dark: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) — worst SSIM 0.9659 at frame 2 'driven' (3.15% pixels differ), mean SSIM 0.9829; per-frame diff% 0.00/3.15; self-motion MAUI 5.3755% (169979 px) vs C++ &amp; XAML 8.5261% (269605 px)
 
 ### 88. Ios Entry — 🟢/🟢
 <sub>ios_entry</sub>
@@ -2177,24 +2177,24 @@ Light: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e
 
 Light: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ &amp; XAML 0.5238% (16564 px) · Dark: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) — worst SSIM 1.0000 at frame 1 'initial' (0.00% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.00; self-motion MAUI 0.5238% (16564 px) vs C++ &amp; XAML 0.5238% (16564 px)
 
-### 135. Scroll View — 🟡/🟢 · ▶ both move — comparison FAIL
+### 135. Scroll View — 🟢/🟡 · ▶ both move — comparison OK
 <sub>scroll_view</sub>
 
 <table><tr><th></th><th>MAUI</th><th>C++</th><th>C++ &amp; XAML</th></tr><tr><th>Light</th><td><img width="300px" src="captures/ios/maui/scroll_view_light.gif" /></td><td><img width="300px" src="captures/ios/cpp/scroll_view_light.gif" /></td><td><img width="300px" src="captures/ios/xaml/scroll_view_light.gif" /></td></tr><tr><th>Dark</th><td><img width="300px" src="captures/ios/maui/scroll_view_dark.gif" /></td><td><img width="300px" src="captures/ios/cpp/scroll_view_dark.gif" /></td><td><img width="300px" src="captures/ios/xaml/scroll_view_dark.gif" /></td></tr></table>
 
 ports ScrollViewPage.xaml (+ the ScrollViewPages sub-demos: ScrollViewOrientationPage / ScrollToEndPage / ScrollToFromConstructorPage), code-first
 
-#### 🟡 Pixel-Perfect Score — C++ (C1/C3)
+#### 🟢 Pixel-Perfect Score — C++ (C1/C3)
 
-**Motion:** ❌ FAIL · `frames-disagree` · dark PASS / light FAIL · <sub>run 2026-08-23-18_49_10 · 2026-08-23</sub>
+**Motion:** ✅ PASS · <sub>run 2026-08-25-09_18_53 · 2026-08-25</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); driven frames aligned vertically by +0/-16 px — the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 2.72% is a landing offset, not a rendering difference — worst SSIM 0.9692 at frame 2 'driven' (1.51% pixels differ), mean SSIM 0.9846; per-frame diff% 0.00/1.51; self-motion MAUI 2.9607% (93622 px) vs C++ 2.6167% (82743 px) · Dark: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); driven frames aligned vertically by +0/+8 px — the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 2.25% is a landing offset, not a rendering difference — worst SSIM 0.9930 at frame 2 'driven' (0.30% pixels differ), mean SSIM 0.9965; per-frame diff% 0.00/0.30; self-motion MAUI 2.7505% (86975 px) vs C++ 2.6636% (84228 px)
+Light: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25); driven frames aligned vertically by +0/+4 px — the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.82% is a landing offset, not a rendering difference — worst SSIM 0.9912 at frame 2 'driven' (0.37% pixels differ), mean SSIM 0.9956; per-frame diff% 0.00/0.37; self-motion MAUI 2.6291% (83137 px) vs C++ 2.5625% (81029 px) · Dark: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25); driven frames aligned vertically by +0/+5 px — the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.97% is a landing offset, not a rendering difference — worst SSIM 0.9938 at frame 2 'driven' (0.27% pixels differ), mean SSIM 0.9969; per-frame diff% 0.00/0.27; self-motion MAUI 2.6876% (84987 px) vs C++ 2.6219% (82907 px)
 
-#### 🟢 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
+#### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-**Motion:** ✅ PASS · <sub>run 2026-08-23-18_49_10 · 2026-08-23</sub>
+**Motion:** ❌ FAIL · `frames-disagree` · <sub>run 2026-08-25-09_18_53 · 2026-08-25</sub>
 
-Light: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); driven frames aligned vertically by +0/-12 px — the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 2.50% is a landing offset, not a rendering difference — worst SSIM 0.9881 at frame 2 'driven' (0.60% pixels differ), mean SSIM 0.9940; per-frame diff% 0.00/0.60; self-motion MAUI 2.9607% (93622 px) vs C++ &amp; XAML 2.8150% (89013 px) · Dark: MOTION 2 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); driven frames aligned vertically by +0/+41 px — the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 3.09% is a landing offset, not a rendering difference — worst SSIM 0.9891 at frame 2 'driven' (0.51% pixels differ), mean SSIM 0.9946; per-frame diff% 0.00/0.51; self-motion MAUI 2.7505% (86975 px) vs C++ &amp; XAML 3.1816% (100607 px)
+Light: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) — worst SSIM 0.9017 at frame 2 'driven' (3.06% pixels differ), mean SSIM 0.9508; per-frame diff% 0.00/3.06; self-motion MAUI 2.6291% (83137 px) vs C++ &amp; XAML 3.1888% (100835 px) · Dark: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25); driven frames aligned vertically by +0/+18 px — the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 2.73% is a landing offset, not a rendering difference — worst SSIM 0.9747 at frame 2 'driven' (1.15% pixels differ), mean SSIM 0.9873; per-frame diff% 0.00/1.15; self-motion MAUI 2.6876% (84987 px) vs C++ &amp; XAML 2.7302% (86332 px)
 
 ### 136. Search Bar — 🟢/🟢 · ▶ both move — comparison OK
 <sub>search_bar</sub>
