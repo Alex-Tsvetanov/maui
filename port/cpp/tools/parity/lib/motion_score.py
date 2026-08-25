@@ -1205,7 +1205,23 @@ def score_cell(key, plat_dir, fw_dir, theme, crop_top, still, comp=COMP, fw_labe
         # missing, and the why-code says which kind of missing.
         verdict, why = INVALID, (WHY_NOT_DRIVEN if driven_page else WHY_NO_SCENARIO)
     elif phase_only:
-        verdict, why = INCONCLUSIVE, "phase-only"
+        # SETTLED-TAIL FALLBACK (landed 2026-08-26) — this is the ONLY seam it touches. Every other
+        # clause above (roi_split, drive_failed_gt, mismatch, both_frozen) is a distinct, orthogonal
+        # finding settled-tail was never evaluated against and must not intercept. `phase_only` means
+        # "looks like the same motion sampled at a different moment" — exactly the ambiguity settled-
+        # tail resolves by comparing each column's OWN stable tail instead of a mid-motion sample. If it
+        # can decide (both tails self-stable), its PASS/FAIL replaces the cap; if it can't either
+        # (WHY_TAIL_UNSTABLE — e.g. a still-coasting or self-animating page), the existing cap holds
+        # unchanged, so a cell this fallback cannot help is bit-for-bit what it was before landing.
+        if SETTLED_TAIL_SCORING:
+            st_verdict, st_why, st_detail = settled_tail_score(sel_m, sel_o, crop_top)
+        else:
+            st_verdict = None
+        if st_verdict in (PASS, FAIL):
+            verdict, why = st_verdict, (st_why or "settled-tail")
+            detail = f"{st_detail} [phase cap would have applied here — resolved instead] {detail}"
+        else:
+            verdict, why = INCONCLUSIVE, "phase-only"
     elif authored_asymmetry:
         verdict, why = INCONCLUSIVE, "twin-cannot-react"
     elif frames_agree:
@@ -1380,6 +1396,186 @@ def trajectory_score(pairs, sel_m, sel_o, rest_step, crop_top):
     which = [n for n, ok in (("start", starts), ("settled end", ends), ("travel distance", travels))
              if not ok]
     return FAIL, "trajectory-disagree", f"!! {' and '.join(which)} DISAGREE. {detail}"
+
+
+# ------------------------------------------------------------------- settled-tail (attempt 2, dead)
+# TRAJECTORY_SCORING (above) was refuted by MEASUREMENT: its `travel` clause (max self-motion over the
+# burst) is phase-dependent whenever the gesture OVERSHOOTS before settling — picker's dialog scrim and
+# title_bar's IME slide both do, so `travel` samples the same 53.3%-irreproducible race one layer down.
+# See cpp-parity-correspondence-not-drive (memory) and the block above NON_REPRODUCIBLE_DRIVE.
+#
+# THIS DESIGN DROPS `travel` ENTIRELY. It compares only two cross-column frames — the pre-gesture rest
+# and each column's OWN last captured frame — and NEVER calls that "settled" without checking: each
+# column's own last TAIL_K frames must already be near-identical to each other (a SELF comparison, not
+# cross-column), or the cell is INCONCLUSIVE rather than a guess. This kills three failure modes at
+# once: (a) a burst whose gesture lands late can't fabricate a verdict from a still-moving last frame;
+# (b) a SELF-ANIMATING page (activity_indicator: no settled tail exists by construction) auto-routes to
+# INCONCLUSIVE instead of a persistent false FAIL on spinner phase; (c) the gate itself is built from
+# the reproducible quantity (self-motion, 0.65% median spread), so it cannot flap the way the paired
+# cross-column comparison does.
+#
+# PRE-REGISTERED BEFORE RUNNING, against the 3-repeat/10-page/40-cell same-binary corpus captured
+# 2026-08-25 (apk_md5 02b6665d27... fixed across all 3 runs; the CURRENT paired path flips 19/40 =
+# 47.5% on this exact corpus — a stronger confirmation than the original 6-page/21% sample, so the cap
+# generalises and stays regardless of this design's outcome):
+#   predict  < 10/40 flips, i.e. fewer than half the paired path's flip rate
+#   predict  some capped cells resolve to a STABLE RED, not green — the 2026-08-11 "settled states
+#            agree" assumption predates the deterministic drive and must be re-derived, not trusted
+#   predict  activity_indicator never FAILs on phase (routes INCONCLUSIVE every run, self-animating)
+#   adoption bar to even consider flipping the flag on: fewer flips than 19/40 AND selftest case 3
+#            (the 8px-shifted box) stays RED AND no self-animating page ever reaches a false PASS/FAIL
+# Evaluated on frames already on disk — zero additional device time. NOT LANDED regardless of outcome
+# without a separate report to the user: flipping this on rewrites verdict semantics board-wide.
+#
+# MEASURED, 2026-08-25, on the exact 3-repeat/40-cell corpus above (apk_md5 02b6665d27...):
+#     flips: 1/40 (activity_indicator/xaml/dark, straddling the rest-frame bar at 1.58% vs the 1.0%
+#     tol — 2 of 3 repeats correctly read its tail as still-moving and returned INCONCLUSIVE rather
+#     than guess). 39/40 stable. FAR under the <10/40 bar, and a 47.5% -> 2.5% flip-rate drop.
+#     5 of 10 pages resolve to a STABLE PASS (box_view, clip, clip_gallery, path_gallery, scroll_view)
+#     -> would go green. 4 resolve to a STABLE FAIL — a genuine settled-state difference, not a
+#     phase artifact (carousel_page 2.19-2.20%, ios_picker 1.95-1.98%, picker 1.60-1.69%,
+#     selection_synchronization 5.52-5.84%) -> would go RED, i.e. real port bugs the phase cap was
+#     hiding. activity_indicator (self-animating) never reaches a false PASS or FAIL. Bar MET.
+#
+# CASE 3 CHECKED HONESTLY, NOT ASSUMED. The EXISTING 3-frame `shift` fixture (linear motion with no
+# deceleration, still moving between its last two frames) returns INCONCLUSIVE, not RED — correct
+# per this design's own rule (never decide from a moving tail) but a literal miss of the bar as
+# first written, because a 3-frame fixture cannot express "settled" at all. NOT a false PASS (the
+# safety property that matters), but recorded as a miss rather than rationalised past. A SETTLED
+# variant of the fixture (offsets repeat their last value so both tails are genuinely stable) was
+# checked instead, three ways, all passing: (a) settled 8px shift -> FAIL on both start and end
+# (the bar's real intent), (b) settled identical sequences -> PASS (no false negative from the new
+# gate), (c) settled but stopping at different X -> FAIL. If this design is ever landed, `_selftest`
+# needs a settled-tail case alongside the existing phase-only one — not added here, since evaluation
+# and landing are different steps and this is still evaluation.
+#
+# LANDED 2026-08-26, on the user's explicit sign-off from this exact report (measured 1/40 flip vs the
+# paired path's 19/40, bar met, case 3 checked honestly above). Wired into score_cell as a FALLBACK
+# inside the existing `elif phase_only:` branch ONLY — not an early-return ahead of the whole pipeline.
+# An unconditional early-return was tried first and rejected: it bypassed roi_split/drive_failed_gt/
+# mismatch/both_frozen entirely (distinct, orthogonal findings this design was never evaluated against)
+# and broke ~15 unrelated existing selftest cases outright (several with a KeyError — those verdicts
+# were never even in this design's return shape). `phase_only` is precisely the population this design
+# was measured against (NON_REPRODUCIBLE_DRIVE-capped cells — "19 yellow-capped cells" in the memory
+# this report is drawn from), so consulting it only there is both the safe integration AND the one that
+# matches what was actually measured. When it can decide (both tails self-stable), its PASS/FAIL
+# replaces the cap; when it can't either, the cap is untouched, bit-for-bit, from before landing.
+# Three things added at landing time, none present during evaluation:
+#   (1) a "neither column moved" guard ported from trajectory_score — the evaluation corpus was all
+#       genuinely-driven pages, so this gap never showed up in measurement, but without it an undriven
+#       pair's trivially-stable tails would fall through to a false PASS;
+#   (2) the `_selftest` settled-tail cases this comment itself said were owed before landing;
+#   (3) DRIVE-LANDING FORGIVENESS on the settled end frame (see settled_tail_score) — a REAL bug this
+#       acceptance pass found, not a hypothetical: without it, selection_synchronization/android
+#       false-FAILed on all 4 cells (verified by eye 2026-08-26 to be byte-identical content scrolled
+#       ~10-11px apart, exactly the shape _drive_shift exists to forgive). Ported the same mechanism,
+#       same gate, plus a WHY_LANDING_SCATTER fallback to INCONCLUSIVE for the case where the alignment
+#       search's own integer-pixel precision leaves a residual just short of the green bar — forcing a
+#       verdict there would be exactly the false-positive risk this whole acceptance pass exists to
+#       catch. Re-verified after the fix: selection_synchronization returns to INCONCLUSIVE/"phase-only"
+#       bit-for-bit unchanged from before landing.
+#
+# ACCEPTANCE PASS, 2026-08-26: full read-only rescore of all 152 android motion cells, old vs new
+# verdict. 8 flips (down from the 10 first measured, after the fix above): box_view (2 cells)
+# INCONCLUSIVE->PASS; carousel_page (2 cells, dark theme) INCONCLUSIVE->PASS; carousel_page (2 cells,
+# light theme) INCONCLUSIVE->FAIL. The light-theme FAIL was verified by eye and traced to STALE
+# evidence, not a live defect: the published still (captures/android/maui/carousel_page_light.png,
+# run 2026-08-25-02_15_09, commit 82f95c7070, file mtime 05:08:16) predates the Android carousel
+# fling-snap fix (94d6e27887, committed 05:42:28 — 34 minutes later) that this very session landed and
+# already measured post-fix at 0.55-0.56% (see cpp-settled-tail-scorer-and-4-findings memory) — well
+# under the green bar. `find_frames`'s provenance match (GROUND-TRUTH-ROOT) correctly pins the score to
+# whatever frames the PUBLISHED still came from, so this cell reads the pre-fix run even though newer
+# capture directories exist on disk; the board's own yellow verdict for this cell today rests on the
+# same stale run, unrelated to this landing. Expected to resolve to PASS on the next real android
+# recapture; not chased further here since a recapture is routine board maintenance, not scorer work.
+SETTLED_TAIL_SCORING = True
+TAIL_K = 3              # consecutive frames examined for each column's OWN self-stability
+TAIL_STABLE_DIFF = GREEN_DIFF  # reuse the board's own green bar as "no meaningful movement" — not a
+                                # new invented number; see THE BOARD'S GREEN BAR comment above
+WHY_TAIL_UNSTABLE = "settled-tail-unstable"
+WHY_LANDING_SCATTER = "settled-tail-landing-scatter"
+
+
+def _tail_stable(paths: list[str], crop_top: int, k: int = TAIL_K) -> tuple[bool, float]:
+    """Is this column's OWN last `k` frames mutually near-identical? A SELF comparison — never
+    cross-column — so it measures the reproducible quantity (self-motion), not the correspondence
+    that makes TRAJECTORY_SCORING's `travel` clause phase-dependent. Returns (stable, worst consecutive
+    diff_pct). Too few frames to judge -> NOT stable (never invent a settled tail from insufficient
+    evidence)."""
+    if len(paths) < k:
+        return False, 0.0
+    worst = 0.0
+    for i in range(len(paths) - k, len(paths) - 1):
+        worst = max(worst, _compare(paths[i], paths[i + 1], crop_top)["diff_pct"])
+    return worst <= TAIL_STABLE_DIFF, worst
+
+
+def settled_tail_score(sel_m, sel_o, crop_top):
+    """Phase-free verdict, attempt 2 — see the block above. Compares only the pre-gesture rest frame
+    and each column's own last frame, cross-column, and ONLY once each column's own tail is proven
+    self-stable. Never a mid-motion cross-column frame; never a max/travel clause."""
+    m_paths = [p for _s, p in sel_m]
+    o_paths = [p for _s, p in sel_o]
+    if not m_paths or not o_paths:
+        return INVALID, WHY_NOT_DRIVEN, "SETTLED-TAIL: one column contributed no frames"
+    # NEITHER COLUMN MOVED — ported from trajectory_score's identical guard (never held here before
+    # landing: a truly-undriven pair has trivially self-stable tails, 0 diff throughout, so without
+    # this check it would fall straight through to a false PASS instead of reporting no evidence).
+    _, px_m = _self_motion(m_paths, crop_top)
+    _, px_o = _self_motion(o_paths, crop_top)
+    if px_m == 0 and px_o == 0:
+        return INVALID, WHY_NOT_DRIVEN, ("SETTLED-TAIL: neither column moved (0 px vs 0 px) — nothing "
+                                         "was demonstrated about the port either way")
+    m_stable, m_worst = _tail_stable(m_paths, crop_top)
+    o_stable, o_worst = _tail_stable(o_paths, crop_top)
+    if not (m_stable and o_stable):
+        which = [n for n, ok in (("MAUI", m_stable), ("port", o_stable)) if not ok]
+        return INCONCLUSIVE, WHY_TAIL_UNSTABLE, (
+            f"SETTLED-TAIL: {' and '.join(which)} tail still moving over the last {TAIL_K} frames — "
+            f"worst consecutive diff MAUI {m_worst:.2f}% / port {o_worst:.2f}% (tol "
+            f"{TAIL_STABLE_DIFF:.1f}%) — self-animating, or the burst is too short to settle; not "
+            f"decidable from these frames")
+    rest_sc = _compare(m_paths[0], o_paths[0], crop_top)
+    starts = rest_sc["ssim"] >= GREEN_SSIM and rest_sc["diff_pct"] <= GREEN_DIFF
+    # DRIVE-LANDING FORGIVENESS on the settled END frame — ported from _drive_shift/the paired path,
+    # same gate (rest already agrees) and same bound. FOUND NECESSARY, NOT SPECULATIVE: without this,
+    # selection_synchronization/android false-FAILed on all 4 cells at first landing — verified by eye
+    # (2026-08-26) to be byte-identical content scrolled ~10-11px apart, the exact shape _drive_shift
+    # exists to forgive, which a raw last-frame comparison has no alignment step to piggyback it on.
+    # NEVER applied to the rest frame itself — see _drive_shift's own "AT-REST FRAME IS NEVER ALIGNED".
+    landed = ""
+    if starts:
+        end_dy, end_sc, end_raw = _drive_shift(m_paths[-1], o_paths[-1], crop_top)
+        if end_dy:
+            landed = (f"; settled frame realigned vertically by {end_dy:+d} px (unaligned "
+                      f"{end_raw['diff_pct']:.2f}%) — a landing offset, not a rendering difference; "
+                      f"see _drive_shift")
+    else:
+        end_sc = _compare(m_paths[-1], o_paths[-1], crop_top)
+        end_dy = 0
+    ends = end_sc["ssim"] >= GREEN_SSIM and end_sc["diff_pct"] <= GREEN_DIFF
+    detail = (f"SETTLED-TAIL (phase-free): at rest {rest_sc['diff_pct']:.2f}% / SSIM "
+              f"{rest_sc['ssim']:.4f}; settled {end_sc['diff_pct']:.2f}% / SSIM {end_sc['ssim']:.4f}"
+              f"{landed}; both tails self-stable (worst consecutive diff MAUI {m_worst:.2f}% / port "
+              f"{o_worst:.2f}%, tol {TAIL_STABLE_DIFF:.1f}%). No mid-motion frame or travel/max "
+              f"clause was used — see SETTLED_TAIL_SCORING")
+    if starts and ends:
+        return PASS, "", detail
+    # A real improving shift was found (the columns ARE landing scatter, not a translation-immune
+    # rendering bug — see _drive_shift's own "never let the correction look worse" guarantee) but the
+    # search's integer-pixel granularity leaves a residual just short of the green bar. FOUND
+    # NECESSARY, NOT SPECULATIVE: selection_synchronization/android landed at exactly this shape (dy
+    # 10-11px, residual 1.11%/SSIM 0.9751 — just over GREEN_DIFF 1.0%/GREEN_SSIM 0.98) and was verified
+    # by eye to be byte-identical content. The pre-landing paired path reaches the SAME cell via its own
+    # phase_only cap without needing the residual to clear the bar; this mirrors that outcome instead of
+    # forcing a decision the alignment search cannot actually resolve to the pixel.
+    if starts and not ends and end_dy != 0:
+        return INCONCLUSIVE, WHY_LANDING_SCATTER, (
+            f"SETTLED-TAIL: settled end realigned by {end_dy:+d} px and improved sharply but still "
+            f"cannot clear the green bar ({end_sc['diff_pct']:.2f}% / SSIM {end_sc['ssim']:.4f}) — "
+            f"not decidable as a rendering difference from these frames. {detail}")
+    which = [n for n, ok in (("start", starts), ("settled end", ends)) if not ok]
+    return FAIL, "settled-tail-disagree", f"!! {' and '.join(which)} DISAGREE. {detail}"
 
 
 # --------------------------------------------------------------------------- cross-run stability
@@ -2122,6 +2318,64 @@ def _selftest() -> int:
         # …and with the flag OFF the same page scores exactly as it always did.
         r = score_cell("midonly", "android", "cpp", "light", 0, STILL, comp)
         check("trajectory OFF: paired path unchanged", "TRAJECTORY" in r["detail"], False)
+
+        # (29) SETTLED-TAIL SCORING — the landed phase_only fallback (2026-08-26). Two things covered
+        #      separately: the WIRING (does score_cell's phase_only branch actually consult it, and use
+        #      a decisive verdict when it has one, while leaving the cap alone when it doesn't?) and the
+        #      FUNCTION's own verdict table, tested by calling settled_tail_score() directly — a
+        #      deliberate deviation from "always via score_cell" for this one case: threading a
+        #      differing-settled-end fixture through the phase_only GATE means fighting _drive_shift's
+        #      forgiveness and the spread tolerance at once, which is fixture numerology, not coverage
+        #      of anything score_cell itself decides — the wiring is already covered by the two cases
+        #      below.
+
+        # WIRING, resolves to PASS: the proven (3b) PHASE ONLY geometry (mid frame differs, rest+end
+        # agree, self-motion spread ~0%) extended with a stable 3-frame tail on both sides, so settled-
+        # tail can actually decide instead of reporting tail-unstable the way fixture (3b) itself does.
+        wire_pass_m = seq([10, 40, 70, 70, 70])
+        wire_pass_o = seq([10, 55, 70, 70, 70])
+        dm3 = unit(run, "wirepass", "maui_xaml", "light", wire_pass_m, plat="android")
+        do3 = unit(run, "wirepass", "cpp", "light", wire_pass_o, plat="android")
+        publish(comp, "wirepass", "maui", "light", dm3 / "0001.png", plat="android")
+        publish(comp, "wirepass", "cpp", "light", do3 / "0001.png", plat="android")
+        r = score_cell("wirepass", "android", "cpp", "light", 0, STILL, comp)
+        check("settled-tail wiring: phase_only fired", r["phase_only"], True)
+        check("settled-tail wiring: cap resolved to PASS", r["verdict"], PASS)
+        check("settled-tail wiring: detail says resolved", "resolved instead" in r["detail"], True)
+
+        # WIRING, cap holds: fixture (3b) ("phase") already has an unstable moving tail (its last
+        # sample IS the moving mid-frame), so settled-tail cannot decide it either — the existing cap
+        # must be untouched, bit-for-bit, from before landing.
+        r = score_cell("phase", "android", "cpp", "light", 0, STILL, comp)
+        check("settled-tail wiring: undecidable phase cell keeps the old cap", r["why"], "phase-only")
+
+        # FUNCTION SEMANTICS, direct calls — see the deviation note above.
+        def tail_frames(k, col, offsets):
+            d = unit(run, k, col, "light", seq(offsets), plat="android")
+            return [(f"{n:04d}", str(d / f"{n:04d}.png")) for n in range(1, len(offsets) + 2)]
+
+        fail_m = tail_frames("tailsem1", "maui_xaml", [10, 40, 70, 70, 70])
+        fail_o = tail_frames("tailsem1", "cpp", [10, 40, 40, 40, 40])   # settles at a DIFFERENT x
+        verdict, why, detail = settled_tail_score(fail_m, fail_o, 0)
+        check("settled-tail fn: differing settled end -> FAIL", verdict, FAIL)
+        check("settled-tail fn: names the failing clause", "settled end" in detail, True)
+
+        pass_m = tail_frames("tailsem2", "maui_xaml", [10, 40, 70, 70, 70])
+        pass_o = tail_frames("tailsem2", "cpp", [10, 55, 70, 70, 70])   # same settled end
+        verdict, why, detail = settled_tail_score(pass_m, pass_o, 0)
+        check("settled-tail fn: identical settled end -> PASS", verdict, PASS)
+
+        moving_m = tail_frames("tailsem3", "maui_xaml", [10, 40, 70, 100, 130])  # never settles
+        moving_o = tail_frames("tailsem3", "cpp", [10, 40, 70, 100, 130])
+        verdict, why, detail = settled_tail_score(moving_m, moving_o, 0)
+        check("settled-tail fn: never-settling tail -> INCONCLUSIVE", verdict, INCONCLUSIVE)
+        check("settled-tail fn: names why", why, WHY_TAIL_UNSTABLE)
+
+        frozen_m = tail_frames("tailsem4", "maui_xaml", [10, 10, 10, 10, 10])  # neither ever moves
+        frozen_o = tail_frames("tailsem4", "cpp", [10, 10, 10, 10, 10])
+        verdict, why, detail = settled_tail_score(frozen_m, frozen_o, 0)
+        check("settled-tail fn: neither column moved -> INVALID", verdict, INVALID)
+        check("settled-tail fn: names not-driven", why, WHY_NOT_DRIVEN)
 
         # (20) PRECEDENCE. A cell green in light and frozen in dark is governed by the dark theme —
         #      FAIL > INVALID > INCONCLUSIVE > PASS, so no theme's finding can be averaged away.
