@@ -109,6 +109,24 @@ public final class MauiItemsAdapter extends RecyclerView.Adapter<MauiItemsAdapte
     // RecyclerView (MauiCarouselRecyclerView, CarouselViewHandler.Android.cs:26-28), NOT a ViewPager2.
     // PagerSnapHelper is what makes a fling settle on exactly one page boundary — a fling with no snap
     // helper stops wherever momentum runs out, which is precisely the "does not move like MAUI" symptom.
+    //
+    // A STOCK PagerSnapHelper here is NOT what MAUI ships, and the difference is visible at rest, not just
+    // mid-motion. CarouselView.cs:351-352 wires SnapPointsType.MandatorySingle + Center, which
+    // SnapManager.CreateSnapHelper (SnapHelpers/SnapManager.cs) turns into SingleSnapHelper — a
+    // PagerSnapHelper SUBCLASS whose findSnapView only returns non-null once findTargetSnapPosition has
+    // latched a target, and AndroidX only calls findTargetSnapPosition from the FLING path
+    // (SnapHelper.onFling -> snapFromFling), never from the plain idle-settle path
+    // (onScrollStateChanged(IDLE) -> snapToTargetExistingView -> findSnapView). A release below the fling
+    // velocity threshold — e.g. a deliberate drag held still for a few ms before lifting — never fires a
+    // fling, so MAUI's real carousel performs NO corrective scroll at all and parks wherever the finger let
+    // go, peek and all. A stock PagerSnapHelper has no such latch: findSnapView always returns the nearest
+    // child, so the port ALWAYS snapped fully regardless of release velocity — which is what produced
+    // carousel_page's ~32%-peek diff against MAUI's own settled frame (confirmed live on-device against
+    // the real MauiReference app: `input motionevent` DOWN/MOVE.../dwell/UP — zero release velocity, same
+    // technique tools/parity/lib/capture_android.py drives every scenario with — parks MAUI's own carousel
+    // exactly like the port now does; `input swipe` — full release velocity, a real fling — pages it fully
+    // on both apps). MauiSingleSnapHelper below is a straight port of SingleSnapHelper.cs to reproduce that
+    // asymmetry instead of "fixing" it away.
     public void attach(@NonNull RecyclerView recycler, boolean horizontal) {
         final LinearLayoutManager manager = new LinearLayoutManager(
                 recycler.getContext(),
@@ -117,7 +135,7 @@ public final class MauiItemsAdapter extends RecyclerView.Adapter<MauiItemsAdapte
         recycler.setLayoutManager(manager);
         recycler.setAdapter(this);
 
-        final PagerSnapHelper snap = new PagerSnapHelper();
+        final PagerSnapHelper snap = new MauiSingleSnapHelper();
         snap.attachToRecyclerView(recycler);
 
         recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -128,13 +146,95 @@ public final class MauiItemsAdapter extends RecyclerView.Adapter<MauiItemsAdapte
                 if (newState != RecyclerView.SCROLL_STATE_IDLE) {
                     return;
                 }
-                final View page = snap.findSnapView(manager);
-                if (page == null) {
+                // PORTS RecyclerExtensions.GetCenteredView, as used by CarouselViewOnScrollListener — MAUI
+                // computes CarouselView.Position GEOMETRICALLY (whichever child sits under the
+                // RecyclerView's own center), entirely independent of the snap helper. That independence
+                // matters here: MauiSingleSnapHelper's findSnapView deliberately returns null after a
+                // non-fling settle (see the note above), so reading position off the snap helper — as this
+                // listener used to — would silently stop reporting Position for exactly the slow-drag case
+                // this change exists to handle. FindChildViewUnder(width/2, height/2) never depends on the
+                // snap latch, so Position keeps tracking "what's actually centered" whether or not a
+                // corrective scroll ran.
+                final View centered = rv.findChildViewUnder(rv.getWidth() / 2f, rv.getHeight() / 2f);
+                if (centered == null) {
                     return;
                 }
-                onPageSettled(manager.getPosition(page));
+                final int position = rv.getChildAdapterPosition(centered);
+                if (position == RecyclerView.NO_POSITION) {
+                    return;
+                }
+                onPageSettled(position);
             }
         });
+    }
+
+    // Straight port of Controls/src/Core/Handlers/Items/Android/SnapHelpers/SingleSnapHelper.cs (the
+    // MandatorySingle+Center case SnapManager.CreateSnapHelper picks for CarouselView's default
+    // ItemsLayout). See the long comment on attach() above for WHY this exists instead of a stock
+    // PagerSnapHelper: it reproduces MAUI's fling-only corrective-snap asymmetry.
+    private static final class MauiSingleSnapHelper extends PagerSnapHelper {
+        // currentTargetPosition mirrors SingleSnapHelper.CurrentTargetPosition: RecyclerView.NO_POSITION
+        // until the user has actually flung once (or a ScrollTo/item-count change resets it).
+        private int currentTargetPosition = RecyclerView.NO_POSITION;
+        private int previousItemCount = 0;
+
+        @Override
+        public View findSnapView(RecyclerView.LayoutManager layoutManager) {
+            if (layoutManager.getItemCount() == 0 || !(layoutManager instanceof LinearLayoutManager)) {
+                return null;
+            }
+            if (currentTargetPosition == RecyclerView.NO_POSITION) {
+                return null;
+            }
+            return ((LinearLayoutManager) layoutManager).findViewByPosition(currentTargetPosition);
+        }
+
+        @Override
+        public int findTargetSnapPosition(RecyclerView.LayoutManager layoutManager, int velocityX, int velocityY) {
+            final int itemCount = layoutManager.getItemCount();
+            // Reset if the ItemCount changed is requested — an item could have been added before
+            // currentTargetPosition.
+            if (previousItemCount != itemCount) {
+                currentTargetPosition = RecyclerView.NO_POSITION;
+                previousItemCount = itemCount;
+            }
+
+            if (currentTargetPosition == RecyclerView.NO_POSITION) {
+                currentTargetPosition = super.findTargetSnapPosition(layoutManager, velocityX, velocityY);
+                return currentTargetPosition;
+            }
+
+            int increment = 1;
+            if (layoutManager.canScrollHorizontally()) {
+                if (velocityX < 0) {
+                    increment = -1;
+                }
+            } else if (layoutManager.canScrollVertically()) {
+                if (velocityY < 0) {
+                    increment = -1;
+                }
+            }
+            if (isLayoutReversed(layoutManager)) {
+                increment *= -1;
+            }
+
+            if (currentTargetPosition == itemCount - 1 && increment == 1) {
+                return currentTargetPosition;
+            }
+
+            currentTargetPosition += increment;
+            return currentTargetPosition;
+        }
+
+        private static boolean isLayoutReversed(RecyclerView.LayoutManager layoutManager) {
+            if (layoutManager.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL) {
+                return true;
+            }
+            if (layoutManager instanceof LinearLayoutManager) {
+                return ((LinearLayoutManager) layoutManager).getReverseLayout();
+            }
+            return false;
+        }
     }
 
     // notifyDataSetChanged() wrapped rather than called over JNI: it is final on RecyclerView.Adapter, so a
