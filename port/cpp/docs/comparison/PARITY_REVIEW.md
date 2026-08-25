@@ -5133,3 +5133,31 @@ same one several of the ~19 `PHASE ONLY, NOT DECIDABLE ON THIS LANE`-capped Andr
 on when reasoning about where a swipe should land — this is one confirmed instance of MAUI's OWN
 landing depending on release-velocity in a way the port previously did not replicate, not necessarily
 the only one on that list.
+
+## border_stroke on android/maccatalyst: NOT the same missing-inset bug Windows had — scoped check only
+
+Quick scoping check (2026-08-25), not a fix attempt: does the Windows `apply_content_clip` 0.5 DIP
+self-inset gap (the "strong lead, NOT shipped" entry above) also explain `border_stroke`'s residual
+yellow on android and maccatalyst? No — `apply_content_clip` itself is Windows-only
+(`src/platform/windows/border_handler.cpp`, no equivalent name elsewhere), so the Windows diagnosis
+cannot be ported as-is; each platform's content-clip mechanism is architecturally separate and needs
+its own investigation.
+
+**Android already applies the inset.** `border_content_inner_path_points`
+(`src/platform/android/border_handler.cpp:824`) explicitly calls `shape_self_inset` on the non-round-rect
+branch (line ~863, comment: "0.5 pt/side self-inset applies here too") — the exact fix Windows was
+missing. Android's residual border_stroke yellow is therefore NOT this bug; it is a different,
+already-classified antialiasing/rounding-precision question (consistent with this doc's other
+"clip-edge AA" findings, e.g. `border_resize_content`'s 114 px Ellipse residual).
+
+**AppKit (maccatalyst) uses a completely different mechanism, not a separate content-inset at all.**
+`apple_border_ops.hpp`'s `apply_border_stroke` masks the ENTIRE border (background + content + stroke)
+to one shape via `apply_clip`, then draws the stroke as a CAShapeLayer at DOUBLE thickness clipped by
+that same mask (mirroring `MauiCALayer.DrawInContext`'s line-width-doubling trick) — there is no
+analogous "inset the content clip by 0.5 DIP" step to be missing or present. A maccatalyst-specific
+investigation, from scratch, would be needed to explain that platform's residual; the Windows finding
+gives no shortcut here.
+
+**Not investigated further this pass** — flagging the negative result (Windows fix doesn't transfer)
+so a future session doesn't re-derive it, and scoping what a real maccatalyst/android attempt would
+need to start from instead of assuming inheritance from the Windows finding.
