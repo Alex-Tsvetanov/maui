@@ -83,6 +83,9 @@ class Session1Agent:
         self._tunnel_deaths = 0
         self._tunnel_error = ""
         self._last_ping_error = ""
+        # -- guest-death latch (see call()) -------------------------------
+        self._consecutive_no_answer = 0
+        self._dead_reason: str | None = None
         self.agent_remote = posixpath.join(self.staging, "vm_agent_windows.py")
         self.token_remote = posixpath.join(self.staging, "agent_token.txt")
         self.cmd_remote = posixpath.join(self.staging, "serve_session1.cmd")
@@ -369,12 +372,64 @@ class Session1Agent:
             return {"ok": False, "error": f"bad JSON from agent: {e}", "raw": raw[:300]}
 
     def call(self, cmd: str, *args, timeout: float = 120.0) -> dict:
-        """Run one agent subcommand in session 1. Same names/args as the CLI form."""
+        """Run one agent subcommand in session 1. Same names/args as the CLI form.
+
+        GUEST-DEATH LATCH. Measured live 2026-08-25: this Windows ARM64 UTM VM bugchecks (kernel
+        panic, 0x7e / access violation, "possibly related driver: viogpudo.sys" -- confirmed via the
+        guest's own Windows Event Log, Get-WinEvent -FilterHashtable
+        @{LogName='System';ProviderName='Microsoft-Windows-WER-SystemErrorReporting'}) and dirty-reboots
+        under sustained capture of a continuously self-animating page (activity_indicator). Reproduced
+        4 times in one session with no correlation to capture rate OR to which present() code path was
+        active (0.3s vs 2.0s --gif-interval both crashed, one even sooner; crashed after 1, 2, 2 and 7
+        successful frames across the 4 runs, in no order that tracks either knob) -- this is a guest/
+        driver defect this repo's Python cannot prevent, and cannot even reliably delay.
+
+        What IS this module's job: once the guest is gone, EVERY later call in the run was failing the
+        SAME way anyway (nothing here retries across the tunnel dying), so without this a run just
+        grinds through every remaining frame/column/theme -- each with shoot_presented's own 3x
+        self-heal retry -- and reports it as a wall of ~20 unrelated-looking DROPPED frames and launch
+        failures. That is what "the pipeline does not recover mid-run" looks like from the log: true,
+        but it obscures the one real fact (the guest died) behind noise that reads like a mysterious
+        transport bug. So: the FIRST no-answer is reported as today (still resolves most of the time --
+        this is also literally the "empty reply from agent" -> "ConnectionRefusedError" progression
+        measured on 3 real crashes, so one bad reply alone is not proof yet). On a SECOND CONSECUTIVE
+        no-answer, probe the guest over a FRESH, independent SSH connection -- not through the (possibly
+        dead) tunnel, since the tunnel itself is often what died -- and if that also cannot reach it,
+        latch `_dead_reason` so every call from here on fails INSTANTLY with one clear diagnosis instead
+        of repeating the same doomed attempt for the rest of the run. `guest_dead: True` on the reply is
+        what run_comparison.Env.agent() checks to abort the run loudly instead of soldiering on.
+        """
+        if self._dead_reason is not None:
+            return {"ok": False, "error": self._dead_reason, "cmd": cmd, "guest_dead": True}
         try:
-            return self._raw_call({"token": self.token, "cmd": cmd,
-                                   "args": [str(a) for a in args]}, timeout=timeout)
+            reply = self._raw_call({"token": self.token, "cmd": cmd,
+                                    "args": [str(a) for a in args]}, timeout=timeout)
+            no_answer = not reply.get("ok") and reply.get("error") == "empty reply from agent"
         except OSError as e:
-            return {"ok": False, "error": f"transport: {type(e).__name__}: {e}", "cmd": cmd}
+            reply = {"ok": False, "error": f"transport: {type(e).__name__}: {e}", "cmd": cmd}
+            no_answer = True
+        if not no_answer:
+            self._consecutive_no_answer = 0
+            return reply
+        self._consecutive_no_answer += 1
+        if self._consecutive_no_answer >= 2 and not self._guest_reachable():
+            self._dead_reason = (
+                f"guest VM unreachable over SSH after a transport failure ({reply['error']}) -- it "
+                f"likely crashed/rebooted mid-run. On the guest, check for a bugcheck: "
+                f"Get-WinEvent -FilterHashtable @{{LogName='System';Id=41,1001}} -MaxEvents 5")
+            return {"ok": False, "error": self._dead_reason, "cmd": cmd, "guest_dead": True}
+        return reply
+
+    def _guest_reachable(self) -> bool:
+        """A fresh, independent SSH probe -- NOT through self._tunnel, which may itself be the thing
+        that died -- so a guest merely refusing our forwarded port is not confused with one that is
+        actually down. Same probe shape as run_comparison.Env.reachable()."""
+        try:
+            return subprocess.run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                                   self.hostspec, "exit 0"], capture_output=True,
+                                  timeout=10).returncode == 0
+        except (OSError, subprocess.TimeoutExpired):
+            return False
 
     # -- context manager ---------------------------------------------------
     def __enter__(self) -> Session1Agent:
@@ -395,21 +450,92 @@ def _free_local_port() -> int:
         return int(s.getsockname()[1])
 
 
+def _selftest() -> int:
+    """Assert call()'s guest-death latch, with _raw_call/_guest_reachable stubbed -- no SSH, no guest.
+
+    Pins the exact sequence measured on 4 real crashes 2026-08-25: a lone bad reply must NOT trip the
+    latch (self-heal handles a one-off fine), a SECOND CONSECUTIVE one must -- but only when an
+    independent reachability probe also fails, and a good reply anywhere in between must reset the
+    streak. Once latched, no further _raw_call/_guest_reachable attempt is made at all."""
+    ag = Session1Agent("h", "u")
+    calls: list[str] = []
+
+    def make_raw_call(replies):
+        it = iter(replies)
+
+        def _fake(_payload, timeout=120.0):  # noqa: ARG001
+            calls.append("raw_call")
+            nxt = next(it)
+            if nxt is OSError:
+                raise ConnectionRefusedError(61, "Connection refused")
+            return nxt
+        return _fake
+
+    # (a) a single no-answer must not latch -- the existing per-frame self-heal covers a one-off.
+    ag._raw_call = make_raw_call([{"ok": False, "error": "empty reply from agent"}])
+    ag._guest_reachable = lambda: (_ for _ in ()).throw(AssertionError("must not probe on the 1st"))
+    r = ag.call("present")
+    assert r == {"ok": False, "error": "empty reply from agent"}, r
+    assert ag._dead_reason is None and ag._consecutive_no_answer == 1
+
+    # (b) a GOOD reply resets the streak, so two non-consecutive blips never latch.
+    ag._raw_call = make_raw_call([{"ok": True}])
+    r = ag.call("present")
+    assert r == {"ok": True}, r
+    assert ag._consecutive_no_answer == 0
+
+    # (c) two CONSECUTIVE no-answers, but the guest is still reachable (a real blip, not death) ->
+    # reported as a normal failure, NOT latched, so the caller's own self-heal keeps working.
+    ag._raw_call = make_raw_call([{"ok": False, "error": "empty reply from agent"}, OSError])
+    ag._guest_reachable = lambda: True
+    ag.call("present")
+    r = ag.call("present")
+    assert r["ok"] is False and "ConnectionRefusedError" in r["error"], r
+    assert not r.get("guest_dead"), r
+    assert ag._dead_reason is None and ag._consecutive_no_answer == 2
+
+    # (d) a THIRD no-answer on top, guest now unreachable too -> LATCHES, with a diagnosis naming the
+    # actual guest-death evidence rather than just repeating the transport error.
+    ag._raw_call = make_raw_call([OSError])
+    ag._guest_reachable = lambda: False
+    r = ag.call("present")
+    assert r.get("guest_dead") is True, r
+    assert "crashed/rebooted" in r["error"] and "bugcheck" in r["error"], r
+    assert ag._dead_reason is not None
+
+    # (e) LATCHED -> every later call fails INSTANTLY, no _raw_call, no _guest_reachable at all.
+    ag._raw_call = lambda *a, **k: (_ for _ in ()).throw(AssertionError("latched: must not call _raw_call"))
+    ag._guest_reachable = lambda: (_ for _ in ()).throw(AssertionError("latched: must not re-probe"))
+    r = ag.call("stop")
+    assert r == {"ok": False, "error": ag._dead_reason, "cmd": "stop", "guest_dead": True}, r
+
+    print(json.dumps({"selftest": "ok", "checks": 5}))
+    return 0
+
+
 def main(argv=None) -> int:
     from pathlib import Path
     here = Path(__file__).resolve().parent
     default_agent = here.parents[3] / "docs/comparison/tools/vm_agent_windows.py"
 
     ap = argparse.ArgumentParser(description="Drive the Windows guest agent in session 1")
-    ap.add_argument("--host", required=True)
-    ap.add_argument("--user", required=True)
+    ap.add_argument("--host", default="", help="required unless --selftest")
+    ap.add_argument("--user", default="", help="required unless --selftest")
     ap.add_argument("--python", default="py")
     ap.add_argument("--guest-port", type=int, default=DEFAULT_GUEST_PORT)
     ap.add_argument("--agent", default=str(default_agent))
     ap.add_argument("-v", "--verbose", action="store_true")
-    ap.add_argument("action", choices=("start", "stop", "status", "call", "log"))
+    ap.add_argument("--selftest", action="store_true",
+                    help="pure-python check of the guest-death latch; no SSH, no guest, exits")
+    ap.add_argument("action", nargs="?", choices=("start", "stop", "status", "call", "log"))
     ap.add_argument("rest", nargs="*", help="for `call`: <subcommand> [args…]")
     a = ap.parse_args(argv)
+    if a.selftest:
+        return _selftest()
+    if not a.host or not a.user:
+        ap.error("--host and --user are required unless --selftest")
+    if a.action is None:
+        ap.error("action is required unless --selftest")
 
     ag = Session1Agent(a.host, a.user, python=a.python, guest_port=a.guest_port, verbose=True)
     if a.action == "stop":

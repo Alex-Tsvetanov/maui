@@ -180,6 +180,7 @@ def _declare_prototypes() -> None:
         (user32.GetWindowThreadProcessId, [hwnd, ctypes.POINTER(dw)], dw),
         (user32.SetWindowPos, [hwnd, hwnd, ci, ci, ci, ci, ui], bo),
         (user32.ShowWindow, [hwnd, ci], bo),
+        (user32.IsIconic, [hwnd], bo),
         (user32.SetForegroundWindow, [hwnd], bo),
         (user32.GetForegroundWindow, [], hwnd),
         (user32.GetShellWindow, [], hwnd),
@@ -543,6 +544,13 @@ def _defocus_before_shot(hwnd: int) -> tuple[bool, bool]:
     return requested_ok, verified
 
 
+def _rect_at_target(rect: list[int], x: int, y: int, w: int, h: int) -> bool:
+    """True when `rect` (as [left, top, width, height]) is already close enough to (x, y, w, h) that
+    `cmd_present` need not reposition the window. Pure so `cmd_selftest` can pin the tolerance off
+    Windows -- see the call site for why skipping the reposition matters, not just why it is safe."""
+    return abs(rect[0] - x) <= 2 and abs(rect[1] - y) <= 2 and rect[2] >= w - 5 and rect[3] >= h - 5
+
+
 def cmd_present(a) -> int:
     """Foreground the window and force it to an EXPLICIT position+size so every column captures at the
     SAME rect; optionally capture atomically via --shot.
@@ -574,19 +582,46 @@ def cmd_present(a) -> int:
 
     x, y, w, h = a.x, a.y, a.w, a.h
     rect = [0, 0, 0, 0]
-    for _ in range(20):  # patient loop, same rationale as the macOS agent's 20x0.4s
-        user32.ShowWindow(wintypes.HWND(hwnd), SW_RESTORE)
-        user32.SetForegroundWindow(wintypes.HWND(hwnd))
-        user32.SetWindowPos(wintypes.HWND(hwnd), wintypes.HWND(HWND_TOP), x, y, w, h, SWP_SHOWWINDOW)
-        time.sleep(0.4)
-        r = wintypes.RECT()
-        user32.GetWindowRect(wintypes.HWND(hwnd), ctypes.byref(r))
-        rect = [r.left, r.top, r.right - r.left, r.bottom - r.top]
-        if rect[2] >= w - 5 and rect[3] >= h - 5:
-            break
-    if rect[2] < w - 5 or rect[3] < h - 5:
-        return _emit(ok=False, proc=a.proc, id=hwnd, bounds=rect,
-                     error=f"window did not reach target: got {rect[2]}x{rect[3]}, want {w}x{h}")
+    # SKIP THE REPOSITION DANCE WHEN NOTHING MOVED. A GIF burst calls `present` for the SAME window at
+    # the SAME rect every --gif-interval (as little as 0.3s) for a dozen-plus frames in a row, and a
+    # window already at the target rect and not minimized needs no repositioning -- so skip straight to
+    # the shot rather than pay ShowWindow/SetForegroundWindow/SetWindowPos(SWP_SHOWWINDOW) + a 0.4s
+    # settle on every single frame. RECHECK, don't trust: if the window drifted or got minimized between
+    # frames (nothing does that in a driven burst today, but nothing here assumes it can't), the full
+    # loop below still runs exactly as before.
+    #
+    # NOT A FIX for the guest crash below -- keep this straight, it was tested and refuted. This guest's
+    # virtio-gpu driver (viogpudo.sys) bugchecks (0x7e / access violation, same faulting address every
+    # time -- Microsoft-Windows-WER-SystemErrorReporting in the guest's System log) during a sustained
+    # capture burst of a continuously self-animating page (activity_indicator's spinning ring, via
+    # WinUI's DirectComposition). The first measurement (this guard landing) looked like it delayed the
+    # crash from frame 3 to frame 8 and was written up here as a likely cause+mitigation -- two FOLLOW-UP
+    # reproductions with this guard already in place crashed at frame 2 and frame 3, i.e. no better than
+    # the ORIGINAL unguarded code, and a slower --gif-interval (2.0s, giving any compositor race far more
+    # room to clear) crashed on the very first burst frame. That range (frame 2 through frame 8, no
+    # correlation to burst speed or to whether this guard's fast path was even engaged) is noise in an
+    # apparently flaky driver bug, not a trend this guard moves. It stays because skipping pointless
+    # Win32 calls is correct on its own merits, not because it prevents the crash -- nothing in this
+    # repo's Python can; see Session1Agent.call's docstring for what IS this tooling's job here.
+    r = wintypes.RECT()
+    user32.GetWindowRect(wintypes.HWND(hwnd), ctypes.byref(r))
+    at_rect = [r.left, r.top, r.right - r.left, r.bottom - r.top]
+    if not user32.IsIconic(wintypes.HWND(hwnd)) and _rect_at_target(at_rect, x, y, w, h):
+        rect = at_rect
+    else:
+        for _ in range(20):  # patient loop, same rationale as the macOS agent's 20x0.4s
+            user32.ShowWindow(wintypes.HWND(hwnd), SW_RESTORE)
+            user32.SetForegroundWindow(wintypes.HWND(hwnd))
+            user32.SetWindowPos(wintypes.HWND(hwnd), wintypes.HWND(HWND_TOP), x, y, w, h, SWP_SHOWWINDOW)
+            time.sleep(0.4)
+            r = wintypes.RECT()
+            user32.GetWindowRect(wintypes.HWND(hwnd), ctypes.byref(r))
+            rect = [r.left, r.top, r.right - r.left, r.bottom - r.top]
+            if rect[2] >= w - 5 and rect[3] >= h - 5:
+                break
+        if rect[2] < w - 5 or rect[3] < h - 5:
+            return _emit(ok=False, proc=a.proc, id=hwnd, bounds=rect,
+                         error=f"window did not reach target: got {rect[2]}x{rect[3]}, want {w}x{h}")
 
     shot_info: dict = {}
     if a.shot:
@@ -1033,6 +1068,18 @@ def cmd_selftest(a) -> int:  # noqa: ARG001 — argparse hands us a namespace we
         assert res["pointer_restored"] is False, (fn.__name__, res)
         assert moves[-1] != (700, 400), (fn.__name__, moves)
         checks += 1
+
+    # (e) _rect_at_target — the guard that lets `cmd_present` skip its reposition dance on a GIF burst.
+    # Exact match, and within the SAME +/-2px / -5px tolerance the retry loop itself accepts (a window
+    # a few px larger than asked, e.g. a DPI-rounded WinUI frame, is still "arrived" there); anything
+    # past that tolerance, on any one of the four numbers, must still take the full loop.
+    assert _rect_at_target([128, 30, 1024, 800], 128, 30, 1024, 800), "an exact match must skip"
+    assert _rect_at_target([129, 28, 1022, 796], 128, 30, 1024, 800), "within tolerance must skip"
+    for rect in ([131, 30, 1024, 800],     # x drifted past +/-2
+                [128, 30, 1018, 800],     # w short of the -5 floor
+                [128, 30, 1024, 793]):    # h short of the -5 floor
+        assert not _rect_at_target(rect, 128, 30, 1024, 800), f"{rect} must NOT skip the reposition"
+    checks += 1
 
     return _emit(selftest="ok", checks=checks)
 

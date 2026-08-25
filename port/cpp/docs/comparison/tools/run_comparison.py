@@ -329,7 +329,16 @@ class Env:
         if self.session1 is not None:
             # Session 1: the only place window enumeration, input injection and PrintWindow can see the
             # real desktop. Same subcommand names/args as the SSH form.
-            return self.session1.call(subcmd, *args, timeout=float(timeout))
+            reply = self.session1.call(subcmd, *args, timeout=float(timeout))
+            if reply.get("guest_dead"):
+                # FATAL, not another dropped frame. session1.call() already confirmed (over a fresh SSH
+                # connection, independent of the possibly-dead tunnel) that the guest itself is gone --
+                # every remaining step of this lane would fail the identical way, so continuing would
+                # just spend the rest of the run turning ONE real cause (the guest crashed) into a wall
+                # of unrelated-looking DROPPED/launch-failed lines. See Session1Agent.call's docstring
+                # for the measured crash this exists to stop drowning out.
+                raise SystemExit(f"[{self.name}] {reply['error']}")
+            return reply
         if self.is_windows:
             # No /usr/bin/env and no per-tool path overrides to inject: the Windows agent talks to
             # user32/gdi32 through ctypes, so it has no external tools to locate (the whole reason it
