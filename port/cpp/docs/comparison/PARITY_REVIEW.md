@@ -6089,3 +6089,99 @@ pages), `docs/comparison/captures/android/{cpp,maui,xaml}/{alignment,border,bord
 border_layout,border_playground,border_resize_content,border_stroke,carousel_page,chat_example,
 containers,custom_swipe_item_view,invalidate_shadow_host,radio_button_content,
 radio_template_from_style,swipe_view_shadow,varied_size_selector}_{light,dark}.{png,gif}`.
+
+## `selection_synchronization`/ios/pixel_xaml — the board's only red cell: CONFIRMED noise, not a
+## defect. The -48px alignment was the search cap, not the true offset (2026-08-26)
+
+Two prior single-run measurements had both landed the best drive-shift alignment at exactly -48px —
+`motion_score.py`'s own `DRIVE_SHIFT_MAX_PX` search boundary, which is suspicious but was previously
+undiagnosable: nobody had driven a search wider than the shipped cap to see whether -48 was an
+attractor or just where the search gave up.
+
+**Method — an unclamped search, entirely outside the shipped scorer.** A prior scratch experiment
+(`.../scratchpad/ss/repeat.py`, from an earlier session, still on disk) already existed for this exact
+question: repeat-launch `maui` and `xaml`, drive the page's real `scrolled-down` step via `idb`, screenshot,
+and find the vertical shift that best aligns the two frames over a ±600px window — 12.5x
+`DRIVE_SHIFT_MAX_PX`, and importantly not a temporary edit to the shipped file, an entirely separate
+script. It had only been run in dark theme (3 runs, `ss_dark.log`): landing offsets **+14, -70, -64 px**,
+aligning to residual **1.39 / 0.00 / 1.41** (unaligned raw error 7.9-17.5). This session generalized it
+(`.../scratchpad/ss2/repeat2.py`, page + theme as arguments, same algorithm) and ran LIGHT theme, 3 more
+runs: **+50, +20, -58 px**, aligning to residual **1.38 / 0.00 / 1.39** (unaligned raw 11.1-13.3).
+
+**Six xaml-vs-maui runs across both themes: -70, -64, -58, +14, +20, +50 px.** The sign flips run to
+run, there is no attractor near -48, and every single run aligns to a residual near zero once the search
+has room — the CONTENT is identical every time; only the resting scroll position differs, by an amount
+that varies in both magnitude and sign.
+
+**The decisive control: does MAUI disagree with itself by the same magnitude?** Wrote
+`self_repeat.py` (identical method, one app launched N times and compared against its own first run
+instead of two apps against each other) and ran it on `maui` alone, light theme, 3 launches:
+run1-vs-run0 **+76px** (residual 0.00), run2-vs-run0 **-32px** (residual 1.55). **MAUI disagrees with
+itself (spread 108px over just 2 comparisons) by the same order of magnitude the port disagrees with
+MAUI (spread 120px over 6)** — this is `motion_score.py`'s own maccatalyst-32px-vs-noise argument
+(the comment above `DRIVE_SHIFT_MAX_PX`: "MAUI disagrees with ITSELF by the same magnitude the port
+disagrees with MAUI ... that difference is not evidence of anything"), now run here as an actual
+experiment on this page rather than cited from a different one. It also matches and extends this
+project's `box_view/ios` precedent (60-147px MAUI-vs-itself spread) and supersedes this very file's own
+`motion_score.py:471` comment, which cited a previously-measured max of +26px on this exact page — that
+was an earlier unlucky sample, not a ceiling; the true noise floor is at least 76px.
+
+**Why -48 turned up twice.** With a true noise envelope this wide, a ±48px search will routinely fail to
+find the true optimum on this page and report its own boundary instead — a hard-cap failure mode, not a
+coincidence pointing at a ~48px-scale rendering defect. The board's committed run
+(2026-08-25-06_40_38) shows light hitting the -48 cap and dark finding no beneficial shift within the
+window at all (best-in-window was worse than doing nothing, i.e. the true offset lies outside ±48 in the
+other direction) — both are exactly what this session's wider search now shows happens routinely here.
+
+**Verdict: NOISE, matching `box_view/ios`, not a port defect. No source change made.** Per the task's
+own guidance for this outcome: not force-fixed, and not silently "resolved" by re-running recapture
+until a lucky sample lands green — that would only trade one honestly-captured unlucky run for a lucky
+one and misrepresent stability, exactly the way `box_view/ios`'s current GREEN status already does (it
+reflects one lucky run, not a solved problem — see that page's own board history). `comparison.json` was
+NOT touched.
+
+**Open question for a board-wide ruling, evidence attached, not acted on unilaterally — same category
+as the settled-tail scorer landing.** `DRIVE_SHIFT_MAX_PX = 48` was calibrated on a previously-measured
+max of 26px on this exact page. That ceiling is now measured, on the same page, to be at least 76px
+(MAUI vs itself, only 3 launches — not an exhaustive bound, the true tail could be wider still). Raising
+the constant would fix this cap-clipping failure mode board-wide, but the same comment already warns
+"raising this past ~20 would start hiding real work" — referring to protecting the real maccatalyst 32px
+defect from being papered over by a too-generous cap. That is a genuine tradeoff needing the same kind
+of pre-registered, board-wide measurement the settled-tail scorer got before it landed, not a change
+made unilaterally inside a single-page investigation. Recording the number here rather than flipping it.
+
+Files touched: none (`docs/comparison/PARITY_REVIEW.md` only). The diagnostic scripts live in this
+session's scratchpad — `ss/repeat.py` (prior session), `ss2/repeat2.py` + `ss2/self_repeat.py` (this
+session) — not committed, since they are throwaway measurement tools rather than shipped code; the raw
+run logs (`ss_dark.log`, `ss2_light_selsync.log`, `ss2_selfmaui_light.log`) are the artifact behind the
+numbers above.
+
+## `scroll_view`/ios/pixel_xaml — the ~20px xaml-vs-maui landing gap CONFIRMED as the same noise, not a
+## defect (2026-08-26)
+
+Sequel to the `selection_synchronization` investigation directly above (same method, run second on the
+same simulator — this task's own instruction was never to drive two device processes at once). Prior
+diagnosis: cpp tracks MAUI's self-motion closely (green), xaml's driven frame lands ~20px further down
+than MAUI (yellow), and only one run existed to judge it by.
+
+**Method: same `repeat2.py`, unclamped ±600px search, light theme, 3 runs (per the task's own scope for
+this item — light only).** xaml-vs-maui: **+20, +10, -14 px**, aligning to residual **0.00 / 0.90 / 0.91**
+(unaligned raw 4.6-5.2). The spread is smaller than `selection_synchronization`'s (34px vs 120px — this
+page's content is shorter, ~2.6% frame self-motion vs ~20%, so there is less runway for a fling to land
+far from where it started), but the sign still flips run to run (+20 then -14), which a fixed-magnitude
+rendering defect would not do.
+
+**Control: MAUI vs itself, light theme, 2 launches (1 comparison).** **-56px** (residual 0.00) — bigger
+on its own than the ENTIRE xaml-vs-maui spread measured above (34px). The previously-flagged ~20px gap
+sits comfortably inside MAUI's own landing noise on this page; it never needed a mechanism hunt, just a
+second data point to see that 20px is unremarkable here.
+
+**Verdict: same noise mechanism as `selection_synchronization`, confirmed with less data because the
+effect itself is smaller.** No dive into `register_xaml_scrolling_interactive.cpp` was warranted — the
+premise that this needed a rendering-side explanation (deceleration rate, bounce, content size) did not
+survive the control experiment, so per the task's own "don't fix blind" guidance, nothing there was
+touched. No source change made, `comparison.json` not touched — this page's `pixel_xaml` stays yellow
+from the single committed run, an honest if noisy sample, same reasoning as above.
+
+Files touched: none. Diagnostic run logs: `ss2/ss2_light_scrollview.log`,
+`ss2/ss2_selfmaui_light_scrollview.log` (session scratchpad, not committed).
