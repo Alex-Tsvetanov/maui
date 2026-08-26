@@ -35,20 +35,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 16573938,
+    "total_bytes": 16574002,
     "file_count": 12,
     "buckets": {
      "resources": 531242,
-     "code": 16042696
+     "code": 16042760
     },
     "main_binary": {
      "name": "gallery",
-     "bytes": 16042696,
+     "bytes": 16042760,
      "linkedit_bytes": 7831552,
      "stripped_bytes": 9125928
     },
     "total_bytes_stripped": 9657170,
-    "built_at": "2026-08-24",
+    "built_at": "2026-08-25",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -59,20 +59,20 @@
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt",
     "config_file": "local.toml",
-    "total_bytes": 41066708,
+    "total_bytes": 41066772,
     "file_count": 12,
     "buckets": {
      "resources": 531220,
-     "code": 40535488
+     "code": 40535552
     },
     "main_binary": {
      "name": "gallery_xaml",
-     "bytes": 40535488,
+     "bytes": 40535552,
      "linkedit_bytes": 24526848,
      "stripped_bytes": 23179152
     },
     "total_bytes_stripped": 23710372,
-    "built_at": "2026-08-24",
+    "built_at": "2026-08-25",
     "built_at_from": "newest measured file"
    }
   },
@@ -98,7 +98,7 @@
      "stripped_bytes": 8942600
     },
     "total_bytes_stripped": 9472457,
-    "built_at": "2026-08-24",
+    "built_at": "2026-08-25",
     "built_at_from": "newest measured file"
    },
    "appkit_xaml": {
@@ -122,7 +122,7 @@
      "stripped_bytes": 22979216
     },
     "total_bytes_stripped": 23509073,
-    "built_at": "2026-08-24",
+    "built_at": "2026-08-25",
     "built_at_from": "newest measured file"
    }
   },
@@ -158,23 +158,23 @@
     "artifact": "C:/maui-build/examples/gallery",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 9626297,
+    "total_bytes": 9626809,
     "file_count": 15,
     "buckets": {
      "resources": 529857,
-     "code": 9096440
+     "code": 9096952
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-25",
+    "built_at": "2026-08-26",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 9626297,
+    "total_bytes_stripped": 9626809,
     "main_binary": {
      "name": "gallery.exe",
-     "bytes": 5217792,
+     "bytes": 5218304,
      "linkedit_bytes": 0,
-     "stripped_bytes": 5217792
+     "stripped_bytes": 5218304
     },
     "remote_only": true,
     "config_file": "windows.toml"
@@ -183,24 +183,24 @@
     "artifact": "C:/maui-build/examples/gallery_xaml",
     "exists": true,
     "measured_on": "guest (ssh)",
-    "total_bytes": 13750745,
+    "total_bytes": 13751257,
     "file_count": 212,
     "buckets": {
      "resources": 529857,
-     "code": 10430712,
+     "code": 10431224,
      "other": 2790176
     },
     "build_config": "Release",
     "release_grade": true,
     "build_config_detected_from": "CMakeCache.txt (guest)",
-    "built_at": "2026-08-25",
+    "built_at": "2026-08-26",
     "built_at_from": "newest measured file (guest)",
-    "total_bytes_stripped": 13750745,
+    "total_bytes_stripped": 13751257,
     "main_binary": {
      "name": "gallery_xaml.exe",
-     "bytes": 6351872,
+     "bytes": 6352384,
      "linkedit_bytes": 0,
-     "stripped_bytes": 6351872
+     "stripped_bytes": 6352384
     },
     "remote_only": true,
     "config_file": "windows.toml"
@@ -326,22 +326,22 @@
     "total_bytes": 29599927,
     "file_count": 811,
     "buckets": {
-     "other": 68586,
+     "other": 68589,
      "resources": 1767109,
      "code": 4865745,
-     "native_libs": 22750064
+     "native_libs": 22748912
     },
     "main_binary": {
      "name": "libmaui_android_apphost.so",
-     "bytes": 22750064,
+     "bytes": 22748912,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 22750064
+     "arm64-v8a": 22748912
     },
     "abi_count": 1,
-    "built_at": "2026-08-25",
+    "built_at": "2026-08-26",
     "built_at_from": "newest measured file"
    },
    "cpp_xaml": {
@@ -355,27 +355,27 @@
     "total_bytes": 44357885,
     "file_count": 812,
     "buckets": {
-     "other": 68702,
+     "other": 68704,
      "resources": 1767281,
      "code": 4865799,
-     "native_libs": 37507448
+     "native_libs": 37506904
     },
     "main_binary": {
      "name": "libmaui_android_apphost_xaml.so",
-     "bytes": 37507448,
+     "bytes": 37506904,
      "linkedit_bytes": 0,
      "stripped_bytes": null
     },
     "native_libs_per_abi": {
-     "arm64-v8a": 37507448
+     "arm64-v8a": 37506904
     },
     "abi_count": 1,
-    "built_at": "2026-08-25",
+    "built_at": "2026-08-26",
     "built_at_from": "newest measured file"
    }
   }
  },
- "size_measured_at": "2026-08-25T20:21:03Z",
+ "size_measured_at": "2026-08-26T11:52:11Z",
  "ttff": {
   "android": {
    "maui_xaml": {

@@ -149,12 +149,17 @@
 
 #include "maui/controls/items/collection_view_handler.hpp"
 
+#include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 // The C++/WinRT include rule: the FULL header for every namespace whose MEMBERS you call.
 // Canvas::Children() is an IVector<UIElement>, so Append/Clear need this one; without it they
 // are only forward-declared and every call is C3779 -- an error that names neither the header
 // nor the concept. Third time in this backend; every base class contributes a header.
+// Controls.Primitives.h: SnapPointsAlignment (the carousel snap-points block below) lives in
+// winrt::Microsoft::UI::Xaml::Controls::Primitives, NOT Controls -- confirmed the hard way, live on
+// the guest: `Controls::SnapPointsAlignment` and even `Controls::Primitives::SnapPointsAlignment`
+// both fail C2039/C3083 without this header (its own impl/*.0.h only forward-declares the enum).
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 // SELECTION CHROME (below): Border.Background/BorderBrush need Media's SolidColorBrush, and a
@@ -272,12 +277,20 @@ namespace
         return maui::platform::windows::ref<winui::UIElement>(native).as<scroll_viewer>();
     }
 
-    // The Canvas panel inside the ScrollViewer's Content slot (created in create_platform_view). Mirrors
-    // scroll_view_handler.cpp's as_panel exactly (same layout seam, same reason: ScrollViewer.Content is
-    // a single ContentControl slot and a Canvas does not size itself to its children).
-    canvas as_panel(void* native)
+    // The Canvas-or-StackPanel inside the ScrollViewer's Content slot (created in create_platform_view:
+    // a StackPanel for a carousel, a Canvas for everything else -- see that function's header comment
+    // and the CAROUSEL PAGED PATH block above for the "why"). Returns the common `Panel` base, not the
+    // concrete `canvas` type scroll_view_handler.cpp's twin returns, because THIS file's Content can now
+    // be either at runtime and `.Children()` (this function's only reason to exist) is a Panel member,
+    // inherited identically by both. Safe: the one caller reachable from BOTH the carousel and grid/list
+    // paths (arrange_native's `const winui::Controls::Panel panel = as_panel(...)` near its top) only
+    // ever calls `.Children()` on it; the three paint_selection_* helpers below that need Canvas-only
+    // affordances (the static Canvas::SetLeft/SetTop attached-property setters) are grep-verified
+    // unreachable for a carousel (is_carousel skips the whole header/items/empty/footer flow they live
+    // in), so widening THEIR parameter type to Panel too (done below) costs nothing there either.
+    winui::Controls::Panel as_panel(void* native)
     {
-        return as_scroll_viewer(native).Content().as<canvas>();
+        return as_scroll_viewer(native).Content().as<winui::Controls::Panel>();
     }
 
     // ItemsViewHandler.Windows.cs's Update{Horizontal,Vertical}ScrollBarVisibility, adapted for this
@@ -536,7 +549,13 @@ namespace
     // gives the fill, BorderBrush/Thickness/CornerRadius give the stroke when `grid`) or the ListViewItem
     // flush fill (no stroke, no rounding, when `!grid`) — appended BEFORE the content native so it sits
     // BEHIND it (Canvas z-order = append order, the same convention android's add-before-content documents).
-    void paint_selection_fill(const canvas& panel, bool dark, bool grid, const maui::graphics::rect& slot)
+    // `Panel`, not `canvas`: widened alongside as_panel() above so it keeps compiling now that
+    // as_panel() returns the common base. Never called for a carousel (see as_panel()'s comment), so
+    // `panel` is always actually a Canvas here at runtime -- but the static canvas::SetLeft/SetTop
+    // calls below don't care what static TYPE `panel` is declared as; only `.Children()` does, and
+    // that's inherited identically from Panel.
+    void paint_selection_fill(const winui::Controls::Panel& panel, bool dark, bool grid,
+                              const maui::graphics::rect& slot)
     {
         winui::Controls::Border fill;
         fill.Background(selection_fill_brush(dark, grid));
@@ -590,7 +609,8 @@ namespace
     // horizontal: TOP, unmeasured per the header comment), vertically/horizontally centered on the cross
     // axis, inset on the main axis (measured geometry, header comment). Multiple selection shows a
     // CheckBox instead (paint_selection_checkbox) — the two are mutually exclusive at the call site below.
-    void paint_selection_indicator(const canvas& panel, bool dark, const maui::graphics::rect& slot, bool vertical)
+    void paint_selection_indicator(const winui::Controls::Panel& panel, bool dark, const maui::graphics::rect& slot,
+                                   bool vertical)
     {
         winui::Controls::Border bar;
         bar.Background(selection_accent_brush(dark));
@@ -642,7 +662,7 @@ namespace
     // superseded the "content is NOT inset" note this comment used to carry. IsHitTestVisible(false): this
     // backend wires no tap-to-select gesture yet (this file's header comment), so the glyph is decorative
     // only and must never intercept a future gesture recognizer's hits.
-    void paint_selection_checkbox(const canvas& panel, bool dark, bool selected, bool grid,
+    void paint_selection_checkbox(const winui::Controls::Panel& panel, bool dark, bool selected, bool grid,
                                   const maui::graphics::rect& slot)
     {
         winui::Controls::Border box;
@@ -915,6 +935,14 @@ namespace maui::controls
         // children AND provide a scrollable extent (Canvas::MeasureOverride returns (0,0) regardless of
         // children), so arrange_native stamps the PANEL's own Width/Height to the realized content extent
         // on every pass.
+        //
+        // Always a Canvas here, even for a carousel (the CAROUSEL PAGED PATH block in this file's header
+        // comment + the 2026-08-26 PARITY_REVIEW.md spike entry have the "why StackPanel" story) --
+        // create_platform_view() is STATIC (see the header declaration), so it has no virtual_view() to
+        // dynamic_cast<carousel_view*> against and genuinely cannot know here whether this instance is a
+        // carousel. arrange_native's is_carousel branch, which DOES know, swaps the Content to a
+        // StackPanel on its first carousel pass instead (search this file for "CAROUSEL HOST PANEL
+        // SWAP") -- one dynamic_cast + one idempotent try_as check per pass, not a second creation path.
         scroll_viewer viewer;
         canvas panel;
         viewer.Content(panel);
@@ -1021,7 +1049,31 @@ namespace maui::controls
             maui::core::apply_native_clip(platform->native, clipped->clip());
         }
 
-        const canvas panel = as_panel(platform->native);
+        // CAROUSEL HOST PANEL SWAP (see create_platform_view()'s header comment for the "why" and the
+        // 2026-08-26 PARITY_REVIEW.md spike entry for the live evidence a plain WinUI StackPanel — which
+        // publicly implements IScrollSnapPointsInfo — accepts this file's manual Children().Append()
+        // population and snaps a real touch-injected fling to an exact item boundary). This is where a
+        // carousel actually gets its StackPanel: create_platform_view() is STATIC (no virtual_view() to
+        // check there), so it always creates a Canvas, and this swaps it out ONCE, the first pass this
+        // handler realizes as a carousel — try_as is non-null on every later pass, so the swap body never
+        // runs twice. Never fires for a grid/list: dynamic_cast<carousel_view*> is null for every other
+        // i_items_view, matching is_carousel's own redundant re-cast further down this function (that
+        // comment's rationale — a second cheap dynamic_cast beats threading one result through — applies
+        // here too).
+        if (dynamic_cast<carousel_view*>(virtual_view()) != nullptr &&
+            !as_panel(platform->native).try_as<winui::Controls::StackPanel>())
+        {
+            winui::Controls::StackPanel stack;
+            // Regular (evenly-spaced) snap points: this port's carousel computes ONE item_main extent per
+            // pass and gives every item that same width (the is_carousel branch below), the "regular"
+            // case this property exists to declare — and the flag set on the live-tested probe that
+            // proved this approach out. WinUI's own default is false (irregular); left untested here
+            // whether that path also registers snap points for this file's manual population style.
+            stack.AreScrollSnapPointsRegular(true);
+            as_scroll_viewer(platform->native).Content(stack);
+        }
+
+        const winui::Controls::Panel panel = as_panel(platform->native);
         panel.Children().Clear();
         // Drop the PREVIOUS pass's realized content now: the pass below realizes a fresh generation, and
         // clearing late (after the new generation exists) would risk the two overlapping in the retain
@@ -1316,6 +1368,41 @@ namespace maui::controls
                                                               : winui::Controls::ScrollBarVisibility::Auto);
                 viewer.VerticalScrollBarVisibility(vertical ? winui::Controls::ScrollBarVisibility::Auto
                                                             : winui::Controls::ScrollBarVisibility::Disabled);
+            }
+
+            // SNAP POINTS — the panel-swap half of this fix (create_platform_view's header comment has
+            // the "why StackPanel" story; this is the "snap to WHAT" half). CarouselView.ItemsLayout's
+            // BindableProperty default-value creator is LinearItemsLayout.CreateCarouselHorizontalDefault
+            // (CarouselView.cs:284-287 / LinearItemsLayout.cs:72-77): SnapPointsType.MandatorySingle,
+            // SnapPointsAlignment.Center — mapped 1:1 onto the real ScrollViewer by
+            // CarouselViewHandler.Windows.cs's GetWindowsSnapPointsType/GetWindowsSnapPointsAlignment
+            // (UpdateSnapPointsType/UpdateSnapPointsAlignment, same file). This port does not yet read a
+            // user-set ItemsLayout.SnapPointsType/SnapPointsAlignment override — no gallery page sets one
+            // (grep-verified against port/maui-reference/pages/carousel_page.xaml, same "not chased"
+            // class of cut this file's header comment already documents for PeekAreaInsets/ItemSpacing —
+            // so the oracle's DEFAULT is hardcoded here rather than left at WinUI's own None, which is
+            // what silently produced the prior yellow (PARITY_REVIEW.md's "no snap points" entry, 2026-
+            // 08-25: a real fling decelerating smoothly instead of snapping). Set every pass, matching
+            // this branch's own established idiom (ScrollBarVisibility just above) rather than once at
+            // creation. StackPanel.Orientation likewise: create_platform_view runs before any mapper has
+            // pushed ItemsLayout.Orientation, so it is set here where `vertical` is already known good.
+            if (const scroll_viewer viewer = as_scroll_viewer(platform->native))
+            {
+                if (vertical)
+                {
+                    viewer.VerticalSnapPointsType(winui::Controls::SnapPointsType::MandatorySingle);
+                    viewer.VerticalSnapPointsAlignment(winui::Controls::Primitives::SnapPointsAlignment::Center);
+                }
+                else
+                {
+                    viewer.HorizontalSnapPointsType(winui::Controls::SnapPointsType::MandatorySingle);
+                    viewer.HorizontalSnapPointsAlignment(winui::Controls::Primitives::SnapPointsAlignment::Center);
+                }
+            }
+            if (const winui::Controls::StackPanel stack = panel.try_as<winui::Controls::StackPanel>())
+            {
+                stack.Orientation(vertical ? winui::Controls::Orientation::Vertical
+                                           : winui::Controls::Orientation::Horizontal);
             }
 
             // GetItemWidth()/GetItemHeight() (this file's header comment cites the exact oracle lines):
