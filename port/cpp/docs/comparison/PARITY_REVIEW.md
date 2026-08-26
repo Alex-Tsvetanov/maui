@@ -5954,3 +5954,138 @@ run — no `.cpp`/`.hpp`/`.mm` file changed in this pass, only captures + board 
 Files: `docs/comparison/captures/maccatalyst/{maui,cpp,xaml}/varied_size_selector_light.png`,
 `docs/comparison/comparison.json`, `docs/comparison/README.md` (all three: `varied_size_selector`/
 `maccatalyst` entries only).
+
+## border_stroke on android: FIXED — re-tested the reverted canvas-route flip, found its blocker already gone, found and fixed a second brush-gating bug the re-test exposed (2026-08-26)
+
+**Task premise, checked before doing anything else — and found stale.** `border_stroke`/android
+(2.76%/2.78%, yellow) was previously root-caused (`border_stroke on android: root cause CONFIRMED`,
+above) to `GradientDrawable.setStroke`'s integer-only stroke width: MAUI's real Android render
+(`StrokeExtensions.cs:8-26` → `MauiDrawable`/`PlatformDrawable.java:57-58,207,225`) is a genuinely
+antialiased, float-width canvas path stroke, which the port's convex-shape `GradientDrawable` route
+cannot reproduce by construction. The fix — route convex StrokeShapes through the canvas too, like
+Polygon/Path already do — was attempted same-day (`8075d5197c`) and reverted 2 hours later
+(`58e5176a53`) for two real regressions: **R1** 24 of 72 cells green→non-green across 8 pages, **R2**
+convex Borders lost their background FILL entirely (`border`'s pale-yellow fill rendered white). The
+revert's own comment named the blocker: a `native_draw_border_fill` bug, "fix that first."
+
+**That blocker was already fixed, 47 minutes after the revert, by someone else's commit that doesn't
+say so.** `40562417f2` (same day, 22:20) deleted a `background` field `border_platform` used to
+redeclare in its Android-only block — a redeclaration that SHADOWED `view_platform_base::background`.
+Android's `update_background` wrote the BASE field (it calls the base body first); `native_draw_
+border_fill` read `platform->background`, which name-lookup resolved to the SHADOWING derived field —
+always null. So the canvas fill silently drew nothing on every convex Border once routed there: exactly
+R2. That commit's own message is about an unrelated `shape_self_inset` double-count fix; the background-
+shadowing deletion rides along inside it, undescribed — `border_handler.hpp`'s own comment on the
+(now singular) `background` field documents the mechanism in full, including this exact symptom, and
+`port/CLAUDE.md`'s git-hygiene section separately flags this same commit as an example of "your work can
+land inside someone else's commit." Nobody ever re-flipped `k_convex_shapes_use_canvas` to check whether
+the fix that landed 47 minutes after the revert actually addressed what the revert complained about.
+
+**Verified BEFORE flipping anything, not assumed.** Polygon/Path/Line StrokeShapes were ALREADY
+canvas-routed regardless of the constant (it only gates the convex early-return), so today's board
+already exercises the fill mechanism the flip would extend. `border_resize_content` row 3 (a Polygon,
+`captures/android/cpp/border_resize_content_light.png`) fills correctly on the current board — solid red
+behind the blue '+', not R2's white. The shadowing bug is confirmed gone before spending a re-score on it.
+
+**Flipped, smoke-tested live, then re-scored against a pre-registered criterion** (mirroring the original
+attempt's own gate, so this is a genuine re-test and not a lowered bar). Live device check first
+(`border`, `varied_size_selector`, `border_stroke` on `emulator-5554`, `am force-stop` + relaunch,
+condition-independent per this doc's own `cpp-live-vs-board-capture-invalid` finding): all three fills
+present, no white regions — R2 not reproduced. Then a full 17-page recapture (every page under
+`port/maui-reference/pages/` whose shared XAML contains `<Border` or `<Frame` and is a registered gallery
+key — `alignment, border, border_clip_playground, border_layout, border_playground,
+border_resize_content, border_stroke, borderless, carousel_page, chat_example, containers,
+custom_swipe_item_view, invalidate_shadow_host, radio_button_content, radio_template_from_style,
+swipe_view_shadow, varied_size_selector` — both `cpp`/`cpp_xaml` columns, both themes, all three
+frameworks captured together so animated pages get a properly paired run-dir).
+
+**A second, real regression surfaced by the re-test — not R1/R2, a NEW bug this flip exposed.**
+`varied_size_selector` (dark) went 0.64%→3.64%: the thin dark 1px gap MAUI leaves between stacked
+brushless `BackgroundColor="Wheat"` Border cells vanished, painting one solid strip edge-to-edge.
+Root cause: `border_shape_path_points`'s primary inset (`sw`) was gated `spec.has_stroke && thickness >
+0`, so a Border with no Stroke BRUSH got zero inset on the canvas route. But MAUI's `UpdateClipPath`
+(`MauiDrawable.Android.cs:393-410`) always insets by `_strokeThickness`, and `_strokeThickness` is set
+from `StrokeExtensions.UpdateBorderStroke`'s UNCONDITIONAL `SetBorderWidth(border.StrokeThickness)`
+call (`StrokeExtensions.cs:19`, gated only on `border.Shape != null`, never on the brush) — confirmed
+directly against both C# files, not inferred. This is the exact same bug `push_border_to_host`'s
+`geometry_thickness` comment already named and fixed for the OTHER (`GradientDrawable`) route years
+earlier; the canvas route's `border_shape_path_points` just never had a brushless convex caller to expose
+it until this flip gave it one. Fixed by ungating the primary `sw` the same way, while deliberately
+KEEPING the separate extra-0.5pt shape self-inset brush-gated (its own established, previously-measured
+convention on the `GradientDrawable` route) — so a brushless fill gets exactly one inset, matching the
+already-proven-correct legacy route, not two. `varied_size_selector` is now 0.00%/0.00% (pixel-perfect),
+not merely "improved."
+
+**Final re-score, both fixes together, 68 comparisons:**
+  R1  ZERO green→non-green flips. One transient one, `radio_button_content` (an animated page), needs
+      its own note: it read green→yellow on the FIRST full pass, but its underlying single-frame numbers
+      were UNCHANGED (SSIM 0.9971/0.18%, matching the pre-flip value exactly) — the motion scorer just
+      had no run directory pairing fresh `cpp`/`xaml` frames against fresh `maui` frames (that pass only
+      recaptured `cpp`/`cpp_xaml`, not `maui_xaml`, so there was nothing to pair against) and fell back to
+      a lower-confidence single-frame check. Recapturing all three columns together for this page restored
+      the pairing and the motion score, and it came back green with the SAME numbers — confirming this was
+      a measurement-pipeline artifact (the same run-directory-expiry mechanism this doc's `empty_view_rtl`
+      and maccatalyst `varied_size_selector` entries above both already document happening to unrelated
+      pages), not a rendering regression. The FINAL recapture (all three frameworks together throughout)
+      does not reproduce it.
+  R2  ZERO fill losses. `varied_size_selector`, the page R2 hit hardest in the original attempt, is now
+      pixel-perfect (see above).
+  A1  `border_playground` 1.39%/1.40% → 0.24%/0.24%, yellow → **GREEN**. This is the dash-phase mechanism
+      `k_convex_shapes_use_canvas`'s own comment predicted: `GradientDrawable.setStroke`'s dash starts on
+      the drawable's own internal path while the canvas route's `DashPathEffect` runs along the actual
+      shape path, so routing the dashed convex stroke through the canvas fixes the phase along with the
+      antialiasing.
+  A2  `border_stroke` 2.76%/2.78% → 2.30%/2.33%. Genuinely improved on its worst cell (the pre-registered
+      accept condition), but still **yellow** — the residual is antialiasing QUALITY, not the presence of
+      AA: MAUI blends a feathered edge over ~1-1.5px, the canvas route's `android_canvas` stroke is
+      antialiased but the port's dp→px density scaling still lands the centreline a fraction of a pixel
+      off MAUI's, so the blend ramp differs in shape even though both sides now blend. Not investigated
+      further this pass — the mechanism this task named (integer `GradientDrawable` width) is fixed; what
+      remains is a finer-grained sub-pixel-alignment question, a different, smaller investigation.
+  Bonus  `border_resize_content` 0.99%/1.04% → 0.71%/0.74%, yellow → **GREEN** — the Polygon-fill page
+      this whole investigation traces back to (the original revert's "row 3" reference).
+  Unscored family members (`border_alignment`, `border_styles`, `carousel_view`, `frame` — carry
+      Border/Frame but aren't registered board page keys, so no automated score exists for them, same
+      caveat the original revert recorded): live-launched all four via the installed `cpp_xaml` apphost.
+      `border_alignment`, `border_styles`, `frame` render correctly (fills present, rounded corners
+      correct, no white regions). `carousel_view` is not a registered `MAUI_SAMPLE_PAGE` key at all
+      (blank screen, no crash) — a pre-existing navigation gap unrelated to this fix, not investigated
+      further.
+
+**Regression check beyond the visual board.** `dev.sh border` (headless mirror + XAML-loader tests, 74
+cases) green both before and after. `ctest --preset android -R border` (the real on-device JNI tests) 25/25
+green. The full `ctest --preset android` suite (3227 cases) has 26 pre-existing failures unrelated to this
+change (`web_view_handler_seam`, `label_seam`, `xaml_loader.header_footer_template_*`, `device_info_test`,
+`android_testhost_widget_suite`, none mentioning border) — spot-checked one (`web_view_handler_seam.
+url_source_maps_to_platform`, a `WebView` navigation-history assertion with zero connection to
+`border_handler.cpp`) to confirm it's environmental/pre-existing, not a regression this change caused; not
+investigated further per this shared worktree's "don't touch what you don't own" discipline.
+
+**Git hygiene note.** This recapture also picked up an unrelated flip from the SAME board-wide rescore
+this doc has now documented happening three times to different pages/platforms (`basic_grouping`/android
+in the `empty_view_rtl` entry above, `basic_grouping`/maccatalyst in the entry directly above this one,
+and here again) plus — more seriously — a genuine REGRESSION of another agent's just-landed
+`varied_size_selector`/maccatalyst fix (the entry directly above this one, `f18f4beee6`): running
+`build_comparison_json.py` standalone reverted that page's `maccatalyst` platform block to its pre-fix
+values even though no maccatalyst capture file changed. Caught by diffing `comparison.json` per-page
+per-platform against HEAD before committing (not just per-page — a whole-entry diff misses a single
+platform sub-object flipping inside an otherwise-correct entry), and hand-patched back to HEAD's
+`maccatalyst` block before regenerating `README.md`. `measurements.json` (binary size / time-to-first-
+frame) also picked up noise on `macos-arm64`/`macos-appkit` from the same global board-refresh step and
+was reverted to HEAD entirely, unrelated to this fix. Final staged diff verified with `git diff --cached`
+to touch only android platform data for the 16 pages listed above (of the 17 recaptured, `borderless`
+scored identically — `StrokeThickness=0`, so neither fix's code path engages) plus this file and the
+source change.
+
+**Verdict: genuine fix, landed.** `k_convex_shapes_use_canvas` is `true`. Both root causes this task
+named — the reverted flip's original blocker (background-field shadowing, already fixed, now verified)
+and a second brush-gating bug the re-test itself exposed (fixed this pass) — are addressed with primary-
+source citations (both C# files read directly, not inferred from prior comments), not just a re-run of
+the same known-broken attempt.
+
+Files: `src/platform/android/border_handler.cpp` (the flip + the `sw`-gating fix + updated in-file
+history), `docs/comparison/comparison.json`, `docs/comparison/README.md` (android platform data, 16
+pages), `docs/comparison/captures/android/{cpp,maui,xaml}/{alignment,border,border_clip_playground,
+border_layout,border_playground,border_resize_content,border_stroke,carousel_page,chat_example,
+containers,custom_swipe_item_view,invalidate_shadow_host,radio_button_content,
+radio_template_from_style,swipe_view_shadow,varied_size_selector}_{light,dark}.{png,gif}`.

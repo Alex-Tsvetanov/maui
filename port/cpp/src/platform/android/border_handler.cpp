@@ -752,13 +752,43 @@ namespace
     // so none of this is capture noise.
     //
     // WHY, mechanically: this constant only gates the CONVEX early-return below. Polygon/Path/Line already
-    // returned true, and border_resize_content row 3 (a Polygon) was ALREADY failing to fill on the canvas
-    // route — see the FINDINGS chain ruling out dangling ptr / stale overwrite / wrong paint type /
-    // set_fill_paint gap. Flipping this moved every convex Border onto that same unproven canvas fill and
-    // spread the row-3 defect board-wide. So the canvas fill (native_draw_border_fill reading
-    // platform->background) must be FIXED FIRST; this constant is the A/B switch to re-test it with.
-    // Do not flip it again until a convex Border demonstrably fills on the canvas route.
-    inline constexpr bool k_convex_shapes_use_canvas = false;
+    // returned true, and border_resize_content row 3 (a Polygon) was failing to fill on the canvas route
+    // because of R2's real cause, found and fixed the SAME DAY, 47 minutes after this revert:
+    // `40562417f2` — `border_platform` used to REDECLARE `background` in its Android-only block, SHADOWING
+    // `view_platform_base::background` (border_handler.hpp). Android's `update_background` calls the base
+    // body first (writing the BASE field) but `native_draw_border_fill` read `platform->background`, which
+    // name lookup resolved to the SHADOWING derived field — always null, so the canvas fill silently drew
+    // nothing on EVERY convex Border once routed there. That commit deleted the redeclaration; `background`
+    // is now one field, in the base, read and written from the same storage everywhere (its own comment
+    // block at border_handler.hpp documents this in full, including the exact measured symptom this R2 was).
+    //
+    // Nobody re-flipped this constant after that fix landed until now. VERIFIED on the current board
+    // (pre-flip, so via Polygon/Path which were ALREADY canvas-routed regardless of this constant):
+    // border_resize_content row 3 (a Polygon, `captures/android/cpp/border_resize_content_light.png`) fills
+    // correctly today — solid red fill behind the blue '+', not the white R2 produced. The shadowing bug is
+    // gone; the fill mechanism this constant would move every convex Border onto is proven working, not
+    // merely reasoned about. Re-flipping to true and re-scoring the full border family is therefore a
+    // legitimate re-test of R1/R2, not a repeat of the same known-broken attempt.
+    //
+    // RE-SCORED 2026-08-26 → ACCEPTED. Flipped back to true, this time paired with a second fix this
+    // re-test uncovered (`border_shape_path_points`'s `sw` — see its own comment, a few dozen lines down —
+    // was still brush-gated and dropped the ~4px MAUI leaves between brushless-fill Border cells;
+    // `varied_size_selector` regressed 0.64%→3.64% dark until that was fixed too). Full 17-page
+    // Border/Frame-bearing sweep (every page under `port/maui-reference/pages/` whose shared XAML has a
+    // `<Border` or `<Frame`, both `cpp`/`cpp_xaml` columns, both themes — 68 comparisons):
+    //   R1  ZERO green→non-green flips (one transient one, `radio_button_content`, was a motion-scorer
+    //       run-directory-pairing artifact from a partial recapture, not a rendering change — confirmed
+    //       byte-identical single-frame numbers before and after, and resolved by recapturing all three
+    //       columns together; not a real regression).
+    //   R2  ZERO fill losses. `varied_size_selector` (the page R2 hit hardest originally) is now
+    //       PIXEL-PERFECT: 0.64%→0.00% dark.
+    //   A2  border_stroke 2.76%/2.78% → 2.30%/2.33% (still yellow — the residual is the deeper
+    //       antialiasing-quality question border_stroke's own header note tracks, not this mechanism —
+    //       but genuinely improved). border_playground 1.39%/1.40% → 0.24%/0.24%, now GREEN.
+    //   Bonus: border_resize_content yellow→green (0.99%/1.04%→0.71%/0.74%), the Polygon-fill page this
+    //       whole investigation traces back to.
+    // See PARITY_REVIEW.md's border_stroke/android entry for the full writeup.
+    inline constexpr bool k_convex_shapes_use_canvas = true;
 
     [[nodiscard]] bool shape_needs_canvas(const maui::graphics::i_shape* shape)
     {
@@ -782,6 +812,24 @@ namespace
     // Mirrors MauiDrawable.Android.cs's shape bounds: the path is laid into Rect(sw/2, sw/2, fw-sw, fh-sw)
     // so a stroke of width sw centred on the path has its OUTER edge flush with the view boundary (fw/fh are
     // the view size in points; sw is the stroke thickness). An unstroked border fits the full box.
+    //
+    // `sw` IS NOT BRUSH-GATED (FIXED 2026-08-26, found while re-testing k_convex_shapes_use_canvas=true).
+    // `StrokeExtensions.UpdateBorderStroke` (StrokeExtensions.cs:8-19) calls
+    // `mauiDrawable.SetBorderWidth(border.StrokeThickness)` UNCONDITIONALLY — gated only on `border.Shape
+    // != null`, never on `border.Stroke` (the brush). `SetBorderWidth` sets `_strokeThickness`
+    // (MauiDrawable.Android.cs:290-303), and `UpdateClipPath` (:393-410) insets `Rect(sw/2, sw/2, fw-sw,
+    // fh-sw)` from THAT field unconditionally too. So MAUI insets the FILL by StrokeThickness/2 (default
+    // 1.0dp) even when there is no Stroke brush at all — confirmed against the real C# source, not just
+    // inferred. This mirrors `push_border_to_host`'s `geometry_thickness` (a few hundred lines up), which
+    // already got this right for the GradientDrawable route with the identical citation. The canvas route
+    // used to gate `sw` on `spec.has_stroke` too, which was correct only by coincidence — every canvas
+    // caller until now was either genuinely stroked (native_draw_border_stroke checks `has_stroke` BEFORE
+    // ever calling this) or an arbitrary StrokeShape page that happened not to exercise a brushless fill
+    // inset. Flipping `k_convex_shapes_use_canvas` moved `varied_size_selector`'s brushless
+    // `BackgroundColor="Wheat"` Border cells onto this path and exposed it: the ~4px MAUI leaves between
+    // stacked cells collapsed to 0 (RE-SCORED 2026-08-26: android/varied_size_selector dark 0.64% -> 3.64%,
+    // a real regression, not capture noise) — the exact bug `geometry_thickness`'s own comment already
+    // named for the other route. Fixed the same way here.
     [[nodiscard]] maui::graphics::path_f border_shape_path_points(const maui::core::border_stroke_spec& spec,
                                                                   double width_pt, double height_pt)
     {
@@ -789,7 +837,7 @@ namespace
         {
             return {};
         }
-        const double sw = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0.0;
+        const double sw = spec.thickness > 0 ? spec.thickness : 0.0;
         const double x = sw / 2.0;
         const double y = sw / 2.0;
         const double w = width_pt - sw;
@@ -802,11 +850,18 @@ namespace
         // UpdateClipPath hands those bounds to _shape.ToPlatform(...), whose non-innerPath branch is a bare
         // shape.PathForBounds (ShapeExtensions.cs:34) — so the Controls Rectangle's own StrokeThickness 1.0
         // deflates them again. Derivation + the `> 0` latch: shape_self_inset (core/border_handler.hpp).
-        // Gated on `sw`, not on spec.thickness: this file already treats "thickness set but no Stroke brush"
-        // as unstroked everywhere (MauiDrawable would not), so the inset follows the same convention rather
-        // than introducing a second, inconsistent one.
+        //
+        // THIS ONE STAYS BRUSH-GATED, DELIBERATELY — unlike `sw` above. `border_drawable_self_inset_px`
+        // (the GradientDrawable route's twin of this exact extra deflate) is passed the brush-gated
+        // `thickness`, not `geometry_thickness`, specifically so an unstroked, brushless fill does NOT pick
+        // up this extra 0.5pt — only the primary StrokeThickness/2 inset above applies to it. Re-using the
+        // now-ungated `sw` here would apply BOTH insets to a brushless border and over-shrink its fill
+        // relative to the already-proven-correct GradientDrawable route (varied_size_selector's own
+        // GREEN capture, pre-flip, has exactly ONE inset, not two). Kept as its own gate so the two routes
+        // apply the identical total inset for the identical case.
+        const double self_inset_thickness = spec.has_stroke && spec.thickness > 0 ? spec.thickness : 0.0;
         return spec.shape->path_for_bounds(
-            maui::core::shape_self_inset(maui::graphics::rect{x, y, w, h}, sw, spec.shape));
+            maui::core::shape_self_inset(maui::graphics::rect{x, y, w, h}, self_inset_thickness, spec.shape));
     }
 
     // The Border CONTENT clip path (in POINTS, over the host's laid-out size) — the ONE mirror of C#'s
