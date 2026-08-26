@@ -38,24 +38,79 @@
 
 \subsection*{Приложение Б. Публичен програмен интерфейс на системата}
 \addcontentsline{toc}{subsection}{Приложение Б. Публичен програмен интерфейс на системата}
-Публичните типове по слоеве, съпоставени с типовете на еталона. Съответствието е едно
-към едно по покритие; имената се преобразуват по правилата на езиковия профил, а всеки
-заглавен файл носи в коментар пълното име на съответстващия тип.
+Публичните типове по слоеве, съпоставени с типовете на еталона. Съответствието е едно към
+едно по покритие; имената се преобразуват по правилата на езиковия профил, а всеки заглавен
+файл носи в коментар пълното име на съответстващия тип. Списъкът е генериран от първия ред на
+всеки публичен заглавен файл, който носи съответствието в коментар (\code{tools/gen\_tex.py}),
+и обхваща \textbf{608} типа в 19 слоя --- от \code{core} и \code{controls} до \code{layouts},
+\code{graphics}, \code{hosting}, \code{bindings} и \code{xaml}.
 
-Списъкът е генериран от първия ред на всеки публичен заглавен файл, който носи
-съответствието в коментар (\code{tools/gen\_tex.py}). Обхваща \textbf{604} типа.
+Пълните 608 реда не се препечатват тук --- добавят над 20 страници без да добавят информация
+отвъд самия списък. Табл.~\ref{tab:api-sample} показва ръчно подбрана извадка от основните
+слоеве, представителна за формата и покритието на цялата таблица.
 
-\input{generated/api_table}
+\begin{table}[H]
+\centering
+\caption{Представителна извадка от публичния програмен интерфейс (12 от 608 типа)}
+\label{tab:api-sample}
+\small
+\begin{tabular}{@{}L{1.7cm}L{5.9cm}L{6.5cm}@{}}
+\hline \textbf{Слой} & \textbf{Система} & \textbf{Еталон} \\ \hline
+{\small core} & {\ttfamily\small maui::\allowbreak{}core::\allowbreak{}i\_\allowbreak{}element\_\allowbreak{}handler} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}IElement\allowbreak{}Handler} \\
+{\small core} & {\ttfamily\small maui::\allowbreak{}core::\allowbreak{}i\_\allowbreak{}layout\_\allowbreak{}handler} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}ILayout\allowbreak{}Handler} \\
+{\small core} & {\ttfamily\small maui::\allowbreak{}core::\allowbreak{}button\_\allowbreak{}handler} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Handlers.\allowbreak{}Button\allowbreak{}Handler} \\
+{\small controls} & {\ttfamily\small maui::\allowbreak{}controls::\allowbreak{}button} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Controls.\allowbreak{}Button} \small (M2 subset) \\
+{\small controls} & {\ttfamily\small maui::\allowbreak{}controls::\allowbreak{}border} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Controls.\allowbreak{}Border} \\
+{\small controls} & {\ttfamily\small maui::\allowbreak{}controls::\allowbreak{}absolute\_\allowbreak{}layout} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Controls.\allowbreak{}Absolute\allowbreak{}Layout} \\
+{\small layouts} & {\ttfamily\small maui::\allowbreak{}layouts::\allowbreak{}layout\_\allowbreak{}manager} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Layouts.\allowbreak{}Layout\allowbreak{}Manager} \\
+{\small layouts} & {\ttfamily\small maui::\allowbreak{}layouts::\allowbreak{}grid\_\allowbreak{}layout\_\allowbreak{}manager} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Layouts.\allowbreak{}Grid\allowbreak{}Layout\allowbreak{}Manager} \\
+{\small graphics} & {\ttfamily\small maui::\allowbreak{}graphics::\allowbreak{}color} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Graphics.\allowbreak{}Color} \\
+{\small hosting} & {\ttfamily\small maui::\allowbreak{}hosting::\allowbreak{}maui\_\allowbreak{}app\_\allowbreak{}builder} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Hosting.\allowbreak{}Maui\allowbreak{}App\allowbreak{}Builder} \\
+{\small bindings} & {\ttfamily\small maui::\allowbreak{}controls::\allowbreak{}binding} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Controls.\allowbreak{}Binding} \\
+{\small xaml} & {\ttfamily\small maui::\allowbreak{}xaml::\allowbreak{}i\_\allowbreak{}markup\_\allowbreak{}extension} & {\ttfamily\small Microsoft.\allowbreak{}Maui.\allowbreak{}Controls.\allowbreak{}Xaml.\allowbreak{}IMarkup\allowbreak{}Extension} \\ \hline
+\end{tabular}
+\end{table}
 
-\subsection*{Приложение В. Пълна таблица на съвпадението по интерфейси}
-\addcontentsline{toc}{subsection}{Приложение В. Пълна таблица на съвпадението по интерфейси}
-Топлинната карта \tabref{tab:heat} дава измереното структурно сходство за всеки
-интерфейс на всяка платформа. Цветът на клетката следва стойността: зелено при точно съвпадение
-(1{,}000), жълто при 0{,}75 и червено при 0{,}50 и по-ниско, с плавен преход между тях. Прочит по ред показва как един
-интерфейс се държи на четирите платформи; прочит по колона --- къде една платформа се
-отклонява системно.
+Пълният списък от 608 типа е генериран автоматично от изходния текст --- от първия ред на
+всеки публичен заглавен файл (\code{tools/gen\_tex.py}) --- и е достъпен в хранилището на
+ангажимент \code{a1d6dd9956}: заглавните файлове са на
+\url{https://github.com/Alex-Tsvetanov/maui/tree/a1d6dd9956fa39126a094dcc43545b6beae5ef93/port/cpp/include/maui},
+а генераторът --- на
+\url{https://github.com/Alex-Tsvetanov/maui/blob/a1d6dd9956fa39126a094dcc43545b6beae5ef93/port/cpp/docs/thesis/tools/gen_tex.py}.
 
-\input{generated/heatmap}
+\subsection*{Приложение В. Съвпадение по интерфейси}
+\addcontentsline{toc}{subsection}{Приложение В. Съвпадение по интерфейси}
+Всеки от \boardPages{} интерфейса се оценява на четирите платформи по структурно сходство
+(§\ref{subsec:scoring}) и попада в едно от три нива: съвпада, различава се незначително или
+се различава съществено. \tabref{tab:heat} обобщава разпределението по платформа.
+
+\begin{table}[H]
+\centering
+\caption{Разпределение на оценките по платформа}
+\label{tab:heat}
+\small
+\begin{tabular}{@{}lccc@{}}
+\hline
+\textbf{Платформа} & \textbf{Съвпада (зелено)} & \textbf{Незначително (жълто)} & \textbf{Съществено (червено)} \\ \hline
+iOS & \boardGreenios{} & \boardYellowios{} & \boardRedios{} \\
+Mac Catalyst & \boardGreenmaccatalyst{} & \boardYellowmaccatalyst{} & \boardRedmaccatalyst{} \\
+Android & \boardGreenandroid{} & \boardYellowandroid{} & \boardRedandroid{} \\
+Windows & \boardGreenwindows{} & \boardYellowwindows{} & \boardRedwindows{} \\ \hline
+\end{tabular}
+\end{table}
+
+Таблицата показва входния път \emph{по код}: по него няма нито един интерфейс със съществено
+разминаване на нито една от четирите платформи. По входния път \emph{от описанието} остава едно
+изключение --- iOS, \code{selection\_synchronization} --- разгледано в §\ref{subsec:visual}
+(\tabref{tab:worst}) заедно с констатацията защо не е принудено до зелено.
+
+Разбивката по \textbf{отделен интерфейс} --- каквато носеше предишният вид на тази таблица,
+ред по ред --- не се препечатва тук: строи се възпроизводимо от \code{comparison.json}
+(\code{tools/gen\_tex.py}). Изходните данни за всеки от \boardPages{} интерфейса, по двата
+входни пътя (код / описание), са версионирани на същия ангажимент:
+\url{https://github.com/Alex-Tsvetanov/maui/blob/a1d6dd9956fa39126a094dcc43545b6beae5ef93/port/cpp/docs/comparison/comparison.json};
+четим изглед със статус по интерфейс и платформа --- в
+\url{https://github.com/Alex-Tsvetanov/maui/blob/a1d6dd9956fa39126a094dcc43545b6beae5ef93/port/cpp/docs/comparison/README.md}.
 
 \subsubsection*{Най-слабо съвпадащите интерфейси --- съпоставки}
 
