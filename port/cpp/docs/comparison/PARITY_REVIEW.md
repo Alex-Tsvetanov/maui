@@ -5819,3 +5819,138 @@ Files: `examples/gallery/pages/empty_view_rtl_page.hpp`, `tests/xaml/loader_test
 test), `docs/comparison/README.md`, `docs/comparison/comparison.json`, `docs/comparison/
 measurements.json` (board refresh), `docs/comparison/captures/android/{cpp,maui,xaml}/
 empty_view_rtl_{light,dark}.{png,gif}`.
+
+## `varied_size_selector`/maccatalyst: "native ListViewItem container" framing RETIRED — confirmed the
+## SAME Border fill/clip rasterization defect as `border_stroke`; a stale light capture also fixed
+## (dark-only defect, not yet reported) (2026-08-26)
+
+Task brief warned that an older characterization of this yellow ("cells placed directly on a bare
+Canvas instead of a native item-container") used WinUI/Windows vocabulary and was very likely wrong or
+misapplied on maccatalyst, and asked for a from-scratch diagnosis. It was wrong, but not merely wrong
+about vocabulary — it does not describe this backend's mechanism at all. `varied_size_selector`'s
+maccatalyst render goes through `src/platform/ios/*` (confirmed by `cdf88fc4f1`, this doc's own
+immediately-preceding entry: maccatalyst's `pixel`/`pixel_xaml` columns build from the `maccatalyst-
+release` preset, aliased to `ios` sources — `apple_border_ops.hpp`/AppKit feeds only the unscored
+`appkit_*` columns). There is no CollectionView-cell-hosting question here at all: this page's only
+Border-family defect is in `border_platform::update_background` + `apply_border_stroke`'s shape mask,
+the SAME two functions already under investigation for `border_stroke` on the same lane.
+
+**Confirming this from `comparison.json` and the actual pixel diff, not the old writeup.** Both `pixel`
+and `pixel_xaml` are yellow, ~1.07%/1.10%. Diffing the maui vs cpp captures directly (25/255 threshold,
+matching `pixel_score.py`) finds essentially ALL of it (7905 of 8571 differing px, plus a small window-
+titlebar-text band that is not this page) in exactly **7 full-width single-pixel rows at y=31, 108, 185,
+262, 339, 416, 493 — pitch exactly 77px** — the top/bottom seam of each of this page's 6 stacked `Border`
+cells (`HeightRequest="100"`, and 100pt × Catalyst's 0.7697 UIKit→AppKit scale = 76.97px). This
+reproduces this doc's own 2026-08-22 finding ("The DIP-vs-pixel discriminator") verbatim — not stale,
+same mechanism, still live.
+
+**Why the inset is real MAUI behavior here even though this Border has no visible Stroke.** The page's
+item template (`port/maui-reference/pages/varied_size_selector.xaml:30`) is
+`<Border BackgroundColor="Wheat" HeightRequest="100" Padding="8">` — no `Stroke`, no explicit
+`StrokeThickness`. That does NOT mean StrokeThickness is 0: `Border.StrokeThicknessProperty` defaults to
+**1.0** (`Border.cs:175`), independent of whether `Stroke` (the brush) is null. The only mechanism that
+ever zeroes the shape's own StrokeThickness — `Border.UpdateStrokeShape` (`Border.cs:433-439`) — is a
+one-way latch gated on `StrokeThickness == 0`:
+```
+if (StrokeShape is Shape strokeShape && StrokeThickness == 0)
+    strokeShape.StrokeThickness = StrokeThickness;
+```
+Since this page's Border StrokeThickness is 1.0 (never set to 0), that latch never fires, so the default
+`Rectangle` StrokeShape keeps its OWN default StrokeThickness (also 1.0, `Shape.cs:80-81`), which feeds
+`Shape.TransformPathForBounds` (`Shape.cs:312-323`) — an UNCONDITIONAL `viewBounds.X += StrokeThickness /
+2` etc. on every side. So real MAUI insets this Border's clip/fill path by 0.5 DIP/side EVEN THOUGH
+nothing visible strokes — "no Stroke color" and "no inset" are not the same condition, and conflating
+them is exactly the trap the port's own `shape_self_inset` comment (`border_handler.hpp:76-83`) already
+warns about ("that is exactly 'no inset while the Border is unstroked'" — true only when StrokeThickness
+itself is 0, which it isn't on this page).
+
+**Traced the port's own geometry and it already gets this right — ruling out a missing-inset / layout
+bug from source, not just pixel statistics.** `border.cpp:42-46` gives the port's `Border` the same 1.0
+default. `border_handler.cpp:70`, `spec.thickness = view.stroke_thickness()`, reads it straight — no
+has-stroke gating. `apply_border_stroke` (`ios_border_ops.hpp:253-256`) computes
+`shape_bounds = shape_self_inset(bounds, spec.thickness, spec.shape)` and calls
+`apply_clip(native, spec.shape, shape_bounds)` UNCONDITIONALLY, before the `draws_border` (has-stroke)
+check a few lines down — so the inset lands on the mask even when there is no stroke sublayer at all.
+`shape_self_inset` (`border_handler.hpp:107-121`) only skips when `thickness <= 0` (not the case here) or
+`shape->applies_own_stroke_inset()` (only true for the CONTROLS shape used by an explicit `<Rectangle>`/
+`<Ellipse>`/`<Polygon>` StrokeShape — this page has none, so the plain `graphics::shapes::rectangle`
+default applies). And `apply_background`'s solid-paint branch (`ios_visual_ops.hpp:586`,
+`layer.backgroundColor = to_ui_color(solid->color()).CGColor`) paints onto the SAME `layer` whose `.mask`
+`apply_clip` sets — confirmed by reading it directly, not assumed from a comment. So the port's fill IS
+already masked to the inset path, geometry matches MAUI's, and "missing inset" is ruled out as the cause.
+
+**What's left is rasterization, and it's the same open question as `border_stroke`, now confirmed on a
+cleaner, stroke-free case.** The combined gap between two adjacent cells' inset fills is 2×0.5 DIP = 1pt
+= 0.7697 device px at this lane's scale — sub-pixel, so the shared boundary row is genuinely an
+antialiasing-coverage question, not a hard multi-pixel band, on BOTH renderers. A boundary pixel that
+fully contains a 0.77px unpainted gap should read ~1 − 0.77 ≈ 23% wheat if nothing else contributes —
+matching this doc's own prior measurement of MAUI's real value (24%). Re-measuring the port's own side at
+the same row (dark, y=108, x=500; local background/full-wheat endpoints read at rows 30 and 33-35) gives
+~42% coverage, in the same neighborhood as the prior 50% figure (different sampling column/row, not a
+contradiction). MAUI's own boundary-row values are NOT well fit by a plain wheat-over-local-background
+blend — solving the same two-endpoint model on MAUI's side gives a negative coverage fraction (its
+boundary pixel is darker than its own local background a few rows away). That is an open, unexplained
+detail, flagged rather than resolved here, and it does not change the conclusion: on BOTH renderers the
+inset geometry is identical and only the coverage the rasterizer assigns to the shared sub-pixel gap
+differs. This is the same class of defect as `ios_border_ops.hpp`'s own open, dated, explicitly
+NOT-yet-run hypothesis for `border_stroke` (a `CAShapeLayer`-composited stroke vs MAUI's single
+`MauiCALayer.DrawInContext` pass) — except this page has `has_stroke = false` (`draws_border` is false,
+no stroke sublayer exists at all), so it isolates the SAME signature down to the fill+clip-mask path
+alone: `layer.backgroundColor` (a flat GPU rect fill) composited through a `CAShapeLayer` alpha mask,
+against MAUI's one CPU `CGContext` fill of the inset path directly. Two rasterisation pipelines, not one
+— the same conclusion this doc's 2026-08-22 entry reached, now with the geometry side independently ruled
+out by source rather than inferred from density-invariance alone.
+
+**Not attempted: the real fix is the same board-wide-risk architecture change already declined for
+`border_stroke`.** Collapsing the port's Background+mask (and, separately, `border_stroke`'s CAShapeLayer
+stroke sublayer) into one custom `CALayer` subclass overriding `drawInContext:` with literal
+`CGContext` calls — replicating `MauiCALayer` instead of adapting it onto stock layers — would touch
+`apply_background`, `apply_clip` and `apply_border_stroke` together, i.e. every Border and every clipped
+view on iOS AND maccatalyst (the two lanes share this file verbatim). `ios_border_ops.hpp`'s own comment
+is explicit that this needs a pre-registered, two-lane, absolute-pixel-count test before landing, "not
+something to attempt speculatively inside a single-page investigation" — this pass stayed a single-page
+investigation on purpose. Per the task's own item-6 guidance, this is exactly the case where a scoped fix
+would be fragile and a documented "not yet" is the honest answer. No source file was changed.
+
+**A real, separate, now-fixed problem found along the way: the light-theme capture was stale.** Before
+this pass, `captures/maccatalyst/{maui,cpp,xaml}/varied_size_selector_light.png` were BYTE-IDENTICAL to
+their own `_dark.png` siblings (confirmed by `md5`) — unlike every other maccatalyst page spot-checked
+(`absolute_layout`, `border`, `border_stroke`, `custom_swipe_item_view`, all correctly light≠dark). The
+"light" captures visibly showed the dark window chrome/background. The recapture log that produced them
+(`_recapture_logs/2026-08-24-131346-macos-catalyst--capture.log:9`) reports `system appearance -> light
+(was light)` immediately before the light pass — the pipeline believed it was light, and the frame was
+dark anyway, for all three columns of only this one page, right after a fresh VM reboot. Root cause not
+found (no per-page-only mechanism in `apply_background`/theme code explains it, and it did not recur on a
+fresh attempt), so this is recorded as an unexplained one-off environmental flake, not a port bug — same
+family as this project's documented `cpp-android-dark-window-wash` / `cpp-capture-fabricates-plausible-
+data` findings, on a different lane. **Verified fixed, not just asserted:** a fresh targeted recapture this
+session (`tools/parity/recapture.py --platforms macos --lanes catalyst --examples varied_size_selector`,
+both themes, all three frameworks, one sitting) now shows genuine light≠dark content, and the DARK capture
+came back byte-identical to the pre-existing one (the defect above is unaffected, still live). **This
+changes the accurate picture of the page: it is a DARK-ONLY defect.** New scores: `pixel` Light SSIM
+0.9950/0.09% (was misreported 1.07%), Dark SSIM 0.9846/1.07% (unchanged); `pixel_xaml` Light SSIM
+0.9937/0.12% (was misreported 1.10%), Dark SSIM 0.9835/1.10% (unchanged). Light's near-invisible residual
+is consistent with this doc's older Windows-era finding that Wheat-over-light-background blends
+imperceptibly — now independently confirmed on maccatalyst too. The page stays yellow overall (driven by
+dark), but light was never actually broken.
+
+**Git hygiene note for whoever reads this worktree's history next.** This recapture ran while another
+agent had `port/cpp/src/platform/android/border_handler.cpp` and a batch of `captures/android/*` files
+dirty in this same shared worktree, and a global board re-measure picked up an UNRELATED flip
+(`basic_grouping`'s `maccatalyst` motion field going INVALID from run-directory expiry — the same
+mechanism this doc's immediately-preceding entry already documents happening to `basic_grouping`/android)
+plus that agent's own in-progress android binary-size deltas in `measurements.json`. None of that is
+committed here: `comparison.json` and `README.md` were hand-patched back to touching ONLY
+`varied_size_selector`'s `maccatalyst` entries, and `measurements.json` was left untouched entirely
+(reverted to HEAD) since none of its content bears on this page. `git diff --cached` before commit
+confirmed the staged diff is exactly the 3 new light PNGs + the two 4-line JSON/README score edits + this
+entry.
+
+**Verdict: confirmed architectural (rasterization pipeline), NOT the suspected native-container issue,
+NOT a layout/inset bug, NOT fixed.** The task's caution about the old framing was correct to raise and is
+now retired for this page with a source-level reason, not just a "probably wrong" guess. `dev.sh` was not
+run — no `.cpp`/`.hpp`/`.mm` file changed in this pass, only captures + board data + this doc.
+
+Files: `docs/comparison/captures/maccatalyst/{maui,cpp,xaml}/varied_size_selector_light.png`,
+`docs/comparison/comparison.json`, `docs/comparison/README.md` (all three: `varied_size_selector`/
+`maccatalyst` entries only).

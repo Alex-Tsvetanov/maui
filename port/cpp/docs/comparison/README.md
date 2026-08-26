@@ -5466,11 +5466,11 @@ ports DataTemplateSelectorGalleries/VariedSizeDataTemplateSelectorGallery.xaml (
 
 #### 🟡 Pixel-Perfect Score — C++ (C1/C3)
 
-Light: SSIM 0.9846, 1.07% pixels differ · Dark: SSIM 0.9846, 1.07% pixels differ
+Light: SSIM 0.9950, 0.09% pixels differ · Dark: SSIM 0.9846, 1.07% pixels differ
 
 #### 🟡 Pixel-Perfect Score — C++ &amp; XAML (C2/C4)
 
-Light: SSIM 0.9835, 1.10% pixels differ · Dark: SSIM 0.9835, 1.10% pixels differ
+Light: SSIM 0.9937, 0.12% pixels differ · Dark: SSIM 0.9835, 1.10% pixels differ
 
 ### 169. Vertical Stack — 🟢/🟢
 <sub>vertical_stack</sub>

@@ -30744,13 +30744,13 @@
         },
         "pixel": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9846, 1.07% pixels differ \u00b7 Dark: SSIM 0.9846, 1.07% pixels differ",
-          "stills": "f050eac3182b030e"
+          "review": "Light: SSIM 0.9950, 0.09% pixels differ \u00b7 Dark: SSIM 0.9846, 1.07% pixels differ",
+          "stills": "cfff39b1634e0b69"
         },
         "pixel_xaml": {
           "status": "yellow",
-          "review": "Light: SSIM 0.9835, 1.10% pixels differ \u00b7 Dark: SSIM 0.9835, 1.10% pixels differ",
-          "stills": "3f839236c0e06644"
+          "review": "Light: SSIM 0.9937, 0.12% pixels differ \u00b7 Dark: SSIM 0.9835, 1.10% pixels differ",
+          "stills": "1f31e1015853e5e1"
         }
       },
       "android": {
