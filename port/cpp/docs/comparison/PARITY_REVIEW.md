@@ -6185,3 +6185,73 @@ from the single committed run, an honest if noisy sample, same reasoning as abov
 
 Files touched: none. Diagnostic run logs: `ss2/ss2_light_scrollview.log`,
 `ss2/ss2_selfmaui_light_scrollview.log` (session scratchpad, not committed).
+
+## `basic_grouping`/android — motion evidence was EXPIRED (no-frames), then a real capture-pipeline bug,
+## then two real runs disagreed with each other: left yellow, not resolved (2026-08-26)
+
+Started as a routine "refresh expired motion evidence" task: the board's `no-frames` verdict just meant
+no run directory on disk still held this cell's paired frames (the stills themselves already scored
+SSIM 1.0000/0.00% light, 0.9999/0.00% dark — a clean, real match). Two real problems turned up before
+any board write, in sequence.
+
+**First: a genuine capture-pipeline bug produced a false GREEN off zero real evidence.** The first
+recapture (`recapture.py --platforms android --frameworks maui_xaml,cpp,cpp_xaml --themes light,dark
+--examples basic_grouping --visible no`, run `2026-08-26-07_01_57`) reported 0 failed steps and "12/12"
+frames per column/theme, and a scoped rescore flipped the cell to GREEN. But all 6 published stills
+(maui/cpp/xaml × light/dark) and all 28 run-dir frames were byte-identical solid black
+(`shasum` collision across every column and theme; `dumpsys power` read `mWakefulness=Asleep` on the
+emulator both at capture time and when re-checked live afterward). Root cause: `ensure_android_emulator`
+only sent `KEYCODE_WAKEUP` on a fresh-boot path; this AVD has been running for days across sessions and
+its screen had simply timed out (`screen_off_timeout`=30min) since the last capture, and the
+already-running fast path never woke it. A black still against another black still trivially scores
+SSIM 1.0000/0% diff, and a black motion run reads as a symmetric "neither column moved" — exactly the
+"capture fabricates plausible data" shape this file has flagged before on other platforms. **Caught
+before committing** by spot-checking the published PNGs' pixel extrema, not by any board signal. Fixed
+in `46f8b877f4` (`ensure_android_emulator` now sends `KEYCODE_WAKEUP` unconditionally on the
+already-running path too, a no-op on an awake device). Discarded the black run dir and the false-green
+`comparison.json`/README diff; nothing from that run was ever committed.
+
+**Second: with the wake fix landed and real frames confirmed (non-black stills, full 0-255 pixel
+range), two independent recaptures disagree with each other, which is itself the finding.** Ran the
+identical recapture command twice more (runs `2026-08-26-07_14_55` and `2026-08-26-07_25_23`), verifying
+each time that the published stills were real (distinct hashes, full extrema) before scoring. Both
+`pixel` and `pixel_xaml` move together (structurally the same driven page), so only `pixel`'s numbers
+are given:
+
+| run | theme | MAUI self-motion | port (cpp) self-motion | gap | verdict |
+|---|---|---|---|---|---|
+| 07_14_55 | light | 37.5178% (891,424 px) | 43.0321% (1,022,442 px) | 5.51pt / 12.8% rel | FAIL |
+| 07_14_55 | dark  | 43.7852% (1,040,337 px) | 43.3144% (1,029,151 px) | 0.47pt / 1.1% rel | PASS (settled-tail) |
+| 07_25_23 | light | 36.5722% (868,955 px) | 43.0321% (1,022,442 px) | 6.46pt / 15.0% rel | FAIL |
+| 07_25_23 | dark  | 37.9226% (901,042 px) | 43.3144% (1,029,151 px) | 5.39pt / 12.4% rel | FAIL |
+
+**The port's own self-motion is bit-identical across both runs** — 43.0321%/1,022,442px (light) and
+43.3144%/1,029,151px (dark), to the pixel, both times — matching this project's already-documented
+finding that the port's injected-touch drive is essentially fully deterministic. **MAUI's own landing
+is not**: its self-motion swings 36.6–43.8% across the four samples, a spread (7.2pt) bigger than any
+single-run gap against the port. The decisive data point is dark's verdict flip: run 07_14_55's MAUI
+landed at 43.79% (0.47pt from the port, PASS via the settled-tail scorer), run 07_25_23's MAUI landed at
+37.92% (5.39pt away, FAIL) — **MAUI disagreed with itself (5.87pt, ~13.4% relative — over the scorer's
+own 10% `PHASE_SELF_MOTION_TOL` gate against ITSELF) by more than run 07_25_23's MAUI-vs-port gap.** No
+port-defect hypothesis survives that: the port's fixed landing sits inside MAUI's own landing
+distribution, it just doesn't always land within the phase gate of any ONE MAUI sample. Every per-frame
+tail in all four samples ends at 0.00% (frames 5-12/13 flat), so content parity holds throughout — only
+the mid-flight phase (how far the fling has coasted at the sampled instant) differs, and that phase is
+exactly what MAUI itself cannot reproduce run to run on this page.
+
+**Verdict: NOISE (irreproducible native fling landing on this Android page/lane), not a port defect —
+same mechanism this file already confirmed for `selection_synchronization`/ios and `scroll_view`/ios
+above, now measured on a different platform.** Per the task's own guidance for this outcome and this
+project's established practice (see the two entries directly above), this was not resolved by re-running
+until a lucky sample landed green, and not force-committed as a RED off a single run either — that would
+misrepresent stability in either direction. `comparison.json` and `README.md` were reverted to their
+pre-task committed state (still `no-frames`/yellow) after being test-written and inspected; neither was
+left modified. The scenario's `settle = 2.0` (calibrated on `box_view`/iOS, per this file's own header
+comment in `basic_grouping.toml`) is evidently not long enough to converge MAUI's Android fling landing
+within this scorer's phase-gate tolerance — a real candidate fix, but a scenario-tuning change made to
+chase a specific run's score is exactly the "force it" failure mode the task warned against, so it was
+not attempted here. Both real run directories (`2026-08-26-07_14_55`, `2026-08-26-07_25_23`) are left on
+disk (gitignored, not pruned) as the evidence behind these numbers.
+
+Files touched: `port/cpp/tools/parity/recapture.py` (the wake fix, committed `46f8b877f4`) and this file
+only. `comparison.json`/`README.md` not touched.
