@@ -481,6 +481,17 @@ def ensure_android_emulator(visible: bool) -> bool:
                 # leaving the user waiting for one that will never appear.
                 log(f"      !! the running emulator is HEADLESS (-no-window) — it cannot be watched. "
                     f"To see it: adb -s {ANDROID_SERIAL} emu kill, then re-run.")
+        # WAKEUP even on the already-running path. This used to fire only after a fresh boot (below),
+        # so a long-lived emulator (this one runs for days across sessions) that timed its screen out
+        # between recaptures (screen_off_timeout is 30 min) captured every frame as SOLID BLACK —
+        # silently, because a black still against another black still still scores SSIM 1.0000/0%
+        # diff, and a black run flows straight through motion_score as a symmetric "neither column
+        # moved" PASS/not-driven — exactly the "capture fabricates plausible data" shape. MEASURED
+        # 2026-08-26: basic_grouping/android scored a false green off 6 byte-identical black frames
+        # (dumpsys power: mWakefulness=Asleep) before this fix. A no-op on an already-awake device, so
+        # unconditional rather than gated on a wakefulness check.
+        subprocess.run([adb, "-s", ANDROID_SERIAL, "shell", "input", "keyevent", "KEYCODE_WAKEUP"],
+                       capture_output=True)
         return True
     avd = os.environ.get("MAUI_AVD", "maui-test")
     emulator = os.path.join(root, "emulator", "emulator")
