@@ -662,7 +662,12 @@ def main():
         print(f"--verify: {scored} scored, {len(changes)} cell(s) differ from {JSON} (nothing written)")
         return 1 if changes else 0
 
-    json.dump(pages, open(JSON, "w", encoding="utf-8"), indent=2)
+    # ensure_ascii=False: comparison.json is maintained with literal UTF-8 (·, —, etc.), not \uXXXX
+    # escapes. json.dump's default (ensure_ascii=True) silently re-encodes EVERY non-ASCII character
+    # in the file on any write, including pages this run never touched — a scoped `--only` rescore of
+    # 2 cells produced a ~2800-line diff across all 172 pages (2026-08-26). Match the file's existing
+    # convention so a write's diff reflects only what was actually rescored.
+    json.dump(pages, open(JSON, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     print(f"scored {scored} page x platform x framework comparisons "
           f"({len(changes)} changed) -> {JSON}")
     return 0
