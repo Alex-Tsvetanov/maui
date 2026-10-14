@@ -1,0 +1,50 @@
+{
+ "header_footer_grid/ios/light": [
+  "SAME",
+  0.63
+ ],
+ "carousel_page/android/dark": [
+  "SAME",
+  0.83
+ ],
+ "absolute_layout/ios/dark": [
+  "DIFFERENT",
+  0.41
+ ],
+ "polyline_gallery/maccatalyst/light": [
+  "MINOR",
+  0.72
+ ],
+ "header_footer_grid_horizontal/windows/light": [
+  "DIFFERENT",
+  0.39
+ ],
+ "border_playground/android/light": [
+  "SAME",
+  0.71
+ ],
+ "device/android/dark": [
+  "DIFFERENT",
+  0.21
+ ],
+ "header_footer_grid/ios/dark": [
+  "SAME",
+  1.0
+ ],
+ "absolute_layout/windows/dark": [
+  "DIFFERENT",
+  0.31
+ ],
+ "scattered_radio_button/android/dark": [
+  "DIFFERENT",
+  0.37
+ ],
+ "header_footer_view/windows/light": [
+  "DIFFERENT",
+  0.35
+ ],
+ "path_transform_string/android/light": [
+  "SAME",
+  0.81
+ ]
+}

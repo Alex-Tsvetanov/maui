@@ -1,0 +1,952 @@
+[
+ {
+  "cell": "activity_indicator/android/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    0.9986,
+    0.09
+   ],
+   "dark": [
+    0.9984,
+    0.1
+   ]
+  },
+  "stored_review": "Light: MOTION 9 frames paired by step (run 2026-08-25-02_15_09, commit 82f95c7070, 2026-08-25); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9897 at frame 8 'gif11@4s/12f' (1.39% pixels differ), mean SSIM 0.9934; per-frame diff% 1.23/0.60/0.32/0.55/0.26/0.79/1.11/1.39/1.11; self-motion MAUI 1.597"
+ },
+ {
+  "cell": "activity_indicator/android/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    0.9986,
+    0.09
+   ],
+   "dark": [
+    0.9984,
+    0.1
+   ]
+  },
+  "stored_review": "Light: MOTION 9 frames paired by step (run 2026-08-25-02_15_09, commit 82f95c7070, 2026-08-25); 6 frame(s) had no partner and were NOT scored; column frames realigned by -3 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9895 at frame 8 'gif11@4s/12f' (1.42% pixels differ), mean SSIM 0.9937; per-frame diff% 0.96/0.58/0.50/0.79/0.33/0.43/1.20/1.42/0.78; self-motion MAUI 1.597"
+ },
+ {
+  "cell": "basic_grouping/ios/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": null,
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+ },
+ {
+  "cell": "basic_grouping/ios/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": null,
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: SSIM 1.0000, 0.00% pixels differ \u00b7 Dark: SSIM 1.0000, 0.00% pixels differ"
+ },
+ {
+  "cell": "basic_grouping/maccatalyst/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": null,
+  "fresh_still": {
+   "light": [
+    0.9978,
+    0.09
+   ],
+   "dark": [
+    0.9978,
+    0.08
+   ]
+  },
+  "stored_review": "Light: SSIM 0.9978, 0.09% pixels differ \u00b7 Dark: SSIM 0.9978, 0.08% pixels differ"
+ },
+ {
+  "cell": "basic_grouping/maccatalyst/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": null,
+  "fresh_still": {
+   "light": [
+    0.9965,
+    0.12
+   ],
+   "dark": [
+    0.9966,
+    0.11
+   ]
+  },
+  "stored_review": "Light: SSIM 0.9965, 0.12% pixels differ \u00b7 Dark: SSIM 0.9966, 0.11% pixels differ"
+ },
+ {
+  "cell": "basic_grouping/windows/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.01
+   ],
+   "dark": [
+    0.9999,
+    0.01
+   ]
+  },
+  "stored_review": "Light: MOTION 2 frames paired by step (run 2026-08-25-19_04_31, commit 18a7811846, 2026-08-25) \u2014 worst SSIM 0.9705 at frame 2 'scrolled-up' (1.29% pixels differ), mean SSIM 0.9852; per-frame diff% 0.01/1.29; self-motion MAUI 35.2546% (288806 px) vs C++ 35.9771% (294724 px) \u00b7 Dark: SSIM 0.9999, 0.01% pixels differ (single frame only) \u2014 NOT motion-scored: run 2026-08-24-00_15_44 has 0 MAUI and 0 C++"
+ },
+ {
+  "cell": "basic_grouping/windows/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.01
+   ],
+   "dark": [
+    0.9999,
+    0.01
+   ]
+  },
+  "stored_review": "Light: MOTION 2 frames paired by step (run 2026-08-25-19_04_31, commit 18a7811846, 2026-08-25) \u2014 worst SSIM 0.9705 at frame 2 'scrolled-up' (1.29% pixels differ), mean SSIM 0.9852; per-frame diff% 0.01/1.29; self-motion MAUI 35.2546% (288806 px) vs C++ & XAML 35.9771% (294724 px) \u00b7 Dark: SSIM 0.9999, 0.01% pixels differ (single frame only) \u2014 NOT motion-scored: run 2026-08-24-00_15_44 has 0 MAUI an"
+ },
+ {
+  "cell": "box_view/android/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: SETTLED-TAIL (phase-free): at rest 0.00% / SSIM 1.0000; settled 0.00% / SSIM 1.0000; both tails self-stable (worst consecutive diff MAUI 0.00% / port 0.00%, tol 1.0%). No mid-motion frame or travel/max clause was used \u2014 see SETTLED_TAIL_SCORING [phase cap would have applied here \u2014 resolved instead] !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distanc"
+ },
+ {
+  "cell": "box_view/android/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-25-02_15_09, commit 82f95c7070, 2026-08-25) \u2014 worst SSIM 0.9994 at frame 3 'gif02@4s/12f' (0.06% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.01/0.06/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 35.7010% (848255 px) vs C++ & XAML 35.7010% (848255 px) \u00b7 Dark: SETTLED-TAIL (phase-free): at rest 0.00% / SSIM 1.0000"
+ },
+ {
+  "cell": "carousel_page/ios/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9596 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9853; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.21; self-motion MAUI 2.3069% (72946 px) vs C++ 2.2491% (71118 px) \u00b7 Dark: MOTION 7 frames paired by step (run 2026-08-25-08_20_"
+ },
+ {
+  "cell": "carousel_page/ios/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 7 frames paired by step (run 2026-08-25-08_20_18, commit fe2ad693ab, 2026-08-25); 3 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9596 at frame 5 'gif00667' (2.18% pixels differ), mean SSIM 0.9863; per-frame diff% 0.00/0.00/0.00/0.00/2.18/2.18/1.05; self-motion MAUI 2.3069% (72946 px) vs C++ & XAML 2.2491% (71118 px) \u00b7 Dark: MOTION 7 frames paired by step (run 2026-08-25"
+ },
+ {
+  "cell": "carousel_page/maccatalyst/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9978,
+    0.09
+   ],
+   "dark": [
+    0.9979,
+    0.08
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of "
+ },
+ {
+  "cell": "carousel_page/maccatalyst/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9966,
+    0.12
+   ],
+   "dark": [
+    0.9966,
+    0.11
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 carousel_page.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable h"
+ },
+ {
+  "cell": "carousel_page/android/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    0.992,
+    0.35
+   ],
+   "dark": [
+    0.9924,
+    0.36
+   ]
+  },
+  "stored_review": "Light: SETTLED-TAIL (phase-free): at rest 0.35% / SSIM 0.9920; settled 0.09% / SSIM 0.9984; both tails self-stable (worst consecutive diff MAUI 0.00% / port 0.00%, tol 1.0%). No mid-motion frame or travel/max clause was used \u2014 see SETTLED_TAIL_SCORING [phase cap would have applied here \u2014 resolved instead] !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distanc"
+ },
+ {
+  "cell": "carousel_page/android/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    0.992,
+    0.35
+   ],
+   "dark": [
+    0.9924,
+    0.36
+   ]
+  },
+  "stored_review": "Light: SETTLED-TAIL (phase-free): at rest 0.35% / SSIM 0.9920; settled 0.09% / SSIM 0.9984; both tails self-stable (worst consecutive diff MAUI 0.00% / port 0.00%, tol 1.0%). No mid-motion frame or travel/max clause was used \u2014 see SETTLED_TAIL_SCORING [phase cap would have applied here \u2014 resolved instead] !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME "
+ },
+ {
+  "cell": "check_box/android/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    0.9984,
+    0.09
+   ],
+   "dark": [
+    0.9821,
+    3.43
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9982 at frame 2 'gif01@4s/12f' (0.09% pixels differ), mean SSIM 0.9984; per-frame diff% 0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09/0.09; self-motion MAUI 0.0534% (1268 px) vs C++ 0.0675% (1604 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, commit eb"
+ },
+ {
+  "cell": "check_box/android/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    0.9835,
+    3.35
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9997 at frame 2 'gif01@4s/12f' (0.01% pixels differ), mean SSIM 1.0000; per-frame diff% 0.00/0.01/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 0.0534% (1268 px) vs C++ & XAML 0.0694% (1648 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, co"
+ },
+ {
+  "cell": "entry/maccatalyst/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9978,
+    0.09
+   ],
+   "dark": [
+    0.9978,
+    0.08
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTHING "
+ },
+ {
+  "cell": "entry/maccatalyst/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9965,
+    0.12
+   ],
+   "dark": [
+    0.9966,
+    0.11
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 entry.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'N"
+ },
+ {
+  "cell": "ios_blur_effect/android/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.976,
+    0.48
+   ],
+   "dark": [
+    0.97,
+    0.64
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port findin"
+ },
+ {
+  "cell": "ios_blur_effect/android/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.976,
+    0.48
+   ],
+   "dark": [
+    0.97,
+    0.64
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. NO ACTION SCENARIO EXISTS for this page \u2014 docs/comparison/scenarios/ios_blur_effect.toml is absent or declares no `action` \u2014 so nothing was ever aimed at it and both columns are at rest by construction. This is NOT a port"
+ },
+ {
+  "cell": "ios_date_picker/ios/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) \u2014 worst SSIM 0.9822 at frame 2 'driven' (0.64% pixels differ), mean SSIM 0.9911; per-frame diff% 0.00/0.64; self-motion MAUI 24.8059% (784395 px) vs C++ 25.0743% (792884 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) \u2014 worst SSIM 0.9659 at frame 2 'dri"
+ },
+ {
+  "cell": "ios_date_picker/ios/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) \u2014 worst SSIM 0.9889 at frame 2 'driven' (0.30% pixels differ), mean SSIM 0.9945; per-frame diff% 0.00/0.30; self-motion MAUI 24.8059% (784395 px) vs C++ & XAML 24.5073% (774954 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) \u2014 worst SSIM 0.9659 at frame"
+ },
+ {
+  "cell": "radio_content_properties/maccatalyst/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9893,
+    0.56
+   ],
+   "dark": [
+    0.991,
+    0.49
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half o"
+ },
+ {
+  "cell": "radio_content_properties/maccatalyst/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9881,
+    0.59
+   ],
+   "dark": [
+    0.9898,
+    0.52
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 radio_content_properties.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable"
+ },
+ {
+  "cell": "scroll_to_group/android/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    0.9999,
+    0.0
+   ],
+   "dark": [
+    0.7988,
+    23.8
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9976 at frame 9 'gif08@4s/12f' (0.14% pixels differ), mean SSIM 0.9979; per-frame diff% 0.00/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.14/0.13/0.13/0.13/0.13; self-motion MAUI 8.7293% (207407 px) vs C++ 8.6638% (205853 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, commi"
+ },
+ {
+  "cell": "scroll_to_group/android/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    0.9999,
+    0.0
+   ],
+   "dark": [
+    0.7988,
+    23.8
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23) \u2014 worst SSIM 0.9978 at frame 2 'gif01@4s/12f' (0.13% pixels differ), mean SSIM 0.9980; per-frame diff% 0.00/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13/0.13; self-motion MAUI 8.7293% (207407 px) vs C++ & XAML 8.6637% (205849 px) \u00b7 Dark: MOTION 13 frames paired by step (run 2026-08-23-18_49_10"
+ },
+ {
+  "cell": "scroll_view/ios/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25) \u2014 worst SSIM 0.9017 at frame 2 'driven' (3.06% pixels differ), mean SSIM 0.9508; per-frame diff% 0.00/3.06; self-motion MAUI 2.6291% (83137 px) vs C++ & XAML 3.1888% (100835 px) \u00b7 Dark: MOTION 2 frames paired by step (run 2026-08-25-09_18_53, commit e6b2d00ff8, 2026-08-25); driven frames aligned vertical"
+ },
+ {
+  "cell": "scroll_view/android/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-25-02_15_09, commit 82f95c7070, 2026-08-25) \u2014 worst SSIM 0.9126 at frame 3 'gif02@4s/12f' (2.66% pixels differ), mean SSIM 0.9933; per-frame diff% 0.00/0.02/2.66/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 3.0742% (73043 px) vs C++ 2.7458% (65241 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-25-02_15_09, commit "
+ },
+ {
+  "cell": "scroll_view/android/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-25-02_15_09, commit 82f95c7070, 2026-08-25) \u2014 worst SSIM 0.9982 at frame 4 'gif03@4s/12f' (0.00% pixels differ), mean SSIM 0.9998; per-frame diff% 0.00/0.02/0.08/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-motion MAUI 3.0742% (73043 px) vs C++ & XAML 3.1136% (73978 px) \u00b7 Dark: MOTION 12 frames paired by step (run 2026-08-25-02_15_09, "
+ },
+ {
+  "cell": "search_bar/windows/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 search_bar.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOT"
+ },
+ {
+  "cell": "search_bar/windows/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 search_bar.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the o"
+ },
+ {
+  "cell": "selection_synchronization/ios/pixel_xaml",
+  "old": "red",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 2 frames paired by step (run 2026-08-25-06_40_38, commit c67779aac4, 2026-08-25); driven frames aligned vertically by +0/-48 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 8.78% is a landing offset, not a rendering difference \u2014 worst SSIM 0.8692 at frame 2 'driven' (5.71% pixels dif"
+ },
+ {
+  "cell": "selection_synchronization/maccatalyst/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9978,
+    0.08
+   ],
+   "dark": [
+    0.9978,
+    0.08
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half "
+ },
+ {
+  "cell": "selection_synchronization/maccatalyst/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9966,
+    0.11
+   ],
+   "dark": [
+    0.9966,
+    0.11
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 selection_synchronization.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionabl"
+ },
+ {
+  "cell": "selection_synchronization/android/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INCONCLUSIVE",
+  "fresh_still": {
+   "light": [
+    0.9878,
+    0.73
+   ],
+   "dark": [
+    0.9873,
+    0.8
+   ]
+  },
+  "stored_review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ both moved and moved the SAME distance (32.4777% vs 32.5681% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from ITSELF by"
+ },
+ {
+  "cell": "selection_synchronization/android/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INCONCLUSIVE",
+  "fresh_still": {
+   "light": [
+    0.9878,
+    0.73
+   ],
+   "dark": [
+    0.9873,
+    0.8
+   ]
+  },
+  "stored_review": "Light: !! PHASE ONLY, NOT DECIDABLE ON THIS LANE: MAUI and C++ & XAML both moved and moved the SAME distance (32.4777% vs 32.5681% of their own frame, 0.3% apart) from a resting frame that already agreed to 0.73%. What differs is WHEN, not whether or how far. An `input swipe` releases at full velocity and the fling coasts a random distance \u2014 measured on THIS lane, MAUI's own column differs from IT"
+ },
+ {
+  "cell": "semantics/windows/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.01
+   ],
+   "dark": [
+    1.0,
+    0.01
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 semantics.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the old 'NOTH"
+ },
+ {
+  "cell": "semantics/windows/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.01
+   ],
+   "dark": [
+    1.0,
+    0.01
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than a single pixel across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 semantics.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of the ol"
+ },
+ {
+  "cell": "stepper/android/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9999,
+    0.0
+   ],
+   "dark": [
+    0.9988,
+    0.03
+   ]
+  },
+  "stored_review": "Light: MOTION 12 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9996 at frame 2 'gif01@4s/12f' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-m"
+ },
+ {
+  "cell": "stepper/android/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9999,
+    0.0
+   ],
+   "dark": [
+    0.9988,
+    0.03
+   ]
+  },
+  "stored_review": "Light: MOTION 12 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); 2 frame(s) had no partner and were NOT scored; column frames realigned by +1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9997 at frame 2 'gif01@4s/12f' (0.00% pixels differ), mean SSIM 0.9999; per-frame diff% 0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-m"
+ },
+ {
+  "cell": "swipe_refresh/ios/pixel",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 12 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); 1 frame(s) had no partner and were NOT scored \u2014 worst SSIM 0.9663 at frame 8 'gif01667' (1.31% pixels differ), mean SSIM 0.9782; per-frame diff% 0.00/0.60/0.00/0.00/1.12/1.09/1.33/1.31/1.29/1.28/1.28/0.59; self-motion MAUI 0.5971% (18880 px) vs C++ 1.2752% (40323 px); !! SELF-MOTION ASYMMETRY 2x \u2014 C++ "
+ },
+ {
+  "cell": "swipe_refresh/ios/pixel_xaml",
+  "old": "yellow",
+  "new": "green",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "FAIL",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    1.0,
+    0.0
+   ]
+  },
+  "stored_review": "Light: MOTION 13 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); driven frames aligned vertically by +0/+0/+0/+0/+0/+0/+0/-2/+0/+0/+0/+0/+0 px \u2014 the inertial scroll lands a few rows apart run to run (MAUI does this to ITSELF by the same magnitude; see _drive_shift), so the unaligned worst 1.21% is a landing offset, not a rendering difference \u2014 worst SSIM 0.9705 at f"
+ },
+ {
+  "cell": "swipe_refresh/maccatalyst/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9978,
+    0.08
+   ],
+   "dark": [
+    0.9978,
+    0.08
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of "
+ },
+ {
+  "cell": "swipe_refresh/maccatalyst/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9966,
+    0.11
+   ],
+   "dark": [
+    0.9966,
+    0.11
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable h"
+ },
+ {
+  "cell": "swipe_refresh/windows/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9943,
+    0.13
+   ],
+   "dark": [
+    0.994,
+    0.13
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable half of "
+ },
+ {
+  "cell": "swipe_refresh/windows/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "INVALID",
+  "fresh_still": {
+   "light": [
+    0.9943,
+    0.13
+   ],
+   "dark": [
+    0.994,
+    0.13
+   ]
+  },
+  "stored_review": "Light: !! NO MOTION EVIDENCE: neither MAUI nor C++ & XAML changed by more than 0.012% of its own frame across the sequence (0 px vs 0 px), on a page the board treats as ANIMATED. An action WAS injected here \u2014 swipe_refresh.toml declares one \u2014 and NEITHER column reacted to it. So either the coordinate misses its target on this lane, or the interaction is not reachable here. This is the actionable h"
+ },
+ {
+  "cell": "switch/android/pixel",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    0.9754,
+    5.59
+   ]
+  },
+  "stored_review": "Light: MOTION 12 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9987 at frame 1 'gif01@4s/12f' (0.08% pixels differ), mean SSIM 0.9999; per-frame diff% 0.08/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-m"
+ },
+ {
+  "cell": "switch/android/pixel_xaml",
+  "old": "green",
+  "new": "yellow",
+  "animated": true,
+  "stills_same": true,
+  "stored_motion": "PASS",
+  "fresh_still": {
+   "light": [
+    1.0,
+    0.0
+   ],
+   "dark": [
+    0.9754,
+    5.59
+   ]
+  },
+  "stored_review": "Light: MOTION 12 frames paired by step (run 2026-08-23-18_49_10, commit eb04de34e3, 2026-08-23); 2 frame(s) had no partner and were NOT scored; column frames realigned by -1 sample(s) \u2014 a sampling drift, not a defect (see _align) \u2014 worst SSIM 0.9987 at frame 1 'gif01@4s/12f' (0.08% pixels differ), mean SSIM 0.9999; per-frame diff% 0.08/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00/0.00; self-m"
+ }
+]

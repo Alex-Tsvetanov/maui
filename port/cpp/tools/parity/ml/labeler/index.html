@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>MAUI vs C++ labelling</title><style>
+body{font-family:system-ui;margin:0;background:#111;color:#eee}header{padding:8px 12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#222;position:sticky;top:0}
+#imgs{display:flex;gap:6px;padding:6px;justify-content:center}#imgs figure{margin:0;flex:1;max-width:50%;text-align:center}#imgs img{width:100%;max-height:75vh;object-fit:contain;background:#000}
+#ov{display:none;padding:6px;text-align:center}#ov img{max-width:100%;max-height:75vh}
+.btns{display:flex;gap:8px;padding:8px}.btns button{flex:1;font-size:20px;padding:18px 0;border:0;border-radius:10px;color:#fff;cursor:pointer}
+#b1{background:#2e7d32}#b2{background:#b8860b}#b3{background:#c62828}button.sel{outline:4px solid #fff}
+#note{width:calc(100% - 16px);margin:0 8px;font-size:16px;padding:8px}small{color:#aaa}.nav button{font-size:16px;padding:6px 12px}
+</style></head><body>
+<header><b id=prog></b><span id=pid></span><small id=pre></small><span class=nav><button onclick=go(-1)>◀</button><button onclick=go(1)>▶</button><button onclick=nextUn()>next unlabelled</button><button onclick=tog()>overlay (F)</button></span></header>
+<div id=imgs><figure><figcaption>MAUI (reference)</figcaption><img id=a></figure><figure><figcaption>C++ port</figcaption><img id=b></figure></div>
+<div id=ov><div id=ovl></div><img id=oimg onclick=flip()><br><small>tap/space to flip · auto-flicker</small></div>
+<div class=btns><button id=b1 onclick=lab('SAME')>1 SAME</button><button id=b2 onclick=lab('MINOR')>2 MINOR</button><button id=b3 onclick=lab('DIFFERENT')>3 DIFFERENT</button></div>
+<input id=note placeholder="optional note (saved with label)">
+<p style="padding:0 12px"><small>Would a user consider these the same UI? Keys: 1/2/3 label · ←/→ navigate · F overlay · space flip</small></p>
+<script>
+const T=new URLSearchParams(location.search).get('t');let P=[],L={},i=0,ovOn=false,side=0,timer;
+const q=s=>s+(s.includes('?')?'&':'?')+'t='+T;
+fetch(q('/api/pairs')).then(r=>r.json()).then(d=>{P=d.pairs;L=d.labels;nextUn(true)});
+function show(){const p=P[i];a.src=q('/img/'+p.maui);b.src=q('/img/'+p.cpp);pid.textContent=`#${i+1} ${p.id}`;
+pre.textContent=`pre-label: ${p.prelabel} · SSIM ${p.ssim.toFixed(3)} · diff ${p.diff.toFixed(2)}% · DINO ${p.dino99.toFixed(3)}`;
+const l=L[p.id];note.value=l?l.note:'';['SAME','MINOR','DIFFERENT'].forEach((k,j)=>document.getElementById('b'+(j+1)).classList.toggle('sel',!!l&&l.label==k));
+prog.textContent=`${Object.keys(L).length}/${P.length} labelled`;side=0;if(ovOn)flip(0)}
+function go(d){i=(i+d+P.length)%P.length;show()}
+function nextUn(first){let j=P.findIndex((p,k)=>(first||k>i)&&!L[p.id]);if(j<0)j=P.findIndex(p=>!L[p.id]);if(j<0)j=i;i=j;show()}
+function lab(k){const p=P[i];fetch(q('/api/label'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:p.id,label:k,note:note.value})})
+.then(r=>{if(!r.ok)throw 0;L[p.id]={label:k,note:note.value};nextUn()}).catch(()=>alert('save failed'))}
+function flip(s){side=s===undefined?1-side:s;oimg.src=side?b.src:a.src;ovl.textContent=side?'C++ port':'MAUI'}
+function tog(){ovOn=!ovOn;ov.style.display=ovOn?'block':'none';imgs.style.display=ovOn?'none':'flex';clearInterval(timer);if(ovOn){flip(0);timer=setInterval(flip,700)}}
+document.onkeydown=e=>{if(e.target==note)return;if('123'.includes(e.key)&&e.key)lab(['SAME','MINOR','DIFFERENT'][+e.key-1]);else if(e.key=='ArrowRight')go(1);else if(e.key=='ArrowLeft')go(-1);else if(e.key=='f'||e.key=='F')tog();else if(e.key==' '&&ovOn){e.preventDefault();clearInterval(timer);flip()}}
+</script></body></html>

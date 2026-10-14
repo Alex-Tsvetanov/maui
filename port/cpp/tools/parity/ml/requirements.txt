@@ -1,0 +1,11 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+lpips
+dreamsim
+rapidocr_onnxruntime
+scikit-learn
+scikit-image
+scipy
+numpy
+pillow

@@ -1,0 +1,20 @@
+n pos 67 neg 67 Counter({'real_pair': 100, 'syn_change:drop_text': 37, 'syn_change:recolor_box': 30, 'syn_noise:blur': 26, 'syn_noise:shift': 16, 'syn_noise:gamma': 13, 'syn_noise:jpeg': 12})
+AUC change-vs-noise ssimd   0.415
+AUC change-vs-noise diff    0.389
+AUC change-vs-noise lpips   0.582
+AUC change-vs-noise dino    0.693
+AUC change-vs-noise dino99  0.772
+AUC change-vs-noise textd   0.450
+shift {'ssimd': 0.1006, 'diff': 3.6031, 'lpips': 0.0445, 'dino': 0.022, 'dino99': 0.2, 'textd': 0.1064}
+jpeg {'ssimd': 0.0076, 'diff': 0.9425, 'lpips': 0.006, 'dino': 0.0098, 'dino99': 0.0884, 'textd': 0.2418}
+gamma {'ssimd': 0.0024, 'diff': 0.0, 'lpips': 0.0026, 'dino': 0.0033, 'dino99': 0.0226, 'textd': 0.0926}
+blur {'ssimd': 0.0152, 'diff': 1.8873, 'lpips': 0.0394, 'dino': 0.0049, 'dino99': 0.0286, 'textd': 0.3587}
+real pairs 100
+rank of 4 known diffs by ssimd  : [1, 2, 5, 6]  top5=['scroll_to_group/android/dark', 'switch/android/dark', 'border_stroke/android/dark', 'header_footer_grid_horizontal/maccatalyst/light', 'check_box/android/dark']
+rank of 4 known diffs by diff   : [1, 2, 3, 5]  top5=['scroll_to_group/android/dark', 'switch/android/dark', 'check_box/android/dark', 'border_stroke/android/dark', 'ios_blur_effect/android/dark']
+rank of 4 known diffs by lpips  : [1, 3, 4, 8]  top5=['scroll_to_group/android/dark', 'header_footer_grid_horizontal/maccatalyst/light', 'check_box/android/dark', 'switch/android/dark', 'header_footer_template/windows/light']
+rank of 4 known diffs by dino   : [1, 2, 3, 22]  top5=['scroll_to_group/android/dark', 'check_box/android/dark', 'switch/android/dark', 'header_footer_grid_horizontal/maccatalyst/light', 'header_footer_template/windows/light']
+rank of 4 known diffs by dino99 : [1, 3, 4, 33]  top5=['scroll_to_group/android/dark', 'header_footer_template/windows/light', 'check_box/android/dark', 'switch/android/dark', 'header_footer_grid_horizontal/maccatalyst/light']
+rank of 4 known diffs by textd  : [10, 47, 48, 49]  top5=['grid/maccatalyst/dark', 'invalidate_brush/maccatalyst/dark', 'relative_layout/maccatalyst/light', 'shape_app_theme/maccatalyst/dark', 'auto_size_shapes/maccatalyst/dark']
+AUC combo 0.605
+combo ranks [1, 17, 20, 46] ['scroll_to_group/android/dark', 'relative_layout/maccatalyst/light', 'invalidate_brush/maccatalyst/dark', 'grid/maccatalyst/dark', 'shape_app_theme/maccatalyst/dark', 'auto_size_shapes/maccatalyst/dark', 'header_footer_grid_horizontal/maccatalyst/light', 'chrome/maccatalyst/dark']

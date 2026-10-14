@@ -1,0 +1,86 @@
+[
+ [
+  "hybrid_web_view/android/light",
+  "SAME",
+  0.75,
+  ""
+ ],
+ [
+  "image_button/android/dark",
+  "DIFFERENT",
+  0.08,
+  "AspectFill image is very different between the port and the reference"
+ ],
+ [
+  "carousel_page/android/dark",
+  "SAME",
+  0.99,
+  ""
+ ],
+ [
+  "border_resize_content/android/dark",
+  "DIFFERENT",
+  0.37,
+  "Third shape is different in both columns"
+ ],
+ [
+  "scattered_radio_button/android/light",
+  "SAME",
+  0.76,
+  ""
+ ],
+ [
+  "hybrid_web_view/android/dark",
+  "SAME",
+  0.7,
+  ""
+ ],
+ [
+  "header_footer_grid_horizontal/windows/light",
+  "DIFFERENT",
+  0.33,
+  "The \"This is A Footer\" in MAUI is not rotated but it is rotated in MAUI"
+ ],
+ [
+  "formatted_text/android/dark",
+  "SAME",
+  0.68,
+  ""
+ ],
+ [
+  "border_stroke/android/dark",
+  "SAME",
+  0.59,
+  ""
+ ],
+ [
+  "hybrid_web_view/ios/dark",
+  "DIFFERENT",
+  0.45,
+  "C++ port is more correct because it puts \"...\" instead of overflowing the labels of the button."
+ ],
+ [
+  "cv_visual_states/windows/dark",
+  "SAME",
+  0.61,
+  ""
+ ],
+ [
+  "header_footer_view/windows/light",
+  "DIFFERENT",
+  0.13,
+  "\"This is A Footer\" text is not rotated in C++ port"
+ ],
+ [
+  "time_picker/ios/dark",
+  "DIFFERENT",
+  0.11,
+  "The hour under \"Set to null\" exists in MAUI and does not in C++ port."
+ ],
+ [
+  "formatted_text/android/light",
+  "SAME",
+  0.69,
+  ""
+ ]
+]

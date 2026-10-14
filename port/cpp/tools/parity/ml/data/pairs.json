@@ -1,0 +1,3002 @@
+[
+{
+"id": "carousel_page/android/light",
+"maui": "captures/android/maui/carousel_page_light.png",
+"cpp": "captures/android/cpp/carousel_page_light.png",
+"ssim": 0.9885,
+"diff": 0.48,
+"dino99": 0.14184965193271637,
+"p": 0.49693623309329865,
+"prelabel": "MINOR"
+},
+{
+"id": "hybrid_web_view/android/light",
+"maui": "captures/android/maui/hybrid_web_view_light.png",
+"cpp": "captures/android/cpp/hybrid_web_view_light.png",
+"ssim": 0.9893,
+"diff": 0.43,
+"dino99": 0.1421995908021927,
+"p": 0.49024970171621907,
+"prelabel": "MINOR"
+},
+{
+"id": "image_button/android/dark",
+"maui": "captures/android/maui/image_button_dark.png",
+"cpp": "captures/android/cpp/image_button_dark.png",
+"ssim": 0.9853,
+"diff": 0.96,
+"dino99": 0.130876362323761,
+"p": 0.48778878739566256,
+"prelabel": "MINOR"
+},
+{
+"id": "border_clip_playground/android/light",
+"maui": "captures/android/maui/border_clip_playground_light.png",
+"cpp": "captures/android/cpp/border_clip_playground_light.png",
+"ssim": 0.9942,
+"diff": 0.18,
+"dino99": 0.1505182683467865,
+"p": 0.472471372855146,
+"prelabel": "MINOR"
+},
+{
+"id": "switch_grouping/android/dark",
+"maui": "captures/android/maui/switch_grouping_dark.png",
+"cpp": "captures/android/cpp/switch_grouping_dark.png",
+"ssim": 0.9958,
+"diff": 0.37,
+"dino99": 0.1699145883321762,
+"p": 0.529146624360963,
+"prelabel": "MINOR"
+},
+{
+"id": "header_footer_grid/ios/light",
+"maui": "captures/ios/maui/header_footer_grid_light.png",
+"cpp": "captures/ios/cpp/header_footer_grid_light.png",
+"ssim": 0.9936,
+"diff": 0.37,
+"dino99": 0.1643054336309433,
+"p": 0.5301089032520756,
+"prelabel": "MINOR"
+},
+{
+"id": "button/ios/light",
+"maui": "captures/ios/maui/button_light.png",
+"cpp": "captures/ios/cpp/button_light.png",
+"ssim": 0.9747,
+"diff": 1.01,
+"dino99": 0.11717337369918823,
+"p": 0.5422988084147028,
+"prelabel": "MINOR"
+},
+{
+"id": "scroll_mode_test/ios/dark",
+"maui": "captures/ios/maui/scroll_mode_test_dark.png",
+"cpp": "captures/ios/cpp/scroll_mode_test_dark.png",
+"ssim": 0.9943,
+"diff": 0.15,
+"dino99": 0.17105068266391754,
+"p": 0.5482890779090281,
+"prelabel": "MINOR"
+},
+{
+"id": "carousel_page/android/dark",
+"maui": "captures/android/maui/carousel_page_dark.png",
+"cpp": "captures/android/cpp/carousel_page_dark.png",
+"ssim": 0.9886,
+"diff": 0.4,
+"dino99": 0.12961268424987793,
+"p": 0.45021309656476305,
+"prelabel": "MINOR"
+},
+{
+"id": "border_resize_content/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/border_resize_content_light.png",
+"cpp": "captures/maccatalyst/cpp/border_resize_content_light.png",
+"ssim": 0.9929,
+"diff": 0.32,
+"dino99": 0.16782233119010925,
+"p": 0.5501644019499689,
+"prelabel": "MINOR"
+},
+{
+"id": "scroll_mode_test/android/light",
+"maui": "captures/android/maui/scroll_mode_test_light.png",
+"cpp": "captures/android/cpp/scroll_mode_test_light.png",
+"ssim": 0.9941,
+"diff": 0.17,
+"dino99": 0.17135657370090485,
+"p": 0.5514048801242919,
+"prelabel": "MINOR"
+},
+{
+"id": "border_resize_content/android/dark",
+"maui": "captures/android/maui/border_resize_content_dark.png",
+"cpp": "captures/android/cpp/border_resize_content_dark.png",
+"ssim": 0.9915,
+"diff": 0.81,
+"dino99": 0.13505497574806213,
+"p": 0.4417222361228794,
+"prelabel": "MINOR"
+},
+{
+"id": "absolute_layout/android/dark",
+"maui": "captures/android/maui/absolute_layout_dark.png",
+"cpp": "captures/android/cpp/absolute_layout_dark.png",
+"ssim": 0.9934,
+"diff": 0.74,
+"dino99": 0.137812077999115,
+"p": 0.4331970934923811,
+"prelabel": "MINOR"
+},
+{
+"id": "border_playground/windows/light",
+"maui": "captures/windows/maui/border_playground_light.png",
+"cpp": "captures/windows/cpp/border_playground_light.png",
+"ssim": 0.9997,
+"diff": 0.0,
+"dino99": 0.15446022152900696,
+"p": 0.4326378822494119,
+"prelabel": "MINOR"
+},
+{
+"id": "absolute_layout/android/light",
+"maui": "captures/android/maui/absolute_layout_light.png",
+"cpp": "captures/android/cpp/absolute_layout_light.png",
+"ssim": 0.9884,
+"diff": 0.74,
+"dino99": 0.12387111037969589,
+"p": 0.4309605168905522,
+"prelabel": "MINOR"
+},
+{
+"id": "web_view/ios/dark",
+"maui": "captures/ios/maui/web_view_dark.png",
+"cpp": "captures/ios/cpp/web_view_dark.png",
+"ssim": 0.9879,
+"diff": 0.4,
+"dino99": 0.1599377989768982,
+"p": 0.5702979751519517,
+"prelabel": "MINOR"
+},
+{
+"id": "scroll_mode_test/ios/light",
+"maui": "captures/ios/maui/scroll_mode_test_light.png",
+"cpp": "captures/ios/cpp/scroll_mode_test_light.png",
+"ssim": 0.9945,
+"diff": 0.15,
+"dino99": 0.13920700550079346,
+"p": 0.4275400233130246,
+"prelabel": "MINOR"
+},
+{
+"id": "absolute_layout/ios/dark",
+"maui": "captures/ios/maui/absolute_layout_dark.png",
+"cpp": "captures/ios/cpp/absolute_layout_dark.png",
+"ssim": 0.9898,
+"diff": 0.64,
+"dino99": 0.11897038668394089,
+"p": 0.39952511214780734,
+"prelabel": "MINOR"
+},
+{
+"id": "border_playground/windows/dark",
+"maui": "captures/windows/maui/border_playground_dark.png",
+"cpp": "captures/windows/cpp/border_playground_dark.png",
+"ssim": 0.9997,
+"diff": 0.0,
+"dino99": 0.14450758695602417,
+"p": 0.3964243406001549,
+"prelabel": "MINOR"
+},
+{
+"id": "scattered_radio_button/android/light",
+"maui": "captures/android/maui/scattered_radio_button_light.png",
+"cpp": "captures/android/cpp/scattered_radio_button_light.png",
+"ssim": 0.9923,
+"diff": 0.23,
+"dino99": 0.18545620143413544,
+"p": 0.6200694515257593,
+"prelabel": "MINOR"
+},
+{
+"id": "polyline_gallery/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/polyline_gallery_light.png",
+"cpp": "captures/maccatalyst/cpp/polyline_gallery_light.png",
+"ssim": 0.9802,
+"diff": 0.54,
+"dino99": 0.08571824431419373,
+"p": 0.3723317895746722,
+"prelabel": "MINOR"
+},
+{
+"id": "hybrid_web_view/android/dark",
+"maui": "captures/android/maui/hybrid_web_view_dark.png",
+"cpp": "captures/android/cpp/hybrid_web_view_dark.png",
+"ssim": 0.9886,
+"diff": 0.53,
+"dino99": 0.1079210713505745,
+"p": 0.3716408586944674,
+"prelabel": "MINOR"
+},
+{
+"id": "border_clip_playground/ios/light",
+"maui": "captures/ios/maui/border_clip_playground_light.png",
+"cpp": "captures/ios/cpp/border_clip_playground_light.png",
+"ssim": 0.9945,
+"diff": 0.16,
+"dino99": 0.194891095161438,
+"p": 0.6325951864702638,
+"prelabel": "MINOR"
+},
+{
+"id": "visual_states/android/dark",
+"maui": "captures/android/maui/visual_states_dark.png",
+"cpp": "captures/android/cpp/visual_states_dark.png",
+"ssim": 0.9885,
+"diff": 0.28,
+"dino99": 0.10279024392366409,
+"p": 0.3547678961193408,
+"prelabel": "MINOR"
+},
+{
+"id": "header_footer_grid_horizontal/windows/light",
+"maui": "captures/windows/maui/header_footer_grid_horizontal_light.png",
+"cpp": "captures/windows/cpp/header_footer_grid_horizontal_light.png",
+"ssim": 0.9995,
+"diff": 0.05,
+"dino99": 0.21288613975048065,
+"p": 0.6486914074937374,
+"prelabel": "MINOR"
+},
+{
+"id": "absolute_layout/ios/light",
+"maui": "captures/ios/maui/absolute_layout_light.png",
+"cpp": "captures/ios/cpp/absolute_layout_light.png",
+"ssim": 0.9895,
+"diff": 0.63,
+"dino99": 0.1044192761182785,
+"p": 0.35121316642208805,
+"prelabel": "MINOR"
+},
+{
+"id": "border_resize_content/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/border_resize_content_dark.png",
+"cpp": "captures/maccatalyst/cpp/border_resize_content_dark.png",
+"ssim": 0.9945,
+"diff": 0.32,
+"dino99": 0.20099791884422302,
+"p": 0.6536152632549892,
+"prelabel": "MINOR"
+},
+{
+"id": "scroll_mode_test/android/dark",
+"maui": "captures/android/maui/scroll_mode_test_dark.png",
+"cpp": "captures/android/cpp/scroll_mode_test_dark.png",
+"ssim": 0.9898,
+"diff": 0.3,
+"dino99": 0.10367996245622635,
+"p": 0.34597013411574534,
+"prelabel": "MINOR"
+},
+{
+"id": "border_playground/android/light",
+"maui": "captures/android/maui/border_playground_light.png",
+"cpp": "captures/android/cpp/border_playground_light.png",
+"ssim": 0.9946,
+"diff": 0.18,
+"dino99": 0.2023651897907257,
+"p": 0.6573434147682009,
+"prelabel": "MINOR"
+},
+{
+"id": "border_stroke/android/light",
+"maui": "captures/android/maui/border_stroke_light.png",
+"cpp": "captures/android/cpp/border_stroke_light.png",
+"ssim": 0.966,
+"diff": 3.18,
+"dino99": 0.03701227903366089,
+"p": 0.33518731165245824,
+"prelabel": "MINOR"
+},
+{
+"id": "header_footer_grid_horizontal/windows/dark",
+"maui": "captures/windows/maui/header_footer_grid_horizontal_dark.png",
+"cpp": "captures/windows/cpp/header_footer_grid_horizontal_dark.png",
+"ssim": 0.9948,
+"diff": 0.23,
+"dino99": 0.20803001523017883,
+"p": 0.6744650937946826,
+"prelabel": "MINOR"
+},
+{
+"id": "polyline_gallery/ios/dark",
+"maui": "captures/ios/maui/polyline_gallery_dark.png",
+"cpp": "captures/ios/cpp/polyline_gallery_dark.png",
+"ssim": 0.976,
+"diff": 0.64,
+"dino99": 0.1601550430059433,
+"p": 0.6818584434128527,
+"prelabel": "MINOR"
+},
+{
+"id": "clipping/ios/light",
+"maui": "captures/ios/maui/clipping_light.png",
+"cpp": "captures/ios/cpp/clipping_light.png",
+"ssim": 0.9891,
+"diff": 0.22,
+"dino99": 0.0920623168349266,
+"p": 0.31365963135548613,
+"prelabel": "MINOR"
+},
+{
+"id": "custom_layout/android/dark",
+"maui": "captures/android/maui/custom_layout_dark.png",
+"cpp": "captures/android/cpp/custom_layout_dark.png",
+"ssim": 0.9903,
+"diff": 0.01,
+"dino99": 0.09154991805553436,
+"p": 0.30179785473285997,
+"prelabel": "MINOR"
+},
+{
+"id": "refresh_view/windows/dark",
+"maui": "captures/windows/maui/refresh_view_dark.png",
+"cpp": "captures/windows/cpp/refresh_view_dark.png",
+"ssim": 0.9923,
+"diff": 0.18,
+"dino99": 0.21013243496418,
+"p": 0.702657838911103,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "absolute_layout/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/absolute_layout_dark.png",
+"cpp": "captures/maccatalyst/cpp/absolute_layout_dark.png",
+"ssim": 0.9947,
+"diff": 0.29,
+"dino99": 0.09962842613458633,
+"p": 0.2903729110812906,
+"prelabel": "SAME"
+},
+{
+"id": "absolute_layout/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/absolute_layout_light.png",
+"cpp": "captures/maccatalyst/cpp/absolute_layout_light.png",
+"ssim": 0.9932,
+"diff": 0.29,
+"dino99": 0.0947183296084404,
+"p": 0.2875680121097537,
+"prelabel": "SAME"
+},
+{
+"id": "date_picker/ios/light",
+"maui": "captures/ios/maui/date_picker_light.png",
+"cpp": "captures/ios/cpp/date_picker_light.png",
+"ssim": 0.9891,
+"diff": 0.42,
+"dino99": 0.08291709423065186,
+"p": 0.28490826446237655,
+"prelabel": "SAME"
+},
+{
+"id": "device/android/dark",
+"maui": "captures/android/maui/device_dark.png",
+"cpp": "captures/android/cpp/device_dark.png",
+"ssim": 0.9844,
+"diff": 0.59,
+"dino99": 0.06927598267793655,
+"p": 0.28153499153075084,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_grid/ios/dark",
+"maui": "captures/ios/maui/header_footer_grid_dark.png",
+"cpp": "captures/ios/cpp/header_footer_grid_dark.png",
+"ssim": 0.9872,
+"diff": 0.5,
+"dino99": 0.20205502212047577,
+"p": 0.7196700078327369,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "filter_collection/android/light",
+"maui": "captures/android/maui/filter_collection_light.png",
+"cpp": "captures/android/cpp/filter_collection_light.png",
+"ssim": 0.9901,
+"diff": 0.27,
+"dino99": 0.08183345198631287,
+"p": 0.27358716562712787,
+"prelabel": "SAME"
+},
+{
+"id": "formatted_text/android/dark",
+"maui": "captures/android/maui/formatted_text_dark.png",
+"cpp": "captures/android/cpp/formatted_text_dark.png",
+"ssim": 0.9948,
+"diff": 0.15,
+"dino99": 0.09408636391162872,
+"p": 0.27275200963058543,
+"prelabel": "SAME"
+},
+{
+"id": "picker/android/dark",
+"maui": "captures/android/maui/picker_dark.png",
+"cpp": "captures/android/cpp/picker_dark.png",
+"ssim": 0.981,
+"diff": 0.45,
+"dino99": 0.0545397587120533,
+"p": 0.2646567644635647,
+"prelabel": "SAME"
+},
+{
+"id": "absolute_layout/windows/dark",
+"maui": "captures/windows/maui/absolute_layout_dark.png",
+"cpp": "captures/windows/cpp/absolute_layout_dark.png",
+"ssim": 0.9963,
+"diff": 0.3,
+"dino99": 0.09320447593927383,
+"p": 0.2584705990101603,
+"prelabel": "SAME"
+},
+{
+"id": "polyline_gallery/android/light",
+"maui": "captures/android/maui/polyline_gallery_light.png",
+"cpp": "captures/android/cpp/polyline_gallery_light.png",
+"ssim": 0.9754,
+"diff": 0.65,
+"dino99": 0.1809045970439911,
+"p": 0.7498043240399072,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "absolute_layout/windows/light",
+"maui": "captures/windows/maui/absolute_layout_light.png",
+"cpp": "captures/windows/cpp/absolute_layout_light.png",
+"ssim": 0.9943,
+"diff": 0.3,
+"dino99": 0.08242189139127731,
+"p": 0.24311594119248162,
+"prelabel": "SAME"
+},
+{
+"id": "scattered_radio_button/android/dark",
+"maui": "captures/android/maui/scattered_radio_button_dark.png",
+"cpp": "captures/android/cpp/scattered_radio_button_dark.png",
+"ssim": 0.9888,
+"diff": 0.57,
+"dino99": 0.06680556386709213,
+"p": 0.2405043273267513,
+"prelabel": "SAME"
+},
+{
+"id": "cv_visual_states/android/light",
+"maui": "captures/android/maui/cv_visual_states_light.png",
+"cpp": "captures/android/cpp/cv_visual_states_light.png",
+"ssim": 0.9811,
+"diff": 0.86,
+"dino99": 0.04586339369416237,
+"p": 0.2393859263260495,
+"prelabel": "SAME"
+},
+{
+"id": "device/windows/light",
+"maui": "captures/windows/maui/device_light.png",
+"cpp": "captures/windows/cpp/device_light.png",
+"ssim": 0.9893,
+"diff": 0.32,
+"dino99": 0.06673848628997803,
+"p": 0.23668824138738911,
+"prelabel": "SAME"
+},
+{
+"id": "indicator/ios/dark",
+"maui": "captures/ios/maui/indicator_dark.png",
+"cpp": "captures/ios/cpp/indicator_dark.png",
+"ssim": 0.9745,
+"diff": 0.88,
+"dino99": 0.18420466780662537,
+"p": 0.7654993519490716,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "picker/android/light",
+"maui": "captures/android/maui/picker_light.png",
+"cpp": "captures/android/cpp/picker_light.png",
+"ssim": 0.983,
+"diff": 0.26,
+"dino99": 0.04897259920835495,
+"p": 0.23408067707593885,
+"prelabel": "SAME"
+},
+{
+"id": "controls_stack/windows/dark",
+"maui": "captures/windows/maui/controls_stack_dark.png",
+"cpp": "captures/windows/cpp/controls_stack_dark.png",
+"ssim": 0.9982,
+"diff": 0.01,
+"dino99": 0.0888623595237732,
+"p": 0.23235435877359767,
+"prelabel": "SAME"
+},
+{
+"id": "border_stroke/android/dark",
+"maui": "captures/android/maui/border_stroke_dark.png",
+"cpp": "captures/android/cpp/border_stroke_dark.png",
+"ssim": 0.9733,
+"diff": 3.33,
+"dino99": 0.021227043122053146,
+"p": 0.2290656895430695,
+"prelabel": "SAME"
+},
+{
+"id": "search_bar/android/light",
+"maui": "captures/android/maui/search_bar_light.png",
+"cpp": "captures/android/cpp/search_bar_light.png",
+"ssim": 0.9901,
+"diff": 0.36,
+"dino99": 0.06535034626722336,
+"p": 0.227278105785811,
+"prelabel": "SAME"
+},
+{
+"id": "clip_views/android/light",
+"maui": "captures/android/maui/clip_views_light.png",
+"cpp": "captures/android/cpp/clip_views_light.png",
+"ssim": 0.9817,
+"diff": 0.56,
+"dino99": 0.0424935407936573,
+"p": 0.2260769734283337,
+"prelabel": "SAME"
+},
+{
+"id": "refresh_view/windows/light",
+"maui": "captures/windows/maui/refresh_view_light.png",
+"cpp": "captures/windows/cpp/refresh_view_light.png",
+"ssim": 0.9927,
+"diff": 0.18,
+"dino99": 0.2359730303287506,
+"p": 0.7740976942005472,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "hybrid_web_view/ios/dark",
+"maui": "captures/ios/maui/hybrid_web_view_dark.png",
+"cpp": "captures/ios/cpp/hybrid_web_view_dark.png",
+"ssim": 0.9847,
+"diff": 0.66,
+"dino99": 0.05028638243675232,
+"p": 0.2255337506651902,
+"prelabel": "SAME"
+},
+{
+"id": "cv_visual_states/windows/dark",
+"maui": "captures/windows/maui/cv_visual_states_dark.png",
+"cpp": "captures/windows/cpp/cv_visual_states_dark.png",
+"ssim": 0.9994,
+"diff": 0.03,
+"dino99": 0.25500407814979553,
+"p": 0.7771373032886131,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "layout_is_enabled/android/dark",
+"maui": "captures/android/maui/layout_is_enabled_dark.png",
+"cpp": "captures/android/cpp/layout_is_enabled_dark.png",
+"ssim": 0.9801,
+"diff": 0.33,
+"dino99": 0.036784857511520386,
+"p": 0.22231484880122973,
+"prelabel": "SAME"
+},
+{
+"id": "date_picker/ios/dark",
+"maui": "captures/ios/maui/date_picker_dark.png",
+"cpp": "captures/ios/cpp/date_picker_dark.png",
+"ssim": 0.9887,
+"diff": 0.42,
+"dino99": 0.059315893799066544,
+"p": 0.22127329445487376,
+"prelabel": "SAME"
+},
+{
+"id": "pickers/android/dark",
+"maui": "captures/android/maui/pickers_dark.png",
+"cpp": "captures/android/cpp/pickers_dark.png",
+"ssim": 0.9874,
+"diff": 0.47,
+"dino99": 0.05327276140451431,
+"p": 0.214685757791616,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_view/windows/light",
+"maui": "captures/windows/maui/header_footer_view_light.png",
+"cpp": "captures/windows/cpp/header_footer_view_light.png",
+"ssim": 0.9968,
+"diff": 0.2,
+"dino99": 0.07747772336006165,
+"p": 0.21251459821931065,
+"prelabel": "SAME"
+},
+{
+"id": "label/android/light",
+"maui": "captures/android/maui/label_light.png",
+"cpp": "captures/android/cpp/label_light.png",
+"ssim": 0.9838,
+"diff": 0.72,
+"dino99": 0.04275605455040932,
+"p": 0.21237656006957434,
+"prelabel": "SAME"
+},
+{
+"id": "time_picker/ios/dark",
+"maui": "captures/ios/maui/time_picker_dark.png",
+"cpp": "captures/ios/cpp/time_picker_dark.png",
+"ssim": 0.9823,
+"diff": 0.62,
+"dino99": 0.036143410950899124,
+"p": 0.20589508640686247,
+"prelabel": "SAME"
+},
+{
+"id": "pickers/ios/dark",
+"maui": "captures/ios/maui/pickers_dark.png",
+"cpp": "captures/ios/cpp/pickers_dark.png",
+"ssim": 0.9933,
+"diff": 0.26,
+"dino99": 0.0651339665055275,
+"p": 0.20505568326559911,
+"prelabel": "SAME"
+},
+{
+"id": "label/android/dark",
+"maui": "captures/android/maui/label_dark.png",
+"cpp": "captures/android/cpp/label_dark.png",
+"ssim": 0.9833,
+"diff": 0.86,
+"dino99": 0.037568043917417526,
+"p": 0.2028656428363492,
+"prelabel": "SAME"
+},
+{
+"id": "device/windows/dark",
+"maui": "captures/windows/maui/device_dark.png",
+"cpp": "captures/windows/cpp/device_dark.png",
+"ssim": 0.9895,
+"diff": 0.34,
+"dino99": 0.05335833877325058,
+"p": 0.20106924625451034,
+"prelabel": "SAME"
+},
+{
+"id": "device/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/device_light.png",
+"cpp": "captures/maccatalyst/cpp/device_light.png",
+"ssim": 0.991,
+"diff": 0.3,
+"dino99": 0.056707482784986496,
+"p": 0.19950551574831019,
+"prelabel": "SAME"
+},
+{
+"id": "clip_views/android/dark",
+"maui": "captures/android/maui/clip_views_dark.png",
+"cpp": "captures/android/cpp/clip_views_dark.png",
+"ssim": 0.9854,
+"diff": 0.56,
+"dino99": 0.039128806442022324,
+"p": 0.19324395723064033,
+"prelabel": "SAME"
+},
+{
+"id": "formatted_text/android/light",
+"maui": "captures/android/maui/formatted_text_light.png",
+"cpp": "captures/android/cpp/formatted_text_light.png",
+"ssim": 0.995,
+"diff": 0.13,
+"dino99": 0.06388787180185318,
+"p": 0.19128502826990168,
+"prelabel": "SAME"
+},
+{
+"id": "alerts/android/dark",
+"maui": "captures/android/maui/alerts_dark.png",
+"cpp": "captures/android/cpp/alerts_dark.png",
+"ssim": 0.9897,
+"diff": 0.03,
+"dino99": 0.049676939845085144,
+"p": 0.19110503110714439,
+"prelabel": "SAME"
+},
+{
+"id": "pickers/android/light",
+"maui": "captures/android/maui/pickers_light.png",
+"cpp": "captures/android/cpp/pickers_light.png",
+"ssim": 0.9932,
+"diff": 0.25,
+"dino99": 0.05869137495756149,
+"p": 0.1903666755508466,
+"prelabel": "SAME"
+},
+{
+"id": "border_resize_content/ios/dark",
+"maui": "captures/ios/maui/border_resize_content_dark.png",
+"cpp": "captures/ios/cpp/border_resize_content_dark.png",
+"ssim": 0.9889,
+"diff": 0.8,
+"dino99": 0.24229580163955688,
+"p": 0.8143363864253628,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "ios_blur_effect/android/dark",
+"maui": "captures/android/maui/ios_blur_effect_dark.png",
+"cpp": "captures/android/cpp/ios_blur_effect_dark.png",
+"ssim": 0.9789,
+"diff": 1.42,
+"dino99": 0.014164374209940434,
+"p": 0.17602206620224628,
+"prelabel": "SAME"
+},
+{
+"id": "path_transform_string/android/light",
+"maui": "captures/android/maui/path_transform_string_light.png",
+"cpp": "captures/android/cpp/path_transform_string_light.png",
+"ssim": 0.9844,
+"diff": 0.78,
+"dino99": 0.027568459510803223,
+"p": 0.1732920585899027,
+"prelabel": "SAME"
+},
+{
+"id": "border_playground/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/border_playground_dark.png",
+"cpp": "captures/maccatalyst/cpp/border_playground_dark.png",
+"ssim": 0.9969,
+"diff": 0.08,
+"dino99": 0.06042840704321861,
+"p": 0.17227714494740518,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_view/windows/dark",
+"maui": "captures/windows/maui/header_footer_view_dark.png",
+"cpp": "captures/windows/cpp/header_footer_view_dark.png",
+"ssim": 0.9968,
+"diff": 0.21,
+"dino99": 0.05956185236573219,
+"p": 0.1709977863196441,
+"prelabel": "SAME"
+},
+{
+"id": "search_bar/android/dark",
+"maui": "captures/android/maui/search_bar_dark.png",
+"cpp": "captures/android/cpp/search_bar_dark.png",
+"ssim": 0.9895,
+"diff": 0.39,
+"dino99": 0.03995498642325401,
+"p": 0.17069987797480166,
+"prelabel": "SAME"
+},
+{
+"id": "application_control/android/dark",
+"maui": "captures/android/maui/application_control_dark.png",
+"cpp": "captures/android/cpp/application_control_dark.png",
+"ssim": 0.9989,
+"diff": 0.05,
+"dino99": 0.06430935859680176,
+"p": 0.1691926937579516,
+"prelabel": "SAME"
+},
+{
+"id": "border_resize_content/ios/light",
+"maui": "captures/ios/maui/border_resize_content_light.png",
+"cpp": "captures/ios/cpp/border_resize_content_light.png",
+"ssim": 0.9879,
+"diff": 0.81,
+"dino99": 0.24738579988479614,
+"p": 0.8312885346636321,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "some_empty_groups/ios/dark",
+"maui": "captures/ios/maui/some_empty_groups_dark.png",
+"cpp": "captures/ios/cpp/some_empty_groups_dark.png",
+"ssim": 0.9875,
+"diff": 0.63,
+"dino99": 0.03354956582188606,
+"p": 0.1684354252635641,
+"prelabel": "SAME"
+},
+{
+"id": "ios_entry/ios/dark",
+"maui": "captures/ios/maui/ios_entry_dark.png",
+"cpp": "captures/ios/cpp/ios_entry_dark.png",
+"ssim": 0.9815,
+"diff": 0.67,
+"dino99": 0.017041748389601707,
+"p": 0.16737120699615543,
+"prelabel": "SAME"
+},
+{
+"id": "button/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/button_light.png",
+"cpp": "captures/maccatalyst/cpp/button_light.png",
+"ssim": 0.99,
+"diff": 0.42,
+"dino99": 0.03725340589880943,
+"p": 0.16230199250125588,
+"prelabel": "SAME"
+},
+{
+"id": "input_controls/android/light",
+"maui": "captures/android/maui/input_controls_light.png",
+"cpp": "captures/android/cpp/input_controls_light.png",
+"ssim": 0.9992,
+"diff": 0.01,
+"dino99": 0.2825689911842346,
+"p": 0.8416471198844063,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "web_view/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/web_view_dark.png",
+"cpp": "captures/maccatalyst/cpp/web_view_dark.png",
+"ssim": 0.9948,
+"diff": 0.25,
+"dino99": 0.04706202819943428,
+"p": 0.15629342858453812,
+"prelabel": "SAME"
+},
+{
+"id": "pickers/ios/light",
+"maui": "captures/ios/maui/pickers_light.png",
+"cpp": "captures/ios/cpp/pickers_light.png",
+"ssim": 0.9935,
+"diff": 0.26,
+"dino99": 0.03604758530855179,
+"p": 0.14193797503771458,
+"prelabel": "SAME"
+},
+{
+"id": "polyline_gallery/android/dark",
+"maui": "captures/android/maui/polyline_gallery_dark.png",
+"cpp": "captures/android/cpp/polyline_gallery_dark.png",
+"ssim": 0.9763,
+"diff": 0.71,
+"dino99": 0.23291794955730438,
+"p": 0.8631578183813231,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "scroll_mode_test/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/scroll_mode_test_light.png",
+"cpp": "captures/maccatalyst/cpp/scroll_mode_test_light.png",
+"ssim": 0.9942,
+"diff": 0.17,
+"dino99": 0.033515553921461105,
+"p": 0.13409035641069564,
+"prelabel": "SAME"
+},
+{
+"id": "some_empty_groups/ios/light",
+"maui": "captures/ios/maui/some_empty_groups_light.png",
+"cpp": "captures/ios/cpp/some_empty_groups_light.png",
+"ssim": 0.9894,
+"diff": 0.51,
+"dino99": 0.019113410264253616,
+"p": 0.13132443523604556,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_rtl/ios/dark",
+"maui": "captures/ios/maui/empty_view_rtl_dark.png",
+"cpp": "captures/ios/cpp/empty_view_rtl_dark.png",
+"ssim": 0.995,
+"diff": 0.19,
+"dino99": 0.032717715948820114,
+"p": 0.12906690340425284,
+"prelabel": "SAME"
+},
+{
+"id": "indicator/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/indicator_light.png",
+"cpp": "captures/maccatalyst/cpp/indicator_light.png",
+"ssim": 0.9871,
+"diff": 0.31,
+"dino99": 0.26687490940093994,
+"p": 0.8720406763984182,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "swipe_view_shadow/ios/light",
+"maui": "captures/ios/maui/swipe_view_shadow_light.png",
+"cpp": "captures/ios/cpp/swipe_view_shadow_light.png",
+"ssim": 0.9992,
+"diff": 0.0,
+"dino99": 0.3018007278442383,
+"p": 0.8764258711699495,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "rectangle_gallery/android/light",
+"maui": "captures/android/maui/rectangle_gallery_light.png",
+"cpp": "captures/android/cpp/rectangle_gallery_light.png",
+"ssim": 0.9882,
+"diff": 1.23,
+"dino99": 0.011124558746814728,
+"p": 0.12334463262985977,
+"prelabel": "SAME"
+},
+{
+"id": "filter_collection/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/filter_collection_light.png",
+"cpp": "captures/maccatalyst/cpp/filter_collection_light.png",
+"ssim": 0.9943,
+"diff": 0.19,
+"dino99": 0.023634281009435654,
+"p": 0.11737921645169386,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_group_gallery/android/dark",
+"maui": "captures/android/maui/radio_button_group_gallery_dark.png",
+"cpp": "captures/android/cpp/radio_button_group_gallery_dark.png",
+"ssim": 0.9945,
+"diff": 0.45,
+"dino99": 0.023228805512189865,
+"p": 0.11592813131104131,
+"prelabel": "SAME"
+},
+{
+"id": "stepper/android/dark",
+"maui": "captures/android/maui/stepper_dark.png",
+"cpp": "captures/android/cpp/stepper_dark.png",
+"ssim": 0.9976,
+"diff": 0.04,
+"dino99": 0.03144849091768265,
+"p": 0.11585592506159022,
+"prelabel": "SAME"
+},
+{
+"id": "controls_stack/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/controls_stack_dark.png",
+"cpp": "captures/maccatalyst/cpp/controls_stack_dark.png",
+"ssim": 0.995,
+"diff": 0.12,
+"dino99": 0.02285783365368843,
+"p": 0.11333366383878132,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_load_simulate/android/light",
+"maui": "captures/android/maui/empty_view_load_simulate_light.png",
+"cpp": "captures/android/cpp/empty_view_load_simulate_light.png",
+"ssim": 0.9945,
+"diff": 0.24,
+"dino99": 0.020038628950715065,
+"p": 0.11111318282584368,
+"prelabel": "SAME"
+},
+{
+"id": "containers/ios/dark",
+"maui": "captures/ios/maui/containers_dark.png",
+"cpp": "captures/ios/cpp/containers_dark.png",
+"ssim": 0.9887,
+"diff": 0.56,
+"dino99": 0.004125543404370546,
+"p": 0.11045353099447416,
+"prelabel": "SAME"
+},
+{
+"id": "relative_layout/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/relative_layout_dark.png",
+"cpp": "captures/maccatalyst/cpp/relative_layout_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.026342980563640594,
+"p": 0.10940284614263325,
+"prelabel": "SAME"
+},
+{
+"id": "animation/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/animation_light.png",
+"cpp": "captures/maccatalyst/cpp/animation_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.02597402036190033,
+"p": 0.10925343290545593,
+"prelabel": "SAME"
+},
+{
+"id": "animation/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/animation_dark.png",
+"cpp": "captures/maccatalyst/cpp/animation_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.026083825156092644,
+"p": 0.10902466315586141,
+"prelabel": "SAME"
+},
+{
+"id": "custom_layout/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/custom_layout_dark.png",
+"cpp": "captures/maccatalyst/cpp/custom_layout_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.025599578395485878,
+"p": 0.10832108086772169,
+"prelabel": "SAME"
+},
+{
+"id": "content_view/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/content_view_light.png",
+"cpp": "captures/maccatalyst/cpp/content_view_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.023866387084126472,
+"p": 0.10621459355015375,
+"prelabel": "SAME"
+},
+{
+"id": "containers/android/light",
+"maui": "captures/android/maui/containers_light.png",
+"cpp": "captures/android/cpp/containers_light.png",
+"ssim": 0.99,
+"diff": 0.66,
+"dino99": 0.004498692695051432,
+"p": 0.10597603387085917,
+"prelabel": "SAME"
+},
+{
+"id": "radio_template_from_style/ios/light",
+"maui": "captures/ios/maui/radio_template_from_style_light.png",
+"cpp": "captures/ios/cpp/radio_template_from_style_light.png",
+"ssim": 0.9926,
+"diff": 0.16,
+"dino99": 0.01130275335162878,
+"p": 0.10579245487387591,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_load_simulate/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/empty_view_load_simulate_light.png",
+"cpp": "captures/maccatalyst/cpp/empty_view_load_simulate_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.022981123998761177,
+"p": 0.1049605584759544,
+"prelabel": "SAME"
+},
+{
+"id": "staggered_layout/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/staggered_layout_dark.png",
+"cpp": "captures/maccatalyst/cpp/staggered_layout_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.02262142114341259,
+"p": 0.10408117550264938,
+"prelabel": "SAME"
+},
+{
+"id": "staggered_layout/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/staggered_layout_light.png",
+"cpp": "captures/maccatalyst/cpp/staggered_layout_light.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.02262142114341259,
+"p": 0.10408117550264938,
+"prelabel": "SAME"
+},
+{
+"id": "line_join_gallery/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/line_join_gallery_light.png",
+"cpp": "captures/maccatalyst/cpp/line_join_gallery_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.022252917289733887,
+"p": 0.10393881948100316,
+"prelabel": "SAME"
+},
+{
+"id": "date_picker/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/date_picker_dark.png",
+"cpp": "captures/maccatalyst/cpp/date_picker_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.022519372403621674,
+"p": 0.10393852393513607,
+"prelabel": "SAME"
+},
+{
+"id": "border_stroke/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/border_stroke_light.png",
+"cpp": "captures/maccatalyst/cpp/border_stroke_light.png",
+"ssim": 0.9927,
+"diff": 1.82,
+"dino99": 0.009805195033550262,
+"p": 0.10331499829569216,
+"prelabel": "SAME"
+},
+{
+"id": "ios_date_picker/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/ios_date_picker_light.png",
+"cpp": "captures/maccatalyst/cpp/ios_date_picker_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.02172110229730606,
+"p": 0.10319820021444617,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_null/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/empty_view_null_light.png",
+"cpp": "captures/maccatalyst/cpp/empty_view_null_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.02170330099761486,
+"p": 0.10317349062384422,
+"prelabel": "SAME"
+},
+{
+"id": "adaptive_collection/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/adaptive_collection_light.png",
+"cpp": "captures/maccatalyst/cpp/adaptive_collection_light.png",
+"ssim": 0.9968,
+"diff": 0.11,
+"dino99": 0.02027457021176815,
+"p": 0.10267205257986098,
+"prelabel": "SAME"
+},
+{
+"id": "check_box/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/check_box_light.png",
+"cpp": "captures/maccatalyst/cpp/check_box_light.png",
+"ssim": 0.9965,
+"diff": 0.12,
+"dino99": 0.01924135722219944,
+"p": 0.10235020979946714,
+"prelabel": "SAME"
+},
+{
+"id": "clipping/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/clipping_light.png",
+"cpp": "captures/maccatalyst/cpp/clipping_light.png",
+"ssim": 0.9965,
+"diff": 0.15,
+"dino99": 0.018895789980888367,
+"p": 0.10187495745282377,
+"prelabel": "SAME"
+},
+{
+"id": "border/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/border_light.png",
+"cpp": "captures/maccatalyst/cpp/border_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.020702600479125977,
+"p": 0.10179283740817174,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_rtl/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/empty_view_rtl_light.png",
+"cpp": "captures/maccatalyst/cpp/empty_view_rtl_light.png",
+"ssim": 0.9956,
+"diff": 0.14,
+"dino99": 0.016400814056396484,
+"p": 0.10174468196547817,
+"prelabel": "SAME"
+},
+{
+"id": "path_gallery/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/path_gallery_light.png",
+"cpp": "captures/maccatalyst/cpp/path_gallery_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.020655158907175064,
+"p": 0.10172779134816831,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_null/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/empty_view_null_dark.png",
+"cpp": "captures/maccatalyst/cpp/empty_view_null_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.02054358832538128,
+"p": 0.10121051605282334,
+"prelabel": "SAME"
+},
+{
+"id": "collectionview/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/collectionview_dark.png",
+"cpp": "captures/maccatalyst/cpp/collectionview_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.02052471973001957,
+"p": 0.10118477268076978,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_border/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/radio_button_border_light.png",
+"cpp": "captures/maccatalyst/cpp/radio_button_border_light.png",
+"ssim": 0.997,
+"diff": 0.15,
+"dino99": 0.01931040920317173,
+"p": 0.10062097102454574,
+"prelabel": "SAME"
+},
+{
+"id": "custom_layout/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/custom_layout_light.png",
+"cpp": "captures/maccatalyst/cpp/custom_layout_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.019351698458194733,
+"p": 0.09995501387600901,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_border/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/radio_button_border_dark.png",
+"cpp": "captures/maccatalyst/cpp/radio_button_border_dark.png",
+"ssim": 0.9967,
+"diff": 0.16,
+"dino99": 0.017887702211737633,
+"p": 0.09977882768141713,
+"prelabel": "SAME"
+},
+{
+"id": "layout_is_enabled/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/layout_is_enabled_light.png",
+"cpp": "captures/maccatalyst/cpp/layout_is_enabled_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.018778549507260323,
+"p": 0.09918422791130209,
+"prelabel": "SAME"
+},
+{
+"id": "polygon_gallery/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/polygon_gallery_light.png",
+"cpp": "captures/maccatalyst/cpp/polygon_gallery_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.01774502731859684,
+"p": 0.09780768182016074,
+"prelabel": "SAME"
+},
+{
+"id": "time_picker/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/time_picker_dark.png",
+"cpp": "captures/maccatalyst/cpp/time_picker_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.017977621406316757,
+"p": 0.09776259193969275,
+"prelabel": "SAME"
+},
+{
+"id": "cv_visual_states/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/cv_visual_states_light.png",
+"cpp": "captures/maccatalyst/cpp/cv_visual_states_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.0175494235008955,
+"p": 0.09754908202534404,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_grid/android/light",
+"maui": "captures/android/maui/header_footer_grid_light.png",
+"cpp": "captures/android/cpp/header_footer_grid_light.png",
+"ssim": 0.9995,
+"diff": 0.0,
+"dino99": 0.02365102805197239,
+"p": 0.0975071922282593,
+"prelabel": "SAME"
+},
+{
+"id": "line_join_gallery/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/line_join_gallery_dark.png",
+"cpp": "captures/maccatalyst/cpp/line_join_gallery_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.017759272828698158,
+"p": 0.09747408052256736,
+"prelabel": "SAME"
+},
+{
+"id": "fonts/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/fonts_dark.png",
+"cpp": "captures/maccatalyst/cpp/fonts_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.01761511154472828,
+"p": 0.09728401177912871,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_grid/windows/dark",
+"maui": "captures/windows/maui/header_footer_grid_dark.png",
+"cpp": "captures/windows/cpp/header_footer_grid_dark.png",
+"ssim": 0.9734,
+"diff": 0.42,
+"dino99": 0.2513708174228668,
+"p": 0.9033105634552363,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "clipping/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/clipping_dark.png",
+"cpp": "captures/maccatalyst/cpp/clipping_dark.png",
+"ssim": 0.9968,
+"diff": 0.15,
+"dino99": 0.01550475787371397,
+"p": 0.09626523826610879,
+"prelabel": "SAME"
+},
+{
+"id": "tabbed_flyout/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/tabbed_flyout_light.png",
+"cpp": "captures/maccatalyst/cpp/tabbed_flyout_light.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.016544988378882408,
+"p": 0.09588342515117099,
+"prelabel": "SAME"
+},
+{
+"id": "rectangle_gallery/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/rectangle_gallery_dark.png",
+"cpp": "captures/maccatalyst/cpp/rectangle_gallery_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.016289131715893745,
+"p": 0.09555123833945077,
+"prelabel": "SAME"
+},
+{
+"id": "ellipse_gallery/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/ellipse_gallery_light.png",
+"cpp": "captures/maccatalyst/cpp/ellipse_gallery_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.015850026160478592,
+"p": 0.0953279364358049,
+"prelabel": "SAME"
+},
+{
+"id": "search_bar/ios/light",
+"maui": "captures/ios/maui/search_bar_light.png",
+"cpp": "captures/ios/cpp/search_bar_light.png",
+"ssim": 0.9976,
+"diff": 0.17,
+"dino99": 0.01690520904958248,
+"p": 0.0953130819669128,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_border/ios/dark",
+"maui": "captures/ios/maui/radio_button_border_dark.png",
+"cpp": "captures/ios/cpp/radio_button_border_dark.png",
+"ssim": 0.9983,
+"diff": 0.06,
+"dino99": 0.018582509830594063,
+"p": 0.09506843231879818,
+"prelabel": "SAME"
+},
+{
+"id": "ellipse_gallery/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/ellipse_gallery_dark.png",
+"cpp": "captures/maccatalyst/cpp/ellipse_gallery_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.015784146264195442,
+"p": 0.09489861910679215,
+"prelabel": "SAME"
+},
+{
+"id": "filter_collection/android/dark",
+"maui": "captures/android/maui/filter_collection_dark.png",
+"cpp": "captures/android/cpp/filter_collection_dark.png",
+"ssim": 0.985,
+"diff": 0.69,
+"dino99": 0.2837606966495514,
+"p": 0.9052020547924027,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "stepper/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/stepper_light.png",
+"cpp": "captures/maccatalyst/cpp/stepper_light.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.015459605492651463,
+"p": 0.09448130682327303,
+"prelabel": "SAME"
+},
+{
+"id": "stepper/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/stepper_dark.png",
+"cpp": "captures/maccatalyst/cpp/stepper_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.015459605492651463,
+"p": 0.09448130682327303,
+"prelabel": "SAME"
+},
+{
+"id": "hit_testing/windows/dark",
+"maui": "captures/windows/maui/hit_testing_dark.png",
+"cpp": "captures/windows/cpp/hit_testing_dark.png",
+"ssim": 0.9848,
+"diff": 0.34,
+"dino99": 0.2838720381259918,
+"p": 0.9060286152974151,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "invalidate_brush/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/invalidate_brush_dark.png",
+"cpp": "captures/maccatalyst/cpp/invalidate_brush_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.01475506741553545,
+"p": 0.09358102640981214,
+"prelabel": "SAME"
+},
+{
+"id": "line_gallery/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/line_gallery_dark.png",
+"cpp": "captures/maccatalyst/cpp/line_gallery_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.014598428271710873,
+"p": 0.09338191615186942,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_group_gallery/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/radio_button_group_gallery_light.png",
+"cpp": "captures/maccatalyst/cpp/radio_button_group_gallery_light.png",
+"ssim": 0.9968,
+"diff": 0.19,
+"dino99": 0.012816354632377625,
+"p": 0.0928136067684809,
+"prelabel": "SAME"
+},
+{
+"id": "footer_only_string/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/footer_only_string_light.png",
+"cpp": "captures/maccatalyst/cpp/footer_only_string_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.013675312511622906,
+"p": 0.09255160553215538,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_grid_horizontal/android/dark",
+"maui": "captures/android/maui/header_footer_grid_horizontal_dark.png",
+"cpp": "captures/android/cpp/header_footer_grid_horizontal_dark.png",
+"ssim": 0.9989,
+"diff": 0.05,
+"dino99": 0.018201690167188644,
+"p": 0.09254284323162139,
+"prelabel": "SAME"
+},
+{
+"id": "switch_grouping/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/switch_grouping_dark.png",
+"cpp": "captures/maccatalyst/cpp/switch_grouping_dark.png",
+"ssim": 0.9974,
+"diff": 0.08,
+"dino99": 0.014197025448083878,
+"p": 0.09253696734587293,
+"prelabel": "SAME"
+},
+{
+"id": "invalidate_brush/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/invalidate_brush_light.png",
+"cpp": "captures/maccatalyst/cpp/invalidate_brush_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.013460876420140266,
+"p": 0.0922818155255141,
+"prelabel": "SAME"
+},
+{
+"id": "hybrid_web_view/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/hybrid_web_view_dark.png",
+"cpp": "captures/maccatalyst/cpp/hybrid_web_view_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.01351746916770935,
+"p": 0.09201819902180247,
+"prelabel": "SAME"
+},
+{
+"id": "triggers/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/triggers_light.png",
+"cpp": "captures/maccatalyst/cpp/triggers_light.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.013143389485776424,
+"p": 0.09155045091739597,
+"prelabel": "SAME"
+},
+{
+"id": "scattered_radio_button/ios/light",
+"maui": "captures/ios/maui/scattered_radio_button_light.png",
+"cpp": "captures/ios/cpp/scattered_radio_button_light.png",
+"ssim": 0.9978,
+"diff": 0.12,
+"dino99": 0.0139485914260149,
+"p": 0.0908937172348807,
+"prelabel": "SAME"
+},
+{
+"id": "pan_gesture_events/ios/dark",
+"maui": "captures/ios/maui/pan_gesture_events_dark.png",
+"cpp": "captures/ios/cpp/pan_gesture_events_dark.png",
+"ssim": 0.9964,
+"diff": 0.14,
+"dino99": 0.010184531100094318,
+"p": 0.0908556389000293,
+"prelabel": "SAME"
+},
+{
+"id": "grid/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/grid_light.png",
+"cpp": "captures/maccatalyst/cpp/grid_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.011944947764277458,
+"p": 0.09039464641164698,
+"prelabel": "SAME"
+},
+{
+"id": "some_empty_groups/windows/light",
+"maui": "captures/windows/maui/some_empty_groups_light.png",
+"cpp": "captures/windows/cpp/some_empty_groups_light.png",
+"ssim": 0.9956,
+"diff": 0.2,
+"dino99": 0.007605843711644411,
+"p": 0.09030534538341586,
+"prelabel": "SAME"
+},
+{
+"id": "stack_layout/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/stack_layout_dark.png",
+"cpp": "captures/maccatalyst/cpp/stack_layout_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.012071356177330017,
+"p": 0.09022180764896338,
+"prelabel": "SAME"
+},
+{
+"id": "items/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/items_dark.png",
+"cpp": "captures/maccatalyst/cpp/items_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.011879252269864082,
+"p": 0.08998556315691916,
+"prelabel": "SAME"
+},
+{
+"id": "box_view/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/box_view_dark.png",
+"cpp": "captures/maccatalyst/cpp/box_view_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.011581865139305592,
+"p": 0.08962094336841997,
+"prelabel": "SAME"
+},
+{
+"id": "preselected_items/windows/dark",
+"maui": "captures/windows/maui/preselected_items_dark.png",
+"cpp": "captures/windows/cpp/preselected_items_dark.png",
+"ssim": 0.9957,
+"diff": 0.12,
+"dino99": 0.007259216625243425,
+"p": 0.08955245440490087,
+"prelabel": "SAME"
+},
+{
+"id": "formatted_text/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/formatted_text_dark.png",
+"cpp": "captures/maccatalyst/cpp/formatted_text_dark.png",
+"ssim": 0.9963,
+"diff": 0.12,
+"dino99": 0.008626703172922134,
+"p": 0.08926849904509614,
+"prelabel": "SAME"
+},
+{
+"id": "indicator/ios/light",
+"maui": "captures/ios/maui/indicator_light.png",
+"cpp": "captures/ios/cpp/indicator_light.png",
+"ssim": 0.9792,
+"diff": 0.79,
+"dino99": 0.2730092406272888,
+"p": 0.9110998453939656,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "border_layout/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/border_layout_light.png",
+"cpp": "captures/maccatalyst/cpp/border_layout_light.png",
+"ssim": 0.9971,
+"diff": 0.1,
+"dino99": 0.010226059705018997,
+"p": 0.08861945596900339,
+"prelabel": "SAME"
+},
+{
+"id": "image/ios/light",
+"maui": "captures/ios/maui/image_light.png",
+"cpp": "captures/ios/cpp/image_light.png",
+"ssim": 0.9993,
+"diff": 0.13,
+"dino99": 0.016007423400878906,
+"p": 0.08851616659501793,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_swap/windows/dark",
+"maui": "captures/windows/maui/empty_view_swap_dark.png",
+"cpp": "captures/windows/cpp/empty_view_swap_dark.png",
+"ssim": 0.9959,
+"diff": 0.11,
+"dino99": 0.006791036110371351,
+"p": 0.08833513969268718,
+"prelabel": "SAME"
+},
+{
+"id": "progress_bar/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/progress_bar_light.png",
+"cpp": "captures/maccatalyst/cpp/progress_bar_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.010165875777602196,
+"p": 0.0882242773346978,
+"prelabel": "SAME"
+},
+{
+"id": "ios_search_bar/ios/dark",
+"maui": "captures/ios/maui/ios_search_bar_dark.png",
+"cpp": "captures/ios/cpp/ios_search_bar_dark.png",
+"ssim": 0.9984,
+"diff": 0.11,
+"dino99": 0.013138308189809322,
+"p": 0.08795007739098645,
+"prelabel": "SAME"
+},
+{
+"id": "layout_is_enabled/android/light",
+"maui": "captures/android/maui/layout_is_enabled_light.png",
+"cpp": "captures/android/cpp/layout_is_enabled_light.png",
+"ssim": 0.995,
+"diff": 0.36,
+"dino99": 0.0038924491964280605,
+"p": 0.0877347077373115,
+"prelabel": "SAME"
+},
+{
+"id": "clip/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/clip_light.png",
+"cpp": "captures/maccatalyst/cpp/clip_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.009735926985740662,
+"p": 0.08770687209219309,
+"prelabel": "SAME"
+},
+{
+"id": "date_picker/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/date_picker_light.png",
+"cpp": "captures/maccatalyst/cpp/date_picker_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.009554893709719181,
+"p": 0.08748983624382232,
+"prelabel": "SAME"
+},
+{
+"id": "drag_drop/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/drag_drop_light.png",
+"cpp": "captures/maccatalyst/cpp/drag_drop_light.png",
+"ssim": 0.9975,
+"diff": 0.09,
+"dino99": 0.010060176253318787,
+"p": 0.08713754612240342,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_view/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/empty_view_view_dark.png",
+"cpp": "captures/maccatalyst/cpp/empty_view_view_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.009248054586350918,
+"p": 0.08680547835457446,
+"prelabel": "SAME"
+},
+{
+"id": "composition_gallery/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/composition_gallery_dark.png",
+"cpp": "captures/maccatalyst/cpp/composition_gallery_dark.png",
+"ssim": 0.9975,
+"diff": 0.08,
+"dino99": 0.009633386507630348,
+"p": 0.0866296579901337,
+"prelabel": "SAME"
+},
+{
+"id": "z_index/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/z_index_light.png",
+"cpp": "captures/maccatalyst/cpp/z_index_light.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.009080234915018082,
+"p": 0.08660613909571416,
+"prelabel": "SAME"
+},
+{
+"id": "shapes/android/light",
+"maui": "captures/android/maui/shapes_light.png",
+"cpp": "captures/android/cpp/shapes_light.png",
+"ssim": 0.9993,
+"diff": 0.01,
+"dino99": 0.014170943759381771,
+"p": 0.0863186778660888,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_group_binding/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/radio_button_group_binding_dark.png",
+"cpp": "captures/maccatalyst/cpp/radio_button_group_binding_dark.png",
+"ssim": 0.9974,
+"diff": 0.13,
+"dino99": 0.009083042852580547,
+"p": 0.08629356072031007,
+"prelabel": "SAME"
+},
+{
+"id": "ios_entry/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/ios_entry_light.png",
+"cpp": "captures/maccatalyst/cpp/ios_entry_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.007915419526398182,
+"p": 0.08554632979280309,
+"prelabel": "SAME"
+},
+{
+"id": "date_picker/windows/light",
+"maui": "captures/windows/maui/date_picker_light.png",
+"cpp": "captures/windows/cpp/date_picker_light.png",
+"ssim": 0.9968,
+"diff": 0.09,
+"dino99": 0.006782321725040674,
+"p": 0.08546841020244418,
+"prelabel": "SAME"
+},
+{
+"id": "swipe_refresh/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/swipe_refresh_dark.png",
+"cpp": "captures/maccatalyst/cpp/swipe_refresh_dark.png",
+"ssim": 0.9975,
+"diff": 0.08,
+"dino99": 0.008138192817568779,
+"p": 0.0848714251993684,
+"prelabel": "SAME"
+},
+{
+"id": "gradient/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/gradient_light.png",
+"cpp": "captures/maccatalyst/cpp/gradient_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.00692765461280942,
+"p": 0.0843943594144514,
+"prelabel": "SAME"
+},
+{
+"id": "ios_search_bar/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/ios_search_bar_light.png",
+"cpp": "captures/maccatalyst/cpp/ios_search_bar_light.png",
+"ssim": 0.9971,
+"diff": 0.09,
+"dino99": 0.006353550590574741,
+"p": 0.08403869743662781,
+"prelabel": "SAME"
+},
+{
+"id": "alerts/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/alerts_light.png",
+"cpp": "captures/maccatalyst/cpp/alerts_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.006564912386238575,
+"p": 0.08397486209013998,
+"prelabel": "SAME"
+},
+{
+"id": "nested_collection/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/nested_collection_light.png",
+"cpp": "captures/maccatalyst/cpp/nested_collection_light.png",
+"ssim": 0.9974,
+"diff": 0.09,
+"dino99": 0.007085522171109915,
+"p": 0.08396018223683467,
+"prelabel": "SAME"
+},
+{
+"id": "swipe_item_position/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/swipe_item_position_dark.png",
+"cpp": "captures/maccatalyst/cpp/swipe_item_position_dark.png",
+"ssim": 0.9976,
+"diff": 0.08,
+"dino99": 0.007285003084689379,
+"p": 0.083575830612033,
+"prelabel": "SAME"
+},
+{
+"id": "switch/ios/dark",
+"maui": "captures/ios/maui/switch_dark.png",
+"cpp": "captures/ios/cpp/switch_dark.png",
+"ssim": 0.9996,
+"diff": 0.23,
+"dino99": 0.01242895144969225,
+"p": 0.08335851033170144,
+"prelabel": "SAME"
+},
+{
+"id": "ios_swipe_transition/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/ios_swipe_transition_dark.png",
+"cpp": "captures/maccatalyst/cpp/ios_swipe_transition_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.006133245304226875,
+"p": 0.08317259580408641,
+"prelabel": "SAME"
+},
+{
+"id": "dispatcher/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/dispatcher_light.png",
+"cpp": "captures/maccatalyst/cpp/dispatcher_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.005838784389197826,
+"p": 0.08314080960764406,
+"prelabel": "SAME"
+},
+{
+"id": "custom_swipe_item_view/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/custom_swipe_item_view_light.png",
+"cpp": "captures/maccatalyst/cpp/custom_swipe_item_view_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.005737092811614275,
+"p": 0.08302460670239697,
+"prelabel": "SAME"
+},
+{
+"id": "swipe_item_size/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/swipe_item_size_light.png",
+"cpp": "captures/maccatalyst/cpp/swipe_item_size_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.005248120985925198,
+"p": 0.08246791920166839,
+"prelabel": "SAME"
+},
+{
+"id": "dispatcher/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/dispatcher_dark.png",
+"cpp": "captures/maccatalyst/cpp/dispatcher_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.005387995392084122,
+"p": 0.0823241236562793,
+"prelabel": "SAME"
+},
+{
+"id": "swipe_view_shadow/android/light",
+"maui": "captures/android/maui/swipe_view_shadow_light.png",
+"cpp": "captures/android/cpp/swipe_view_shadow_light.png",
+"ssim": 0.9988,
+"diff": 0.12,
+"dino99": 0.009324256330728531,
+"p": 0.08225192320248675,
+"prelabel": "SAME"
+},
+{
+"id": "ios_first_responder/android/dark",
+"maui": "captures/android/maui/ios_first_responder_dark.png",
+"cpp": "captures/android/cpp/ios_first_responder_dark.png",
+"ssim": 0.9978,
+"diff": 0.19,
+"dino99": 0.006588537711650133,
+"p": 0.08217376962711591,
+"prelabel": "SAME"
+},
+{
+"id": "ios_picker/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/ios_picker_dark.png",
+"cpp": "captures/maccatalyst/cpp/ios_picker_dark.png",
+"ssim": 0.9976,
+"diff": 0.08,
+"dino99": 0.006052969489246607,
+"p": 0.08217124129091562,
+"prelabel": "SAME"
+},
+{
+"id": "ios_picker/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/ios_picker_light.png",
+"cpp": "captures/maccatalyst/cpp/ios_picker_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.004982512444257736,
+"p": 0.08216695338733988,
+"prelabel": "SAME"
+},
+{
+"id": "border_stroke/ios/light",
+"maui": "captures/ios/maui/border_stroke_light.png",
+"cpp": "captures/ios/cpp/border_stroke_light.png",
+"ssim": 0.9979,
+"diff": 0.17,
+"dino99": 0.006804176606237888,
+"p": 0.08211605941770303,
+"prelabel": "SAME"
+},
+{
+"id": "nested_collection/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/nested_collection_dark.png",
+"cpp": "captures/maccatalyst/cpp/nested_collection_dark.png",
+"ssim": 0.9976,
+"diff": 0.08,
+"dino99": 0.00588260730728507,
+"p": 0.08197871844960303,
+"prelabel": "SAME"
+},
+{
+"id": "entry/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/entry_light.png",
+"cpp": "captures/maccatalyst/cpp/entry_light.png",
+"ssim": 0.9972,
+"diff": 0.09,
+"dino99": 0.0046297102235257626,
+"p": 0.08176873327845166,
+"prelabel": "SAME"
+},
+{
+"id": "visual_states/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/visual_states_dark.png",
+"cpp": "captures/maccatalyst/cpp/visual_states_dark.png",
+"ssim": 0.9974,
+"diff": 0.08,
+"dino99": 0.005105876829475164,
+"p": 0.08170437295982944,
+"prelabel": "SAME"
+},
+{
+"id": "input_transparent/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/input_transparent_light.png",
+"cpp": "captures/maccatalyst/cpp/input_transparent_light.png",
+"ssim": 0.9975,
+"diff": 0.09,
+"dino99": 0.0053526959381997585,
+"p": 0.08168203867391004,
+"prelabel": "SAME"
+},
+{
+"id": "behaviors/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/behaviors_dark.png",
+"cpp": "captures/maccatalyst/cpp/behaviors_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.004082364961504936,
+"p": 0.08085663035433542,
+"prelabel": "SAME"
+},
+{
+"id": "time_picker/windows/dark",
+"maui": "captures/windows/maui/time_picker_dark.png",
+"cpp": "captures/windows/cpp/time_picker_dark.png",
+"ssim": 0.9972,
+"diff": 0.07,
+"dino99": 0.0037806162144988775,
+"p": 0.08081753008897742,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view_swap/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/empty_view_swap_light.png",
+"cpp": "captures/maccatalyst/cpp/empty_view_swap_light.png",
+"ssim": 0.9971,
+"diff": 0.09,
+"dino99": 0.00316417682915926,
+"p": 0.08042863772250099,
+"prelabel": "SAME"
+},
+{
+"id": "entry/android/light",
+"maui": "captures/android/maui/entry_light.png",
+"cpp": "captures/android/cpp/entry_light.png",
+"ssim": 0.9982,
+"diff": 0.04,
+"dino99": 0.0051574320532381535,
+"p": 0.07939186804679635,
+"prelabel": "SAME"
+},
+{
+"id": "clip_corner_radius/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/clip_corner_radius_dark.png",
+"cpp": "captures/maccatalyst/cpp/clip_corner_radius_dark.png",
+"ssim": 0.9973,
+"diff": 0.08,
+"dino99": 0.0024178591556847095,
+"p": 0.07902038009776181,
+"prelabel": "SAME"
+},
+{
+"id": "drag_drop/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/drag_drop_dark.png",
+"cpp": "captures/maccatalyst/cpp/drag_drop_dark.png",
+"ssim": 0.9977,
+"diff": 0.08,
+"dino99": 0.001949884812347591,
+"p": 0.07736125243095726,
+"prelabel": "SAME"
+},
+{
+"id": "behaviors/android/dark",
+"maui": "captures/android/maui/behaviors_dark.png",
+"cpp": "captures/android/cpp/behaviors_dark.png",
+"ssim": 0.9996,
+"diff": 0.18,
+"dino99": 0.0057668136432766914,
+"p": 0.07603378013766877,
+"prelabel": "SAME"
+},
+{
+"id": "update_path_data/android/dark",
+"maui": "captures/android/maui/update_path_data_dark.png",
+"cpp": "captures/android/cpp/update_path_data_dark.png",
+"ssim": 0.9995,
+"diff": 0.0,
+"dino99": 0.003968039993196726,
+"p": 0.07443491046644342,
+"prelabel": "SAME"
+},
+{
+"id": "empty_view/android/dark",
+"maui": "captures/android/maui/empty_view_dark.png",
+"cpp": "captures/android/cpp/empty_view_dark.png",
+"ssim": 0.9993,
+"diff": 0.01,
+"dino99": 0.0034105011727660894,
+"p": 0.07440990001005353,
+"prelabel": "SAME"
+},
+{
+"id": "ios_scroll_view/android/light",
+"maui": "captures/android/maui/ios_scroll_view_light.png",
+"cpp": "captures/android/cpp/ios_scroll_view_light.png",
+"ssim": 0.9995,
+"diff": 0.0,
+"dino99": 0.003231386886909604,
+"p": 0.07367721257575796,
+"prelabel": "SAME"
+},
+{
+"id": "invalidate_shadow_host/android/dark",
+"maui": "captures/android/maui/invalidate_shadow_host_dark.png",
+"cpp": "captures/android/cpp/invalidate_shadow_host_dark.png",
+"ssim": 0.9996,
+"diff": 0.03,
+"dino99": 0.0030723940581083298,
+"p": 0.07324263521931071,
+"prelabel": "SAME"
+},
+{
+"id": "invalidate_brush/android/light",
+"maui": "captures/android/maui/invalidate_brush_light.png",
+"cpp": "captures/android/cpp/invalidate_brush_light.png",
+"ssim": 0.9999,
+"diff": 0.0,
+"dino99": 0.003220475045964122,
+"p": 0.07258163309683013,
+"prelabel": "SAME"
+},
+{
+"id": "border_stroke/ios/dark",
+"maui": "captures/ios/maui/border_stroke_dark.png",
+"cpp": "captures/ios/cpp/border_stroke_dark.png",
+"ssim": 0.9997,
+"diff": 0.16,
+"dino99": 0.0016388004878535867,
+"p": 0.07153020822577236,
+"prelabel": "SAME"
+},
+{
+"id": "single_bound_selection/android/light",
+"maui": "captures/android/maui/single_bound_selection_light.png",
+"cpp": "captures/android/cpp/single_bound_selection_light.png",
+"ssim": 0.9998,
+"diff": 0.0,
+"dino99": 0.001568155363202095,
+"p": 0.07119490430704703,
+"prelabel": "SAME"
+},
+{
+"id": "hybrid_web_view/windows/light",
+"maui": "captures/windows/maui/hybrid_web_view_light.png",
+"cpp": "captures/windows/cpp/hybrid_web_view_light.png",
+"ssim": 0.9995,
+"diff": 0.04,
+"dino99": 0.0003227044071536511,
+"p": 0.07075432865466025,
+"prelabel": "SAME"
+},
+{
+"id": "gradient/windows/light",
+"maui": "captures/windows/maui/gradient_light.png",
+"cpp": "captures/windows/cpp/gradient_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 0.0011200403096154332,
+"p": 0.07022753689176886,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_grid_horizontal/android/light",
+"maui": "captures/android/maui/header_footer_grid_horizontal_light.png",
+"cpp": "captures/android/cpp/header_footer_grid_horizontal_light.png",
+"ssim": 0.9999,
+"diff": 0.0,
+"dino99": 0.0008293510763905942,
+"p": 0.07020401200592317,
+"prelabel": "SAME"
+},
+{
+"id": "border_layout/ios/light",
+"maui": "captures/ios/maui/border_layout_light.png",
+"cpp": "captures/ios/cpp/border_layout_light.png",
+"ssim": 0.9999,
+"diff": 0.02,
+"dino99": 0.0004941142397001386,
+"p": 0.06987647975282475,
+"prelabel": "SAME"
+},
+{
+"id": "triggers/android/light",
+"maui": "captures/android/maui/triggers_light.png",
+"cpp": "captures/android/cpp/triggers_light.png",
+"ssim": 0.9999,
+"diff": 0.0,
+"dino99": 0.0004882938228547573,
+"p": 0.06987080560450652,
+"prelabel": "SAME"
+},
+{
+"id": "update_path_data/android/light",
+"maui": "captures/android/maui/update_path_data_light.png",
+"cpp": "captures/android/cpp/update_path_data_light.png",
+"ssim": 0.9999,
+"diff": 0.0,
+"dino99": 0.0004508033161982894,
+"p": 0.06983426745515516,
+"prelabel": "SAME"
+},
+{
+"id": "alignment/ios/dark",
+"maui": "captures/ios/maui/alignment_dark.png",
+"cpp": "captures/ios/cpp/alignment_dark.png",
+"ssim": 0.9998,
+"diff": 0.05,
+"dino99": 0.00012016835535177961,
+"p": 0.06977196492367928,
+"prelabel": "SAME"
+},
+{
+"id": "basic_grouping/windows/dark",
+"maui": "captures/windows/maui/basic_grouping_dark.png",
+"cpp": "captures/windows/cpp/basic_grouping_dark.png",
+"ssim": 1.0,
+"diff": 0.01,
+"dino99": 0.0006210001301951706,
+"p": 0.06974032942150915,
+"prelabel": "SAME"
+},
+{
+"id": "grid_grouping/android/dark",
+"maui": "captures/android/maui/grid_grouping_dark.png",
+"cpp": "captures/android/cpp/grid_grouping_dark.png",
+"ssim": 0.9999,
+"diff": 0.0,
+"dino99": 0.0003395427484065294,
+"p": 0.06972593722226274,
+"prelabel": "SAME"
+},
+{
+"id": "gestures/windows/dark",
+"maui": "captures/windows/maui/gestures_dark.png",
+"cpp": "captures/windows/cpp/gestures_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 0.0004638851387426257,
+"p": 0.06958758803830059,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer/android/dark",
+"maui": "captures/android/maui/header_footer_dark.png",
+"cpp": "captures/android/cpp/header_footer_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 0.00036041202838532627,
+"p": 0.06948716440612812,
+"prelabel": "SAME"
+},
+{
+"id": "hit_testing/ios/light",
+"maui": "captures/ios/maui/hit_testing_light.png",
+"cpp": "captures/ios/cpp/hit_testing_light.png",
+"ssim": 0.9999,
+"diff": 0.02,
+"dino99": 8.186639752238989e-05,
+"p": 0.0694756441144411,
+"prelabel": "SAME"
+},
+{
+"id": "custom_swipe_item_view/windows/light",
+"maui": "captures/windows/maui/custom_swipe_item_view_light.png",
+"cpp": "captures/windows/cpp/custom_swipe_item_view_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 0.00025457472656853497,
+"p": 0.06938458500443123,
+"prelabel": "SAME"
+},
+{
+"id": "path_gallery/android/dark",
+"maui": "captures/android/maui/path_gallery_dark.png",
+"cpp": "captures/android/cpp/path_gallery_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 9.85891601885669e-05,
+"p": 0.06923365646799726,
+"prelabel": "SAME"
+},
+{
+"id": "swipe_refresh/android/dark",
+"maui": "captures/android/maui/swipe_refresh_dark.png",
+"cpp": "captures/android/cpp/swipe_refresh_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 9.111643157666549e-05,
+"p": 0.06922643363723509,
+"prelabel": "SAME"
+},
+{
+"id": "composition_gallery/windows/light",
+"maui": "captures/windows/maui/composition_gallery_light.png",
+"cpp": "captures/windows/cpp/composition_gallery_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 8.090439951047301e-05,
+"p": 0.06921656423677905,
+"prelabel": "SAME"
+},
+{
+"id": "gestures/android/dark",
+"maui": "captures/android/maui/gestures_dark.png",
+"cpp": "captures/android/cpp/gestures_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 6.965220381971449e-05,
+"p": 0.06920569108018768,
+"prelabel": "SAME"
+},
+{
+"id": "clip/windows/dark",
+"maui": "captures/windows/maui/clip_dark.png",
+"cpp": "captures/windows/cpp/clip_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 5.094649168313481e-05,
+"p": 0.069187618983564,
+"prelabel": "SAME"
+},
+{
+"id": "toolbar/windows/light",
+"maui": "captures/windows/maui/toolbar_light.png",
+"cpp": "captures/windows/cpp/toolbar_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.2156253180583008e-05,
+"p": 0.0691598124879425,
+"prelabel": "SAME"
+},
+{
+"id": "border/ios/light",
+"maui": "captures/ios/maui/border_light.png",
+"cpp": "captures/ios/cpp/border_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 8.576512300351169e-06,
+"p": 0.06914670034845828,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_group_binding/ios/light",
+"maui": "captures/ios/maui/radio_button_group_binding_light.png",
+"cpp": "captures/ios/cpp/radio_button_group_binding_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 6.572616712219315e-06,
+"p": 0.06914476564937058,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_group_binding/ios/dark",
+"maui": "captures/ios/maui/radio_button_group_binding_dark.png",
+"cpp": "captures/ios/cpp/radio_button_group_binding_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 6.042731001798529e-06,
+"p": 0.06914425406951623,
+"prelabel": "SAME"
+},
+{
+"id": "grid_grouping/ios/dark",
+"maui": "captures/ios/maui/grid_grouping_dark.png",
+"cpp": "captures/ios/cpp/grid_grouping_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 3.888611900038086e-06,
+"p": 0.06914217440441266,
+"prelabel": "SAME"
+},
+{
+"id": "flex_layout/ios/dark",
+"maui": "captures/ios/maui/flex_layout_dark.png",
+"cpp": "captures/ios/cpp/flex_layout_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7154222859971924e-06,
+"p": 0.06914007638661708,
+"prelabel": "SAME"
+},
+{
+"id": "tabbed_flyout/windows/dark",
+"maui": "captures/windows/maui/tabbed_flyout_dark.png",
+"cpp": "captures/windows/cpp/tabbed_flyout_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.4638912944064941e-06,
+"p": 0.0691398335600255,
+"prelabel": "SAME"
+},
+{
+"id": "vertical_stack/windows/light",
+"maui": "captures/windows/maui/vertical_stack_light.png",
+"cpp": "captures/windows/cpp/vertical_stack_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.0728836059570312e-06,
+"p": 0.06913945608498995,
+"prelabel": "SAME"
+},
+{
+"id": "invalidate_shadow_host/ios/light",
+"maui": "captures/ios/maui/invalidate_shadow_host_light.png",
+"cpp": "captures/ios/cpp/invalidate_shadow_host_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 4.106763071831665e-07,
+"p": 0.06913881680082867,
+"prelabel": "SAME"
+},
+{
+"id": "vertical_stack/ios/dark",
+"maui": "captures/ios/maui/vertical_stack_dark.png",
+"cpp": "captures/ios/cpp/vertical_stack_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 4.106763071831665e-07,
+"p": 0.06913881680082867,
+"prelabel": "SAME"
+},
+{
+"id": "grid/windows/dark",
+"maui": "captures/windows/maui/grid_dark.png",
+"cpp": "captures/windows/cpp/grid_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "basic_swipe/ios/light",
+"maui": "captures/ios/maui/basic_swipe_light.png",
+"cpp": "captures/ios/cpp/basic_swipe_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "chat_example/ios/dark",
+"maui": "captures/ios/maui/chat_example_dark.png",
+"cpp": "captures/ios/cpp/chat_example_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "composition_gallery/android/dark",
+"maui": "captures/android/maui/composition_gallery_dark.png",
+"cpp": "captures/android/cpp/composition_gallery_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "preselected_items/ios/dark",
+"maui": "captures/ios/maui/preselected_items_dark.png",
+"cpp": "captures/ios/cpp/preselected_items_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "app_theme_binding/windows/light",
+"maui": "captures/windows/maui/app_theme_binding_light.png",
+"cpp": "captures/windows/cpp/app_theme_binding_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "ios_blur_effect/ios/light",
+"maui": "captures/ios/maui/ios_blur_effect_light.png",
+"cpp": "captures/ios/cpp/ios_blur_effect_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "ios_pan_gesture/windows/dark",
+"maui": "captures/windows/maui/ios_pan_gesture_dark.png",
+"cpp": "captures/windows/cpp/ios_pan_gesture_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "line_join_gallery/windows/light",
+"maui": "captures/windows/maui/line_join_gallery_light.png",
+"cpp": "captures/windows/cpp/line_join_gallery_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "nested_collection/windows/dark",
+"maui": "captures/windows/maui/nested_collection_dark.png",
+"cpp": "captures/windows/cpp/nested_collection_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.384185791015625e-07,
+"p": 0.06913865050691509,
+"prelabel": "SAME"
+},
+{
+"id": "box_view/ios/dark",
+"maui": "captures/ios/maui/box_view_dark.png",
+"cpp": "captures/ios/cpp/box_view_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.318623586461399e-07,
+"p": 0.06913864417768788,
+"prelabel": "SAME"
+},
+{
+"id": "radio_button_group/android/light",
+"maui": "captures/android/maui/radio_button_group_light.png",
+"cpp": "captures/android/cpp/radio_button_group_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.318623586461399e-07,
+"p": 0.06913864417768788,
+"prelabel": "SAME"
+},
+{
+"id": "ios_first_responder/ios/dark",
+"maui": "captures/ios/maui/ios_first_responder_dark.png",
+"cpp": "captures/ios/cpp/ios_first_responder_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 2.318623586461399e-07,
+"p": 0.06913864417768788,
+"prelabel": "SAME"
+},
+{
+"id": "clip_corner_radius/ios/light",
+"maui": "captures/ios/maui/clip_corner_radius_light.png",
+"cpp": "captures/ios/cpp/clip_corner_radius_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "effects/ios/light",
+"maui": "captures/ios/maui/effects_light.png",
+"cpp": "captures/ios/cpp/effects_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "ios_scroll_view/ios/light",
+"maui": "captures/ios/maui/ios_scroll_view_light.png",
+"cpp": "captures/ios/cpp/ios_scroll_view_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "styles/windows/light",
+"maui": "captures/windows/maui/styles_light.png",
+"cpp": "captures/windows/cpp/styles_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "custom_size_swipe/ios/light",
+"maui": "captures/ios/maui/custom_size_swipe_light.png",
+"cpp": "captures/ios/cpp/custom_size_swipe_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "filter_selection/windows/light",
+"maui": "captures/windows/maui/filter_selection_light.png",
+"cpp": "captures/windows/cpp/filter_selection_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "fonts/android/light",
+"maui": "captures/android/maui/fonts_light.png",
+"cpp": "captures/android/cpp/fonts_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "path_gallery/ios/dark",
+"maui": "captures/ios/maui/path_gallery_dark.png",
+"cpp": "captures/ios/cpp/path_gallery_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "ios_slider_update_on_tap/windows/dark",
+"maui": "captures/windows/maui/ios_slider_update_on_tap_dark.png",
+"cpp": "captures/windows/cpp/ios_slider_update_on_tap_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "app_theme_binding/ios/dark",
+"maui": "captures/ios/maui/app_theme_binding_dark.png",
+"cpp": "captures/ios/cpp/app_theme_binding_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "composition_gallery/ios/light",
+"maui": "captures/ios/maui/composition_gallery_light.png",
+"cpp": "captures/ios/cpp/composition_gallery_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "swipe_item_position/ios/dark",
+"maui": "captures/ios/maui/swipe_item_position_dark.png",
+"cpp": "captures/ios/cpp/swipe_item_position_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "preselected_items/android/light",
+"maui": "captures/android/maui/preselected_items_light.png",
+"cpp": "captures/android/cpp/preselected_items_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "shape_app_theme/windows/dark",
+"maui": "captures/windows/maui/shape_app_theme_dark.png",
+"cpp": "captures/windows/cpp/shape_app_theme_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer_view/ios/light",
+"maui": "captures/ios/maui/header_footer_view_light.png",
+"cpp": "captures/ios/cpp/header_footer_view_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "single_bound_selection/windows/light",
+"maui": "captures/windows/maui/single_bound_selection_light.png",
+"cpp": "captures/windows/cpp/single_bound_selection_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "selection_command_param/windows/dark",
+"maui": "captures/windows/maui/selection_command_param_dark.png",
+"cpp": "captures/windows/cpp/selection_command_param_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "invalidate_brush/ios/dark",
+"maui": "captures/ios/maui/invalidate_brush_dark.png",
+"cpp": "captures/ios/cpp/invalidate_brush_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "basic_swipe/ios/dark",
+"maui": "captures/ios/maui/basic_swipe_dark.png",
+"cpp": "captures/ios/cpp/basic_swipe_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "behaviors/ios/light",
+"maui": "captures/ios/maui/behaviors_light.png",
+"cpp": "captures/ios/cpp/behaviors_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "path_aspect_gallery/ios/light",
+"maui": "captures/ios/maui/path_aspect_gallery_light.png",
+"cpp": "captures/ios/cpp/path_aspect_gallery_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "items_updating_scroll_mode/ios/light",
+"maui": "captures/ios/maui/items_updating_scroll_mode_light.png",
+"cpp": "captures/ios/cpp/items_updating_scroll_mode_light.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "styles/windows/dark",
+"maui": "captures/windows/maui/styles_dark.png",
+"cpp": "captures/windows/cpp/styles_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "header_footer/windows/dark",
+"maui": "captures/windows/maui/header_footer_dark.png",
+"cpp": "captures/windows/cpp/header_footer_dark.png",
+"ssim": 1.0,
+"diff": 0.0,
+"dino99": 1.7881393432617188e-07,
+"p": 0.06913859296595651,
+"prelabel": "SAME"
+},
+{
+"id": "web_view/ios/light",
+"maui": "captures/ios/maui/web_view_light.png",
+"cpp": "captures/ios/cpp/web_view_light.png",
+"ssim": 0.9882,
+"diff": 0.4,
+"dino99": 0.351375550031662,
+"p": 0.9586174680370263,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "header_footer_grid/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/header_footer_grid_light.png",
+"cpp": "captures/maccatalyst/cpp/header_footer_grid_light.png",
+"ssim": 0.9946,
+"diff": 0.25,
+"dino99": 0.3698350191116333,
+"p": 0.9594383602908411,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "swipe_refresh/windows/light",
+"maui": "captures/windows/maui/swipe_refresh_light.png",
+"cpp": "captures/windows/cpp/swipe_refresh_light.png",
+"ssim": 0.9911,
+"diff": 0.22,
+"dino99": 0.3699200451374054,
+"p": 0.9645931354878198,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "indicator/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/indicator_dark.png",
+"cpp": "captures/maccatalyst/cpp/indicator_dark.png",
+"ssim": 0.9834,
+"diff": 0.4,
+"dino99": 0.3567585349082947,
+"p": 0.9681816951731734,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "header_footer_grid_horizontal/maccatalyst/light",
+"maui": "captures/maccatalyst/maui/header_footer_grid_horizontal_light.png",
+"cpp": "captures/maccatalyst/cpp/header_footer_grid_horizontal_light.png",
+"ssim": 0.9756,
+"diff": 0.57,
+"dino99": 0.3408347964286804,
+"p": 0.9703594135535519,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "hit_testing/windows/light",
+"maui": "captures/windows/maui/hit_testing_light.png",
+"cpp": "captures/windows/cpp/hit_testing_light.png",
+"ssim": 0.9836,
+"diff": 0.36,
+"dino99": 0.3837459981441498,
+"p": 0.9783781097619858,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "activity_indicator/windows/light",
+"maui": "captures/windows/maui/activity_indicator_light.png",
+"cpp": "captures/windows/cpp/activity_indicator_light.png",
+"ssim": 0.9781,
+"diff": 0.67,
+"dino99": 0.3913118541240692,
+"p": 0.9844140666962996,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "indicator/android/dark",
+"maui": "captures/android/maui/indicator_dark.png",
+"cpp": "captures/android/cpp/indicator_dark.png",
+"ssim": 0.9757,
+"diff": 0.81,
+"dino99": 0.3995334804058075,
+"p": 0.9874450049549187,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "swipe_refresh/windows/dark",
+"maui": "captures/windows/maui/swipe_refresh_dark.png",
+"cpp": "captures/windows/cpp/swipe_refresh_dark.png",
+"ssim": 0.9906,
+"diff": 0.23,
+"dino99": 0.45661434531211853,
+"p": 0.9902935920855056,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "header_footer_grid_horizontal/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/header_footer_grid_horizontal_dark.png",
+"cpp": "captures/maccatalyst/cpp/header_footer_grid_horizontal_dark.png",
+"ssim": 0.9744,
+"diff": 0.59,
+"dino99": 0.4512982964515686,
+"p": 0.9944779812404368,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "switch/android/dark",
+"maui": "captures/android/maui/switch_dark.png",
+"cpp": "captures/android/cpp/switch_dark.png",
+"ssim": 0.9693,
+"diff": 5.53,
+"dino99": 0.5039783120155334,
+"p": 0.9979496139187224,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "empty_view_null/windows/light",
+"maui": "captures/windows/maui/empty_view_null_light.png",
+"cpp": "captures/windows/cpp/empty_view_null_light.png",
+"ssim": 0.9912,
+"diff": 0.2,
+"dino99": 0.5640968680381775,
+"p": 0.9980016897491589,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "empty_view_load_simulate/windows/light",
+"maui": "captures/windows/maui/empty_view_load_simulate_light.png",
+"cpp": "captures/windows/cpp/empty_view_load_simulate_light.png",
+"ssim": 0.9886,
+"diff": 0.26,
+"dino99": 0.5738791227340698,
+"p": 0.9984441665341501,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "check_box/android/dark",
+"maui": "captures/android/maui/check_box_dark.png",
+"cpp": "captures/android/cpp/check_box_dark.png",
+"ssim": 0.9762,
+"diff": 3.38,
+"dino99": 0.5472576022148132,
+"p": 0.9985873355774821,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "empty_view_null/windows/dark",
+"maui": "captures/windows/maui/empty_view_null_dark.png",
+"cpp": "captures/windows/cpp/empty_view_null_dark.png",
+"ssim": 0.9907,
+"diff": 0.21,
+"dino99": 0.6140887141227722,
+"p": 0.9990736491357758,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "pointer_gesture/maccatalyst/dark",
+"maui": "captures/maccatalyst/maui/pointer_gesture_dark.png",
+"cpp": "captures/maccatalyst/cpp/pointer_gesture_dark.png",
+"ssim": 0.9477,
+"diff": 3.08,
+"dino99": 0.5095503926277161,
+"p": 0.9992041120069708,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "header_footer_grid_horizontal/ios/light",
+"maui": "captures/ios/maui/header_footer_grid_horizontal_light.png",
+"cpp": "captures/ios/cpp/header_footer_grid_horizontal_light.png",
+"ssim": 0.9617,
+"diff": 0.94,
+"dino99": 0.5653077363967896,
+"p": 0.999396171328667,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "indicator/windows/light",
+"maui": "captures/windows/maui/indicator_light.png",
+"cpp": "captures/windows/cpp/indicator_light.png",
+"ssim": 0.9856,
+"diff": 0.22,
+"dino99": 0.6537013053894043,
+"p": 0.9995827966775642,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "header_footer_template/windows/light",
+"maui": "captures/windows/maui/header_footer_template_light.png",
+"cpp": "captures/windows/cpp/header_footer_template_light.png",
+"ssim": 0.9881,
+"diff": 0.96,
+"dino99": 0.6876393556594849,
+"p": 0.9997228266808742,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "indicator/windows/dark",
+"maui": "captures/windows/maui/indicator_dark.png",
+"cpp": "captures/windows/cpp/indicator_dark.png",
+"ssim": 0.9827,
+"diff": 0.29,
+"dino99": 0.6749436259269714,
+"p": 0.9997298206620279,
+"prelabel": "DIFFERENT"
+},
+{
+"id": "scroll_to_group/android/dark",
+"maui": "captures/android/maui/scroll_to_group_dark.png",
+"cpp": "captures/android/cpp/scroll_to_group_dark.png",
+"ssim": 0.7518,
+"diff": 23.67,
+"dino99": 0.8516076803207397,
+"p": 0.9999999981389318,
+"prelabel": "DIFFERENT"
+}
+]
