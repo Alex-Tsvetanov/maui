@@ -29,3 +29,12 @@ MINOR→DIFFERENT gives the same picture (v2 0.915).
 
 ## Caveat
 76 labels; CI ±0.07. v2 vs v1 (+0.10) is likely real (CIs barely overlap), but feature selection was guided by these same errors, so expect some optimism. Validate on new labels Alex adds.
+
+## Update 2026-10-14 09:50: held-out test + 108 labels
+Labels now 108 (32 new since the v2 build: 9 DIFFERENT, 23 SAME). Script: labeler/analyze3.py → v3_results.txt.
+- **Held-out** (fit on the original 76, score the 32 new): v2 AUC **0.850 (0.70-0.96)**, acc 0.75; v1 baseline 0.734 (0.51-0.91), acc 0.69. The drop from 0.91 LOO confirms mild optimism, but v2 still beats v1.
+- **LOO on all 108**: v2 **0.909 (0.85-0.96)**, acc 0.83, 18 errors; v1 0.815 (0.73-0.90), acc 0.78, 24 errors; v1+v2 0.904.
+- Held-out errors (8):
+  - *Missed DIFFERENT, small text/state:* scroll_mode_test/maccatalyst/light (text inside an input box), empty_view_rtl/ios/dark (field filled vs empty), containers/ios/dark ("Scrolled to" numbers differ: digits poorly tokenised).
+  - *Missed DIFFERENT, rotation:* header_footer_view/windows/dark (same known failure).
+  - *False DIFFERENT on Mac Catalyst dark (4):* relative_layout, animation, custom_layout, staggered_layout. A systematic maccatalyst-dark rendering offset or AA that Alex accepts, so a per-platform calibration or offset feature is needed.

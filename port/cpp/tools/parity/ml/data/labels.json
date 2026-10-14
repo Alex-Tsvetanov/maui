@@ -383,5 +383,160 @@
   "label": "DIFFERENT",
   "note": "\"This is A Footer\" label is not rotated in C++ port.",
   "ts": "2026-10-14T09:18:04+0300"
+ },
+ "search_bar/android/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:18:51+0300"
+ },
+ "application_control/android/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:19:03+0300"
+ },
+ "border_resize_content/ios/light": {
+  "label": "DIFFERENT",
+  "note": "Third shape in both columns differs between MAUI and C++ port",
+  "ts": "2026-10-14T09:19:22+0300"
+ },
+ "some_empty_groups/ios/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:20:01+0300"
+ },
+ "ios_entry/ios/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:20:29+0300"
+ },
+ "button/maccatalyst/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:20:36+0300"
+ },
+ "input_controls/android/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:20:44+0300"
+ },
+ "web_view/maccatalyst/dark": {
+  "label": "DIFFERENT",
+  "note": "\"No navigation yet\" vs \" new_page -> https://...\" labels",
+  "ts": "2026-10-14T09:21:08+0300"
+ },
+ "pickers/ios/light": {
+  "label": "DIFFERENT",
+  "note": "The label with the live data is incorrent in MAUI",
+  "ts": "2026-10-14T09:21:24+0300"
+ },
+ "polyline_gallery/android/dark": {
+  "label": "DIFFERENT",
+  "note": "labels are indented in MAUI compared to c++ port",
+  "ts": "2026-10-14T09:21:39+0300"
+ },
+ "scroll_mode_test/maccatalyst/light": {
+  "label": "DIFFERENT",
+  "note": "C++ port has the \"KeepItemsInView\" text in the input box while MAUI does not",
+  "ts": "2026-10-14T09:24:42+0300"
+ },
+ "some_empty_groups/ios/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:24:46+0300"
+ },
+ "empty_view_rtl/ios/dark": {
+  "label": "DIFFERENT",
+  "note": "Flow direction is filled in C++ port while it is not filled in MAUI",
+  "ts": "2026-10-14T09:25:06+0300"
+ },
+ "indicator/maccatalyst/light": {
+  "label": "DIFFERENT",
+  "note": "Item 1 label is missing in MAUI",
+  "ts": "2026-10-14T09:25:18+0300"
+ },
+ "swipe_view_shadow/ios/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:25:24+0300"
+ },
+ "rectangle_gallery/android/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:25:31+0300"
+ },
+ "filter_collection/maccatalyst/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:25:35+0300"
+ },
+ "radio_button_group_gallery/android/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:25:43+0300"
+ },
+ "stepper/android/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:25:53+0300"
+ },
+ "controls_stack/maccatalyst/dark": {
+  "label": "SAME",
+  "note": "Spinner is caught in different phases.",
+  "ts": "2026-10-14T09:26:14+0300"
+ },
+ "empty_view_load_simulate/android/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:26:25+0300"
+ },
+ "containers/ios/dark": {
+  "label": "DIFFERENT",
+  "note": "\"Scrolled to\" numbers differ",
+  "ts": "2026-10-14T09:26:46+0300"
+ },
+ "relative_layout/maccatalyst/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:30:58+0300"
+ },
+ "animation/maccatalyst/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:03+0300"
+ },
+ "animation/maccatalyst/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:05+0300"
+ },
+ "custom_layout/maccatalyst/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:08+0300"
+ },
+ "content_view/maccatalyst/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:12+0300"
+ },
+ "containers/android/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:16+0300"
+ },
+ "radio_template_from_style/ios/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:18+0300"
+ },
+ "empty_view_load_simulate/maccatalyst/light": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:20+0300"
+ },
+ "staggered_layout/maccatalyst/dark": {
+  "label": "SAME",
+  "note": "",
+  "ts": "2026-10-14T09:31:24+0300"
  }
 }
